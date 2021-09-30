@@ -4,27 +4,27 @@
     <body>
       <trans-unit id="DynamicEnumProperty|targetProject|Description">
         <source>A project that uses this component, whose compilation will be debugged.</source>
-        <target state="new">A project that uses this component, whose compilation will be debugged.</target>
+        <target state="translated">Ein Projekt, das diese Komponente verwendet, deren Kompilierung debuggt wird.</target>
         <note />
       </trans-unit>
       <trans-unit id="DynamicEnumProperty|targetProject|DisplayName">
         <source>Target Project</source>
-        <target state="new">Target Project</target>
+        <target state="translated">Zielprojekt</target>
         <note />
       </trans-unit>
       <trans-unit id="Rule|ComponentDebuggerLaunchProfile|Description">
         <source>Allows a user to debug a Roslyn Component by running it in the context of another projects build.</source>
-        <target state="new">Allows a user to debug a Roslyn Component by running it in the context of another projects build.</target>
+        <target state="translated">Ermöglicht einem Benutzer das Debuggen einer Roslyn-Komponente, indem er sie im Kontext eines anderen Projektbuilds ausführt.</target>
         <note />
       </trans-unit>
       <trans-unit id="Rule|ComponentDebuggerLaunchProfile|DisplayName">
         <source>Roslyn Component</source>
-        <target state="new">Roslyn Component</target>
+        <target state="translated">Roslyn-Komponente</target>
         <note />
       </trans-unit>
       <trans-unit id="StringProperty|Description|Description">
         <source>A Roslyn Component can be debugged in the context of compiling a second project that uses it. Ensure your target project is referencing this component for it to appear in the list.</source>
-        <target state="new">A Roslyn Component can be debugged in the context of compiling a second project that uses it. Ensure your target project is referencing this component for it to appear in the list.</target>
+        <target state="translated">Eine Roslyn-Komponente kann im Kontext der Kompilierung eines zweiten Projekts, das sie verwendet, debuggt werden. Stellen Sie sicher, dass Ihr Zielprojekt auf diese Komponente verweist, damit sie in der Liste angezeigt wird.</target>
         <note />
       </trans-unit>
     </body>

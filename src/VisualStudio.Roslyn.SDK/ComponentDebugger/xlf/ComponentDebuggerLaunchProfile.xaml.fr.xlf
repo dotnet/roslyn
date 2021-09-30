@@ -4,27 +4,27 @@
     <body>
       <trans-unit id="DynamicEnumProperty|targetProject|Description">
         <source>A project that uses this component, whose compilation will be debugged.</source>
-        <target state="new">A project that uses this component, whose compilation will be debugged.</target>
+        <target state="translated">Projet qui utilise ce composant, dont la compilation sera déboguée.</target>
         <note />
       </trans-unit>
       <trans-unit id="DynamicEnumProperty|targetProject|DisplayName">
         <source>Target Project</source>
-        <target state="new">Target Project</target>
+        <target state="translated">Projet cible</target>
         <note />
       </trans-unit>
       <trans-unit id="Rule|ComponentDebuggerLaunchProfile|Description">
         <source>Allows a user to debug a Roslyn Component by running it in the context of another projects build.</source>
-        <target state="new">Allows a user to debug a Roslyn Component by running it in the context of another projects build.</target>
+        <target state="translated">Permet à un utilisateur de déboguer un composant Roslyn en l’exécutant dans le contexte d’un autre Build de projets.</target>
         <note />
       </trans-unit>
       <trans-unit id="Rule|ComponentDebuggerLaunchProfile|DisplayName">
         <source>Roslyn Component</source>
-        <target state="new">Roslyn Component</target>
+        <target state="translated">Composant Roslyn</target>
         <note />
       </trans-unit>
       <trans-unit id="StringProperty|Description|Description">
         <source>A Roslyn Component can be debugged in the context of compiling a second project that uses it. Ensure your target project is referencing this component for it to appear in the list.</source>
-        <target state="new">A Roslyn Component can be debugged in the context of compiling a second project that uses it. Ensure your target project is referencing this component for it to appear in the list.</target>
+        <target state="translated">Un composant Roslyn peut être débogué dans le contexte de la compilation d'un second projet qui l'utilise. Assurez-vous que votre projet cible fait référence à ce composant pour qu'il apparaisse dans la liste.</target>
         <note />
       </trans-unit>
     </body>
