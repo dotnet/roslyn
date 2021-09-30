@@ -2226,6 +2226,12 @@ class C
                 Await diagnosticService.TryAppendDiagnosticsForSpanAsync(document, span, diagnostics)
                 Dim diagnostic = Assert.Single(diagnostics)
                 Assert.Equal("CS0219", diagnostic.Id)
+
+                ' Verify no diagnostics outside the local decl span
+                span = localDecl.GetLastToken().GetNextToken().Span
+                diagnostics.Clear()
+                Await diagnosticService.TryAppendDiagnosticsForSpanAsync(document, span, diagnostics)
+                Assert.Empty(diagnostics)
             End Using
         End Function
 

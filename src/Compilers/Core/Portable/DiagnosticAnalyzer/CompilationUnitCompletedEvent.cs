@@ -19,19 +19,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Optional filter span for a synthesized CompilationUnitCompletedEvent generated for span-based semantic diagnostic computation.
+        /// Such synthesized events are used primarily for performance improvements when running compiler analyzer in span-based mode in the IDE,
+        /// such as computing diagnostics for the lightbulb for the current line.
         /// See https://github.com/dotnet/roslyn/issues/56843 for details.
         /// </summary>
         public TextSpan? FilterSpan { get; }
 
         public override string ToString()
-        {
-            var str = "CompilationUnitCompletedEvent(" + CompilationUnit.FilePath + ")";
-            if (FilterSpan.HasValue)
-            {
-                str += FilterSpan.Value.ToString();
-            }
-
-            return str;
-        }
+            => $"CompilationUnitCompletedEvent({CompilationUnit.FilePath}){FilterSpan}";
     }
 }

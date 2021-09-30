@@ -921,7 +921,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 AnalysisScope analysisScope,
                 ImmutableArray<AdditionalText> additionalFiles)
             {
-                var builder = ImmutableArray.CreateBuilder<CompilationEvent>();
+                var builder = ArrayBuilder<CompilationEvent>.GetInstance();
 
                 // We synthesize a span-based CompilationUnitCompletedEvent for improved performance for computing semantic diagnostics
                 // of compiler diagnostic analyzer. See https://github.com/dotnet/roslyn/issues/56843 for more details.
@@ -954,7 +954,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     builder.Add(new CompilationUnitCompletedEvent(compilation, analysisScope.FilterFileOpt!.Value.SourceTree!, analysisScope.FilterSpanOpt));
                 }
 
-                return builder.ToImmutable();
+                return builder.ToImmutableAndFree();
             }
         }
 
