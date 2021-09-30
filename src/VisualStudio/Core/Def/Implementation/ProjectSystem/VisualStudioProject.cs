@@ -433,7 +433,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        public sealed class BatchScope : IDisposable
+        public sealed class BatchScope : IDisposable, IAsyncDisposable
         {
             private readonly VisualStudioProject _project;
 
@@ -449,14 +449,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (Interlocked.CompareExchange(ref _disposed, 1, 0) == 0)
                 {
-                    _project.OnBatchScopeDisposed();
+                    // If we're passing useAsync: false, we should always get a task that was already completed.
+#pragma warning disable CA2012 // Use ValueTasks correctly
+                    Contract.ThrowIfFalse(_project.OnBatchScopeDisposedMaybeAsync(useAsync: false).IsCompleted);
+#pragma warning restore CA2012 // Use ValueTasks correctly
+                }
+            }
+
+            public ValueTask DisposeAsync()
+            {
+                if (Interlocked.CompareExchange(ref _disposed, 1, 0) == 0)
+                {
+                    return _project.OnBatchScopeDisposedMaybeAsync(useAsync: true);
+                }
+                else
+                {
+                    return ValueTaskFactory.CompletedTask;
                 }
             }
         }
 
-        private void OnBatchScopeDisposed()
+        private async ValueTask OnBatchScopeDisposedMaybeAsync(bool useAsync)
         {
-            using (_gate.DisposableWait())
+            using (useAsync ? await _gate.DisposableWaitAsync().ConfigureAwait(false) : _gate.DisposableWait())
             {
                 _activeBatchScopes--;
 
@@ -470,7 +485,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var additionalDocumentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer)>();
                 var analyzerConfigDocumentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer)>();
 
-                _workspace.ApplyBatchChangeToWorkspace(solution =>
+                await _workspace.ApplyBatchChangeToWorkspaceMaybeAsync(useAsync, solution =>
                 {
                     var solutionChanges = new SolutionChangeAccumulator(startingSolution: solution);
 
@@ -610,21 +625,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     ClearAndZeroCapacity(_projectPropertyModificationsInBatch);
 
                     return solutionChanges;
-                });
+                }).ConfigureAwait(false);
 
                 foreach (var (documentId, textContainer) in documentsToOpen)
                 {
-                    _workspace.ApplyChangeToWorkspace(w => w.OnDocumentOpened(documentId, textContainer));
+                    await _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync, w => w.OnDocumentOpened(documentId, textContainer)).ConfigureAwait(false);
                 }
 
                 foreach (var (documentId, textContainer) in additionalDocumentsToOpen)
                 {
-                    _workspace.ApplyChangeToWorkspace(w => w.OnAdditionalDocumentOpened(documentId, textContainer));
+                    await _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync, w => w.OnAdditionalDocumentOpened(documentId, textContainer)).ConfigureAwait(false);
                 }
 
                 foreach (var (documentId, textContainer) in analyzerConfigDocumentsToOpen)
                 {
-                    _workspace.ApplyChangeToWorkspace(w => w.OnAnalyzerConfigDocumentOpened(documentId, textContainer));
+                    await _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync, w => w.OnAnalyzerConfigDocumentOpened(documentId, textContainer)).ConfigureAwait(false);
                 }
 
                 // Check for those files being opened to start wire-up if necessary
@@ -1666,14 +1681,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                     else
                     {
-                        _project._workspace.ApplyBatchChangeToWorkspace(solution =>
-                        {
-                            var solutionChanges = new SolutionChangeAccumulator(solution);
-                            solutionChanges.UpdateSolutionForProjectAction(
-                                _project.Id,
-                                solutionChanges.Solution.WithProjectDocumentsOrder(_project.Id, documentIds.ToImmutable()));
-                            return solutionChanges;
-                        });
+                        _project._workspace.ApplyChangeToWorkspace(_project.Id, solution => solution.WithProjectDocumentsOrder(_project.Id, documentIds.ToImmutable()));
                     }
                 }
             }
