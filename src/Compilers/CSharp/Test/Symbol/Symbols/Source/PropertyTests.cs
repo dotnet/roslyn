@@ -2041,7 +2041,13 @@ End Class";
     }
 }";
             var compilation3 = CreateCompilation(source3, new[] { reference1 });
-            compilation3.VerifyDiagnostics();
+            compilation3.VerifyDiagnostics(
+                // (6,13): warning CS8974: Converting method group 'P' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         o = B2.P;
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "B2.P").WithArguments("P", "object").WithLocation(6, 13),
+                // (8,13): warning CS8974: Converting method group 'Q' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         o = b.Q;
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "b.Q").WithArguments("Q", "object").WithLocation(8, 13));
         }
 
         [ClrOnlyFact]
@@ -2093,7 +2099,10 @@ static class E
     internal static object P(this object o) { return null; }
 }";
             var compilation3 = CreateCompilationWithMscorlib40AndSystemCore(source3, new[] { reference1 });
-            compilation3.VerifyDiagnostics();
+            compilation3.VerifyDiagnostics(
+                // (6,13): warning CS8974: Converting method group 'P' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         o = a.P;
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "a.P").WithArguments("P", "object").WithLocation(6, 13));
         }
 
         [ClrOnlyFact]

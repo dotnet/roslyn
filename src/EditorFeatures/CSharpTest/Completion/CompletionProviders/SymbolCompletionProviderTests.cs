@@ -1484,6 +1484,34 @@ $$";
         public async Task Parameters()
             => await VerifyItemExistsAsync(@"class c { void M(string args) { $$", "args");
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55969")]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(55969, "https://github.com/dotnet/roslyn/issues/55969")]
+        public async Task Parameters_TopLevelStatement_1()
+            => await VerifyItemExistsAsync(@"$$", "args", sourceCodeKind: SourceCodeKind.Regular);
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55969")]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(55969, "https://github.com/dotnet/roslyn/issues/55969")]
+        public async Task Parameters_TopLevelStatement_2()
+            => await VerifyItemExistsAsync(
+                @"using System;
+Console.WriteLine();
+$$", "args", sourceCodeKind: SourceCodeKind.Regular);
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55969")]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(55969, "https://github.com/dotnet/roslyn/issues/55969")]
+        public async Task Parameters_TopLevelStatement_3()
+            => await VerifyItemExistsAsync(
+                @"using System;
+$$", "args", sourceCodeKind: SourceCodeKind.Regular);
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(55969, "https://github.com/dotnet/roslyn/issues/55969")]
+        public async Task Parameters_TopLevelStatement_4()
+            => await VerifyItemExistsAsync(@"string first = $$", "args", sourceCodeKind: SourceCodeKind.Regular);
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LambdaDiscardParameters()
             => await VerifyItemIsAbsentAsync(@"class C { void M() { System.Func<int, string, int> f = (int _, string _) => 1 + $$", "_");
@@ -3430,7 +3458,7 @@ class C
             var expectedDescription =
 $@"({FeaturesResources.local_variable}) 'a a
 
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{  }}";
 
             await VerifyItemExistsAsync(markup, "a", expectedDescription);

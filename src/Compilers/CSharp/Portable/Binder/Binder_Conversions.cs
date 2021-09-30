@@ -90,6 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Obsolete diagnostics for method group are reported as part of creating the method group conversion.
             ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
+            if (conversion.Method is not null)
+            {
+                ReportUseSite(conversion.Method, diagnostics, syntax.Location);
+            }
             CheckConstraintLanguageVersionAndRuntimeSupportForConversion(syntax, conversion, diagnostics);
 
             if (conversion.IsAnonymousFunction && source.Kind == BoundKind.UnboundLambda)
@@ -569,6 +573,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             conversion = Conversions.ClassifyConversionFromExpression(source, delegateType, ref useSiteInfo);
+            bool warnOnMethodGroupConversion =
+                source.Kind == BoundKind.MethodGroup &&
+                !isCast &&
+                conversion.Exists &&
+                destination.SpecialType == SpecialType.System_Object;
             BoundExpression expr;
             if (!conversion.Exists)
             {
@@ -584,6 +593,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!conversion.Exists)
             {
                 GenerateImplicitConversionError(diagnostics, syntax, conversion, source, destination);
+            }
+            else if (warnOnMethodGroupConversion)
+            {
+                Error(diagnostics, ErrorCode.WRN_MethGrpToNonDel, syntax, ((BoundMethodGroup)source).Name, destination);
             }
 
             diagnostics.Add(syntax, useSiteInfo);

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Returns ids of documents for which diagnostics need to be refreshed in-proc.
         /// </summary>
-        ValueTask<ImmutableArray<DocumentId>> BreakStateChangedAsync(DebuggingSessionId sessionId, bool isBreakState, CancellationToken cancellationToken);
+        ValueTask<ImmutableArray<DocumentId>> BreakStateOrCapabilitiesChangedAsync(DebuggingSessionId sessionId, bool? isBreakState, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns ids of documents for which diagnostics need to be refreshed in-proc.

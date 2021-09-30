@@ -498,6 +498,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => simpleName.IsKind(SyntaxKind.GenericName) ||
                simpleName.GetLastToken().GetNextToken().Kind() == SyntaxKind.LessThanToken;
 
+        public SeparatedSyntaxList<SyntaxNode> GetTypeArgumentsOfGenericName(SyntaxNode? genericName)
+            => (genericName as GenericNameSyntax)?.TypeArgumentList.Arguments ?? default;
+
         public SyntaxNode? GetTargetOfMemberBinding(SyntaxNode? node)
             => (node as MemberBindingExpressionSyntax).GetParentConditionalAccessExpression()?.Expression;
 
@@ -529,11 +532,17 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode GetExpressionOfArgument(SyntaxNode node)
             => ((ArgumentSyntax)node).Expression;
 
+        public SyntaxNode GetExpressionOfAttributeArgument(SyntaxNode node)
+            => ((AttributeArgumentSyntax)node).Expression;
+
         public RefKind GetRefKindOfArgument(SyntaxNode node)
             => ((ArgumentSyntax)node).GetRefKind();
 
         public bool IsArgument([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.Argument);
+
+        public bool IsAttributeArgument([NotNullWhen(true)] SyntaxNode? node)
+            => node.IsKind(SyntaxKind.AttributeArgument);
 
         public bool IsSimpleArgument([NotNullWhen(true)] SyntaxNode? node)
         {
@@ -1192,8 +1201,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                node.Parent.IsKind(SyntaxKind.AttributeList, out AttributeListSyntax? attributeList) &&
                attributeList.Target?.Identifier.Kind() == attributeTarget;
 
-        private static bool IsMemberDeclaration(SyntaxNode node)
+        public bool IsDeclaration(SyntaxNode? node)
         {
+            if (node is null)
+                return false;
+
+            if (SyntaxFacts.IsNamespaceMemberDeclaration(node.Kind()))
+                return true;
+
             // From the C# language spec:
             // class-member-declaration:
             //    constant-declaration
@@ -1235,9 +1250,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     return false;
             }
         }
-
-        public bool IsDeclaration(SyntaxNode node)
-            => SyntaxFacts.IsNamespaceMemberDeclaration(node.Kind()) || IsMemberDeclaration(node);
 
         public bool IsTypeDeclaration(SyntaxNode node)
             => SyntaxFacts.IsTypeDeclaration(node.Kind());

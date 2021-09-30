@@ -1275,7 +1275,7 @@ namespace System.Runtime.CompilerServices
             return createCompilationLambda();
         }
 
-        private static ImmutableArray<MetadataReference> s_scriptRefs = ImmutableArray.Create(MscorlibRef_v4_0_30316_17626);
+        private static readonly ImmutableArray<MetadataReference> s_scriptRefs = ImmutableArray.Create(MscorlibRef_v4_0_30316_17626);
 
         public static CSharpCompilation CreateSubmission(
            string code,

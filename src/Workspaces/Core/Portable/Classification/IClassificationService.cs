@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// For example, semantic information can be used to determine if an identifier should be
         /// classified as a type, structure, or something else entirely. 
         /// </summary>
-        Task AddSemanticClassificationsAsync(Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
+        Task AddSemanticClassificationsAsync(Document document, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         /// <summary>
         /// Adjust a classification from a previous version of text accordingly based on the current

@@ -16,17 +16,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     internal class WorkspacePullDiagnosticHandlerProvider : AbstractRequestHandlerProvider
     {
         private readonly IDiagnosticService _diagnosticService;
+        private readonly IDiagnosticAnalyzerService _analyzerService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public WorkspacePullDiagnosticHandlerProvider(IDiagnosticService diagnosticService)
+        public WorkspacePullDiagnosticHandlerProvider(
+            IDiagnosticService diagnosticService,
+            IDiagnosticAnalyzerService analyzerService)
         {
             _diagnosticService = diagnosticService;
+            _analyzerService = analyzerService;
         }
 
         public override ImmutableArray<IRequestHandler> CreateRequestHandlers()
-        {
-            return ImmutableArray.Create<IRequestHandler>(new WorkspacePullDiagnosticHandler(_diagnosticService));
-        }
+            => ImmutableArray.Create<IRequestHandler>(new WorkspacePullDiagnosticHandler(_diagnosticService, _analyzerService));
     }
 }

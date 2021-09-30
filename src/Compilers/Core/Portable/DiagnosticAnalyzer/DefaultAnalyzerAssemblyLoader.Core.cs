@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -70,6 +71,9 @@ namespace Microsoft.CodeAnalysis
                "System.Xml.XDocument",
                "System.Xml.XPath.XDocument");
 
+        // This is the context where compiler (and some of its dependencies) are being loaded into, which might be different from AssemblyLoadContext.Default.
+        private static readonly AssemblyLoadContext s_compilerLoadContext = AssemblyLoadContext.GetLoadContext(typeof(DefaultAnalyzerAssemblyLoader).GetTypeInfo().Assembly)!;
+
         private readonly object _guard = new object();
         private readonly Dictionary<string, DirectoryLoadContext> _loadContextByDirectory = new Dictionary<string, DirectoryLoadContext>(StringComparer.Ordinal);
 
@@ -82,7 +86,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!_loadContextByDirectory.TryGetValue(fullDirectoryPath, out loadContext))
                 {
-                    loadContext = new DirectoryLoadContext(fullDirectoryPath, this);
+                    loadContext = new DirectoryLoadContext(fullDirectoryPath, this, s_compilerLoadContext);
                     _loadContextByDirectory[fullDirectoryPath] = loadContext;
                 }
             }
@@ -103,11 +107,13 @@ namespace Microsoft.CodeAnalysis
         {
             internal string Directory { get; }
             private readonly DefaultAnalyzerAssemblyLoader _loader;
+            private readonly AssemblyLoadContext _compilerLoadContext;
 
-            public DirectoryLoadContext(string directory, DefaultAnalyzerAssemblyLoader loader)
+            public DirectoryLoadContext(string directory, DefaultAnalyzerAssemblyLoader loader, AssemblyLoadContext compilerLoadContext)
             {
                 Directory = directory;
                 _loader = loader;
+                _compilerLoadContext = compilerLoadContext;
             }
 
             protected override Assembly? Load(AssemblyName assemblyName)
@@ -117,27 +123,61 @@ namespace Microsoft.CodeAnalysis
                 {
                     // Delegate to the compiler's load context to load the compiler or anything
                     // referenced by the compiler
-                    return null;
+                    return _compilerLoadContext.LoadFromAssemblyName(assemblyName);
                 }
 
                 var assemblyPath = Path.Combine(Directory, simpleName + ".dll");
-                if (!_loader.IsKnownDependencyLocation(assemblyPath))
+                var paths = _loader.GetPaths(simpleName);
+                if (paths is null)
                 {
                     // The analyzer didn't explicitly register this dependency. Most likely the
                     // assembly we're trying to load here is netstandard or a similar framework
-                    // assembly. We assume that if that is not the case, then the parent ALC will
-                    // fail to load this.
-                    return null;
+                    // assembly. In this case, we want to load it in compiler's ALC to avoid any 
+                    // potential type mismatch issue. Otherwise, if this is truly an unknown assembly,
+                    // we assume both compiler and default ALC will fail to load it.
+                    return _compilerLoadContext.LoadFromAssemblyName(assemblyName);
                 }
 
-                var pathToLoad = _loader.GetPathToLoad(assemblyPath);
-                return LoadFromAssemblyPath(pathToLoad);
+                Debug.Assert(paths.Any());
+                // A matching assembly in this directory was specified via /analyzer.
+                if (paths.Contains(assemblyPath))
+                {
+                    return LoadFromAssemblyPath(_loader.GetPathToLoad(assemblyPath));
+                }
+
+                AssemblyName? bestCandidateName = null;
+                string? bestCandidatePath = null;
+                // The assembly isn't expected to be found at 'assemblyPath',
+                // but some assembly with the same simple name is known to the loader.
+                foreach (var candidatePath in paths)
+                {
+                    // Note: we assume that the assembly really can be found at 'candidatePath'
+                    // (without 'GetPathToLoad'), and that calling GetAssemblyName doesn't cause us
+                    // to hold a lock on the file. This prevents unnecessary shadow copies.
+                    var candidateName = AssemblyName.GetAssemblyName(candidatePath);
+                    // Checking FullName ensures that version and PublicKeyToken match exactly.
+                    if (candidateName.FullName.Equals(assemblyName.FullName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return LoadFromAssemblyPath(_loader.GetPathToLoad(candidatePath));
+                    }
+                    else if (bestCandidateName is null || bestCandidateName.Version < candidateName.Version)
+                    {
+                        bestCandidateName = candidateName;
+                        bestCandidatePath = candidatePath;
+                    }
+                }
+
+                Debug.Assert(bestCandidateName != null);
+                Debug.Assert(bestCandidatePath != null);
+
+                return LoadFromAssemblyPath(_loader.GetPathToLoad(bestCandidatePath));
             }
 
             protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
             {
                 var assemblyPath = Path.Combine(Directory, unmanagedDllName + ".dll");
-                if (!_loader.IsKnownDependencyLocation(assemblyPath))
+                var paths = _loader.GetPaths(unmanagedDllName);
+                if (paths is null || !paths.Contains(assemblyPath))
                 {
                     return IntPtr.Zero;
                 }

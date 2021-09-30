@@ -1994,7 +1994,98 @@ IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.St
 ";
 
             VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: true) },
-                                                                                         expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+                                                                             expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+        }
+
+        [Fact]
+        public void ParenthesizedInterpolatedStringsAdded()
+        {
+            var code = @"
+int i1 = 1;
+int i2 = 2;
+int i3 = 3;
+int i4 = 4;
+int i5 = 5;
+int i6 = 6;
+
+string s = /*<bind>*/(($""{i1,1:d}"" + $""{i2,2:f}"") + $""{i3,3:g}"") + ($""{i4,4:h}"" + ($""{i5,5:i}"" + $""{i6,6:j}""))/*</bind>*/;
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedOperationTree = @"
+IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '(($""{i1,1:d ... {i6,6:j}""))')
+  Left:
+    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '($""{i1,1:d} ... $""{i3,3:g}""')
+      Left:
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i1,1:d}"" ... $""{i2,2:f}""')
+          Left:
+            IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i1,1:d}""')
+              Parts(1):
+                  IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i1,1:d}')
+                    Expression:
+                      ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
+                    Alignment:
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                    FormatString:
+                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""d"") (Syntax: ':d')
+          Right:
+            IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i2,2:f}""')
+              Parts(1):
+                  IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i2,2:f}')
+                    Expression:
+                      ILocalReferenceOperation: i2 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i2')
+                    Alignment:
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                    FormatString:
+                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""f"") (Syntax: ':f')
+      Right:
+        IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i3,3:g}""')
+          Parts(1):
+              IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i3,3:g}')
+                Expression:
+                  ILocalReferenceOperation: i3 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i3')
+                Alignment:
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                FormatString:
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""g"") (Syntax: ':g')
+  Right:
+    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i4,4:h}"" ... ""{i6,6:j}"")')
+      Left:
+        IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i4,4:h}""')
+          Parts(1):
+              IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i4,4:h}')
+                Expression:
+                  ILocalReferenceOperation: i4 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i4')
+                Alignment:
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+                FormatString:
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""h"") (Syntax: ':h')
+      Right:
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i5,5:i}"" ... $""{i6,6:j}""')
+          Left:
+            IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i5,5:i}""')
+              Parts(1):
+                  IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i5,5:i}')
+                    Expression:
+                      ILocalReferenceOperation: i5 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i5')
+                    Alignment:
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+                    FormatString:
+                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""i"") (Syntax: ':i')
+          Right:
+            IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i6,6:j}""')
+              Parts(1):
+                  IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i6,6:j}')
+                    Expression:
+                      ILocalReferenceOperation: i6 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i6')
+                    Alignment:
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6) (Syntax: '6')
+                    FormatString:
+                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""j"") (Syntax: ':j')
+";
+
+            VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: true) },
+                                                                             expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
         }
     }
 }

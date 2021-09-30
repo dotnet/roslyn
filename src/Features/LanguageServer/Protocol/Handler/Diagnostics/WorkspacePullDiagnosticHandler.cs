@@ -19,8 +19,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     {
         public override string Method => VSInternalMethods.WorkspacePullDiagnosticName;
 
-        public WorkspacePullDiagnosticHandler(IDiagnosticService diagnosticService)
-            : base(diagnosticService)
+        public WorkspacePullDiagnosticHandler(
+            IDiagnosticService diagnosticService,
+            IDiagnosticAnalyzerService analyzerService)
+            : base(diagnosticService, analyzerService)
         {
         }
 
@@ -126,15 +128,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     result.Add(document);
                 }
             }
-        }
-
-        protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-            RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
-        {
-            // For closed files, go to the IDiagnosticService for results.  These won't necessarily be totally up to
-            // date.  However, that's fine as these are closed files and won't be in the process of being edited.  So
-            // any deviations in the spans of diagnostics shouldn't be impactful for the user.
-            return DiagnosticService.GetPullDiagnosticsAsync(document, includeSuppressedDiagnostics: false, diagnosticMode, cancellationToken).AsTask();
         }
     }
 }

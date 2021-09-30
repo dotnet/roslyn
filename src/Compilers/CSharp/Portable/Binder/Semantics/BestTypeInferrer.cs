@@ -256,8 +256,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var conversionsWithoutNullability = conversions.WithNullability(false);
-            var t1tot2 = conversionsWithoutNullability.ClassifyImplicitConversionFromType(type1, type2, ref useSiteInfo).Exists;
-            var t2tot1 = conversionsWithoutNullability.ClassifyImplicitConversionFromType(type2, type1, ref useSiteInfo).Exists;
+            var t1tot2 = conversionsWithoutNullability.ClassifyImplicitConversionFromTypeWhenNeitherOrBothFunctionTypes(type1, type2, ref useSiteInfo).Exists;
+            var t2tot1 = conversionsWithoutNullability.ClassifyImplicitConversionFromTypeWhenNeitherOrBothFunctionTypes(type2, type1, ref useSiteInfo).Exists;
 
             if (t1tot2 && t2tot1)
             {

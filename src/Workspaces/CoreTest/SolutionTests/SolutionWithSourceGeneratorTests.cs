@@ -15,6 +15,8 @@ using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
+using static Microsoft.CodeAnalysis.UnitTests.SolutionUtilities;
+using static Microsoft.CodeAnalysis.UnitTests.WorkspaceTestUtilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -361,6 +363,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var generatedTreeAfterChange = await Assert.Single(await project.GetSourceGeneratedDocumentsAsync()).GetSyntaxTreeAsync();
 
             Assert.NotSame(generatedTreeBeforeChange, generatedTreeAfterChange);
+            Assert.Equal(DocumentationMode.Diagnose, generatedTreeAfterChange!.Options.DocumentationMode);
         }
 
         [Theory, CombinatorialData]
