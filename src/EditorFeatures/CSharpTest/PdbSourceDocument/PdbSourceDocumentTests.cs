@@ -35,6 +35,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
 
         [Theory]
         [CombinatorialData]
+        public async Task PreprocessorSymbols1(Location pdbLocation, Location sourceLocation)
+        {
+            var source = @"
+public class C
+{
+#if SOME_DEFINED_CONSTANT
+    public void [|M|]()
+    {
+    }
+#else
+    public void M()
+    {
+    }
+#endif
+}";
+            await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.M"), "SOME_DEFINED_CONSTANT");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task PreprocessorSymbols2(Location pdbLocation, Location sourceLocation)
+        {
+            var source = @"
+public class C
+{
+#if SOME_DEFINED_CONSTANT
+    public void M()
+    {
+    }
+#else
+    public void [|M|]()
+    {
+    }
+#endif
+}";
+            await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.M"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task Method(Location pdbLocation, Location sourceLocation)
         {
             var source = @"
@@ -346,7 +386,7 @@ public class C
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.E"));
         }
 
-        private static async Task TestAsync(Location pdbLocation, Location sourceLocation, string metadataSource, Func<Compilation, ISymbol> symbolMatcher)
+        private static async Task TestAsync(Location pdbLocation, Location sourceLocation, string metadataSource, Func<Compilation, ISymbol> symbolMatcher, params string[] preprocessorSymbols)
         {
             var path = Path.Combine(Path.GetTempPath(), nameof(PdbSourceDocumentTests));
 
@@ -354,7 +394,7 @@ public class C
             {
                 Directory.CreateDirectory(path);
 
-                await TestAsync(path, pdbLocation, sourceLocation, metadataSource, symbolMatcher);
+                await TestAsync(path, pdbLocation, sourceLocation, metadataSource, symbolMatcher, preprocessorSymbols);
             }
             finally
             {
@@ -365,7 +405,7 @@ public class C
             }
         }
 
-        private static async Task TestAsync(string path, Location pdbLocation, Location sourceLocation, string metadataSource, Func<Compilation, ISymbol> symbolMatcher)
+        private static async Task TestAsync(string path, Location pdbLocation, Location sourceLocation, string metadataSource, Func<Compilation, ISymbol> symbolMatcher, string[] preprocessorSymbols)
         {
             var assemblyName = "ReferencedAssembly";
             var sourceCodePath = Path.Combine(path, "source.cs");
@@ -374,9 +414,13 @@ public class C
 
             MarkupTestFile.GetSpan(metadataSource, out var input, out var expectedSpan);
 
+            var preprocessorSymbolsAttribute = preprocessorSymbols.Length > 0
+                ? $"PreprocessorSymbols=\"{string.Join(";", preprocessorSymbols)}\""
+                : "";
+
             using var workspace = TestWorkspace.Create(@$"
 <Workspace>
-    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
+    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"" {preprocessorSymbolsAttribute}>
     </Project>
 </Workspace>");
 
