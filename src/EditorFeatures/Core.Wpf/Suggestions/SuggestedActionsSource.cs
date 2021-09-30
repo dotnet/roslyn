@@ -321,6 +321,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return SpecializedTasks.EmptyImmutableArray<UnifiedSuggestedActionSet>();
                 }
 
+                // 'CodeActionRequestPriority.Low' is reserved for suppression/configuration code fixes.
+                // No code refactoring should have this request priority.
+                if (priority == CodeActionRequestPriority.Low)
+                {
+                    return SpecializedTasks.EmptyImmutableArray<UnifiedSuggestedActionSet>();
+                }
+
                 // If we are computing refactorings outside the 'Refactoring' context, i.e. for example, from the lightbulb under a squiggle or selection,
                 // then we want to filter out refactorings outside the selection span.
                 var filterOutsideSelection = !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring);

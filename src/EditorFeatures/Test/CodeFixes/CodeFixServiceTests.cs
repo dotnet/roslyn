@@ -124,6 +124,40 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             }
         }
 
+        [Fact, WorkItem(56843, "https://github.com/dotnet/roslyn/issues/56843")]
+        public async Task TestGetFixesAsyncForFixableAndNonFixableAnalyzersAsync()
+        {
+            var codeFix = new MockFixer();
+            var analyzerWithFix = new MockAnalyzerReference.MockDiagnosticAnalyzer();
+            Assert.Equal(codeFix.FixableDiagnosticIds.Single(), analyzerWithFix.SupportedDiagnostics.Single().Id);
+
+            var analyzerWithoutFix = new MockAnalyzerReference.MockDiagnosticAnalyzer("AnalyzerWithoutFixId", "Category");
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzerWithFix, analyzerWithoutFix);
+            var analyzerReference = new MockAnalyzerReference(codeFix, analyzers);
+
+            // Verify no callbacks received at initialization.
+            Assert.False(analyzerWithFix.ReceivedCallback);
+            Assert.False(analyzerWithoutFix.ReceivedCallback);
+
+            var tuple = ServiceSetup(codeFix, includeConfigurationFixProviders: true);
+            using var workspace = tuple.workspace;
+            GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager, analyzerReference);
+
+            // Verify only analyzerWithFix is executed when GetFixesAsync is invoked with 'CodeActionRequestPriority.Normal'.
+            _ = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0),
+                includeConfigurationFixes: false, priority: CodeActionRequestPriority.Normal, isBlocking: false,
+                addOperationScope: _ => null, cancellationToken: CancellationToken.None);
+            Assert.True(analyzerWithFix.ReceivedCallback);
+            Assert.False(analyzerWithoutFix.ReceivedCallback);
+
+            // Verify both analyzerWithFix and analyzerWithoutFix are executed when GetFixesAsync is invoked with 'CodeActionRequestPriority.Low'.
+            _ = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0),
+                includeConfigurationFixes: true, priority: CodeActionRequestPriority.Low, isBlocking: false,
+                addOperationScope: _ => null, cancellationToken: CancellationToken.None);
+            Assert.True(analyzerWithFix.ReceivedCallback);
+            Assert.True(analyzerWithoutFix.ReceivedCallback);
+        }
+
         [Fact]
         public async Task TestGetCodeFixWithExceptionInRegisterMethod_Diagnostic()
         {
@@ -387,6 +421,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 {
                 }
 
+                public bool ReceivedCallback { get; private set; }
+
                 private static ImmutableArray<DiagnosticDescriptor> CreateSupportedDiagnostics(ImmutableArray<(string id, string category)> reportedDiagnosticIdsWithCategories)
                 {
                     var builder = ArrayBuilder<DiagnosticDescriptor>.GetInstance();
@@ -405,6 +441,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 {
                     context.RegisterSyntaxTreeAction(c =>
                     {
+                        this.ReceivedCallback = true;
+
                         foreach (var descriptor in SupportedDiagnostics)
                         {
                             c.ReportDiagnostic(Diagnostic.Create(descriptor, c.Tree.GetLocation(TextSpan.FromBounds(0, 0))));

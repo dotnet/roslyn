@@ -21,20 +21,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     internal partial class DiagnosticIncrementalAnalyzer
     {
         public async Task<bool> TryAppendDiagnosticsForSpanAsync(
-            Document document, TextSpan? range, ArrayBuilder<DiagnosticData> result, string? diagnosticId,
+            Document document, TextSpan? range, ArrayBuilder<DiagnosticData> result, Func<string, bool>? shouldIncludeDiagnostic,
             bool includeSuppressedDiagnostics, CodeActionRequestPriority priority, bool blockForData,
             Func<string, IDisposable?>? addOperationScope, CancellationToken cancellationToken)
         {
             var getter = await LatestDiagnosticsForSpanGetter.CreateAsync(
                 this, document, range, blockForData, addOperationScope, includeSuppressedDiagnostics,
-                priority, diagnosticId, cancellationToken).ConfigureAwait(false);
+                priority, shouldIncludeDiagnostic, cancellationToken).ConfigureAwait(false);
             return await getter.TryGetAsync(result, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
             Document document,
             TextSpan? range,
-            string? diagnosticId,
+            Func<string, bool>? shouldIncludeDiagnostic,
             bool includeSuppressedDiagnostics,
             CodeActionRequestPriority priority,
             bool blockForData,
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
             var result = await TryAppendDiagnosticsForSpanAsync(
-                document, range, list, diagnosticId, includeSuppressedDiagnostics,
+                document, range, list, shouldIncludeDiagnostic, includeSuppressedDiagnostics,
                 priority, blockForData, addOperationScope, cancellationToken).ConfigureAwait(false);
             Debug.Assert(result);
             return list.ToImmutable();
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly bool _blockForData;
             private readonly bool _includeSuppressedDiagnostics;
             private readonly CodeActionRequestPriority _priority;
-            private readonly string? _diagnosticId;
+            private readonly Func<string, bool>? _shouldIncludeDiagnostic;
             private readonly Func<string, IDisposable?>? _addOperationScope;
 
             private delegate Task<IEnumerable<DiagnosticData>> DiagnosticsGetterAsync(DiagnosticAnalyzer analyzer, DocumentAnalysisExecutor executor, CancellationToken cancellationToken);
@@ -77,22 +77,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                  Func<string, IDisposable?>? addOperationScope,
                  bool includeSuppressedDiagnostics,
                  CodeActionRequestPriority priority,
-                 string? diagnosticId,
+                 Func<string, bool>? shouldIncludeDiagnostic,
                  CancellationToken cancellationToken)
             {
                 var stateSets = owner._stateManager
                                      .GetOrCreateStateSets(document.Project).Where(s => !owner.DiagnosticAnalyzerInfoCache.IsAnalyzerSuppressed(s.Analyzer, document.Project));
 
                 // filter to specific diagnostic it is looking for
-                if (diagnosticId != null)
+                if (shouldIncludeDiagnostic != null)
                 {
-                    stateSets = stateSets.Where(s => owner.DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(s.Analyzer).Any(d => d.Id == diagnosticId)).ToList();
+                    stateSets = stateSets.Where(s => owner.DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(s.Analyzer).Any(d => shouldIncludeDiagnostic(d.Id))).ToList();
                 }
 
                 var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(document.Project, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 return new LatestDiagnosticsForSpanGetter(
-                    owner, compilationWithAnalyzers, document, stateSets, diagnosticId, range,
+                    owner, compilationWithAnalyzers, document, stateSets, shouldIncludeDiagnostic, range,
                     blockForData, addOperationScope, includeSuppressedDiagnostics, priority);
             }
 
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 CompilationWithAnalyzers? compilationWithAnalyzers,
                 Document document,
                 IEnumerable<StateSet> stateSets,
-                string? diagnosticId,
+                Func<string, bool>? shouldIncludeDiagnostic,
                 TextSpan? range,
                 bool blockForData,
                 Func<string, IDisposable?>? addOperationScope,
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _compilationWithAnalyzers = compilationWithAnalyzers;
                 _document = document;
                 _stateSets = stateSets;
-                _diagnosticId = diagnosticId;
+                _shouldIncludeDiagnostic = shouldIncludeDiagnostic;
                 _range = range;
                 _blockForData = blockForData;
                 _addOperationScope = addOperationScope;
@@ -243,6 +243,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (_priority == CodeActionRequestPriority.None)
                     return true;
 
+                // 'CodeActionRequestPriority.Low' is used for suppression/configuration fixes,
+                // which requires all analyzer diagnostics.
+                if (_priority == CodeActionRequestPriority.Low)
+                    return true;
+
                 // The compiler analyzer always counts for any priority.  It's diagnostics may be fixed
                 // by high pri or normal pri fixers.
                 if (analyzer.IsCompilerAnalyzer())
@@ -259,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return diagnostic.DocumentId == _document.Id &&
                     (_range == null || _range.Value.IntersectsWith(diagnostic.GetTextSpan()))
                     && (_includeSuppressedDiagnostics || !diagnostic.IsSuppressed)
-                    && (_diagnosticId == null || _diagnosticId == diagnostic.Id);
+                    && (_shouldIncludeDiagnostic == null || _shouldIncludeDiagnostic(diagnostic.Id));
             }
         }
     }

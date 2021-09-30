@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         {
                             VisualStudio.Utilities.DefaultOrderings.Highest => CodeActionRequestPriority.High,
                             VisualStudio.Utilities.DefaultOrderings.Default => CodeActionRequestPriority.Normal,
+                            VisualStudio.Utilities.DefaultOrderings.Lowest => CodeActionRequestPriority.Low,
                             _ => (CodeActionRequestPriority?)null,
                         };
 
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                 state, requestedActionCategories, document,
                                 range, selection,
                                 addOperationScope: _ => null,
-                                includeSuppressionFixes: priority.Value == CodeActionRequestPriority.Normal,
+                                includeSuppressionFixes: priority.Value == CodeActionRequestPriority.Low,
                                 priority.Value,
                                 currentActionCount, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
 

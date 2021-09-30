@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // always make sure that analyzer is called on background thread.
                 return Task.Run(() => analyzer.TryAppendDiagnosticsForSpanAsync(
-                    document, range, diagnostics, diagnosticId: null, includeSuppressedDiagnostics, CodeActionRequestPriority.None, blockForData: false, addOperationScope: null, cancellationToken), cancellationToken);
+                    document, range, diagnostics, shouldIncludeDiagnostic: null, includeSuppressedDiagnostics, CodeActionRequestPriority.None, blockForData: false, addOperationScope: null, cancellationToken), cancellationToken);
             }
 
             return SpecializedTasks.False;
@@ -86,11 +86,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<string, IDisposable?>? addOperationScope,
             CancellationToken cancellationToken)
         {
+            Func<string, bool>? shouldIncludeDiagnostic = diagnosticId != null ? id => id == diagnosticId : null;
+            return GetDiagnosticsForSpanAsync(document, range, shouldIncludeDiagnostic,
+                includeSuppressedDiagnostics, priority, addOperationScope, cancellationToken);
+        }
+
+        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
+            Document document,
+            TextSpan? range,
+            Func<string, bool>? shouldIncludeDiagnostic,
+            bool includeSuppressedDiagnostics,
+            CodeActionRequestPriority priority,
+            Func<string, IDisposable?>? addOperationScope,
+            CancellationToken cancellationToken)
+        {
             if (_map.TryGetValue(document.Project.Solution.Workspace, out var analyzer))
             {
                 // always make sure that analyzer is called on background thread.
                 return Task.Run(() => analyzer.GetDiagnosticsForSpanAsync(
-                    document, range, diagnosticId, includeSuppressedDiagnostics, priority,
+                    document, range, shouldIncludeDiagnostic, includeSuppressedDiagnostics, priority,
                     blockForData: true, addOperationScope, cancellationToken), cancellationToken);
             }
 

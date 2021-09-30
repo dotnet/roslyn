@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             get
             {
                 var priority = ComputeRequestPriority();
+                // Note: CodeActionRequestPriority.Low is reserved for IConfigurationFixProvider.
                 Contract.ThrowIfFalse(priority is CodeActionRequestPriority.Normal or CodeActionRequestPriority.High);
                 return priority;
             }
