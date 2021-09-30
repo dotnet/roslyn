@@ -792,7 +792,7 @@ namespace Roslyn.Utilities
             var parts = GetPathParts(p);
 
             // On windows we need to skip the volume specifier, but remember it for re-joining later
-            var volumeSpecifier = (!IsUnixLikePlatform) ? string.Empty : p.Substring(0, 2);
+            var volumeSpecifier = IsUnixLikePlatform ? string.Empty : p.Substring(0, 2);
 
             // Skip the root directory
             var toSkip = IsUnixLikePlatform ? 1 : 2;
