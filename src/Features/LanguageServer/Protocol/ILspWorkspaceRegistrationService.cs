@@ -14,9 +14,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     internal interface ILspWorkspaceRegistrationService
     {
         /// <summary>
-        /// Get all current registrations.
+        /// Get all current registered <see cref="Workspace"/>s.  Used to find the appropriate workspace
+        /// corresponding to a particular <see cref="Document"/> request.
         /// </summary>
         ImmutableArray<Workspace> GetAllRegistrations();
+
+        /// <summary>
+        /// Returns the host/priamry <see cref="Workspace"/> used for global operations associated
+        /// with the entirety of the user's code (for example 'diagnostics' or 'search').
+        /// </summary>
+        Workspace? TryGetHostWorkspace();
 
         /// <summary>
         /// Register the specified workspace for consideration for LSP requests.

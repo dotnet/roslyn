@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _traceInformation = traceInformation;
         }
 
-        public static RequestContext Create(
+        public static (RequestContext? context, Workspace? workspace) Create(
             bool requiresLSPSolution,
             TextDocumentIdentifier? textDocument,
             string? clientName,
@@ -89,33 +90,37 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)>? solutionCache,
             IDocumentChangeTracker? documentChangeTracker,
             ImmutableArray<string> supportedLanguages,
-            IGlobalOptionService globalOptions,
-            out Workspace workspace)
+            IGlobalOptionService globalOptions)
         {
             // Go through each registered workspace, find the solution that contains the document that
             // this request is for, and then updates it based on the state of the world as we know it, based on the
             // text content in the document change tracker.
 
-            // Assume the first workspace registered is the main one
-            var workspaceSolution = lspWorkspaceRegistrationService.GetAllRegistrations().First().CurrentSolution;
-            Document? document = null;
-
-            // If we were given a document, find it in whichever workspace it exists in
-            if (textDocument is null)
+            Document? document;
+            Solution? workspaceSolution;
+            if (textDocument is not null)
             {
-                logger.TraceInformation("Request contained no text document identifier");
+                // we were given a request associated with a document.  Find the corresponding roslyn
+                // document for this.  If we can't, we cannot proceed.
+                document = FindDocument(logger, telemetryLogger, lspWorkspaceRegistrationService, lspMiscellaneousFilesWorkspace, textDocument, clientName);
+                if (document == null)
+                {
+                    logger.TraceError($"Could not find document: {textDocument.Uri}");
+                    return default;
+                }
+
+                workspaceSolution = document.Project.Solution;
             }
             else
             {
-                // There are multiple possible solutions that we could be interested in, so we need to find the document
-                // first and then get the solution from there. If we're not given a document, this will return the default
-                // solution
-                document = FindDocument(logger, telemetryLogger, lspWorkspaceRegistrationService, lspMiscellaneousFilesWorkspace, textDocument, clientName);
-
-                if (document is not null)
+                // we were given a global request (like diagnostics or search).  These only apply to 
+                // the primary/host solution.
+                document = null;
+                workspaceSolution = lspWorkspaceRegistrationService.TryGetHostWorkspace()?.CurrentSolution;
+                if (workspaceSolution == null)
                 {
-                    // Where ever the document came from, thats the "main" solution for this request
-                    workspaceSolution = document.Project.Solution;
+                    logger.TraceError("Could not find host solution for global operation");
+                    return default;
                 }
             }
 
@@ -127,21 +132,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             //    so they're not accidentally operating on stale solution state.
             if (!requiresLSPSolution)
             {
-                workspace = workspaceSolution.Workspace;
-                return new RequestContext(solution: null, logger.TraceInformation, clientCapabilities, clientName, document: null, documentChangeTracker, supportedLanguages, globalOptions);
+                var context = new RequestContext(solution: null, logger.TraceInformation, clientCapabilities, clientName, document: null, documentChangeTracker, supportedLanguages, globalOptions);
+                return (context, workspaceSolution.Workspace);
             }
-
-            var lspSolution = BuildLSPSolution(solutionCache, workspaceSolution, documentChangeTracker);
-
-            // If we got a document back, we need pull it out of our updated solution so the handler is operating on the
-            // latest document text.
-            if (document != null)
+            else
             {
-                document = lspSolution.GetRequiredDocument(document.Id);
-            }
+                var lspSolution = BuildLSPSolution(solutionCache, workspaceSolution, documentChangeTracker);
 
-            workspace = lspSolution.Workspace;
-            return new RequestContext(lspSolution, logger.TraceInformation, clientCapabilities, clientName, document, documentChangeTracker, supportedLanguages, globalOptions);
+                // If we got a document back, we need pull it out of our updated solution so the handler is operating on the
+                // latest document text.
+                if (document != null)
+                    document = lspSolution.GetRequiredDocument(document.Id);
+
+                var context = new RequestContext(lspSolution, logger.TraceInformation, clientCapabilities, clientName, document, documentChangeTracker, supportedLanguages, globalOptions);
+                return (context, lspSolution.Workspace);
+            }
         }
 
         private static Document? FindDocument(
