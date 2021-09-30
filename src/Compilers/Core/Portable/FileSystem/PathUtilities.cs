@@ -776,26 +776,30 @@ namespace Roslyn.Utilities
             => DirectorySeparatorChar == '/' ? p : p.Replace(DirectorySeparatorChar, '/');
 
         /// <summary>
-        /// Takes a normalized full path from <see cref="NormalizeWithForwardSlash(string)"/> and expands any '..' or '.'
-        /// into their equivalent representation.
+        /// Takes an absolute path and attempts to expand any '..' or '.' into their equivalent representation.
         /// </summary>
-        /// <returns>An equivalent path that does not contain any '..' or '.' path parts.</returns>
-        public static string ExpandNormalizedFullPathWithRelativeParts(string p)
+        /// <returns>An equivalent path that does not contain any '..' or '.' path parts, or the original path.</returns>
+        /// <remarks>
+        /// This method handles unix and windows drive rooted absolute paths only (i.e /a/b or x:\a\b). Passing any other kind of path
+        /// including relative, drive relative, unc, or windows device paths will simply return the original input. 
+        /// </remarks>
+        public static string ExpandAbsolutePathWithRelativeParts(string p)
         {
-            if (!IsAbsolute(p))
+            bool isDriveRooted = IsDriveRootedAbsolutePath(p);
+            if (!isDriveRooted && !(p.Length > 1 && p[0] == AltDirectorySeparatorChar))
             {
-                // if this isn't an absolute path we can't expand it correctly without a root path
+                // if this isn't a regular absolute path we can't expand it correctly
                 return p;
             }
 
             // GetPathParts also removes any instances of '.'
             var parts = GetPathParts(p);
 
-            // On windows we need to skip the volume specifier, but remember it for re-joining later
-            var volumeSpecifier = IsUnixLikePlatform ? string.Empty : p.Substring(0, 2);
+            // For drive rooted paths we need to skip the volume specifier, but remember it for re-joining later
+            var volumeSpecifier = isDriveRooted ? p.Substring(0, 2) : string.Empty;
 
             // Skip the root directory
-            var toSkip = IsUnixLikePlatform ? 1 : 2;
+            var toSkip = isDriveRooted ? 2 : 1;
             Debug.Assert(parts[toSkip - 1] == string.Empty);
 
             var resolvedParts = ArrayBuilder<string>.GetInstance();
@@ -812,7 +816,9 @@ namespace Roslyn.Utilities
                 }
             }
 
-            return volumeSpecifier + '/' + string.Join("/", resolvedParts.ToArrayAndFree());
+            var expandedPath = volumeSpecifier + '/' + string.Join("/", resolvedParts);
+            resolvedParts.Free();
+            return expandedPath;
         }
 
         public static readonly IEqualityComparer<string> Comparer = new PathComparer();
