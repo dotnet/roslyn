@@ -4,27 +4,27 @@
     <body>
       <trans-unit id="DynamicEnumProperty|targetProject|Description">
         <source>A project that uses this component, whose compilation will be debugged.</source>
-        <target state="new">A project that uses this component, whose compilation will be debugged.</target>
+        <target state="translated">컴파일이 디버깅될 이 구성 요소를 사용하는 프로젝트입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DynamicEnumProperty|targetProject|DisplayName">
         <source>Target Project</source>
-        <target state="new">Target Project</target>
+        <target state="translated">대상 프로젝트</target>
         <note />
       </trans-unit>
       <trans-unit id="Rule|ComponentDebuggerLaunchProfile|Description">
         <source>Allows a user to debug a Roslyn Component by running it in the context of another projects build.</source>
-        <target state="new">Allows a user to debug a Roslyn Component by running it in the context of another projects build.</target>
+        <target state="translated">사용자가 다른 프로젝트 빌드의 컨텍스트에서 Roslyn 구성 요소를 실행하여 디버그할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Rule|ComponentDebuggerLaunchProfile|DisplayName">
         <source>Roslyn Component</source>
-        <target state="new">Roslyn Component</target>
+        <target state="translated">Roslyn 구성 요소</target>
         <note />
       </trans-unit>
       <trans-unit id="StringProperty|Description|Description">
         <source>A Roslyn Component can be debugged in the context of compiling a second project that uses it. Ensure your target project is referencing this component for it to appear in the list.</source>
-        <target state="new">A Roslyn Component can be debugged in the context of compiling a second project that uses it. Ensure your target project is referencing this component for it to appear in the list.</target>
+        <target state="translated">Roslyn 구성 요소를 사용하는 두 번째 프로젝트를 컴파일하는 맥락에서 Roslyn 구성 요소를 디버깅할 수 있습니다. 대상 프로젝트가 목록에 나타나도록 이 구성요소를 참조하는지 확인하세요.</target>
         <note />
       </trans-unit>
     </body>
