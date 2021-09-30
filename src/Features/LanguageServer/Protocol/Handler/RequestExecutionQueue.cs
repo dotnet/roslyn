@@ -181,9 +181,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     // If we weren't able to get a corresponding context for this request (for example, we
                     // couldn't map a doc request to a particular Document, or we couldn't find an appropriate
                     // Workspace for a global operation), then just immediately complete the request with a
-                    // 'null' response.  Note: this presumes that LSP allows 'null' as the result of any 
-                    // request.  If that is not true, it may be necessary to allow individual handlers to
-                    // decide what to return in those cases.
+                    // 'null' response.  Note: the lsp spec was checked to ensure that 'null' is valid for all
+                    // the requests this could happen for.  However, this assumption may not hold in the future.
+                    // If that turns out to be the case, we could defer to the individual handler to decide
+                    // what to do.
                     if (context == null)
                     {
                         completion.SetResult(default);
