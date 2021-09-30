@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
 {
     public class WorkspaceSymbolsTests : AbstractLanguageServerProtocolTests
     {
-        private static void AssertSetEquals(LSP.SymbolInformation[] expected, LSP.SymbolInformation[] results)
+        private static void AssertSetEquals(LSP.SymbolInformation[] expected, LSP.SymbolInformation[]? results)
             => Assert.True(expected.ToHashSet().SetEquals(results));
 
         [Fact]
@@ -201,7 +201,7 @@ End Class";
             AssertSetEquals(expected, results);
         }
 
-        private static async Task<LSP.SymbolInformation[]> RunGetWorkspaceSymbolsAsync(TestLspServer testLspServer, string query, IProgress<LSP.SymbolInformation[]>? progress = null)
+        private static Task<LSP.SymbolInformation[]?> RunGetWorkspaceSymbolsAsync(TestLspServer testLspServer, string query, IProgress<LSP.SymbolInformation[]>? progress = null)
         {
             var request = new LSP.WorkspaceSymbolParams
             {
@@ -209,10 +209,8 @@ End Class";
                 PartialResultToken = progress
             };
 
-            var result = await testLspServer.ExecuteRequestAsync<LSP.WorkspaceSymbolParams, LSP.SymbolInformation[]>(LSP.Methods.WorkspaceSymbolName,
+            return testLspServer.ExecuteRequestAsync<LSP.WorkspaceSymbolParams, LSP.SymbolInformation[]>(LSP.Methods.WorkspaceSymbolName,
                 request, new LSP.ClientCapabilities(), null, CancellationToken.None);
-            Contract.ThrowIfNull(result);
-            return result;
         }
 
         private static string GetContainerName(Solution solution, string? containingSymbolName = null)
