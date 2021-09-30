@@ -735,20 +735,14 @@ namespace Microsoft.CodeAnalysis.Emit
 
             // Nested types may be queued from concurrent threads, but we need to emit them
             // in a deterministic order.
-            internal IEnumerable<Cci.INestedTypeDefinition> DeterministicNestedTypes
+            internal IEnumerable<Cci.INestedTypeDefinition> OrderedNestedTypes
             {
                 get
                 {
-#if DEBUG
-                    if (NestedTypes is not null)
-                    {
-                        foreach (var group in NestedTypes.GroupBy(t => t.Name, StringComparer.Ordinal))
-                        {
-                            var arities = group.Select(g => g.GenericParameters.Count());
-                            Debug.Assert(arities.All(a => a == arities.First()));
-                        }
-                    }
-#endif
+                    // We don't synthesize nested types with different arities for a given name
+                    Debug.Assert(NestedTypes is null ||
+                        NestedTypes.Select(t => t.Name).Distinct().Count() == NestedTypes.Count());
+
                     return NestedTypes?.OrderBy(t => t.Name, StringComparer.Ordinal);
                 }
             }
@@ -793,7 +787,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 if (NestedTypes != null)
                 {
-                    foreach (var type in DeterministicNestedTypes)
+                    foreach (var type in OrderedNestedTypes)
                     {
                         builder.Add(type.GetInternalSymbol());
                     }
@@ -820,7 +814,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             if (_synthesizedTypeMembers.TryGetValue(container, out var defs))
             {
-                compileEmitTypes = defs.DeterministicNestedTypes;
+                compileEmitTypes = defs.OrderedNestedTypes;
             }
 
             if (declareTypes == null)
