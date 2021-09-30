@@ -2185,7 +2185,7 @@ class MyClass
             End Using
         End Function
 
-        <WpfFact>
+        <WpfFact, WorkItem(56843, "https://github.com/dotnet/roslyn/issues/56843")>
         Friend Async Function TestCompilerAnalyzerForSpanBasedQuery() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
