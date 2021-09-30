@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,11 +31,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // the 'progress' parameter which will then update the UI.
                     var serverCallback = new FindLiteralsServerCallback(solution, progress);
 
-                    await client.RunRemoteAsync(
-                        WellKnownServiceHubService.CodeAnalysis,
-                        nameof(IRemoteSymbolFinder.FindLiteralReferencesAsync),
+                    _ = await client.TryInvokeAsync<IRemoteSymbolFinderService>(
                         solution,
-                        new object[] { value, typeCode },
+                        (service, solutionInfo, callbackId, cancellationToken) => service.FindLiteralReferencesAsync(solutionInfo, callbackId, value, typeCode, cancellationToken),
                         serverCallback,
                         cancellationToken).ConfigureAwait(false);
                 }

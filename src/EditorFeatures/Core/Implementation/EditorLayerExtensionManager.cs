@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -74,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor
                     {
                         base.HandleException(provider, exception);
 
-                        _errorReportingService?.ShowErrorInfoInActiveView(String.Format(WorkspacesResources._0_encountered_an_error_and_has_been_disabled, provider.GetType().Name),
+                        _errorReportingService?.ShowGlobalErrorInfo(String.Format(WorkspacesResources._0_encountered_an_error_and_has_been_disabled, provider.GetType().Name),
                             new InfoBarUI(WorkspacesResources.Show_Stack_Trace, InfoBarUI.UIKind.HyperLink, () => ShowDetailedErrorInfo(exception), closeAfterAction: false),
                             new InfoBarUI(WorkspacesResources.Enable, InfoBarUI.UIKind.Button, () =>
                             {

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -39,8 +41,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     case SyntaxKind.AttributeArgument:
                         return GetStartPoint(text, (AttributeArgumentSyntax)node, part);
                     case SyntaxKind.ClassDeclaration:
+                    case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                     case SyntaxKind.EnumDeclaration:
                         return GetStartPoint(text, (BaseTypeDeclarationSyntax)node, part);
                     case SyntaxKind.MethodDeclaration:
@@ -87,8 +91,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     case SyntaxKind.AttributeArgument:
                         return GetEndPoint(text, (AttributeArgumentSyntax)node, part);
                     case SyntaxKind.ClassDeclaration:
+                    case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                     case SyntaxKind.EnumDeclaration:
                         return GetEndPoint(text, (BaseTypeDeclarationSyntax)node, part);
                     case SyntaxKind.MethodDeclaration:

@@ -22,9 +22,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim visitedLockExpression = VisitExpressionNode(node.LockExpression)
 
             Dim objectType = GetSpecialType(SpecialType.System_Object)
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            Dim conversionKind = Conversions.ClassifyConversion(visitedLockExpression.Type, objectType, useSiteDiagnostics).Key
-            _diagnostics.Add(node, useSiteDiagnostics)
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo()
+            Dim conversionKind = Conversions.ClassifyConversion(visitedLockExpression.Type, objectType, useSiteInfo).Key
+            _diagnostics.Add(node, useSiteInfo)
 
             ' when passing this boundlocal to Monitor.Enter and Monitor.Exit we need to pass a local of type object, because the parameter
             ' are of type object. We also do not want to have this conversion being shown in the semantic model, which is why we add it 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -16,6 +18,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         protected AbstractUseConditionalExpressionForAssignmentDiagnosticAnalyzer(
             LocalizableResourceString message)
             : base(IDEDiagnosticIds.UseConditionalExpressionForAssignmentDiagnosticId,
+                   EnforceOnBuildValues.UseConditionalExpressionForAssignment,
                    message,
                    CodeStyleOptions2.PreferConditionalExpressionOverAssignment)
         {

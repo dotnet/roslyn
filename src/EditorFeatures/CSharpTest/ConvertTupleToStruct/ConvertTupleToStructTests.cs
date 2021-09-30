@@ -3,15 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Simplification;
@@ -23,11 +24,74 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
 {
     public class ConvertTupleToStructTests : AbstractCSharpCodeActionTest
     {
+        private readonly ParseOptions CSharp9 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
+        private readonly ParseOptions Preview = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
+
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertTupleToStructCodeRefactoringProvider();
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleType_AtTopLevel(TestHost host)
+        {
+            var text = @"
+var t1 = [||](a: 1, b: 2);
+";
+            var expected = @"
+var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+
+internal struct NewStruct
+{
+    public int a;
+    public int b;
+
+    public NewStruct(int a, int b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct other &&
+               a == other.a &&
+               b == other.b;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + b.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (int a, int b)(NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, int b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestExactActionSetOfferedAsync(text, new[]
+            {
+                FeaturesResources.updating_usages_in_containing_project,
+                FeaturesResources.updating_usages_in_dependent_projects,
+            }, new TestParameters(testHost: host));
+
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+        }
 
         #region update containing member tests
 
@@ -94,7 +158,94 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleTypeToRecord(TestHost host)
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](a: 1, b: 2);
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+    }
+}
+
+internal record struct NewStruct(int a, int b)
+{
+    public static implicit operator (int a, int b)(NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, int b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestAsync(text, expected, parseOptions: Preview, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleTypeToRecord_MismatchedNameCasing(TestHost host)
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](A: 1, B: 2);
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+    }
+}
+
+internal record struct NewStruct
+{
+    public int A;
+    public int B;
+
+    public NewStruct(int a, int b)
+    {
+        A = a;
+        B = b;
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = A;
+        b = B;
+    }
+
+    public static implicit operator (int A, int B)(NewStruct value)
+    {
+        return (value.A, value.B);
+    }
+
+    public static implicit operator NewStruct((int A, int B) value)
+    {
+        return new NewStruct(value.A, value.B);
+    }
+}";
+            await TestAsync(text, expected, parseOptions: Preview, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [WorkItem(45451, "https://github.com/dotnet/roslyn/issues/45451")]
@@ -161,7 +312,7 @@ internal struct NewStruct
         return new NewStruct(value.A, value.B);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [WorkItem(45451, "https://github.com/dotnet/roslyn/issues/45451")]
@@ -258,7 +409,7 @@ internal struct NewStruct
             var options = this.PreferImplicitTypeWithInfo();
             options.Add(NamingStyleOptions.NamingPreferences, info);
 
-            await TestInRegularAndScriptAsync(text, expected, options: options, testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: options, testHost: host);
         }
 
         [WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
@@ -325,7 +476,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -391,7 +542,7 @@ internal struct NewStruct
         return new NewStruct(value.Item1, value.Item2);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -457,7 +608,7 @@ internal struct NewStruct
         return new NewStruct(value.Item1, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -525,7 +676,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -593,7 +744,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -661,7 +812,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -729,7 +880,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -802,7 +953,7 @@ namespace N
     }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -868,7 +1019,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -934,7 +1085,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -1002,7 +1153,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -1082,7 +1233,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -1154,7 +1305,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -1226,7 +1377,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -1306,7 +1457,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -1372,7 +1523,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.Item2);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -1456,7 +1607,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -1524,7 +1675,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -1592,7 +1743,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -1667,7 +1818,7 @@ internal struct NewStruct<X, Y>
                 },
                 parameters: new TestParameters(testHost: host));
 
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -1741,7 +1892,7 @@ internal struct NewStruct1
         return new NewStruct1(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -1807,7 +1958,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.a);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -1885,7 +2036,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -1963,7 +2114,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -2041,7 +2192,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -2119,7 +2270,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -2200,7 +2351,7 @@ internal struct NewStruct
                 },
                 parameters: new TestParameters(testHost: host));
 
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -2280,11 +2431,8 @@ internal struct NewStruct
                 },
                 parameters: new TestParameters(testHost: host));
 
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
-
-        protected override ParseOptions GetScriptOptions()
-            => null;
 
         #endregion
 
@@ -2388,7 +2536,7 @@ internal struct NewStruct<T>
                 },
                 parameters: new TestParameters(testHost: host));
 
-            await TestInRegularAndScriptAsync(text, expected, index: 1, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, index: 1, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -2484,7 +2632,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, index: 1, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, index: 1, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -2586,7 +2734,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, index: 1, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, index: 1, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -2721,7 +2869,7 @@ partial class Other
         </Document>
     </Project>
 </Workspace>";
-            await TestInRegularAndScriptAsync(text, expected, index: 1, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, index: 1, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         #endregion update containing project tests
@@ -2867,7 +3015,7 @@ partial class Other
         </Document>
     </Project>
 </Workspace>";
-            await TestInRegularAndScriptAsync(text, expected, index: 2, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, index: 2, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         #endregion
@@ -2995,7 +3143,7 @@ partial class Other
         </Document>
     </Project>
 </Workspace>";
-            await TestInRegularAndScriptAsync(text, expected, index: 3, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, index: 3, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -3117,7 +3265,7 @@ partial class Other
         </Document>
     </Project>
 </Workspace>";
-            await TestInRegularAndScriptAsync(text, expected, index: 3, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: CSharp9, index: 3, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         #endregion

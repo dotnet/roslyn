@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -72,7 +74,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // for methods without custom debug info (https://github.com/dotnet/roslyn/issues/4138).
                     debugInfo = null;
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e)) // likely a bug in the compiler/debugger
+                catch (Exception e) when (FatalError.ReportAndCatch(e)) // likely a bug in the compiler/debugger
                 {
                     throw new InvalidDataException(e.Message, e);
                 }
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     return EditAndContinueMethodDebugInformation.Create(localSlots, lambdaMap);
                 }
-                catch (InvalidOperationException e) when (FatalError.ReportWithoutCrash(e)) // likely a bug in the compiler/debugger
+                catch (InvalidOperationException e) when (FatalError.ReportAndCatch(e)) // likely a bug in the compiler/debugger
                 {
                     // TODO: CustomDebugInfoReader should throw InvalidDataException
                     throw new InvalidDataException(e.Message, e);

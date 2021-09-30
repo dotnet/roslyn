@@ -22,11 +22,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Sub New()
         End Sub
 
-        Friend Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts
-            Get
-                Return VisualBasicSyntaxFacts.Instance
-            End Get
-        End Property
+        Friend Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
+
+        Friend Overrides Function EndOfLine(text As String) As SyntaxTrivia
+            Return SyntaxFactory.EndOfLine(text)
+        End Function
 
         Friend Overloads Overrides Function LocalDeclarationStatement(type As SyntaxNode, identifier As SyntaxToken, Optional initializer As SyntaxNode = Nothing, Optional isConst As Boolean = False) As SyntaxNode
             Return SyntaxFactory.LocalDeclarationStatement(
@@ -96,8 +96,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.InterpolatedStringText(textToken)
         End Function
 
-        Friend Overrides Function InterpolatedStringTextToken(content As String) As SyntaxToken
-            Return SyntaxFactory.InterpolatedStringTextToken(content, "")
+        Friend Overrides Function InterpolatedStringTextToken(content As String, value As String) As SyntaxToken
+            Return SyntaxFactory.InterpolatedStringTextToken(content, value)
         End Function
 
         Friend Overrides Function Interpolation(syntaxNode As SyntaxNode) As SyntaxNode

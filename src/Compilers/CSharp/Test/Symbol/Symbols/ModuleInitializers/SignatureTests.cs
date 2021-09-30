@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -50,10 +52,8 @@ interface i
     [ModuleInitializer]
     internal void M2() { }
 }
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation = CreateCompilation(source, parseOptions: s_parseOptions, targetFramework: TargetFramework.NetCoreApp);
             compilation.VerifyEmitDiagnostics(
                 // (6,6): error CS8815: Module initializer method 'M1' must be static, must have no parameters, and must return 'void'
                 //     [ModuleInitializer]

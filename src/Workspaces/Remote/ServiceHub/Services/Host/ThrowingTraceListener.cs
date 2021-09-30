@@ -14,14 +14,16 @@ namespace Microsoft.CodeAnalysis.Remote
             var stackTrace = new StackTrace();
             foreach (var frame in stackTrace.GetFrames())
             {
-                if (frame.GetMethod()?.DeclaringType?.FullName?.Contains("ChangedText") ?? false)
+                if (frame?.GetMethod()?.DeclaringType?.FullName?.Contains("ChangedText") ?? false)
                 {
                     // 😢 https://github.com/dotnet/roslyn/issues/47234
                     return;
                 }
             }
 
-            throw new InvalidOperationException(message + Environment.NewLine + detailMessage);
+            throw new InvalidOperationException(
+                (string.IsNullOrEmpty(message) ? "Assertion failed" : message) +
+                (string.IsNullOrEmpty(detailMessage) ? "" : Environment.NewLine + detailMessage));
         }
 
         public override void Write(object o)

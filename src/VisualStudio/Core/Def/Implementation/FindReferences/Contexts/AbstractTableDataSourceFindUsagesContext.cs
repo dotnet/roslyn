@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private abstract class AbstractTableDataSourceFindUsagesContext :
             FindUsagesContext, ITableDataSource, ITableEntriesSnapshotFactory
         {
-            private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+            private CancellationTokenSource? _cancellationTokenSource;
 
             private ITableDataSink _tableDataSink;
 
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             private readonly AsyncBatchingWorkQueue<(int current, int maximum)> _progressQueue;
 
-            protected readonly object Gate = new object();
+            protected readonly object Gate = new();
 
             #region Fields that should be locked by _gate
 
@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// us to not display it if it has no references, and we don't run into any 
             /// references for it (common with implicitly declared symbols).
             /// </summary>
-            protected readonly List<DefinitionItem> Definitions = new List<DefinitionItem>();
+            protected readonly List<DefinitionItem> Definitions = new();
 
             /// <summary>
             /// We will hear about the same definition over and over again.  i.e. for each reference 
@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// and then always return that for all future references found.
             /// </summary>
             private readonly Dictionary<DefinitionItem, RoslynDefinitionBucket> _definitionToBucket =
-                new Dictionary<DefinitionItem, RoslynDefinitionBucket>();
+                new();
 
             /// <summary>
             /// We want to hide declarations of a symbol if the user is grouping by definition.
@@ -80,19 +80,27 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected ImmutableList<Entry> EntriesWhenNotGroupingByDefinition = ImmutableList<Entry>.Empty;
             protected ImmutableList<Entry> EntriesWhenGroupingByDefinition = ImmutableList<Entry>.Empty;
 
-            private TableEntriesSnapshot _lastSnapshot;
+            private TableEntriesSnapshot? _lastSnapshot;
             public int CurrentVersionNumber { get; protected set; }
 
             #endregion
+
+            public sealed override CancellationToken CancellationToken { get; }
 
             protected AbstractTableDataSourceFindUsagesContext(
                  StreamingFindUsagesPresenter presenter,
                  IFindAllReferencesWindow findReferencesWindow,
                  ImmutableArray<ITableColumnDefinition> customColumns,
                  bool includeContainingTypeAndMemberColumns,
-                 bool includeKindColumn)
+                 bool includeKindColumn,
+                 CancellationToken cancellationToken)
             {
                 presenter.AssertIsForeground();
+
+                // Wrap the passed in CT with our own CTS that we can control cancellation over.  This way either our
+                // caller can cancel our work or we can cancel the work.
+                _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                CancellationToken = _cancellationTokenSource.Token;
 
                 Presenter = presenter;
                 _findReferencesWindow = findReferencesWindow;
@@ -114,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 // After adding us as the source, the manager should immediately call into us to
                 // tell us what the data sink is.
-                Debug.Assert(_tableDataSink != null);
+                RoslynDebug.Assert(_tableDataSink != null);
 
                 // https://devdiv.visualstudio.com/web/wi.aspx?pcguid=011b8bdf-6d56-4f87-be0d-0092136884d9&id=359162
                 // VS actually responds to each SetProgess call by queuing a UI task to do the
@@ -218,10 +226,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private void CancelSearch()
             {
                 Presenter.AssertIsForeground();
-                _cancellationTokenSource.Cancel();
-            }
 
-            public sealed override CancellationToken CancellationToken => _cancellationTokenSource.Token;
+                // Cancel any in flight find work that is going on.
+                if (_cancellationTokenSource != null)
+                {
+                    _cancellationTokenSource.Cancel();
+                    _cancellationTokenSource.Dispose();
+                    _cancellationTokenSource = null;
+                }
+            }
 
             public void Clear()
             {
@@ -304,32 +317,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected abstract ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition);
 
-            protected async Task<(Guid, string projectName, SourceText)> GetGuidAndProjectNameAndSourceTextAsync(Document document)
-            {
-                // The FAR system needs to know the guid for the project that a def/reference is 
-                // from (to support features like filtering).  Normally that would mean we could
-                // only support this from a VisualStudioWorkspace.  However, we want till work 
-                // in cases like Any-Code (which does not use a VSWorkspace).  So we are tolerant
-                // when we have another type of workspace.  This means we will show results, but
-                // certain features (like filtering) may not work in that context.
-                var vsWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspace;
-
-                var projectName = document.Project.Name;
-                var guid = vsWorkspace?.GetProjectGuid(document.Project.Id) ?? Guid.Empty;
-
-                var sourceText = await document.GetTextAsync(CancellationToken).ConfigureAwait(false);
-                return (guid, projectName, sourceText);
-            }
-
-            protected async Task<Entry> TryCreateDocumentSpanEntryAsync(
+            protected async Task<Entry?> TryCreateDocumentSpanEntryAsync(
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
                 HighlightSpanKind spanKind,
                 SymbolUsageInfo symbolUsageInfo,
                 ImmutableDictionary<string, string> additionalProperties)
             {
-                var document = documentSpan.Document;
-                var (guid, projectName, sourceText) = await GetGuidAndProjectNameAndSourceTextAsync(document).ConfigureAwait(false);
+                var sourceText = await documentSpan.Document.GetTextAsync(CancellationToken).ConfigureAwait(false);
                 var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan).ConfigureAwait(false);
 
                 var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, CancellationToken).ConfigureAwait(false);
@@ -339,9 +334,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     return null;
                 }
 
-                return new DocumentSpanEntry(
-                    this, definitionBucket, spanKind, projectName,
-                    guid, mappedDocumentSpan.Value, excerptResult, lineText, symbolUsageInfo, additionalProperties);
+                return DocumentSpanEntry.TryCreate(
+                    this,
+                    definitionBucket,
+                    documentSpan,
+                    spanKind,
+                    mappedDocumentSpan.Value,
+                    excerptResult,
+                    lineText,
+                    symbolUsageInfo,
+                    additionalProperties);
             }
 
             private async Task<(ExcerptResult, SourceText)> ExcerptAsync(SourceText sourceText, DocumentSpan documentSpan)
@@ -374,13 +376,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected abstract ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference);
 
-            protected RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition)
+            protected RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition, bool expandedByDefault)
             {
                 lock (Gate)
                 {
                     if (!_definitionToBucket.TryGetValue(definition, out var bucket))
                     {
-                        bucket = RoslynDefinitionBucket.Create(Presenter, this, definition);
+                        bucket = RoslynDefinitionBucket.Create(Presenter, this, definition, expandedByDefault);
                         _definitionToBucket.Add(definition, bucket);
                     }
 
@@ -449,7 +451,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            public ITableEntriesSnapshot GetSnapshot(int versionNumber)
+            public ITableEntriesSnapshot? GetSnapshot(int versionNumber)
             {
                 lock (Gate)
                 {

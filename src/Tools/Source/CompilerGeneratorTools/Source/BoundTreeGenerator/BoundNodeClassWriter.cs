@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -89,6 +91,7 @@ namespace BoundTreeGenerator
             _valueTypes.Add("ImmutableArray");
             _valueTypes.Add("PropertyAccessKind");
             _valueTypes.Add("TypeWithAnnotations");
+            _valueTypes.Add("BitVector");
         }
 
         public static void Write(TextWriter writer, Tree tree, TargetLanguage targetLang)
@@ -143,6 +146,28 @@ namespace BoundTreeGenerator
         {
             --_indent;
         }
+
+        // <Caravela>
+        private void WriteCaravelaSpecificHeader(TreeType node)
+        {
+            if (!node.IsCaravelaSpecific)
+            {
+                return;
+            }
+
+            WriteLine("// <Caravela> This change is generated. See Modifications.md for details.");
+        }
+
+        private void WriteCaravelaSpecificFooter(TreeType node)
+        {
+            if (!node.IsCaravelaSpecific)
+            {
+                return;
+            }
+
+            WriteLine("// </Caravela>");
+        }
+        // </Caravela>
 
         private void WriteFile()
         {
@@ -252,7 +277,13 @@ namespace BoundTreeGenerator
                     WriteLine("internal enum BoundKind : byte");
                     Brace();
                     foreach (var node in _tree.Types.OfType<Node>())
+                    // <Caravela>
+                    {
+                        WriteCaravelaSpecificHeader(node);
                         WriteLine("{0},", FixKeyword(StripBound(node.Name)));
+                        WriteCaravelaSpecificFooter(node);
+                    }
+                    // </Caravela>
                     Unbrace();
                     break;
 
@@ -291,6 +322,9 @@ namespace BoundTreeGenerator
             {
                 case TargetLanguage.CSharp:
                     {
+                        // <Caravela>
+                        WriteCaravelaSpecificHeader(node);
+                        // </Caravela>
                         string abstr = "";
                         if (node is AbstractNode)
                             abstr = "abstract ";
@@ -326,6 +360,9 @@ namespace BoundTreeGenerator
             {
                 case TargetLanguage.CSharp:
                     Unbrace();
+                    // <Caravela>
+                    WriteCaravelaSpecificFooter(node);
+                    // </Caravela>
                     break;
 
                 case TargetLanguage.VB:
@@ -780,9 +817,9 @@ namespace BoundTreeGenerator
 
             if (f.Null != null)
             {
-                if (_targetLang == TargetLanguage.CSharp && f.Null.ToUpperInvariant() == "ALLOW" && !f.Type.EndsWith('?') && !IsValueType(f.Type))
+                if (_targetLang == TargetLanguage.CSharp && (f.Null.ToUpperInvariant() is ("ALLOW" or "ALWAYS")) && !f.Type.EndsWith('?') && !IsValueType(f.Type))
                 {
-                    throw new ArgumentException($"Field '{fieldName}' on node '{node.Name}' should have a nullable type, since it isn't a value type and it is marked null=allow");
+                    throw new ArgumentException($"Field '{fieldName}' on node '{node.Name}' should have a nullable type, since it isn't a value type and it is marked null=allow or null=always");
                 }
 
                 switch (f.Null.ToUpperInvariant())
@@ -825,7 +862,7 @@ namespace BoundTreeGenerator
                 throw new InvalidOperationException($"Field {fieldName} not found in type {node.Name}");
         }
 
-        private void WriteField(Field field)
+        private void WriteField(TreeType node, Field field)
         {
             switch (_targetLang)
             {
@@ -839,13 +876,14 @@ namespace BoundTreeGenerator
                     else if (field.Override)
                     {
                         // We emit a suppression here because the bound nodes use a pattern which is safe, but can't be tracked.
+                        var suppression = FieldNullHandling(node, field.Name) is (NullHandling.Allow or NullHandling.Always) ? "" : "!";
 
                         // The point of overriding a property is to change its nullability, usually
                         // from nullable to non-nullable. The base is annotated as nullable,
                         // but since the base property is always set via the base call in the
                         // constructor, as long as the parameter to the current class's constructor is not
                         // nullable, the base property is always non-null.
-                        WriteLine($"public new {field.Type} {field.Name} => base.{field.Name}!;");
+                        WriteLine($"public new {field.Type} {field.Name} => base.{field.Name}{suppression};");
                     }
                     else
                     {
@@ -889,7 +927,6 @@ namespace BoundTreeGenerator
                     WriteLine("Return visitor.Visit{0}(Me)", StripBound(name));
                     Outdent();
                     WriteLine("End Function");
-
                     break;
 
                 default:
@@ -919,7 +956,7 @@ namespace BoundTreeGenerator
             // Only C# can express nullable reference types
             foreach (var field in (_targetLang == TargetLanguage.CSharp ? FieldsIncludingOverrides(node) : Fields(node)))
             {
-                WriteField(field);
+                WriteField(node, field);
             }
             if (node is Node)
             {
@@ -1053,10 +1090,16 @@ namespace BoundTreeGenerator
                     Brace();
                     foreach (var node in _tree.Types.OfType<Node>())
                     {
+                        // <Caravela>
+                        WriteCaravelaSpecificHeader(node);
+                        // </Caravela>
                         WriteLine("case BoundKind.{0}:", FixKeyword(StripBound(node.Name)));
                         Indent();
                         WriteLine("return Visit{0}(({1})node, arg);", StripBound(node.Name), node.Name);
                         Outdent();
+                        // <Caravela>
+                        WriteCaravelaSpecificFooter(node);
+                        // </Caravela>
                     }
                     Unbrace();
                     Blank(); // end switch
@@ -1069,7 +1112,13 @@ namespace BoundTreeGenerator
                     Brace();
                     foreach (var node in _tree.Types.OfType<Node>())
                     {
+                        // <Caravela>
+                        WriteCaravelaSpecificHeader(node);
+                        // </Caravela>
                         WriteLine($"public virtual R Visit{StripBound(node.Name)}({node.Name} node, A arg) => this.DefaultVisit(node, arg);");
+                        // <Caravela>
+                        WriteCaravelaSpecificFooter(node);
+                        // </Caravela>
                     }
                     Unbrace();
 
@@ -1078,7 +1127,13 @@ namespace BoundTreeGenerator
                     Brace();
                     foreach (var node in _tree.Types.OfType<Node>())
                     {
+                        // <Caravela>
+                        WriteCaravelaSpecificHeader(node);
+                        // </Caravela>
                         WriteLine($"public virtual BoundNode? Visit{StripBound(node.Name)}({node.Name} node) => this.DefaultVisit(node);");
+                        // <Caravela>
+                        WriteCaravelaSpecificFooter(node);
+                        // </Caravela>
                     }
                     Unbrace();
                     break;
@@ -1160,9 +1215,18 @@ namespace BoundTreeGenerator
                         var fields = AllFields(node).Where(f => IsDerivedOrListOfDerived("BoundNode", f.Type) && !SkipInVisitor(f));
                         if (!fields.Any())
                         {
+                            // <Caravela>
+                            WriteCaravelaSpecificHeader(node);
+                            // </Caravela>
                             WriteLine($"{GetVisitFunctionDeclaration(node.Name, isOverride: true)} => null;");
+                            // <Caravela>
+                            WriteCaravelaSpecificFooter(node);
+                            // </Caravela>
                             continue;
                         }
+                        // <Caravela>
+                        WriteCaravelaSpecificHeader(node);
+                        // </Caravela>
                         WriteLine(GetVisitFunctionDeclaration(node.Name, isOverride: true));
                         Brace();
                         foreach (Field field in fields)
@@ -1171,6 +1235,9 @@ namespace BoundTreeGenerator
                         }
                         WriteLine("return null;");
                         Unbrace();
+                        // <Caravela>
+                        WriteCaravelaSpecificFooter(node);
+                        // </Caravela>
                     }
                     Unbrace();
 
@@ -1219,6 +1286,9 @@ namespace BoundTreeGenerator
                     WriteLine("public static TreeDumperNode MakeTree(BoundNode node) => (new BoundTreeDumperNodeProducer()).Visit(node, null);");
                     foreach (var node in _tree.Types.OfType<Node>())
                     {
+                        // <Caravela>
+                        WriteCaravelaSpecificHeader(node);
+                        // </Caravela>
                         Write("public override TreeDumperNode Visit{0}({1} node, object? arg) => new TreeDumperNode(\"{2}\", null, ", StripBound(node.Name), node.Name, ToCamelCase(StripBound(node.Name)));
                         var allFields = AllFields(node).ToArray();
                         if (allFields.Length > 0)
@@ -1268,6 +1338,9 @@ namespace BoundTreeGenerator
                             WriteLine("Array.Empty<TreeDumperNode>()");
                         }
                         WriteLine(");");
+                        // <Caravela>
+                        WriteCaravelaSpecificFooter(node);
+                        // </Caravela>
                     }
                     Unbrace();
                     break;
@@ -1349,6 +1422,9 @@ namespace BoundTreeGenerator
                                 WriteLine($"{GetVisitFunctionDeclaration(node.Name, isOverride: true)} => node;");
                                 continue;
                             }
+                            // <Caravela>
+                            WriteCaravelaSpecificHeader(node);
+                            // </Caravela>
                             WriteLine(GetVisitFunctionDeclaration(node.Name, isOverride: true));
                             Brace();
                             bool hadField = false;
@@ -1374,6 +1450,9 @@ namespace BoundTreeGenerator
                             }
 
                             Unbrace();
+                            // <Caravela>
+                            WriteCaravelaSpecificFooter(node);
+                            // </Caravela>
                         }
                         Unbrace();
                         break;
@@ -1471,6 +1550,9 @@ namespace BoundTreeGenerator
                             }
 
                             Blank();
+                            // <Caravela>
+                            WriteCaravelaSpecificHeader(node);
+                            // </Caravela>
                             WriteLine(GetVisitFunctionDeclaration(node.Name, isOverride: true));
                             Brace();
                             bool hadField = false;
@@ -1532,6 +1614,9 @@ namespace BoundTreeGenerator
                             }
 
                             Unbrace();
+                            // <Caravela>
+                            WriteCaravelaSpecificFooter(node);
+                            // </Caravela>
 
                             void writeNullabilityCheck(bool inverted) =>
                                 WriteLine($"if ({(inverted ? "!" : "")}{updatedNullabilities}.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))");
@@ -2045,7 +2130,7 @@ namespace BoundTreeGenerator
                 case "getxmlnamespace":
                 case "global":
                 case "gosub":
-                case "goTo":
+                case "goto":
                 case "handles":
                 case "if":
                 case "implements":
@@ -2068,6 +2153,7 @@ namespace BoundTreeGenerator
                 case "mustoverride":
                 case "mybase":
                 case "myclass":
+                case "nameof":
                 case "namespace":
                 case "narrowing":
                 case "new":
@@ -2087,7 +2173,7 @@ namespace BoundTreeGenerator
                 case "overloads":
                 case "overridable":
                 case "overrides":
-                case "paramArray":
+                case "paramarray":
                 case "partial":
                 case "private":
                 case "property":

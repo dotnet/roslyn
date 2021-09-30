@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Differencing;
 
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         public static BidirectionalMap<T> FromMatch(Match<T> match)
-            => new BidirectionalMap<T>(match.Matches, match.ReverseMatches);
+            => new(match.Matches, match.ReverseMatches);
 
         public bool IsDefaultOrEmpty => Forward == null || Forward.Count == 0;
     }

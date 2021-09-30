@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
                     Dim assignmentStatement = DirectCast(statement, AssignmentStatementSyntax)
                     If assignmentStatement.Right.Kind() = SyntaxKind.IdentifierName Then
                         Dim identifier = DirectCast(assignmentStatement.Right, IdentifierNameSyntax)
-                        Dim symbol = semanticModel.GetSymbolInfo(identifier).Symbol
+                        Dim symbol = semanticModel.GetSymbolInfo(identifier, cancellationToken).Symbol
                         If setMethod.Parameters.Contains(TryCast(symbol, IParameterSymbol)) Then
                             Return If(CheckExpressionSyntactically(assignmentStatement.Left), assignmentStatement.Left, Nothing)
                         End If
@@ -201,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             End If
 
             If node.Kind() = SyntaxKind.IdentifierName Then
-                Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+                Dim symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken)
                 If field.Equals(symbolInfo.Symbol) Then
                     If DirectCast(node, ExpressionSyntax).IsWrittenTo(semanticModel, cancellationToken) Then
                         Return True

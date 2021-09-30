@@ -5,7 +5,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -20,9 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             public WorkspaceChangedEventSource(
                 ITextBuffer subjectBuffer,
-                TaggerDelay delay,
                 IAsynchronousOperationListener asyncListener)
-                : base(subjectBuffer, delay)
+                : base(subjectBuffer)
             {
                 // That will ensure that even if we get a flurry of workspace events that we
                 // only process a tag change once.
@@ -49,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 this.RaiseChanged();
             }
 
-            private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs eventArgs)
+            private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs eventArgs)
                 => _asyncDelay.RequeueWork();
         }
     }

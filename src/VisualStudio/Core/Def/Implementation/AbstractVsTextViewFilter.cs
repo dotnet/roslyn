@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -46,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 return GetDataTipTextImpl(pSpan, out pbstrText);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e) && false)
+            catch (Exception e) when (FatalError.ReportAndCatch(e) && false)
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -147,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 return result;
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e) && false)
+            catch (Exception e) when (FatalError.ReportAndCatch(e) && false)
             {
                 throw ExceptionUtilities.Unreachable;
             }

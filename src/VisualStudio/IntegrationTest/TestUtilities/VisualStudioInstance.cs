@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -13,7 +15,6 @@ using EnvDTE;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
 using Process = System.Diagnostics.Process;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
@@ -89,12 +90,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public string InstallationPath { get; }
 
-        public VisualStudioInstance(Process hostProcess, DTE dte, ImmutableHashSet<string> supportedPackageIds, string installationPath)
+        public bool IsUsingLspEditor { get; }
+
+        public VisualStudioInstance(Process hostProcess, DTE dte, ImmutableHashSet<string> supportedPackageIds, string installationPath, bool isUsingLspEditor)
         {
             HostProcess = hostProcess;
             Dte = dte;
             SupportedPackageIds = supportedPackageIds;
             InstallationPath = installationPath;
+            IsUsingLspEditor = isUsingLspEditor;
 
             if (System.Diagnostics.Debugger.IsAttached)
             {
@@ -230,6 +234,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             // Prevent the start page from showing after each solution closes
             StartPage.SetEnabled(false);
+            Workspace.ResetOptions();
         }
 
         public void Close(bool exitHostProcess = true)

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod;
@@ -113,6 +115,68 @@ class C
         return b != true;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestSelectionOfSwitchExpressionArm()
+        {
+            await TestInRegularAndScript1Async(
+@"class Program
+{
+    int Foo(int x) => x switch
+    {
+        1 => 1,
+        _ => [|1 + x|]
+    };
+}",
+@"class Program
+{
+    int Foo(int x) => x switch
+    {
+        1 => 1,
+        _ => {|Rename:NewMethod|}(x)
+    };
+    private static int NewMethod(int x) => 1 + x;
+}",
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestSelectionOfSwitchExpressionArmContainingVariables()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+using System.Collections.Generic;
+
+class TestClass
+{
+    public static T RecursiveExample<T>(IEnumerable<T> sequence) =>
+    sequence switch
+    {
+        Array { Length: 0 } => default(T),
+        Array { Length: 1 } array => [|(T)array.GetValue(0)|],
+        Array { Length: 2 } array => (T)array.GetValue(1),
+        Array array => (T)array.GetValue(2),
+        _ => throw new NotImplementedException(),
+    };
+}",
+@"using System;
+using System.Collections.Generic;
+
+class TestClass
+{
+    public static T RecursiveExample<T>(IEnumerable<T> sequence) =>
+    sequence switch
+    {
+        Array { Length: 0 } => default(T),
+        Array { Length: 1 } array => {|Rename:NewMethod|}<T>(array),
+        Array { Length: 2 } array => (T)array.GetValue(1),
+        Array array => (T)array.GetValue(2),
+        _ => throw new NotImplementedException(),
+    };
+    private static T NewMethod<T>(Array array) => (T)array.GetValue(0);
+}",
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -919,7 +983,7 @@ parseOptions: Options.Regular);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)]
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task TestTuple()
         {
@@ -947,7 +1011,7 @@ parseOptions: Options.Regular);
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)]
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task TestTupleDeclarationWithNames()
         {
@@ -975,7 +1039,7 @@ parseOptions: Options.Regular);
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)]
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task TestTupleDeclarationWithSomeNames()
         {
@@ -1003,7 +1067,7 @@ parseOptions: Options.Regular);
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)]
         [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
         public async Task TestTupleWith1Arity()
         {
@@ -1033,7 +1097,7 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)]
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task TestTupleLiteralWithNames()
         {
@@ -1061,7 +1125,7 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)]
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task TestTupleDeclarationAndLiteralWithNames()
         {
@@ -1089,7 +1153,7 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)]
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task TestTupleIntoVar()
         {
@@ -1117,7 +1181,7 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)]
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task RefactorWithoutSystemValueTuple()
         {
@@ -1145,7 +1209,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)]
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task TestTupleWithNestedNamedTuple()
         {
@@ -1174,7 +1238,7 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TestDeconstruction()
         {
             await TestInRegularAndScript1Async(
@@ -1201,7 +1265,7 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TestDeconstruction2()
         {
             await TestInRegularAndScript1Async(
@@ -1231,7 +1295,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.OutVar)]
+        [CompilerTrait(CompilerFeature.OutVar)]
         public async Task TestOutVar()
         {
             await TestInRegularAndScript1Async(
@@ -1262,7 +1326,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Patterns)]
+        [CompilerTrait(CompilerFeature.Patterns)]
         public async Task TestIsPattern()
         {
             await TestInRegularAndScript1Async(
@@ -1293,7 +1357,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Patterns)]
+        [CompilerTrait(CompilerFeature.Patterns)]
         public async Task TestOutVarAndIsPattern()
         {
             await TestInRegularAndScript1Async(
@@ -1324,7 +1388,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Patterns)]
+        [CompilerTrait(CompilerFeature.Patterns)]
         public async Task ConflictingOutVarLocals()
         {
             await TestInRegularAndScript1Async(
@@ -1365,7 +1429,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Patterns)]
+        [CompilerTrait(CompilerFeature.Patterns)]
         public async Task ConflictingPatternLocals()
         {
             await TestInRegularAndScript1Async(
@@ -1655,7 +1719,7 @@ class C
         }
 
         [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task Bug3790()
         {
             await TestInRegularAndScript1Async(@"
@@ -1696,7 +1760,7 @@ class Test
         }
 
         [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task Bug3790_1()
         {
             await TestInRegularAndScript1Async(@"
@@ -1736,7 +1800,7 @@ class Test
         }
 
         [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task Bug3790_2()
         {
             await TestInRegularAndScript1Async(@"
@@ -1776,7 +1840,7 @@ class Test
         }
 
         [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExpressionBodyProperty()
         {
             await TestInRegularAndScript1Async(@"
@@ -1801,7 +1865,7 @@ class Program
         }
 
         [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExpressionBodyIndexer()
         {
             await TestInRegularAndScript1Async(@"
@@ -1826,7 +1890,7 @@ class Program
         }
 
         [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExpressionBodyPropertyGetAccessor()
         {
             await TestInRegularAndScript1Async(@"
@@ -1859,7 +1923,7 @@ class Program
         }
 
         [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExpressionBodyPropertySetAccessor()
         {
             await TestInRegularAndScript1Async(@"
@@ -1892,7 +1956,7 @@ class Program
         }
 
         [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExpressionBodyIndexerGetAccessor()
         {
             await TestInRegularAndScript1Async(@"
@@ -1925,7 +1989,7 @@ class Program
         }
 
         [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExpressionBodyIndexerSetAccessor()
         {
             await TestInRegularAndScript1Async(@"
@@ -1957,7 +2021,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestTupleWithInferredNames()
         {
             await TestAsync(@"
@@ -1987,7 +2051,7 @@ class Program
 }", TestOptions.Regular7_1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestDeconstruction4()
         {
             await TestAsync(@"
@@ -2016,7 +2080,7 @@ class Program
 }", TestOptions.Regular7_1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestDeconstruction5()
         {
             await TestAsync(@"
@@ -4199,6 +4263,57 @@ class C
     private static int? NewMethod(List<int> b)
     {
         return b?[0];
+    }
+}");
+        }
+
+        [WorkItem(48453, "https://github.com/dotnet/roslyn/issues/48453")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [InlineData("record")]
+        [InlineData("record class")]
+        public async Task TestInRecord(string record)
+        {
+            await TestInRegularAndScript1Async($@"
+{record} Program
+{{
+    int field;
+
+    public int this[int i] => [|this.field|];
+}}",
+$@"
+{record} Program
+{{
+    int field;
+
+    public int this[int i] => {{|Rename:GetField|}}();
+
+    private int GetField()
+    {{
+        return this.field;
+    }}
+}}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestInRecordStruct()
+        {
+            await TestInRegularAndScript1Async(@"
+record struct Program
+{
+    int field;
+
+    public int this[int i] => [|this.field|];
+}",
+@"
+record struct Program
+{
+    int field;
+
+    public int this[int i] => {|Rename:GetField|}();
+
+    private readonly int GetField()
+    {
+        return this.field;
     }
 }");
         }

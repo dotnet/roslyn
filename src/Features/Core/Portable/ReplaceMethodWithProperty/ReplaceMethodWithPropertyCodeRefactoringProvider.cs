@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,7 +23,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
-        Name = nameof(ReplaceMethodWithPropertyCodeRefactoringProvider)), Shared]
+        Name = PredefinedCodeRefactoringProviderNames.ReplaceMethodWithProperty), Shared]
     internal class ReplaceMethodWithPropertyCodeRefactoringProvider : CodeRefactoringProvider
     {
         private const string GetPrefix = "Get";
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             var hasGetPrefix = HasGetPrefix(methodName);
             var propertyName = hasGetPrefix
                 ? NameGenerator.GenerateUniqueName(
-                    methodName.Substring(GetPrefix.Length),
+                    methodName[GetPrefix.Length..],
                     n => !methodSymbol.ContainingType.GetMembers(n).Any())
                 : methodName;
             var nameChanged = hasGetPrefix;
@@ -102,10 +100,10 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         private static bool HasPrefix(string text, string prefix)
             => text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) && text.Length > prefix.Length && !char.IsLower(text[prefix.Length]);
 
-        private static IMethodSymbol FindSetMethod(IMethodSymbol getMethod)
+        private static IMethodSymbol? FindSetMethod(IMethodSymbol getMethod)
         {
             var containingType = getMethod.ContainingType;
-            var setMethodName = "Set" + getMethod.Name.Substring(GetPrefix.Length);
+            var setMethodName = "Set" + getMethod.Name[GetPrefix.Length..];
             var setMethod = containingType.GetMembers()
                                           .OfType<IMethodSymbol>()
                                           .Where(m => setMethodName.Equals(m.Name, StringComparison.OrdinalIgnoreCase))

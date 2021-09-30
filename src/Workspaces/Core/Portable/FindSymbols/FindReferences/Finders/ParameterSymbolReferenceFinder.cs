@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IParameterSymbol symbol,
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindDocumentsAsync(project, documents, findInGlobalSuppressions: false, cancellationToken, symbol.Name);
         }
 
-        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IParameterSymbol symbol,
             Document document,
             SemanticModel semanticModel,
@@ -95,26 +95,31 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             };
         }
 
-        protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             IParameterSymbol parameter,
             Solution solution,
-            IImmutableSet<Project> projects,
+            IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options,
+            FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
             if (parameter.IsThis)
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>.Empty;
             }
 
-            var result = ArrayBuilder<ISymbol>.GetInstance();
+            using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
-            await CascadeBetweenAnonymousFunctionParametersAsync(solution, parameter, result, cancellationToken).ConfigureAwait(false);
-            CascadeBetweenPropertyAndAccessorParameters(parameter, result);
-            CascadeBetweenDelegateMethodParameters(parameter, result);
-            CascadeBetweenPartialMethodParameters(parameter, result);
+            await CascadeBetweenAnonymousFunctionParametersAsync(solution, parameter, symbols, cancellationToken).ConfigureAwait(false);
+            CascadeBetweenPropertyAndAccessorParameters(parameter, symbols);
+            CascadeBetweenDelegateMethodParameters(parameter, symbols);
+            CascadeBetweenPartialMethodParameters(parameter, symbols);
 
-            return result.ToImmutableAndFree();
+            using var _2 = ArrayBuilder<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>.GetInstance(symbols.Count, out var result);
+            foreach (var symbol in symbols)
+                result.Add((symbol, cascadeDirection));
+
+            return result.ToImmutable();
         }
 
         private static async Task CascadeBetweenAnonymousFunctionParametersAsync(
@@ -131,18 +136,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     var document = solution.GetDocument(parameterNode.SyntaxTree);
                     if (document != null)
                     {
-                        var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+                        var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
                         if (semanticFacts.ExposesAnonymousFunctionParameterNames)
                         {
-                            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                            var lambdaNode = parameter.ContainingSymbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).FirstOrDefault();
+                            var lambdaNode = parameter.ContainingSymbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).First();
                             var convertedType = semanticModel.GetTypeInfo(lambdaNode, cancellationToken).ConvertedType;
 
                             if (convertedType != null)
                             {
-                                var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-                                var container = GetContainer(semanticModel, parameterNode, syntaxFactsService);
+                                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                                var container = GetContainer(semanticModel, parameterNode, syntaxFacts);
                                 if (container != null)
                                 {
                                     CascadeBetweenAnonymousFunctionParameters(
@@ -165,18 +170,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ArrayBuilder<ISymbol> results,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             foreach (var token in container.DescendantTokens())
             {
                 if (IdentifiersMatch(syntaxFacts, parameter.Name, token))
                 {
-                    var symbol = semanticModel.GetDeclaredSymbol(token.Parent, cancellationToken);
+                    var symbol = semanticModel.GetDeclaredSymbol(token.GetRequiredParent(), cancellationToken);
                     if (symbol is IParameterSymbol &&
                         symbol.ContainingSymbol.IsAnonymousFunction() &&
                         SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(parameter.ContainingSymbol, symbol.ContainingSymbol, syntaxFacts.IsCaseSensitive) &&
                         ParameterNamesMatch(syntaxFacts, (IMethodSymbol)parameter.ContainingSymbol, (IMethodSymbol)symbol.ContainingSymbol))
                     {
-                        var lambdaNode = symbol.ContainingSymbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).FirstOrDefault();
+                        var lambdaNode = symbol.ContainingSymbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).First();
                         var convertedType2 = semanticModel.GetTypeInfo(lambdaNode, cancellationToken).ConvertedType;
 
                         if (convertedType1.Equals(convertedType2))
@@ -201,7 +206,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return true;
         }
 
-        private static SyntaxNode GetContainer(SemanticModel semanticModel, SyntaxNode parameterNode, ISyntaxFactsService syntaxFactsService)
+        private static SyntaxNode? GetContainer(SemanticModel semanticModel, SyntaxNode parameterNode, ISyntaxFactsService syntaxFactsService)
         {
             for (var current = parameterNode; current != null; current = current.Parent)
             {
@@ -250,7 +255,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var ordinal = parameter.Ordinal;
             if (parameter.ContainingSymbol is IMethodSymbol containingMethod)
             {
-                var containingType = containingMethod.ContainingType as INamedTypeSymbol;
+                var containingType = containingMethod.ContainingType;
                 if (containingType.IsDelegateType())
                 {
                     if (containingMethod.MethodKind == MethodKind.DelegateInvoke)

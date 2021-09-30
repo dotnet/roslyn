@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
@@ -19,13 +21,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <see cref="BuilderNode"/>s are produced when initially creating our indices.
         /// They store Names of symbols and the index of their parent symbol.  When we
         /// produce the final <see cref="SymbolTreeInfo"/> though we will then convert
-        /// these to <see cref="Node"/>s.  Those nodes will not point to individual 
-        /// strings, but will instead point at <see cref="_concatenatedNames"/>.
+        /// these to <see cref="Node"/>s.
         /// </summary>
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
         private struct BuilderNode
         {
-            public static readonly BuilderNode RootNode = new BuilderNode("", RootNodeParentIndex, default);
+            public static readonly BuilderNode RootNode = new("", RootNodeParentIndex, default);
 
             public readonly string Name;
             public readonly int ParentIndex;
@@ -48,9 +49,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private struct Node
         {
             /// <summary>
-            /// Span in <see cref="_concatenatedNames"/> of the Name of this Node.
+            /// The Name of this Node.
             /// </summary>
-            public readonly TextSpan NameSpan;
+            public readonly string Name;
 
             /// <summary>
             /// Index in <see cref="_nodes"/> of the parent Node of this Node.
@@ -59,9 +60,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// </summary>
             public readonly int ParentIndex;
 
-            public Node(TextSpan wordSpan, int parentIndex)
+            public Node(string name, int parentIndex)
             {
-                NameSpan = wordSpan;
+                Name = name;
                 ParentIndex = parentIndex;
             }
 
@@ -69,12 +70,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public void AssertEquivalentTo(Node node)
             {
-                Debug.Assert(node.NameSpan == this.NameSpan);
+                Debug.Assert(node.Name == this.Name);
                 Debug.Assert(node.ParentIndex == this.ParentIndex);
             }
 
             private string GetDebuggerDisplay()
-                => NameSpan + ", " + ParentIndex;
+                => Name + ", " + ParentIndex;
         }
 
         private readonly struct ParameterTypeInfo
@@ -139,13 +140,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private sealed class ParameterTypeInfoProvider : ISignatureTypeProvider<ParameterTypeInfo, object>
         {
-            public static readonly ParameterTypeInfoProvider Instance = new ParameterTypeInfoProvider();
+            public static readonly ParameterTypeInfoProvider Instance = new();
 
             private static ParameterTypeInfo ComplexInfo
-                => new ParameterTypeInfo(string.Empty, isComplex: true, isArray: false);
+                => new(string.Empty, isComplex: true, isArray: false);
 
             public ParameterTypeInfo GetPrimitiveType(PrimitiveTypeCode typeCode)
-                => new ParameterTypeInfo(typeCode.ToString(), isComplex: false, isArray: false);
+                => new(typeCode.ToString(), isComplex: false, isArray: false);
 
             public ParameterTypeInfo GetGenericInstantiation(ParameterTypeInfo genericType, ImmutableArray<ParameterTypeInfo> typeArguments)
                 => genericType.IsComplexType

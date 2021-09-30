@@ -28,16 +28,16 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             // When we are asked to flush, go actually acquire the write-scheduler and perform the actual writes from
             // it. Note: this is only called max every FlushAllDelayMS.  So we don't bother trying to avoid the delegate
             // allocation here.
-            return this.PerformWriteAsync(FlushInMemoryDataToDisk, cancellationToken);
+            return PerformWriteAsync(FlushInMemoryDataToDisk, cancellationToken);
         }
 
-        private void FlushWritesOnClose()
+        private Task FlushWritesOnCloseAsync()
         {
             // Issue a write task to write this all out to disk.
             //
             // Note: this only happens on close, so we don't try to avoid allocations here.
 
-            var writeTask = PerformWriteAsync(
+            return PerformWriteAsync(
                 () =>
                 {
                     // Perform the actual write while having exclusive access to the scheduler.
@@ -53,28 +53,25 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     // cancellation.  If it runs after us, then it sees this.  If it runs before us, then we just
                     // block until it finishes.
                     //
-                    // We don't have to worry about reads/writes getting connections either.  
+                    // We don't have to worry about reads/writes getting connections either.
                     // The only way we can get disposed in the first place is if every user of this storage instance
                     // has released their ref on us. In that case, it would be an error on their part to ever try to
                     // read/write after releasing us.
                     _shutdownTokenSource.Cancel();
                 }, CancellationToken.None);
-
-            // Wait for that task to finish.
-            writeTask.Wait();
         }
 
         private void FlushInMemoryDataToDisk()
         {
             // We're writing.  This better always be under the exclusive scheduler.
-            Debug.Assert(TaskScheduler.Current == _readerWriterLock.ExclusiveScheduler);
+            Contract.ThrowIfFalse(TaskScheduler.Current == _connectionPoolService.Scheduler.ExclusiveScheduler);
 
             // Don't flush from a bg task if we've been asked to shutdown.  The shutdown logic in the storage service
             // will take care of the final writes to the main db.
             if (_shutdownTokenSource.IsCancellationRequested)
                 return;
 
-            using var _ = GetPooledConnection(out var connection);
+            using var _ = _connectionPool.Target.GetPooledConnection(out var connection);
 
             // Dummy value for RunInTransaction signature.
             var unused = true;

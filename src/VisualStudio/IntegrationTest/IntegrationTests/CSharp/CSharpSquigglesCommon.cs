@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 
@@ -9,7 +11,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     public abstract class CSharpSquigglesCommon : AbstractEditorTest
     {
-        public CSharpSquigglesCommon(VisualStudioInstanceFactory instanceFactory, string projectTemplate)
+        protected CSharpSquigglesCommon(VisualStudioInstanceFactory instanceFactory, string projectTemplate)
             : base(instanceFactory, nameof(CSharpSquigglesCommon), projectTemplate)
         {
         }

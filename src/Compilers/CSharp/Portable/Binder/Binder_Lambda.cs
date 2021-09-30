@@ -1,14 +1,12 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable
 
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -35,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // then the modifiers array is non-null and not empty.
 
         private UnboundLambda AnalyzeAnonymousFunction(
-            AnonymousFunctionExpressionSyntax syntax, DiagnosticBag diagnostics)
+            AnonymousFunctionExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.IsAnonymousFunction());
@@ -43,11 +41,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             var names = default(ImmutableArray<string>);
             var refKinds = default(ImmutableArray<RefKind>);
             var types = default(ImmutableArray<TypeWithAnnotations>);
+            var attributes = default(ImmutableArray<SyntaxList<AttributeListSyntax>>);
 
             var namesBuilder = ArrayBuilder<string>.GetInstance();
             ImmutableArray<bool> discardsOpt = default;
             SeparatedSyntaxList<ParameterSyntax>? parameterSyntaxList = null;
             bool hasSignature;
+
+            if (syntax is LambdaExpressionSyntax lambdaSyntax)
+            {
+                checkAttributes(syntax, lambdaSyntax.AttributeLists, diagnostics);
+            }
 
             switch (syntax.Kind())
             {
@@ -88,6 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                 var refKindsBuilder = ArrayBuilder<RefKind>.GetInstance();
+                var attributesBuilder = ArrayBuilder<SyntaxList<AttributeListSyntax>>.GetInstance();
 
                 // In the batch compiler case we probably should have given a syntax error if the
                 // user did something like (int x, y)=>x+y -- but in the IDE scenario we might be in
@@ -105,10 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         underscoresCount++;
                     }
 
-                    foreach (var attributeList in p.AttributeLists)
-                    {
-                        Error(diagnostics, ErrorCode.ERR_AttributesNotAllowed, attributeList);
-                    }
+                    checkAttributes(syntax, p.AttributeLists, diagnostics);
 
                     if (p.Default != null)
                     {
@@ -168,6 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     namesBuilder.Add(p.Identifier.ValueText);
                     typesBuilder.Add(type);
                     refKindsBuilder.Add(refKind);
+                    attributesBuilder.Add(syntax.Kind() == SyntaxKind.ParenthesizedLambdaExpression ? p.AttributeLists : default);
                 }
 
                 discardsOpt = computeDiscards(parameterSyntaxList.Value, underscoresCount);
@@ -182,8 +185,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     refKinds = refKindsBuilder.ToImmutable();
                 }
 
+                if (attributesBuilder.Any(a => a.Count > 0))
+                {
+                    attributes = attributesBuilder.ToImmutable();
+                }
+
                 typesBuilder.Free();
                 refKindsBuilder.Free();
+                attributesBuilder.Free();
             }
 
             if (hasSignature)
@@ -193,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             namesBuilder.Free();
 
-            return new UnboundLambda(syntax, this, refKinds, types, names, discardsOpt, isAsync, isStatic);
+            return new UnboundLambda(syntax, this, diagnostics.AccumulatesDependencies, attributes, refKinds, types, names, discardsOpt, isAsync, isStatic);
 
             static ImmutableArray<bool> computeDiscards(SeparatedSyntaxList<ParameterSyntax> parameters, int underscoresCount)
             {
@@ -211,10 +220,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return discardsBuilder.ToImmutableAndFree();
             }
+
+            static void checkAttributes(AnonymousFunctionExpressionSyntax syntax, SyntaxList<AttributeListSyntax> attributeLists, BindingDiagnosticBag diagnostics)
+            {
+                foreach (var attributeList in attributeLists)
+                {
+                    if (syntax.Kind() == SyntaxKind.ParenthesizedLambdaExpression)
+                    {
+                        MessageID.IDS_FeatureLambdaAttributes.CheckFeatureAvailability(diagnostics, attributeList);
+                    }
+                    else
+                    {
+                        Error(diagnostics, syntax.Kind() == SyntaxKind.SimpleLambdaExpression ? ErrorCode.ERR_AttributesRequireParenthesizedLambdaExpression : ErrorCode.ERR_AttributesNotAllowed, attributeList);
+                    }
+                }
+            }
         }
 
-        private void CheckParenthesizedLambdaParameters(
-            SeparatedSyntaxList<ParameterSyntax> parameterSyntaxList, DiagnosticBag diagnostics)
+        private static void CheckParenthesizedLambdaParameters(
+            SeparatedSyntaxList<ParameterSyntax> parameterSyntaxList, BindingDiagnosticBag diagnostics)
         {
             if (parameterSyntaxList.Count > 0)
             {
@@ -239,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private UnboundLambda BindAnonymousFunction(AnonymousFunctionExpressionSyntax syntax, DiagnosticBag diagnostics)
+        private UnboundLambda BindAnonymousFunction(AnonymousFunctionExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.IsAnonymousFunction());
@@ -262,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Parser will only have accepted static/async as allowed modifiers on this construct.
             // However, it may have accepted duplicates of those modifiers.  Ensure that any dupes
             // are reported now.
-            ModifierUtils.ToDeclarationModifiers(syntax.Modifiers, diagnostics);
+            ModifierUtils.ToDeclarationModifiers(syntax.Modifiers, diagnostics.DiagnosticBag ?? new DiagnosticBag());
 
             if (data.HasNames)
             {

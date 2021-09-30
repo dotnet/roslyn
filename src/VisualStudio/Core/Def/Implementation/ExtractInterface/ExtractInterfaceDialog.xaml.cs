@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -17,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
     /// </summary>
     internal partial class ExtractInterfaceDialog : DialogWindow
     {
-        private readonly ExtractInterfaceDialogViewModel _viewModel;
+        public ExtractInterfaceDialogViewModel ViewModel { get; }
 
         // Expose localized strings for binding
         public string ExtractInterfaceDialogTitle { get { return ServicesVSResources.Extract_Interface; } }
@@ -27,25 +29,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
         public string DeselectAll { get { return ServicesVSResources.Deselect_All; } }
         public string OK { get { return ServicesVSResources.OK; } }
         public string Cancel { get { return ServicesVSResources.Cancel; } }
-        public NewTypeDestinationSelection DestinationControl { get; }
 
         // Use C# Extract Interface helpTopic for C# and VB.
         internal ExtractInterfaceDialog(ExtractInterfaceDialogViewModel viewModel)
             : base(helpTopic: "vs.csharp.refactoring.extractinterface")
         {
-            _viewModel = viewModel;
+            ViewModel = viewModel;
             SetCommandBindings();
 
-            DestinationControl = new NewTypeDestinationSelection(_viewModel.DestinationViewModel);
-            Loaded += ExtractInterfaceDialog_Loaded;
+            Loaded += (s, e) => MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
 
             InitializeComponent();
             DataContext = viewModel;
-        }
-
-        private void ExtractInterfaceDialog_Loaded(object sender, RoutedEventArgs e)
-        {
-            DestinationControl.Focus();
         }
 
         private void SetCommandBindings()
@@ -67,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 
         private void OK_Click(object sender, RoutedEventArgs e)
         {
-            if (_viewModel.TrySubmit())
+            if (ViewModel.TrySubmit())
             {
                 DialogResult = true;
             }
@@ -77,10 +72,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             => DialogResult = false;
 
         private void Select_All_Click(object sender, RoutedEventArgs e)
-            => _viewModel.SelectAll();
+            => ViewModel.SelectAll();
 
         private void Deselect_All_Click(object sender, RoutedEventArgs e)
-            => _viewModel.DeselectAll();
+            => ViewModel.DeselectAll();
 
         private void OnListViewPreviewKeyDown(object sender, KeyEventArgs e)
         {
@@ -111,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {

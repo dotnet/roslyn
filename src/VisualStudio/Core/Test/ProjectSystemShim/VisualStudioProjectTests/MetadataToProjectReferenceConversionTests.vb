@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
@@ -13,15 +14,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     Public Class MetadataToProjectReferenceConversionTests
         <WpfFact>
         <WorkItem(32554, "https://github.com/dotnet/roslyn/issues/32554")>
-        Public Sub ProjectReferenceConvertedToMetadataReferenceCanBeRemoved()
+        Public Async Function ProjectReferenceConvertedToMetadataReferenceCanBeRemoved() As Task
             Using environment = New TestEnvironment()
-                Dim project1 = environment.ProjectFactory.CreateAndAddToWorkspace(
-                    "project1",
-                    LanguageNames.CSharp)
+                Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "project1", LanguageNames.CSharp, CancellationToken.None)
 
-                Dim project2 = environment.ProjectFactory.CreateAndAddToWorkspace(
-                    "project2",
-                    LanguageNames.CSharp)
+                Dim project2 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "project2", LanguageNames.CSharp, CancellationToken.None)
 
                 Const ReferencePath = "C:\project1.dll"
                 project1.OutputFilePath = ReferencePath
@@ -39,15 +38,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 project2.RemoveMetadataReference(ReferencePath, MetadataReferenceProperties.Assembly)
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
         <WorkItem(857595, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/857595")>
-        Public Sub TwoProjectsProducingSameOutputPathBehavesCorrectly()
+        Public Async Function TwoProjectsProducingSameOutputPathBehavesCorrectly() As Task
             Using environment = New TestEnvironment()
-                Dim referencingProject = environment.ProjectFactory.CreateAndAddToWorkspace("referencingProject", LanguageNames.CSharp)
+                Dim referencingProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "referencingProject", LanguageNames.CSharp, CancellationToken.None)
 
-                Dim project1 = environment.ProjectFactory.CreateAndAddToWorkspace("project1", LanguageNames.CSharp)
+                Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "project1", LanguageNames.CSharp, CancellationToken.None)
 
                 ' First: have a single project producing this DLL, and ensure we wired up correctly
                 Const ReferencePath = "C:\project1.dll"
@@ -61,7 +62,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 ' Create a second project referencing this same DLL. By rule, we now don't know which project to reference, so we just convert back to
                 ' a file reference because something is screwed up.
-                Dim project2 = environment.ProjectFactory.CreateAndAddToWorkspace("project2", LanguageNames.CSharp)
+                Dim project2 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "project2", LanguageNames.CSharp, CancellationToken.None)
                 project2.OutputFilePath = ReferencePath
 
                 Assert.Empty(getReferencingProject().ProjectReferences)
@@ -73,14 +75,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.Equal(project2.Id, Assert.Single(getReferencingProject().ProjectReferences).ProjectId)
                 Assert.Empty(getReferencingProject().MetadataReferences)
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TwoProjectsProducingSameOutputPathAndIntermediateOutputBehavesCorrectly()
+        Public Async Function TwoProjectsProducingSameOutputPathAndIntermediateOutputBehavesCorrectly() As Task
             Using environment = New TestEnvironment()
-                Dim referencingProject = environment.ProjectFactory.CreateAndAddToWorkspace("referencingProject", LanguageNames.CSharp)
+                Dim referencingProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "referencingProject", LanguageNames.CSharp, CancellationToken.None)
 
-                Dim project1 = environment.ProjectFactory.CreateAndAddToWorkspace("project1", LanguageNames.CSharp)
+                Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "project1", LanguageNames.CSharp, CancellationToken.None)
 
                 ' First: have a single project producing this DLL, and ensure we wired up correctly
                 Const ReferencePath = "C:\project1.dll"
@@ -94,7 +98,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 ' Create a second project referencing this same DLL. We'll make this one even more complicated by using the same path for both the
                 ' regular OutputFilePath and the IntermediateOutputFilePath
-                Dim project2 = environment.ProjectFactory.CreateAndAddToWorkspace("project2", LanguageNames.CSharp)
+                Dim project2 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "project2", LanguageNames.CSharp, CancellationToken.None)
                 project2.CompilationOutputAssemblyFilePath = ReferencePath
                 project2.OutputFilePath = ReferencePath
 
@@ -107,18 +112,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.Equal(project2.Id, Assert.Single(getReferencingProject().ProjectReferences).ProjectId)
                 Assert.Empty(getReferencingProject().MetadataReferences)
             End Using
-        End Sub
+        End Function
 
         ' This is a test for a potential race between two operations; with 20 iterations on my machine either all would fail
         ' or one might pass, it seems the race is easy enough to hit without the fix.
 #Disable Warning IDE0060 ' Remove unused parameter - used for test iterations.
         <WpfTheory>
         <CombinatorialData>
-        Public Sub ProjectBeingAddedWhileOutputPathBeingUpdatedDoesNotRace(<CombinatorialRange(0, 20)> iteration As Integer)
+        Public Async Function ProjectBeingAddedWhileOutputPathBeingUpdatedDoesNotRace(<CombinatorialRange(0, 20)> iteration As Integer) As Task
 #Enable Warning IDE0060 ' Remove unused parameter
             Using environment = New TestEnvironment()
-                Dim referencingProject = environment.ProjectFactory.CreateAndAddToWorkspace("referencingProject", LanguageNames.CSharp)
-                Dim referencedProject = environment.ProjectFactory.CreateAndAddToWorkspace("referencedProject", LanguageNames.CSharp)
+                Dim referencingProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencingProject", LanguageNames.CSharp, CancellationToken.None)
+                Dim referencedProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencedProject", LanguageNames.CSharp, CancellationToken.None)
 
                 ' First: have a single project producing this DLL, and ensure we wired up correctly
                 Const ReferencePath = "C:\project.dll"
@@ -139,13 +144,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 Task.WaitAll(task1, task2)
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub AddingAndRemovingTwoReferencesWithDifferentPropertiesConvertsCorrectly()
+        Public Async Function AddingAndRemovingTwoReferencesWithDifferentPropertiesConvertsCorrectly() As Task
             Using environment = New TestEnvironment()
-                Dim referencingProject = environment.ProjectFactory.CreateAndAddToWorkspace("referencingProject", LanguageNames.CSharp)
-                Dim referencedProject = environment.ProjectFactory.CreateAndAddToWorkspace("referencedProject", LanguageNames.CSharp)
+                Dim referencingProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencingProject", LanguageNames.CSharp, CancellationToken.None)
+                Dim referencedProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencedProject", LanguageNames.CSharp, CancellationToken.None)
 
                 Const ReferencePath = "C:\project.dll"
                 referencingProject.AddMetadataReference(ReferencePath, New MetadataReferenceProperties(aliases:=ImmutableArray.Create("alias1")))
@@ -169,14 +174,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 Assert.Empty(getReferencingProject().ProjectReferences)
             End Using
-        End Sub
+        End Function
 
         <WpfTheory>
         <CombinatorialData>
-        Public Sub MetadataReferenceBeingAddedWhileOutputPathUpdateInInterleavedBatches(closeReferencedProjectBatchFirst As Boolean)
+        Public Async Function MetadataReferenceBeingAddedWhileOutputPathUpdateInInterleavedBatches(closeReferencedProjectBatchFirst As Boolean) As Task
             Using environment = New TestEnvironment()
-                Dim referencingProject = environment.ProjectFactory.CreateAndAddToWorkspace("referencingProject", LanguageNames.CSharp)
-                Dim referencedProject = environment.ProjectFactory.CreateAndAddToWorkspace("referencedProject", LanguageNames.CSharp)
+                Dim referencingProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencingProject", LanguageNames.CSharp, CancellationToken.None)
+                Dim referencedProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencedProject", LanguageNames.CSharp, CancellationToken.None)
 
                 Dim referencingProjectBatch = referencingProject.CreateBatchScope()
                 Dim referencedProjectBatch = referencedProject.CreateBatchScope()
@@ -201,14 +206,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.Single(getReferencingProject().ProjectReferences)
                 Assert.Empty(getReferencingProject().MetadataReferences)
             End Using
-        End Sub
+        End Function
 
         <WpfTheory>
         <CombinatorialData>
-        Public Sub MetadataReferenceBeingRemovedAndReAddedWhileOutputPathUpdateInInterleavedBatches(closeReferencedProjectBatchFirst As Boolean)
+        Public Async Function MetadataReferenceBeingRemovedAndReAddedWhileOutputPathUpdateInInterleavedBatches(closeReferencedProjectBatchFirst As Boolean) As Task
             Using environment = New TestEnvironment()
-                Dim referencingProject = environment.ProjectFactory.CreateAndAddToWorkspace("referencingProject", LanguageNames.CSharp)
-                Dim referencedProject = environment.ProjectFactory.CreateAndAddToWorkspace("referencedProject", LanguageNames.CSharp)
+                Dim referencingProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencingProject", LanguageNames.CSharp, CancellationToken.None)
+                Dim referencedProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencedProject", LanguageNames.CSharp, CancellationToken.None)
 
                 Const ReferencePath = "C:\project.dll"
                 referencingProject.AddMetadataReference(ReferencePath, MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("temporary")))
@@ -235,15 +240,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.Single(getReferencingProject().ProjectReferences)
                 Assert.Empty(getReferencingProject().MetadataReferences)
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
         <WorkItem(39032, "https://github.com/dotnet/roslyn/issues/39032")>
         <WorkItem(43632, "https://github.com/dotnet/roslyn/issues/43632")>
-        Public Sub RemoveAndReAddReferenceInSingleBatchWhileChangingCase()
+        Public Async Function RemoveAndReAddReferenceInSingleBatchWhileChangingCase() As Task
             Using environment = New TestEnvironment()
-                Dim referencingProject = environment.ProjectFactory.CreateAndAddToWorkspace("referencingProject", LanguageNames.CSharp)
-                Dim referencedProject = environment.ProjectFactory.CreateAndAddToWorkspace("referencedProject", LanguageNames.CSharp)
+                Dim referencingProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencingProject", LanguageNames.CSharp, CancellationToken.None)
+                Dim referencedProject = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("referencedProject", LanguageNames.CSharp, CancellationToken.None)
 
                 Const ReferencePath = "C:\project.dll"
                 referencingProject.AddMetadataReference(ReferencePath, MetadataReferenceProperties.Assembly)
@@ -263,14 +268,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.Single(getReferencingProject().ProjectReferences)
                 Assert.Empty(getReferencingProject().MetadataReferences)
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
         <WorkItem(39904, "https://github.com/dotnet/roslyn/issues/39904")>
-        Public Sub MetadataReferenceCycleDoesNotCreateProjectReferenceCycleWhenAddingReferencesFirst()
+        Public Async Function MetadataReferenceCycleDoesNotCreateProjectReferenceCycleWhenAddingReferencesFirst() As Task
             Using environment = New TestEnvironment()
-                Dim project1 = environment.ProjectFactory.CreateAndAddToWorkspace("project1", LanguageNames.CSharp)
-                Dim project2 = environment.ProjectFactory.CreateAndAddToWorkspace("project2", LanguageNames.CSharp)
+                Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("project1", LanguageNames.CSharp, CancellationToken.None)
+                Dim project2 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("project2", LanguageNames.CSharp, CancellationToken.None)
 
                 Const ReferencePath1 = "C:\project1.dll"
                 Const ReferencePath2 = "C:\project2.dll"
@@ -285,14 +290,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 project1.RemoveFromWorkspace()
                 project2.RemoveFromWorkspace()
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
         <WorkItem(39904, "https://github.com/dotnet/roslyn/issues/39904")>
-        Public Sub MetadataReferenceCycleDoesNotCreateProjectReferenceCycleWhenSettingOutputPathsFirst()
+        Public Async Function MetadataReferenceCycleDoesNotCreateProjectReferenceCycleWhenSettingOutputPathsFirst() As Task
             Using environment = New TestEnvironment()
-                Dim project1 = environment.ProjectFactory.CreateAndAddToWorkspace("project1", LanguageNames.CSharp)
-                Dim project2 = environment.ProjectFactory.CreateAndAddToWorkspace("project2", LanguageNames.CSharp)
+                Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("project1", LanguageNames.CSharp, CancellationToken.None)
+                Dim project2 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("project2", LanguageNames.CSharp, CancellationToken.None)
 
                 Const ReferencePath1 = "C:\project1.dll"
                 Const ReferencePath2 = "C:\project2.dll"
@@ -307,6 +312,22 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 project1.RemoveFromWorkspace()
                 project2.RemoveFromWorkspace()
             End Using
-        End Sub
+        End Function
+
+        <WpfFact>
+        <WorkItem(39904, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1279845")>
+        Public Async Function DoNotCreateProjectReferenceWhenReferencingOwnOutput() As Task
+            Using environment = New TestEnvironment()
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("project", LanguageNames.CSharp, CancellationToken.None)
+
+                Const ReferencePath = "C:\project.dll"
+
+                project.OutputFilePath = ReferencePath
+
+                project.AddMetadataReference(ReferencePath, MetadataReferenceProperties.Assembly)
+
+                Assert.Single(environment.Workspace.CurrentSolution.Projects.Single().MetadataReferences)
+            End Using
+        End Function
     End Class
 End Namespace

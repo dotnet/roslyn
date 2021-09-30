@@ -2,19 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Specialized;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public sealed class BuildServerControllerTests : IDisposable
     {
-
         public void Dispose()
         {
             NamedPipeTestUtil.DisposeAll();
-
         }
 
         public sealed class GetKeepAliveTimeoutTests
@@ -22,9 +23,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             private readonly NameValueCollection _appSettings = new NameValueCollection();
             private readonly BuildServerController _controller;
 
-            public GetKeepAliveTimeoutTests()
+            public GetKeepAliveTimeoutTests(ITestOutputHelper testOutputHelper)
             {
-                _controller = new BuildServerController(_appSettings);
+                _controller = new BuildServerController(_appSettings, new XunitCompilerServerLogger(testOutputHelper));
             }
 
             [Fact]

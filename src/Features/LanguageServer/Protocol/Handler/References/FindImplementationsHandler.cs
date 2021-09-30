@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,27 +12,34 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentImplementationName)]
-    internal class FindImplementationsHandler : AbstractRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
+    [ExportLspRequestHandlerProvider, Shared]
+    [ProvidesMethod(LSP.Methods.TextDocumentImplementationName)]
+    internal class FindImplementationsHandler : AbstractStatelessRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
     {
         [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FindImplementationsHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public FindImplementationsHandler()
         {
         }
+
+        public override string Method => LSP.Methods.TextDocumentImplementationName;
+
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
+        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
 
         public override async Task<LSP.Location[]> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
 
-            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
+            var document = context.Document;
             if (document == null)
             {
                 return locations.ToArrayAndFree();
             }
 
-            var findUsagesService = document.Project.LanguageServices.GetRequiredService<IFindUsagesService>();
+            var findUsagesService = document.Project.LanguageServices.GetRequiredService<IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess>();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             var findUsagesContext = new SimpleFindUsagesContext(cancellationToken);
@@ -61,7 +65,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return locations.ToArrayAndFree();
         }
 
-        protected virtual Task FindImplementationsAsync(IFindUsagesService findUsagesService, Document document, int position, SimpleFindUsagesContext context)
+        protected virtual Task FindImplementationsAsync(IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess findUsagesService, Document document, int position, SimpleFindUsagesContext context)
             => findUsagesService.FindImplementationsAsync(document, position, context);
     }
 }

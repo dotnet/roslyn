@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' a NoPia embedded type symbol that was attempted to be substituted with canonical type, 
     ''' but the canonical type couldn't be found.
     ''' </summary>
-    Friend Class NoPiaMissingCanonicalTypeSymbol
+    Friend NotInheritable Class NoPiaMissingCanonicalTypeSymbol
         Inherits ErrorTypeSymbol ' TODO: Should probably inherit from MissingMetadataType.TopLevel, but review TypeOf checks for MissingMetadataType.
 
         Private ReadOnly _embeddingAssembly As AssemblySymbol
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return RuntimeHelpers.GetHashCode(Me)
         End Function
 
-        Public Overrides Function Equals(obj As Object) As Boolean
+        Public Overrides Function Equals(obj As TypeSymbol, comparison As TypeCompareKind) As Boolean
             Return obj Is Me
         End Function
 

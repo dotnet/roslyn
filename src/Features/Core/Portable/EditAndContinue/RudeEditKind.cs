@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     // TELEMETRY: DO NOT MODIFY ANY ENUM VALUES OF THIS ENUM.
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         GenericTypeUpdate = 38,
         GenericTypeTriviaUpdate = 39,
         GenericTypeInitializerUpdate = 40,
-        PartialTypeInitializerUpdate = 41,
+        // PartialTypeInitializerUpdate = 41,
         // AsyncMethodUpdate = 42,
         // AsyncMethodTriviaUpdate = 43,
         StackAllocUpdate = 44,
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         ExperimentalFeaturesEnabled = 45,
 
         AwaitStatementUpdate = 46,
-        ChangingConstructorVisibility = 47,
+        ChangingVisibility = 47,
 
         CapturingVariable = 48,
         NotCapturingVariable = 49,
@@ -114,5 +116,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         MemberBodyInternalError = 88,
         SourceFileTooBig = 89,
         MemberBodyTooBig = 90,
+        InsertIntoGenericType = 91,
+
+        ImplementRecordParameterAsReadOnly = 92,
+        ImplementRecordParameterWithSet = 93,
+        AddRecordPositionalParameter = 94,
+        DeleteRecordPositionalParameter = 95,
+        ExplicitRecordMethodParameterNamesMustMatch = 96,
+
+        NotSupportedByRuntime = 97,
+        MakeMethodAsync = 98,
+        MakeMethodIterator = 99,
+        InsertNotSupportedByRuntime = 100
     }
 }

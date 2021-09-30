@@ -33,6 +33,8 @@ This code should be removed once Caravela is out of preview.
 
 ### TreeTracker
 
+#### Tracking of nodes
+
 To support debugging and reporting diagnostics in user code, the Caravela Compiler tracks changes done to syntax trees during transformer execution and maintains a map from syntax nodes in modified trees to nodes in the original tree. The central code for doing this is in `TreeTracker`.
 
 The way tracking works is that each tracked tree has its root node annotated and there is also a `ConditionalWeakTable` mapping each annotation to the original node. When a change is made inside a tracked subtree, new annotations are added, to make sure nodes can still be mapped to their originals. The annotation of the root of the tree is then changed, to indicate that it has been modified.
@@ -44,7 +46,18 @@ But if we instead created a new block that contained the declaration from the tr
 Tree tracker is called from several places in the code base, most interestingly from Syntax.xml.Main.Generated.cs and Syntax.xml.Syntax.Generated.cs. 
 Note that if you need to modify the .Generated.cs files, you should make your changes in `SourceWriter` in the CSharpSyntaxGenerator project.
 
+We have also added a node in `BoundNodes.xml`. To make it obvious in the generated files that this node is added in Caravela, we have modified the `Model.cs` and `BoundNodeClassWriter.cs` in BoundTreeGeneratorProject.
+
+There are two ways the code is generated:
+
+- The code generated to CSharpSyntaxGenerator.SourceGenerator folder is generated using a source generator in project Microsoft.CodeAnalysis.CSharp.csproj.
+- The rest is generated using `eng\generate-compiler-code.cmd` command.
+
 Tree tracker is then used when emitting PDBs (in `CodeGenerator`) and when handling diagnostics (in `CSDiagnostic` and `CSharpDiagnosticFilter`).
+
+#### Mapping of locations and diagnostics
+
+The method `TreeTracker.MapDiagnostic` maps a diagnostic from the transformed syntax tree to the source syntax tree. Additionally, it adds the stores the `SyntaxNode` and `Compilation` related to this diagnostic. This info can be retrieved using `TreeTracker.TryGetDiagnosticInfo`. This is used to make it easier for diagnostic suppression to retrieve symbol information about a diagnostic.  
 
 ## Caravela.Compiler.Shared
 

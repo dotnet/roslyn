@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,13 +9,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis;
 using Caravela.Compiler;
 using Caravela.Compiler.Interface.TypeForwards;
 
@@ -28,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal const string ResponseFileName = "csc.rsp";
 
         private readonly CommandLineDiagnosticFormatter _diagnosticFormatter;
-        private readonly string _tempDirectory;
+        private readonly string? _tempDirectory;
         
         // <Caravela>
         static CSharpCompiler()
@@ -39,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         // </Caravela>
 
-        protected CSharpCompiler(CSharpCommandLineParser parser, string responseFile, string[] args, BuildPaths buildPaths, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
+        protected CSharpCompiler(CSharpCommandLineParser parser, string? responseFile, string[] args, BuildPaths buildPaths, string? additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
             : base(parser, responseFile, args, buildPaths, additionalReferenceDirectories, assemblyLoader)
         {
             _diagnosticFormatter = new CommandLineDiagnosticFormatter(buildPaths.WorkingDirectory, Arguments.PrintFullPaths, Arguments.ShouldIncludeErrorEndLocation);
@@ -51,8 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override Compilation? CreateCompilation(
             TextWriter consoleOutput,
-            TouchedFileLogger touchedFilesLogger,
-            ErrorLogger errorLogger,
+            TouchedFileLogger? touchedFilesLogger,
+            ErrorLogger? errorLogger,
             ImmutableArray<AnalyzerConfigOptionsResult> analyzerConfigOptions,
             AnalyzerConfigOptionsResult globalConfigOptions)
         {
@@ -66,14 +63,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var sourceFiles = Arguments.SourceFiles;
             var trees = new SyntaxTree?[sourceFiles.Length];
-            var normalizedFilePaths = new string[sourceFiles.Length];
+            var normalizedFilePaths = new string?[sourceFiles.Length];
             var diagnosticBag = DiagnosticBag.GetInstance();
 
             if (Arguments.CompilationOptions.ConcurrentBuild)
             {
-                Parallel.For(0, sourceFiles.Length, UICultureUtilities.WithCurrentUICulture<int>(i =>
-                {
-                    try
+                RoslynParallel.For(
+                    0,
+                    sourceFiles.Length,
+                    UICultureUtilities.WithCurrentUICulture<int>(i =>
                     {
                         //NOTE: order of trees is important!!
                         trees[i] = ParseFile(
@@ -83,12 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             sourceFiles[i],
                             diagnosticBag,
                             out normalizedFilePaths[i]);
-                    }
-                    catch (Exception e) when (FatalError.Report(e))
-                    {
-                        throw ExceptionUtilities.Unreachable;
-                    }
-                }));
+                    }),
+                    CancellationToken.None);
             }
             else
             {
@@ -106,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // If errors had been reported in ParseFile, while trying to read files, then we should simply exit.
-            if (ReportDiagnostics(diagnosticBag.ToReadOnlyAndFree(), consoleOutput, errorLogger))
+            if (ReportDiagnostics(diagnosticBag.ToReadOnlyAndFree(), consoleOutput, errorLogger, compilation: null))
             {
                 Debug.Assert(hadErrors);
                 return null;
@@ -132,6 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (Arguments.TouchedFilesPath != null)
             {
+                Debug.Assert(touchedFilesLogger is object);
                 foreach (var path in uniqueFilePaths)
                 {
                     touchedFilesLogger.AddRead(path);
@@ -165,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MetadataReferenceResolver referenceDirectiveResolver;
             var resolvedReferences = ResolveMetadataReferences(diagnostics, touchedFilesLogger, out referenceDirectiveResolver);
-            if (ReportDiagnostics(diagnostics, consoleOutput, errorLogger))
+            if (ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation: null))
             {
                 return null;
             }
@@ -192,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref bool addedDiagnostics,
             CommandLineSourceFile file,
             DiagnosticBag diagnostics,
-            out string normalizedFilePath)
+            out string? normalizedFilePath)
         {
             var fileDiagnostics = new List<DiagnosticInfo>();
             var content = TryReadFileContent(file, fileDiagnostics, out normalizedFilePath);
@@ -251,34 +246,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected override string GetOutputFileName(Compilation compilation, CancellationToken cancellationToken)
         {
-            if (Arguments.OutputFileName == null)
+            if (Arguments.OutputFileName is object)
             {
-                Debug.Assert(Arguments.CompilationOptions.OutputKind.IsApplication());
+                return Arguments.OutputFileName;
+            }
 
-                var comp = (CSharpCompilation)compilation;
+            Debug.Assert(Arguments.CompilationOptions.OutputKind.IsApplication());
 
-                Symbol? entryPoint = comp.ScriptClass;
-                if (entryPoint is null)
+            var comp = (CSharpCompilation)compilation;
+
+            Symbol? entryPoint = comp.ScriptClass;
+            if (entryPoint is null)
+            {
+                var method = comp.GetEntryPoint(cancellationToken);
+                if (method is object)
                 {
-                    var method = comp.GetEntryPoint(cancellationToken);
-                    if (method is object)
-                    {
-                        entryPoint = method.PartialImplementationPart ?? method;
-                    }
-                    else
-                    {
-                        // no entrypoint found - an error will be reported and the compilation won't be emitted
-                        return "error";
-                    }
+                    entryPoint = method.PartialImplementationPart ?? method;
                 }
+                else
+                {
+                    // no entrypoint found - an error will be reported and the compilation won't be emitted
+                    return "error";
+                }
+            }
 
-                string entryPointFileName = PathUtilities.GetFileName(entryPoint.Locations.First().SourceTree!.FilePath);
-                return Path.ChangeExtension(entryPointFileName, ".exe");
-            }
-            else
-            {
-                return base.GetOutputFileName(compilation, cancellationToken);
-            }
+            string entryPointFileName = PathUtilities.GetFileName(entryPoint.Locations.First().SourceTree!.FilePath);
+            return Path.ChangeExtension(entryPointFileName, ".exe");
         }
 
         internal override bool SuppressDefaultResponseFile(IEnumerable<string> args)
@@ -413,46 +406,59 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // <Caravela>
-        private protected override Compilation RunTransformers(
-            ref Compilation input, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider,
-            DiagnosticBag diagnostics)
+        private protected override void RunTransformers(
+            Compilation inputCompilation, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider,
+            DiagnosticBag diagnostics,  out Compilation annotatedInputCompilation, out Compilation outputCompilation, out ImmutableArray<Action<DiagnosticRequest>> diagnosticFilters)
         {
             var resources = Arguments.ManifestResources.ToList();
 
-            var result = RunTransformers(ref input, transformers, plugins, analyzerConfigProvider, diagnostics, resources, AssemblyLoader);
+            RunTransformers(inputCompilation, transformers, plugins, analyzerConfigProvider, diagnostics, resources, AssemblyLoader, out annotatedInputCompilation,
+                out outputCompilation, out diagnosticFilters );
 
             Arguments.ManifestResources = resources.ToImmutableArray();
-
-            return result;
         }
 
-        internal static Compilation RunTransformers(
-            ref Compilation input, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider,
-            DiagnosticBag diagnostics, IList<ResourceDescription> manifestResources, IAnalyzerAssemblyLoader assemblyLoader)
+        internal static void RunTransformers(
+            Compilation inputCompilation, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider,
+            DiagnosticBag diagnostics, IList<ResourceDescription> manifestResources, IAnalyzerAssemblyLoader assemblyLoader, out Compilation annotatedInputCompilation, out Compilation outputCompilation,
+            out ImmutableArray<Action<DiagnosticRequest>> diagnosticFilters )
         {
+            
+
             // if there are no transformers, don't do anything, not even annotating
             if (transformers.IsEmpty)
             {
-                return input;
+                annotatedInputCompilation = inputCompilation;
+                outputCompilation = inputCompilation;
+                diagnosticFilters = ImmutableArray<Action<DiagnosticRequest>>.Empty;
+                
+                return;
             }
 
+            // Add tracking annotations to the input tree.
+            annotatedInputCompilation = inputCompilation;
             if (!ShouldDebugTransformedCode(analyzerConfigProvider))
             {
                 // mark old trees as debuggable
-                foreach (var tree in input.SyntaxTrees)
+                foreach (var tree in inputCompilation.SyntaxTrees)
                 {
-                    input = input.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(TreeTracker.AnnotateNodeAndChildren(tree.GetRoot()), tree.Options));
+                    annotatedInputCompilation = annotatedInputCompilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(TreeTracker.AnnotateNodeAndChildren(tree.GetRoot(), inputCompilation), tree.Options));
                 }
             }
 
-            var compilation = input;
+            // Execute the transformers.
+            outputCompilation = annotatedInputCompilation;
+
+            var diagnosticFiltersBuilder = ImmutableArray.CreateBuilder<Action<DiagnosticRequest>>();
 
             foreach (var transformer in transformers)
             {
                 try
                 {
-                    var context = new TransformerContext(compilation, plugins, analyzerConfigProvider.GlobalOptions, manifestResources, diagnostics, assemblyLoader);
-                    compilation = transformer.Execute(context);
+                    var context = new TransformerContext(outputCompilation, plugins, analyzerConfigProvider.GlobalOptions, manifestResources, diagnostics, assemblyLoader);
+                    transformer.Execute(context);
+                    outputCompilation = context.Compilation;
+                    diagnosticFiltersBuilder.AddRange(context.DiagnosticFilters);
                 }
                 catch (Exception ex)
                 {
@@ -462,25 +468,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            diagnosticFilters = diagnosticFiltersBuilder.ToImmutable();
+
             if (!ShouldDebugTransformedCode(analyzerConfigProvider))
             {
                 // mark new trees as not debuggable
                 // in Debug mode, also mark transformed trees as undebuggable "poison", which triggers assert if used in a sequence point
-                foreach (var tree in compilation.SyntaxTrees)
+                foreach (var tree in outputCompilation.SyntaxTrees)
                 {
                     if (TreeTracker.IsAnnotated(tree.GetRoot()))
                     {
 #if DEBUG
                         TreeTracker.MarkAsUndebuggable(tree);
 #endif
-                        continue;
                     }
-
-                    compilation = compilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(TreeTracker.AnnotateNodeAndChildren(tree.GetRoot(), null), tree.Options));
+                    else
+                    {
+                        outputCompilation = outputCompilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(TreeTracker.AnnotateNodeAndChildren(tree.GetRoot(), null, outputCompilation), tree.Options));
+                    }
                 }
             }
-
-            return compilation;
         }
         // </Caravela>
     }

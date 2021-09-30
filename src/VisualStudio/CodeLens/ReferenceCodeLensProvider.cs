@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -173,6 +171,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             private readonly ReferenceCodeLensProvider _owner;
             private readonly ICodeLensCallbackService _callbackService;
 
+            private ReferenceCount? _calculatedReferenceCount;
+
             public DataPoint(
                 ReferenceCodeLensProvider owner,
                 ICodeLensCallbackService callbackService,
@@ -199,15 +199,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 
                 // we always get data through VS rather than Roslyn OOP directly since we want final data rather than
                 // raw data from Roslyn OOP such as razor find all reference results
-                var referenceCount = await _callbackService.InvokeAsync<ReferenceCount>(
+                var referenceCountOpt = await _callbackService.InvokeAsync<ReferenceCount?>(
                     _owner,
                     nameof(ICodeLensContext.GetReferenceCountAsync),
-                    new object[] { Descriptor, descriptorContext },
+                    new object?[] { Descriptor, descriptorContext, _calculatedReferenceCount },
                     cancellationToken).ConfigureAwait(false);
-                if (referenceCount == null)
+
+                if (!referenceCountOpt.HasValue)
                 {
                     return null;
                 }
+
+                var referenceCount = referenceCountOpt.Value;
 
                 var referenceCountString = $"{referenceCount.Count}{(referenceCount.IsCapped ? "+" : string.Empty)}";
                 return new CodeLensDataPointDescriptor()
@@ -220,7 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     ImageId = null
                 };
 
-                string GetCodeElementKindsString(CodeElementKinds kind)
+                static string GetCodeElementKindsString(CodeElementKinds kind)
                 {
                     switch (kind)
                     {
@@ -242,53 +245,64 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             {
                 // we always get data through VS rather than Roslyn OOP directly since we want final data rather than
                 // raw data from Roslyn OOP such as razor find all reference results
-                var referenceLocationDescriptors = await _callbackService.InvokeAsync<IEnumerable<ReferenceLocationDescriptor>>(
+                var referenceLocationDescriptors = await _callbackService.InvokeAsync<(string projectVersion, ImmutableArray<ReferenceLocationDescriptor> references)?>(
                     _owner,
                     nameof(ICodeLensContext.FindReferenceLocationsAsync),
                     new object[] { Descriptor, descriptorContext },
                     cancellationToken).ConfigureAwait(false);
 
-                var details = new CodeLensDetailsDescriptor
+                // Keep track of the exact reference count
+                if (referenceLocationDescriptors.HasValue)
+                {
+                    var newCount = new ReferenceCount(referenceLocationDescriptors.Value.references.Length, isCapped: false, version: referenceLocationDescriptors.Value.projectVersion);
+                    if (newCount != _calculatedReferenceCount)
+                    {
+                        _calculatedReferenceCount = newCount;
+                        await InvalidatedAsync.InvokeAsync(this, EventArgs.Empty).ConfigureAwait(false);
+                    }
+                }
+
+                var entries = referenceLocationDescriptors?.references.Select(referenceLocationDescriptor =>
+                {
+                    ImageId imageId = default;
+                    if (referenceLocationDescriptor.Glyph.HasValue)
+                    {
+                        var moniker = referenceLocationDescriptor.Glyph.Value.GetImageMoniker();
+                        imageId = new ImageId(moniker.Guid, moniker.Id);
+                    }
+
+                    return new CodeLensDetailEntryDescriptor()
+                    {
+                        // use default since reference codelens don't require special behaviors
+                        NavigationCommand = null,
+                        NavigationCommandArgs = null,
+                        Tooltip = null,
+                        Fields = new List<CodeLensDetailEntryField>()
+                        {
+                            new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.FilePath },
+                            new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.LineNumber.ToString() },
+                            new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.ColumnNumber.ToString() },
+                            new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.ReferenceLineText },
+                            new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.ReferenceStart.ToString() },
+                            new CodeLensDetailEntryField() { Text = (referenceLocationDescriptor.ReferenceStart + referenceLocationDescriptor.ReferenceLength).ToString() },
+                            new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.LongDescription },
+                            new CodeLensDetailEntryField() { ImageId = imageId },
+                            new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.BeforeReferenceText2 },
+                            new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.BeforeReferenceText1 },
+                            new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.AfterReferenceText1 },
+                            new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.AfterReferenceText2 }
+                        },
+                    };
+                }).ToList();
+
+                return new CodeLensDetailsDescriptor
                 {
                     Headers = s_header,
-                    Entries = referenceLocationDescriptors.Select(referenceLocationDescriptor =>
-                    {
-                        ImageId imageId = default;
-                        if (referenceLocationDescriptor.Glyph.HasValue)
-                        {
-                            var moniker = referenceLocationDescriptor.Glyph.Value.GetImageMoniker();
-                            imageId = new ImageId(moniker.Guid, moniker.Id);
-                        }
-
-                        return new CodeLensDetailEntryDescriptor()
-                        {
-                            // use default since reference codelens don't require special behaviors
-                            NavigationCommand = null,
-                            NavigationCommandArgs = null,
-                            Tooltip = null,
-                            Fields = new List<CodeLensDetailEntryField>()
-                            {
-                                new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.FilePath },
-                                new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.LineNumber.ToString() },
-                                new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.ColumnNumber.ToString() },
-                                new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.ReferenceLineText },
-                                new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.ReferenceStart.ToString() },
-                                new CodeLensDetailEntryField() { Text = (referenceLocationDescriptor.ReferenceStart + referenceLocationDescriptor.ReferenceLength).ToString() },
-                                new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.LongDescription },
-                                new CodeLensDetailEntryField() { ImageId = imageId },
-                                new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.BeforeReferenceText2 },
-                                new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.BeforeReferenceText1 },
-                                new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.AfterReferenceText1 },
-                                new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.AfterReferenceText2 }
-                            },
-                        };
-                    }).ToList(),
+                    Entries = entries ?? SpecializedCollections.EmptyList<CodeLensDetailEntryDescriptor>(),
 
                     // use default behavior
                     PaneNavigationCommands = null
                 };
-
-                return details;
             }
 
             internal void Invalidate()

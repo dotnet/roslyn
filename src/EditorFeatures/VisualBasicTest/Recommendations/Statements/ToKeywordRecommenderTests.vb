@@ -6,17 +6,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
     Public Class ToKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ToInCaseStatementTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub ToInCaseStatementTest()
+            VerifyRecommendationsContain(<MethodBody>
                                              Select Case 5
                                                  Case 6 |
                                          </MethodBody>, "To")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ToInForLoopTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>For i = 1 |</MethodBody>, "To")
-        End Function
+        Public Sub ToInForLoopTest()
+            VerifyRecommendationsContain(<MethodBody>For i = 1 |</MethodBody>, "To")
+        End Sub
     End Class
 End Namespace

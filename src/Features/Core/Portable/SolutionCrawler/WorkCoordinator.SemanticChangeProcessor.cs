@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -108,7 +106,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // TODO: if there is a reliable way to track changed member, we could use GetSemanticModel here which could
                     //       rebuild compilation from scratch
                     if (!document.TryGetSemanticModel(out var model) ||
-                        !changedMember.TryResolve(await document.GetSyntaxRootAsync(CancellationToken).ConfigureAwait(false), out SyntaxNode declarationNode))
+                        !changedMember.TryResolve(await document.GetSyntaxRootAsync(CancellationToken).ConfigureAwait(false), out SyntaxNode? declarationNode))
                     {
                         return false;
                     }
@@ -419,7 +417,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         using (data.AsyncToken)
                         {
-                            var project = _registration.CurrentSolution.GetProject(data.ProjectId);
+                            var project = _registration.GetSolutionToAnalyze().GetProject(data.ProjectId);
                             if (project == null)
                             {
                                 return;
@@ -432,7 +430,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             }
 
                             // do dependency tracking here with current solution
-                            var solution = _registration.CurrentSolution;
+                            var solution = _registration.GetSolutionToAnalyze();
                             foreach (var projectId in GetProjectsToAnalyze(solution, data.ProjectId))
                             {
                                 project = solution.GetProject(projectId);

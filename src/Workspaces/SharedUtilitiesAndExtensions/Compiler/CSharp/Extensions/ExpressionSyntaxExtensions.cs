@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -521,6 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.RefExpression:
                 case SyntaxKind.LockStatement:
                 case SyntaxKind.ElementAccessExpression:
+                case SyntaxKind.SwitchExpressionArm:
                     // Direct parent kind checks.
                     return true;
             }
@@ -701,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return OperatorPrecedence.Unary;
 
                 case SyntaxKind.RangeExpression:
-                    // From C# spec, https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#systemrange
+                    // From C# spec, https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/ranges.md#systemrange
                     // Range: ..
 
                     return OperatorPrecedence.Range;
@@ -806,6 +809,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     // Conditional: ?:
 
                     return OperatorPrecedence.AssignmentAndLambdaExpression;
+
+                case SyntaxKind.SwitchExpression:
+                    return OperatorPrecedence.Switch;
 
                 default:
                     return OperatorPrecedence.None;

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -253,6 +255,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void WaitForActiveView(string viewName)
             => _editorInProc.WaitForActiveView(viewName);
 
+        public void WaitForActiveWindow(string windowName)
+            => _editorInProc.WaitForActiveWindow(windowName);
+
         public string[] GetErrorTags()
             => _editorInProc.GetErrorTags();
 
@@ -360,11 +365,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             }).ToArray();
         }
 
-        public void GoToDefinition()
-            => _editorInProc.GoToDefinition();
+        public void GoToDefinition(string expectedWindowName)
+        {
+            _editorInProc.GoToDefinition();
+            _editorInProc.WaitForActiveWindow(expectedWindowName);
+        }
 
-        public void GoToImplementation()
-            => _editorInProc.GoToImplementation();
+        public void GoToImplementation(string expectedWindowName)
+        {
+            _editorInProc.GoToImplementation();
+            _editorInProc.WaitForActiveWindow(expectedWindowName);
+        }
 
         public void SendExplicitFocus()
             => _editorInProc.SendExplicitFocus();

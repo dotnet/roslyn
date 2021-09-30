@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -129,12 +127,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     return;
                 }
 
-                var document = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer)?.AsTextContainer()?.GetRelatedDocuments().FirstOrDefault();
+                var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer);
+                var document = textBuffer?.AsTextContainer()?.GetRelatedDocuments().FirstOrDefault();
                 // TODO - Remove the TS check once they move the liveshare navbar to LSP.  Then we can also switch to LSP
                 // for the local navbar implementation.
                 // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1163360
-                var service = document?.Project?.Solution?.Workspace?.Services?.GetRequiredService<IWorkspaceContextService>();
-                if (service != null && service.IsCloudEnvironmentClient() && document!.Project!.Language != "TypeScript")
+                if (textBuffer?.IsInLspEditorContext() == true && document!.Project!.Language != "TypeScript")
                 {
                     // Remove the existing dropdown bar if it is ours.
                     if (IsOurDropdownBar(dropdownManager, out var _))
@@ -255,7 +253,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 }
 
                 ErrorHandler.ThrowOnFailure(_codeWindow.GetBuffer(out var buffer));
-                var textContainer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer).AsTextContainer();
+                var textContainer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer)?.AsTextContainer();
                 _workspaceRegistration = CodeAnalysis.Workspace.GetWorkspaceRegistration(textContainer);
                 _workspaceRegistration.WorkspaceChanged += OnWorkspaceRegistrationChanged;
 

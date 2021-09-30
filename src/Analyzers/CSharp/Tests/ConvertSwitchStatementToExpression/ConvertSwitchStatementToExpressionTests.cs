@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
     {
         private static readonly LanguageVersion CSharp9 = LanguageVersion.CSharp9;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public void TestStandardProperties()
-            => VerifyCS.VerifyStandardProperties();
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public void TestStandardProperty(AnalyzerProperty property)
+            => VerifyCS.VerifyStandardProperty(property);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestReturn()
@@ -980,7 +980,7 @@ class Program
 
         [WorkItem(37872, "https://github.com/dotnet/roslyn/issues/37872")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public async Task TestMissingOnDirectives()
+        public async Task TestMissingFixOnDirectives()
         {
             var code = @"class Program
 {
@@ -988,7 +988,7 @@ class Program
 
     static int GetValue(int input)
     {
-        switch (input)
+        [|switch|] (input)
         {
             case 1:
                 return 42;
@@ -1007,6 +1007,81 @@ class Program
 }";
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
+        [WorkItem(37872, "https://github.com/dotnet/roslyn/issues/37872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestMissingFixAllOnDirectives()
+        {
+            var code = @"class Program
+{
+    static void Main() { }
+
+    static int GetValue(int input)
+    {
+        [|switch|] (input)
+        {
+            case 1:
+                return 42;
+            default:
+                return 80;
+        }
+
+        [|switch|] (input)
+        {
+            case 1:
+                return 42;
+            case 2:
+#if PLATFORM_UNIX
+                return 50;
+#else
+                return 51;
+#endif
+            case 3:
+                return 79;
+            default:
+                return 80;
+        }
+    }
+}";
+            var fixedCode = @"class Program
+{
+    static void Main() { }
+
+    static int GetValue(int input)
+    {
+        return input switch
+        {
+            1 => 42,
+            _ => 80,
+        };
+        [|switch|] (input)
+        {
+            case 1:
+                return 42;
+            case 2:
+#if PLATFORM_UNIX
+                return 50;
+#else
+                return 51;
+#endif
+            case 3:
+                return 79;
+            default:
+                return 80;
+        }
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedState =
+                {
+                    Sources = { fixedCode },
+                    MarkupHandling = MarkupMode.Allow,
+                },
+            }.RunAsync();
         }
 
         [WorkItem(37950, "https://github.com/dotnet/roslyn/issues/37950")]
@@ -1916,8 +1991,8 @@ return i switch
             };
 
             test.ExpectedDiagnostics.Add(
-                // error CS8805: Program using top-level statements must be an executable.
-                DiagnosticResult.CompilerError("CS8805"));
+                // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
+                DiagnosticResult.CompilerError("CS8805").WithSpan(2, 1, 2, 11));
 
             await test.RunAsync();
         }
@@ -1961,10 +2036,105 @@ j = i switch
             };
 
             test.ExpectedDiagnostics.Add(
-                // error CS8805: Program using top-level statements must be an executable.
-                DiagnosticResult.CompilerError("CS8805"));
+                // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
+                DiagnosticResult.CompilerError("CS8805").WithSpan(2, 1, 2, 11));
 
             await test.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [WorkItem(48006, "https://github.com/dotnet/roslyn/issues/48006")]
+        public async Task TestOnMultiCaseSection_String_CSharp9()
+        {
+            var testCode = @"
+class Program
+{
+    bool M(string s)
+    {
+        [|switch|] (s)
+        {
+	        case ""Last"":
+            case ""First"":
+            case ""Count"":
+                return true;
+            default:
+                return false;
+        }
+    }
+}";
+            var fixedCode = @"
+class Program
+{
+    bool M(string s)
+    {
+        return s switch
+        {
+            ""Last"" or ""First"" or ""Count"" => true,
+            _ => false,
+        };
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+                LanguageVersion = CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [WorkItem(49788, "https://github.com/dotnet/roslyn/issues/49788")]
+        public async Task TestParenthesizedExpression1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"class Program
+{
+    int M(object i)
+    {
+        [|switch|] (i.GetType())
+        {
+            default: return 0;
+        }
+    }
+}",
+@"class Program
+{
+    int M(object i)
+    {
+        return i.GetType() switch
+        {
+            _ => 0,
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [WorkItem(49788, "https://github.com/dotnet/roslyn/issues/49788")]
+        public async Task TestParenthesizedExpression2()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"class Program
+{
+    int M()
+    {
+        [|switch|] (1 + 1)
+        {
+            default: return 0;
+        }
+    }
+}",
+@"class Program
+{
+    int M()
+    {
+        return (1 + 1) switch
+        {
+            _ => 0,
+        };
+    }
+}");
         }
     }
 }

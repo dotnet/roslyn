@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -2585,6 +2587,42 @@ class C
             AssertInstrumented(verifier, "C.P2.set");
             AssertInstrumented(verifier, "C.<get_P2>g__L3|4_0");
             AssertInstrumented(verifier, "C.<set_P2>g__L4|5_0");
+        }
+
+        [Fact]
+        public void ExcludeFromCodeCoverageAttribute_LambdaAttributes()
+        {
+            string source =
+@"using System;
+using System.Diagnostics.CodeAnalysis;
+class Program
+{
+    static void M1()
+    {
+        Action a1 = static () =>
+        {
+            Func<bool, int> f1 = [ExcludeFromCodeCoverage] static (bool b) => { if (b) return 0; return 1; };
+            Func<bool, int> f2 = static (bool b) => { if (b) return 0; return 1; };
+        };
+    }
+    static void M2()
+    {
+        Action a2 = [ExcludeFromCodeCoverage] static () =>
+        {
+            Func<bool, int> f3 = [ExcludeFromCodeCoverage] static (bool b) => { if (b) return 0; return 1; };
+            Func<bool, int> f4 = static (bool b) => { if (b) return 0; return 1; };
+        };
+    }
+}";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            AssertInstrumented(verifier, "Program.M1");
+            AssertInstrumented(verifier, "Program.<>c__DisplayClass0_0.<M1>b__0()");
+            AssertNotInstrumented(verifier, "Program.<>c.<M1>b__0_1(bool)");
+            AssertInstrumented(verifier, "Program.<>c__DisplayClass0_0.<M1>b__2(bool)");
+            AssertInstrumented(verifier, "Program.M2");
+            AssertNotInstrumented(verifier, "Program.<>c.<M2>b__1_0()");
+            AssertNotInstrumented(verifier, "Program.<>c.<M2>b__1_1(bool)");
+            AssertNotInstrumented(verifier, "Program.<>c.<M2>b__1_2(bool)");
         }
 
         [Fact]

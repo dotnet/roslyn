@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public bool IsEmpty => !(HadCompilationErrors || HadRudeEdits || HadValidChanges || HadValidInsignificantChanges);
         }
 
-        private readonly object _guard = new object();
+        private readonly object _guard = new();
 
         private readonly HashSet<(ushort, ushort)> _rudeEdits;
         private readonly HashSet<string> _emitErrorIds;

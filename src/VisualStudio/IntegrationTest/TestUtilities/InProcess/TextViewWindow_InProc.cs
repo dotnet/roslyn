@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,32 +68,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void ShowLightBulb()
         {
-            InvokeSmartTasks();
-
-            // The editor has an asynchronous background operation that dismisses the light bulb if it was shown within
-            // 500ms of the operation starting. Wait 600ms and make sure the menu is still present.
-            // https://devdiv.visualstudio.com/DevDiv/_git/VS-Platform/pullrequest/268277
-            Thread.Sleep(600);
-
-            if (!IsLightBulbSessionExpanded())
+            InvokeOnUIThread(cancellationToken =>
             {
-                InvokeSmartTasks();
-            }
+                var shell = GetGlobalService<SVsUIShell, IVsUIShell>();
+                var cmdGroup = typeof(VSConstants.VSStd2KCmdID).GUID;
+                var cmdExecOpt = OLECMDEXECOPT.OLECMDEXECOPT_DONTPROMPTUSER;
 
-            void InvokeSmartTasks()
-            {
-                InvokeOnUIThread(cancellationToken =>
-                {
-                    var shell = GetGlobalService<SVsUIShell, IVsUIShell>();
-                    var cmdGroup = typeof(VSConstants.VSStd2KCmdID).GUID;
-                    var cmdExecOpt = OLECMDEXECOPT.OLECMDEXECOPT_DONTPROMPTUSER;
-
-                    const VSConstants.VSStd2KCmdID ECMD_SMARTTASKS = (VSConstants.VSStd2KCmdID)147;
-                    var cmdID = ECMD_SMARTTASKS;
-                    object obj = null;
-                    shell.PostExecCommand(cmdGroup, (uint)cmdID, (uint)cmdExecOpt, ref obj);
-                });
-            }
+                const VSConstants.VSStd2KCmdID ECMD_SMARTTASKS = (VSConstants.VSStd2KCmdID)147;
+                var cmdID = ECMD_SMARTTASKS;
+                object obj = null;
+                shell.PostExecCommand(cmdGroup, (uint)cmdID, (uint)cmdExecOpt, ref obj);
+            });
         }
 
         public void WaitForLightBulbSession()
@@ -270,14 +257,38 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 action(view);
             };
 
-        public string GetQuickInfo()
-            => ExecuteOnActiveView(view =>
+        public void InvokeQuickInfo()
+        {
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                var broker = GetComponentModelService<IAsyncQuickInfoBroker>();
+                await broker.TriggerQuickInfoAsync(GetActiveTextView());
+            });
+        }
+
+        public string GetQuickInfo()
+        {
+            return ThreadHelper.JoinableTaskFactory.Run(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                var view = GetActiveTextView();
                 var broker = GetComponentModelService<IAsyncQuickInfoBroker>();
 
                 var session = broker.GetSession(view);
+
+                using var cts = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+                while (session.State != QuickInfoSessionState.Visible)
+                {
+                    cts.Token.ThrowIfCancellationRequested();
+                    await Task.Delay(50, cts.Token).ConfigureAwait(true);
+                }
+
                 return QuickInfoToStringConverter.GetStringFromBulkContent(session.Content);
             });
+        }
 
         public void VerifyTags(string tagTypeName, int expectedCount)
             => ExecuteOnActiveView(view =>

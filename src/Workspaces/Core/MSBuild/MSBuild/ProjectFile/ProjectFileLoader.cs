@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
     {
         public abstract string Language { get; }
 
-        protected abstract ProjectFile CreateProjectFile(MSB.Evaluation.Project project, ProjectBuildManager buildManager, DiagnosticLog log);
+        protected abstract ProjectFile CreateProjectFile(MSB.Evaluation.Project? project, ProjectBuildManager buildManager, DiagnosticLog log);
 
         public async Task<IProjectFile> LoadProjectFileAsync(string path, ProjectBuildManager buildManager, CancellationToken cancellationToken)
         {

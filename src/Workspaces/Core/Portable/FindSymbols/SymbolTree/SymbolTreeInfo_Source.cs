@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -9,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
@@ -18,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class SymbolTreeInfo
     {
         private static readonly SimplePool<MultiDictionary<string, ISymbol>> s_symbolMapPool =
-            new SimplePool<MultiDictionary<string, ISymbol>>(() => new MultiDictionary<string, ISymbol>());
+            new(() => new MultiDictionary<string, ISymbol>());
 
         private static MultiDictionary<string, ISymbol> AllocateSymbolMap()
             => s_symbolMapPool.Allocate();
@@ -32,13 +35,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
             Project project, Checksum checksum, bool loadOnly, CancellationToken cancellationToken)
         {
+            var solution = project.Solution;
+            var workspace = solution.Workspace;
+            var solutionKey = SolutionKey.ToSolutionKey(solution);
+            var projectFilePath = project.FilePath;
+
             var result = TryLoadOrCreateAsync(
-                project.Solution,
+                workspace,
+                solutionKey,
                 checksum,
                 loadOnly,
                 createAsync: () => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
                 keySuffix: "_Source_" + project.FilePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, (names, nodes) => GetSpellCheckerAsync(project.Solution, checksum, project.FilePath, names, nodes)),
+                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(workspace, solutionKey, checksum, projectFilePath, nodes)),
                 cancellationToken: cancellationToken);
             Contract.ThrowIfNull(result, "Result should never be null as we passed 'loadOnly: false'.");
             return result;
@@ -49,7 +58,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// this each time we get a project.
         /// </summary>
         private static readonly ConditionalWeakTable<ProjectState, AsyncLazy<Checksum>> s_projectToSourceChecksum =
-            new ConditionalWeakTable<ProjectState, AsyncLazy<Checksum>>();
+            new();
 
         public static Task<Checksum> GetSourceSymbolsChecksumAsync(Project project, CancellationToken cancellationToken)
         {
@@ -72,9 +81,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // Order the documents by FilePath.  Default ordering in the RemoteWorkspace is
             // to be ordered by Guid (which is not consistent across VS sessions).
-            var textChecksumsTasks = projectState.DocumentStates.OrderBy(d => d.Value.FilePath, StringComparer.Ordinal).Select(async d =>
+            var textChecksumsTasks = projectState.DocumentStates.States.OrderBy(state => state.FilePath, StringComparer.Ordinal).Select(async state =>
             {
-                var documentStateChecksum = await d.Value.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                var documentStateChecksum = await state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                 return documentStateChecksum.Text;
             });
 
@@ -111,8 +120,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             GenerateSourceNodes(assembly.GlobalNamespace, unsortedNodes, s_getMembersNoPrivate);
 
+            var solution = project.Solution;
+            var workspace = solution.Workspace;
+            var solutionKey = SolutionKey.ToSolutionKey(solution);
+
             return CreateSymbolTreeInfo(
-                project.Solution, checksum, project.FilePath, unsortedNodes.ToImmutableAndFree(),
+                workspace, solutionKey, checksum, project.FilePath, unsortedNodes.ToImmutableAndFree(),
                 inheritanceMap: new OrderPreservingMultiDictionary<string, string>(),
                 simpleMethods: null);
         }
@@ -129,10 +142,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 lookup(globalNamespace, symbolMap);
 
-                foreach (var kvp in symbolMap)
-                {
-                    GenerateSourceNodes(kvp.Key, 0 /*index of root node*/, kvp.Value, list, lookup);
-                }
+                foreach (var (name, symbols) in symbolMap)
+                    GenerateSourceNodes(name, 0 /*index of root node*/, symbols, list, lookup);
             }
             finally
             {
@@ -164,10 +175,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     lookup(symbol, symbolMap);
                 }
 
-                foreach (var kvp in symbolMap)
-                {
-                    GenerateSourceNodes(kvp.Key, nodeIndex, kvp.Value, list, lookup);
-                }
+                foreach (var (symbolName, symbols) in symbolMap)
+                    GenerateSourceNodes(symbolName, nodeIndex, symbols, list, lookup);
             }
             finally
             {

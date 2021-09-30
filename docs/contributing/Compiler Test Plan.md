@@ -34,7 +34,7 @@ This document provides guidance for thinking about language interactions and tes
  
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
-- type declarations (class, record with or without positional members, struct, interface, type parameter)
+- type declarations (class, record class/struct with or without positional members, struct, interface, type parameter)
 - methods
 - fields
 - properties (including get/set/init accessors)
@@ -91,8 +91,9 @@ This document provides guidance for thinking about language interactions and tes
 - Ref return, ref readonly return, ref ternary, ref readonly local, ref local re-assignment, ref foreach
 - `this = e;` in `struct` .ctor
 - Stackalloc (including initializers)
-- Patterns (constant, declaration, `var`, positional, property, and discard forms)
+- Patterns (constant, declaration, `var`, positional, property, discard, parenthesized, type, relational, `and`/`or`/`not`)
 - Switch expressions
+- With expressions (on record classes and on value types)
 - Nullability annotations (`?`, attributes) and analysis
 - If you add a place an expression can appear in code, make sure `SpillSequenceSpiller` handles it. Test with a `switch` expression or `stackalloc` in that place.
 - If you add a new expression form that requires spilling, test it in the catch filter.
@@ -117,7 +118,7 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
     - "go to", Find All References, and renaming
     - cref comments
     - UpgradeProject code fixer
-    - More: [IDE Test Plan](https://github.com/dotnet/roslyn/blob/master/docs/contributing/IDE%20Test%20Plan.md)
+    - More: [IDE Test Plan](https://github.com/dotnet/roslyn/blob/main/docs/contributing/IDE%20Test%20Plan.md)
 
 - Debugger / EE
     - Stepping, setting breakpoints

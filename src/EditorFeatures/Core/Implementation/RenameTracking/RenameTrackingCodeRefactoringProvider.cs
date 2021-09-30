@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -14,7 +12,7 @@ using Microsoft.VisualStudio.Text.Operations;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
-        Name = nameof(RenameTrackingCodeRefactoringProvider)), Shared]
+        Name = PredefinedCodeRefactoringProviderNames.RenameTracking), Shared]
     internal class RenameTrackingCodeRefactoringProvider : CodeRefactoringProvider
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;

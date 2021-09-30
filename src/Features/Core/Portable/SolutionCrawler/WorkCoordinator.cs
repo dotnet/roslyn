@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -89,7 +87,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 // subscribe to active document changed event for active file background analysis scope.
                 if (_documentTrackingService != null)
                 {
-                    _lastActiveDocument = _documentTrackingService.GetActiveDocument(_registration.Workspace.CurrentSolution);
+                    _lastActiveDocument = _documentTrackingService.GetActiveDocument(_registration.GetSolutionToAnalyze());
                     _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
                 }
             }
@@ -102,7 +100,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _documentAndProjectWorkerProcessor.AddAnalyzer(analyzer, highPriorityForActiveFile);
 
                 // and ask to re-analyze whole solution for the given analyzer
-                var scope = new ReanalyzeScope(_registration.CurrentSolution.Id);
+                var scope = new ReanalyzeScope(_registration.GetSolutionToAnalyze().Id);
                 Reanalyze(analyzer, scope);
             }
 
@@ -198,7 +196,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         if (forceAnalyze || analyzer.NeedsReanalysisOnOptionChanged(sender, e))
                         {
-                            var scope = new ReanalyzeScope(_registration.CurrentSolution.Id);
+                            var scope = new ReanalyzeScope(_registration.GetSolutionToAnalyze().Id);
                             Reanalyze(analyzer, scope);
                         }
                     }
@@ -214,7 +212,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     // log big reanalysis request from things like fix all, suppress all or option changes
                     // we are not interested in 1 file re-analysis request which can happen from like venus typing
-                    var solution = _registration.CurrentSolution;
+                    var solution = _registration.GetSolutionToAnalyze();
                     SolutionCrawlerLogger.LogReanalyze(
                         CorrelationId, analyzer, scope.GetDocumentCount(solution), scope.GetLanguagesStringForTelemetry(solution), highPriority);
                 }
@@ -222,7 +220,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private void OnActiveDocumentChanged(object? sender, DocumentId activeDocumentId)
             {
-                var solution = _registration.Workspace.CurrentSolution;
+                var solution = _registration.GetSolutionToAnalyze();
 
                 // Check if we are only performing backgroung analysis for active file.
                 if (activeDocumentId != null)
@@ -511,7 +509,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private async Task EnqueueWorkItemAsync(IIncrementalAnalyzer analyzer, ReanalyzeScope scope, bool highPriority)
             {
-                var solution = _registration.CurrentSolution;
+                var solution = _registration.GetSolutionToAnalyze();
                 var invocationReasons = highPriority ? InvocationReasons.ReanalyzeHighPriority : InvocationReasons.Reanalyze;
 
                 foreach (var document in scope.GetDocuments(solution))
@@ -685,7 +683,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 internal void WaitUntilCompletion(ImmutableArray<IIncrementalAnalyzer> workers)
                 {
-                    var solution = _workCoordinator._registration.CurrentSolution;
+                    var solution = _workCoordinator._registration.GetSolutionToAnalyze();
                     var list = new List<WorkItem>();
 
                     foreach (var project in solution.Projects)
@@ -764,6 +762,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 pool.Object.Add(project.Language);
                             }
+
                             break;
                         case DocumentId documentId:
                             var document = solution.GetDocument(documentId);
@@ -771,6 +770,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 pool.Object.Add(document.Project.Language);
                             }
+
                             break;
                         default:
                             throw ExceptionUtilities.UnexpectedValue(projectOrDocumentId);
@@ -792,7 +792,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     foreach (var projectState in solution.State.ProjectStates)
                     {
-                        count += projectState.Value.DocumentIds.Count;
+                        count += projectState.Value.DocumentStates.Count;
                     }
 
                     return count;
@@ -810,6 +810,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 count += project.DocumentIds.Count;
                             }
+
                             break;
                         case DocumentId documentId:
                             count++;
@@ -855,6 +856,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                         yield return document;
                                     }
                                 }
+
                                 break;
                             }
                         case DocumentId documentId:
@@ -864,6 +866,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 {
                                     yield return document;
                                 }
+
                                 break;
                             }
                     }

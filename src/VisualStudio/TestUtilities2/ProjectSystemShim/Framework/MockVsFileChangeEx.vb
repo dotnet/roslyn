@@ -16,7 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         Private ReadOnly _lock As New Object
         Private ReadOnly _watchedFiles As New List(Of WatchedEntity)
         Private ReadOnly _watchedDirectories As New List(Of WatchedEntity)
-        Private _nextCookie As UInteger = 0UI
+        Private _nextCookie As UInteger
 
         Public Function AdviseDirChange(pszDir As String, fWatchSubDir As Integer, pFCE As IVsFileChangeEvents, ByRef pvsCookie As UInteger) As Integer Implements IVsFileChangeEx.AdviseDirChange
             If fWatchSubDir = 0 Then

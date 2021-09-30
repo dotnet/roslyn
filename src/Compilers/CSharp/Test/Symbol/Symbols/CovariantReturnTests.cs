@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -340,8 +342,8 @@ namespace System.Runtime.CompilerServices
 
             bool hasReturnConversion(TypeSymbol fromType, TypeSymbol toType)
             {
-                HashSet<DiagnosticInfo> ignoredUseSiteDiagnostics = null;
-                return comp.Conversions.HasIdentityOrImplicitReferenceConversion(fromType, toType, ref ignoredUseSiteDiagnostics);
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                return comp.Conversions.HasIdentityOrImplicitReferenceConversion(fromType, toType, ref discardedUseSiteInfo);
             }
         }
 

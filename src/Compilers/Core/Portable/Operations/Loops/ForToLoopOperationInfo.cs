@@ -3,18 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
     internal class ForToLoopOperationUserDefinedInfo
     {
-        public readonly Lazy<IBinaryOperation> Addition;
-        public readonly Lazy<IBinaryOperation> Subtraction;
-        public readonly Lazy<IOperation> LessThanOrEqual;
-        public readonly Lazy<IOperation> GreaterThanOrEqual;
+        public readonly IBinaryOperation Addition;
+        public readonly IBinaryOperation Subtraction;
+        public readonly IOperation LessThanOrEqual;
+        public readonly IOperation GreaterThanOrEqual;
 
-        public ForToLoopOperationUserDefinedInfo(Lazy<IBinaryOperation> addition, Lazy<IBinaryOperation> subtraction, Lazy<IOperation> lessThanOrEqual, Lazy<IOperation> greaterThanOrEqual)
+        public ForToLoopOperationUserDefinedInfo(IBinaryOperation addition, IBinaryOperation subtraction, IOperation lessThanOrEqual, IOperation greaterThanOrEqual)
         {
             Addition = addition;
             Subtraction = subtraction;

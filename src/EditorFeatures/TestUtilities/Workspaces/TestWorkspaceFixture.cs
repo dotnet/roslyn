@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,17 +56,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        public TestWorkspaceFixture()
-        {
-        }
-
         protected abstract TestWorkspace CreateWorkspace(ExportProvider exportProvider);
 
         public void Dispose()
         {
-            if (_workspace != null)
+            if (_workspace is null)
+                return;
+
+            try
             {
-                throw new InvalidOperationException($"Tests which use {nameof(TestWorkspaceFixture)}.{nameof(GetWorkspace)} must call {nameof(DisposeAfterTest)} after each test.");
+                CloseTextView();
+                _currentDocument = null;
+                Code = null;
+                Position = 0;
+                _workspace?.Dispose();
+            }
+            finally
+            {
+                _workspace = null;
             }
         }
 
@@ -92,22 +101,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             {
                 edit.Replace(0, textBuffer.CurrentSnapshot.Length, text);
                 edit.Apply();
-            }
-        }
-
-        public void DisposeAfterTest()
-        {
-            try
-            {
-                CloseTextView();
-                _currentDocument = null;
-                Code = null;
-                Position = 0;
-                _workspace?.Dispose();
-            }
-            finally
-            {
-                _workspace = null;
             }
         }
 

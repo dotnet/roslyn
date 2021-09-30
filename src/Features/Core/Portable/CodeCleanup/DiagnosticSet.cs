@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         public string Description { get; }
         public ImmutableArray<string> DiagnosticIds { get; }
 
-        public DiagnosticSet(string description, string[] diagnosticIds)
+        public DiagnosticSet(string description, params string[] diagnosticIds)
         {
             Description = description;
             DiagnosticIds = ImmutableArray.Create(diagnosticIds);

@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="XunitXml.TestLogger" Version="$(XunitXmlTestLoggerVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Include BannedSymbols covering all test projects -->
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\config\test\BannedSymbols.txt" />
   </ItemGroup>
@@ -22,6 +26,22 @@
     -->
     <Compile Include="$(RepositoryEngineeringDir)config\test\Core\InstallTraceListener$(DefaultLanguageSourceExtension)"
              Condition="Exists('$(RepositoryEngineeringDir)config\test\Core\InstallTraceListener$(DefaultLanguageSourceExtension)')"/>
+  </ItemGroup>
+
+  <!--
+    Include settings file (xunit.runner.json) if specified.
+    Workaround for https://github.com/dotnet/arcade/issues/7080
+  -->
+  <ItemGroup>
+    <None Include="$(XUnitDesktopSettingsFile)"
+          CopyToOutputDirectory="PreserveNewest"
+          Visible="false"
+          Condition="'$(XUnitDesktopSettingsFile)' != '' and '$(TargetFrameworkIdentifier)' == '.NETFramework'" />
+
+    <None Include="$(XUnitCoreSettingsFile)"
+          CopyToOutputDirectory="PreserveNewest"
+          Visible="false"
+          Condition="'$(XUnitCoreSettingsFile)' != '' and '$(TargetFrameworkIdentifier)' == '.NETCoreApp'" />
   </ItemGroup>
 
   <!-- Add a default test app.config, if the project doesn't already have one-->

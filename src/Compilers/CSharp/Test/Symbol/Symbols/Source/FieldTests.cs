@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -549,6 +550,27 @@ class C
             var compilation = CreateCompilation(source).VerifyDiagnostics();
             var field = compilation.GetMember<FieldSymbol>("C.F");
             Assert.True(field.RequiresInstanceReceiver);
+        }
+
+        [Fact]
+        public void UnreferencedInterpolatedStringConstants()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    private static string s1 = $"""";
+    private static readonly string s2 = $"""";
+    private string s3 = $"""";
+    private readonly string s4 = $"""";
+}
+struct S
+{
+    private static string s1 = $"""";
+    private static readonly string s2 = $"""";
+}
+");
+
+            comp.VerifyDiagnostics();
         }
     }
 }

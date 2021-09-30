@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Dim builder = ArrayBuilder(Of ITypeReference).GetInstance()
             For Each t In m_UnderlyingNamedType.TypeArgumentsNoUseSiteDiagnostics
-                builder.Add(moduleBeingBuilt.Translate(t, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics))
+                builder.Add(moduleBeingBuilt.Translate(t, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics))
             Next
 
             Return builder.ToImmutableAndFree
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private Function IGenericTypeInstanceReferenceGetGenericType(context As EmitContext) As Cci.INamedTypeReference Implements Cci.IGenericTypeInstanceReference.GetGenericType
             Debug.Assert(m_UnderlyingNamedType.OriginalDefinition Is m_UnderlyingNamedType.OriginalDefinition.OriginalDefinition)
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
-            Return moduleBeingBuilt.Translate(m_UnderlyingNamedType.OriginalDefinition, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
+            Return moduleBeingBuilt.Translate(m_UnderlyingNamedType.OriginalDefinition, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode),
                                               diagnostics:=context.Diagnostics, needDeclaration:=True)
         End Function
     End Class

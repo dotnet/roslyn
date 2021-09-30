@@ -2,44 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using SymbolSet = HashSet<INamedTypeSymbol>;
-
     internal static partial class DependentTypeFinder
     {
-        public static async Task<ImmutableArray<INamedTypeSymbol>> FindImplementingTypesAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            bool transitive,
-            CancellationToken cancellationToken)
-        {
-            var result = await TryFindRemoteTypesAsync(
-                type, solution, projects, transitive,
-                FunctionId.DependentTypeFinder_FindAndCacheImplementingTypesAsync,
-                nameof(IRemoteDependentTypeFinder.FindImplementingTypesAsync),
-                cancellationToken).ConfigureAwait(false);
-
-            if (result.HasValue)
-                return result.Value;
-
-            return await FindImplementingTypesInCurrentProcessAsync(
-                type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
-        }
-
         private static async Task<ImmutableArray<INamedTypeSymbol>> FindImplementingTypesInCurrentProcessAsync(
             INamedTypeSymbol type,
             Solution solution,
-            IImmutableSet<Project> projects,
+            IImmutableSet<Project>? projects,
             bool transitive,
             CancellationToken cancellationToken)
         {
@@ -59,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // 'Base' match and will add to the set.  Then, we'll look for types that have 'Base' in their
                 // inheritance chain, and we need to match that by looking in the .BaseType inheritance chain when
                 // looking at 'Derived'.
-                static bool TypeMatches(INamedTypeSymbol type, SymbolSet set)
+                static bool TypeMatches(INamedTypeSymbol type, HashSet<INamedTypeSymbol> set)
                     => TypeHasBaseTypeInSet(type, set) || TypeHasInterfaceInSet(type, set);
 
                 // As long as we keep hitting derived interfaces or implementing non-sealed classes we need to keep

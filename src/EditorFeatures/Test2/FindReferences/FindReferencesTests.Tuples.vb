@@ -344,7 +344,7 @@ namespace System
         Public Async Function TestTuplesAcrossCoreAndStandard1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
-    <Project Language="C#" CommonReferencesNetCoreApp30="true">
+    <Project Language="C#" CommonReferencesNetCoreApp="true">
         <Document><![CDATA[
 using System;
 
@@ -354,7 +354,7 @@ class Program
     {
     }
 
-    public [|ValueTuple|]<int, int> XXX() => default;
+    public [|ValueTuple|]<int, int> Method() => default;
 }
 ]]>
         </Document>
@@ -372,6 +372,41 @@ class Program
 }
 ]]>
         </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestTuplesUseInSourceGeneratedDocument(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferencesNetCoreApp="true">
+        <Document><![CDATA[
+using System;
+
+partial class Program
+{
+    static void Main(string[] args)
+    {
+    }
+
+    public [|ValueTuple|]<int, int> Method() => default;
+}
+]]>
+        </Document>
+        <DocumentFromSourceGenerator><![CDATA[
+using System;
+
+partial class Program
+{
+    static void Test()
+    {
+        $$var a = (1, 1);
+    }
+}
+]]>
+        </DocumentFromSourceGenerator>
     </Project>
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)

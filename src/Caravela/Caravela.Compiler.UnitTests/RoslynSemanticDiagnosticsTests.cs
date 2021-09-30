@@ -308,6 +308,18 @@ namespace Caravela.Compiler.UnitTests.Diagnostics
     }
 
     [Trait("Category", "OuterLoop")]
+    public class CaravelaCompilerDelegateTypeTests : DelegateTypeTests
+    {
+        public CaravelaCompilerDelegateTypeTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+
+        public override void Dispose()
+        {
+            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            base.Dispose();
+        }
+    }
+
+    [Trait("Category", "OuterLoop")]
     public class CaravelaCompilerSyntaxBinderTests : SyntaxBinderTests
     {
         public CaravelaCompilerSyntaxBinderTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
@@ -380,6 +392,18 @@ namespace Caravela.Compiler.UnitTests.Diagnostics
     }
 
     [Trait("Category", "OuterLoop")]
+    public class CaravelaCompilerGlobalUsingDirectiveTests : GlobalUsingDirectiveTests
+    {
+        public CaravelaCompilerGlobalUsingDirectiveTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+
+        public override void Dispose()
+        {
+            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            base.Dispose();
+        }
+    }
+
+    [Trait("Category", "OuterLoop")]
     public class CaravelaCompilerHideByNameTests : HideByNameTests
     {
         public CaravelaCompilerHideByNameTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
@@ -407,6 +431,18 @@ namespace Caravela.Compiler.UnitTests.Diagnostics
     public class CaravelaCompilerImplicitlyTypedLocalTests : ImplicitlyTypedLocalTests
     {
         public CaravelaCompilerImplicitlyTypedLocalTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+
+        public override void Dispose()
+        {
+            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            base.Dispose();
+        }
+    }
+
+    [Trait("Category", "OuterLoop")]
+    public class CaravelaCompilerImplicitObjectCreationTests : ImplicitObjectCreationTests
+    {
+        public CaravelaCompilerImplicitObjectCreationTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
@@ -739,6 +775,7 @@ namespace Caravela.Compiler.UnitTests.Diagnostics
         }
     }
 
+    /* Disabled because it's so slow.
     [Trait("Category", "OuterLoop")]
     public class CaravelaCompilerOverloadResolutionPerfTests : OverloadResolutionPerfTests
     {
@@ -750,6 +787,7 @@ namespace Caravela.Compiler.UnitTests.Diagnostics
             base.Dispose();
         }
     }
+    */
 
     [Trait("Category", "OuterLoop")]
     public class CaravelaCompilerOverloadResolutionTests : OverloadResolutionTests
@@ -863,6 +901,18 @@ namespace Caravela.Compiler.UnitTests.Diagnostics
     public class CaravelaCompilerReadOnlyStructsTests : ReadOnlyStructsTests
     {
         public CaravelaCompilerReadOnlyStructsTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+
+        public override void Dispose()
+        {
+            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            base.Dispose();
+        }
+    }
+
+    [Trait("Category", "OuterLoop")]
+    public class CaravelaCompilerRecordStructTests : RecordStructTests
+    {
+        public CaravelaCompilerRecordStructTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
@@ -1031,18 +1081,6 @@ namespace Caravela.Compiler.UnitTests.Diagnostics
     public class CaravelaCompilerDefaultLiteralTests : DefaultLiteralTests
     {
         public CaravelaCompilerDefaultLiteralTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
-
-        public override void Dispose()
-        {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
-            base.Dispose();
-        }
-    }
-
-    [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerTargetTypedObjectCreationTests : TargetTypedObjectCreationTests
-    {
-        public CaravelaCompilerTargetTypedObjectCreationTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {

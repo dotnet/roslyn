@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis
             /// Returns the string representation of a decimal integer, or null if
             /// the current lexeme is not an integer.
             /// </summary>
-            public string TryLexNumber()
+            public string? TryLexNumber()
             {
                 bool start = true;
                 var sb = new StringBuilder();

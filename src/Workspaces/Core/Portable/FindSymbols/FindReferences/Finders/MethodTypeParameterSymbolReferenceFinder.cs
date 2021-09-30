@@ -14,11 +14,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(ITypeParameterSymbol symbol)
             => symbol.TypeParameterKind == TypeParameterKind.Method;
 
-        protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             ITypeParameterSymbol symbol,
             Solution solution,
-            IImmutableSet<Project> projects,
+            IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options,
+            FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
             var method = (IMethodSymbol)symbol.ContainingSymbol;
@@ -28,24 +29,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 if (method.PartialDefinitionPart != null && ordinal < method.PartialDefinitionPart.TypeParameters.Length)
                 {
-                    return Task.FromResult(ImmutableArray.Create<ISymbol>(
-                        method.PartialDefinitionPart.TypeParameters[ordinal]));
+                    return Task.FromResult(ImmutableArray.Create(
+                        ((ISymbol)method.PartialDefinitionPart.TypeParameters[ordinal], cascadeDirection)));
                 }
 
                 if (method.PartialImplementationPart != null && ordinal < method.PartialImplementationPart.TypeParameters.Length)
                 {
-                    return Task.FromResult(ImmutableArray.Create<ISymbol>(
-                        method.PartialImplementationPart.TypeParameters[ordinal]));
+                    return Task.FromResult(ImmutableArray.Create(
+                        ((ISymbol)method.PartialImplementationPart.TypeParameters[ordinal], cascadeDirection)));
                 }
             }
 
-            return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+            return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>();
         }
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             ITypeParameterSymbol symbol,
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -59,6 +60,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             //
             // Also, we only look for files that have the name of the owning type.  This helps filter
             // down the set considerably.
+            Contract.ThrowIfNull(symbol.DeclaringMethod);
             return FindDocumentsAsync(project, documents, findInGlobalSuppressions: false, cancellationToken, symbol.Name,
                 GetMemberNameWithoutInterfaceName(symbol.DeclaringMethod.Name),
                 symbol.DeclaringMethod.ContainingType.Name);
@@ -72,7 +74,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : fullName;
         }
 
-        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ITypeParameterSymbol symbol,
             Document document,
             SemanticModel semanticModel,

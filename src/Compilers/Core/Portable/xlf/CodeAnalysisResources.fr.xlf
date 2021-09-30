@@ -17,6 +17,11 @@
         <target state="translated">L'assembly contenant le type '{0}' référence le .NET Framework, ce qui n'est pas pris en charge.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
+        <source>Changes must be within bounds of SourceText</source>
+        <target state="translated">Les changements doivent se situer dans les limites de SourceText</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
         <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
         <target state="translated">Aucun changement de la version d'une référence d'assembly n'est autorisé durant le débogage : '{0}' a changé la version en '{1}'.</target>
@@ -704,11 +709,6 @@
       <trans-unit id="ArgumentElementCannotBeNull">
         <source>Argument cannot have a null element.</source>
         <target state="translated">L'argument ne peut pas avoir un élément null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AsyncAnalyzerActionCannotBeRegistered">
-        <source>Analyzer attempted to register an 'async' action, which is not supported.</source>
-        <target state="translated">L'analyseur a tenté d'inscrire une action 'async', ce qui n'est pas pris en charge.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedDiagnosticReported">

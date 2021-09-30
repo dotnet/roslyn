@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     /// </summary>
     internal class SimpleFindUsagesContext : FindUsagesContext
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private readonly ImmutableArray<DefinitionItem>.Builder _definitionItems =
             ImmutableArray.CreateBuilder<DefinitionItem>();
 

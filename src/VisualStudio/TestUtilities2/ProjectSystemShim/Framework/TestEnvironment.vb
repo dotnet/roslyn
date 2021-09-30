@@ -67,7 +67,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 GetType(VisualStudioMetadataReferenceManagerFactory),
                 GetType(MockWorkspaceEventListenerProvider),
                 GetType(MockDiagnosticUpdateSourceRegistrationService),
-                GetType(HostDiagnosticUpdateSource))
+                GetType(HostDiagnosticUpdateSource),
+                GetType(HierarchyItemToProjectIdMap))
 
         Private ReadOnly _workspace As VisualStudioWorkspaceImpl
         Private ReadOnly _projectFilePaths As New List(Of String)
@@ -184,7 +185,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 Select Case serviceType
                     Case GetType(SVsSolution)
                         ' Return a loose mock that just is a big no-op
-                        Dim solutionMock As New Mock(Of IVsSolution)(MockBehavior.Loose)
+                        Dim solutionMock As New Mock(Of IVsSolution2)(MockBehavior.Loose)
                         Return solutionMock.Object
 
                     Case GetType(SComponentModel)

@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             _streamingPresenter = streamingPresenter;
         }
 
-        public IAsyncCompletionSource GetOrCreate(ITextView textView)
+        public IAsyncCompletionSource? GetOrCreate(ITextView textView)
         {
-            if (textView.TextBuffer.IsInCloudEnvironmentClientContext())
+            if (textView.TextBuffer.IsInLspEditorContext())
             {
                 return null;
             }

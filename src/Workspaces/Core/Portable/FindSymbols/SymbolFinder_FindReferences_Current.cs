@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -9,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -37,17 +40,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         // results as it finds them.  When we hear about results we'll forward them to
                         // the 'progress' parameter which will then update the UI.
                         var serverCallback = new FindReferencesServerCallback(solution, progress, cancellationToken);
+                        var documentIds = documents?.SelectAsArray(d => d.Id) ?? default;
 
-                        await client.RunRemoteAsync(
-                            WellKnownServiceHubService.CodeAnalysis,
-                            nameof(IRemoteSymbolFinder.FindReferencesAsync),
+                        await client.TryInvokeAsync<IRemoteSymbolFinderService>(
                             solution,
-                            new object[]
-                            {
-                                serializedSymbol,
-                                documents?.Select(d => d.Id).ToArray(),
-                                SerializableFindReferencesSearchOptions.Dehydrate(options),
-                            },
+                            (service, solutionInfo, callbackId, cancellationToken) => service.FindReferencesAsync(solutionInfo, callbackId, serializedSymbol, documentIds, options, cancellationToken),
                             serverCallback,
                             cancellationToken).ConfigureAwait(false);
 
@@ -63,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         internal static Task FindReferencesInCurrentProcessAsync(
-            ISymbol symbolAndProjectId,
+            ISymbol symbol,
             Solution solution,
             IStreamingFindReferencesProgress progress,
             IImmutableSet<Document> documents,
@@ -74,7 +71,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             progress ??= NoOpStreamingFindReferencesProgress.Instance;
             var engine = new FindReferencesSearchEngine(
                 solution, documents, finders, progress, options, cancellationToken);
-            return engine.FindReferencesAsync(symbolAndProjectId);
+            return engine.FindReferencesAsync(symbol);
         }
     }
 }

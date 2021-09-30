@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -14,8 +12,8 @@ namespace Microsoft.CodeAnalysis.Host
     [ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider))]
     internal sealed class DefaultAnalyzerAssemblyLoaderService : IAnalyzerAssemblyLoaderProvider
     {
-        private readonly DefaultAnalyzerAssemblyLoader _loader = new DefaultAnalyzerAssemblyLoader();
-        private readonly ShadowCopyAnalyzerAssemblyLoader _shadowCopyLoader = new ShadowCopyAnalyzerAssemblyLoader();
+        private readonly DefaultAnalyzerAssemblyLoader _loader = new();
+        private readonly ShadowCopyAnalyzerAssemblyLoader _shadowCopyLoader = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

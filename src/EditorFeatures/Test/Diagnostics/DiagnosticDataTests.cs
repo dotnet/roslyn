@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -157,7 +159,7 @@ namespace B
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string>.Empty,
                 location: new DiagnosticDataLocation(document.Id),
-                additionalLocations: new[] { externalAdditionalLocation },
+                additionalLocations: ImmutableArray.Create(externalAdditionalLocation),
                 language: document.Project.Language);
 
             var diagnostic = await diagnosticData.ToDiagnosticAsync(document.Project, CancellationToken.None);

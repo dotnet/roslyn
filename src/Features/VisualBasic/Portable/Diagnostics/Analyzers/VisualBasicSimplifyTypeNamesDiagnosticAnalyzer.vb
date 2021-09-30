@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
                 inDeclaration = False
                 diagnosticId = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId
             ElseIf expression.Kind = SyntaxKind.SimpleMemberAccessExpression Then
-                Dim method = model.GetMemberGroup(expression)
+                Dim method = model.GetMemberGroup(expression, cancellationToken)
                 If method.Length = 1 Then
                     Dim symbol = method.First()
                     If (symbol.IsOverrides Or symbol.IsOverridable) And memberAccess.Expression.Kind = SyntaxKind.MyClassExpression Then

@@ -1,0 +1,13 @@
+﻿<UserControl x:Class="Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View.CodeStyleSeverityControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:catalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View"
+             mc:Ignorable="d" 
+             x:ClassModifier="internal">
+    <Grid x:Name="RootGrid">
+    </Grid>
+</UserControl>

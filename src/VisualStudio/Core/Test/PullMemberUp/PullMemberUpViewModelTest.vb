@@ -39,7 +39,7 @@ class MyClass : Level1BaseClass, Level1Interface
     }
 }"]]></Text>
             Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
-            Dim baseTypeTree = viewModel.Destinations()
+            Dim baseTypeTree = viewModel.DestinationTreeNodeViewModel.BaseTypeNodes
             Assert.Equal("Level1BaseClass", baseTypeTree(0).SymbolName)
             Assert.Equal("Level1Interface", baseTypeTree(1).SymbolName)
             Assert.Equal("Level2Interface", baseTypeTree(0).BaseTypeNodes(0).SymbolName)
@@ -78,7 +78,7 @@ class MyClass : Level1BaseClass, Level1Interface
 </Workspace>]]></Text>
 
             Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
-            Dim baseTypeTree = viewModel.Destinations
+            Dim baseTypeTree = viewModel.DestinationTreeNodeViewModel.BaseTypeNodes
 
             ' C# types will be showed
             Assert.Equal("ITestInterface", baseTypeTree(0).SymbolName)
@@ -118,7 +118,7 @@ class MyClass : Level1BaseClass, Level1Interface
     internal float gravitational = 6.67e-11;
 }"]]></Text>
             Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
-            Dim baseTypeTree = viewModel.Destinations()
+            Dim baseTypeTree = viewModel.DestinationTreeNodeViewModel.BaseTypeNodes
 
             Assert.Equal("Level1Interface", baseTypeTree(1).SymbolName)
             viewModel.SelectedDestination = baseTypeTree(1)
@@ -163,7 +163,7 @@ class MyClass : Level1BaseClass, Level1Interface
     internal float gravitational = 6.67e-11;
 }"]]></Text>
             Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
-            Dim baseTypeTree = viewModel.Destinations()
+            Dim baseTypeTree = viewModel.DestinationTreeNodeViewModel.BaseTypeNodes
 
             Assert.Equal("Level1Interface", baseTypeTree(1).SymbolName)
             viewModel.SelectedDestination = baseTypeTree(1)
@@ -206,7 +206,7 @@ class MyClass : Level1BaseClass, Level1Interface
     internal float gravitational = 6.67e-11;
 }"]]></Text>
             Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
-            Dim baseTypeTree = viewModel.Destinations()
+            Dim baseTypeTree = viewModel.DestinationTreeNodeViewModel.BaseTypeNodes
 
             ' First select an interface, all checkbox will be disable as the previous test.
             Assert.Equal("Level1Interface", baseTypeTree(1).SymbolName)
@@ -255,7 +255,7 @@ class MyClass : Level1BaseClass, Level1Interface
                 Return New PullMemberUpDialogViewModel(
                     workspace.GetService(Of IWaitIndicator),
                     membersViewModel,
-                    baseTypeTree.BaseTypeNodes,
+                    baseTypeTree,
                     memberToDependents)
             End Using
         End Function

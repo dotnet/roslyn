@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -814,13 +816,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            private Binder MakeNamespaceBinder(CSharpSyntaxNode node, NameSyntax name, Binder outer, bool inUsing)
+            private static Binder MakeNamespaceBinder(CSharpSyntaxNode node, NameSyntax name, Binder outer, bool inUsing)
             {
-                QualifiedNameSyntax dotted;
-                while ((dotted = name as QualifiedNameSyntax) != null)
+                if (name is QualifiedNameSyntax dotted)
                 {
                     outer = MakeNamespaceBinder(dotted.Left, dotted.Left, outer, inUsing: false);
                     name = dotted.Right;
+                    Debug.Assert(name is not QualifiedNameSyntax);
                 }
 
                 NamespaceOrTypeSymbol container;
@@ -837,7 +839,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 NamespaceSymbol ns = ((NamespaceSymbol)container).GetNestedNamespace(name);
                 if ((object)ns == null) return outer;
-                return new InContainerBinder(ns, outer, node, inUsing: inUsing);
+
+                if (node is NamespaceDeclarationSyntax namespaceDecl)
+                {
+                    outer = AddInImportsBinders((SourceNamespaceSymbol)outer.Compilation.SourceModule.GetModuleNamespace(ns), namespaceDecl, outer, inUsing);
+                }
+                else
+                {
+                    Debug.Assert(!inUsing);
+                }
+
+                return new InContainerBinder(ns, outer);
             }
 
             public override Binder VisitCompilationUnit(CompilationUnitSyntax parent)
@@ -881,29 +893,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         //
 
                         bool isSubmissionTree = compilation.IsSubmissionSyntaxTree(compilationUnit.SyntaxTree);
-                        if (!isSubmissionTree)
-                        {
-                            result = result.WithAdditionalFlags(BinderFlags.InLoadedSyntaxTree);
-                        }
+                        var scriptClass = compilation.ScriptClass;
+                        bool isSubmissionClass = scriptClass.IsSubmissionClass;
 
-                        // This is declared here so it can be captured.  It's initialized below.
-                        InContainerBinder scriptClassBinder = null;
-
-                        if (inUsing)
+                        if (!inUsing)
                         {
-                            result = result.WithAdditionalFlags(BinderFlags.InScriptUsing);
-                        }
-                        else
-                        {
-                            result = new InContainerBinder(container: null, next: result, imports: compilation.GlobalImports);
+                            result = WithUsingNamespacesAndTypesBinder.Create(compilation.GlobalImports, result, withImportChainEntry: true);
 
-                            // NB: This binder has a full Imports object, but only the non-alias imports are
-                            // ever consumed.  Aliases are actually checked in scriptClassBinder (below).
-                            // Note: #loaded trees don't consume previous submission imports.
-                            result = compilation.PreviousSubmission == null || !isSubmissionTree
-                                ? new InContainerBinder(result, basesBeingResolved => scriptClassBinder.GetImports(basesBeingResolved))
-                                : new InContainerBinder(result, basesBeingResolved =>
-                                    compilation.GetPreviousSubmissionImports().Concat(scriptClassBinder.GetImports(basesBeingResolved)));
+                            if (isSubmissionClass)
+                            {
+                                // NB: Only the non-alias imports are
+                                // ever consumed.  Aliases are actually checked in InSubmissionClassBinder (below).
+                                // Note: #loaded trees don't consume previous submission imports.
+                                result = WithUsingNamespacesAndTypesBinder.Create((SourceNamespaceSymbol)compilation.SourceModule.GlobalNamespace, compilationUnit, result,
+                                                                                  withPreviousSubmissionImports: compilation.PreviousSubmission != null && isSubmissionTree,
+                                                                                  withImportChainEntry: true);
+                            }
                         }
 
                         result = new InContainerBinder(compilation.GlobalNamespace, result);
@@ -913,17 +918,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                             result = new HostObjectModelBinder(result);
                         }
 
-                        scriptClassBinder = new InContainerBinder(compilation.ScriptClass, result, compilationUnit, inUsing: inUsing);
-                        result = scriptClassBinder;
+                        if (isSubmissionClass)
+                        {
+                            result = new InSubmissionClassBinder(scriptClass, result, compilationUnit, inUsing);
+                        }
+                        else
+                        {
+                            result = AddInImportsBinders((SourceNamespaceSymbol)compilation.SourceModule.GlobalNamespace, compilationUnit, result, inUsing);
+                            result = new InContainerBinder(scriptClass, result);
+                        }
                     }
                     else
                     {
                         //
                         // Binder chain in regular code:
                         //
-                        // + global namespace with top-level imports
+                        // + compilation unit imported namespaces and types
+                        //   + compilation unit extern and using aliases
+                        //     + global namespace
                         // 
-                        result = new InContainerBinder(compilation.GlobalNamespace, result, compilationUnit, inUsing: inUsing);
+                        var globalNamespace = compilation.GlobalNamespace;
+                        result = AddInImportsBinders((SourceNamespaceSymbol)compilation.SourceModule.GlobalNamespace, compilationUnit, result, inUsing);
+                        result = new InContainerBinder(globalNamespace, result);
 
                         if (!inUsing &&
                             SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(compilation, compilationUnit, fallbackToMainEntryPoint: true) is SynthesizedSimpleProgramEntryPointSymbol simpleProgram)
@@ -937,6 +953,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return result;
+            }
+
+            private static Binder AddInImportsBinders(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, Binder next, bool inUsing)
+            {
+                Debug.Assert(declarationSyntax.IsKind(SyntaxKind.CompilationUnit) || declarationSyntax.IsKind(SyntaxKind.NamespaceDeclaration));
+
+                if (inUsing)
+                {
+                    // Extern aliases are in scope
+                    return WithExternAliasesBinder.Create(declaringSymbol, declarationSyntax, next);
+                }
+                else
+                {
+                    // All imports are in scope
+                    return WithExternAndUsingAliasesBinder.Create(declaringSymbol, declarationSyntax, WithUsingNamespacesAndTypesBinder.Create(declaringSymbol, declarationSyntax, next));
+                }
             }
 
             internal static BinderCacheKey CreateBinderCacheKey(CSharpSyntaxNode node, NodeUsage usage)
@@ -1130,12 +1162,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private Binder GetParameterNameAttributeValueBinder(MemberDeclarationSyntax memberSyntax, Binder nextBinder)
             {
-                BaseMethodDeclarationSyntax baseMethodDeclSyntax = memberSyntax as BaseMethodDeclarationSyntax;
-                if ((object)baseMethodDeclSyntax != null && baseMethodDeclSyntax.ParameterList.ParameterCount > 0)
+                if (memberSyntax is BaseMethodDeclarationSyntax { ParameterList: { ParameterCount: > 0 } } baseMethodDeclSyntax)
                 {
                     Binder outerBinder = VisitCore(memberSyntax.Parent);
                     MethodSymbol method = GetMethodSymbol(baseMethodDeclSyntax, outerBinder);
                     return new WithParametersBinder(method.Parameters, nextBinder);
+                }
+
+                if (memberSyntax is RecordDeclarationSyntax { ParameterList: { ParameterCount: > 0 } })
+                {
+                    Binder outerBinder = VisitCore(memberSyntax);
+                    SourceNamedTypeSymbol recordType = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember((TypeDeclarationSyntax)memberSyntax);
+                    var primaryConstructor = recordType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().SingleOrDefault();
+
+                    if (primaryConstructor.SyntaxRef.SyntaxTree == memberSyntax.SyntaxTree &&
+                        primaryConstructor.GetSyntax() == memberSyntax)
+                    {
+                        return new WithParametersBinder(primaryConstructor.Parameters, nextBinder);
+                    }
                 }
 
                 // As in Dev11, we do not allow <param name="value"> on events.

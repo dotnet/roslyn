@@ -2,12 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -25,9 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             /// See <see cref="VisualStudioBaseDiagnosticListTable.LiveTableDataSource"/>
             /// for error list diagnostic source for "Build + Intellisense" setting.
             /// </summary>
-            private class BuildTableDataSource : AbstractTableDataSource<DiagnosticTableItem>
+            private class BuildTableDataSource : AbstractTableDataSource<DiagnosticTableItem, object>
             {
-                private readonly object _key = new object();
+                private readonly object _key = new();
 
                 private readonly ExternalErrorDiagnosticUpdateSource _buildErrorSource;
 
@@ -174,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = data.Message;
                                 return content != null;
                             case StandardTableKeyNames.DocumentName:
-                                content = GetFileName(data.DataLocation?.OriginalFilePath, data.DataLocation?.MappedFilePath);
+                                content = data.DataLocation?.GetFilePath();
                                 return content != null;
                             case StandardTableKeyNames.Line:
                                 content = data.DataLocation?.MappedStartLine ?? 0;
@@ -207,7 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         }
                     }
 
-                    public override bool TryNavigateTo(int index, bool previewTab, bool activate)
+                    public override bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken)
                     {
                         var item = GetItem(index);
                         if (item?.DocumentId == null)
@@ -219,7 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         var solution = item.Workspace.CurrentSolution;
 
                         return solution.ContainsDocument(documentId) &&
-                            TryNavigateTo(item.Workspace, documentId, item.GetOriginalPosition(), previewTab, activate);
+                            TryNavigateTo(item.Workspace, documentId, item.GetOriginalPosition(), previewTab, activate, cancellationToken);
                     }
 
                     private DocumentId GetProperDocumentId(DiagnosticTableItem item)

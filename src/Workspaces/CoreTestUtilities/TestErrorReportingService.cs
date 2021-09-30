@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Extensions;
@@ -28,9 +26,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public void ShowDetailedErrorInfo(Exception exception)
             => OnError(exception.Message);
-
-        public void ShowErrorInfoInActiveView(string message, params InfoBarUI[] items)
-            => OnError(message);
 
         public void ShowGlobalErrorInfo(string message, params InfoBarUI[] items)
             => OnError(message);
