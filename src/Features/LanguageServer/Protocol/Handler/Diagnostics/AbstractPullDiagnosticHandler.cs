@@ -9,7 +9,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -32,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected const int WorkspaceDiagnosticIdentifier = 1;
         protected const int DocumentDiagnosticIdentifier = 2;
 
-        protected readonly IDiagnosticService DiagnosticService;
+        private readonly IDiagnosticAnalyzerService _analyzerService;
 
         /// <summary>
         /// Lock to protect <see cref="_documentIdToLastResultId"/> and <see cref="_nextDocumentResultId"/>.
@@ -56,10 +55,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         public bool RequiresLSPSolution => true;
 
         protected AbstractPullDiagnosticHandler(
-            IDiagnosticService diagnosticService)
+            IDiagnosticService diagnosticService,
+            IDiagnosticAnalyzerService analyzerService)
         {
-            DiagnosticService = diagnosticService;
-            DiagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
+            _analyzerService = analyzerService;
+            diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
         }
 
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams diagnosticsParams);
@@ -85,11 +85,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// progress.  Subclasses can fill in data specific to their needs as appropriate.
         /// </summary>
         protected abstract TReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId);
-
-        /// <summary>
-        /// Produce the diagnostics for the specified document.
-        /// </summary>
-        protected abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken);
 
         /// <summary>
         /// Generate the right diagnostic tags for a particular diagnostic.
@@ -224,7 +219,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             if (isPull)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var diagnostics = await GetDiagnosticsAsync(context, document, diagnosticMode, cancellationToken).ConfigureAwait(false);
+                var diagnostics = await _analyzerService.GetDiagnosticsForSpanAsync(document, range: null, cancellationToken: cancellationToken).ConfigureAwait(false);
                 context.TraceInformation($"Got {diagnostics.Length} diagnostics");
 
                 foreach (var diagnostic in diagnostics)

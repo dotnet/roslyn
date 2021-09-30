@@ -15,16 +15,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
     internal class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport>
     {
-        private readonly IDiagnosticAnalyzerService _analyzerService;
-
         public override string Method => VSInternalMethods.DocumentPullDiagnosticName;
 
         public DocumentPullDiagnosticHandler(
             IDiagnosticService diagnosticService,
             IDiagnosticAnalyzerService analyzerService)
-            : base(diagnosticService)
+            : base(diagnosticService, analyzerService)
         {
-            _analyzerService = analyzerService;
         }
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams diagnosticsParams)
@@ -75,16 +72,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
 
             return ImmutableArray.Create(context.Document);
-        }
-
-        protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-            RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
-        {
-            // For open documents, directly use the IDiagnosticAnalyzerService.  This will use the actual snapshots
-            // we're passing in.  If information is already cached for that snapshot, it will be returned.  Otherwise,
-            // it will be computed on demand.  Because it is always accurate as per this snapshot, all spans are correct
-            // and do not need to be adjusted.
-            return _analyzerService.GetDiagnosticsForSpanAsync(document, range: null, cancellationToken: cancellationToken);
         }
     }
 }
