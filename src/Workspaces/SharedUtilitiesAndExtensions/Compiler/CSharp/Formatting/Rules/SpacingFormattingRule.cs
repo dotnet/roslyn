@@ -230,20 +230,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // attribute case ] *
-            // Place a space between the attribute and the next member if they're on the same line.
             if (previousKind == SyntaxKind.CloseBracketToken && previousToken.Parent.IsKind(SyntaxKind.AttributeList))
             {
-                var attributeOwner = previousToken.Parent?.Parent;
-                if (attributeOwner is MemberDeclarationSyntax)
-                {
-                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-                }
-
-                // [Attribute1]$$ [Attribute2]
+                // [Attribute1]$$[Attribute2]
                 if (currentToken.IsKind(SyntaxKind.OpenBracketToken) &&
                     currentToken.Parent.IsKind(SyntaxKind.AttributeList))
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
+
+                // [Attribute]$$ int Prop { ... }
+                var attributeOwner = previousToken.Parent?.Parent;
+                if (attributeOwner is MemberDeclarationSyntax)
+                {
+                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
             }
 

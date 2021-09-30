@@ -9120,7 +9120,7 @@ class C
 {
     [Attr1]
     [Attr2]
-    [Attr3] [Attr4] int i;
+    [Attr3][Attr4] int i;
 }",
 @"
 class C {
@@ -9140,7 +9140,7 @@ class C
 {
     [Attr1]
     [Attr2]
-    [Attr3] [Attr4] int i;
+    [Attr3][Attr4] int i;
 }",
 @"
 class C {
