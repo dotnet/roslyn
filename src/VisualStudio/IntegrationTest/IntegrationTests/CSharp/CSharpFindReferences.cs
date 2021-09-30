@@ -79,6 +79,7 @@ class SomeOtherClass
             // Assert we are in the right file now
             VisualStudio.Editor.Activate();
             Assert.Equal("Class1.cs", VisualStudio.Shell.GetActiveWindowCaption());
+            Assert.Equal("Program", VisualStudio.Editor.GetLineTextAfterCaret());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]

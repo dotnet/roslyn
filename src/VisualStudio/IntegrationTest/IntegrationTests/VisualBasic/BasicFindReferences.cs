@@ -114,6 +114,7 @@ End Class
             // Assert we are in the right file now
             VisualStudio.Editor.Activate();
             Assert.Equal("Class1.vb", VisualStudio.Shell.GetActiveWindowCaption());
+            Assert.Equal("Alpha As Int32", VisualStudio.Editor.GetLineTextAfterCaret());
         }
     }
 }
