@@ -165,14 +165,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private async Task<ImmutableArray<DiagnosticData>> GetCompilerAnalyzerDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<DiagnosticData>> GetCompilerAnalyzerDiagnosticsAsync(DiagnosticAnalyzer analyzer, TextSpan? span, CancellationToken cancellationToken)
         {
             RoslynDebug.Assert(analyzer.IsCompilerAnalyzer());
             RoslynDebug.Assert(_compilationWithAnalyzers != null);
             RoslynDebug.Assert(_compilationBasedAnalyzersInAnalysisScope.Contains(analyzer));
             RoslynDebug.Assert(AnalysisScope.TextDocument is Document);
 
-            var analysisScope = AnalysisScope.WithAnalyzers(ImmutableArray.Create(analyzer));
+            var analysisScope = AnalysisScope.WithAnalyzers(ImmutableArray.Create(analyzer)).WithSpan(span);
             var analysisResult = await GetAnalysisResultAsync(analysisScope, cancellationToken).ConfigureAwait(false);
             if (!analysisResult.TryGetValue(analyzer, out var result))
             {
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
 
-                return await GetCompilerAnalyzerDiagnosticsAsync(analyzer, cancellationToken).ConfigureAwait(false);
+                return await GetCompilerAnalyzerDiagnosticsAsync(analyzer, AnalysisScope.Span, cancellationToken).ConfigureAwait(false);
             }
 
             if (_lazySyntaxDiagnostics == null)
@@ -225,6 +225,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             RoslynDebug.Assert(_compilationWithAnalyzers != null);
 
+            var span = AnalysisScope.Span;
             var document = (Document)AnalysisScope.TextDocument;
             if (isCompilerAnalyzer)
             {
@@ -232,7 +233,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 await VerifySpanBasedCompilerDiagnosticsAsync().ConfigureAwait(false);
 #endif
 
-                return await GetCompilerAnalyzerDiagnosticsAsync(analyzer, cancellationToken).ConfigureAwait(false);
+                var adjustedSpan = await GetAdjustedSpanForCompilerAnalyzerAsync().ConfigureAwait(false);
+                return await GetCompilerAnalyzerDiagnosticsAsync(analyzer, adjustedSpan, cancellationToken).ConfigureAwait(false);
             }
 
             if (_lazySemanticDiagnostics == null)
@@ -246,10 +248,44 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 diagnosticAnalysisResult.GetDocumentDiagnostics(AnalysisScope.TextDocument.Id, AnalysisScope.Kind) :
                 ImmutableArray<DiagnosticData>.Empty;
 
+            async Task<TextSpan?> GetAdjustedSpanForCompilerAnalyzerAsync()
+            {
+                // This method is to workaround a bug (https://github.com/dotnet/roslyn/issues/1557)
+                // once that bug is fixed, we should be able to use given span as it is.
+
+                Debug.Assert(isCompilerAnalyzer);
+
+                if (!span.HasValue)
+                {
+                    return null;
+                }
+
+                var service = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var startNode = service.GetContainingMemberDeclaration(root, span.Value.Start);
+                var endNode = service.GetContainingMemberDeclaration(root, span.Value.End);
+
+                if (startNode == endNode)
+                {
+                    // use full member span
+                    if (service.IsMethodLevelMember(startNode))
+                    {
+                        return startNode.FullSpan;
+                    }
+
+                    // use span as it is
+                    return span;
+                }
+
+                var startSpan = service.IsMethodLevelMember(startNode) ? startNode.FullSpan : span.Value;
+                var endSpan = service.IsMethodLevelMember(endNode) ? endNode.FullSpan : span.Value;
+
+                return TextSpan.FromBounds(Math.Min(startSpan.Start, endSpan.Start), Math.Max(startSpan.End, endSpan.End));
+            }
+
 #if DEBUG
             async Task VerifySpanBasedCompilerDiagnosticsAsync()
             {
-                var span = AnalysisScope.Span;
                 if (!span.HasValue)
                 {
                     return;
