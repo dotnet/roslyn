@@ -615,6 +615,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">產生比較運算子</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_constant_0">
+        <source>Generate constant '{0}'</source>
+        <target state="new">Generate constant '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_constructor_in_0_with_fields">
         <source>Generate constructor in '{0}' (with fields)</source>
         <target state="translated">在 '{0}' 中產生建構函式 (使用欄位)</target>
@@ -3273,11 +3278,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Generate_all">
         <source>Generate all</source>
         <target state="translated">產生全部</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constant_1_0">
-        <source>Generate constant '{1}.{0}'</source>
-        <target state="translated">產生常數 '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_local_0">

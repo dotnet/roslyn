@@ -615,6 +615,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Genera gli operatori di confronto</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_constant_0">
+        <source>Generate constant '{0}'</source>
+        <target state="new">Generate constant '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_constructor_in_0_with_fields">
         <source>Generate constructor in '{0}' (with fields)</source>
         <target state="translated">Genera il costruttore in '{0}' (con campi)</target>
@@ -3273,11 +3278,6 @@ Se l'identificatore di formato "M" viene usato senza altri identificatori di for
       <trans-unit id="Generate_all">
         <source>Generate all</source>
         <target state="translated">Genera tutto</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constant_1_0">
-        <source>Generate constant '{1}.{0}'</source>
-        <target state="translated">Genera la costante '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_local_0">
