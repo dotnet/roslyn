@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
@@ -222,6 +223,66 @@ namespace Microsoft.CodeAnalysis.Options
             return (languages, valuesBuilder);
         }
 
+        public string GetDebugString()
+        {
+            // NOTE: keep this in sync with Serialize below.
+
+            using var _ = PooledStringBuilder.GetInstance(out var sb);
+
+            var (languages, values) = this.GetLanguagesAndValuesToSerialize(includeValues: true);
+
+            sb.AppendLine($"languages count: {languages.Count}");
+            foreach (var language in languages.Order())
+            {
+                Debug.Assert(RemoteSupportedLanguages.IsSupported(language));
+                sb.AppendLine(language);
+            }
+
+            sb.AppendLine();
+            sb.AppendLine($"values count: {values.Count}");
+            foreach (var (optionKey, (kind, value)) in values)
+            {
+                SerializeOptionKey(optionKey);
+
+                sb.Append($"{kind}: ");
+                if (kind == OptionValueKind.Enum)
+                {
+                    RoslynDebug.Assert(value != null);
+                    sb.AppendLine(value.ToString());
+                }
+                else if (kind is OptionValueKind.CodeStyleOption)
+                {
+                    var codeStyleOption = (ICodeStyleOption)value;
+                    sb.AppendLine(codeStyleOption.ToXElement().ToString());
+                }
+                else if (kind is OptionValueKind.NamingStylePreferences)
+                {
+                    var namingStylePreferences = (NamingStylePreferences)value;
+                    sb.AppendLine(namingStylePreferences.CreateXElement().ToString());
+                }
+                else
+                {
+                    sb.AppendLine($"{value}");
+                }
+
+                sb.AppendLine();
+            }
+
+            sb.AppendLine();
+            sb.AppendLine($"changed options count: {_changedOptionKeysSerializable.Count}");
+            foreach (var changedKey in _changedOptionKeysSerializable.OrderBy(OptionKeyComparer.Instance))
+                SerializeOptionKey(changedKey);
+
+            return sb.ToString();
+
+            void SerializeOptionKey(OptionKey optionKey)
+            {
+                Debug.Assert(ShouldSerialize(optionKey));
+
+                sb.AppendLine($"{optionKey.Option.Name} {optionKey.Option.Feature} {optionKey.Option.IsPerLanguage} {optionKey.Language}");
+            }
+        }
+
         public void Serialize(ObjectWriter writer, CancellationToken cancellationToken)
         {
             // We serialize the following contents from this option set:
@@ -230,6 +291,7 @@ namespace Microsoft.CodeAnalysis.Options
             //  3. Changed option keys.
 
             // NOTE: keep the serialization in sync with Deserialize method below.
+            // NOTE: keep this in sync with GetDebugString above.
 
             cancellationToken.ThrowIfCancellationRequested();
 

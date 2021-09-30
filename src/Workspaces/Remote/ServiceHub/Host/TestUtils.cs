@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Options;
 
 #if DEBUG
 using System.Diagnostics;
@@ -72,11 +73,37 @@ namespace Microsoft.CodeAnalysis.Remote
             var mismatch6 = await GetAssetFromAssetServiceAsync(allChecksumsFromRequest.Except(assetMapFromIncrementalSolution.Keys)).ConfigureAwait(false);
             AppendMismatch(mismatch6, "assets only in the request but not in incremental solution", sb);
 
+            AppendOptionSets();
+
             var result = sb.ToString();
             if (result.Length > 0)
             {
                 Logger.Log(FunctionId.SolutionCreator_AssetDifferences, result);
                 Debug.Fail("Differences detected in solution checksum: " + result);
+            }
+
+            return;
+
+            void AppendOptionSets()
+            {
+                var allOptionSets = new Dictionary<Checksum, SerializableOptionSet>();
+                foreach (var list in new[] { mismatch1, mismatch2, mismatch3, mismatch4, mismatch5, mismatch6 })
+                {
+                    foreach (var (checksum, val) in list)
+                    {
+                        if (val is SerializableOptionSet optionSet)
+                            allOptionSets[checksum] = optionSet;
+                    }
+                }
+
+                sb.AppendLine("Different option sets:");
+                foreach (var (checksum, optionSet) in allOptionSets)
+                {
+                    sb.AppendLine($"Checksum: {checksum}");
+                    sb.AppendLine("Options:");
+                    sb.AppendLine(optionSet.GetDebugString());
+                    sb.AppendLine();
+                }
             }
 
             static void AppendMismatch(List<KeyValuePair<Checksum, object>> items, string title, StringBuilder stringBuilder)
