@@ -785,7 +785,7 @@ namespace Roslyn.Utilities
         /// </remarks>
         public static string ExpandAbsolutePathWithRelativeParts(string p)
         {
-            bool isDriveRooted = IsDriveRootedAbsolutePath(p);
+            bool isDriveRooted = !IsUnixLikePlatform && IsDriveRootedAbsolutePath(p);
             if (!isDriveRooted && !(p.Length > 1 && p[0] == AltDirectorySeparatorChar))
             {
                 // if this isn't a regular absolute path we can't expand it correctly
