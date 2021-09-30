@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <param name="requestCancellationToken">A cancellation token that will cancel the handing of this request.
         /// The request could also be cancelled by the queue shutting down.</param>
         /// <returns>A task that can be awaited to observe the results of the handing of this request.</returns>
-        public Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(
+        public Task<TResponseType?> ExecuteAsync<TRequestType, TResponseType>(
             bool mutatesSolutionState,
             bool requiresLSPSolution,
             IRequestHandler<TRequestType, TResponseType> handler,
@@ -149,10 +149,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             ClientCapabilities clientCapabilities,
             string? clientName,
             string methodName,
-            CancellationToken requestCancellationToken) where TRequestType : class
+            CancellationToken requestCancellationToken)
+            where TRequestType : class
         {
             // Create a task completion source that will represent the processing of this request to the caller
-            var completion = new TaskCompletionSource<TResponseType>();
+            var completion = new TaskCompletionSource<TResponseType?>();
 
             // Note: If the queue is not accepting any more items then TryEnqueue below will fail.
 
@@ -177,11 +178,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         return;
                     }
 
-                    // doc me.
+                    // If we weren't able to get a corresponding context for this request (for example, we
+                    // couldn't map a doc request to a particular Document, or we couldn't find an appropriate
+                    // Workspace for a global operation), then just immediately complete the request with a
+                    // 'null' response.  Note: this presumes that LSP allows 'null' as the result of any 
+                    // request.  If that is not true, it may be necessary to allow individual handlers to
+                    // decide what to return in those cases.
                     if (context == null)
                     {
-                        this._logger.TraceWarning("add me");
-                        completion.SetResult(default!);
+                        completion.SetResult(default);
                         return;
                     }
 
