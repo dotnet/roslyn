@@ -53,10 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Debug.Assert(context.ClientCapabilities.HasVisualStudioLspCapability());
 
             var document = context.Document;
-            if (document == null)
-            {
-                return Array.Empty<VSInternalReferenceItem>();
-            }
+            Contract.ThrowIfNull(document);
 
             using var progress = BufferedProgress.Create<VSInternalReferenceItem>(referenceParams.PartialResultToken);
 

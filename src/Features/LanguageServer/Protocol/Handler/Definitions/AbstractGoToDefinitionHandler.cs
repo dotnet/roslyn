@@ -33,14 +33,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         protected async Task<LSP.Location[]> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool typeOnly, RequestContext context, CancellationToken cancellationToken)
         {
-            var locations = ArrayBuilder<LSP.Location>.GetInstance();
-
             var document = context.Document;
-            if (document == null)
-            {
-                return locations.ToArrayAndFree();
-            }
+            Contract.ThrowIfNull(document);
 
+            var locations = ArrayBuilder<LSP.Location>.GetInstance();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             var definitions = await GetDefinitions(document, position, cancellationToken).ConfigureAwait(false);

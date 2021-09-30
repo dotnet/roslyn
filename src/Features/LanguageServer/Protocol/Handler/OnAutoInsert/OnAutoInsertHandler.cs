@@ -52,10 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             CancellationToken cancellationToken)
         {
             var document = context.Document;
-            if (document == null)
-            {
-                return null;
-            }
+            Contract.ThrowIfNull(document);
 
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
 

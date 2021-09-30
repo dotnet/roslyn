@@ -50,10 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public async Task<LSP.CodeAction[]> HandleRequestAsync(LSP.CodeActionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
-            if (document == null)
-            {
-                return Array.Empty<VSInternalCodeAction>();
-            }
+            Contract.ThrowIfNull(document);
 
             var codeActions = await CodeActionHelpers.GetVSCodeActionsAsync(
                 request, _codeActionsCache, document, _codeFixService, _codeRefactoringService, cancellationToken).ConfigureAwait(false);

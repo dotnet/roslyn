@@ -34,10 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override async Task<DocumentHighlight[]> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
-            if (document == null)
-            {
-                return Array.Empty<DocumentHighlight>();
-            }
+            Contract.ThrowIfNull(document);
 
             var documentHighlightService = document.Project.LanguageServices.GetRequiredService<IDocumentHighlightsService>();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);

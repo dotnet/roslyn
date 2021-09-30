@@ -36,10 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override async Task<FoldingRange[]> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
-            if (document == null)
-            {
-                return Array.Empty<FoldingRange>();
-            }
+            Contract.ThrowIfNull(document);
 
             var blockStructureService = document.Project.LanguageServices.GetService<BlockStructureService>();
             if (blockStructureService == null)

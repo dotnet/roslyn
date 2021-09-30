@@ -43,11 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
-            if (document == null)
-            {
-                context.TraceInformation("No associated document found for the provided completion item.");
-                return completionItem;
-            }
+            Contract.ThrowIfNull(document);
 
             var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
             var cacheEntry = GetCompletionListCacheEntry(completionItem);
