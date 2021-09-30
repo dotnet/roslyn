@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task PartialCompilationsIncludeGeneratedFilesAfterFullGeneration()
         {
-            using var workspace = CreateWorkspaceWithPartalSemantics();
+            using var workspace = CreateWorkspaceWithPartialSemantics();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
                 .AddAnalyzerReference(analyzerReference)
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task GetDocumentWithGeneratedTreeForInProgressReturnsGeneratedDocument()
         {
-            using var workspace = CreateWorkspaceWithPartalSemantics();
+            using var workspace = CreateWorkspaceWithPartialSemantics();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
                 .AddAnalyzerReference(analyzerReference)
@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var generatorRan = false;
             var generator = new CallbackGenerator(onInit: _ => { }, onExecute: _ => { generatorRan = true; });
 
-            using var workspace = CreateWorkspaceWithPartalSemantics();
+            using var workspace = CreateWorkspaceWithPartialSemantics();
             var analyzerReference = new TestGeneratorReference(generator);
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
