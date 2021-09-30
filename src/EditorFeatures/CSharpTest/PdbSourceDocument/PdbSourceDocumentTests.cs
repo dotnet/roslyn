@@ -392,7 +392,6 @@ public class C
                 .AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(input, options: parseOptions, path: sourceCodePath, encoding: Encoding.UTF8))
                 .AddReferences(project.MetadataReferences);
 
-            MemoryStream? pdbStream;
             IEnumerable<EmbeddedText>? embeddedTexts;
             DebugInformationFormat debugInformationFormat;
             if (sourceLocation == Location.OnDisk)
@@ -407,21 +406,18 @@ public class C
 
             if (pdbLocation == Location.OnDisk)
             {
-                pdbStream = new MemoryStream();
                 debugInformationFormat = DebugInformationFormat.PortablePdb;
             }
             else
             {
-                pdbStream = null;
+                pdbFilePath = null;
                 debugInformationFormat = DebugInformationFormat.Embedded;
             }
 
-            var peBlob = compilation.EmitToArray(new EmitOptions(debugInformationFormat: debugInformationFormat), pdbStream: pdbStream, embeddedTexts: embeddedTexts);
-
-            File.WriteAllBytes(dllFilePath, peBlob.ToArray());
-            if (pdbStream is not null)
+            using (var dllStream = FileUtilities.CreateFileStreamChecked(File.Create, dllFilePath, nameof(dllFilePath)))
+            using (var pdbStream = (pdbFilePath == null ? null : FileUtilities.CreateFileStreamChecked(File.Create, pdbFilePath, nameof(pdbFilePath))))
             {
-                File.WriteAllBytes(pdbFilePath, pdbStream.ToArray());
+                compilation.Emit(dllStream, pdbStream, options: new EmitOptions(debugInformationFormat: debugInformationFormat, pdbFilePath: pdbFilePath), embeddedTexts: embeddedTexts);
             }
 
             project = project.AddMetadataReference(MetadataReference.CreateFromFile(dllFilePath));
