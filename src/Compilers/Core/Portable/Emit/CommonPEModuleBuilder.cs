@@ -728,7 +728,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         private sealed class SynthesizedDefinitions
         {
-            public ConcurrentQueue<Cci.INestedTypeDefinition> NestedTypes;
+            private ConcurrentQueue<Cci.INestedTypeDefinition> NestedTypes;
             public ConcurrentQueue<Cci.IMethodDefinition> Methods;
             public ConcurrentQueue<Cci.IPropertyDefinition> Properties;
             public ConcurrentQueue<Cci.IFieldDefinition> Fields;
@@ -737,6 +737,16 @@ namespace Microsoft.CodeAnalysis.Emit
             // in a deterministic order.
             internal IEnumerable<Cci.INestedTypeDefinition> DeterministicNestedTypes
                 => NestedTypes?.OrderBy(t => t.Name, StringComparer.Ordinal);
+
+            internal void AddNestedType(Cci.INestedTypeDefinition nestedType)
+            {
+                if (NestedTypes == null)
+                {
+                    Interlocked.CompareExchange(ref NestedTypes, new ConcurrentQueue<Cci.INestedTypeDefinition>(), null);
+                }
+
+                NestedTypes.Enqueue(nestedType);
+            }
 
             public ImmutableArray<ISymbolInternal> GetAllMembers()
             {
@@ -861,12 +871,7 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(nestedType != null);
 
             SynthesizedDefinitions defs = GetOrAddSynthesizedDefinitions(container);
-            if (defs.NestedTypes == null)
-            {
-                Interlocked.CompareExchange(ref defs.NestedTypes, new ConcurrentQueue<Cci.INestedTypeDefinition>(), null);
-            }
-
-            defs.NestedTypes.Enqueue(nestedType);
+            defs.AddNestedType(nestedType);
         }
 
         public void AddSynthesizedDefinition(INamespaceSymbolInternal container, INamespaceOrTypeSymbolInternal typeOrNamespace)

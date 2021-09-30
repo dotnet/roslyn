@@ -461,7 +461,7 @@ public unsafe struct UnsafeStructNUMBER1
             byte[] result = null;
 
             var sourceBuilder = ArrayBuilder<string>.GetInstance();
-            int max = 20;
+            const int max = 20;
             for (int i = 0; i < max; i++)
             {
                 int j = (i + 7) % max;
