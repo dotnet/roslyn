@@ -298,6 +298,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestExpandAbsolutePathWithRelativeParts_Windows(string input, string expected) => TestExpandAbsolutePathWithRelativeParts(input, expected);
 
         [Theory]
+        [InlineData("/", "/")]
         [InlineData("/a/b/c", "/a/b/c")]
         [InlineData("/a/b/c/file.cs", "/a/b/c/file.cs")]
         [InlineData("/a/b/../c/file.cs", "/a/c/file.cs")]
