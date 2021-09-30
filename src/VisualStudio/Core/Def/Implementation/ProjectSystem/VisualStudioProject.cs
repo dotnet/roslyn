@@ -1125,6 +1125,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             using (_gate.DisposableWait())
             {
+                if (!ContainsProjectReference_NoLock(projectReference))
+                {
+                    throw new ArgumentException("The project does not contain that project reference.");
+                }
+
                 if (_activeBatchScopes > 0)
                 {
                     if (!_projectReferencesAddedInBatch.Remove(projectReference))
