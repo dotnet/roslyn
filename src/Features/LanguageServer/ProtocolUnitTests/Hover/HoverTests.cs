@@ -395,7 +395,7 @@ _italic\_&nbsp;\*\*text\*\*_
         {
             clientCapabilities ??= new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true };
             return await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Hover>(LSP.Methods.TextDocumentHoverName,
-                           CreateTextDocumentPositionParams(caret, projectContext), clientCapabilities, null, CancellationToken.None);
+                CreateTextDocumentPositionParams(caret, projectContext), clientCapabilities, null, CancellationToken.None);
         }
 
         private void VerifyVSContent(LSP.Hover hover, string expectedContent)

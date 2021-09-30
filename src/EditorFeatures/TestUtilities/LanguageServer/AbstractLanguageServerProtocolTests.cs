@@ -442,7 +442,7 @@ namespace Roslyn.Test.Utilities
                 _executionQueue = CreateRequestQueue(testWorkspace);
             }
 
-            public Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(string methodName, RequestType request, LSP.ClientCapabilities clientCapabilities,
+            public Task<ResponseType?> ExecuteRequestAsync<RequestType, ResponseType>(string methodName, RequestType request, LSP.ClientCapabilities clientCapabilities,
                 string? clientName, CancellationToken cancellationToken) where RequestType : class
             {
                 return _requestDispatcher.ExecuteRequestAsync<RequestType, ResponseType>(
