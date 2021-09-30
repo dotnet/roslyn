@@ -252,11 +252,13 @@ namespace Microsoft.CodeAnalysis.Options
                 }
                 else if (kind is OptionValueKind.CodeStyleOption)
                 {
+                    RoslynDebug.Assert(value != null);
                     var codeStyleOption = (ICodeStyleOption)value;
                     sb.AppendLine(codeStyleOption.ToXElement().ToString());
                 }
                 else if (kind is OptionValueKind.NamingStylePreferences)
                 {
+                    RoslynDebug.Assert(value != null);
                     var namingStylePreferences = (NamingStylePreferences)value;
                     sb.AppendLine(namingStylePreferences.CreateXElement().ToString());
                 }
