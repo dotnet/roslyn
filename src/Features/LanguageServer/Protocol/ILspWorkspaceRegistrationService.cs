@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         ImmutableArray<Workspace> GetAllRegistrations();
 
         /// <summary>
-        /// Returns the host/priamry <see cref="Workspace"/> used for global operations associated
+        /// Returns the host/primary <see cref="Workspace"/> used for global operations associated
         /// with the entirety of the user's code (for example 'diagnostics' or 'search').
         /// </summary>
         Workspace? TryGetHostWorkspace();
