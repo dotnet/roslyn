@@ -166,10 +166,10 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         protected override IEnumerable<Inline> CreateInlines()
         {
-            yield return MakeClassifiedRun(ClassificationTypeNames.Text, _frame.GetLeadingText());
+            yield return MakeClassifiedRun(ClassificationTypeNames.Text, _frame.GetTextBeforeType());
 
             var classLink = new Hyperlink();
-            classLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.ClassName, _frame.GetClassText()));
+            classLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.ClassName, _frame.GetQualifiedTypeText()));
             classLink.Click += (s, a) => NavigateToClass();
             classLink.RequestNavigate += (s, a) => NavigateToClass();
             yield return classLink;

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -68,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.StackTraceExplorer
 
         public string GetMethodSymbolName(string methodName)
         {
+            methodName = methodName.Replace("[", "<").Replace("]", ">");
             // Add a void return so it parses as a method declaration and not constructor
             var declaration = SyntaxFactory.ParseMemberDeclaration($"void {methodName}");
             if (declaration is MethodDeclarationSyntax methodDeclarationSyntax)

@@ -16,22 +16,22 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
     /// </summary>
     internal class ParsedStackFrame : ParsedFrame
     {
-        public ParsedStackFrame(string originalText, TextSpan classSpan, TextSpan methodSpan, TextSpan argsSpan)
+        public ParsedStackFrame(string originalText, TextSpan typeSpan, TextSpan methodSpan, TextSpan argsSpan)
             : base(originalText)
         {
-            Contract.ThrowIfTrue(classSpan.IsEmpty);
+            Contract.ThrowIfTrue(typeSpan.IsEmpty);
             Contract.ThrowIfTrue(methodSpan.IsEmpty);
 
-            ClassSpan = classSpan;
+            TypeSpan = typeSpan;
             MethodSpan = methodSpan;
             ArgsSpan = argsSpan;
         }
 
         /// <summary>
-        /// The full classname parsed from the line. 
-        /// e.x: [|Microsoft.CodeAnalysis.Editor.CallstackExplorer|].Example(arg1, arg2)
+        /// The full type name parsed from the line. 
+        /// e.x: [|Microsoft.CodeAnalysis.Editor.CallstackExplorer.|]Example(arg1, arg2)
         /// </summary>
-        public TextSpan ClassSpan { get; }
+        public TextSpan TypeSpan { get; }
 
         /// <summary>
         /// The method name span
@@ -41,13 +41,15 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
 
         /// <summary>
         /// The span of comma seperated arguments.
-        /// e.x: Microsoft.CodeAnalysis.Editor.CallstackExplorer.Example([|arg1, arg2|])
+        /// e.x: Microsoft.CodeAnalysis.Editor.CallstackExplorer.Example[|(arg1, arg2)|]
         /// </summary>
         public TextSpan ArgsSpan { get; }
 
         public virtual async Task<ISymbol?> ResolveSymbolAsync(Solution solution, CancellationToken cancellationToken)
         {
-            var className = GetClassText(includeTrailingDot: false);
+            // The original span for type includes the trailing '.', which we don't want when
+            // looking for the class by metadata name
+            var fullyQualifiedTypeName = OriginalText[TypeSpan.Start..(TypeSpan.End - 1)];
             var methodName = GetMethodText();
 
             foreach (var project in solution.Projects)
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                     continue;
                 }
 
-                var metadataName = service.GetClassMetadataName(className);
+                var metadataName = service.GetClassMetadataName(fullyQualifiedTypeName);
                 var memberName = service.GetMethodSymbolName(methodName);
 
                 var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -96,20 +98,20 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
         }
 
         /// <summary>
-        /// Gets all of the text prior to the <see cref="ClassSpan"/>
+        /// Gets all of the text prior to the <see cref="TypeSpan"/>
         /// </summary>
         /// <returns></returns>
-        public string GetLeadingText()
+        public string GetTextBeforeType()
         {
-            return OriginalText[..ClassSpan.Start];
+            return OriginalText[..TypeSpan.Start];
         }
 
         /// <summary>
-        /// Gets the text representing the fully qualified class name
+        /// Gets the text representing the fully qualified type name
         /// </summary>
-        public string GetClassText(bool includeTrailingDot = true)
+        public string GetQualifiedTypeText()
         {
-            return OriginalText[ClassSpan.Start..(includeTrailingDot ? ClassSpan.End : ClassSpan.End - 1)];
+            return OriginalText[TypeSpan.Start..TypeSpan.End];
         }
 
         /// <summary>
@@ -117,16 +119,20 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
         /// </summary>
         public string GetMethodText()
         {
-
-            return OriginalText[MethodSpan.Start..ArgEndIndex];
+            return OriginalText[MethodSpan.Start..ArgsSpan.End];
         }
 
+        /// <summary>
+        /// Gets the text after the last parsed span available.
+        /// </summary>
         public virtual string GetTrailingText()
         {
-            return OriginalText[ArgEndIndex..];
-        }
+            if (ArgsSpan.End + 1 == OriginalText.Length)
+            {
+                return string.Empty;
+            }
 
-        // +1 to the argspan end because we want to include the closing paren
-        protected int ArgEndIndex => ArgsSpan.End + 1;
+            return OriginalText[(ArgsSpan.End + 1)..];
+        }
     }
 }

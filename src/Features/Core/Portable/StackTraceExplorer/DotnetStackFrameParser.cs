@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
@@ -28,24 +29,18 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                 return false;
             }
 
-            var start = atIndex + StackTraceAtStart.Length;
-
-            var endIndex = line.IndexOf(StackTraceSymbolAndFileSplit);
-            var end = endIndex > 0
-                ? endIndex
-                : line.Length;
-
-            var success = StackFrameParserHelpers.TryParseMethodSignature(line, start: start, end: end, out var classSpan, out var methodSpan, out var argsSpan);
-
+            var success = StackFrameParserHelpers.TryParseMethodSignature(line.AsSpan(), out var classSpan, out var methodSpan, out var argsSpan);
             if (!success)
             {
                 return false;
             }
 
+            var splitIndex = line.IndexOf(StackTraceSymbolAndFileSplit);
+
             // The line has " in <filename>:line <line number>"
-            if (endIndex > 0)
+            if (splitIndex > 0)
             {
-                var fileInformationStart = endIndex + StackTraceSymbolAndFileSplit.Length;
+                var fileInformationStart = splitIndex + StackTraceSymbolAndFileSplit.Length;
                 var fileInformationSpan = new TextSpan(fileInformationStart, line.Length - fileInformationStart);
 
                 parsedFrame = new ParsedFrameWithFile(line, classSpan, methodSpan, argsSpan, fileInformationSpan);

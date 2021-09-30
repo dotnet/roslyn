@@ -37,12 +37,12 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
 
         public string GetTextBetweenTypeAndFile()
         {
-            var textBetweenLength = FileSpan.Start - ArgEndIndex;
-            var textBetweenSpan = new TextSpan(ArgEndIndex, textBetweenLength);
+            var textBetweenLength = FileSpan.Start - (ArgsSpan.End + 1);
 
-            if (textBetweenSpan.Length > 0)
+            if (textBetweenLength > 0)
             {
-                return OriginalText.Substring(textBetweenSpan.Start, textBetweenSpan.Length);
+                var textBetweenSpan = new TextSpan(ArgsSpan.End + 1, textBetweenLength);
+                return OriginalText[textBetweenSpan.Start..textBetweenSpan.End];
             }
 
             return string.Empty;

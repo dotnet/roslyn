@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Text;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
@@ -16,18 +19,26 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
             //                     Symbol data we care about
             parsedFrame = null;
 
-            var startPoint = line.IndexOf('!');
-            if (startPoint == -1)
+            // +1 here because we always want to skip the '!' character
+            var startPoint = line.IndexOf('!') + 1;
+
+            if (startPoint == 0 || startPoint == line.Length)
             {
                 return false;
             }
 
-            var success = StackFrameParserHelpers.TryParseMethodSignature(line, start: startPoint, end: line.Length, out var classSpan, out var methodSpan, out var argsSpan);
+            var success = StackFrameParserHelpers.TryParseMethodSignature(line.AsSpan().Slice(startPoint), out var classSpan, out var methodSpan, out var argsSpan);
 
             if (!success)
             {
                 return false;
             }
+
+            // The spans need to be fixed up by the start point since we didn't
+            // pass everyting from '!' and before to the parser
+            classSpan = new TextSpan(classSpan.Start + startPoint, classSpan.Length);
+            methodSpan = new TextSpan(methodSpan.Start + startPoint, methodSpan.Length);
+            argsSpan = new TextSpan(argsSpan.Start + startPoint, argsSpan.Length);
 
             parsedFrame = new ParsedStackFrame(line, classSpan, methodSpan, argsSpan);
             return true;

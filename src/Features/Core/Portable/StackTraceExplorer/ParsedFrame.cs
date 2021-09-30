@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
-    internal class ParsedFrame
+    internal abstract class ParsedFrame
     {
         /// <summary>
         /// The original text that this frame was parsed from

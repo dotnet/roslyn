@@ -11,194 +11,231 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UnitTests.StackTraceExplorer
 {
     [UseExportProvider]
     public class StackTraceExplorerTests
     {
-        private const string BaseCode = @"using System;
-
-namespace ConsoleApp4
-{
-    class Program
-    {
-        static void Main(string[] args)
+        private static async Task TestSymbolFoundAsync(string inputLine, string code)
         {
-            // Choose trigger for exception here to get stack
-            MyOtherClass.ThrowForNewMyClass();
-        }
-    }
-
-
-    class MyClass
-    {
-        public void ThrowAtOne()
-        {
-            throw new Exception();
-        }
-
-        public void ThrowReferenceOne()
-        {
-            ThrowAtOne();
-        }
-
-        public override string ToString()
-        {
-            ThrowReferenceOne();
-            return base.ToString();
-        }
-    }
-
-    static class MyOtherClass
-    {
-        public static void ThrowForNewMyClass()
-        {
-            var c = new MyClass();
-            c.ToString();
-        }
-
-        public static void Overload(int i) => throw new Exception();
-        public static void Overload(string s) => throw new Exception();
-        public static void Overload(MyClass myClass) => myClass.ThrowAtOne();
-        public static void ThrowGeneric<T>(T value) => throw new Exception();
-    }
-
-    static class GenericClass<A, B> 
-    {
-        public static void Throw<T>(T t) => throw new Exception();
-        public static void Throw<T, U>(T t, U u) => throw new Exception();
-        public static void Throw<T, U, V>(T t, U u, V v) => throw new Exception();
-    }
-}
-";
-
-        private static async Task<ISymbol> GetSymbolAsync(string fqn, TestWorkspace workspace)
-        {
-            var fqnSpltit = fqn.LastIndexOf(".");
-            var methodName = fqn.Substring(fqnSpltit + 1);
-            var className = fqn.Substring(0, fqnSpltit);
-
-            var project = workspace.CurrentSolution.Projects.Single();
-            var compilation = await project.GetCompilationAsync();
-            Assert.NotNull(compilation);
-
-            var type = compilation!.GetTypeByMetadataName(className);
-            Assert.NotNull(type);
-            var members = type!.GetMembers();
-            var symbolsAndDisplayNames = members.Select(m => (m, m.ToDisplayString()));
-            var symbolsAndMethodNames = symbolsAndDisplayNames.Select(p => (symbol: p.Item1, name: p.Item2.Split('.').Last()));
-            var method = symbolsAndMethodNames.Single(p => p.name == methodName).symbol;
-            return method;
-        }
-
-        private static Task<ISymbol?> GetSymbolAsync(ParsedFrame parsedFrame, Solution solution, CancellationToken cancellationToken)
-        {
-            var stackFrame = parsedFrame as ParsedStackFrame;
-            Assert.NotNull(stackFrame);
-
-            return stackFrame!.ResolveSymbolAsync(solution, cancellationToken);
-        }
-
-        private static TestWorkspace CreateWorkspace()
-        {
-            return TestWorkspace.CreateCSharp(BaseCode);
-        }
-
-        [Theory]
-        [InlineData("ConsoleApp4.dll!ConsoleApp4.MyClass.ThrowAtOne() Line 19	C#", "ConsoleApp4.MyClass.ThrowAtOne()")]
-        [InlineData(@"   at ConsoleApp4.MyClass.ThrowAtOne() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 26", "ConsoleApp4.MyClass.ThrowAtOne()")]
-        [InlineData(@"at ConsoleApp4.MyClass.ThrowAtOne()", "ConsoleApp4.MyClass.ThrowAtOne()")]
-        [InlineData(@"at ConsoleApp4.MyOtherClass.ThrowGeneric<T>(T t)", "ConsoleApp4.MyOtherClass.ThrowGeneric<T>(T)")]
-        [InlineData(@"at ConsoleApp4.GenericClass<A, B>.Throw<T>(T t)", "ConsoleApp4.GenericClass`2.Throw<T>(T)")]
-        [InlineData(@"at ConsoleApp4.GenericClass<A, B>.Throw<T, U>(T t, U u)", "ConsoleApp4.GenericClass`2.Throw<T, U>(T, U)")]
-        [InlineData(@"at ConsoleApp4.GenericClass<A, B>.Throw<T, U, V>(T t, U u, V v)", "ConsoleApp4.GenericClass`2.Throw<T, U, V>(T, U, V)")]
-        public async Task TestSymbolFound(string inputLine, string symbolText)
-        {
-            var workspace = CreateWorkspace();
+            using var workspace = TestWorkspace.CreateCSharp(code);
             var result = await StackTraceAnalyzer.AnalyzeAsync(inputLine, CancellationToken.None);
             Assert.Single(result.ParsedFrames);
 
-            var symbol = await GetSymbolAsync(result.ParsedFrames[0], workspace.CurrentSolution, CancellationToken.None);
-            var method = await GetSymbolAsync(symbolText, workspace);
-            Assert.Equal(method, symbol);
+            var stackFrame = result.ParsedFrames[0] as ParsedStackFrame;
+            AssertEx.NotNull(stackFrame);
+
+            var symbol = await stackFrame.ResolveSymbolAsync(workspace.CurrentSolution, CancellationToken.None);
+
+            var cursorDoc = workspace.Documents.Single();
+            var selectedSpan = cursorDoc.SelectedSpans.Single();
+            var doc = workspace.CurrentSolution.GetRequiredDocument(cursorDoc.Id);
+            var root = await doc.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            var node = root.FindNode(selectedSpan);
+            var semanticModel = await doc.GetRequiredSemanticModelAsync(CancellationToken.None);
+
+            var expectedSymbol = semanticModel.GetDeclaredSymbol(node);
+            AssertEx.NotNull(expectedSymbol);
+
+            Assert.Equal(expectedSymbol, symbol);
         }
 
         [Fact]
-        public async Task TestDebugWindowStack()
+        public Task TestSymbolFound_DebuggerLine()
         {
-            var workspace = CreateWorkspace();
+            return TestSymbolFoundAsync(
+                "ConsoleApp4.dll!ConsoleApp4.MyClass.M()",
+                @"using System;
 
-            // Callstack from VS debugger callstack window
-            var callstack = @">	ConsoleApp4.dll!ConsoleApp4.MyClass.ThrowAtOne() Line 19	C#
- 	ConsoleApp4.dll!ConsoleApp4.MyClass.ThrowReferenceOne() Line 24	C#
- 	ConsoleApp4.dll!ConsoleApp4.MyClass.ToString() Line 29	C#
- 	ConsoleApp4.dll!ConsoleApp4.MyOtherClass.ThrowForNewMyClass() Line 39	C#
- 	ConsoleApp4.dll!ConsoleApp4.Program.Main(string[] args) Line 10	C#
-";
-
-            var result = await StackTraceAnalyzer.AnalyzeAsync(callstack, CancellationToken.None);
-            Assert.Equal(5, result.ParsedFrames.Length);
-
-            var symbol = await GetSymbolAsync(result.ParsedFrames[0], workspace.CurrentSolution, CancellationToken.None);
-            var method = await GetSymbolAsync("ConsoleApp4.MyClass.ThrowAtOne()", workspace);
-            Assert.Equal(method, symbol);
-
-            symbol = await GetSymbolAsync(result.ParsedFrames[1], workspace.CurrentSolution, CancellationToken.None);
-            method = await GetSymbolAsync("ConsoleApp4.MyClass.ThrowReferenceOne()", workspace);
-            Assert.Equal(method, symbol);
-
-            symbol = await GetSymbolAsync(result.ParsedFrames[2], workspace.CurrentSolution, CancellationToken.None);
-            method = await GetSymbolAsync("ConsoleApp4.MyClass.ToString()", workspace);
-            Assert.Equal(method, symbol);
-
-            symbol = await GetSymbolAsync(result.ParsedFrames[3], workspace.CurrentSolution, CancellationToken.None);
-            method = await GetSymbolAsync("ConsoleApp4.MyOtherClass.ThrowForNewMyClass()", workspace);
-            Assert.Equal(method, symbol);
-
-            symbol = await GetSymbolAsync(result.ParsedFrames[4], workspace.CurrentSolution, CancellationToken.None);
-            method = await GetSymbolAsync("ConsoleApp4.Program.Main(string[])", workspace);
-            Assert.Equal(method, symbol);
+namespace ConsoleApp4
+{
+    class MyClass
+    {
+        void [|M|]() {}
+    }
+}");
         }
 
         [Fact]
-        public async Task TestExceptionStack()
+        public Task TestSymbolFound_DebuggerLine_SingleSimpleClassParam()
         {
-            var workspace = CreateWorkspace();
+            return TestSymbolFoundAsync(
+                "ConsoleApp4.dll!ConsoleApp4.MyClass.M(string s)",
+                @"using System;
 
-            // Callstack from VS debugger callstack window
-            var callstack = @"   at ConsoleApp4.MyClass.ThrowAtOne() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 26
-   at ConsoleApp4.MyClass.ThrowReferenceOne() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 31
-   at ConsoleApp4.MyClass.ToString() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 36
-   at ConsoleApp4.MyOtherClass.ThrowForNewMyClass() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 46
-   at ConsoleApp4.Program.Main(String[] args) in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 12
-";
+namespace ConsoleApp4
+{
+    class MyClass
+    {
+        void [|M|](string s) {}
+    }
+}");
+        }
 
-            var result = await StackTraceAnalyzer.AnalyzeAsync(callstack, CancellationToken.None);
-            Assert.Equal(5, result.ParsedFrames.Length);
+        [Fact]
+        public Task TestSymbolFound_ExceptionLine()
+        {
+            return TestSymbolFoundAsync(
+                "at ConsoleApp4.MyClass.M()",
+                @"using System;
 
-            var fileLineResults = result.ParsedFrames.OfType<ParsedFrameWithFile>().ToImmutableArray();
-            AssertEx.SetEqual(result.ParsedFrames, fileLineResults);
+namespace ConsoleApp4
+{
+    class MyClass
+    {
+        void [|M|]() {}
+    }
+}");
+        }
 
-            var symbol = await GetSymbolAsync(fileLineResults[0], workspace.CurrentSolution, CancellationToken.None);
-            var method = await GetSymbolAsync("ConsoleApp4.MyClass.ThrowAtOne()", workspace);
-            Assert.Equal(method, symbol);
+        [Fact]
+        public Task TestSymbolFound_ExceptionLine_SingleSimpleClassParam()
+        {
+            return TestSymbolFoundAsync(
+                "at ConsoleApp4.MyClass.M(string s)",
+                @"using System;
 
-            symbol = await GetSymbolAsync(fileLineResults[1], workspace.CurrentSolution, CancellationToken.None);
-            method = await GetSymbolAsync("ConsoleApp4.MyClass.ThrowReferenceOne()", workspace);
-            Assert.Equal(method, symbol);
+namespace ConsoleApp4
+{
+    class MyClass
+    {
+        void [|M|](string s) {}
+    }
+}");
+        }
 
-            symbol = await GetSymbolAsync(fileLineResults[2], workspace.CurrentSolution, CancellationToken.None);
-            method = await GetSymbolAsync("ConsoleApp4.MyClass.ToString()", workspace);
-            Assert.Equal(method, symbol);
+        [Fact]
+        public Task TestSymbolFound_ExceptionLineWithFile()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp4.MyClass.M() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 26",
+                @"using System;
 
-            symbol = await GetSymbolAsync(fileLineResults[3], workspace.CurrentSolution, CancellationToken.None);
-            method = await GetSymbolAsync("ConsoleApp4.MyOtherClass.ThrowForNewMyClass()", workspace);
-            Assert.Equal(method, symbol);
+namespace ConsoleApp4
+{
+    class MyClass
+    {
+        void [|M|]() {}
+    }
+}");
+        }
 
-            symbol = await GetSymbolAsync(fileLineResults[4], workspace.CurrentSolution, CancellationToken.None);
-            method = await GetSymbolAsync("ConsoleApp4.Program.Main(string[])", workspace);
-            Assert.Equal(method, symbol);
+        [Fact]
+        public Task TestSymbolFound_ExceptionLine_GenericMethod()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp4.MyClass.M[T](T t) in C:\repos\Test\MyClass.cs:line 7",
+                @"using System;
+
+namespace ConsoleApp4
+{
+    class MyClass
+    {
+        void [|M|]<T>(T t) {}
+    }
+}");
+        }
+
+        [Fact]
+        public Task TestSymbolFound_ExceptionLine_GenericMethod_FromActivityLog()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp4.MyClass.M&lt;T&gt;(T t)",
+                @"using System;
+
+namespace ConsoleApp4
+{
+    class MyClass
+    {
+        void [|M|]<T>(T t) {}
+    }
+}");
+        }
+
+        [Fact]
+        public Task TestSymbolFound_ExceptionLine_MultipleGenerics()
+        {
+            return TestSymbolFoundAsync(
+                "at ConsoleApp4.MyClass.M<T>(T t)",
+                @"using System;
+
+namespace ConsoleApp4
+{
+    class MyClass
+    {
+        void [|M|]<T>(T t) {}
+    }
+}");
+        }
+
+        [Fact(Skip = "ref params do not work yet")]
+        public Task TestSymbolFound_ExceptionLine_RefArg()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp4.MyClass.M(String& s) in C:\repos\Test\MyClass.cs:line 8",
+                @"using System;
+
+namespace ConsoleApp4
+{
+    class MyClass
+    {
+        void [|M|](ref string s)
+        {
+            s = string.Empty;
+        }
+    }
+}");
+        }
+
+        [Fact(Skip = "out params do not work yet")]
+        public Task TestSymbolFound_ExceptionLine_OutArg()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp4.MyClass.M(String& s) in C:\repos\Test\MyClass.cs:line 8",
+                @"using System;
+
+namespace ConsoleApp4
+{
+    class MyClass
+    {
+        void [|M|](out string s)
+        {
+            s = string.Empty;
+        }
+    }
+}");
+        }
+
+        [Fact(Skip = "Generated types/methods are not supported")]
+        public Task TestSymbolFound_ExceptionLine_AsyncMethod()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp4.MyClass.<>c.<DoThingAsync>b__1_0() in C:\repos\Test\MyClass.cs:line 15",
+                @"namespace ConsoleApp4
+{
+    class MyClass
+    {
+        public async Task M()
+        {
+            await DoThingAsync();
+        }
+
+        async Task DoThingAsync()
+        {
+            var task = new Task(() => 
+            {
+                Console.WriteLine(""Doing async work"");
+                throw new Exception();
+            });
+
+            task.Start();
+
+            await task;
+        }
+    }
+}");
         }
 
         [Theory]
@@ -208,7 +245,10 @@ namespace ConsoleApp4
         [InlineData("alksdjflkjsadf.cs:line 26")]
         [InlineData("This,that.A,,,,,,,,,b()")]
         [InlineData("ConsoleWriteLine()")]
-        public async Task TestFailureCases(string line)
+        [InlineData("at <><>.<><>()")]
+        [InlineData("at 897098.70987__ ()")]
+        [InlineData("at jlksdjf . kljsldkjf () in aklsjdflkj")]
+        public async Task TestFailureToParse(string line)
         {
             var result = await StackTraceAnalyzer.AnalyzeAsync(line, CancellationToken.None);
             Assert.Equal(1, result.ParsedFrames.Length);
@@ -224,12 +264,13 @@ namespace ConsoleApp4
         [Theory]
         [InlineData("at __.__._()")]
         [InlineData("abcd!__.__._()")]
-        [InlineData("at <><>.<><>()")]
-        [InlineData("at 897098.70987__ ()")]
-        [InlineData("at jlksdjf . kljsldkjf () in aklsjdflkj")]
         public async Task TestInvalidSymbol(string line)
         {
-            using var workspace = CreateWorkspace();
+            using var workspace = TestWorkspace.CreateCSharp(@"
+class C
+{
+}");
+
             var result = await StackTraceAnalyzer.AnalyzeAsync(line, CancellationToken.None);
             Assert.Equal(1, result.ParsedFrames.Length);
 
@@ -239,22 +280,7 @@ namespace ConsoleApp4
         }
 
         [Fact]
-        public async Task TestLineAndFileParsing()
-        {
-            var stackLine = @" at ConsoleApp4.MyClass.ThrowAtOne() in test1.cs:line 26";
-            var result = await StackTraceAnalyzer.AnalyzeAsync(stackLine, CancellationToken.None);
-
-            var parsedFrameWithFile = result.ParsedFrames[0] as ParsedFrameWithFile;
-            AssertEx.NotNull(parsedFrameWithFile);
-
-            var workspace = CreateWorkspace();
-            var (document, lineNumber) = parsedFrameWithFile.GetDocumentAndLine(workspace.CurrentSolution);
-            AssertEx.NotNull(document);
-            Assert.Equal(26, lineNumber);
-        }
-
-        [Fact]
-        public async Task TestActivityLog()
+        public async Task TestActivityLogParsing()
         {
             var activityLogException = @"Exception occurred while loading solution options: System.Runtime.InteropServices.COMException (0x8000FFFF): Catastrophic failure (Exception from HRESULT: 0x8000FFFF (E_UNEXPECTED))&#x000D;&#x000A;   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)&#x000D;&#x000A;   at Microsoft.VisualStudio.Shell.Package.Initialize()&#x000D;&#x000A;--- End of stack trace from previous location where exception was thrown ---&#x000D;&#x000A;   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw&lt;string&gt;()&#x000D;&#x000A;   at Microsoft.VisualStudio.Telemetry.WindowsErrorReporting.WatsonReport.GetClrWatsonExceptionInfo(Exception exceptionObject)";
 
