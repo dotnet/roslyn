@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -246,6 +247,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         {
             var request = new TestRequest(methodName);
             var response = await testLspServer.ExecuteRequestAsync<TestRequest, TestResponse>(request.MethodName, request, new LSP.ClientCapabilities(), null, CancellationToken.None);
+            Contract.ThrowIfNull(response);
             return response.Solution;
         }
 
@@ -269,7 +271,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             var waitables = new List<Task<TestResponse>>();
             foreach (var request in requests)
             {
-                waitables.Add(testLspServer.ExecuteRequestAsync<TestRequest, TestResponse>(request.MethodName, request, clientCapabilities, null, cancellationToken));
+                waitables.Add(Task.Run(async () =>
+                {
+                    var result = await testLspServer.ExecuteRequestAsync<TestRequest, TestResponse>(request.MethodName, request, clientCapabilities, null, cancellationToken);
+                    Contract.ThrowIfNull(result);
+                    return result;
+                }));
             }
 
             return waitables;

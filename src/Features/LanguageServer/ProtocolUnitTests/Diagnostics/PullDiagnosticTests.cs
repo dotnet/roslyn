@@ -603,6 +603,7 @@ class A {";
                 new LSP.ClientCapabilities(),
                 clientName: null,
                 CancellationToken.None);
+            Contract.ThrowIfNull(result);
 
             return result;
         }
@@ -620,7 +621,7 @@ class A {";
                 new LSP.ClientCapabilities(),
                 clientName: null,
                 CancellationToken.None);
-
+            Contract.ThrowIfNull(result);
             return result;
         }
 

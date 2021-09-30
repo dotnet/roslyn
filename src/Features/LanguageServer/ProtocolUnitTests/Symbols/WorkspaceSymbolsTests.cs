@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -208,8 +209,10 @@ End Class";
                 PartialResultToken = progress
             };
 
-            return await testLspServer.ExecuteRequestAsync<LSP.WorkspaceSymbolParams, LSP.SymbolInformation[]>(LSP.Methods.WorkspaceSymbolName,
+            var result = await testLspServer.ExecuteRequestAsync<LSP.WorkspaceSymbolParams, LSP.SymbolInformation[]>(LSP.Methods.WorkspaceSymbolName,
                 request, new LSP.ClientCapabilities(), null, CancellationToken.None);
+            Contract.ThrowIfNull(result);
+            return result;
         }
 
         private static string GetContainerName(Solution solution, string? containingSymbolName = null)

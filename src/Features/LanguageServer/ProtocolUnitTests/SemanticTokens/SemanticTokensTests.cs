@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -25,6 +26,7 @@ static class C { }";
 
             using var testLspServer = CreateTestLspServer(markup, out var locations);
             var results = await RunGetSemanticTokensAsync(testLspServer, locations["caret"].First());
+            Contract.ThrowIfNull(results);
 
             var expectedResults = new LSP.SemanticTokens
             {
