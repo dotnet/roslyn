@@ -44,6 +44,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\CSharpRemoveUnusedValuesCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\CSharpSimplifyInterpolationCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyPropertyPattern\CSharpSimplifyPropertyPatternCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\CSharpUseCollectionInitializerCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\CSharpUseCompoundAssignmentCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\CSharpUseCompoundCoalesceAssignmentCodeFixProvider.cs" />
@@ -52,6 +53,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\CSharpUseConditionalExpressionHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\MultiLineConditionalExpressionFormattingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseDeconstruction\CSharpUseDeconstructionCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseTupleSwap\CSharpUseTupleSwapCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseDefaultLiteral\CSharpUseDefaultLiteralCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitObjectCreation\CSharpUseImplicitObjectCreationCodeFixProvider.cs" />

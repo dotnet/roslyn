@@ -17,6 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         public ObservableCollection<TreeViewItemBase> ChildItems { get; } = new();
         public TreeViewItemBase? Parent { get; set; }
 
+        public virtual string AutomationName { get; } = string.Empty;
+
         private bool _isExpanded = false;
         public virtual bool IsNodeExpanded
         {

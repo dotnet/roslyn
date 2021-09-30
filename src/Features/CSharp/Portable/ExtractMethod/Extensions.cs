@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             => (StatementSyntax)((node.Parent is LabeledStatementSyntax) ? node.Parent : node);
 
         public static bool IsStatementContainerNode([NotNullWhen(returnValue: true)] this SyntaxNode? node)
-            => node is BlockSyntax || node is SwitchSectionSyntax;
+            => node is BlockSyntax or SwitchSectionSyntax;
 
         public static BlockSyntax? GetBlockBody(this SyntaxNode? node)
         {

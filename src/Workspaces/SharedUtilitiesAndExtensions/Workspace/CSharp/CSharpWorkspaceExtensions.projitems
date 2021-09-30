@@ -40,6 +40,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\UsingDirectiveSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpAddImportsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpCommandLineParserService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpFileBannerFactsService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpHeaderFactsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpMoveDeclarationNearReferenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpSemanticFactsServiceFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpSymbolDeclarationService.cs" />

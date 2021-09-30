@@ -44,16 +44,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             => solution.WithChangedOptionsFrom(remoteWorkpace.Options);
 
         [Fact]
-        [Obsolete]
-        public void TestRemoteHostCreation()
-        {
-            var remoteLogger = new TraceSource("inprocRemoteClient");
-            var testData = new RemoteHostTestData(new RemoteWorkspaceManager(new SolutionAssetCache()), isInProc: true);
-            var streams = FullDuplexStream.CreatePair();
-            using var _ = new RemoteHostService(streams.Item1, new InProcRemoteHostClient.ServiceProvider(remoteLogger, testData));
-        }
-
-        [Fact]
         public async Task TestRemoteHostSynchronize()
         {
             var code = @"class Test { void Method() { } }";
@@ -340,11 +330,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                             metadataReferences: new [] { MetadataReference.CreateFromFile(file.Path) })
                 });
 
-            var languages = ImmutableHashSet.Create(LanguageNames.CSharp);
-
             using var remoteWorkspace = new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices(), WorkspaceKind.RemoteWorkspace);
             var optionService = remoteWorkspace.Services.GetRequiredService<IOptionService>();
-            var options = new SerializableOptionSet(languages, optionService, ImmutableHashSet<IOption>.Empty, ImmutableDictionary<OptionKey, object>.Empty, ImmutableHashSet<OptionKey>.Empty);
+            var options = new SerializableOptionSet(optionService, ImmutableDictionary<OptionKey, object>.Empty, ImmutableHashSet<OptionKey>.Empty);
 
             // this shouldn't throw exception
             remoteWorkspace.TrySetCurrentSolution(solutionInfo, workspaceVersion: 1, options, out var solution);

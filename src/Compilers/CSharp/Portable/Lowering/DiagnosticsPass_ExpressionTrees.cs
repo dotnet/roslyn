@@ -191,6 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         private void CheckReferenceToVariable(BoundExpression node, Symbol symbol)
         {
             Debug.Assert(symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Parameter || symbol is LocalFunctionSymbol);
@@ -204,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostic, node, new FormattedSymbol(symbol, SymbolDisplayFormat.ShortFormat));
             }
         }
+#nullable disable
 
         private void CheckReferenceToMethodIfLocalFunction(BoundExpression node, MethodSymbol method)
         {

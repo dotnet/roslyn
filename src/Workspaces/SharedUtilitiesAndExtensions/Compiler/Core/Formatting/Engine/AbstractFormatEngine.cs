@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             _commonRoot = token1.GetCommonRoot(token2) ?? throw ExceptionUtilities.Unreachable;
         }
 
-        internal abstract ISyntaxFacts SyntaxFacts { get; }
+        internal abstract IHeaderFacts HeaderFacts { get; }
 
         protected abstract AbstractTriviaDataFactory CreateTriviaFactory();
         protected abstract AbstractFormattingResult CreateFormattingResult(TokenStream tokenStream);

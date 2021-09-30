@@ -5,6 +5,7 @@
 using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -203,9 +204,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 var attributeOwner = previousToken.Parent?.Parent;
 
-                if (attributeOwner is CompilationUnitSyntax ||
-                    attributeOwner is MemberDeclarationSyntax ||
-                    attributeOwner is AccessorDeclarationSyntax)
+                if (attributeOwner is CompilationUnitSyntax or
+                    MemberDeclarationSyntax or
+                    AccessorDeclarationSyntax)
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
@@ -311,12 +312,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
-            // new (int, int)[]
-            if (currentToken.Kind() == SyntaxKind.OpenParenToken &&
-                previousToken.Kind() == SyntaxKind.NewKeyword &&
-                previousToken.Parent.IsKind(SyntaxKind.ObjectCreationExpression, SyntaxKind.ArrayCreationExpression))
+            if (previousToken.Kind() == SyntaxKind.NewKeyword)
             {
-                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                // After a 'new' we almost always want a space.  only exceptions are `new()` as an implicit object 
+                // creation, or `new()` as a constructor constraint or `new[] {}` for an implicit array creation.
+                var spaces = previousToken.Parent?.Kind() is
+                    SyntaxKind.ConstructorConstraint or
+                    SyntaxKind.ImplicitObjectCreationExpression or
+                    SyntaxKind.ImplicitArrayCreationExpression ? 0 : 1;
+                return CreateAdjustSpacesOperation(spaces, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
             // some * "(" cases
@@ -326,7 +330,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     previousToken.Kind() == SyntaxKind.DefaultKeyword ||
                     previousToken.Kind() == SyntaxKind.BaseKeyword ||
                     previousToken.Kind() == SyntaxKind.ThisKeyword ||
-                    previousToken.Kind() == SyntaxKind.NewKeyword ||
                     previousToken.IsGenericGreaterThanToken() ||
                     currentToken.IsParenInArgumentList())
                 {

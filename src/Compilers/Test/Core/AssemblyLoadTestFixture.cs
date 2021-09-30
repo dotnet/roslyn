@@ -9,6 +9,7 @@ using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -27,6 +28,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public TempFile Delta2 { get; }
         public TempFile Epsilon { get; }
 
+        public TempFile Delta2B { get; }
+        public TempFile Delta3 { get; }
+
         public TempFile UserSystemCollectionsImmutable { get; }
 
         /// <summary>
@@ -40,6 +44,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// which have different behavior than the same members in compiler's version of System.Collections.Immutable.
         /// </summary>
         public TempFile AnalyzerReferencesSystemCollectionsImmutable2 { get; }
+
+        public TempFile AnalyzerReferencesDelta1 { get; }
 
         public TempFile FaultyAnalyzer { get; }
 
@@ -162,6 +168,44 @@ namespace Epsilon
 }
 ", delta2Reference);
 
+            var v2BDirectory = _directory.CreateDirectory("Version2B");
+            Delta2B = GenerateDll("Delta", v2BDirectory, @"
+using System.Text;
+
+[assembly: System.Reflection.AssemblyTitle(""Delta"")]
+[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
+
+namespace Delta
+{
+    public class D
+    {
+        public void Write(StringBuilder sb, string s)
+        {
+            sb.AppendLine(""Delta.2B: "" + s);
+        }
+    }
+}
+");
+
+            var v3Directory = _directory.CreateDirectory("Version3");
+            Delta3 = GenerateDll("Delta", v3Directory, @"
+using System.Text;
+
+[assembly: System.Reflection.AssemblyTitle(""Delta"")]
+[assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")]
+
+namespace Delta
+{
+    public class D
+    {
+        public void Write(StringBuilder sb, string s)
+        {
+            sb.AppendLine(""Delta.3: "" + s);
+        }
+    }
+}
+");
+
             var sciUserDirectory = _directory.CreateDirectory("SCIUser");
             var compilerReference = MetadataReference.CreateFromFile(typeof(Microsoft.CodeAnalysis.SyntaxNode).Assembly.Location);
 
@@ -208,6 +252,23 @@ public class Analyzer
     }
 }
 ", userSystemCollectionsImmutableReference, compilerReference);
+
+            var analyzerReferencesDelta1Directory = _directory.CreateDirectory("AnalyzerReferencesDelta1");
+            var delta1InAnalyzerReferencesDelta1 = analyzerReferencesDelta1Directory.CopyFile(Delta1.Path);
+
+            AnalyzerReferencesDelta1 = GenerateDll("AnalyzerReferencesDelta1", _directory, @"
+using System.Text;
+using Delta;
+
+public class Analyzer
+{
+    public void Method(StringBuilder sb)
+    {
+        var d = new D();
+        d.Write(sb, ""Hello"");
+    }
+}
+", MetadataReference.CreateFromFile(delta1InAnalyzerReferencesDelta1.Path), compilerReference);
 
             var faultyAnalyzerDirectory = _directory.CreateDirectory("FaultyAnalyzer");
             FaultyAnalyzer = GenerateDll("FaultyAnalyzer", faultyAnalyzerDirectory, @"

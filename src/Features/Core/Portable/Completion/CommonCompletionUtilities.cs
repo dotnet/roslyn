@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 textContentBuilder.AddRange(parts);
             }
 
-            if (sections.TryGetValue(SymbolDescriptionGroups.AnonymousTypes, out parts))
+            if (sections.TryGetValue(SymbolDescriptionGroups.StructuralTypes, out parts))
             {
                 if (!parts.IsDefaultOrEmpty)
                 {
@@ -245,6 +245,16 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return true;
+        }
+
+        internal static ImmutableHashSet<char> GetTriggerCharacters(CompletionProvider provider)
+        {
+            if (provider is LSPCompletionProvider lspProvider)
+            {
+                return lspProvider.TriggerCharacters;
+            }
+
+            return ImmutableHashSet<char>.Empty;
         }
     }
 }
