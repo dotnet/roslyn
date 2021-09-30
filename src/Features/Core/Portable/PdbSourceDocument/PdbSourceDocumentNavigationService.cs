@@ -51,11 +51,12 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 return null;
 
             // We know we have a DLL, call and see if we can find metadata readers for it, and for the PDB (whereever it may be)
-            var readers = await _pdbFileLocatorService.GetMetadataReadersAsync(dllPath, cancellationToken).ConfigureAwait(false);
-            if (readers is null)
+            using var metadataReaderProvider = await _pdbFileLocatorService.GetMetadataReadersAsync(dllPath, cancellationToken).ConfigureAwait(false);
+            if (metadataReaderProvider is null)
                 return null;
 
-            var (dllReader, pdbReader) = readers.Value;
+            var dllReader = metadataReaderProvider.GetDllMetadataReader();
+            var pdbReader = metadataReaderProvider.GetPdbMetadataReader();
 
             // Try to find some actual document information from the PDB
             var sourceDocuments = SymbolSourceDocumentFinder.FindSourceDocuments(symbol, dllReader, pdbReader);

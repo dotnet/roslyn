@@ -417,7 +417,8 @@ public class C
             using (var dllStream = FileUtilities.CreateFileStreamChecked(File.Create, dllFilePath, nameof(dllFilePath)))
             using (var pdbStream = (pdbFilePath == null ? null : FileUtilities.CreateFileStreamChecked(File.Create, pdbFilePath, nameof(pdbFilePath))))
             {
-                compilation.Emit(dllStream, pdbStream, options: new EmitOptions(debugInformationFormat: debugInformationFormat, pdbFilePath: pdbFilePath), embeddedTexts: embeddedTexts);
+                var result = compilation.Emit(dllStream, pdbStream, options: new EmitOptions(debugInformationFormat: debugInformationFormat, pdbFilePath: pdbFilePath), embeddedTexts: embeddedTexts);
+                Assert.Empty(result.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error));
             }
 
             project = project.AddMetadataReference(MetadataReference.CreateFromFile(dllFilePath));

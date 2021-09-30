@@ -8,6 +8,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.Debugging;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
@@ -17,8 +18,16 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         {
             var documentHandles = FindDocumentHandles(symbol, dllReader, pdbReader);
 
-            var result = documentHandles.Select(h => new SourceDocument(h, pdbReader.GetString(pdbReader.GetDocument(h).Name))).ToImmutableArray();
-            return result;
+            using var _ = ArrayBuilder<SourceDocument>.GetInstance(out var sourceDocuments);
+
+            foreach (var handle in documentHandles)
+            {
+                var document = pdbReader.GetDocument(handle);
+                var filePath = pdbReader.GetString(document.Name);
+                sourceDocuments.Add(new SourceDocument(handle, filePath));
+            }
+
+            return sourceDocuments.ToImmutable();
         }
 
         private static HashSet<DocumentHandle> FindDocumentHandles(ISymbol symbol, MetadataReader dllReader, MetadataReader pdbReader)
@@ -147,7 +156,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 ProcessMethodDef(methodDefHandle, dllReader, pdbReader, docList, processDeclaringType: false);
             }
 
-            if (processContainingType)
+            if (processContainingType && typeDef.IsNested)
             {
                 // If this is a nested type, then we want to check the outer type too
                 var containingType = typeDef.GetDeclaringType();
