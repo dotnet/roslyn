@@ -4105,6 +4105,7 @@ class Program
     {
         var c = new C();
         c.M(F);
+        c.M(delegate () { return 1; });
     }
 }
 class C
@@ -4116,16 +4117,21 @@ static class E
     public static void M(this object o, Func<int> a) { Console.WriteLine(""E.M""); }
 }";
 
-            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: @"E.M");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput:
+@"E.M
+E.M");
 
             var expectedDiagnostics = new[]
             {
                 // (9,13): error CS0428: Cannot convert method group 'F' to non-delegate type 'Expression'. Did you intend to invoke the method?
                 //         c.M(F);
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "System.Linq.Expressions.Expression").WithLocation(9, 13)
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "System.Linq.Expressions.Expression").WithLocation(9, 13),
+                // (10,13): error CS1946: An anonymous method expression cannot be converted to an expression tree
+                //         c.M(delegate () { return 1; });
+                Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "delegate () { return 1; }").WithLocation(10, 13)
             };
 
-            // Breaking change from C#9 which binds to E.M.
+            // Breaking change from C#9 which binds to E.M in each case.
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(expectedDiagnostics);
             comp = CreateCompilation(source);
@@ -8087,7 +8093,7 @@ class Program
         }
 
         /// <summary>
-        /// Synthesized delegate types should only be emitted if used.
+        /// Synthesized delegate types should only be emitted if referenced in the assembly.
         /// </summary>
         [Fact]
         [WorkItem(55896, "https://github.com/dotnet/roslyn/issues/55896")]
@@ -8128,6 +8134,56 @@ D4");
 
                 // https://github.com/dotnet/roslyn/issues/55896: Should not include <>A{00000004}`2 or <>A{00000006}`2.
                 string[] expectedTypes = new[] { "<Module>", "<>A{00000001}`2", "<>A{00000004}`2", "<>A{00000006}`2", "<>A{00000009}`2", "D2", "D4", "Program", "<>c", };
+                AssertEx.Equal(expectedTypes, actualTypes);
+            }
+        }
+
+        /// <summary>
+        /// Synthesized delegate types should only be emitted if referenced in the assembly.
+        /// </summary>
+        [Fact]
+        [WorkItem(55896, "https://github.com/dotnet/roslyn/issues/55896")]
+        public void SynthesizedDelegateTypes_22()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static T M<T>(T t) => t;
+    static int F(ref object x) => 1;
+    static void Main()
+    {
+        M(() => { });
+    }
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var syntaxTree = comp.SyntaxTrees[0];
+
+            var model = comp.GetSemanticModel(syntaxTree);
+            var syntax = syntaxTree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            int position = syntax.SpanStart;
+            speculate(model, position, "M(F);", "<>F{00000001}<System.Object, System.Int32>");
+            speculate(model, position, "M((out object y) => { y = null; return 2; });", "<>F{00000002}<System.Object, System.Int32>");
+
+            var verifier = CompileAndVerify(comp, validator: validator);
+
+            static void speculate(SemanticModel? model, int position, string text, string expectedDelegateType)
+            {
+                var stmt = SyntaxFactory.ParseStatement(text);
+                Assert.True(model.TryGetSpeculativeSemanticModel(position, stmt, out model));
+                var expr = ((ExpressionStatementSyntax)stmt).Expression;
+                var type = model!.GetTypeInfo(expr).Type;
+                Assert.Equal(expectedDelegateType, type.ToTestDisplayString());
+            }
+
+            static void validator(PEAssembly assembly)
+            {
+                var reader = assembly.GetMetadataReader();
+                var actualTypes = reader.GetTypeDefNames().Select(h => reader.GetString(h)).ToArray();
+
+                // https://github.com/dotnet/roslyn/issues/55896: Should not include <>F{00000001}`2 or <>F{00000002}`2.
+                string[] expectedTypes = new[] { "<Module>", "<>F{00000001}`2", "<>F{00000002}`2", "Program", "<>c", };
                 AssertEx.Equal(expectedTypes, actualTypes);
             }
         }

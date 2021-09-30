@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
@@ -106,9 +107,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
             Assert.Empty(testLspServer.GetQueueAccessor().GetTrackedTexts());
         }
 
-        private static Task<Solution> GetLSPSolution(TestLspServer testLspServer, Uri uri)
+        private static async Task<Solution> GetLSPSolution(TestLspServer testLspServer, Uri uri)
         {
-            return testLspServer.ExecuteRequestAsync<Uri, Solution>(nameof(GetLSPSolutionHandler), uri, new ClientCapabilities(), null, CancellationToken.None);
+            var result = await testLspServer.ExecuteRequestAsync<Uri, Solution>(nameof(GetLSPSolutionHandler), uri, new ClientCapabilities(), null, CancellationToken.None);
+            Contract.ThrowIfNull(result);
+            return result;
         }
 
         [Shared, ExportRoslynLanguagesLspRequestHandlerProvider, PartNotDiscoverable]

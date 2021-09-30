@@ -1007,11 +1007,6 @@
         <target state="translated">Recupera membri</target>
         <note />
       </trans-unit>
-      <trans-unit id="Quick_Actions">
-        <source>Quick Actions</source>
-        <target state="translated">Azioni rapide</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
         <target state="translated">Refactoring Only</target>
