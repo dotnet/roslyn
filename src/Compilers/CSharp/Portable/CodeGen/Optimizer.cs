@@ -2082,12 +2082,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // fake visiting of left
             _nodeCounter += 1;
 
-            Debug.Assert(!_isStackScheduledRefAssignment);
+            // We don't think it should be possible for isStackScheduledAssignment to be true at this point, but just in
+            // case we save and restore the value, and assert the value so it'll fail in debug if we come across such a
+            // case.
+            var previousStackScheduledAssignment = _isStackScheduledRefAssignment;
+            Debug.Assert(!previousStackScheduledAssignment);
             _isStackScheduledRefAssignment = node.IsRef;
 
             // visit right
             var right = (BoundExpression)Visit(node.Right);
-            _isStackScheduledRefAssignment = false;
+            _isStackScheduledRefAssignment = previousStackScheduledAssignment;
 
             // do actual assignment
 

@@ -1263,7 +1263,7 @@ unsafe
             void verify(CSharpCompilationOptions options, string expectedIL)
             {
                 var comp = CreateCompilation(code, options: options);
-                var verifier = CompileAndVerify(comp, expectedOutput: "run");
+                var verifier = CompileAndVerify(comp, expectedOutput: "run", verify: Verification.Fails);
                 verifier.VerifyDiagnostics();
                 verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
             }
@@ -1350,7 +1350,7 @@ unsafe
             void verify(CSharpCompilationOptions options, string expectedIL)
             {
                 var comp = CreateCompilation(code, options: options);
-                var verifier = CompileAndVerify(comp, expectedOutput: "0run");
+                var verifier = CompileAndVerify(comp, expectedOutput: "0run", verify: Verification.Fails);
                 verifier.VerifyDiagnostics();
                 verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
             }
