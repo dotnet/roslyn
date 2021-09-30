@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 #if DEBUG
 using System.Diagnostics;
@@ -86,23 +87,19 @@ namespace Microsoft.CodeAnalysis.Remote
 
             void AppendOptionSets()
             {
-                var allOptionSets = new Dictionary<Checksum, SerializableOptionSet>();
+                var seenChecksums = new HashSet<Checksum>();
                 foreach (var list in new[] { mismatch1, mismatch2, mismatch3, mismatch4, mismatch5, mismatch6 })
                 {
                     foreach (var (checksum, val) in list)
                     {
-                        if (val is SerializableOptionSet optionSet)
-                            allOptionSets[checksum] = optionSet;
+                        if (seenChecksums.Add(checksum) && val is SerializableOptionSet optionSet)
+                        {
+                            sb.AppendLine($"Checksum: {checksum}");
+                            sb.AppendLine("Options:");
+                            sb.AppendLine(optionSet.GetDebugString());
+                            sb.AppendLine();
+                        }
                     }
-                }
-
-                sb.AppendLine("Different option sets:");
-                foreach (var (checksum, optionSet) in allOptionSets)
-                {
-                    sb.AppendLine($"Checksum: {checksum}");
-                    sb.AppendLine("Options:");
-                    sb.AppendLine(optionSet.GetDebugString());
-                    sb.AppendLine();
                 }
             }
 
