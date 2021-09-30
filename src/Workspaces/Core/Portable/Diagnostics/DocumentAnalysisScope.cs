@@ -54,9 +54,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return TextDocument.Project.AnalyzerOptions.AdditionalFiles.First(a => PathUtilities.Comparer.Equals(a.Path, filePath));
         }
 
-        public DocumentAnalysisScope WithSpan(TextSpan? span)
-            => new(TextDocument, span, Analyzers, Kind);
-
         public DocumentAnalysisScope WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers)
             => new(TextDocument, Span, analyzers, Kind);
     }
