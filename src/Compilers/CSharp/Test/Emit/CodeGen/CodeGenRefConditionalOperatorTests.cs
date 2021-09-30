@@ -1216,7 +1216,7 @@ unsafe
 }
 ";
 
-            verify(TestOptions.UnsafeReleaseExe, @"
+            verify(TestOptions.UnsafeReleaseExe, Verification.Passes, @"
 {
   // Code size       22 (0x16)
   .maxstack  1
@@ -1235,7 +1235,7 @@ unsafe
 }
 ");
 
-            verify(TestOptions.UnsafeDebugExe, @"
+            verify(TestOptions.UnsafeDebugExe, Verification.Fails, @"
 {
   // Code size       26 (0x1a)
   .maxstack  1
@@ -1260,10 +1260,10 @@ unsafe
 }
 ");
 
-            void verify(CSharpCompilationOptions options, string expectedIL)
+            void verify(CSharpCompilationOptions options, Verification verify, string expectedIL)
             {
                 var comp = CreateCompilation(code, options: options);
-                var verifier = CompileAndVerify(comp, expectedOutput: "run", verify: Verification.Fails);
+                var verifier = CompileAndVerify(comp, expectedOutput: "run", verify: verify);
                 verifier.VerifyDiagnostics();
                 verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
             }
