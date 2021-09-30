@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     parts.AddRange(documentation);
                 }
 
-                if (groups.TryGetValue(SymbolDescriptionGroups.AnonymousTypes, out var anonymousTypes))
+                if (groups.TryGetValue(SymbolDescriptionGroups.StructuralTypes, out var anonymousTypes))
                 {
                     if (!anonymousTypes.IsDefaultOrEmpty)
                     {

@@ -58,7 +58,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 synchronizationContext = denyExecutionSynchronizationContext;
             }
 
+#pragma warning disable VSSDK005 // Use ThreadHelper.JoinableTaskContext singleton - N/A, used for test code
             return (new JoinableTaskContext(mainThread, synchronizationContext), synchronizationContext);
+#pragma warning restore VSSDK005 // Use ThreadHelper.JoinableTaskContext singleton - N/A, used for test code
         }
 
         [Export]

@@ -242,11 +242,6 @@
         <target state="translated">Комментарии</target>
         <note />
       </trans-unit>
-      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
-        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
-        <target state="translated">Асинхронное вычисление быстрых действий (экспериментальная функция, требуется перезапуск)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">Содержащий член</target>
@@ -295,6 +290,11 @@
       <trans-unit id="Display_all_hints_while_pressing_Alt_F1">
         <source>Display all hints while pressing Alt+F1</source>
         <target state="translated">Отображать все подсказки при нажатии клавиш ALT+F1</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_diagnostics_inline_experimental">
+        <source>Display diagnostics inline (experimental)</source>
+        <target state="new">Display diagnostics inline (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
@@ -477,6 +477,11 @@
         <target state="translated">Поле наследования</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_Diagnostics_experimental">
+        <source>Inline Diagnostics (experimental)</source>
+        <target state="new">Inline Diagnostics (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inherited_interfaces">
         <source>Inherited interfaces</source>
         <target state="translated">Унаследованные интерфейсы</target>
@@ -507,6 +512,11 @@
         <target state="translated">Ввести неопределенные переменные TODO</target>
         <note>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</note>
       </trans-unit>
+      <trans-unit id="Invalid_type_name">
+        <source>Invalid type name</source>
+        <target state="new">Invalid type name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Item_origin">
         <source>Item origin</source>
         <target state="translated">Источник элемента</target>
@@ -526,11 +536,6 @@
         <source>Kind</source>
         <target state="translated">Вид</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Language_client_initialization_failed">
-        <source>{0} failed to initialize. Status = {1}. Exception = {2}</source>
-        <target state="translated">Не удалось инициализировать {0}. Состояние = {1}. Исключение = {2}</target>
-        <note>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</note>
       </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
@@ -580,6 +585,11 @@
       <trans-unit id="Modifier_preferences_colon">
         <source>Modifier preferences:</source>
         <target state="translated">Предпочтения модификатора:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_static_members_to_another_type_colon">
+        <source>Move Static Members to Another Type:</source>
+        <target state="new">Move Static Members to Another Type:</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -982,6 +992,11 @@
         <target state="translated">Предпочитать статические локальные функции</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_tuple_swap">
+        <source>Prefer tuple swap</source>
+        <target state="new">Prefer tuple swap</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Projects">
         <source>Projects</source>
         <target state="translated">Проекты</target>
@@ -990,11 +1005,6 @@
       <trans-unit id="Pull_Members_Up">
         <source>Pull Members Up</source>
         <target state="translated">Повышение элементов</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Quick_Actions">
-        <source>Quick Actions</source>
-        <target state="translated">Быстрые действия</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
@@ -1200,6 +1210,11 @@
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
         <target state="translated">Рекомендация</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_argument_matches_parameter_name">
+        <source>Suppress hints when argument matches parameter name</source>
+        <target state="new">Suppress hints when argument matches parameter name</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
@@ -1542,6 +1557,11 @@
         <target state="translated">Элемент "{0}" будет изменен на открытый.</target>
         <note />
       </trans-unit>
+      <trans-unit id="at_the_end_of_the_line_of_code">
+        <source>at the end of the line of code</source>
+        <target state="new">at the end of the line of code</target>
+        <note />
+      </trans-unit>
       <trans-unit id="generated_by_0_suffix">
         <source>[generated by {0}]</source>
         <target state="translated">[создан генератором {0}]</target>
@@ -1600,11 +1620,6 @@
       <trans-unit id="Base_Types">
         <source>Base Types</source>
         <target state="translated">Базовые типы</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Miscellaneous_Files">
-        <source>Miscellaneous Files</source>
-        <target state="translated">Прочие файлы</target>
         <note />
       </trans-unit>
       <trans-unit id="Could_not_find_project_0">
@@ -2566,6 +2581,11 @@ Additional information: {1}</source>
       <trans-unit id="When_inserting_properties_events_and_methods_place_them">
         <source>When inserting properties, events and methods, place them:</source>
         <target state="translated">При вставке свойств, методов и событий помещать их:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="on_the_right_edge_of_the_editor_window">
+        <source>on the right edge of the editor window</source>
+        <target state="new">on the right edge of the editor window</target>
         <note />
       </trans-unit>
       <trans-unit id="with_other_members_of_the_same_kind">

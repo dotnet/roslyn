@@ -189,7 +189,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Snippet_OnAfterInsertion = 155,
 
         Misc_NonReentrantLock_BlockingWait = 156,
-        Misc_VisualStudioWaitIndicator_Wait = 157,
         Misc_SaveEventsSink_OnBeforeSave = 158,
 
         TaskList_Refresh = 159,

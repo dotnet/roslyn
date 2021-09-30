@@ -19,7 +19,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal abstract class AbstractGoToDefinitionHandler : AbstractStatelessRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
+    internal abstract class AbstractGoToDefinitionHandler : AbstractStatelessRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]?>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
@@ -31,16 +31,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
 
-        protected async Task<LSP.Location[]> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool typeOnly, RequestContext context, CancellationToken cancellationToken)
+        protected async Task<LSP.Location[]?> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool typeOnly, RequestContext context, CancellationToken cancellationToken)
         {
-            var locations = ArrayBuilder<LSP.Location>.GetInstance();
-
             var document = context.Document;
             if (document == null)
-            {
-                return locations.ToArrayAndFree();
-            }
+                return null;
 
+            var locations = ArrayBuilder<LSP.Location>.GetInstance();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             var definitions = await GetDefinitions(document, position, cancellationToken).ConfigureAwait(false);
@@ -134,14 +131,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 // Try IFindDefinitionService first. Until partners implement this, it could fail to find a service, so fall back if it's null.
                 var findDefinitionService = document.GetLanguageService<IFindDefinitionService>();
-                if (findDefinitionService != null)
-                {
-                    return await findDefinitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
-                }
-
-                // Removal of this codepath is tracked by https://github.com/dotnet/roslyn/issues/50391.
-                var goToDefinitionsService = document.GetRequiredLanguageService<IGoToDefinitionService>();
-                return await goToDefinitionsService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
+                return findDefinitionService != null
+                    ? await findDefinitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false)
+                    // Some partners may implement the old IGoToDefinitionService, but currently we only support C# and VB definitions from the LSP server.
+                    // To support other languages from here, https://github.com/dotnet/roslyn/issues/50391 would need to be completed.
+                    : null;
             }
         }
     }
