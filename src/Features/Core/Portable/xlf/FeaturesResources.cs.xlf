@@ -452,7 +452,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Convert_to_tuple">
         <source>Convert to tuple</source>
-        <target state="new">Convert to tuple</target>
+        <target state="translated">Převést na řazenou kolekci členů</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_type_to_0">
