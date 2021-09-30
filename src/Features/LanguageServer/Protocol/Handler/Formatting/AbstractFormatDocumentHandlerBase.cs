@@ -20,14 +20,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 
-        protected async Task<LSP.TextEdit[]> GetTextEditsAsync(
+        protected async Task<LSP.TextEdit[]?> GetTextEditsAsync(
             RequestContext context,
             LSP.FormattingOptions options,
             CancellationToken cancellationToken,
             LSP.Range? range = null)
         {
             var document = context.Document;
-            Contract.ThrowIfNull(document);
+            if (document == null)
+                return null;
 
             var edits = new ArrayBuilder<LSP.TextEdit>();
 

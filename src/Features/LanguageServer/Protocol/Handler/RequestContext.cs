@@ -96,32 +96,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // this request is for, and then updates it based on the state of the world as we know it, based on the
             // text content in the document change tracker.
 
-            Document? document;
-            Solution? workspaceSolution;
+            Document? document = null;
+            var workspaceSolution = lspWorkspaceRegistrationService.TryGetHostWorkspace()?.CurrentSolution;
             if (textDocument is not null)
             {
                 // we were given a request associated with a document.  Find the corresponding roslyn
                 // document for this.  If we can't, we cannot proceed.
                 document = FindDocument(logger, telemetryLogger, lspWorkspaceRegistrationService, lspMiscellaneousFilesWorkspace, textDocument, clientName);
-                if (document == null)
-                {
-                    logger.TraceError($"Could not find document: {textDocument.Uri}");
-                    return default;
-                }
-
-                workspaceSolution = document.Project.Solution;
+                if (document != null)
+                    workspaceSolution = document.Project.Solution;
             }
-            else
+
+            if (workspaceSolution == null)
             {
-                // we were given a global request (like diagnostics or search).  These only apply to 
-                // the primary/host solution.
-                document = null;
-                workspaceSolution = lspWorkspaceRegistrationService.TryGetHostWorkspace()?.CurrentSolution;
-                if (workspaceSolution == null)
-                {
-                    logger.TraceError("Could not find host solution for global operation");
-                    return default;
-                }
+                logger.TraceError("Could not find appropriate solution for operation");
+                return default;
             }
 
             documentChangeTracker ??= new NoOpDocumentChangeTracker();

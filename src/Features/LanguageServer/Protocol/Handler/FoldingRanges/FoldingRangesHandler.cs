@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
     [ProvidesMethod(Methods.TextDocumentFoldingRangeName)]
-    internal sealed class FoldingRangesHandler : AbstractStatelessRequestHandler<FoldingRangeParams, FoldingRange[]>
+    internal sealed class FoldingRangesHandler : AbstractStatelessRequestHandler<FoldingRangeParams, FoldingRange[]?>
     {
         public override string Method => Methods.TextDocumentFoldingRangeName;
 
@@ -34,10 +34,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(FoldingRangeParams request) => request.TextDocument;
 
-        public override async Task<FoldingRange[]> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
+        public override async Task<FoldingRange[]?> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
-            Contract.ThrowIfNull(document);
+            if (document == null)
+                return null;
 
             var blockStructureService = document.Project.LanguageServices.GetService<BlockStructureService>();
             if (blockStructureService == null)

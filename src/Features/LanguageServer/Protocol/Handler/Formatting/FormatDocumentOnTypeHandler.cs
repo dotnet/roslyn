@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
     [ProvidesMethod(Methods.TextDocumentOnTypeFormattingName)]
-    internal class FormatDocumentOnTypeHandler : AbstractStatelessRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]>
+    internal class FormatDocumentOnTypeHandler : AbstractStatelessRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]?>
     {
         public override string Method => Methods.TextDocumentOnTypeFormattingName;
 
@@ -36,13 +36,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentOnTypeFormattingParams request) => request.TextDocument;
 
-        public override async Task<TextEdit[]> HandleRequestAsync(
+        public override async Task<TextEdit[]?> HandleRequestAsync(
             DocumentOnTypeFormattingParams request,
             RequestContext context,
             CancellationToken cancellationToken)
         {
             var document = context.Document;
-            Contract.ThrowIfNull(document);
+            if (document == null)
+                return null;
 
             var edits = new ArrayBuilder<TextEdit>();
 
