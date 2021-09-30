@@ -39,6 +39,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();
+
+            // bail out if there are syntax errors, other than the ones that we're trying to fix
+            var treeDiagnostics = diagnostic.Location.SourceTree.GetDiagnostics(context.CancellationToken);
+            if (treeDiagnostics.Any(d => d.Severity == DiagnosticSeverity.Error && !FixableDiagnosticIds.Contains(d.Id)))
+            {
+                return Task.CompletedTask;
+            }
+
             context.RegisterCodeFix(new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)), diagnostic);
             return Task.CompletedTask;
         }

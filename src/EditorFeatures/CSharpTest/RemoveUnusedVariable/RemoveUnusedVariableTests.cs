@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedVariable
     void Method()
     {
         [|string a;|]
-        string b = "";
+        string b = """";
         var c = b;
     }
 }",
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedVariable
 {
     void Method()
     {
-        string b = "";
+        string b = """";
         var c = b;
     }
 }");
@@ -228,12 +228,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedVariable
 
 using System;
 
-namespace ClassLibrary
+public class Class1
 {
-    public class Class1
+    public static string GetText()
     {
-        public static string GetText()
-        {
 #if DIRECTIVE1
         return ""Hello from "" + Environment.OSVersion;
 #elif DIRECTIVE2
@@ -241,8 +239,7 @@ namespace ClassLibrary
 #else
 #error Unknown platform 
 #endif
-            int [|blah|] = 5;
-        }
+        int [|blah|] = 5;
     }
 }",
 @"
@@ -250,12 +247,10 @@ namespace ClassLibrary
 
 using System;
 
-namespace ClassLibrary
+public class Class1
 {
-    public class Class1
+    public static string GetText()
     {
-        public static string GetText()
-        {
 #if DIRECTIVE1
         return ""Hello from "" + Environment.OSVersion;
 #elif DIRECTIVE2
@@ -263,7 +258,6 @@ namespace ClassLibrary
 #else
 #error Unknown platform 
 #endif
-        }
     }
 }");
         }
@@ -722,6 +716,22 @@ class C
 ",
 @"
 ", TestOptions.Regular);
+        }
+
+        [WorkItem(49827, "https://github.com/dotnet/roslyn/issues/49827")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task DontCrashOnSyntaxError()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    void Method(bool test)
+    {
+        if (test and [|test|])
+        {
+        }
+    }
+}");
         }
     }
 }
