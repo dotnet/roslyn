@@ -530,5 +530,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         LSP_FindDocumentInWorkspace = 494,
 
         SuggestedActions_GetSuggestedActionsAsync = 500,
+
+        NavigateTo_CacheItemsMiss = 510,
     }
 }
