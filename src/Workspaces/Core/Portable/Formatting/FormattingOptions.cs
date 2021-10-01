@@ -2,35 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
-using System.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
     /// <inheritdoc cref="FormattingOptions2"/>
     public static partial class FormattingOptions
     {
-        [ExportOptionProvider, Shared]
-        internal sealed class Provider : IOptionProvider
-        {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Provider()
-            {
-            }
-
-            public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-                UseTabs,
-                TabSize,
-                IndentationSize,
-                // SmartIndent already exported by FormattingBehaviorOptions
-                NewLine);
-        }
-
         /// <inheritdoc cref="FormattingOptions2.UseTabs"/>
         // Suppression due to https://github.com/dotnet/roslyn/issues/42614
         public static PerLanguageOption<bool> UseTabs { get; } = ((PerLanguageOption<bool>)FormattingOptions2.UseTabs)!;

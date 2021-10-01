@@ -4,11 +4,14 @@
 
 using System;
 using System.Collections.Immutable;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Options;
 
 #if CODE_STYLE
 using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
+#else
+using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options.Providers;
 #endif
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -18,6 +21,19 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// </summary>
     internal sealed class FormattingOptions2
     {
+#if !CODE_STYLE
+        [ExportOptionProvider, Shared]
+        internal sealed class Provider : IOptionProvider
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public Provider()
+            {
+            }
+
+            public ImmutableArray<IOption> Options { get; } = FormattingOptions2.Options;
+        }
+#endif
         private const string FeatureName = "FormattingOptions";
 
         public static PerLanguageOption2<bool> UseTabs =
@@ -60,12 +76,14 @@ namespace Microsoft.CodeAnalysis.Formatting
             new(FeatureName, FormattingOptionGroups.NewLine, nameof(InsertFinalNewLine), defaultValue: false,
             storageLocation: EditorConfigStorageLocation.ForBoolOption("insert_final_newline"));
 
-        public static ImmutableArray<IOption2> Options = ImmutableArray.Create<IOption2>(
+#if !CODE_STYLE
+        internal static readonly ImmutableArray<IOption> Options = ImmutableArray.Create<IOption>(
             UseTabs,
             TabSize,
             IndentationSize,
             NewLine,
             InsertFinalNewLine);
+#endif
     }
 
     internal static class FormattingOptionGroups
