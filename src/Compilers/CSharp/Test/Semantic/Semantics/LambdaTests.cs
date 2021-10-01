@@ -5473,7 +5473,6 @@ class Program
     {
         F(var () => default);
         F(ref var () => throw null);
-        F(var? () => default);
         F(var[] () => default);
         F(var? (var v) => v);
         F(var.other (var v) => v.o);
@@ -5501,8 +5500,8 @@ class Program
 {
     static void Main()
     {
-        F(var () => default);
-        F(@var () => default);
+        F(var (var v) => v);
+        F(@var (var v) => v);
         F(() => default(var));
     }
     static void F(Delegate d) { }
@@ -5524,8 +5523,8 @@ class Program
 {
     static void M<var>()
     {
-        F(var () => default);
-        F(@var () => default);
+        F(var (var v) => v);
+        F(@var (var v) => v);
         F(() => default(var));
     }
     static void F(Delegate d) { }
