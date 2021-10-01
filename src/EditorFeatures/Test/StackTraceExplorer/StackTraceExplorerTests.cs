@@ -238,6 +238,110 @@ namespace ConsoleApp4
 }");
         }
 
+        [Fact(Skip = "Generated types/methods are not supported")]
+        public Task TestSymbolFound_ExceptionLine_PropertySet()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp4.MyClass.set_I(Int32 value)",
+                @"using System;
+
+namespace ConsoleApp4
+{
+    class MyClass
+    {
+        public int I
+        {
+            get => throw new Exception();
+            [|set|] => throw new Exception();
+        }
+    }
+}");
+        }
+
+        [Fact(Skip = "Generated types/methods are not supported")]
+        public Task TestSymbolFound_ExceptionLine_PropertyGet()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp4.MyClass.get_I(Int32 value)",
+                @"using System;
+
+namespace ConsoleApp4
+{
+    class MyClass
+    {
+        public int I
+        {
+            [|get|] => throw new Exception();
+            set => throw new Exception();
+        }
+    }
+}");
+        }
+
+        [Fact(Skip = "Generated types/methods are not supported")]
+        public Task TestSymbolFound_ExceptionLine_IndexerSet()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp4.MyClass.set_Item(Int32 i, Int32 value)",
+                @"using System;
+
+namespace ConsoleApp4
+{
+    class MyClass
+    {
+        public int this[int i]
+        {
+            get => throw new Exception();
+            [|set|] => throw new Exception();
+        }
+    }
+}");
+        }
+
+        [Fact(Skip = "Generated types/methods are not supported")]
+        public Task TestSymbolFound_ExceptionLine_IndexerGet()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp4.MyClass.get_Item(Int32 i)",
+                @"using System;
+
+namespace ConsoleApp4
+{
+    class MyClass
+    {
+        public int this[int i]
+        {
+            [|get|] => throw new Exception();
+            set => throw new Exception();
+        }
+    }
+}");
+        }
+
+        [Fact(Skip = "Generated types/methods are not supported")]
+        public Task TestSymbolFound_ExceptionLine_LocalFunction()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp4.MyClass.<M>g__LocalFunction|0_0()",
+                @"using System;
+
+namespace ConsoleApp4
+{
+    class MyClass
+    {
+        public void M()
+        {
+            LocalFunction();
+
+            void LocalFunction()
+            {
+                throw new Exception();
+            }
+        }
+    }
+}");
+        }
+
         [Theory]
         [InlineData("alkjsdflkjasdlkfjasd")]
         [InlineData("at alksjdlfjasdlkfj")]
