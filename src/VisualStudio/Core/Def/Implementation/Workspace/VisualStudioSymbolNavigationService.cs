@@ -115,14 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             // Generate new source or retrieve existing source for the symbol in question
-            var allowDecompilation = false;
-
-            // Check whether decompilation is supported for the project. We currently only support this for C# projects.
-            if (project.LanguageServices.GetService<IDecompiledSourceService>() != null)
-            {
-                allowDecompilation = project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources) && !symbol.IsFromSource();
-            }
-
+            var allowDecompilation = project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources);
             var result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, allowDecompilation, cancellationToken).WaitAndGetResult(cancellationToken);
 
             var vsRunningDocumentTable4 = IServiceProviderExtensions.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>(_serviceProvider);
