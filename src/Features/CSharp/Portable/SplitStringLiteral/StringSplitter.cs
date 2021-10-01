@@ -6,16 +6,15 @@
 
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Indentation;
 
 namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
 {
-    internal abstract class StringSplitter
+    internal abstract partial class StringSplitter
     {
         protected static readonly SyntaxAnnotation RightNodeAnnotation = new();
 
