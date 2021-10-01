@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable
             // Local declarations must be parented by an executable block, or global statement, otherwise
             // removing them would be invalid (and more than likely crash the fixer)
             return localDeclaration.Parent is GlobalStatementSyntax ||
-                syntaxFacts.IsExecutableBlock(localDeclaration.Parent))
+                syntaxFacts.IsExecutableBlock(localDeclaration.Parent);
         }
     }
 }
