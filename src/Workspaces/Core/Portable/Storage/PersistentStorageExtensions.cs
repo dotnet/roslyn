@@ -22,19 +22,12 @@ namespace Microsoft.CodeAnalysis.Storage
         {
             var configuration = services.GetRequiredService<IPersistentStorageConfiguration>();
 
-            switch (database)
+            return database switch
             {
-                case StorageDatabase.SQLite:
-                    return services.GetService<ISQLiteStorageServiceFactory>()?.Create() ??
-                           NoOpPersistentStorageService.GetOrThrow(configuration);
-
-                case StorageDatabase.CloudCache:
-                    return services.GetService<ICloudCacheStorageServiceFactory>()?.Create() ??
-                           NoOpPersistentStorageService.GetOrThrow(configuration);
-
-                default:
-                    return NoOpPersistentStorageService.GetOrThrow(configuration);
-            }
+                StorageDatabase.SQLite => services.GetService<ISQLiteStorageServiceProvider>()?.Service ?? NoOpPersistentStorageService.GetOrThrow(configuration),
+                StorageDatabase.CloudCache => services.GetService<ICloudCacheStorageServiceProvider>()?.Service ?? NoOpPersistentStorageService.GetOrThrow(configuration),
+                _ => NoOpPersistentStorageService.GetOrThrow(configuration),
+            };
         }
 
         public static ValueTask<IChecksummedPersistentStorage> GetPersistentStorageAsync(

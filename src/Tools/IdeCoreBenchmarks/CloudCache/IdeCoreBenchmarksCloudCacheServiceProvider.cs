@@ -11,20 +11,17 @@ using Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks;
 
 namespace CloudCache
 {
-    [ExportWorkspaceService(typeof(ICloudCacheStorageServiceFactory), ServiceLayer.Host), Shared]
-    internal class IdeCoreBenchmarksCloudCacheServiceProvider : ICloudCacheStorageServiceFactory
+    [ExportWorkspaceService(typeof(ICloudCacheStorageServiceProvider), ServiceLayer.Host), Shared]
+    internal class IdeCoreBenchmarksCloudCacheServiceProvider : ICloudCacheStorageServiceProvider
     {
-        private readonly IChecksummedPersistentStorageService _instance;
+        public IChecksummedPersistentStorageService Service { get; }
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public IdeCoreBenchmarksCloudCacheServiceProvider()
         {
             Console.WriteLine($"Instantiated {nameof(IdeCoreBenchmarksCloudCacheServiceProvider)}");
-            _instance = new MockCloudCachePersistentStorageService(@"C:\github\roslyn");
+            Service = new MockCloudCachePersistentStorageService(@"C:\github\roslyn");
         }
-
-        public IChecksummedPersistentStorageService Create()
-            => _instance;
     }
 }

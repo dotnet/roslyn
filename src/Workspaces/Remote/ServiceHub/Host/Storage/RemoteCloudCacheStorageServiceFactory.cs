@@ -27,18 +27,15 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
     [Export(typeof(RemoteCloudCachePersistentStorageService)), Shared]
     internal class RemoteCloudCachePersistentStorageService : AbstractCloudCachePersistentStorageService
     {
-        [ExportWorkspaceService(typeof(ICloudCacheStorageServiceFactory), WorkspaceKind.RemoteWorkspace), Shared]
-        internal class RemoteCloudCacheStorageServiceFactory : ICloudCacheStorageServiceFactory
+        [ExportWorkspaceService(typeof(ICloudCacheStorageServiceProvider), WorkspaceKind.RemoteWorkspace), Shared]
+        internal class Provider : ICloudCacheStorageServiceProvider
         {
-            private readonly IChecksummedPersistentStorageService _service;
+            public IChecksummedPersistentStorageService Service { get; }
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public RemoteCloudCacheStorageServiceFactory(RemoteCloudCachePersistentStorageService service)
-                => _service = service;
-
-            public IChecksummedPersistentStorageService Create()
-                => _service;
+            public Provider(RemoteCloudCachePersistentStorageService service)
+                => Service = service;
         }
 
         private readonly IGlobalServiceBroker _globalServiceBroker;

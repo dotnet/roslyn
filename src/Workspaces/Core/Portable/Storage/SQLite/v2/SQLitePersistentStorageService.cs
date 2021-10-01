@@ -24,18 +24,15 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
     [Export(typeof(SQLitePersistentStorageService)), Shared]
     internal sealed class SQLitePersistentStorageService : AbstractSQLitePersistentStorageService
     {
-        [ExportWorkspaceService(typeof(ISQLiteStorageServiceFactory)), Shared]
-        internal sealed class Factory : ISQLiteStorageServiceFactory
+        [ExportWorkspaceService(typeof(ISQLiteStorageServiceProvider)), Shared]
+        internal sealed class Provider : ISQLiteStorageServiceProvider
         {
-            private readonly SQLitePersistentStorageService _service;
+            public IChecksummedPersistentStorageService Service { get; }
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory(SQLitePersistentStorageService service)
-                => _service = service;
-
-            public IChecksummedPersistentStorageService Create()
-                => _service;
+            public Provider(SQLitePersistentStorageService service)
+                => Service = service;
         }
 
         private const string StorageExtension = "sqlite3";

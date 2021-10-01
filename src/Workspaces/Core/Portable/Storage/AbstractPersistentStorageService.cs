@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -150,20 +151,18 @@ namespace Microsoft.CodeAnalysis.Storage
 
         private void Shutdown()
         {
-            Dictionary<SolutionId, ReferenceCountedDisposable<IChecksummedPersistentStorage>> copy;
+            ImmutableArray<ReferenceCountedDisposable<IChecksummedPersistentStorage>> disposables;
 
+            // Dispose storage outside of the lock. Note this only removes our reference count; clients who are still
+            // using this will still be holding a reference count.
             lock (_lock)
             {
-                copy = new(_solutionIdToStorage);
+                disposables = _solutionIdToStorage.Values.ToImmutableArray();
                 _solutionIdToStorage.Clear();
             }
 
-            foreach (var storage in copy.Values)
-            {
-                // Dispose storage outside of the lock. Note this only removes our reference count; clients who are still
-                // using this will still be holding a reference count.
-                storage.Dispose();
-            }
+            foreach (var disposable in disposables)
+                disposable.Dispose();
         }
 
         internal TestAccessor GetTestAccessor()
