@@ -10,14 +10,12 @@ namespace Microsoft.CodeAnalysis.Host
 {
     /// <summary>
     /// Obsolete.  Roslyn no longer supports a mechanism to perform arbitrary persistence of data.  If such functionality
-    /// is needed, consumers are resonsible for providing it themselves with whatever semantics are needed.
+    /// is needed, consumers are responsible for providing it themselves with whatever semantics are needed.
     /// </summary>
     [Obsolete("Roslyn no longer exports a mechanism to perform persistence.", error: true)]
     public interface IPersistentStorageService : IWorkspaceService
     {
         [Obsolete("Roslyn no longer exports a mechanism to perform persistence.", error: true)]
         IPersistentStorage GetStorage(Solution solution);
-        [Obsolete("Roslyn no longer exports a mechanism to perform persistence.", error: true)]
-        ValueTask<IPersistentStorage> GetStorageAsync(Solution solution, CancellationToken cancellationToken = default);
     }
 }
