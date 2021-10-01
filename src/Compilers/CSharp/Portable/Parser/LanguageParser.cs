@@ -12764,15 +12764,18 @@ tryAgain:
                     this.IsInAsync = true;
                 }
 
-                TypeSyntax returnType;
+                TypeSyntax returnType = null;
                 var resetPoint = this.GetResetPoint();
                 try
                 {
-                    returnType = ParseReturnType();
-                    if (CurrentToken.Kind != SyntaxKind.OpenParenToken)
+                    if (!IsVarType())
                     {
-                        this.Reset(ref resetPoint);
-                        returnType = null;
+                        returnType = ParseReturnType();
+                        if (CurrentToken.Kind != SyntaxKind.OpenParenToken)
+                        {
+                            this.Reset(ref resetPoint);
+                            returnType = null;
+                        }
                     }
                 }
                 finally
