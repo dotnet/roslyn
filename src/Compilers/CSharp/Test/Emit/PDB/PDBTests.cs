@@ -1090,7 +1090,7 @@ class C
 }");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
-<symbols>
+ <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
@@ -1115,14 +1115,6 @@ class C
       <scope startOffset=""0x0"" endOffset=""0x16"">
         <namespace name=""System"" />
       </scope>
-    </method>
-    <method containingType=""C+&lt;&gt;c__DisplayClass2_0"" name=""&lt;.cctor&gt;b__3"" parameterNames=""y"">
-      <customDebugInfo>
-        <forward declaringType=""C"" methodName="".cctor"" />
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""66"" endLine=""7"" endColumn=""70"" document=""1"" />
-      </sequencePoints>
     </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;.cctor&gt;b__2_0"" parameterNames=""x"">
       <customDebugInfo>
@@ -1167,6 +1159,14 @@ class C
       <scope startOffset=""0x0"" endOffset=""0x1a"">
         <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x1a"" attributes=""0"" />
       </scope>
+    </method>
+    <method containingType=""C+&lt;&gt;c__DisplayClass2_0"" name=""&lt;.cctor&gt;b__3"" parameterNames=""y"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName="".cctor"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""66"" endLine=""7"" endColumn=""70"" document=""1"" />
+      </sequencePoints>
     </method>
   </methods>
 </symbols>");
