@@ -17,7 +17,5 @@ namespace Microsoft.CodeAnalysis.Host
     {
         [Obsolete("Roslyn no longer exports a mechanism to perform persistence.", error: true)]
         IPersistentStorage GetStorage(Solution solution);
-        [Obsolete("Roslyn no longer exports a mechanism to perform persistence.", error: true)]
-        ValueTask<IPersistentStorage> GetStorageAsync(Solution solution, CancellationToken cancellationToken = default);
     }
 }
