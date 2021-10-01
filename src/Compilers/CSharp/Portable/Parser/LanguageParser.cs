@@ -12787,12 +12787,6 @@ tryAgain:
                     arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
                     var (block, expression) = ParseLambdaBody();
 
-                    // Disallow 'var' as explicit return type.
-                    if ((returnType as IdentifierNameSyntax)?.Identifier.ContextualKind == SyntaxKind.VarKeyword)
-                    {
-                        returnType = this.AddError(returnType, ErrorCode.ERR_TypeExpected);
-                    }
-
                     return _syntaxFactory.ParenthesizedLambdaExpression(
                         attributes, modifiers, returnType, paramList, arrow, block, expression);
                 }
