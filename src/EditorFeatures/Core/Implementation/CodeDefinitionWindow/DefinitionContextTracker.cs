@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
             {
                 var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
-                var builder = new ArrayBuilder<CodeDefinitionWindowLocation>();
+                using var _ = PooledObjects.ArrayBuilder<CodeDefinitionWindowLocation>.GetInstance(out var builder);
                 foreach (var item in navigableItems)
                 {
                     if (await navigationService.CanNavigateToSpanAsync(workspace, item.Document.Id, item.SourceSpan, cancellationToken).ConfigureAwait(false))
