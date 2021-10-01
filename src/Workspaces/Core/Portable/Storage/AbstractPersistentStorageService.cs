@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,8 +26,7 @@ namespace Microsoft.CodeAnalysis.Storage
         /// This lock guards all mutable fields in this type.
         /// </summary>
         private readonly SemaphoreSlim _lock = new(initialCount: 1);
-        private ReferenceCountedDisposable<IChecksummedPersistentStorage>? _currentPersistentStorage;
-        private SolutionId? _currentPersistentStorageSolutionId;
+        private readonly Dictionary<SolutionId, ReferenceCountedDisposable<IChecksummedPersistentStorage>> _solutionIdToStorage = new();
 
         protected AbstractPersistentStorageService(IPersistentStorageConfiguration configuration)
             => Configuration = configuration;
@@ -54,45 +54,25 @@ namespace Microsoft.CodeAnalysis.Storage
             using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 // Do we already have storage for this?
-                if (solutionKey.Id == _currentPersistentStorageSolutionId)
+                if (!_solutionIdToStorage.TryGetValue(solutionKey.Id, out var refCountedStorage))
                 {
-                    // We do, great. Increment our ref count for our caller.  They'll decrement it
-                    // when done with it.
-                    return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(_currentPersistentStorage!);
+                    var workingFolder = Configuration.TryGetStorageLocation(solutionKey);
+                    if (workingFolder == null)
+                        return NoOpPersistentStorage.GetOrThrow(Configuration.ThrowOnFailure);
+
+                    var storage = await CreatePersistentStorageAsync(solutionKey, workingFolder, cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfNull(storage);
+
+                    // Create and cache a new storage instance associated with this particular solution.
+                    // It will initially have a ref-count of 1 due to our reference to it.
+                    refCountedStorage = new ReferenceCountedDisposable<IChecksummedPersistentStorage>(storage);
+                    _solutionIdToStorage.Add(solutionKey.Id, refCountedStorage);
                 }
-
-                var workingFolder = Configuration.TryGetStorageLocation(solutionKey);
-                if (workingFolder == null)
-                    return NoOpPersistentStorage.GetOrThrow(Configuration.ThrowOnFailure);
-
-                // If we already had some previous cached service, let's let it start cleaning up
-                if (_currentPersistentStorage != null)
-                {
-                    var storageToDispose = _currentPersistentStorage;
-
-                    // Kick off a task to actually go dispose the previous cached storage instance.
-                    // This will remove the single ref count we ourselves added when we cached the
-                    // instance.  Then once all other existing clients who are holding onto this
-                    // instance let go, it will finally get truly disposed.
-                    // This operation is not safe to cancel (as dispose must happen).
-                    _ = Task.Run(() => storageToDispose.Dispose(), CancellationToken.None);
-
-                    _currentPersistentStorage = null;
-                    _currentPersistentStorageSolutionId = null;
-                }
-
-                var storage = await CreatePersistentStorageAsync(solutionKey, workingFolder, cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfNull(storage);
-
-                // Create and cache a new storage instance associated with this particular solution.
-                // It will initially have a ref-count of 1 due to our reference to it.
-                _currentPersistentStorage = new ReferenceCountedDisposable<IChecksummedPersistentStorage>(storage);
-                _currentPersistentStorageSolutionId = solutionKey.Id;
 
                 // Now increment the reference count and return to our caller.  The current ref
                 // count for this instance will be 2.  Until all the callers *and* us decrement
                 // the refcounts, this instance will not be actually disposed.
-                return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(_currentPersistentStorage);
+                return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(refCountedStorage);
             }
         }
 
@@ -166,17 +146,15 @@ namespace Microsoft.CodeAnalysis.Storage
 
         private void Shutdown()
         {
-            ReferenceCountedDisposable<IChecksummedPersistentStorage>? storage = null;
+            Dictionary<SolutionId, ReferenceCountedDisposable<IChecksummedPersistentStorage>> copy;
 
             lock (_lock)
             {
-                // We will transfer ownership in a thread-safe way out so we can dispose outside the lock
-                storage = _currentPersistentStorage;
-                _currentPersistentStorage = null;
-                _currentPersistentStorageSolutionId = null;
+                copy = _solutionIdToStorage;
+                _solutionIdToStorage.Clear();
             }
 
-            if (storage != null)
+            foreach (var storage in copy.Values)
             {
                 // Dispose storage outside of the lock. Note this only removes our reference count; clients who are still
                 // using this will still be holding a reference count.
