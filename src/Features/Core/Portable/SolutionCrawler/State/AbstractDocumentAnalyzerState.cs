@@ -4,10 +4,6 @@
 
 #nullable disable
 
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler.State
@@ -24,11 +20,5 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 
         protected override bool ShouldCache(Document value)
             => value.IsOpen();
-
-        protected override Task<Stream> ReadStreamAsync(IPersistentStorage storage, Document value, CancellationToken cancellationToken)
-            => storage.ReadStreamAsync(value, StateName, cancellationToken);
-
-        protected override Task<bool> WriteStreamAsync(IPersistentStorage storage, Document value, Stream stream, CancellationToken cancellationToken)
-            => storage.WriteStreamAsync(value, StateName, stream, cancellationToken);
     }
 }
