@@ -45,26 +45,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 { CompletionListElementName,         ($"<{CompletionListElementName}",         $" {CrefAttributeName}=\"",  "\"",                                      "/>") },
             };
 
-        private static readonly string[][] s_attributeMap =
-            new[]
-            {
-                new[] { ExceptionElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
-                new[] { PermissionElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
-                new[] { SeeElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
-                new[] { SeeElementName, LangwordAttributeName, $"{LangwordAttributeName}=\"", "\"" },
-                new[] { SeeElementName, HrefAttributeName, $"{HrefAttributeName}=\"", "\"" },
-                new[] { SeeAlsoElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
-                new[] { SeeAlsoElementName, HrefAttributeName, $"{HrefAttributeName}=\"", "\"" },
-                new[] { ListElementName, TypeAttributeName, $"{TypeAttributeName}=\"", "\"" },
-                new[] { ParameterElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
-                new[] { ParameterReferenceElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
-                new[] { TypeParameterElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
-                new[] { TypeParameterReferenceElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
-                new[] { IncludeElementName, FileAttributeName, $"{FileAttributeName}=\"", "\"" },
-                new[] { IncludeElementName, PathAttributeName, $"{PathAttributeName}=\"", "\"" },
-                new[] { InheritdocElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
-                new[] { InheritdocElementName, PathAttributeName, $"{PathAttributeName}=\"", "\"" },
-            };
+        private static readonly ImmutableArray<(string elementName, string attributeName, string text)> s_attributeMap =
+            ImmutableArray.Create(
+                (ExceptionElementName, CrefAttributeName, $"{CrefAttributeName}=\""),
+                (PermissionElementName, CrefAttributeName, $"{CrefAttributeName}=\""),
+                (SeeElementName, CrefAttributeName, $"{CrefAttributeName}=\""),
+                (SeeElementName, LangwordAttributeName, $"{LangwordAttributeName}=\""),
+                (SeeElementName, HrefAttributeName, $"{HrefAttributeName}=\""),
+                (SeeAlsoElementName, CrefAttributeName, $"{CrefAttributeName}=\""),
+                (SeeAlsoElementName, HrefAttributeName, $"{HrefAttributeName}=\""),
+                (ListElementName, TypeAttributeName, $"{TypeAttributeName}=\""),
+                (ParameterElementName, NameAttributeName, $"{NameAttributeName}=\""),
+                (ParameterReferenceElementName, NameAttributeName, $"{NameAttributeName}=\""),
+                (TypeParameterElementName, NameAttributeName, $"{NameAttributeName}=\""),
+                (TypeParameterReferenceElementName, NameAttributeName, $"{NameAttributeName}=\""),
+                (IncludeElementName, FileAttributeName, $"{FileAttributeName}=\""),
+                (IncludeElementName, PathAttributeName, $"{PathAttributeName}=\""),
+                (InheritdocElementName, CrefAttributeName, $"{CrefAttributeName}=\""),
+                (InheritdocElementName, PathAttributeName, $"{PathAttributeName}=\""));
 
         private static readonly ImmutableArray<string> s_listTypeValues = ImmutableArray.Create("bullet", "number", "table");
 
@@ -118,8 +116,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected IEnumerable<CompletionItem> GetAttributeItems(string tagName, ISet<string> existingAttributes)
         {
-            return s_attributeMap.Where(x => x[0] == tagName && !existingAttributes.Contains(x[1]))
-                                 .Select(x => CreateCompletionItem(x[1], x[2], x[3]));
+            return s_attributeMap.Where(x => x.elementName == tagName && !existingAttributes.Contains(x.attributeName))
+                                 .Select(x => CreateCompletionItem(x.attributeName, x.text, "\""));
         }
 
         protected IEnumerable<CompletionItem> GetAlwaysVisibleItems()

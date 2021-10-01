@@ -62,12 +62,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public override async Task<object> HandleRequestAsync(LSP.ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)
         {
+            var document = context.Document;
+            Contract.ThrowIfNull(document);
+
             var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
             Assumes.Present(runRequest);
-
-            var document = context.Document;
-
-            Contract.ThrowIfNull(document);
 
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
                 _codeActionsCache, document, runRequest.Range, _codeFixService, _codeRefactoringService, cancellationToken).ConfigureAwait(false);

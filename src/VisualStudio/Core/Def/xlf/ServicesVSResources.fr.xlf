@@ -1007,11 +1007,6 @@
         <target state="translated">Élever les membres</target>
         <note />
       </trans-unit>
-      <trans-unit id="Quick_Actions">
-        <source>Quick Actions</source>
-        <target state="translated">Actions rapides</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
         <target state="translated">Refactoring Only</target>

@@ -177,9 +177,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_OptimizeForSolutionSize_Small
             => CSharpVSResources.Small;
 
-        public static string Option_Quick_Actions
-            => ServicesVSResources.Quick_Actions;
-
         public static string Option_Outlining
             => ServicesVSResources.Outlining;
 

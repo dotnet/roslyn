@@ -1007,11 +1007,6 @@
         <target state="translated">멤버 풀하기</target>
         <note />
       </trans-unit>
-      <trans-unit id="Quick_Actions">
-        <source>Quick Actions</source>
-        <target state="translated">빠른 작업</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
         <target state="translated">리팩터링만</target>

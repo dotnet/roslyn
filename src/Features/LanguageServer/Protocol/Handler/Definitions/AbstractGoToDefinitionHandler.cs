@@ -19,7 +19,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal abstract class AbstractGoToDefinitionHandler : AbstractStatelessRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
+    internal abstract class AbstractGoToDefinitionHandler : AbstractStatelessRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]?>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
@@ -31,16 +31,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
 
-        protected async Task<LSP.Location[]> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool typeOnly, RequestContext context, CancellationToken cancellationToken)
+        protected async Task<LSP.Location[]?> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool typeOnly, RequestContext context, CancellationToken cancellationToken)
         {
-            var locations = ArrayBuilder<LSP.Location>.GetInstance();
-
             var document = context.Document;
             if (document == null)
-            {
-                return locations.ToArrayAndFree();
-            }
+                return null;
 
+            var locations = ArrayBuilder<LSP.Location>.GetInstance();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             var definitions = await GetDefinitions(document, position, cancellationToken).ConfigureAwait(false);

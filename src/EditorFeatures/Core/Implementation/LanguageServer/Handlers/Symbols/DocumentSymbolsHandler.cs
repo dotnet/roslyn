@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override async Task<object[]> HandleRequestAsync(DocumentSymbolParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
-            if (document == null)
-                return Array.Empty<SymbolInformation>();
+            Contract.ThrowIfNull(document);
 
             var navBarService = document.Project.LanguageServices.GetRequiredService<INavigationBarItemService>();
             var navBarItems = await navBarService.GetItemsAsync(document, supportsCodeGeneration: false, cancellationToken).ConfigureAwait(false);

@@ -600,9 +600,24 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Mise en forme du document</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_abstract_method_0">
+        <source>Generate abstract method '{0}'</source>
+        <target state="new">Generate abstract method '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_abstract_property_0">
+        <source>Generate abstract property '{0}'</source>
+        <target state="new">Generate abstract property '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Générer des opérateurs de comparaison</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constant_0">
+        <source>Generate constant '{0}'</source>
+        <target state="new">Generate constant '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor_in_0_with_fields">
@@ -615,9 +630,24 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Générer le constructeur dans '{0}' (avec les propriétés)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_enum_member_0">
+        <source>Generate enum member '{0}'</source>
+        <target state="new">Generate enum member '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_field_0">
+        <source>Generate field '{0}'</source>
+        <target state="new">Generate field '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_for_0">
         <source>Generate for '{0}'</source>
         <target state="translated">Générer pour '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_method_0">
+        <source>Generate method '{0}'</source>
+        <target state="new">Generate method '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
@@ -628,6 +658,21 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       <trans-unit id="Generate_parameter_0_and_overrides_implementations">
         <source>Generate parameter '{0}' (and overrides/implementations)</source>
         <target state="translated">Générer le paramètre '{0}' (et les substitutions/implémentations)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_property_0">
+        <source>Generate property '{0}'</source>
+        <target state="new">Generate property '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_read_only_field_0">
+        <source>Generate read-only field '{0}'</source>
+        <target state="new">Generate read-only field '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_read_only_property_0">
+        <source>Generate read-only property '{0}'</source>
+        <target state="new">Generate read-only property '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -3250,36 +3295,6 @@ Si le spécificateur de format "M" est utilisé sans autres spécificateurs de f
         <target state="translated">Générer tout</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_enum_member_1_0">
-        <source>Generate enum member '{1}.{0}'</source>
-        <target state="translated">Générer le membre enum '{1}.{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constant_1_0">
-        <source>Generate constant '{1}.{0}'</source>
-        <target state="translated">Générer la constante '{1}.{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_property_1_0">
-        <source>Generate read-only property '{1}.{0}'</source>
-        <target state="translated">Générer la propriété en lecture seule '{1}.{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_property_1_0">
-        <source>Generate property '{1}.{0}'</source>
-        <target state="translated">Générer la propriété '{1}.{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_field_1_0">
-        <source>Generate read-only field '{1}.{0}'</source>
-        <target state="translated">Générer le champ en lecture seule '{1}.{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_1_0">
-        <source>Generate field '{1}.{0}'</source>
-        <target state="translated">Générer le champ '{1}.{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_local_0">
         <source>Generate local '{0}'</source>
         <target state="translated">Générer le '{0}' local</target>
@@ -3487,21 +3502,6 @@ Si le spécificateur de format "g" est utilisé sans autres spécificateurs de f
       <trans-unit id="Unknown_symbol_kind">
         <source>Unknown symbol kind</source>
         <target state="translated">Genre de symbole inconnu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_abstract_property_1_0">
-        <source>Generate abstract property '{1}.{0}'</source>
-        <target state="translated">Générer la propriété abstraite '{1}.{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_abstract_method_1_0">
-        <source>Generate abstract method '{1}.{0}'</source>
-        <target state="translated">Générer la méthode abstraite '{1}.{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_method_1_0">
-        <source>Generate method '{1}.{0}'</source>
-        <target state="translated">Générer la méthode '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Requested_assembly_already_loaded_from_0">

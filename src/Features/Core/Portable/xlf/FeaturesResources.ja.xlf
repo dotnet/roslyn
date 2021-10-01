@@ -600,9 +600,24 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">ドキュメントの書式設定</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_abstract_method_0">
+        <source>Generate abstract method '{0}'</source>
+        <target state="new">Generate abstract method '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_abstract_property_0">
+        <source>Generate abstract property '{0}'</source>
+        <target state="new">Generate abstract property '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">比較演算子の生成</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constant_0">
+        <source>Generate constant '{0}'</source>
+        <target state="new">Generate constant '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor_in_0_with_fields">
@@ -615,9 +630,24 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">'{0}' にコンストラクターを生成します (プロパティを含む)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_enum_member_0">
+        <source>Generate enum member '{0}'</source>
+        <target state="new">Generate enum member '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_field_0">
+        <source>Generate field '{0}'</source>
+        <target state="new">Generate field '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_for_0">
         <source>Generate for '{0}'</source>
         <target state="translated">'{0}' の生成</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_method_0">
+        <source>Generate method '{0}'</source>
+        <target state="new">Generate method '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
@@ -628,6 +658,21 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Generate_parameter_0_and_overrides_implementations">
         <source>Generate parameter '{0}' (and overrides/implementations)</source>
         <target state="translated">パラメーター '{0}' の生成 (およびオーバーライド/実装)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_property_0">
+        <source>Generate property '{0}'</source>
+        <target state="new">Generate property '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_read_only_field_0">
+        <source>Generate read-only field '{0}'</source>
+        <target state="new">Generate read-only field '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_read_only_property_0">
+        <source>Generate read-only property '{0}'</source>
+        <target state="new">Generate read-only property '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -3250,36 +3295,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">すべてを生成します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_enum_member_1_0">
-        <source>Generate enum member '{1}.{0}'</source>
-        <target state="translated">列挙メンバー '{1}.{0}' を生成する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constant_1_0">
-        <source>Generate constant '{1}.{0}'</source>
-        <target state="translated">定数 '{1}.{0}' を生成する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_property_1_0">
-        <source>Generate read-only property '{1}.{0}'</source>
-        <target state="translated">読み取り専用プロパティ '{1}.{0}' を生成します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_property_1_0">
-        <source>Generate property '{1}.{0}'</source>
-        <target state="translated">プロパティ '{1}.{0}' を生成します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_field_1_0">
-        <source>Generate read-only field '{1}.{0}'</source>
-        <target state="translated">読み取り専用フィールド '{1}.{0}' を生成します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_1_0">
-        <source>Generate field '{1}.{0}'</source>
-        <target state="translated">フィールド '{1}.{0}' を生成する</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_local_0">
         <source>Generate local '{0}'</source>
         <target state="translated">ローカルの '{0}' を生成します</target>
@@ -3487,21 +3502,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Unknown_symbol_kind">
         <source>Unknown symbol kind</source>
         <target state="translated">不明なシンボルの種類</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_abstract_property_1_0">
-        <source>Generate abstract property '{1}.{0}'</source>
-        <target state="translated">抽象プロパティ '{1}.{0}' を生成する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_abstract_method_1_0">
-        <source>Generate abstract method '{1}.{0}'</source>
-        <target state="translated">抽象メソッド '{1}.{0}' を生成する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_method_1_0">
-        <source>Generate method '{1}.{0}'</source>
-        <target state="translated">メソッド '{1}.{0}' を生成します</target>
         <note />
       </trans-unit>
       <trans-unit id="Requested_assembly_already_loaded_from_0">
