@@ -2852,7 +2852,10 @@ class C
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (2,7): error CS8860: Types and aliases should not be named 'record'.
+                // (2,1): warning CS8980: The type name 'record' is lower-cased. Such names may become reserved for the language.
+                // class record { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "class record { }").WithArguments("record").WithLocation(2, 1),
+                // (2,7): warning CS8860: Types and aliases should not be named 'record'.
                 // class record { }
                 Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 7),
                 // (6,24): error CS1514: { expected
@@ -2873,7 +2876,11 @@ class C
                 );
 
             comp = CreateCompilation(src, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (2,1): warning CS8980: The type name 'record' is lower-cased. Such names may become reserved for the language.
+                // class record { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "class record { }").WithArguments("record").WithLocation(2, 1)
+                );
         }
 
         [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
@@ -2884,6 +2891,9 @@ struct record { }
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (2,1): warning CS8980: The type name 'record' is lower-cased. Such names may become reserved for the language.
+                // struct record { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "struct record { }").WithArguments("record").WithLocation(2, 1),
                 // (2,8): warning CS8860: Types and aliases should not be named 'record'.
                 // struct record { }
                 Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 8)
@@ -2898,6 +2908,9 @@ interface record { }
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (2,1): warning CS8980: The type name 'record' is lower-cased. Such names may become reserved for the language.
+                // interface record { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "interface record { }").WithArguments("record").WithLocation(2, 1),
                 // (2,11): warning CS8860: Types and aliases should not be named 'record'.
                 // interface record { }
                 Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 11)
@@ -2912,6 +2925,9 @@ enum record { }
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (2,1): warning CS8980: The type name 'record' is lower-cased. Such names may become reserved for the language.
+                // enum record { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "enum record { }").WithArguments("record").WithLocation(2, 1),
                 // (2,6): warning CS8860: Types and aliases should not be named 'record'.
                 // enum record { }
                 Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 6)
@@ -2926,6 +2942,9 @@ delegate void record();
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (2,1): warning CS8980: The type name 'record' is lower-cased. Such names may become reserved for the language.
+                // delegate void record();
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "delegate void record();").WithArguments("record").WithLocation(2, 1),
                 // (2,15): warning CS8860: Types and aliases should not be named 'record'.
                 // delegate void record();
                 Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 15)
@@ -3114,6 +3133,9 @@ record record { }
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (2,1): warning CS8980: The type name 'record' is lower-cased. Such names may become reserved for the language.
+                // record record { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "record record { }").WithArguments("record").WithLocation(2, 1),
                 // (2,8): warning CS8860: Types and aliases should not be named 'record'.
                 // record record { }
                 Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 8)
@@ -3129,6 +3151,9 @@ partial class record { }
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (2,1): warning CS8980: The type name 'record' is lower-cased. Such names may become reserved for the language.
+                // partial class record { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "partial class record { }").WithArguments("record").WithLocation(2, 1),
                 // (2,15): warning CS8860: Types and aliases should not be named 'record'.
                 // partial class record { }
                 Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 15),
@@ -3157,6 +3182,9 @@ partial class record { }
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (3,1): warning CS8980: The type name 'record' is lower-cased. Such names may become reserved for the language.
+                // partial class record { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "partial class record { }").WithArguments("record").WithLocation(3, 1),
                 // (3,15): warning CS8860: Types and aliases should not be named 'record'.
                 // partial class record { }
                 Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(3, 15)
@@ -3172,6 +3200,9 @@ partial class @record { }
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (2,1): warning CS8980: The type name 'record' is lower-cased. Such names may become reserved for the language.
+                // partial class record { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "partial class record { }").WithArguments("record").WithLocation(2, 1),
                 // (2,15): warning CS8860: Types and aliases should not be named 'record'.
                 // partial class record { }
                 Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 15)
@@ -3211,6 +3242,9 @@ class C
 }";
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
+                // (2,1): warning CS8980: The type name 'record' is lower-cased. Such names may become reserved for the language.
+                // class record { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "class record { }").WithArguments("record").WithLocation(2, 1),
                 // (2,7): warning CS8860: Types and aliases should not be named 'record'.
                 // class record { }
                 Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 7)
@@ -26093,7 +26127,7 @@ public record D : B {}
             var test = @"
 namespace x
 {
-    public record iii
+    public record @iii
     {
         ~iiii(){}
         public static void Main()

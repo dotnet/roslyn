@@ -139,7 +139,7 @@ public class Derived : Base<int>
             var text = @"
 using System.Runtime.CompilerServices;
 
-public class idx
+public class @idx
 {
    public virtual int this[int iPropIndex]
    {
@@ -960,7 +960,7 @@ public class Test
             // by then referring to the field without the this keyword, it should be flagged as declaring a competing variable (as it is confusing).
             var text = @"
 using System;
-public class c
+public class @c
 {
     int a = 0;
 
@@ -1254,8 +1254,9 @@ return x;
         [Fact, WorkItem(530614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530614")]
         public void CS1718WRN_ComparisonToSelf_Roslyn()
         {
+            // TODO2
             string source = @"
-enum esbyte : sbyte { e0, e1 };
+enum @esbyte : sbyte { e0, e1 };
 public class z_1495j12
 {
 public static void Main()

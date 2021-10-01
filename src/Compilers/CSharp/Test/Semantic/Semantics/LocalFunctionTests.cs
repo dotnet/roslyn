@@ -2504,7 +2504,7 @@ class C
             var comp = CreateCompilation(@"
 class C
 {
-    private class var
+    private class @var
     {
     }
 
@@ -6951,7 +6951,7 @@ class C2
 @"#pragma warning disable 8321
 class C1
 {
-    class var { }
+    class @var { }
     static void F1()
     {
         void A1(object x) { var y = x; }

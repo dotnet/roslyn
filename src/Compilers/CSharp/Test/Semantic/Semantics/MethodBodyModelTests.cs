@@ -170,11 +170,11 @@ class Program
         {
             var text = @"
 using System;
-interface i1
+interface @i1
 {
     int bar(int x);
 }
-class c : i1
+class @c : i1
 {
     public int bar(int x)
     {
@@ -210,12 +210,12 @@ class Program
         {
             var text = @"
 using System;
-public interface i1
+public interface @i1
 {
     float bar(string x);
     int bar(int x);
 }
-class c : i1
+class @c : i1
 {
     public int bar(int x)
     {

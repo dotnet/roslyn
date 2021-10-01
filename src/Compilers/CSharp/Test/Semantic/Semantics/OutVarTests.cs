@@ -17985,7 +17985,7 @@ public class Cls
         System.Console.WriteLine(y.val);
     }
 
-    struct var
+    struct @var
     {
         public int val;
     }
@@ -18015,7 +18015,7 @@ public class Cls
         Test1(out var x1);
     }
 
-    struct var
+    struct @var
     {
         public int val;
     }
@@ -33165,8 +33165,8 @@ public class C
         {
             var source =
 @"
-enum alias1 : long {}
-class var {}
+enum @alias1 : long {}
+class @var {}
 
 public class C
 {

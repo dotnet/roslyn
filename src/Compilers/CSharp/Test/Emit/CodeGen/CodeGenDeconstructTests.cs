@@ -3642,7 +3642,7 @@ class C
         System.Console.WriteLine(x1 + "" "" + x2);
     }
 }
-class var
+class @var
 {
     public override string ToString() { return ""var""; }
 }
@@ -3884,7 +3884,7 @@ class C
         }
     }
 }
-class var
+class @var
 {
     public override string ToString() { return ""var""; }
 }
@@ -5717,7 +5717,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
         {
             var source =
 @"
-class var
+class @var
 {
     public static implicit operator var(int i) { return null; }
 }
@@ -5805,7 +5805,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
         {
             var source =
 @"
-class var
+class @var
 {
     public static implicit operator var(int i) { return new var(); }
     public override string ToString() { return ""var""; }

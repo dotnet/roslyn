@@ -2740,7 +2740,7 @@ class Test
             CreateCompilation(@"
 namespace hidden
 {
-    class unmanaged
+    class @unmanaged
     {
         public void Print()
         {

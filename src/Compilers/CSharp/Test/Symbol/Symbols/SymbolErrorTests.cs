@@ -2436,13 +2436,13 @@ class Test
         static S(string s) { }
     }
     
-    public class clx
+    public class @clx
     {
         static clx(params long[] ary) { }
         static clx(ref int n) { }
     }
 
-    public class cly : clx
+    public class @cly : clx
     {
         static cly() { }
     }
@@ -7871,7 +7871,7 @@ class MyClass : I
         {
             var text = @"namespace NS
 {
-    abstract public class clx
+    abstract public class @clx
     {
         abstract public void M1() { }
         internal abstract object M2() { return null; }
@@ -7916,7 +7916,7 @@ class MyClass : I
 
 namespace NS
 {
-    public class clx<T>
+    public class @clx<T>
     {
         public void M1(T t);
         internal V M2<V>();
@@ -7987,7 +7987,7 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
         {
             var text = @"namespace NS
 {
-    abstract public class clx
+    abstract public class @clx
     {
         abstract public void M1();
         abstract protected void M2<T>(T t);
@@ -7995,7 +7995,7 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
         abstract public event System.Action E;
     } // class clx
 
-    abstract public class cly : clx
+    abstract public class @cly : clx
     {
         abstract sealed override public void M1();
         abstract sealed override protected void M2<T>(T t);
@@ -8019,7 +8019,7 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
         {
             var source = @"namespace NS
 {
-    abstract public class clx
+    abstract public class @clx
     {
         abstract virtual internal void M1();
         abstract virtual protected void M2<T>(T t);
@@ -8053,7 +8053,7 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
         {
             var text = @"namespace x
 {
-    abstract public class clx
+    abstract public class @clx
     {
         static const int i = 0;   // CS0504, cannot be both static and const
         abstract public void f();
@@ -8067,12 +8067,12 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
         [Fact]
         public void CS0505ERR_CantOverrideNonFunction()
         {
-            var text = @"public class clx
+            var text = @"public class @clx
 {
    public int i;
 }
 
-public class cly : clx
+public class @cly : clx
 {
    public override int i() { return 0; }   // CS0505
 }
@@ -8280,12 +8280,12 @@ public class MyClass : BaseClass2
         [Fact]
         public void CS0507ERR_CantChangeAccessOnOverride()
         {
-            var text = @"abstract public class clx
+            var text = @"abstract public class @clx
 {
     virtual protected void f() { }
 }
 
-public class cly : clx
+public class @cly : clx
 {
     public override void f() { }   // CS0507
     public static void Main() { }
@@ -8349,20 +8349,20 @@ Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "GM").WithArguments("GG
             var source =
 @"namespace NS
 {
-    public struct stx { }
-    public sealed class clx {}
+    public struct @stx { }
+    public sealed class @clx {}
 
-    public class cly : clx {}
-    public class clz : stx { }
+    public class @cly : clx {}
+    public class @clz : stx { }
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,24): error CS0509: 'clz': cannot derive from sealed type 'stx'
-                //     public class clz : stx { }
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "stx").WithArguments("NS.clz", "NS.stx").WithLocation(7, 24),
-                // (6,24): error CS0509: 'cly': cannot derive from sealed type 'clx'
-                //     public class cly : clx {}
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "clx").WithArguments("NS.cly", "NS.clx").WithLocation(6, 24));
+                // (6,25): error CS0509: 'cly': cannot derive from sealed type 'clx'
+                //     public class @cly : clx {}
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "clx").WithArguments("NS.cly", "NS.clx").WithLocation(6, 25),
+                // (7,25): error CS0509: 'clz': cannot derive from sealed type 'stx'
+                //     public class @clz : stx { }
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "stx").WithArguments("NS.clz", "NS.stx").WithLocation(7, 25));
         }
 
         [Fact]
@@ -8395,7 +8395,7 @@ namespace N2
             var source =
 @"namespace NS
 {
-    public class clx
+    public class @clx
     {
         abstract public void M1();
         internal abstract object M2();
@@ -8449,7 +8449,7 @@ class C
         {
             var text = @"namespace NS
 {
-    static public class clx
+    static public class @clx
     {
         private static clx() { }
 
@@ -8459,7 +8459,7 @@ class C
         }
     }
 
-    public class clz
+    public class @clz
     {
         public static clz() { }
 
@@ -8948,7 +8948,7 @@ struct S6<T>
     public interface IGoo
     {
         interface IBar { }
-        public class cly {}
+        public class @cly {}
         struct S { }
         private enum E { zero,  one }
         // internal delegate void MyDel(object p); // delegates not in scope yet
@@ -8958,16 +8958,16 @@ struct S6<T>
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7);
 
             comp.VerifyDiagnostics(
-                // (5,19): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
+                // (5,19): error CS8107: Feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //         interface IBar { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "IBar").WithArguments("default interface implementation", "8.0").WithLocation(5, 19),
-                // (6,22): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
-                //         public class cly {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "cly").WithArguments("default interface implementation", "8.0").WithLocation(6, 22),
-                // (7,16): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
+                // (6,22): error CS8107: Feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         public class @cly {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "@cly").WithArguments("default interface implementation", "8.0").WithLocation(6, 22),
+                // (7,16): error CS8107: Feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //         struct S { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "S").WithArguments("default interface implementation", "8.0").WithLocation(7, 16),
-                // (8,22): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
+                // (8,22): error CS8107: Feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //         private enum E { zero,  one }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "E").WithArguments("default interface implementation", "8.0").WithLocation(8, 22)
                 );
@@ -9201,13 +9201,13 @@ class C
         {
             var text = @"namespace x
 {
-    abstract public class a
+    abstract public class @a
     {
         abstract public void f();
         abstract public void g();
     }
 
-    abstract public class b : a
+    abstract public class @b : a
     {
         new abstract public void f();   // CS0533
         new abstract internal void g();   //fine since internal
@@ -9233,7 +9233,7 @@ abstract public class B1
 
 abstract class A1 : B1
 {
-    new protected enum goo { } // CS0533
+    new protected enum @goo { } // CS0533
 
     abstract public class B2
     {
@@ -9242,7 +9242,7 @@ abstract class A1 : B1
 
     abstract class A2 : B2
     {
-        new public delegate object goo(); // CS0533
+        new public delegate object @goo(); // CS0533
     }
 }
 
@@ -9264,11 +9264,11 @@ namespace NS
                 //         new protected double[] goo;  // CS0533
                 Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "goo").WithArguments("NS.A3.goo", "NS.B3.goo()").WithLocation(31, 32),
                 // (9,24): error CS0533: 'A1.goo' hides inherited abstract member 'B1.goo'
-                //     new protected enum goo { } // CS0533
-                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "goo").WithArguments("A1.goo", "B1.goo").WithLocation(9, 24),
+                //     new protected enum @goo { } // CS0533
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "@goo").WithArguments("A1.goo", "B1.goo").WithLocation(9, 24),
                 // (18,36): error CS0533: 'A1.A2.goo' hides inherited abstract member 'A1.B2.goo()'
-                //         new public delegate object goo(); // CS0533
-                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "goo").WithArguments("A1.A2.goo", "A1.B2.goo()").WithLocation(18, 36),
+                //         new public delegate object @goo(); // CS0533
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "@goo").WithArguments("A1.A2.goo", "A1.B2.goo()").WithLocation(18, 36),
                 // (31,32): warning CS0649: Field 'A3.goo' is never assigned to, and will always have its default value null
                 //         new protected double[] goo;  // CS0533
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "goo").WithArguments("NS.A3.goo", "null").WithLocation(31, 32));
@@ -9553,7 +9553,7 @@ class C : MyIFace
       void m();
    }
 
-   public class clx : I
+   public class @clx : I
    {
       void I.x()   // CS0539
       {
@@ -9985,12 +9985,12 @@ class remove_E : A
         [Fact]
         public void CS0544ERR_CantOverrideNonProperty()
         {
-            var text = @"public class a
+            var text = @"public class @a
 {
     public int i;
 }
 
-public class b : a
+public class @b : a
 {
     public override int i// CS0544
     {   
@@ -10008,7 +10008,7 @@ public class b : a
         [Fact]
         public void CS0545ERR_NoGetToOverride()
         {
-            var text = @"public class a
+            var text = @"public class @a
 {
     public virtual int i
     {
@@ -10016,7 +10016,7 @@ public class b : a
     }
 }
 
-public class b : a
+public class @b : a
 {
     public override int i
     {
@@ -10060,7 +10060,7 @@ public class C : A
         [Fact]
         public void CS0546ERR_NoSetToOverride()
         {
-            var text = @"public class a
+            var text = @"public class @a
 {
     public virtual int i
     {
@@ -10070,7 +10070,7 @@ public class C : A
         }
     }
 }
-public class b : a
+public class @b : a
 {
     public override int i
     {
@@ -10241,7 +10241,7 @@ public sealed class C
         {
             var text = @"namespace x
 {
-    interface ii
+    interface @ii
     {
         int i
         {
@@ -10249,7 +10249,7 @@ public sealed class C
         }
     }
 
-    public class a : ii
+    public class @a : ii
     {
         int ii.i
         {
@@ -10271,7 +10271,7 @@ public sealed class C
         [Fact]
         public void CS0551ERR_ExplicitPropertyMissingAccessor()
         {
-            var text = @"interface ii
+            var text = @"interface @ii
 {
     int i
     {
@@ -10280,7 +10280,7 @@ public sealed class C
     }
 }
 
-public class a : ii
+public class @a : ii
 {
     int ii.i { set { } }   // CS0551
     public static void Main()
@@ -10288,7 +10288,7 @@ public class a : ii
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 10, Column = 18 }, //CONSIDER: dev10 suppresses this
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 10, Column = 19 }, //CONSIDER: dev10 suppresses this
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitPropertyMissingAccessor, Line = 12, Column = 12 });
         }
 
@@ -10426,9 +10426,9 @@ public class C
         {
             var text = @"namespace x
 {
-    public class ii
+    public class @ii
     {
-        public class iii
+        public class @iii
         {
             public static implicit operator int(iii aa)
             {
@@ -10457,9 +10457,9 @@ Diagnostic(ErrorCode.ERR_DuplicateConversionInClass, "int").WithArguments("x.ii.
         {
             var text = @"namespace x
 {
-   public class ii
+   public class @ii
    {
-      public class iii
+      public class @iii
       {
          static implicit operator int(iii aa)   // CS0558, add public
          {
@@ -10480,7 +10480,7 @@ Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "int").WithArguments("x.ii.iii.i
         [Fact]
         public void CS0559ERR_BadIncDecSignature()
         {
-            var text = @"public class iii
+            var text = @"public class @iii
 {
     public static iii operator ++(int aa)   // CS0559
     {
@@ -10498,7 +10498,7 @@ Diagnostic(ErrorCode.ERR_BadIncDecSignature, "++"));
         [Fact]
         public void CS0562ERR_BadUnaryOperatorSignature()
         {
-            var text = @"public class iii
+            var text = @"public class @iii
 {
     public static iii operator +(int aa)   // CS0562
     {
@@ -10517,7 +10517,7 @@ Diagnostic(ErrorCode.ERR_BadUnaryOperatorSignature, "+")
         [Fact]
         public void CS0563ERR_BadBinaryOperatorSignature()
         {
-            var text = @"public class iii
+            var text = @"public class @iii
 {
     public static int operator +(int aa, int bb)   // CS0563 
     {
@@ -10638,14 +10638,14 @@ interface IA
         {
             var text = @"namespace x
 {
-    public class clx
+    public class @clx
     {
         public static void Main()
         {
         }
     }
 
-    public struct cly
+    public struct @cly
     {
         clx a = new clx();   // CS8036
         int i = 7;           // CS8036
@@ -10719,7 +10719,7 @@ interface IA
         {
             var text = @"namespace x
 {
-    public struct iii
+    public struct @iii
     {
         ~iii()   // CS0575
         {
@@ -11014,11 +11014,11 @@ public class A
 namespace x
 {
     [ComImport]   // CS0596
-    public class a
+    public class @a
     {
     }
 
-    public class b
+    public class @b
     {
         public static void Main()
         {
@@ -15313,7 +15313,7 @@ class AAttribute : Attribute { }
         [Fact]
         public void CS0133ERR_InvalidFixedBufferCountFromField()
         {
-            var text = @"unsafe struct s
+            var text = @"unsafe struct @s
     {
         public static int var1 = 10;
         public fixed bool _Type3[var1]; // error CS0133: The expression being assigned to '<Type>' must be constant
@@ -15342,7 +15342,7 @@ class AAttribute : Attribute { }
         [Fact]
         public void CS0029ERR_InvalidFixedBufferNonValidTypes()
         {
-            var text = @"unsafe struct s
+            var text = @"unsafe struct @s
     {
         public fixed int _Type1[1.2]; // error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
         public fixed int _Type2[true]; // error CS00029
@@ -15368,18 +15368,18 @@ class AAttribute : Attribute { }
         [Fact]
         public void CS0029ERR_InvalidFixedBufferNonValidTypesUserDefinedTypes()
         {
-            var text = @"unsafe struct s
+            var text = @"unsafe struct @s
     {
         public fixed goo _bufferGoo[10]; // error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
         public fixed bar _bufferBar[10]; // error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
     }
 
-    struct goo
+    struct @goo
     {
         public int ABC;
     }
 
-    class bar
+    class @bar
     {
         public bool ABC = true;
     }
@@ -15401,7 +15401,7 @@ class AAttribute : Attribute { }
         public void C1666ERR_InvalidFixedBufferInUnfixedContext()
         {
             var text = @"
-unsafe struct s
+unsafe struct @s
 {
     private fixed ushort _e_res[4]; 
     void Error_UsingFixedBuffersWithThis()
@@ -15420,7 +15420,7 @@ unsafe struct s
         public void CS0029ERR_InvalidFixedBufferUsageInLocal()
         {
             //Some additional errors generated but the key ones from native are here.
-            var text = @"unsafe struct s
+            var text = @"unsafe struct @s
     {        
     //Use as local rather than field with unsafe on method
     // Incorrect usage of fixed buffers in method bodies try to use as a local 
@@ -16701,12 +16701,12 @@ namespace testns
 
 namespace x
 {
-    public class clx
+    public class @clx
     {
         public int i = 1;
     }
 
-    public class cly : clx
+    public class @cly : clx
     {
         public static int i = 2;   // CS0108, use the new keyword
         public static void Main()
@@ -17191,12 +17191,12 @@ partial class AnotherChild : Parent
         {
             var text = @"namespace x
 {
-    public class a
+    public class @a
     {
         public int i;
     }
 
-    public class b : a
+    public class @b : a
     {
         public new int i;
         public new int j;   // CS0109
@@ -17213,12 +17213,12 @@ partial class AnotherChild : Parent
         [Fact]
         public void CS0114WRN_NewOrOverrideExpected()
         {
-            var text = @"abstract public class clx
+            var text = @"abstract public class @clx
 {
     public abstract void f();
 }
 
-public class cly : clx
+public class @cly : clx
 {
     public void f() // CS0114, hides base class member
     {
@@ -18526,7 +18526,7 @@ public class Test
         public void CS3001WRN_CLS_BadArgType()
         {
             var text = @"[assembly: System.CLSCompliant(true)]
-public class a
+public class @a
 {
     public void bad(ushort i)   // CS3001
     {
@@ -18546,7 +18546,7 @@ public class a
         public void CS3002WRN_CLS_BadReturnType()
         {
             var text = @"[assembly: System.CLSCompliant(true)]
-public class a
+public class @a
 {
     public ushort bad()   // CS3002, public method
     {
@@ -18567,7 +18567,7 @@ public class a
         public void CS3003WRN_CLS_BadFieldPropType()
         {
             var text = @"[assembly: System.CLSCompliant(true)]
-public class a
+public class @a
 {
     public ushort a1;   // CS3003, public variable
     public static void Main()
@@ -18587,7 +18587,7 @@ public class a
             var text = @"using System;
 
 [assembly: CLSCompliant(true)]
-public class a
+public class @a
 {
     public static int a1 = 0;
     public static int A1 = 1;   // CS3005
@@ -18651,7 +18651,7 @@ public struct S
         {
             var text = @"using System;
 [assembly: CLSCompliant(true)]
-public class a
+public class @a
 {
     public static int _a = 0;  // CS3008
     public static void Main()
@@ -20966,6 +20966,7 @@ class C
 
 class Ten { }
 class eleveN { }
+class twel_ve { }
 ";
             var expected = new[]
             {
