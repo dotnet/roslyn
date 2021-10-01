@@ -37,8 +37,5 @@ namespace Microsoft.CodeAnalysis.Storage
 
         public IPersistentStorage GetStorage(Solution solution)
             => NoOpPersistentStorage.GetOrThrow(throwOnFailure: false);
-
-        public ValueTask<IPersistentStorage> GetStorageAsync(Solution solution, CancellationToken cancellationToken)
-            => new(NoOpPersistentStorage.GetOrThrow(throwOnFailure: false));
     }
 }
