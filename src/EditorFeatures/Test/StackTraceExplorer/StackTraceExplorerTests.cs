@@ -208,6 +208,25 @@ namespace ConsoleApp4
 }");
         }
 
+        [Fact(Skip = "in params do not work yet")]
+        public Task TestSymbolFound_ExceptionLine_InArg()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp4.MyClass.M(Int32& i)",
+                @"using System;
+
+namespace ConsoleApp4
+{
+    class MyClass
+    {
+        void [|M|](in int i)
+        {
+            throw new Exception();
+        }
+    }
+}");
+        }
+
         [Fact(Skip = "Generated types/methods are not supported")]
         public Task TestSymbolFound_ExceptionLine_AsyncMethod()
         {
@@ -339,6 +358,21 @@ namespace ConsoleApp4
             }
         }
     }
+}");
+        }
+
+        [Fact(Skip = "Generated types/methods are not supported")]
+        public Task TestSymbolFound_ExceptionLine_LocalInTopLevelStatement()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp4.MyClass.<M>g__LocalFunction|0_0()",
+                @"using System;
+
+LoaclInTopLevelStatement();
+
+void [|LocalInTopLevelStatement|]()
+{
+    throw new Exception();
 }");
         }
 
