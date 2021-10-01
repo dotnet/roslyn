@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if ((valueKind & BindValueKind.RefersToLocation) == BindValueKind.RefersToLocation)
                     {
                         var pointerIndirection = (BoundPointerIndirectionOperator)expr;
-                        expr = pointerIndirection.Update(pointerIndirection.Operand, isAssignmentAddress: true, pointerIndirection.Type);
+                        expr = pointerIndirection.Update(pointerIndirection.Operand, refersToLocation: true, pointerIndirection.Type);
                     }
                     break;
 
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if ((valueKind & BindValueKind.RefersToLocation) == BindValueKind.RefersToLocation)
                     {
                         var elementAccess = (BoundPointerElementAccess)expr;
-                        expr = elementAccess.Update(elementAccess.Expression, elementAccess.Index, elementAccess.Checked, isAssignmentAddress: true, elementAccess.Type);
+                        expr = elementAccess.Update(elementAccess.Expression, elementAccess.Index, elementAccess.Checked, refersToLocation: true, elementAccess.Type);
                     }
                     break;
             }

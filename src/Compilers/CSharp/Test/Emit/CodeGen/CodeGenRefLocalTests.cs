@@ -3645,7 +3645,7 @@ unsafe
             void verify(CSharpCompilationOptions options, Verification verify, string expectedIL)
             {
                 var comp = CreateCompilation(code, options: options);
-                var verifier = CompileAndVerify(comp, expectedOutput: "run", verify: Verification.Fails);
+                var verifier = CompileAndVerify(comp, expectedOutput: "run", verify: verify);
                 verifier.VerifyDiagnostics();
                 verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
             }
