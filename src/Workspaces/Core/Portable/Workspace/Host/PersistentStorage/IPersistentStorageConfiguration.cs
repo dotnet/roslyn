@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 var fileName = Path.GetFileName(fullPath);
 
-                // we don't want to build too long a path.  So only take 16 chars of the text we started with.
+                // we don't want to build too long a path.  So only take a portion of the text we started with.
                 // However, we want to avoid collisions, so ensure we also append a safe short piece of text
                 // that is based on the full text.
                 const int MaxLength = 20;
