@@ -14006,6 +14006,171 @@ partial struct CustomHandler
         }
 
         [Fact]
+        public void HandlerExtensionMethod_04()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+var s = new S1();
+s.M($"""");
+
+public struct S1
+{
+    public int Field = 1;
+}
+
+public static class S1Ext
+{
+    public static void M(ref this S1 s, [InterpolatedStringHandlerArgument(""s"")] CustomHandler c) => Console.WriteLine(s.Field);
+}
+
+partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, ref S1 s) : this(literalLength, formattedCount) => s.Field = 2;
+}
+";
+
+            var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, expectedOutput: "2");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  4
+  .locals init (S1 V_0, //s
+                S1& V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  call       ""S1..ctor()""
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  stloc.1
+  IL_000a:  ldloc.1
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ldloc.1
+  IL_000e:  newobj     ""CustomHandler..ctor(int, int, ref S1)""
+  IL_0013:  call       ""void S1Ext.M(ref S1, CustomHandler)""
+  IL_0018:  ret
+}
+");
+        }
+
+        [Fact]
+        public void HandlerExtensionMethod_05()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+var s = new S1();
+s.M($"""");
+
+public struct S1
+{
+    public int Field = 1;
+}
+
+public static class S1Ext
+{
+    public static void M(in this S1 s, [InterpolatedStringHandlerArgument(""s"")] CustomHandler c) => Console.WriteLine(c.ToString());
+}
+
+partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, in S1 s) : this(literalLength, formattedCount) => _builder.Append(""s.Field:"" + s.Field);
+}
+";
+
+            var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, expectedOutput: "s.Field:1");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  4
+  .locals init (S1 V_0, //s
+                S1& V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  call       ""S1..ctor()""
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  stloc.1
+  IL_000a:  ldloc.1
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ldloc.1
+  IL_000e:  newobj     ""CustomHandler..ctor(int, int, in S1)""
+  IL_0013:  call       ""void S1Ext.M(in S1, CustomHandler)""
+  IL_0018:  ret
+}
+");
+        }
+
+        [Fact]
+        public void HandlerExtensionMethod_06()
+        {
+            var code = @"
+using System.Runtime.CompilerServices;
+
+var s = new S1();
+s.M($"""");
+
+public struct S1
+{
+    public int Field = 1;
+}
+
+public static class S1Ext
+{
+    public static void M(in this S1 s, [InterpolatedStringHandlerArgument(""s"")] CustomHandler c) => throw null;
+}
+
+partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, ref S1 s) => throw null;
+}
+";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) });
+            comp.VerifyDiagnostics(
+                // (5,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
+                // s.M($"");
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("3", "ref").WithLocation(5, 1)
+            );
+        }
+
+        [Fact]
+        public void HandlerExtensionMethod_07()
+        {
+            var code = @"
+using System.Runtime.CompilerServices;
+
+var s = new S1();
+s.M($"""");
+
+public struct S1
+{
+    public int Field = 1;
+}
+
+public static class S1Ext
+{
+    public static void M(ref this S1 s, [InterpolatedStringHandlerArgument(""s"")] CustomHandler c) => throw null;
+}
+
+partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, in S1 s) => throw null;
+}
+";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) });
+            comp.VerifyDiagnostics(
+                // (5,1): error CS1615: Argument 3 may not be passed with the 'ref' keyword
+                // s.M($"");
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("3", "ref").WithLocation(5, 1)
+            );
+        }
+
+        [Fact]
         public void NoStandaloneConstructor()
         {
             var code = @"
