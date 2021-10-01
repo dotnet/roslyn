@@ -14,13 +14,12 @@ using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -116,16 +115,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
 
         private async Task UpdateForCaretPositionAsync(SnapshotPoint pointInRoslynSnapshot, CancellationToken cancellationToken)
         {
-            await _asyncListener.Delay(TimeSpan.FromMilliseconds(250), cancellationToken).ConfigureAwait(false);
-
-            var document = pointInRoslynSnapshot.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
+            try
             {
-                return;
-            }
+                await _asyncListener.Delay(TimeSpan.FromMilliseconds(250), cancellationToken).ConfigureAwait(false);
 
-            var locations = await GetContextFromPointAsync(document, pointInRoslynSnapshot, cancellationToken).ConfigureAwait(true);
-            await _codeDefinitionWindowService.SetContextAsync(locations, cancellationToken).ConfigureAwait(false);
+                var document = pointInRoslynSnapshot.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                if (document == null)
+                {
+                    return;
+                }
+
+                var locations = await GetContextFromPointAsync(document, pointInRoslynSnapshot, cancellationToken).ConfigureAwait(true);
+                await _codeDefinitionWindowService.SetContextAsync(locations, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            {
+            }
         }
 
         /// <summary>
