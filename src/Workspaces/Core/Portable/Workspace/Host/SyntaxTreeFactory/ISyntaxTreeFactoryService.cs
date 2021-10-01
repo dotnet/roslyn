@@ -5,7 +5,6 @@
 using System.IO;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
