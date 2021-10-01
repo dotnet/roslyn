@@ -48,14 +48,6 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         /// <summary>
-        /// A service for storing information across that can be retrieved in a separate process.
-        /// </summary>
-        public virtual IPersistentStorageService PersistentStorage
-        {
-            get { return this.GetRequiredService<IPersistentStorageService>(); }
-        }
-
-        /// <summary>
         /// A service for storing information in a temporary location that only lasts for the duration of the process.
         /// </summary>
         public virtual ITemporaryStorageService TemporaryStorage
