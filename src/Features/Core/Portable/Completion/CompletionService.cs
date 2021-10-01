@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.Completion
     /// </summary>
     public abstract class CompletionService : ILanguageService
     {
+        // Prevent inheritance outside of Roslyn.
+        internal CompletionService()
+        {
+        }
+
         /// <summary>
         /// Gets the service corresponding to the specified document.
         /// </summary>
