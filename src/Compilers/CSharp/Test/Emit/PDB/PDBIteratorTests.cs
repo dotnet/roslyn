@@ -650,23 +650,6 @@ public class Test
         <entry offset=""0x12e"" hidden=""true"" document=""1"" />
       </sequencePoints>
     </method>
-    <method containingType=""Test`1+&lt;get_IterProp&gt;d__3"" name=""MoveNext"">
-      <customDebugInfo>
-        <forward declaringType=""Test`1"" methodName=""System.Collections.IEnumerable.GetEnumerator"" />
-        <encLocalSlotMap>
-          <slot kind=""27"" offset=""0"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x2a"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x2b"" startLine=""29"" startColumn=""13"" endLine=""29"" endColumn=""31"" document=""1"" />
-        <entry offset=""0x40"" hidden=""true"" document=""1"" />
-        <entry offset=""0x47"" startLine=""30"" startColumn=""13"" endLine=""30"" endColumn=""31"" document=""1"" />
-        <entry offset=""0x5c"" hidden=""true"" document=""1"" />
-        <entry offset=""0x63"" startLine=""31"" startColumn=""9"" endLine=""31"" endColumn=""10"" document=""1"" />
-      </sequencePoints>
-    </method>
     <method containingType=""Test`1+&lt;IterMethod&gt;d__4"" name=""MoveNext"">
       <customDebugInfo>
         <forward declaringType=""Test`1"" methodName=""System.Collections.IEnumerable.GetEnumerator"" />
@@ -682,6 +665,23 @@ public class Test
         <entry offset=""0x47"" startLine=""37"" startColumn=""9"" endLine=""37"" endColumn=""27"" document=""1"" />
         <entry offset=""0x5c"" hidden=""true"" document=""1"" />
         <entry offset=""0x63"" startLine=""38"" startColumn=""9"" endLine=""38"" endColumn=""21"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""Test`1+&lt;get_IterProp&gt;d__3"" name=""MoveNext"">
+      <customDebugInfo>
+        <forward declaringType=""Test`1"" methodName=""System.Collections.IEnumerable.GetEnumerator"" />
+        <encLocalSlotMap>
+          <slot kind=""27"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2a"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x2b"" startLine=""29"" startColumn=""13"" endLine=""29"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x40"" hidden=""true"" document=""1"" />
+        <entry offset=""0x47"" startLine=""30"" startColumn=""13"" endLine=""30"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x5c"" hidden=""true"" document=""1"" />
+        <entry offset=""0x63"" startLine=""31"" startColumn=""9"" endLine=""31"" endColumn=""10"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
