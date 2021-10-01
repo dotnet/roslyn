@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -19,7 +18,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     internal sealed class FeatureFlagPersister : IOptionPersister
     {
         private readonly IVsFeatureFlags? _featureFlags;
-        private readonly ConcurrentDictionary<OptionKey, object?> _cachedValues = new();
 
         public FeatureFlagPersister(IVsFeatureFlags? featureFlags)
         {
@@ -28,30 +26,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public bool TryFetch(OptionKey optionKey, [NotNullWhen(true)] out object? value)
         {
-            value = _cachedValues.GetOrAdd(optionKey, key => TryFetchWorker(key));
-            return value != null;
-        }
-
-        private object? TryFetchWorker(OptionKey optionKey)
-        {
             if (_featureFlags == null)
-                return null;
+            {
+                value = null;
+                return false;
+            }
 
             var location = optionKey.Option.StorageLocations.OfType<FeatureFlagStorageLocation>().FirstOrDefault();
             if (location == null)
-                return null;
+            {
+                value = null;
+                return false;
+            }
 
             if (optionKey.Option.DefaultValue is not bool defaultValue)
+            {
                 throw ExceptionUtilities.UnexpectedValue(optionKey.Option.DefaultValue);
+            }
 
             try
             {
-                return _featureFlags.IsFeatureEnabled(location.Name, defaultValue);
+                value = _featureFlags.IsFeatureEnabled(location.Name, defaultValue);
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
-                return defaultValue;
+                value = defaultValue;
             }
+
+            return true;
         }
 
         public bool TryPersist(OptionKey optionKey, object? value)
@@ -75,7 +77,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             try
             {
                 ((IVsFeatureFlags2)_featureFlags).EnableFeatureFlag(location.Name, flag);
-                _cachedValues[optionKey] = flag;
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
