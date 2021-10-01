@@ -66,7 +66,7 @@ namespace IdeBenchmarks
                 .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)));
 
             var connectionPoolService = _workspace.ExportProvider.GetExportedValue<SQLiteConnectionPoolService>();
-            var asyncListener = _workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.PersistentStorage);
+            var asyncListener = _workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
             _storageService = new SQLitePersistentStorageService(connectionPoolService, asyncListener);
 

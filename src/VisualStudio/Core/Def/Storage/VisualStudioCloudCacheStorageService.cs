@@ -18,26 +18,34 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Storage
 {
+    /// <summary>
+    /// The storage service is a process wide singleton.  It will ensure that any workspace that
+    /// wants to read/write data for a particular solution gets the same DB.  This is important,
+    /// we do not partition access to the information about a solution to particular workspaces.
+    /// </summary>
+    [Export(typeof(VisualStudioCloudCacheStorageService)), Shared]
     internal class VisualStudioCloudCacheStorageService : AbstractCloudCachePersistentStorageService
     {
         [ExportWorkspaceService(typeof(ICloudCacheStorageServiceFactory), ServiceLayer.Host), Shared]
         internal class VisualStudioCloudCacheStorageServiceFactory : ICloudCacheStorageServiceFactory
         {
-            private readonly IChecksummedPersistentStorageService _instance;
+            private readonly VisualStudioCloudCacheStorageService _service;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public VisualStudioCloudCacheStorageServiceFactory(SVsServiceProvider serviceProvider)
-                => _instance = new VisualStudioCloudCacheStorageService((IAsyncServiceProvider)serviceProvider);
+            public VisualStudioCloudCacheStorageServiceFactory(VisualStudioCloudCacheStorageService service)
+                => _service = service;
 
             public IChecksummedPersistentStorageService Create()
-                => _instance;
+                => _service;
         }
 
         private readonly IAsyncServiceProvider _serviceProvider;
 
-        public VisualStudioCloudCacheStorageService(IAsyncServiceProvider serviceProvider)
-            => _serviceProvider = serviceProvider;
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualStudioCloudCacheStorageService(SVsServiceProvider serviceProvider)
+            => _serviceProvider = (IAsyncServiceProvider)serviceProvider;
 
         protected sealed override async ValueTask<ICacheService> CreateCacheServiceAsync(string solutionFolder, CancellationToken cancellationToken)
         {

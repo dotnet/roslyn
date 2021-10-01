@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,26 +16,26 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
+    /// <summary>
+    /// The storage service is a process wide singleton.  It will ensure that any workspace that
+    /// wants to read/write data for a particular solution gets the same DB.  This is important,
+    /// we do not partition access to the information about a solution to particular workspaces.
+    /// </summary>
+    [Export(typeof(SQLitePersistentStorageService)), Shared]
     internal sealed class SQLitePersistentStorageService : AbstractSQLitePersistentStorageService
     {
         [ExportWorkspaceService(typeof(ISQLiteStorageServiceFactory)), Shared]
         internal sealed class Factory : ISQLiteStorageServiceFactory
         {
-            private readonly IChecksummedPersistentStorageService _instance;
+            private readonly SQLitePersistentStorageService _service;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory(
-                SQLiteConnectionPoolService connectionPoolService,
-                IAsynchronousOperationListenerProvider asyncOperationListenerProvider)
-            {
-                _instance = new SQLitePersistentStorageService(
-                    connectionPoolService,
-                    asyncOperationListenerProvider.GetListener(FeatureAttribute.PersistentStorage));
-            }
+            public Factory(SQLitePersistentStorageService service)
+                => _service = service;
 
             public IChecksummedPersistentStorageService Create()
-                => _instance;
+                => _service;
         }
 
         private const string StorageExtension = "sqlite3";
@@ -44,22 +45,27 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly IPersistentStorageFaultInjector? _faultInjector;
 
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public SQLitePersistentStorageService(
             SQLiteConnectionPoolService connectionPoolService,
-            IAsynchronousOperationListener asyncListener)
+            IAsynchronousOperationListenerProvider asyncOperationListenerProvider)
         {
             _connectionPoolService = connectionPoolService;
-            _asyncListener = asyncListener;
+            _asyncListener = asyncOperationListenerProvider.GetListener(FeatureAttribute.PersistentStorage);
         }
 
+#pragma warning disable RS0034
+        // exported for testing purposes.
         public SQLitePersistentStorageService(
             SQLiteConnectionPoolService connectionPoolService,
-            IAsynchronousOperationListener asyncListener,
+            IAsynchronousOperationListenerProvider asyncOperationListenerProvider,
             IPersistentStorageFaultInjector? faultInjector)
-            : this(connectionPoolService, asyncListener)
+            : this(connectionPoolService, asyncOperationListenerProvider)
         {
             _faultInjector = faultInjector;
         }
+#pragma warning restore
 
         protected override string GetDatabaseFilePath(string workingFolderPath)
         {

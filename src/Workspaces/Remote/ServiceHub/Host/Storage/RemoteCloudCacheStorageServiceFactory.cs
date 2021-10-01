@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote.Host;
-using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Storage.CloudCache;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio;
@@ -20,24 +19,32 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Storage
 {
+    /// <summary>
+    /// The storage service is a process wide singleton.  It will ensure that any workspace that
+    /// wants to read/write data for a particular solution gets the same DB.  This is important,
+    /// we do not partition access to the information about a solution to particular workspaces.
+    /// </summary>
+    [Export(typeof(RemoteCloudCachePersistentStorageService)), Shared]
     internal class RemoteCloudCachePersistentStorageService : AbstractCloudCachePersistentStorageService
     {
         [ExportWorkspaceService(typeof(ICloudCacheStorageServiceFactory), WorkspaceKind.RemoteWorkspace), Shared]
         internal class RemoteCloudCacheStorageServiceFactory : ICloudCacheStorageServiceFactory
         {
-            private readonly IChecksummedPersistentStorageService _instance;
+            private readonly IChecksummedPersistentStorageService _service;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public RemoteCloudCacheStorageServiceFactory(IGlobalServiceBroker globalServiceBroker)
-                => _instance = new RemoteCloudCachePersistentStorageService(globalServiceBroker);
+            public RemoteCloudCacheStorageServiceFactory(RemoteCloudCachePersistentStorageService service)
+                => _service = service;
 
             public IChecksummedPersistentStorageService Create()
-                => _instance;
+                => _service;
         }
 
         private readonly IGlobalServiceBroker _globalServiceBroker;
 
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoteCloudCachePersistentStorageService(IGlobalServiceBroker globalServiceBroker)
             => _globalServiceBroker = globalServiceBroker;
 
