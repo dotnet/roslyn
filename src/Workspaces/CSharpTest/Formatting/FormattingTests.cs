@@ -10378,6 +10378,57 @@ void M()
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnTypeParameter_TwoAttributes()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C<[Attribute][Attribute2] T> { }
+",
+                code: @"
+class C<  [Attribute]  [Attribute2]  T  > { }
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnTypeParameter_TwoAttributes_Method()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    void M<[Attribute][Attribute2] T>() { }
+}
+",
+                code: @"
+class C
+{
+    void M<  [Attribute]  [Attribute2]  T  > ( ) { }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnParameter_TwoAttributes()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    void M([Attribute][Attribute2] T t) { }
+}
+",
+                code: @"
+class C
+{
+    void M(  [Attribute]  [Attribute2]  T  t  ) { }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
         public async Task FormatAttributeOnLambdaWithExplicitType()
         {
             await AssertFormatAsync(

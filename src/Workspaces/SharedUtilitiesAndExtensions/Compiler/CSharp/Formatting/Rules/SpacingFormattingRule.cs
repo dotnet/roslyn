@@ -240,11 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
 
                 // [Attribute]$$ int Prop { ... }
-                var attributeOwner = previousToken.Parent?.Parent;
-                if (attributeOwner is MemberDeclarationSyntax)
-                {
-                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-                }
+                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
             // For spacing delimiters - after colon
