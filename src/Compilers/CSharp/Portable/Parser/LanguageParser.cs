@@ -12764,18 +12764,15 @@ tryAgain:
                     this.IsInAsync = true;
                 }
 
-                TypeSyntax returnType = null;
+                TypeSyntax returnType;
                 var resetPoint = this.GetResetPoint();
                 try
                 {
-                    if (!IsVarType())
+                    returnType = ParseReturnType();
+                    if (CurrentToken.Kind != SyntaxKind.OpenParenToken)
                     {
-                        returnType = ParseReturnType();
-                        if (CurrentToken.Kind != SyntaxKind.OpenParenToken)
-                        {
-                            this.Reset(ref resetPoint);
-                            returnType = null;
-                        }
+                        this.Reset(ref resetPoint);
+                        returnType = null;
                     }
                 }
                 finally
@@ -12789,6 +12786,12 @@ tryAgain:
                     var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
                     arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
                     var (block, expression) = ParseLambdaBody();
+
+                    // Disallow 'var' as explicit return type.
+                    if ((returnType as IdentifierNameSyntax)?.Identifier.ContextualKind == SyntaxKind.VarKeyword)
+                    {
+                        returnType = this.AddError(returnType, ErrorCode.ERR_TypeExpected);
+                    }
 
                     return _syntaxFactory.ParenthesizedLambdaExpression(
                         attributes, modifiers, returnType, paramList, arrow, block, expression);

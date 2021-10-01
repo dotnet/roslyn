@@ -170,38 +170,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             void verify(string source, ParseOptions? parseOptions = null)
             {
                 UsingExpression(source, parseOptions,
-                    // (1,5): error CS1003: Syntax error, '=>' expected
+                    // (1,1): error CS1031: Type expected
                     // var (x, y) => default
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("=>", "(").WithLocation(1, 5));
+                    Diagnostic(ErrorCode.ERR_TypeExpected, "var").WithLocation(1, 1));
 
-                N(SyntaxKind.SimpleLambdaExpression);
+                N(SyntaxKind.ParenthesizedLambdaExpression);
                 {
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "var");
                     }
-                    M(SyntaxKind.EqualsGreaterThanToken);
-                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                    N(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.ParameterList);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.Parameter);
-                            {
-                                N(SyntaxKind.IdentifierToken, "x");
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.Parameter);
-                            {
-                                N(SyntaxKind.IdentifierToken, "y");
-                            }
-                            N(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.IdentifierToken, "x");
                         }
-                        N(SyntaxKind.EqualsGreaterThanToken);
-                        N(SyntaxKind.DefaultLiteralExpression);
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.DefaultKeyword);
+                            N(SyntaxKind.IdentifierToken, "y");
                         }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.DefaultLiteralExpression);
+                    {
+                        N(SyntaxKind.DefaultKeyword);
                     }
                 }
                 EOF();
@@ -5091,29 +5087,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             void verify(string source, ParseOptions? parseOptions = null)
             {
                 UsingExpression(source, parseOptions,
-                    // (1,5): error CS1003: Syntax error, '=>' expected
+                    // (1,1): error CS1031: Type expected
                     // var () => default
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("=>", "(").WithLocation(1, 5));
+                    Diagnostic(ErrorCode.ERR_TypeExpected, "var").WithLocation(1, 1));
 
-                N(SyntaxKind.SimpleLambdaExpression);
+                N(SyntaxKind.ParenthesizedLambdaExpression);
                 {
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "var");
                     }
-                    M(SyntaxKind.EqualsGreaterThanToken);
-                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                    N(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.ParameterList);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                        N(SyntaxKind.EqualsGreaterThanToken);
-                        N(SyntaxKind.DefaultLiteralExpression);
-                        {
-                            N(SyntaxKind.DefaultKeyword);
-                        }
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.DefaultLiteralExpression);
+                    {
+                        N(SyntaxKind.DefaultKeyword);
                     }
                 }
                 EOF();
@@ -5152,9 +5144,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             void verify(string source, ParseOptions? parseOptions = null)
             {
                 UsingExpression(source, parseOptions,
-                    // (1,7): error CS1003: Syntax error, '=>' expected
+                    // (1,3): error CS1031: Type expected
                     // F(var (x, y) => default)
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("=>", "(").WithLocation(1, 7));
+                    Diagnostic(ErrorCode.ERR_TypeExpected, "var").WithLocation(1, 3));
 
                 N(SyntaxKind.InvocationExpression);
                 {
@@ -5167,34 +5159,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Argument);
                         {
-                            N(SyntaxKind.SimpleLambdaExpression);
+                            N(SyntaxKind.ParenthesizedLambdaExpression);
                             {
-                                N(SyntaxKind.Parameter);
+                                N(SyntaxKind.IdentifierName);
                                 {
                                     N(SyntaxKind.IdentifierToken, "var");
                                 }
-                                M(SyntaxKind.EqualsGreaterThanToken);
-                                N(SyntaxKind.ParenthesizedLambdaExpression);
+                                N(SyntaxKind.ParameterList);
                                 {
-                                    N(SyntaxKind.ParameterList);
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Parameter);
                                     {
-                                        N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.Parameter);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "x");
-                                        }
-                                        N(SyntaxKind.CommaToken);
-                                        N(SyntaxKind.Parameter);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "y");
-                                        }
-                                        N(SyntaxKind.CloseParenToken);
+                                        N(SyntaxKind.IdentifierToken, "x");
                                     }
-                                    N(SyntaxKind.EqualsGreaterThanToken);
-                                    N(SyntaxKind.DefaultLiteralExpression);
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.Parameter);
                                     {
-                                        N(SyntaxKind.DefaultKeyword);
+                                        N(SyntaxKind.IdentifierToken, "y");
                                     }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.DefaultLiteralExpression);
+                                {
+                                    N(SyntaxKind.DefaultKeyword);
                                 }
                             }
                         }
@@ -5268,9 +5256,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             void verify(string source, ParseOptions? parseOptions = null)
             {
                 UsingDeclaration(source, parseOptions,
-                    // (1,13): error CS1003: Syntax error, '=>' expected
+                    // (1,9): error CS1031: Type expected
                     // var d = var () => default;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("=>", "(").WithLocation(1, 13));
+                    Diagnostic(ErrorCode.ERR_TypeExpected, "var").WithLocation(1, 9));
 
                 N(SyntaxKind.FieldDeclaration);
                 {
@@ -5286,25 +5274,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.EqualsValueClause);
                             {
                                 N(SyntaxKind.EqualsToken);
-                                N(SyntaxKind.SimpleLambdaExpression);
+                                N(SyntaxKind.ParenthesizedLambdaExpression);
                                 {
-                                    N(SyntaxKind.Parameter);
+                                    N(SyntaxKind.IdentifierName);
                                     {
                                         N(SyntaxKind.IdentifierToken, "var");
                                     }
-                                    M(SyntaxKind.EqualsGreaterThanToken);
-                                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                                    N(SyntaxKind.ParameterList);
                                     {
-                                        N(SyntaxKind.ParameterList);
-                                        {
-                                            N(SyntaxKind.OpenParenToken);
-                                            N(SyntaxKind.CloseParenToken);
-                                        }
-                                        N(SyntaxKind.EqualsGreaterThanToken);
-                                        N(SyntaxKind.DefaultLiteralExpression);
-                                        {
-                                            N(SyntaxKind.DefaultKeyword);
-                                        }
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                    N(SyntaxKind.DefaultLiteralExpression);
+                                    {
+                                        N(SyntaxKind.DefaultKeyword);
                                     }
                                 }
                             }
