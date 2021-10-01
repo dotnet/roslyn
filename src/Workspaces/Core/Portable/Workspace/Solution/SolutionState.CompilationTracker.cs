@@ -156,22 +156,23 @@ namespace Microsoft.CodeAnalysis
                 GetPartialCompilationState(
                     solution, docState.Id,
                     out var inProgressProject,
-                    out var inProgressCompilation,
+                    out var compilationPair,
                     out var generatorInfo,
                     out var metadataReferenceToProjectId,
                     cancellationToken);
 
-                if (!inProgressCompilation.SyntaxTrees.Contains(tree))
+                // Ensure we actually have the tree we need in there
+                if (!compilationPair.CompilationWithoutGeneratedDocuments.SyntaxTrees.Contains(tree))
                 {
-                    var existingTree = inProgressCompilation.SyntaxTrees.FirstOrDefault(t => t.FilePath == tree.FilePath);
+                    var existingTree = compilationPair.CompilationWithoutGeneratedDocuments.SyntaxTrees.FirstOrDefault(t => t.FilePath == tree.FilePath);
                     if (existingTree != null)
                     {
-                        inProgressCompilation = inProgressCompilation.ReplaceSyntaxTree(existingTree, tree);
+                        compilationPair = compilationPair.ReplaceSyntaxTree(existingTree, tree);
                         inProgressProject = inProgressProject.UpdateDocument(docState, textChanged: false, recalculateDependentVersions: false);
                     }
                     else
                     {
-                        inProgressCompilation = inProgressCompilation.AddSyntaxTrees(tree);
+                        compilationPair = compilationPair.AddSyntaxTree(tree);
                         Debug.Assert(!inProgressProject.DocumentStates.Contains(docState.Id));
                         inProgressProject = inProgressProject.AddDocuments(ImmutableArray.Create(docState));
                     }
@@ -181,12 +182,12 @@ namespace Microsoft.CodeAnalysis
                 // have the compilation immediately disappear.  So we force it to stay around with a ConstantValueSource.
                 // As a policy, all partial-state projects are said to have incomplete references, since the state has no guarantees.
                 var finalState = FinalState.Create(
-                    new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
-                    new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
-                    inProgressCompilation,
+                    finalCompilationSource: new ConstantValueSource<Optional<Compilation>>(compilationPair.CompilationWithGeneratedDocuments),
+                    compilationWithoutGeneratedFilesSource: new ConstantValueSource<Optional<Compilation>>(compilationPair.CompilationWithoutGeneratedDocuments),
+                    compilationWithoutGeneratedFiles: compilationPair.CompilationWithoutGeneratedDocuments,
                     hasSuccessfullyLoaded: false,
                     generatorInfo,
-                    inProgressCompilation,
+                    finalCompilation: compilationPair.CompilationWithGeneratedDocuments,
                     this.ProjectState.Id,
                     metadataReferenceToProjectId);
 
@@ -202,12 +203,11 @@ namespace Microsoft.CodeAnalysis
             /// The compilation state that is returned will have a compilation that is retained so
             /// that it cannot disappear.
             /// </summary>
-            /// <param name="inProgressCompilation">The compilation to return. Contains any source generated documents that were available already added.</param>
             private void GetPartialCompilationState(
                 SolutionState solution,
                 DocumentId id,
                 out ProjectState inProgressProject,
-                out Compilation inProgressCompilation,
+                out CompilationPair compilations,
                 out CompilationTrackerGeneratorInfo generatorInfo,
                 out Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId,
                 CancellationToken cancellationToken)
@@ -230,7 +230,9 @@ namespace Microsoft.CodeAnalysis
 
                     // We'll add in whatever generated documents we do have; these may be from a prior run prior to some changes
                     // being made to the project, but it's the best we have so we'll use it.
-                    inProgressCompilation = compilationWithoutGeneratedDocuments.AddSyntaxTrees(generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken)));
+                    compilations = new CompilationPair(
+                        compilationWithoutGeneratedDocuments,
+                        compilationWithoutGeneratedDocuments.AddSyntaxTrees(generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken))));
 
                     // This is likely a bug.  It seems possible to pass out a partial compilation state that we don't
                     // properly record assembly symbols for.
@@ -248,7 +250,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (finalCompilation != null)
                     {
-                        inProgressCompilation = finalCompilation;
+                        compilations = new CompilationPair(compilationWithoutGeneratedDocuments, finalCompilation);
 
                         // This should hopefully be safe to return as null.  Because we already reached the 'FinalState'
                         // before, we should have already recorded the assembly symbols for it.  So not recording them
@@ -266,14 +268,12 @@ namespace Microsoft.CodeAnalysis
                 if (compilationWithoutGeneratedDocuments == null)
                 {
                     inProgressProject = inProgressProject.RemoveAllDocuments();
-                    inProgressCompilation = CreateEmptyCompilation();
-                }
-                else
-                {
-                    inProgressCompilation = compilationWithoutGeneratedDocuments;
+                    compilationWithoutGeneratedDocuments = CreateEmptyCompilation();
                 }
 
-                inProgressCompilation = inProgressCompilation.AddSyntaxTrees(generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken)));
+                compilations = new CompilationPair(
+                    compilationWithoutGeneratedDocuments,
+                    compilationWithoutGeneratedDocuments.AddSyntaxTrees(generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken))));
 
                 // Now add in back a consistent set of project references.  For project references
                 // try to get either a CompilationReference or a SkeletonReference. This ensures
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis
                             // previous submission project must support compilation:
                             RoslynDebug.Assert(previousScriptCompilation != null);
 
-                            inProgressCompilation = inProgressCompilation.WithScriptCompilationInfo(inProgressCompilation.ScriptCompilationInfo!.WithPreviousScriptCompilation(previousScriptCompilation));
+                            compilations = compilations.WithPreviousScriptCompilation(previousScriptCompilation);
                         }
                         else
                         {
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis
                             if (metadata == null)
                             {
                                 // if we failed to get the metadata, check to see if we previously had existing metadata and reuse it instead.
-                                var inProgressCompilationNotRef = inProgressCompilation;
+                                var inProgressCompilationNotRef = compilations.CompilationWithGeneratedDocuments;
                                 metadata = inProgressCompilationNotRef.ExternalReferences.FirstOrDefault(
                                     r => solution.GetProjectState(inProgressCompilationNotRef.GetAssemblyOrModuleSymbol(r) as IAssemblySymbol)?.Id == projectReference.ProjectId);
                             }
@@ -324,9 +324,9 @@ namespace Microsoft.CodeAnalysis
 
                 inProgressProject = inProgressProject.WithProjectReferences(newProjectReferences);
 
-                if (!Enumerable.SequenceEqual(inProgressCompilation.ExternalReferences, metadataReferences))
+                if (!Enumerable.SequenceEqual(compilations.CompilationWithoutGeneratedDocuments.ExternalReferences, metadataReferences))
                 {
-                    inProgressCompilation = inProgressCompilation.WithReferences(metadataReferences);
+                    compilations = compilations.WithReferences(metadataReferences);
                 }
 
                 SolutionLogger.CreatePartialProjectState();

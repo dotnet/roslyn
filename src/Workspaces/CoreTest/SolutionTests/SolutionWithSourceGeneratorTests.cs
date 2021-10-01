@@ -592,5 +592,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.False(generatorRan);
         }
+
+        [Fact]
+        [WorkItem(56702, "https://github.com/dotnet/roslyn/issues/56702")]
+        public async Task ForkAfterFreezeWorks()
+        {
+            using var workspace = CreateWorkspaceWithPartialSemantics();
+            var analyzerReference = new TestGeneratorReference(new SingleFileTestGenerator("// Hello, Source Generators!"));
+            var project = AddEmptyProject(workspace.CurrentSolution)
+                .AddAnalyzerReference(analyzerReference)
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+            // Ensure generators are ran
+            _ = await project.GetCompilationAsync();
+
+            var document = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
+
+            // And fork with new contents; this will force generators to run again
+            document = document.WithText(SourceText.From("// Something else"));
+
+            var compilation = await document.Project.GetRequiredCompilationAsync(CancellationToken.None);
+            Assert.Equal(2, compilation.SyntaxTrees.Count());
+        }
     }
 }

@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -101,6 +103,21 @@ namespace Microsoft.CodeAnalysis
                 {
                     CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
                     GeneratorInfo = generatorInfo;
+
+#if DEBUG
+
+                    // As a sanity check, we should never see the generated trees inside of the compilation that should not
+                    // have generated trees.
+                    var compilation = compilationWithoutGeneratedDocuments?.GetValueOrNull();
+
+                    if (compilation != null)
+                    {
+                        foreach (var generatedDocument in generatorInfo.Documents.States.Values)
+                        {
+                            Contract.ThrowIfTrue(compilation.SyntaxTrees.Contains(generatedDocument.GetSyntaxTree(CancellationToken.None)));
+                        }
+                    }
+#endif
                 }
 
                 public static CompilationTrackerState Create(
