@@ -15,12 +15,6 @@ namespace Microsoft.CodeAnalysis.Completion
             = new(nameof(CompletionServiceOptions), nameof(IsExpandedCompletion), defaultValue: false);
 
         /// <summary>
-        /// For testing only. Changing the default value in actual product might cause perf issues.
-        /// </summary>
-        public static readonly Option2<bool> UsePartialSemanticForCompletion
-            = new(nameof(CompletionServiceOptions), nameof(UsePartialSemanticForCompletion), defaultValue: true);
-
-        /// <summary>
         /// Timeout value used for time-boxing completion of unimported extension methods.
         /// Value less than 0 means no timebox; value == 0 means immediate timeout (for testing purpose)
         /// </summary>
