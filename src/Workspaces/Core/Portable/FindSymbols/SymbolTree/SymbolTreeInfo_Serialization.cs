@@ -74,9 +74,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 // Ok, we can use persistence.  First try to load from the persistence service.
-                var persistentStorageService = services.GetPersistentStorageService(database);
-
-                var storage = await persistentStorageService.GetStorageAsync(solutionKey, checkBranchId: false, cancellationToken).ConfigureAwait(false);
+                var storage = await services.GetPersistentStorageAsync(database, solutionKey, checkBranchId: false, cancellationToken).ConfigureAwait(false);
                 await using var _ = storage.ConfigureAwait(false);
 
                 // Get the unique key to identify our data.

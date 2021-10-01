@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             try
             {
-                var persistentStorageService = services.GetPersistentStorageService(database);
-
-                var storage = await persistentStorageService.GetStorageAsync(documentKey.Project.Solution, checkBranchId: false, cancellationToken).ConfigureAwait(false);
+                var storage = await services.GetPersistentStorageAsync(database, documentKey.Project.Solution, checkBranchId: false, cancellationToken).ConfigureAwait(false);
                 await using var _ = storage.ConfigureAwait(false);
 
                 // attempt to load from persisted state
@@ -73,12 +71,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private async Task<bool> SaveAsync(
             Document document, CancellationToken cancellationToken)
         {
-            var solution = document.Project.Solution;
-            var persistentStorageService = solution.Workspace.Services.GetPersistentStorageService(solution.Options);
-
             try
             {
-                var storage = await persistentStorageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), checkBranchId: false, cancellationToken).ConfigureAwait(false);
+                var storage = await document.Project.Solution.GetPersistentStorageAsync(checkBranchId: false, cancellationToken).ConfigureAwait(false);
                 await using var _ = storage.ConfigureAwait(false);
                 using var stream = SerializableBytes.CreateWritableStream();
 
@@ -102,12 +97,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Document document, Checksum checksum, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var persistentStorageService = solution.Workspace.Services.GetPersistentStorageService(solution.Options);
 
             // check whether we already have info for this document
             try
             {
-                var storage = await persistentStorageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), checkBranchId: false, cancellationToken).ConfigureAwait(false);
+                var storage = await solution.GetPersistentStorageAsync(checkBranchId: false, cancellationToken).ConfigureAwait(false);
                 await using var _ = storage.ConfigureAwait(false);
                 // Check if we've already stored a checksum and it matches the checksum we 
                 // expect.  If so, we're already precalculated and don't have to recompute

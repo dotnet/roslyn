@@ -84,10 +84,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         }
 
         internal abstract AbstractPersistentStorageService GetStorageService(
-            IMefHostExportProvider exportProvider,
-            IPersistentStorageConfiguration configuration,
-            IPersistentStorageFaultInjector? faultInjector,
-            string rootFolder);
+            IMefHostExportProvider exportProvider, IPersistentStorageFaultInjector? faultInjector, string rootFolder);
 
         public void Dispose()
         {
@@ -946,8 +943,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             _storageService?.GetTestAccessor().Shutdown();
             var configuration = new MockPersistentStorageConfiguration(solution.Id, _persistentFolder.Path, throwOnFailure);
 
-            _storageService = GetStorageService((IMefHostExportProvider)solution.Workspace.Services.HostServices, configuration, faultInjector, _persistentFolder.Path);
-            var storage = await _storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), checkBranchId: true, CancellationToken.None);
+            _storageService = GetStorageService((IMefHostExportProvider)solution.Workspace.Services.HostServices, faultInjector, _persistentFolder.Path);
+            var storage = await _storageService.GetStorageAsync(configuration, SolutionKey.ToSolutionKey(solution), checkBranchId: true, CancellationToken.None);
 
             // If we're injecting faults, we expect things to be strange
             if (faultInjector == null)
@@ -965,8 +962,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             _storageService?.GetTestAccessor().Shutdown();
             var configuration = new MockPersistentStorageConfiguration(solutionKey.Id, _persistentFolder.Path, throwOnFailure: true);
 
-            _storageService = GetStorageService((IMefHostExportProvider)workspace.Services.HostServices, configuration, faultInjector, _persistentFolder.Path);
-            var storage = await _storageService.GetStorageAsync(solutionKey, checkBranchId: true, CancellationToken.None);
+            _storageService = GetStorageService((IMefHostExportProvider)workspace.Services.HostServices, faultInjector, _persistentFolder.Path);
+            var storage = await _storageService.GetStorageAsync(configuration, solutionKey, checkBranchId: true, CancellationToken.None);
 
             // If we're injecting faults, we expect things to be strange
             if (faultInjector == null)

@@ -19,13 +19,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks
     {
         private readonly string _relativePathBase;
 
-        public MockCloudCachePersistentStorageService(
-            IPersistentStorageConfiguration configuration,
-            string relativePathBase)
-            : base(configuration)
-        {
-            _relativePathBase = relativePathBase;
-        }
+        public MockCloudCachePersistentStorageService(string relativePathBase)
+            => _relativePathBase = relativePathBase;
 
         protected override async ValueTask<ICacheService> CreateCacheServiceAsync(string solutionFolder, CancellationToken cancellationToken)
         {

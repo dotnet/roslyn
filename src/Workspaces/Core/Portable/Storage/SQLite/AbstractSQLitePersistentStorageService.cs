@@ -3,9 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
-using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.SQLite
@@ -34,11 +31,6 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             return true;
-        }
-
-        protected AbstractSQLitePersistentStorageService(IPersistentStorageConfiguration configuration)
-            : base(configuration)
-        {
         }
     }
 }

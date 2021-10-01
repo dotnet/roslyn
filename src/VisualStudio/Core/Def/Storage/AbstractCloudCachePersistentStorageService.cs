@@ -18,11 +18,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
     {
         private const string StorageExtension = "CloudCache";
 
-        protected AbstractCloudCachePersistentStorageService(IPersistentStorageConfiguration configuration)
-            : base(configuration)
-        {
-        }
-
         protected abstract ValueTask<ICacheService> CreateCacheServiceAsync(string solutionFolder, CancellationToken cancellationToken);
 
         protected sealed override string GetDatabaseFilePath(string workingFolderPath)
@@ -38,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
         }
 
         protected sealed override async ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(
-            SolutionKey solutionKey, string workingFolderPath, string databaseFilePath, CancellationToken cancellationToken)
+            IPersistentStorageConfiguration configuration, SolutionKey solutionKey, string workingFolderPath, string databaseFilePath, CancellationToken cancellationToken)
         {
             var solutionFolder = IOUtilities.PerformIO(() => Path.GetDirectoryName(solutionKey.FilePath));
             if (RoslynString.IsNullOrEmpty(solutionFolder))

@@ -2,10 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Storage.CloudCache;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.RpcContracts.Caching;
 using Microsoft.VisualStudio.Shell;
@@ -16,13 +20,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
 {
     internal class VisualStudioCloudCacheStorageService : AbstractCloudCachePersistentStorageService
     {
+        [ExportWorkspaceService(typeof(ICloudCacheStorageServiceFactory), ServiceLayer.Host), Shared]
+        internal class VisualStudioCloudCacheStorageServiceFactory : ICloudCacheStorageServiceFactory
+        {
+            private readonly IChecksummedPersistentStorageService _instance;
+
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public VisualStudioCloudCacheStorageServiceFactory(SVsServiceProvider serviceProvider)
+                => _instance = new VisualStudioCloudCacheStorageService((IAsyncServiceProvider)serviceProvider);
+
+            public IChecksummedPersistentStorageService Create()
+                => _instance;
+        }
+
         private readonly IAsyncServiceProvider _serviceProvider;
 
-        public VisualStudioCloudCacheStorageService(IAsyncServiceProvider serviceProvider, IPersistentStorageConfiguration configuration)
-            : base(configuration)
-        {
-            _serviceProvider = serviceProvider;
-        }
+        public VisualStudioCloudCacheStorageService(IAsyncServiceProvider serviceProvider)
+            => _serviceProvider = serviceProvider;
 
         protected sealed override async ValueTask<ICacheService> CreateCacheServiceAsync(string solutionFolder, CancellationToken cancellationToken)
         {

@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.Storage.CloudCache
 {
     internal interface ICloudCacheStorageServiceFactory : IWorkspaceService
     {
-        AbstractPersistentStorageService Create(IPersistentStorageConfiguration configuration);
+        IChecksummedPersistentStorageService Create();
     }
 }

@@ -20,47 +20,42 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Storage
 {
-    [ExportWorkspaceService(typeof(ICloudCacheStorageServiceFactory), WorkspaceKind.RemoteWorkspace), Shared]
-    internal class RemoteCloudCacheStorageServiceFactory : ICloudCacheStorageServiceFactory
+    internal class RemoteCloudCachePersistentStorageService : AbstractCloudCachePersistentStorageService
     {
-        private readonly IGlobalServiceBroker _globalServiceBroker;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteCloudCacheStorageServiceFactory(IGlobalServiceBroker globalServiceBroker)
+        [ExportWorkspaceService(typeof(ICloudCacheStorageServiceFactory), WorkspaceKind.RemoteWorkspace), Shared]
+        internal class RemoteCloudCacheStorageServiceFactory : ICloudCacheStorageServiceFactory
         {
-            _globalServiceBroker = globalServiceBroker;
+            private readonly IChecksummedPersistentStorageService _instance;
+
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public RemoteCloudCacheStorageServiceFactory(IGlobalServiceBroker globalServiceBroker)
+                => _instance = new RemoteCloudCachePersistentStorageService(globalServiceBroker);
+
+            public IChecksummedPersistentStorageService Create()
+                => _instance;
         }
 
-        public AbstractPersistentStorageService Create(IPersistentStorageConfiguration configuration)
-            => new RemoteCloudCachePersistentStorageService(_globalServiceBroker, configuration);
+        private readonly IGlobalServiceBroker _globalServiceBroker;
 
-        private class RemoteCloudCachePersistentStorageService : AbstractCloudCachePersistentStorageService
+        public RemoteCloudCachePersistentStorageService(IGlobalServiceBroker globalServiceBroker)
+            => _globalServiceBroker = globalServiceBroker;
+
+        protected override async ValueTask<ICacheService> CreateCacheServiceAsync(string solutionFolder, CancellationToken cancellationToken)
         {
-            private readonly IGlobalServiceBroker _globalServiceBroker;
-
-            public RemoteCloudCachePersistentStorageService(IGlobalServiceBroker globalServiceBroker, IPersistentStorageConfiguration configuration)
-                : base(configuration)
-            {
-                _globalServiceBroker = globalServiceBroker;
-            }
-
-            protected override async ValueTask<ICacheService> CreateCacheServiceAsync(string solutionFolder, CancellationToken cancellationToken)
-            {
-                var serviceBroker = _globalServiceBroker.Instance;
+            var serviceBroker = _globalServiceBroker.Instance;
 
 #pragma warning disable ISB001 // Dispose of proxies
-                // cache service will be disposed inside RemoteCloudCacheService.Dispose
-                var cacheService = await serviceBroker.GetProxyAsync<ICacheService>(
-                    VisualStudioServices.VS2019_10.CacheService,
-                    // replace with CacheService.RelativePathBaseActivationArgKey once available.
-                    new ServiceActivationOptions { ActivationArguments = ImmutableDictionary<string, string>.Empty.Add("RelativePathBase", solutionFolder) },
-                    cancellationToken).ConfigureAwait(false);
+            // cache service will be disposed inside RemoteCloudCacheService.Dispose
+            var cacheService = await serviceBroker.GetProxyAsync<ICacheService>(
+                VisualStudioServices.VS2019_10.CacheService,
+                // replace with CacheService.RelativePathBaseActivationArgKey once available.
+                new ServiceActivationOptions { ActivationArguments = ImmutableDictionary<string, string>.Empty.Add("RelativePathBase", solutionFolder) },
+                cancellationToken).ConfigureAwait(false);
 #pragma warning restore ISB001 // Dispose of proxies
 
-                Contract.ThrowIfNull(cacheService);
-                return cacheService;
-            }
+            Contract.ThrowIfNull(cacheService);
+            return cacheService;
         }
     }
 }

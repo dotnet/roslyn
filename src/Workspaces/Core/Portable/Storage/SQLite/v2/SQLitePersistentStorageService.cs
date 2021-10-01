@@ -20,19 +20,21 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         [ExportWorkspaceService(typeof(ISQLiteStorageServiceFactory)), Shared]
         internal sealed class Factory : ISQLiteStorageServiceFactory
         {
-            private readonly SQLiteConnectionPoolService _connectionPoolService;
-            private readonly IAsynchronousOperationListener _asyncListener;
+            private readonly IChecksummedPersistentStorageService _instance;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory(SQLiteConnectionPoolService connectionPoolService, IAsynchronousOperationListenerProvider asyncOperationListenerProvider)
+            public Factory(
+                SQLiteConnectionPoolService connectionPoolService,
+                IAsynchronousOperationListenerProvider asyncOperationListenerProvider)
             {
-                _connectionPoolService = connectionPoolService;
-                _asyncListener = asyncOperationListenerProvider.GetListener(FeatureAttribute.PersistentStorage);
+                _instance = new SQLitePersistentStorageService(
+                    connectionPoolService,
+                    asyncOperationListenerProvider.GetListener(FeatureAttribute.PersistentStorage));
             }
 
-            public IChecksummedPersistentStorageService Create(IPersistentStorageConfiguration configuration)
-                => new SQLitePersistentStorageService(_connectionPoolService, configuration, _asyncListener);
+            public IChecksummedPersistentStorageService Create()
+                => _instance;
         }
 
         private const string StorageExtension = "sqlite3";
@@ -44,9 +46,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         public SQLitePersistentStorageService(
             SQLiteConnectionPoolService connectionPoolService,
-            IPersistentStorageConfiguration configuration,
             IAsynchronousOperationListener asyncListener)
-            : base(configuration)
         {
             _connectionPoolService = connectionPoolService;
             _asyncListener = asyncListener;
@@ -54,10 +54,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         public SQLitePersistentStorageService(
             SQLiteConnectionPoolService connectionPoolService,
-            IPersistentStorageConfiguration configuration,
             IAsynchronousOperationListener asyncListener,
             IPersistentStorageFaultInjector? faultInjector)
-            : this(connectionPoolService, configuration, asyncListener)
+            : this(connectionPoolService, asyncListener)
         {
             _faultInjector = faultInjector;
         }
@@ -69,7 +68,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         }
 
         protected override ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(
-            SolutionKey solutionKey, string workingFolderPath, string databaseFilePath, CancellationToken cancellationToken)
+            IPersistentStorageConfiguration configuration, SolutionKey solutionKey, string workingFolderPath, string databaseFilePath, CancellationToken cancellationToken)
         {
             if (!TryInitializeLibraries())
             {
@@ -78,7 +77,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             if (solutionKey.FilePath == null)
-                return new(NoOpPersistentStorage.GetOrThrow(Configuration.ThrowOnFailure));
+                return new(NoOpPersistentStorage.GetOrThrow(configuration.ThrowOnFailure));
 
             return new(SQLitePersistentStorage.TryCreate(
                 _connectionPoolService,
