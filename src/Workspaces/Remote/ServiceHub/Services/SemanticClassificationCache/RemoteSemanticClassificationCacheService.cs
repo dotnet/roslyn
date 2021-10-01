@@ -163,11 +163,6 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(async cancellationToken =>
             {
-                // We translated a call from the host over to the OOP side.  We need to look up
-                // the data in OOP's storage system, not the host's storage system.
-                var workspace = GetWorkspace();
-                documentKey = documentKey.WithWorkspaceKind(workspace.Kind!);
-
                 var classifiedSpans = await TryGetOrReadCachedSemanticClassificationsAsync(
                     documentKey, checksum, database, cancellationToken).ConfigureAwait(false);
                 if (classifiedSpans.IsDefault)
