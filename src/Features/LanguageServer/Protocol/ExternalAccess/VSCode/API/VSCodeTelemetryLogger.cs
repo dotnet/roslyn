@@ -13,24 +13,40 @@ namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.VSCode.API;
 /// </summary>
 internal abstract class VSCodeTelemetryLogger : ILogger
 {
+    private readonly Dictionary<FunctionId, string> _functionIdToString = new Dictionary<FunctionId, string>();
+
+    private string GetFunctionIdAsString(FunctionId functionId)
+    {
+        if (_functionIdToString.ContainsKey(functionId))
+        {
+            return _functionIdToString[functionId];
+        }
+        else
+        {
+            var functionIdAsString = functionId.ToString();
+            _functionIdToString.Add(functionId, functionIdAsString);
+            return functionIdAsString;
+        }
+    }
+
     bool ILogger.IsEnabled(FunctionId functionId)
     {
-        return IsEnabled(functionId.ToString());
+        return IsEnabled(GetFunctionIdAsString(functionId));
     }
 
     void ILogger.Log(FunctionId functionId, LogMessage logMessage)
     {
-        Log(functionId.ToString(), GetProperties(logMessage), CancellationToken.None);
+        Log(GetFunctionIdAsString(functionId), GetProperties(logMessage), CancellationToken.None);
     }
 
     void ILogger.LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
     {
-        LogBlockStart(functionId.ToString(), GetProperties(logMessage), cancellationToken);
+        LogBlockStart(GetFunctionIdAsString(functionId), GetProperties(logMessage), cancellationToken);
     }
 
     void ILogger.LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
     {
-        LogBlockEnd(functionId.ToString(), GetProperties(logMessage), cancellationToken);
+        LogBlockEnd(GetFunctionIdAsString(functionId), GetProperties(logMessage), cancellationToken);
     }
 
     public void Register()
