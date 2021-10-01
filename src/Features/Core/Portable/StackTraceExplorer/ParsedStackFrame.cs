@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                     ? displayName[(dotIndex + 1)..]
                     : displayName;
 
-                return string.Equals(memberName, memberToSearchFor, System.StringComparison.OrdinalIgnoreCase);
+                return string.Equals(memberName, memberToSearchFor);
             }
         }
 
@@ -203,6 +203,11 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
             return (fileMatches.First(), lineNumber);
         }
 
+        /// <summary>
+        /// If the <see cref="FileSpan"/> exists it attempts to map the file path that exists
+        /// in that span to a document in the solution. It's possible the file path won't match exactly,
+        /// so it does a best effort to match based on name.
+        /// </summary>
         private ImmutableArray<Document> GetFileMatches(Solution solution, out int lineNumber)
         {
             var fileText = OriginalText[FileSpan.Start..FileSpan.End];
