@@ -98,9 +98,15 @@ namespace Microsoft.CodeAnalysis.Remote
                 // synchronizing the solution over to the remote side.  Instead, we just directly
                 // check whatever cached data we have from the previous vs session.
                 var callback = GetCallback(callbackId, cancellationToken);
+                var workspace = GetWorkspace();
+
+                // We translated a call from the host over to the OOP side.  We need to look up
+                // the data in OOP's storage system, not the host's storage system.
+                documentKeys = documentKeys.SelectAsArray(d => d.WithWorkspaceKind(workspace.Kind!));
+                priorityDocumentKeys = priorityDocumentKeys.SelectAsArray(d => d.WithWorkspaceKind(workspace.Kind!));
 
                 await AbstractNavigateToSearchService.SearchCachedDocumentsInCurrentProcessAsync(
-                    GetWorkspaceServices(), documentKeys, priorityDocumentKeys, database, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+                    workspace.Services, documentKeys, priorityDocumentKeys, database, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
     }

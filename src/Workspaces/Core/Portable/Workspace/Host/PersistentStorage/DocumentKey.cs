@@ -48,5 +48,8 @@ namespace Microsoft.CodeAnalysis.Storage
 
         public int GetHashCode(DocumentKey obj)
             => obj.Id.GetHashCode();
+
+        public DocumentKey WithWorkspaceKind(string workspaceKind)
+            => new(Project.WithWorkspaceKind(workspaceKind), Id, FilePath, Name);
     }
 }
