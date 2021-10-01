@@ -26,6 +26,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     [ExportWorkspaceService(typeof(IWorkspaceContextService), ServiceLayer.Default), Shared]
     internal sealed class DefaultWorkspaceContextService : IWorkspaceContextService
     {
+        /// <summary>
+        /// Roslyn LSP feature flag name, as defined in the PackageRegistraion.pkgdef
+        /// by everything following '$RootKey$\FeatureFlags\' and '\' replaced by '.'
+        /// </summary>
+        public const string LspEditorFeatureFlagName = "Roslyn.LSP.Editor";
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultWorkspaceContextService()

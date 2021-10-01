@@ -80,14 +80,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 Return Nothing
             End If
 
-            Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
+            Dim structuralTypeDisplayService = document.GetLanguageService(Of IStructuralTypeDisplayService)()
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
             Dim textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
             Dim itemsAndSelected = If(type.TypeKind = TypeKind.Delegate,
-                GetDelegateTypeConstructors(objectCreationExpression, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, type),
-                GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, anonymousTypeDisplayService, type, within, cancellationToken))
+                GetDelegateTypeConstructors(objectCreationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService, type),
+                GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, structuralTypeDisplayService, type, within, cancellationToken))
 
             Return CreateSignatureHelpItems(itemsAndSelected.Items,
                                             textSpan,

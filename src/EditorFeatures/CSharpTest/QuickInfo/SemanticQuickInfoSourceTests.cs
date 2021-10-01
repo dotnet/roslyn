@@ -3468,7 +3468,7 @@ namespace N {
 ",
             MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<'a> IEnumerable<int>.Select<int, 'a>(Func<int, 'a> selector)"),
             AnonymousTypes($@"
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{ int i, bool j }}"));
         }
 
@@ -4042,7 +4042,7 @@ class C
                 NoTypeParameterMap,
                 AnonymousTypes(
 $@"
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{  }}"));
         }
 
@@ -4060,7 +4060,7 @@ x[0].$$Address",
                 NoTypeParameterMap,
                 AnonymousTypes(
 $@"
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{ string Name, 'b Address }}
     'b {FeaturesResources.is_} new {{ string Street, string Zip }}"));
 
@@ -4073,7 +4073,7 @@ x[0].$$Name",
                 NoTypeParameterMap,
                 AnonymousTypes(
 $@"
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{ string Name, 'b Address }}
     'b {FeaturesResources.is_} new {{ string Street, string Zip }}"));
         }
@@ -4102,7 +4102,7 @@ $@"
                 NoTypeParameterMap,
                 AnonymousTypes(
 $@"
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{ int N }}"));
         }
 
@@ -6154,7 +6154,7 @@ public class C
     }
 }
 ",
-                MainDescription("(System.Int32, System.Int32)"));
+                MainDescription("(int, int)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -7744,6 +7744,134 @@ TResult {FeaturesResources.is_} string"));
     }
 }",
                 MainDescription("delegate string <anonymous delegate>(ref int)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestSingleTupleType()
+        {
+            await TestInClassAsync(
+@"void M((int x, string y) t) { }
+  void N()
+  {
+    $$M(default);
+  }",
+                MainDescription(@"void C.M((int x, string y) t)"),
+                NoTypeParameterMap);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestMultipleTupleTypesSameType()
+        {
+            await TestInClassAsync(
+@"void M((int x, string y) s, (int x, string y) t) { }
+  void N()
+  {
+    $$M(default);
+  }",
+                MainDescription(@"void C.M('a s, 'a t)"),
+                NoTypeParameterMap,
+                AnonymousTypes($@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} (int x, string y)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestMultipleTupleTypesDifferentTypes1()
+        {
+            await TestInClassAsync(
+@"void M((int x, string y) s, (int a, string b) u) { }
+  void N()
+  {
+    $$M(default);
+  }",
+                MainDescription(@"void C.M((int x, string y) s, (int a, string b) u)"),
+                NoTypeParameterMap);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestMultipleTupleTypesDifferentTypes2()
+        {
+            await TestInClassAsync(
+@"void M((int x, string y) s, (int x, string y) t, (int a, string b) u, (int a, string b) v) { }
+  void N()
+  {
+    $$M(default);
+  }",
+                MainDescription(@"void C.M('a s, 'a t, 'b u, 'b v)"),
+                NoTypeParameterMap,
+                AnonymousTypes($@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} (int x, string y)
+    'b {FeaturesResources.is_} (int a, string b)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestMultipleTupleTypesDifferentTypes3()
+        {
+            await TestInClassAsync(
+@"void M((int x, string y) s, (int x, string y) t, (int a, string b) u) { }
+  void N()
+  {
+    $$M(default);
+  }",
+                MainDescription(@"void C.M('a s, 'a t, 'b u)"),
+                NoTypeParameterMap,
+                AnonymousTypes($@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} (int x, string y)
+    'b {FeaturesResources.is_} (int a, string b)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestMultipleTupleTypesInference()
+        {
+            await TestInClassAsync(
+@"T M<T>(T t) { }
+  void N()
+  {
+    (int a, string b) x = default;
+    $$M(x);
+  }",
+                MainDescription(@"'a C.M<'a>('a t)"),
+                NoTypeParameterMap,
+                AnonymousTypes($@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} (int a, string b)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousTypeWithTupleTypesInference1()
+        {
+            await TestInClassAsync(
+@"T M<T>(T t) { }
+  void N()
+  {
+    var v = new { x = default((int a, string b)) };
+    $$M(v);
+  }",
+                MainDescription(@"'a C.M<'a>('a t)"),
+                NoTypeParameterMap,
+                AnonymousTypes($@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} new {{ (int a, string b) x }}"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousTypeWithTupleTypesInference2()
+        {
+            await TestInClassAsync(
+@"T M<T>(T t) { }
+  void N()
+  {
+    var v = new { x = default((int a, string b)), y = default((int a, string b)) };
+    $$M(v);
+  }",
+                MainDescription(@"'a C.M<'a>('a t)"),
+                NoTypeParameterMap,
+                AnonymousTypes($@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} new {{ 'b x, 'b y }}
+    'b {FeaturesResources.is_} (int a, string b)"));
         }
     }
 }

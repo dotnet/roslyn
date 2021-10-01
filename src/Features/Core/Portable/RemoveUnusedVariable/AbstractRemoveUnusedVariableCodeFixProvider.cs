@@ -34,13 +34,25 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
 
         protected abstract SeparatedSyntaxList<SyntaxNode> GetVariables(TLocalDeclarationStatement localDeclarationStatement);
 
+        protected abstract bool ShouldOfferFixForLocalDeclaration(ISyntaxFactsService syntaxFacts, TLocalDeclarationStatement node);
+
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
 
-        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();
-            context.RegisterCodeFix(new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)), diagnostic);
-            return Task.CompletedTask;
+
+            var document = context.Document;
+            var root = await document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var node = root.FindNode(diagnostic.Location.SourceSpan);
+
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var localDeclaration = FindLocalDeclaration(node);
+
+            if (localDeclaration is null || ShouldOfferFixForLocalDeclaration(syntaxFacts, localDeclaration))
+            {
+                context.RegisterCodeFix(new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)), diagnostic);
+            }
         }
 
         protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor syntaxEditor, CancellationToken cancellationToken)
@@ -111,10 +123,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
 
         protected static void RemoveNode(SyntaxEditor editor, SyntaxNode node, ISyntaxFactsService syntaxFacts)
         {
-            var localDeclaration = node.GetAncestorOrThis<TLocalDeclarationStatement>();
+            var localDeclaration = FindLocalDeclaration(node);
             var removeOptions = CreateSyntaxRemoveOptions(localDeclaration, syntaxFacts);
             editor.RemoveNode(node, removeOptions);
         }
+
+        private static TLocalDeclarationStatement FindLocalDeclaration(SyntaxNode node)
+            => node.GetAncestorOrThis<TLocalDeclarationStatement>();
 
         private static SyntaxRemoveOptions CreateSyntaxRemoveOptions(TLocalDeclarationStatement localDeclaration, ISyntaxFactsService syntaxFacts)
         {
