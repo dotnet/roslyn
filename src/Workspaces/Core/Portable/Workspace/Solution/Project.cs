@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Collections.Immutable;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -28,10 +27,10 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly Solution _solution;
         private readonly ProjectState _projectState;
-        private ImmutableHashMap<DocumentId, Document> _idToDocumentMap = ImmutableHashMap<DocumentId, Document>.Empty;
-        private ImmutableHashMap<DocumentId, SourceGeneratedDocument> _idToSourceGeneratedDocumentMap = ImmutableHashMap<DocumentId, SourceGeneratedDocument>.Empty;
-        private ImmutableHashMap<DocumentId, AdditionalDocument> _idToAdditionalDocumentMap = ImmutableHashMap<DocumentId, AdditionalDocument>.Empty;
-        private ImmutableHashMap<DocumentId, AnalyzerConfigDocument> _idToAnalyzerConfigDocumentMap = ImmutableHashMap<DocumentId, AnalyzerConfigDocument>.Empty;
+        private ImmutableDictionary<DocumentId, Document> _idToDocumentMap = ImmutableDictionary<DocumentId, Document>.Empty;
+        private ImmutableDictionary<DocumentId, SourceGeneratedDocument> _idToSourceGeneratedDocumentMap = ImmutableDictionary<DocumentId, SourceGeneratedDocument>.Empty;
+        private ImmutableDictionary<DocumentId, AdditionalDocument> _idToAdditionalDocumentMap = ImmutableDictionary<DocumentId, AdditionalDocument>.Empty;
+        private ImmutableDictionary<DocumentId, AnalyzerConfigDocument> _idToAnalyzerConfigDocumentMap = ImmutableDictionary<DocumentId, AnalyzerConfigDocument>.Empty;
 
         internal Project(Solution solution, ProjectState projectState)
         {
@@ -227,19 +226,40 @@ namespace Microsoft.CodeAnalysis
         /// Get the document in this project with the specified document Id.
         /// </summary>
         public Document? GetDocument(DocumentId documentId)
-            => ImmutableHashMapExtensions.GetOrAdd(ref _idToDocumentMap, documentId, s_tryCreateDocumentFunction, this);
+        {
+            if (ContainsDocument(documentId))
+            {
+                return ImmutableInterlocked.GetOrAdd(ref _idToDocumentMap, documentId, s_createDocumentFunction, this);
+            }
+
+            return null;
+        }
 
         /// <summary>
         /// Get the additional document in this project with the specified document Id.
         /// </summary>
         public TextDocument? GetAdditionalDocument(DocumentId documentId)
-            => ImmutableHashMapExtensions.GetOrAdd(ref _idToAdditionalDocumentMap, documentId, s_tryCreateAdditionalDocumentFunction, this);
+        {
+            if (ContainsAdditionalDocument(documentId))
+            {
+                return ImmutableInterlocked.GetOrAdd(ref _idToAdditionalDocumentMap, documentId, s_createAdditionalDocumentFunction, this);
+            }
+
+            return null;
+        }
 
         /// <summary>
         /// Get the analyzer config document in this project with the specified document Id.
         /// </summary>
         public AnalyzerConfigDocument? GetAnalyzerConfigDocument(DocumentId documentId)
-            => ImmutableHashMapExtensions.GetOrAdd(ref _idToAnalyzerConfigDocumentMap, documentId, s_tryCreateAnalyzerConfigDocumentFunction, this);
+        {
+            if (ContainsAnalyzerConfigDocument(documentId))
+            {
+                return ImmutableInterlocked.GetOrAdd(ref _idToAnalyzerConfigDocumentMap, documentId, s_createAnalyzerConfigDocumentFunction, this);
+            }
+
+            return null;
+        }
 
         /// <summary>
         /// Gets a document or a source generated document in this solution with the specified document ID.
@@ -278,7 +298,7 @@ namespace Microsoft.CodeAnalysis
 
             // return an iterator to avoid eagerly allocating all the document instances
             return generatedDocumentStates.States.Values.Select(state =>
-                ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, state.Id, s_createSourceGeneratedDocumentFunction, (state, this)))!;
+                ImmutableInterlocked.GetOrAdd(ref _idToSourceGeneratedDocumentMap, state.Id, s_createSourceGeneratedDocumentFunction, (state, this)))!;
         }
 
         internal async ValueTask<IEnumerable<Document>> GetAllRegularAndSourceGeneratedDocumentsAsync(CancellationToken cancellationToken = default)
@@ -306,7 +326,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal SourceGeneratedDocument GetOrCreateSourceGeneratedDocument(SourceGeneratedDocumentState state)
-            => ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, state.Id, s_createSourceGeneratedDocumentFunction, (state, this))!;
+            => ImmutableInterlocked.GetOrAdd(ref _idToSourceGeneratedDocumentMap, state.Id, s_createSourceGeneratedDocumentFunction, (state, this))!;
 
         /// <summary>
         /// Returns the <see cref="SourceGeneratedDocumentState"/> for a source generated document that has already been generated and observed.
@@ -333,7 +353,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            return ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, documentId, s_createSourceGeneratedDocumentFunction, (documentState, this));
+            return ImmutableInterlocked.GetOrAdd(ref _idToSourceGeneratedDocumentMap, documentId, s_createSourceGeneratedDocumentFunction, (documentState, this));
         }
 
         internal Task<bool> ContainsSymbolsWithNameAsync(
@@ -407,14 +427,14 @@ namespace Microsoft.CodeAnalysis
             return results.Any(b => b);
         }
 
-        private static readonly Func<DocumentId, Project, Document?> s_tryCreateDocumentFunction =
-            (documentId, project) => project._projectState.DocumentStates.TryGetState(documentId, out var state) ? new Document(project, state) : null;
+        private static readonly Func<DocumentId, Project, Document> s_createDocumentFunction =
+            (documentId, project) => new Document(project, project.State.DocumentStates.GetRequiredState(documentId));
 
-        private static readonly Func<DocumentId, Project, AdditionalDocument?> s_tryCreateAdditionalDocumentFunction =
-            (documentId, project) => project._projectState.AdditionalDocumentStates.TryGetState(documentId, out var state) ? new AdditionalDocument(project, state) : null;
+        private static readonly Func<DocumentId, Project, AdditionalDocument> s_createAdditionalDocumentFunction =
+            (documentId, project) => new AdditionalDocument(project, project.State.AdditionalDocumentStates.GetRequiredState(documentId));
 
-        private static readonly Func<DocumentId, Project, AnalyzerConfigDocument?> s_tryCreateAnalyzerConfigDocumentFunction =
-            (documentId, project) => project._projectState.AnalyzerConfigDocumentStates.TryGetState(documentId, out var state) ? new AnalyzerConfigDocument(project, state) : null;
+        private static readonly Func<DocumentId, Project, AnalyzerConfigDocument> s_createAnalyzerConfigDocumentFunction =
+            (documentId, project) => new AnalyzerConfigDocument(project, project.State.AnalyzerConfigDocumentStates.GetRequiredState(documentId));
 
         private static readonly Func<DocumentId, (SourceGeneratedDocumentState state, Project project), SourceGeneratedDocument> s_createSourceGeneratedDocumentFunction =
             (documentId, stateAndProject) => new SourceGeneratedDocument(stateAndProject.project, stateAndProject.state);
