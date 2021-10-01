@@ -17,14 +17,15 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
         /// Tries to parse a StackFrame following convention from Environment.StackTrace
         /// https://docs.microsoft.com/en-us/dotnet/api/system.environment.stacktrace has
         /// details on output format and expected strings
+        /// 
+        /// Example:
+        /// at ConsoleApp4.MyClass.M() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 26
         /// </summary>
         public bool TryParseLine(string line, [NotNullWhen(true)] out ParsedFrame? parsedFrame)
         {
             parsedFrame = null;
 
-            var atIndex = line.IndexOf(StackTraceAtStart);
-
-            if (atIndex < 0)
+            if (!line.Trim().StartsWith(StackTraceAtStart))
             {
                 return false;
             }
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                 var fileInformationStart = splitIndex + StackTraceSymbolAndFileSplit.Length;
                 var fileInformationSpan = new TextSpan(fileInformationStart, line.Length - fileInformationStart);
 
-                parsedFrame = new ParsedFrameWithFile(line, classSpan, methodSpan, argsSpan, fileInformationSpan);
+                parsedFrame = new ParsedStackFrame(line, classSpan, methodSpan, argsSpan, fileInformationSpan);
                 return true;
             }
 

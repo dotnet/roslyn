@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.StackTraceExplorer
         {
         }
 
-        public string GetClassMetadataName(string className)
+        public string GetTypeMetadataName(string className)
         {
             var typeNameSyntax = SyntaxFactory.ParseTypeName(className);
             if (typeNameSyntax is QualifiedNameSyntax qualifiedNameSyntax)
@@ -37,10 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp.StackTraceExplorer
 
         private static string GetMetadataNameOfQualifiedNameSyntax(QualifiedNameSyntax originalSyntax)
         {
-            SyntaxNode? syntax = originalSyntax;
+            SyntaxNode syntax = originalSyntax;
             Stack<string> parts = new();
 
-            while (syntax is not null)
+            while (true)
             {
                 if (syntax is QualifiedNameSyntax qualifiedNameSyntax)
                 {

@@ -11,7 +11,16 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
     internal interface IStackTraceExplorerService : ILanguageService
     {
-        string GetClassMetadataName(string className);
+        /// <summary>
+        /// Given the <see cref="ParsedStackFrame.TypeSpan"/>, get the equivalent name
+        /// in metadata that can be used to look up the type
+        /// </summary>
+        string GetTypeMetadataName(string className);
+
+        /// <summary>
+        /// Given the <see cref="ParsedStackFrame.MethodSpan"/>, get the symbol name
+        /// for to match <see cref="IMethodSymbol"/> of a given type
+        /// </summary>
         string GetMethodSymbolName(string methodName);
     }
 }

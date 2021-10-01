@@ -2,6 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -12,11 +18,17 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
     /// <summary>
     /// A line of text that was parsed by <see cref="StackTraceAnalyzer" />
-    /// to provide metadata bout the line. 
+    /// to provide metadata bout the line. Expected to be the parsed output 
+    /// of a serialized <see cref="StackFrame"/>
     /// </summary>
-    internal class ParsedStackFrame : ParsedFrame
+    internal sealed class ParsedStackFrame : ParsedFrame
     {
-        public ParsedStackFrame(string originalText, TextSpan typeSpan, TextSpan methodSpan, TextSpan argsSpan)
+        public ParsedStackFrame(
+            string originalText,
+            TextSpan typeSpan,
+            TextSpan methodSpan,
+            TextSpan argsSpan,
+            TextSpan fileSpan = default)
             : base(originalText)
         {
             Contract.ThrowIfTrue(typeSpan.IsEmpty);
@@ -25,27 +37,34 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
             TypeSpan = typeSpan;
             MethodSpan = methodSpan;
             ArgsSpan = argsSpan;
+            FileSpan = fileSpan;
         }
 
         /// <summary>
         /// The full type name parsed from the line. 
-        /// e.x: [|Microsoft.CodeAnalysis.Editor.CallstackExplorer.|]Example(arg1, arg2)
+        /// ex: [|Microsoft.CodeAnalysis.Editor.CallstackExplorer.|]Example(arg1, arg2)
         /// </summary>
         public TextSpan TypeSpan { get; }
 
         /// <summary>
         /// The method name span
-        /// e.x: Microsoft.CodeAnalysis.Editor.CallstackExplorer.[|Example|](arg1, arg2)
+        /// ex: Microsoft.CodeAnalysis.Editor.CallstackExplorer.[|Example|](arg1, arg2)
         /// </summary>
         public TextSpan MethodSpan { get; }
 
         /// <summary>
         /// The span of comma seperated arguments.
-        /// e.x: Microsoft.CodeAnalysis.Editor.CallstackExplorer.Example[|(arg1, arg2)|]
+        /// ex: Microsoft.CodeAnalysis.Editor.CallstackExplorer.Example[|(arg1, arg2)|]
         /// </summary>
         public TextSpan ArgsSpan { get; }
 
-        public virtual async Task<ISymbol?> ResolveSymbolAsync(Solution solution, CancellationToken cancellationToken)
+        /// <summary>
+        /// The span representing file information on the stack trace line. Is not always available, so it's 
+        /// possible this span is <see langword="default"/>
+        /// </summary>
+        public TextSpan FileSpan { get; }
+
+        public async Task<ISymbol?> ResolveSymbolAsync(Solution solution, CancellationToken cancellationToken)
         {
             // The original span for type includes the trailing '.', which we don't want when
             // looking for the class by metadata name
@@ -60,7 +79,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                     continue;
                 }
 
-                var metadataName = service.GetClassMetadataName(fullyQualifiedTypeName);
+                var metadataName = service.GetTypeMetadataName(fullyQualifiedTypeName);
                 var memberName = service.GetMethodSymbolName(methodName);
 
                 var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -71,7 +90,11 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                 }
 
                 var members = type.GetMembers();
-                var matchingMembers = members.WhereAsArray(m => MemberMatchesMethodName(m, memberName));
+                var matchingMembers = members
+                    .OfType<IMethodSymbol>()
+                    .Where(m => MemberMatchesMethodName(m, memberName))
+                    .ToImmutableArrayOrEmpty();
+
                 if (matchingMembers.Length == 0)
                 {
                     continue;
@@ -85,6 +108,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
 
             return null;
 
+            // TODO: Improve perf here. ToDisplayString is fairly expensive
             static bool MemberMatchesMethodName(ISymbol member, string memberToSearchFor)
             {
                 var displayName = member.ToDisplayString();
@@ -123,16 +147,97 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
         }
 
         /// <summary>
-        /// Gets the text after the last parsed span available.
+        /// Gets the text after the last parsed span available. This is after
+        /// file information if it is available, otherwise after the argument information.
         /// </summary>
-        public virtual string GetTrailingText()
+        public string GetTrailingText()
         {
-            if (ArgsSpan.End + 1 == OriginalText.Length)
+            var lastSpan = FileSpan == default
+                ? ArgsSpan
+                : FileSpan;
+
+            if (lastSpan.End + 1 == OriginalText.Length)
             {
                 return string.Empty;
             }
 
-            return OriginalText[(ArgsSpan.End + 1)..];
+            return OriginalText[(lastSpan.End + 1)..];
+        }
+
+        /// <summary>
+        /// If the frame has file information, gets the text between the method and file information.
+        /// ex: at ConsoleApp4.MyClass.M[T](T t) in [|C:\repos\Test\MyClass.cs:line 7|]
+        /// </summary>
+        public string? GetFileText()
+        {
+            if (FileSpan == default)
+            {
+                return null;
+            }
+
+            return OriginalText[FileSpan.Start..FileSpan.End];
+        }
+
+        /// <summary>
+        /// If the frame has file information, gets the text between the method and file information.
+        /// ex: at ConsoleApp4.MyClass.M[T](T t)[| in |]C:\repos\Test\MyClass.cs:line 7
+        /// </summary>
+        public string? GetTextBetweenTypeAndFile()
+        {
+            if (FileSpan == default)
+            {
+                return null;
+            }
+
+            return OriginalText[(ArgsSpan.End + 1)..FileSpan.Start];
+        }
+
+        internal (Document? document, int line) GetDocumentAndLine(Solution solution)
+        {
+            var fileMatches = GetFileMatches(solution, out var lineNumber);
+            if (fileMatches.IsEmpty)
+            {
+                return (null, 0);
+            }
+
+            return (fileMatches.First(), lineNumber);
+        }
+
+        private ImmutableArray<Document> GetFileMatches(Solution solution, out int lineNumber)
+        {
+            var fileText = OriginalText[FileSpan.Start..FileSpan.End];
+            var regex = new Regex(@"(?<fileName>.+):(line)\s*(?<lineNumber>[0-9]+)");
+            var match = regex.Match(fileText);
+            Debug.Assert(match.Success);
+
+            var fileNameGroup = match.Groups["fileName"];
+            var lineNumberGroup = match.Groups["lineNumber"];
+
+            lineNumber = int.Parse(lineNumberGroup.Value);
+
+            var fileName = fileNameGroup.Value;
+            Debug.Assert(!string.IsNullOrEmpty(fileName));
+
+            var documentName = Path.GetFileName(fileName);
+            var potentialMatches = new HashSet<Document>();
+
+            foreach (var project in solution.Projects)
+            {
+                foreach (var document in project.Documents)
+                {
+                    if (document.FilePath == fileName)
+                    {
+                        return ImmutableArray.Create(document);
+                    }
+
+                    else if (document.Name == documentName)
+                    {
+                        potentialMatches.Add(document);
+                    }
+                }
+            }
+
+            return potentialMatches.ToImmutableArray();
         }
     }
 }

@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
@@ -180,16 +181,19 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             methodLink.RequestNavigate += (s, a) => NavigateToSymbol();
             yield return methodLink;
 
-            if (_frame is ParsedFrameWithFile frameWithFile)
+            if (_frame.FileSpan != default)
             {
-                var textBetween = frameWithFile.GetTextBetweenTypeAndFile();
-                if (!string.IsNullOrEmpty(textBetween))
+                var textBetween = _frame.GetTextBetweenTypeAndFile();
+                if (textBetween is not null)
                 {
                     yield return MakeClassifiedRun(ClassificationTypeNames.Text, textBetween);
                 }
 
+                var fileText = _frame.GetFileText();
+                RoslynDebug.AssertNotNull(fileText);
+
                 var fileHyperlink = new Hyperlink();
-                fileHyperlink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.Text, frameWithFile.GetFileText()));
+                fileHyperlink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.Text, fileText));
                 fileHyperlink.RequestNavigate += (s, e) => NavigateToFile();
                 fileHyperlink.Click += (s, e) => NavigateToFile();
                 yield return fileHyperlink;
@@ -205,12 +209,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 return (_cachedDocument, _cachedLineNumber);
             }
 
-            if (_frame is not ParsedFrameWithFile frameWithFile)
-            {
-                return (null, 0);
-            }
-
-            (_cachedDocument, _cachedLineNumber) = frameWithFile.GetDocumentAndLine(_workspace.CurrentSolution);
+            (_cachedDocument, _cachedLineNumber) = _frame.GetDocumentAndLine(_workspace.CurrentSolution);
             return (_cachedDocument, _cachedLineNumber);
         }
 

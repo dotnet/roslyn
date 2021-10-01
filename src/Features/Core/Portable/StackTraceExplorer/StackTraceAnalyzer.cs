@@ -14,25 +14,29 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
     internal static class StackTraceAnalyzer
 
     {
-        // List of parsers to use. Order is important because
-        // take the result from the first parser that returns 
-        // success.
+        /// <summary>
+        /// List of parsers to use. Order is important because
+        /// take the result from the first parser that returns 
+        /// success.
+        /// </summary>
         private static readonly ImmutableArray<IStackFrameParser> Parsers = ImmutableArray.Create<IStackFrameParser>(
             new DotnetStackFrameParser(),
             new VSDebugCallstackParser(),
             new DefaultStackParser()
         );
 
-        internal static Task<StackTraceAnalysisResult> AnalyzeAsync(string callstack, CancellationToken _)
+        internal static Task<StackTraceAnalysisResult> AnalyzeAsync(string callstack, CancellationToken cancellationToken)
         {
-            var parsedFrames = Parse(callstack);
+            var parsedFrames = Parse(callstack, cancellationToken);
             return Task.FromResult(new StackTraceAnalysisResult(parsedFrames.ToImmutableArray()));
         }
 
-        private static IEnumerable<ParsedFrame> Parse(string callstack)
+        private static IEnumerable<ParsedFrame> Parse(string callstack, CancellationToken cancellationToken)
         {
             foreach (var line in SplitLines(callstack))
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var trimmedLine = line.Trim();
 
                 foreach (var parser in Parsers)
@@ -46,6 +50,8 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
             }
         }
 
+        private static readonly char[] _lineSplit = new[] { '\n' };
+
         private static IEnumerable<string> SplitLines(string callstack)
         {
             // if the callstack comes from ActivityLog.xml it has been
@@ -54,7 +60,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
             // equivalents ">" and "<" so we can parse correctly
             callstack = WebUtility.HtmlDecode(callstack);
 
-            return callstack.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            return callstack.Split(_lineSplit, StringSplitOptions.RemoveEmptyEntries);
         }
     }
 }

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
         /// Makes sure that the string at least somewhat resembles the correct form.
         /// Does not check validity on class or method identifiers
         /// Example line:
-        /// at ConsoleApp4.MyClass.ThrowAtOne(p1, p2,) 
+        /// at ConsoleApp4.MyClass.ThrowAtOne(p1, p2) 
         ///   |-------------------||--------||-------| 
         ///           Class          Method    Args   
         /// </summary>

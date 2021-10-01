@@ -170,6 +170,28 @@ namespace ConsoleApp4
 }");
         }
 
+        [Fact(Skip = "The parser does not handle arity on types yet")]
+        public Task TestSymbolFound_ExceptionLine_GenericsHierarchy()
+        {
+            return TestSymbolFoundAsync(
+                "at ConsoleApp4.MyClass`1.MyInnerClass`1.M[T](T t)",
+                @"using System;
+
+namespace ConsoleApp4
+{
+    class MyClass<A>
+    {
+        public class MyInnerClass<B>
+        {
+            public void M<T>(T t) 
+            {
+                throw new Exception();
+            }
+        }
+    }
+}");
+        }
+
         [Fact(Skip = "ref params do not work yet")]
         public Task TestSymbolFound_ExceptionLine_RefArg()
         {
@@ -373,6 +395,28 @@ LoaclInTopLevelStatement();
 void [|LocalInTopLevelStatement|]()
 {
     throw new Exception();
+}");
+        }
+
+        [Fact(Skip = "The parser doesn't correctly handle ..ctor() methods yet")]
+        public Task TestSymbolFound_ExceptionLine_Constructor()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp4.MyClass..ctor()",
+                @"namespace ConsoleApp4
+{
+    class MyClass
+    {
+        public MyClass()
+        {
+            throw new Exception();
+        }
+
+        ~MyClass()
+        {
+            throw new Exception();
+        }
+    }
 }");
         }
 
