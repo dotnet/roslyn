@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
             lock (_lock)
             {
-                copy = _solutionIdToStorage;
+                copy = new(_solutionIdToStorage);
                 _solutionIdToStorage.Clear();
             }
 
