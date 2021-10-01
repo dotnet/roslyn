@@ -41,5 +41,8 @@ namespace Microsoft.CodeAnalysis.Storage
 
         public static SolutionKey ToSolutionKey(SolutionState solutionState)
             => new(solutionState.Workspace.Kind, solutionState.Id, solutionState.FilePath, solutionState.BranchId == solutionState.Workspace.PrimaryBranchId);
+
+        public SolutionKey WithWorkspaceKind(string workspaceKind)
+            => new(workspaceKind, Id, FilePath, IsPrimaryBranch);
     }
 }
