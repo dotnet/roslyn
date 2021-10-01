@@ -735,4 +735,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundPointerIndirectionOperator Update(BoundExpression operand, TypeSymbol type) => Update(operand, IsAssignmentAddress, type);
     }
+
+    internal partial class BoundPointerElementAccess
+    {
+        public BoundPointerElementAccess(SyntaxNode syntax, BoundExpression expression, BoundExpression index, bool @checked, TypeSymbol type, bool hasErrors = false)
+            : this(syntax, expression, index, @checked, isAssignmentAddress: false, type, hasErrors)
+        {
+        }
+
+        public BoundPointerElementAccess Update(BoundExpression expression, BoundExpression index, bool @checked, TypeSymbol type) => Update(expression, index, @checked, IsAssignmentAddress, type);
+    }
 }

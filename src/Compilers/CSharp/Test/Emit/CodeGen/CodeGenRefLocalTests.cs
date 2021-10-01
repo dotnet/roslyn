@@ -3600,7 +3600,59 @@ unsafe
         }
 
         [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
-        public void TestRefOnPointerArrayAccess()
+        public void TestRefOnPointerArrayAccess_01()
+        {
+            var code = @"
+using System;
+
+unsafe
+{
+    ref int x = ref ((int*)0)[0];
+    Console.WriteLine(""run"");
+}
+";
+
+            verify(TestOptions.UnsafeReleaseExe, Verification.Passes, @"
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.i
+  IL_0002:  pop
+  IL_0003:  ldstr      ""run""
+  IL_0008:  call       ""void System.Console.WriteLine(string)""
+  IL_000d:  ret
+}
+");
+
+            verify(TestOptions.UnsafeDebugExe, Verification.Fails, @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  .locals init (int& V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.i
+  IL_0003:  stloc.0
+  IL_0004:  ldstr      ""run""
+  IL_0009:  call       ""void System.Console.WriteLine(string)""
+  IL_000e:  nop
+  IL_000f:  nop
+  IL_0010:  ret
+}
+");
+
+            void verify(CSharpCompilationOptions options, Verification verify, string expectedIL)
+            {
+                var comp = CreateCompilation(code, options: options);
+                var verifier = CompileAndVerify(comp, expectedOutput: "run", verify: Verification.Fails);
+                verifier.VerifyDiagnostics();
+                verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+            }
+        }
+
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
+        public void TestRefOnPointerArrayAccess_02()
         {
             var code = @"
 using System;

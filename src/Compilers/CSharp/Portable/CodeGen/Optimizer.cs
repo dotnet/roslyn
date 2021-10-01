@@ -1924,7 +1924,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     internal sealed class StackOptimizerPass2 : BoundTreeRewriterWithStackGuard
     {
         private int _nodeCounter;
-        private bool _isStackScheduledRefAssignment = false;
         private readonly Dictionary<LocalSymbol, LocalDefUseInfo> _info;
 
         private StackOptimizerPass2(Dictionary<LocalSymbol, LocalDefUseInfo> info)
@@ -1945,24 +1944,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // rewriting constants may undo constant folding and make thing worse.
             // so we will not go into constant nodes. 
             // CodeGen will not do that either.
-            if (node is BoundExpression { ConstantValue: not null })
+            var asExpression = node as BoundExpression;
+            if (asExpression != null && asExpression.ConstantValue != null)
             {
                 result = node;
             }
             else
             {
-                var previousIsStackScheduledRefAssignment = _isStackScheduledRefAssignment;
-
-                // For cases like `x = ref boolValue ? ref *(int*)0 : ref *(int*)1`, we need to see through the ternary to
-                // know that the pointer indirection actually doesn't occur. However, we don't want to see through _all_ nodes:
-                // for example, we don't want to see through `x = ref M(*pointerValue)`.
-                if (node is not (BoundConditionalOperator or BoundPointerIndirectionOperator))
-                {
-                    _isStackScheduledRefAssignment = false;
-                }
-
                 result = base.Visit(node);
-                _isStackScheduledRefAssignment = previousIsStackScheduledRefAssignment;
             }
 
             _nodeCounter += 1;
@@ -2082,16 +2071,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // fake visiting of left
             _nodeCounter += 1;
 
-            // We don't think it should be possible for isStackScheduledAssignment to be true at this point, but just in
-            // case we save and restore the value, and assert the value so it'll fail in debug if we come across such a
-            // case.
-            var previousStackScheduledAssignment = _isStackScheduledRefAssignment;
-            Debug.Assert(!previousStackScheduledAssignment);
-            _isStackScheduledRefAssignment = node.IsRef;
-
             // visit right
             var right = (BoundExpression)Visit(node.Right);
-            _isStackScheduledRefAssignment = previousStackScheduledAssignment;
 
             // do actual assignment
 
@@ -2112,12 +2093,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
 #nullable enable
-        public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
-        {
-            var result = ((BoundPointerIndirectionOperator)base.VisitPointerIndirectionOperator(node)!);
-            return result.Update(result.Operand, _isStackScheduledRefAssignment, result.Type);
-        }
-
         public override BoundNode VisitCall(BoundCall node)
         {
             BoundExpression? receiverOpt = node.ReceiverOpt;

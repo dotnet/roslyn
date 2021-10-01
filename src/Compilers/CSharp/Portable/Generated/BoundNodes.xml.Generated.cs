@@ -1126,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundPointerElementAccess : BoundExpression
     {
-        public BoundPointerElementAccess(SyntaxNode syntax, BoundExpression expression, BoundExpression index, bool @checked, TypeSymbol type, bool hasErrors = false)
+        public BoundPointerElementAccess(SyntaxNode syntax, BoundExpression expression, BoundExpression index, bool @checked, bool isAssignmentAddress, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.PointerElementAccess, syntax, type, hasErrors || expression.HasErrors() || index.HasErrors())
         {
 
@@ -1137,6 +1137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Expression = expression;
             this.Index = index;
             this.Checked = @checked;
+            this.IsAssignmentAddress = isAssignmentAddress;
         }
 
 
@@ -1147,14 +1148,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Index { get; }
 
         public bool Checked { get; }
+
+        public bool IsAssignmentAddress { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitPointerElementAccess(this);
 
-        public BoundPointerElementAccess Update(BoundExpression expression, BoundExpression index, bool @checked, TypeSymbol type)
+        public BoundPointerElementAccess Update(BoundExpression expression, BoundExpression index, bool @checked, bool isAssignmentAddress, TypeSymbol type)
         {
-            if (expression != this.Expression || index != this.Index || @checked != this.Checked || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (expression != this.Expression || index != this.Index || @checked != this.Checked || isAssignmentAddress != this.IsAssignmentAddress || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundPointerElementAccess(this.Syntax, expression, index, @checked, type, this.HasErrors);
+                var result = new BoundPointerElementAccess(this.Syntax, expression, index, @checked, isAssignmentAddress, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10087,7 +10090,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             BoundExpression index = (BoundExpression)this.Visit(node.Index);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(expression, index, node.Checked, type);
+            return node.Update(expression, index, node.Checked, node.IsAssignmentAddress, type);
         }
         public override BoundNode? VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
         {
@@ -11483,12 +11486,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(expression, index, node.Checked, infoAndType.Type!);
+                updatedNode = node.Update(expression, index, node.Checked, node.IsAssignmentAddress, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(expression, index, node.Checked, node.Type);
+                updatedNode = node.Update(expression, index, node.Checked, node.IsAssignmentAddress, node.Type);
             }
             return updatedNode;
         }
@@ -13807,6 +13810,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("index", null, new TreeDumperNode[] { Visit(node.Index, null) }),
             new TreeDumperNode("@checked", node.Checked, null),
+            new TreeDumperNode("isAssignmentAddress", node.IsAssignmentAddress, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

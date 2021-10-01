@@ -547,6 +547,93 @@ unsafe
         }
 
         [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
+        public void TestOutOnPointerIndirection()
+        {
+            var code = @"
+using System;
+
+unsafe
+{
+    try
+    {
+        M(out *(int*)0);
+    }
+    catch (Exception e)
+    {
+        Console.WriteLine(e.Message);
+    }
+
+    void M(out int i)
+    {
+        throw new Exception(""run"");
+    }
+}
+";
+
+            verify(TestOptions.UnsafeReleaseExe, @"
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  .try
+  {
+    IL_0000:  ldc.i4.0
+    IL_0001:  conv.i
+    IL_0002:  call       ""void Program.<<Main>$>g__M|0_0(out int)""
+    IL_0007:  leave.s    IL_0015
+  }
+  catch System.Exception
+  {
+    IL_0009:  callvirt   ""string System.Exception.Message.get""
+    IL_000e:  call       ""void System.Console.WriteLine(string)""
+    IL_0013:  leave.s    IL_0015
+  }
+  IL_0015:  ret
+}
+");
+
+            verify(TestOptions.UnsafeDebugExe, @"
+{
+  // Code size       33 (0x21)
+  .maxstack  1
+  .locals init (System.Exception V_0) //e
+  IL_0000:  nop
+  .try
+  {
+    IL_0001:  nop
+    IL_0002:  ldc.i4.0
+    IL_0003:  conv.i
+    IL_0004:  call       ""void Program.<<Main>$>g__M|0_0(out int)""
+    IL_0009:  nop
+    IL_000a:  nop
+    IL_000b:  leave.s    IL_001e
+  }
+  catch System.Exception
+  {
+    IL_000d:  stloc.0
+    IL_000e:  nop
+    IL_000f:  ldloc.0
+    IL_0010:  callvirt   ""string System.Exception.Message.get""
+    IL_0015:  call       ""void System.Console.WriteLine(string)""
+    IL_001a:  nop
+    IL_001b:  nop
+    IL_001c:  leave.s    IL_001e
+  }
+  IL_001e:  nop
+  IL_001f:  nop
+  IL_0020:  ret
+}
+");
+
+            void verify(CSharpCompilationOptions options, string expectedIL)
+            {
+                var comp = CreateCompilation(code, options: options);
+                var verifier = CompileAndVerify(comp, expectedOutput: "run", verify: Verification.Fails);
+                verifier.VerifyDiagnostics();
+                verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+            }
+        }
+
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
         public void TestRefOnPointerIndirection_ThroughTernary_01()
         {
             var code = @"
