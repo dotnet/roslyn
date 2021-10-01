@@ -230,6 +230,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             using var _ = ArrayBuilder<(Project project, NavigateToSearchLocation location)>.GetInstance(out var result);
 
             var seenItems = new HashSet<INavigateToSearchResult>(NavigateToSearchResultComparer.Instance);
+
+            // Process each group one at a time.  However, in each group process all projects in parallel to get results
+            // as quickly as possible.  The net effect of this is that we will search the active doc immediately, then
+            // the open docs in parallel, then the rest of the projects after that.  Because the active/open docs should
+            // be a far smaller set, those results should come in almost immediately in a prioritized fashion, with the
+            // rest of the results following soon after as best as we can find them.
             foreach (var projectGroup in orderedProjects)
             {
                 var allTasks = projectGroup.Select(p => Task.Run(async () => (p, await SearchAsync(p, isFullyLoaded, seenItems, cancellationToken).ConfigureAwait(false))));
