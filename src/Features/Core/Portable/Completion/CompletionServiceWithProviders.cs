@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.Completion
             Document document,
             int position,
             CompletionTrigger triggerInfo,
-            OptionSet options,
+            OptionSet? options,
             TextSpan? defaultSpan,
             CancellationToken cancellationToken)
         {
@@ -752,7 +752,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 Document document,
                 int position,
                 CompletionTrigger triggerInfo,
-                OptionSet options,
+                OptionSet? options,
                 CancellationToken cancellationToken)
             {
                 return _completionServiceWithProviders.GetContextAsync(
