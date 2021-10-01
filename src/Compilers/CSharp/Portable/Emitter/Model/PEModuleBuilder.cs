@@ -1532,17 +1532,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        internal NamedTypeSymbol GetFixedImplementationType(FieldSymbol field)
-        {
-            // Note that this method is called only after ALL fixed buffer types have been placed in the map.
-            // At that point the map is all filled in and will not change further.  Therefore it is safe to
-            // pull values from the map without locking.
-            NamedTypeSymbol result;
-            var found = _fixedImplementationTypes.TryGetValue(field, out result);
-            Debug.Assert(found);
-            return result;
-        }
-
         protected override Cci.IMethodDefinition CreatePrivateImplementationDetailsStaticConstructor(PrivateImplementationDetails details, SyntaxNode syntaxOpt, DiagnosticBag diagnostics)
         {
             return new SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics)).GetCciAdapter();
