@@ -5510,7 +5510,7 @@ class Program
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,11): error CS8975: The contextual keyword 'var' cannot be used as an explicit lambda return type
-                //         F(var () => default);
+                //         F(var (var v) => v);
                 Diagnostic(ErrorCode.ERR_LambdaExplicitReturnTypeVar, "var").WithLocation(7, 11));
         }
 
