@@ -9,7 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
+namespace Microsoft.VisualStudio.LanguageServices.Utilities
 {
     internal class BindableTextBlock : TextBlock
     {
@@ -28,6 +28,12 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             var newList = (IList<Inline>)e.NewValue;
 
             textBlock.Inlines.Clear();
+
+            if (newList is null)
+            {
+                return;
+            }
+
             foreach (var inline in newList)
             {
                 textBlock.Inlines.Add(inline);
