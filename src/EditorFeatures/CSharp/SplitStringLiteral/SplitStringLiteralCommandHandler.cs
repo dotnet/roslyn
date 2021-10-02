@@ -81,12 +81,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 return false;
             }
 
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-            {
-                return false;
-            }
-
             // First, we need to verify that we are only working with string literals.
             // Otherwise, let the editor handle all carets.
             foreach (var span in spans)
@@ -99,13 +93,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 }
             }
 
+            var useTabs = !textView.Options.IsConvertTabsToSpacesEnabled();
+            var tabSize = textView.Options.GetTabSize();
+
             // We now go through the verified string literals and split each of them.
             // The list of spans is traversed in reverse order so we do not have to
             // deal with updating later caret positions to account for the added space
             // from splitting at earlier caret positions.
             foreach (var span in spans.Reverse())
             {
-                if (!SplitString(document, textView, subjectBuffer, span.Start.Position, CancellationToken.None))
+                if (!SplitString(textView, subjectBuffer, span.Start.Position, useTabs, tabSize, CancellationToken.None))
                 {
                     return false;
                 }
@@ -114,16 +111,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             return true;
         }
 
-        private bool SplitString(Document document, ITextView textView, ITextBuffer subjectBuffer, int position, CancellationToken cancellationToken)
+        private bool SplitString(ITextView textView, ITextBuffer subjectBuffer, int position, bool useTabs, int tabSize, CancellationToken cancellationToken)
         {
-            using var transaction = CaretPreservingEditTransaction.TryCreate(
-                CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
-
-            var useTabs = !textView.Options.IsConvertTabsToSpacesEnabled();
-            var tabSize = textView.Options.GetTabSize();
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+            {
+                return false;
+            }
 
             // TODO: read option from textView.Options (https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1412138)
             var indentStyle = document.Project.Solution.Options.GetOption(FormattingOptions.SmartIndent, LanguageNames.CSharp);
+
+            using var transaction = CaretPreservingEditTransaction.TryCreate(
+                CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
 
             var splitter = StringSplitter.TryCreate(document, position, useTabs, tabSize, indentStyle, cancellationToken);
             if (splitter?.TrySplit(out var newDocument, out var newPosition) != true)
