@@ -3267,6 +3267,7 @@ StringAction
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
+        [WorkItem(56623, "https://github.com/dotnet/roslyn/issues/56623")]
         [Fact]
         public void OverloadResolution_16()
         {
@@ -3278,20 +3279,46 @@ class Program
     static void F(Func<Func<int>> f, object o) => Report(f);
     static void Main()
     {
+        M(false);
+    }
+    static void M(bool b)
+    {
         F(() => () => 1, 2);
+        F(() => () => { if (b) return 0; return 1; }, 2);
+        F(() => { if (b) return () => 0; return () => 1; }, 2);
     }
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
 
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput:
-@"System.Func`1[System.Func`1[System.Object]]");
+@"System.Func`1[System.Func`1[System.Object]]
+System.Func`1[System.Func`1[System.Object]]
+System.Func`1[System.Func`1[System.Object]]
+");
 
             // Breaking change from C#9 which binds calls to F(Func<Func<object>>, int).
+            //
+            // The calls such as F(() => () => 1, 2) should be considered ambiguous in C#9 as per the C# spec.
+            // But for compatibility with the legacy compiler, the implementation of "better conversion
+            // from expression" ignores delegate types for certain cases when the corresponding
+            // argument is a lambda expression, such as when the inferred return type of the lambda
+            // expression is null (see OverloadResolution.CanDowngradeConversionFromLambdaToNeither()).
+            // With the code example above, in C#10, the inferred return type of lambdas such as () => () => 1
+            // is Func<int> rather than null so the compatibility exception no longer applies for this example.
+            //
+            // We've decided to take the breaking change and match the C# spec rather than the
+            // legacy compiler in this particular case.
             var expectedDiagnostics = new[]
             {
-                // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(Func<Func<object>>, int)' and 'Program.F(Func<Func<int>>, object)'
+                // (12,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(Func<Func<object>>, int)' and 'Program.F(Func<Func<int>>, object)'
                 //         F(() => () => 1, 2);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(System.Func<System.Func<object>>, int)", "Program.F(System.Func<System.Func<int>>, object)").WithLocation(8, 9)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(System.Func<System.Func<object>>, int)", "Program.F(System.Func<System.Func<int>>, object)").WithLocation(12, 9),
+                // (13,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(Func<Func<object>>, int)' and 'Program.F(Func<Func<int>>, object)'
+                //         F(() => () => { if (b) return 0; return 1; }, 2);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(System.Func<System.Func<object>>, int)", "Program.F(System.Func<System.Func<int>>, object)").WithLocation(13, 9),
+                // (14,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(Func<Func<object>>, int)' and 'Program.F(Func<Func<int>>, object)'
+                //         F(() => { if (b) return () => 0; return () => 1; }, 2);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(System.Func<System.Func<object>>, int)", "Program.F(System.Func<System.Func<int>>, object)").WithLocation(14, 9)
             };
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(expectedDiagnostics);
@@ -4105,6 +4132,7 @@ class Program
     {
         var c = new C();
         c.M(F);
+        c.M(delegate () { return 1; });
     }
 }
 class C
@@ -4116,16 +4144,21 @@ static class E
     public static void M(this object o, Func<int> a) { Console.WriteLine(""E.M""); }
 }";
 
-            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: @"E.M");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput:
+@"E.M
+E.M");
 
             var expectedDiagnostics = new[]
             {
                 // (9,13): error CS0428: Cannot convert method group 'F' to non-delegate type 'Expression'. Did you intend to invoke the method?
                 //         c.M(F);
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "System.Linq.Expressions.Expression").WithLocation(9, 13)
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "System.Linq.Expressions.Expression").WithLocation(9, 13),
+                // (10,13): error CS1946: An anonymous method expression cannot be converted to an expression tree
+                //         c.M(delegate () { return 1; });
+                Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "delegate () { return 1; }").WithLocation(10, 13)
             };
 
-            // Breaking change from C#9 which binds to E.M.
+            // Breaking change from C#9 which binds to E.M in each case.
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(expectedDiagnostics);
             comp = CreateCompilation(source);
@@ -4208,6 +4241,67 @@ A.this[Func<int> f]");
             var expectedOutput =
 @"B1.this[Delegate d]
 B2.this[Expression e]";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void OverloadResolution_46()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F(Func<Func<object>> f, int i) => Report(f);
+    static void F(Func<Func<int>> f, object o) => Report(f);
+    static void Main()
+    {
+        M(false);
+    }
+    static void M(bool b)
+    {
+        F(() => b ? () => 0 : () => 1, 2);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (12,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(Func<Func<object>>, int)' and 'Program.F(Func<Func<int>>, object)'
+                //         F(() => b ? () => 0 : () => 1, 2);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(System.Func<System.Func<object>>, int)", "Program.F(System.Func<System.Func<int>>, object)").WithLocation(12, 9)
+            };
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void OverloadResolution_47()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F(int i, Func<Func<object>> f) => Report(f);
+    static void F(object o, Func<Func<int>> f) => Report(f);
+    static void Main()
+    {
+        F(2, () => new[] { () => 0, () => 1 }[0]);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (8,20): error CS0826: No best type found for implicitly-typed array
+                //         F(2, () => new[] { () => 0, () => 1 }[0]);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { () => 0, () => 1 }").WithLocation(8, 20));
+
+            var expectedOutput = @"System.Func`1[System.Func`1[System.Int32]]";
             CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
@@ -8087,7 +8181,7 @@ class Program
         }
 
         /// <summary>
-        /// Synthesized delegate types should only be emitted if used.
+        /// Synthesized delegate types should only be emitted if referenced in the assembly.
         /// </summary>
         [Fact]
         [WorkItem(55896, "https://github.com/dotnet/roslyn/issues/55896")]
@@ -8128,6 +8222,56 @@ D4");
 
                 // https://github.com/dotnet/roslyn/issues/55896: Should not include <>A{00000004}`2 or <>A{00000006}`2.
                 string[] expectedTypes = new[] { "<Module>", "<>A{00000001}`2", "<>A{00000004}`2", "<>A{00000006}`2", "<>A{00000009}`2", "D2", "D4", "Program", "<>c", };
+                AssertEx.Equal(expectedTypes, actualTypes);
+            }
+        }
+
+        /// <summary>
+        /// Synthesized delegate types should only be emitted if referenced in the assembly.
+        /// </summary>
+        [Fact]
+        [WorkItem(55896, "https://github.com/dotnet/roslyn/issues/55896")]
+        public void SynthesizedDelegateTypes_22()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static T M<T>(T t) => t;
+    static int F(ref object x) => 1;
+    static void Main()
+    {
+        M(() => { });
+    }
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var syntaxTree = comp.SyntaxTrees[0];
+
+            var model = comp.GetSemanticModel(syntaxTree);
+            var syntax = syntaxTree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            int position = syntax.SpanStart;
+            speculate(model, position, "M(F);", "<>F{00000001}<System.Object, System.Int32>");
+            speculate(model, position, "M((out object y) => { y = null; return 2; });", "<>F{00000002}<System.Object, System.Int32>");
+
+            var verifier = CompileAndVerify(comp, validator: validator);
+
+            static void speculate(SemanticModel? model, int position, string text, string expectedDelegateType)
+            {
+                var stmt = SyntaxFactory.ParseStatement(text);
+                Assert.True(model.TryGetSpeculativeSemanticModel(position, stmt, out model));
+                var expr = ((ExpressionStatementSyntax)stmt).Expression;
+                var type = model!.GetTypeInfo(expr).Type;
+                Assert.Equal(expectedDelegateType, type.ToTestDisplayString());
+            }
+
+            static void validator(PEAssembly assembly)
+            {
+                var reader = assembly.GetMetadataReader();
+                var actualTypes = reader.GetTypeDefNames().Select(h => reader.GetString(h)).ToArray();
+
+                // https://github.com/dotnet/roslyn/issues/55896: Should not include <>F{00000001}`2 or <>F{00000002}`2.
+                string[] expectedTypes = new[] { "<Module>", "<>F{00000001}`2", "<>F{00000002}`2", "Program", "<>c", };
                 AssertEx.Equal(expectedTypes, actualTypes);
             }
         }

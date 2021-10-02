@@ -71,13 +71,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                              Return False
                          End Function)
 
-            ' Quick Actions
-            BindToOption(ComputeQuickActionsAsynchronouslyExperimental, SuggestionsOptions.Asynchronous,
-                         Function()
-                             ' If the option has Not been set by the user, check if the option is enabled from experimentation.
-                             Return optionStore.GetOption(SuggestionsOptions.AsynchronousFeatureFlag)
-                         End Function)
-
             ' Highlighting
             BindToOption(EnableHighlightReferences, FeatureOnOffOptions.ReferenceHighlighting, LanguageNames.VisualBasic)
             BindToOption(EnableHighlightKeywords, FeatureOnOffOptions.KeywordHighlighting, LanguageNames.VisualBasic)

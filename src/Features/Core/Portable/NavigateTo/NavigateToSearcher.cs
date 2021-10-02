@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private async Task SearchAllProjectsAsync(bool isFullyLoaded, CancellationToken cancellationToken)
         {
             var orderedProjects = GetOrderedProjectsToProcess();
-            var (itemsReported, projectResults) = await ProcessProjectsAsync(orderedProjects, isFullyLoaded, cancellationToken).ConfigureAwait(false);
+            var (foundItems, projectResults) = await ProcessProjectsAsync(orderedProjects, isFullyLoaded, cancellationToken).ConfigureAwait(false);
 
             // If we're fully loaded then we're done at this point.  All the searches would have been against the latest
             // computed data and we don't need to do anything else.
@@ -123,14 +123,24 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // We weren't fully loaded *but* we reported some items to the user, then consider that good enough for now.
             // The user will have some results they can use, and (in the case that we actually examined the cache for
             // data) we will tell the user that the results may be incomplete/inaccurate and they should try again soon.
-            if (itemsReported > 0)
+            if (foundItems)
                 return;
 
             // We didn't have any items reported *and* we weren't fully loaded.  If it turns out that some of our
             // projects were using cached data then we can try searching them again, but this tell them to use the
             // latest data.  The ensures the user at least gets some result instead of nothing.
             var projectsUsingCache = projectResults.SelectAsArray(t => t.location == NavigateToSearchLocation.Cache, t => t.project);
-            await ProcessProjectsAsync(ImmutableArray.Create(projectsUsingCache), isFullyLoaded: true, cancellationToken).ConfigureAwait(false);
+            if (projectsUsingCache.Length == 0)
+                return;
+
+            var (foundFullItems, _) = await ProcessProjectsAsync(ImmutableArray.Create(projectsUsingCache), isFullyLoaded: true, cancellationToken).ConfigureAwait(false);
+
+            // Report a telemetry even to track if we found uncached items after failing to find cached items.
+            // In practice if we see that we are always finding uncached items, then it's likely something
+            // has broken in the caching system since we would expect to normally find values there.  Specifically
+            // we expect: foundFullItems <<< not foundFullItems.
+
+            Logger.Log(FunctionId.NavigateTo_CacheItemsMiss, KeyValueLogMessage.Create(m => m["FoundFullItems"] = foundFullItems));
         }
 
         /// <summary>
@@ -212,7 +222,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             return result.ToImmutable();
         }
 
-        private async Task<(int itemsReported, ImmutableArray<(Project project, NavigateToSearchLocation location)>)> ProcessProjectsAsync(
+        private async Task<(bool foundItems, ImmutableArray<(Project project, NavigateToSearchLocation location)>)> ProcessProjectsAsync(
             ImmutableArray<ImmutableArray<Project>> orderedProjects, bool isFullyLoaded, CancellationToken cancellationToken)
         {
             await _progress.AddItemsAsync(orderedProjects.Sum(p => p.Length), cancellationToken).ConfigureAwait(false);
@@ -220,19 +230,27 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             using var _ = ArrayBuilder<(Project project, NavigateToSearchLocation location)>.GetInstance(out var result);
 
             var seenItems = new HashSet<INavigateToSearchResult>(NavigateToSearchResultComparer.Instance);
-            foreach (var projectGroup in orderedProjects)
-                result.AddRange(await Task.WhenAll(projectGroup.Select(p => Task.Run(() => SearchAsync(p, isFullyLoaded, seenItems, cancellationToken)))).ConfigureAwait(false));
 
-            return (seenItems.Count, result.ToImmutable());
+            // Process each group one at a time.  However, in each group process all projects in parallel to get results
+            // as quickly as possible.  The net effect of this is that we will search the active doc immediately, then
+            // the open docs in parallel, then the rest of the projects after that.  Because the active/open docs should
+            // be a far smaller set, those results should come in almost immediately in a prioritized fashion, with the
+            // rest of the results following soon after as best as we can find them.
+            foreach (var projectGroup in orderedProjects)
+            {
+                var allTasks = projectGroup.Select(p => Task.Run(async () => (p, await SearchAsync(p, isFullyLoaded, seenItems, cancellationToken).ConfigureAwait(false))));
+                result.AddRange(await Task.WhenAll(allTasks).ConfigureAwait(false));
+            }
+
+            return (foundItems: seenItems.Count > 0, result.ToImmutable());
         }
 
-        private async Task<(Project project, NavigateToSearchLocation location)> SearchAsync(
+        private async Task<NavigateToSearchLocation> SearchAsync(
             Project project, bool isFullyLoaded, HashSet<INavigateToSearchResult> seenItems, CancellationToken cancellationToken)
         {
             try
             {
-                var location = await SearchCoreAsync(project, isFullyLoaded, seenItems, cancellationToken).ConfigureAwait(false);
-                return (project, location);
+                return await SearchCoreAsync(project, isFullyLoaded, seenItems, cancellationToken).ConfigureAwait(false);
             }
             finally
             {

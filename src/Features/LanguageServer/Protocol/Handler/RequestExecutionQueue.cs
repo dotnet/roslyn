@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <param name="requestCancellationToken">A cancellation token that will cancel the handing of this request.
         /// The request could also be cancelled by the queue shutting down.</param>
         /// <returns>A task that can be awaited to observe the results of the handing of this request.</returns>
-        public Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(
+        public Task<TResponseType?> ExecuteAsync<TRequestType, TResponseType>(
             bool mutatesSolutionState,
             bool requiresLSPSolution,
             IRequestHandler<TRequestType, TResponseType> handler,
@@ -148,10 +149,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             ClientCapabilities clientCapabilities,
             string? clientName,
             string methodName,
-            CancellationToken requestCancellationToken) where TRequestType : class
+            CancellationToken requestCancellationToken)
+            where TRequestType : class
         {
             // Create a task completion source that will represent the processing of this request to the caller
-            var completion = new TaskCompletionSource<TResponseType>();
+            var completion = new TaskCompletionSource<TResponseType?>();
 
             // Note: If the queue is not accepting any more items then TryEnqueue below will fail.
 
@@ -176,9 +178,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         return;
                     }
 
+                    // If we weren't able to get a corresponding context for this request (for example, we
+                    // couldn't map a doc request to a particular Document, or we couldn't find an appropriate
+                    // Workspace for a global operation), then just immediately complete the request with a
+                    // 'null' response.  Note: the lsp spec was checked to ensure that 'null' is valid for all
+                    // the requests this could happen for.  However, this assumption may not hold in the future.
+                    // If that turns out to be the case, we could defer to the individual handler to decide
+                    // what to do.
+                    if (context == null)
+                    {
+                        completion.SetResult(default);
+                        return;
+                    }
+
                     try
                     {
-                        var result = await handler.HandleRequestAsync(request, context, cancellationToken).ConfigureAwait(false);
+                        var result = await handler.HandleRequestAsync(request, context.Value, cancellationToken).ConfigureAwait(false);
                         completion.SetResult(result);
                     }
                     catch (OperationCanceledException ex)
@@ -220,7 +235,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                     // Restore our activity id so that logging/tracking works across asynchronous calls.
                     Trace.CorrelationManager.ActivityId = work.ActivityId;
-                    var context = CreateRequestContext(work, out var workspace);
+                    var (context, workspace) = CreateRequestContext(work);
 
                     if (work.MutatesSolutionState)
                     {
@@ -228,7 +243,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         await ExecuteCallbackAsync(work, context, _cancelSource.Token).ConfigureAwait(false);
 
                         // Now that we've mutated our solution, clear out our saved state to ensure it gets recalculated
-                        _lspSolutionCache.Remove(workspace);
+                        if (workspace != null)
+                            _lspSolutionCache.Remove(workspace);
                     }
                     else
                     {
@@ -255,7 +271,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        private static Task ExecuteCallbackAsync(QueueItem work, RequestContext context, CancellationToken queueCancellationToken)
+        private static Task ExecuteCallbackAsync(QueueItem work, RequestContext? context, CancellationToken queueCancellationToken)
         {
             // Create a combined cancellation token to cancel any requests in progress when this shuts down
             using var combinedTokenSource = queueCancellationToken.CombineWith(work.CancellationToken);
@@ -286,11 +302,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // and just call SetCanceled
             while (_queue.TryDequeue(out var item))
             {
-                _ = item.CallbackAsync(default, new CancellationToken(true));
+                _ = item.CallbackAsync(null, new CancellationToken(true));
             }
         }
 
-        private RequestContext CreateRequestContext(QueueItem queueItem, out Workspace workspace)
+        private (RequestContext? context, Workspace? workspace) CreateRequestContext(QueueItem queueItem)
         {
             var trackerToUse = queueItem.MutatesSolutionState
                 ? (IDocumentChangeTracker)_documentChangeTracker
@@ -308,8 +324,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _lspSolutionCache,
                 trackerToUse,
                 _supportedLanguages,
-                _globalOptions,
-                out workspace);
+                _globalOptions);
         }
     }
 }

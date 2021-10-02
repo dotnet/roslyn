@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -117,8 +118,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             // remaining tasks should have executed normally
             var responses = await Task.WhenAll(waitables.Skip(1));
 
-            Assert.Empty(responses.Where(r => r.StartTime == default));
-            Assert.All(responses, r => Assert.True(r.EndTime > r.StartTime));
+            Assert.Empty(responses.Where(r => r == null));
+            Assert.Empty(responses.Where(r => r!.StartTime == default));
+            Assert.All(responses, r => Assert.True(r!.EndTime > r!.StartTime));
         }
 
         [Fact]
@@ -139,8 +141,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             // Non-long running tasks should run and complete. If there's a test-failure for a "cancellation"
             // at this point it means our long running task blocked the queue and prevented completion.
             var responses = await Task.WhenAll(waitables.Skip(1));
-            Assert.Empty(responses.Where(r => r.StartTime == default));
-            Assert.All(responses, r => Assert.True(r.EndTime > r.StartTime));
+            Assert.Empty(responses.Where(r => r == null));
+            Assert.Empty(responses.Where(r => r!.StartTime == default));
+            Assert.All(responses, r => Assert.True(r!.EndTime > r!.StartTime));
 
             // Our long-running waitable should still be running until cancelled.
             var longRunningWaitable = waitables[0];
@@ -246,6 +249,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         {
             var request = new TestRequest(methodName);
             var response = await testLspServer.ExecuteRequestAsync<TestRequest, TestResponse>(request.MethodName, request, new LSP.ClientCapabilities(), null, CancellationToken.None);
+            Contract.ThrowIfNull(response);
             return response.Solution;
         }
 
@@ -256,21 +260,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             var responses = await Task.WhenAll(waitables);
 
             // Sanity checks to ensure test handlers aren't doing something wacky, making future checks invalid
-            Assert.Empty(responses.Where(r => r.StartTime == default));
-            Assert.All(responses, r => Assert.True(r.EndTime > r.StartTime));
+            Assert.Empty(responses.Where(r => r == null));
+            Assert.Empty(responses.Where(r => r!.StartTime == default));
+            Assert.All(responses, r => Assert.True(r!.EndTime > r!.StartTime));
 
-            return responses;
+            return responses!;
         }
 
-        private static List<Task<TestResponse>> StartTestRun(TestLspServer testLspServer, TestRequest[] requests, CancellationToken cancellationToken = default)
+        private static List<Task<TestResponse?>> StartTestRun(TestLspServer testLspServer, TestRequest[] requests, CancellationToken cancellationToken = default)
         {
             var clientCapabilities = new LSP.ClientCapabilities();
 
-            var waitables = new List<Task<TestResponse>>();
+            var waitables = new List<Task<TestResponse?>>();
             foreach (var request in requests)
-            {
                 waitables.Add(testLspServer.ExecuteRequestAsync<TestRequest, TestResponse>(request.MethodName, request, clientCapabilities, null, cancellationToken));
-            }
 
             return waitables;
         }

@@ -766,7 +766,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref MemberAnalysisResult memberAnalysisResult,
             int interpolatedStringArgNum,
             TypeSymbol? receiverType,
-            RefKind? receiverRefKind,
             uint receiverEscapeScope,
             BindingDiagnosticBag diagnostics)
         {
@@ -874,8 +873,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (argumentIndex)
                 {
                     case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
-                        Debug.Assert(receiverRefKind != null && receiverType is not null);
-                        refKind = receiverRefKind.GetValueOrDefault();
+                        Debug.Assert(receiverType is not null);
+                        refKind = RefKind.None;
                         placeholderType = receiverType;
                         break;
                     case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
