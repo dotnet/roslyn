@@ -89,6 +89,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (rewrittenConvertedType == null || rewrittenConvertedType.TypeKind == TypeKind.Error)
                 return false;
 
+            // If the types of the expressions are different, then removing the conversion changed semantics
+            // and we can't remove it.
+            if (!SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(originalConvertedType, rewrittenConvertedType))
+                return false;
+
             return true;
         }
     }
