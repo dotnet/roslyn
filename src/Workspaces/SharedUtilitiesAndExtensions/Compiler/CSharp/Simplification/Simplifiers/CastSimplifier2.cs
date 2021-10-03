@@ -36,6 +36,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
             SemanticModel semanticModel, CancellationToken cancellationToken)
         {
+            // Can't remove casts in code that has syntax errors.
+            if (castNode.WalkUpParentheses().ContainsDiagnostics)
+                return false;
+
             return true;
         }
     }
