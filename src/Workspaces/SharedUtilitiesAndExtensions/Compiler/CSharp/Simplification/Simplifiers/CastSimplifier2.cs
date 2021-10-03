@@ -72,6 +72,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (originalConvertedType == null || originalConvertedType.TypeKind == TypeKind.Error)
                 return false;
 
+            // if the expression being casted is the `null` literal, then we can't remove the cast if the final
+            // converted type is a value type.  This can happen with code like: 
+            //
+            // void Goo<T, S>() where T : class, S
+            // {
+            //     S y = (T)null;
+            // }
+            //
+            // Effectively, this constrains S to be a reference type (as T could not otherwise derive from it).
+            // However, such a invariant isn't understood by the compiler.  So if the (T) cast is removed it will
+            // fail as 'null' cannot be converted to an unconstrained generic type.
+            var isNullLiteralCast = castedExpressionNode.WalkDownParentheses().Kind() == SyntaxKind.NullLiteralExpression;
+            if (isNullLiteralCast && !originalConvertedType.IsReferenceType)
+                return false;
+
             var originalSyntaxTree = originalSemanticModel.SyntaxTree;
             var originalRoot = originalSyntaxTree.GetRoot(cancellationToken);
             var originalCompilation = originalSemanticModel.Compilation;
