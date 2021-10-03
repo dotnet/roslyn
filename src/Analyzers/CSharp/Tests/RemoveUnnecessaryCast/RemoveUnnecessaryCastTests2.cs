@@ -7824,7 +7824,7 @@ public class sign
 
         [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DoNotRemoveNecessaryCastInConditional4()
+        public async Task DoNotRemoveNecessaryCastInConditional4_CSharp8()
         {
             var source =
 @"class C
@@ -7835,12 +7835,40 @@ public class sign
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(source, source);
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp8
+            }.RunAsync();
         }
 
         [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DoNotRemoveNecessaryCastInConditional5()
+        public async Task DoRemoveUnnecessaryCastInConditional4()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"class C
+{
+    void M(bool x)
+    {
+        int? y = x ? [|(int?)|]1 : null;
+    }
+}",
+                FixedCode = @"class C
+{
+    void M(bool x)
+    {
+        int? y = x ? 1 : null;
+    }
+}",
+            }.RunAsync();
+        }
+
+        [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecessaryCastInConditional5_CSharp8()
         {
             var source =
 @"class C
@@ -7851,12 +7879,40 @@ public class sign
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(source, source);
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp8
+            }.RunAsync();
         }
 
         [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DoNotRemoveNecessaryCastInConditional6()
+        public async Task DoRemoveUnnecessaryCastInConditional5()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"class C
+{
+    void M(bool x)
+    {
+        int? y = x ? ([|(int?)|]1) : null;
+    }
+}",
+                FixedCode = @"class C
+{
+    void M(bool x)
+    {
+        int? y = x ? (1) : null;
+    }
+}",
+            }.RunAsync();
+        }
+
+        [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecessaryCastInConditional6_CSharp8()
         {
             var source =
 @"class C
@@ -7867,7 +7923,35 @@ public class sign
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(source, source);
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveUnnecessaryCastInConditional6_CSharp8()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"class C
+{
+    void M(bool x)
+    {
+        int? y = x ? [|(int?)|]1 : (null);
+    }
+}",
+                FixedCode = @"class C
+{
+    void M(bool x)
+    {
+        int? y = x ? 1 : (null);
+    }
+}",
+            }.RunAsync();
         }
 
         [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
@@ -7920,7 +8004,7 @@ public class sign
 
         [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DoNotRemoveNecessaryCastInConditional10()
+        public async Task DoNotRemoveNecessaryCastInConditional10_CSharp8()
         {
             var source =
 @"class C
@@ -7931,12 +8015,40 @@ public class sign
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(source, source);
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp8
+            }.RunAsync();
         }
 
         [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DoNotRemoveNecessaryCastInConditional11()
+        public async Task DoRemoveUnnecessaryCastInConditional10()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"class C
+{
+    void M(bool x)
+    {
+        int? y = x ? null : [|(int?)|]1;
+    }
+}",
+                FixedCode = @"class C
+{
+    void M(bool x)
+    {
+        int? y = x ? null : 1;
+    }
+}",
+            }.RunAsync();
+        }
+
+        [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecessaryCastInConditional11_CSharp()
         {
             var source =
 @"class C
@@ -7947,12 +8059,40 @@ public class sign
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(source, source);
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp8
+            }.RunAsync();
         }
 
         [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DoNotRemoveNecessaryCastInConditional12()
+        public async Task DoRemoveUnnecessaryCastInConditional11()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"class C
+{
+    void M(bool x)
+    {
+        int? y = x ? null : ([|(int?)|]1);
+    }
+}",
+                FixedCode = @"class C
+{
+    void M(bool x)
+    {
+        int? y = x ? null : (1);
+    }
+}",
+            }.RunAsync();
+        }
+
+        [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecessaryCastInConditional12_CSharp8()
         {
             var source =
 @"class C
@@ -7963,7 +8103,35 @@ public class sign
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(source, source);
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp8
+            }.RunAsync();
+        }
+
+        [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecessaryCastInConditional12()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"class C
+{
+    void M(bool x)
+    {
+        int? y = x ? (null) : [|(int?)|]1;
+    }
+}",
+                FixedCode = @"class C
+{
+    void M(bool x)
+    {
+        int? y = x ? (null) : 1;
+    }
+}",
+            }.RunAsync();
         }
 
         [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
