@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
         private static bool IsCastSafeToRemove(
             ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
-            SemanticModel semanticModel, CancellationToken cancellationToken)
+            SemanticModel originalSemanticModel, CancellationToken cancellationToken)
         {
             // Can't remove casts in code that has syntax errors.
             if (castNode.WalkUpParentheses().ContainsDiagnostics)
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             // If we don't have a conversion then we can't do anything with this as the code isn't
             // semantically valid. 
-            var conversionOperation = semanticModel.GetOperation(castNode, cancellationToken) as IConversionOperation;
+            var conversionOperation = originalSemanticModel.GetOperation(castNode, cancellationToken) as IConversionOperation;
             if (conversionOperation == null)
                 return false;
 
@@ -67,8 +68,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             // we are starting with code like `(X)expr` and converting to just `expr`. Post rewrite we need
             // to ensure that the final converted-type of `expr` matches the final converted type of `(X)expr`.
-            var originalConvertedType = semanticModel.GetTypeInfo(castNode.WalkUpParentheses(), cancellationToken).ConvertedType;
+            var originalConvertedType = originalSemanticModel.GetTypeInfo(castNode.WalkUpParentheses(), cancellationToken).ConvertedType;
             if (originalConvertedType == null || originalConvertedType.TypeKind == TypeKind.Error)
+                return false;
+
+            var originalSyntaxTree = originalSemanticModel.SyntaxTree;
+            var originalRoot = originalSyntaxTree.GetRoot(cancellationToken);
+            var originalCompilation = originalSemanticModel.Compilation;
+
+            var annotation = new SyntaxAnnotation();
+
+            var rewrittenSyntaxTree = originalSyntaxTree.WithRootAndOptions(
+                originalRoot.ReplaceNode(castNode, castedExpressionNode.WithAdditionalAnnotations(annotation)), originalSyntaxTree.Options);
+            var rewrittenRoot = rewrittenSyntaxTree.GetRoot(cancellationToken);
+            var rewrittenCompilation = originalCompilation.ReplaceSyntaxTree(originalSyntaxTree, rewrittenSyntaxTree);
+            var rewrittenSemanticModel = rewrittenCompilation.GetSemanticModel(rewrittenSyntaxTree);
+
+            var rewrittenExpression = rewrittenRoot.GetAnnotatedNodes(annotation).Single();
+            var rewrittenConvertedType = rewrittenSemanticModel.GetTypeInfo(rewrittenExpression, cancellationToken).ConvertedType;
+            if (rewrittenConvertedType == null || rewrittenConvertedType.TypeKind == TypeKind.Error)
                 return false;
 
             return true;
