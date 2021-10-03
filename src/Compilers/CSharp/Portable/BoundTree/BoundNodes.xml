@@ -342,6 +342,10 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Operand" Type="BoundExpression"/>
+    <!-- Used by emit to determine whether this pointer indirection is by value or by ref. If true, emit
+         will emit the address of the target, and not actually perform an indirect load (in practice this just
+         means emitting the Operand alone). -->
+    <Field Name="RefersToLocation" Type="bool"/>
   </Node>
   <Node Name="BoundPointerElementAccess" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
@@ -350,6 +354,10 @@
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="Index" Type="BoundExpression"/>
     <Field Name="Checked" Type="bool"/>
+    <!-- Used by emit to determine whether this pointer element access is by value or by ref. If true, emit
+         will emit the address of the target, and not actually perform an indirect load (in practice this just
+         means emitting the Operand alone). -->
+    <Field Name="RefersToLocation" Type="bool"/>
   </Node>
 
   <Node Name="BoundFunctionPointerInvocation" Base="BoundExpression">
