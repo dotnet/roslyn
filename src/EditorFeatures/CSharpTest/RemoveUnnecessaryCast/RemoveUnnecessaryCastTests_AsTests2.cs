@@ -20,9 +20,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
 {
-    public partial class RemoveUnnecessaryCastTests_AsTests2 : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class RemoveUnnecessaryCastTests2_AsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        public RemoveUnnecessaryCastTests_AsTests2(ITestOutputHelper logger)
+        public RemoveUnnecessaryCastTests2_AsTests(ITestOutputHelper logger)
           : base(logger)
         {
         }

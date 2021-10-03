@@ -4902,28 +4902,33 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DoNotRemoveCastOnCallToMethodWithParamsArgsWithIncorrectMethodDefintion()
+        public async Task DoRemoveCastOnCallToMethodWithInvalidParamsArgs()
         {
-            var source =
-@"
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
 class Program
 {
     public static void Main(string[] args)
     {
-        TakesParams((string)null);
+        TakesParams([|(string)|]null);
     }
 
     private static void TakesParams({|CS0225:params|} string wrongDefined)
     {
-        Console.WriteLine(wrongDefined.Length);
     }
-}";
+}",
+                @"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        TakesParams(null);
+    }
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source,
-                // /0/Test0.cs(11,9): error CS0103: The name 'Console' does not exist in the current context
-                DiagnosticResult.CompilerError("CS0103").WithSpan(11, 9, 11, 16).WithArguments("Console"),
-                source);
+    private static void TakesParams({|CS0225:params|} string wrongDefined)
+    {
+    }
+}");
         }
 
         [WorkItem(18978, "https://github.com/dotnet/roslyn/issues/18978")]
@@ -5137,10 +5142,10 @@ static class Program
 
         [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DoNotRemoveCastOnCallToAttributeWithParamsArgsNamedArgsWithIncorrectMethodDefintion()
+        public async Task DoRemoveCastOnCallToAttributeWithInvalidParamsArgs()
         {
-            var source =
-@"
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
 using System;
 sealed class MarkAttribute : Attribute
 {
@@ -5150,12 +5155,24 @@ sealed class MarkAttribute : Attribute
     public int Prop { get; set; }
 }
 
-[Mark(true, (string)null, Prop = 1)]
+[Mark(true, [|(string)|]null, Prop = 1)]
 static class Program
 {
-}";
+}",
+                @"
+using System;
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool otherArg, {|CS0225:params|} string wrongDefined)
+    {
+    }
+    public int Prop { get; set; }
+}
 
-            await VerifyCS.VerifyCodeFixAsync(source, source);
+[Mark(true, null, Prop = 1)]
+static class Program
+{
+}");
         }
 
         [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
