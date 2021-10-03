@@ -9398,5 +9398,34 @@ class A
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
+
+        [WorkItem(53698, "https://github.com/dotnet/roslyn/issues/53698")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveForConditional()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+class E
+{
+    private object _o;
+
+    public E First
+    {
+        get
+        {
+            return _o is List<E> es ? es[0] : (E)_o;
+        }
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
     }
 }
