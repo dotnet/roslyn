@@ -17,8 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 {
     internal static class CastSimplifier2
     {
-        private static readonly SyntaxAnnotation s_annotation = new();
-
         public static bool IsUnnecessaryCast(ExpressionSyntax cast, SemanticModel semanticModel, CancellationToken cancellationToken)
             => cast is CastExpressionSyntax castExpression ? IsUnnecessaryCast(castExpression, semanticModel, cancellationToken) :
                cast is BinaryExpressionSyntax binaryExpression ? IsUnnecessaryAsCast(binaryExpression, semanticModel, cancellationToken) : false;
@@ -96,10 +94,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             // So far, this looks potentially possible to remove.  Now, actually do the removal and get the
             // semantic model for the rewritten code so we can check it to make sure semantics were preserved.
-            var rewrittenSemanticModel = GetSemanticModelWithCastRemoved(
+            var (rewrittenSemanticModel, rewrittenExpression) = GetSemanticModelWithCastRemoved(
                 castNode, castedExpressionNode, originalSemanticModel, cancellationToken);
 
-            var (rewrittenConvertedType, rewrittenConversion) = GetRewrittenInfo(castNode, originalSemanticModel, rewrittenSemanticModel, cancellationToken);
+            var (rewrittenConvertedType, rewrittenConversion) = GetRewrittenInfo(
+                castNode, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel, cancellationToken);
             if (rewrittenConvertedType == null || rewrittenConvertedType.TypeKind == TypeKind.Error)
                 return false;
 
@@ -138,6 +137,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     return false;
             }
 
+            // Because of error tolerance in the compiler layer, it's possible for an overload resolution error
+            // to occur, but all the checks above pass.  Specifically, with overload resolution, the binding layer
+            // will still return results (in lambdas especially) for one of the overloads.  For example:
+            //
+            //    Goo(x => (int)x);
+            //    void Goo(Func<int, object> x)
+            //    Goo(Func<string, object> x)
+            //
+            // Here, removing the cast will cause an ambiguity issue. However, the type of 'x' will still appear to
+            // be an 'int' because of error tolerance.  To address this, walk up all containing invocations and 
+            // make sure they're calls to the same methods.
+            if (IntroducedAmbiguity(castNode, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel, cancellationToken))
+                return false;
+
             #endregion blacklist cases
 
             #region whitelist cases that allow this cast to be removed.
@@ -158,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (castNode.WalkUpParentheses().Parent is MemberAccessExpressionSyntax memberAccessExpression)
             {
                 if (IsComplimentaryMemberAfterCastRemoval(
-                        memberAccessExpression, originalSemanticModel, rewrittenSemanticModel, cancellationToken))
+                        memberAccessExpression, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel, cancellationToken))
                 {
                     return true;
                 }
@@ -174,8 +187,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
+        private static bool IntroducedAmbiguity(
+            ExpressionSyntax castNode, ExpressionSyntax rewrittenExpression,
+            SemanticModel originalSemanticModel, SemanticModel rewrittenSemanticModel,
+            CancellationToken cancellationToken)
+        {
+            for (SyntaxNode? currentOld = castNode.WalkUpParentheses().Parent, currentNew = rewrittenExpression.WalkUpParentheses().Parent;
+                 currentOld != null && currentNew != null;
+                 currentOld = currentOld.Parent, currentNew = currentNew.Parent)
+            {
+                Debug.Assert(currentOld.Kind() == currentNew.Kind());
+                var oldSymbolInfo = originalSemanticModel.GetSymbolInfo(currentOld, cancellationToken);
+                if (oldSymbolInfo.Symbol != null)
+                {
+                    // if previously we bound to a single symbol, but now we don't, then we introduced an
+                    // error of some sort.  Have to bail out immediately and keep the cast.
+                    var newSymbolInfo = rewrittenSemanticModel.GetSymbolInfo(currentNew, cancellationToken);
+                    if (newSymbolInfo.Symbol == null)
+                        return true;
+                }
+
+                // TODO(cyrusn): Do we need to validate the old symbol maps to the new symbol?
+                // We could easily add that if necessary.
+            }
+
+            return false;
+        }
+
         private static bool IsComplimentaryMemberAfterCastRemoval(
             MemberAccessExpressionSyntax memberAccessExpression,
+            ExpressionSyntax rewrittenExpression,
             SemanticModel originalSemanticModel,
             SemanticModel rewrittenSemanticModel,
             CancellationToken cancellationToken)
@@ -184,10 +225,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (originalMemberSymbol == null)
                 return false;
 
-            var rewrittenSyntaxTree = rewrittenSemanticModel.SyntaxTree;
-            var rewrittenRoot = rewrittenSyntaxTree.GetRoot(cancellationToken);
-
-            var rewrittenExpression = (ExpressionSyntax)rewrittenRoot.GetAnnotatedNodes(s_annotation).Single();
             var rewrittenMemberAccessExpression = (MemberAccessExpressionSyntax)rewrittenExpression.WalkUpParentheses().GetRequiredParent();
             var rewrittenMemberSymbol = rewrittenSemanticModel.GetSymbolInfo(rewrittenMemberAccessExpression, cancellationToken).Symbol;
             if (rewrittenMemberSymbol == null)
@@ -349,7 +386,8 @@ IsIntrinsicOrEnum(rewrittenType);
         }
 
         private static (ITypeSymbol? rewrittenConvertedType, Conversion rewrittenConversion) GetRewrittenInfo(
-            ExpressionSyntax castNode, SemanticModel originalSemanticModel, SemanticModel rewrittenSemanticModel, CancellationToken cancellationToken)
+            ExpressionSyntax castNode, ExpressionSyntax rewrittenExpression,
+            SemanticModel originalSemanticModel, SemanticModel rewrittenSemanticModel, CancellationToken cancellationToken)
         {
             if (castNode.WalkUpParentheses().Parent is InterpolationSyntax)
             {
@@ -362,17 +400,13 @@ IsIntrinsicOrEnum(rewrittenType);
                 return (originalSemanticModel.Compilation.ObjectType, default);
             }
 
-            var rewrittenSyntaxTree = rewrittenSemanticModel.SyntaxTree;
-            var rewrittenRoot = rewrittenSyntaxTree.GetRoot(cancellationToken);
-
-            var rewrittenExpression = rewrittenRoot.GetAnnotatedNodes(s_annotation).Single();
             var rewrittenConvertedType = rewrittenSemanticModel.GetTypeInfo(rewrittenExpression, cancellationToken).ConvertedType;
             var rewrittenConversion = rewrittenSemanticModel.GetConversion(rewrittenExpression, cancellationToken);
 
             return (rewrittenConvertedType, rewrittenConversion);
         }
 
-        private static SemanticModel GetSemanticModelWithCastRemoved(
+        private static (SemanticModel rewrittenSemanticModel, ExpressionSyntax rewrittenExpression) GetSemanticModelWithCastRemoved(
             ExpressionSyntax castNode,
             ExpressionSyntax castedExpressionNode,
             SemanticModel originalSemanticModel,
@@ -382,11 +416,14 @@ IsIntrinsicOrEnum(rewrittenType);
             var originalRoot = originalSyntaxTree.GetRoot(cancellationToken);
             var originalCompilation = originalSemanticModel.Compilation;
 
+            var annotation = new SyntaxAnnotation();
             var rewrittenSyntaxTree = originalSyntaxTree.WithRootAndOptions(
-                originalRoot.ReplaceNode(castNode, castedExpressionNode.WithAdditionalAnnotations(s_annotation)), originalSyntaxTree.Options);
+                originalRoot.ReplaceNode(castNode, castedExpressionNode.WithAdditionalAnnotations(annotation)), originalSyntaxTree.Options);
             var rewrittenCompilation = originalCompilation.ReplaceSyntaxTree(originalSyntaxTree, rewrittenSyntaxTree);
-            var rewrittenSemanticModel = rewrittenCompilation.GetSemanticModel(rewrittenSyntaxTree);
-            return rewrittenSemanticModel;
+
+            var rewrittenRoot = rewrittenSyntaxTree.GetRoot(cancellationToken);
+            return (rewrittenCompilation.GetSemanticModel(rewrittenSyntaxTree),
+                    (ExpressionSyntax)rewrittenRoot.GetAnnotatedNodes(annotation).Single());
         }
     }
 }
