@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
             SemanticModel originalSemanticModel, CancellationToken cancellationToken)
         {
+            #region blacklist cases that disqualify this cast from being removed.
+
             // Can't remove casts in code that has syntax errors.
             if (castNode.WalkUpParentheses().ContainsDiagnostics)
                 return false;
@@ -136,6 +138,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     return false;
             }
 
+            #endregion blacklist cases
+
+            #region whitelist cases that allow this cast to be removed.
+
             // In code like `((X)y).Z()` the cast to (X) can be removed if the same 'Z' method would be called.
             // The rules here can be subtle.  For example, if Z is virtual, and (X) is a cast up the inheritance
             // hierarchy then this is *normally* ok.  HOwever, the language resolve default parameter values 
@@ -160,10 +166,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             // If the types of the expressions are different, then removing the conversion changed semantics
             // and we can't remove it.
-            if (!SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(originalConvertedType, rewrittenConvertedType))
-                return false;
+            if (SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(originalConvertedType, rewrittenConvertedType))
+                return true;
 
-            return true;
+            #endregion whitelist cases.
+
+            return false;
         }
 
         private static bool IsComplimentaryMemberAfterCastRemoval(
