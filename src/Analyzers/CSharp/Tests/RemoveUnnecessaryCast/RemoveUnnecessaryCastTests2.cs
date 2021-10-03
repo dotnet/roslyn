@@ -2696,9 +2696,29 @@ class Y : X, IDisposable
         [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DoNotRemoveCastToInterfaceForSealedType1()
+        public async Task DoRemoveCastToInterfaceForSealedType1()
         {
-            var source =
+            await VerifyCS.VerifyCodeFixAsync(@"
+using System;
+
+interface I
+{
+    void Goo(int x = 0);
+}
+
+sealed class C : I
+{
+    public void Goo(int x = 0)
+    {
+        Console.WriteLine(x);
+    }
+
+    static void Main()
+    {
+        ([|(I)|]new C()).Goo();
+    }
+}
+",
 @"
 using System;
 
@@ -2716,21 +2736,19 @@ sealed class C : I
 
     static void Main()
     {
-        ((I)new C()).Goo();
+        new C().Goo();
     }
 }
-";
-
-            await VerifyCS.VerifyCodeFixAsync(source, source);
+");
         }
 
         [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DoNotRemoveCastToInterfaceForSealedType2()
+        public async Task DoRemoveCastToInterfaceForSealedType2()
         {
-            var source =
-@"
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
 using System;
 
 interface I
@@ -2750,21 +2768,43 @@ sealed class C : I
 
     static void Main()
     {
-        Console.WriteLine(((I)new C()).Goo);
+        Console.WriteLine(([|(I)|]new C()).Goo);
     }
 }
-";
+",
+                @"
+using System;
 
-            await VerifyCS.VerifyCodeFixAsync(source, source);
+interface I
+{
+    string Goo { get; }
+}
+
+sealed class C : I
+{
+    public string Goo
+    {
+        get
+        {
+            return ""Nikov Rules"";
+        }
+    }
+
+    static void Main()
+    {
+        Console.WriteLine(new C().Goo);
+    }
+}
+");
         }
 
         [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DoNotRemoveCastToInterfaceForSealedType3()
+        public async Task DoRemoveCastToInterfaceForSealedType3()
         {
-            var source =
-@"
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
 using System;
 
 interface I
@@ -2786,16 +2826,38 @@ sealed class C : I
 
     static void Main()
     {
-        Console.WriteLine(((I)Instance).Goo);
+        Console.WriteLine(([|(I)|]Instance).Goo);
     }
 }
-";
-
-            await VerifyCS.VerifyCodeFixAsync(
-                source,
+",
                 // /0/Test0.cs(23,31): error CS0120: An object reference is required for the non-static field, method, or property 'C.Instance'
                 DiagnosticResult.CompilerError("CS0120").WithSpan(23, 31, 23, 39).WithArguments("C.Instance"),
-                source);
+                @"
+using System;
+
+interface I
+{
+    string Goo { get; }
+}
+
+sealed class C : I
+{
+    public C Instance { get { return new C(); } }
+
+    public string Goo
+    {
+        get
+        {
+            return ""Nikov Rules"";
+        }
+    }
+
+    static void Main()
+    {
+        Console.WriteLine(Instance.Goo);
+    }
+}
+");
         }
 
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]

@@ -214,8 +214,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             }
 
             // Finally, see if this is a call from an interface to a direct implementation member.  This is safe
-            // to do as long as the expr being casted was sealed.  We need it to be sealed so that we can be
-            // sure that the interface was not reimplemented deeper in the inheritance hierarchy.
+            // to do as long as the expr being casted was a sealed reference type.  We need it to be sealed so
+            // that we can be sure that the interface was not reimplemented deeper in the inheritance hierarchy.
+            //
+            // We need it to be a reference type as if it's a value type, the cast would box it, and different
+            // behavior could happen if we were calling a member on a struct versus a boxed struct.
             if (originalMemberSymbol.ContainingType.TypeKind == TypeKind.Interface)
             {
                 var rewrittenType = rewrittenSemanticModel.GetTypeInfo(rewrittenExpression, cancellationToken).Type;
@@ -223,6 +226,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     return false;
 
                 if (!rewrittenType.IsSealed)
+                    return false;
+
+                if (!rewrittenType.IsReferenceType)
                     return false;
 
                 // Ok, we have a sealed type casted to an interface.  It may be safe to remove this 
