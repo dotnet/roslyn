@@ -2,17 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -22,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 {
     internal static class CastSimplifier2
     {
+        private static readonly SyntaxAnnotation s_annotation = new();
+
         public static bool IsUnnecessaryCast(ExpressionSyntax cast, SemanticModel semanticModel, CancellationToken cancellationToken)
             => cast is CastExpressionSyntax castExpression ? IsUnnecessaryCast(castExpression, semanticModel, cancellationToken) :
                cast is BinaryExpressionSyntax binaryExpression ? IsUnnecessaryAsCast(binaryExpression, semanticModel, cancellationToken) : false;
@@ -95,13 +91,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (isNullLiteralCast && !originalConvertedType.IsReferenceType && !originalConvertedType.IsNullable())
                 return false;
 
-            var (rewrittenConvertedType, rewrittenConversion) = GetRewrittenInfo(castNode, castedExpressionNode, originalSemanticModel, cancellationToken);
-            if (rewrittenConvertedType == null || rewrittenConvertedType.TypeKind == TypeKind.Error)
-                return false;
+            // So far, this looks potentially possible to remove.  Now, actually do the removal and get the
+            // semantic model for the rewritten code so we can check it to make sure semantics were preserved.
+            var rewrittenSemanticModel = GetSemanticModelWithCastRemoved(
+                castNode, castedExpressionNode, originalSemanticModel, cancellationToken);
 
-            // If the types of the expressions are different, then removing the conversion changed semantics
-            // and we can't remove it.
-            if (!SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(originalConvertedType, rewrittenConvertedType))
+            var (rewrittenConvertedType, rewrittenConversion) = GetRewrittenInfo(castNode, originalSemanticModel, rewrittenSemanticModel, cancellationToken);
+            if (rewrittenConvertedType == null || rewrittenConvertedType.TypeKind == TypeKind.Error)
                 return false;
 
             // The final converted type may be the same even after removing the cast.  However, the cast may 
@@ -139,12 +135,143 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     return false;
             }
 
+            // In code like `((X)y).Z()` the cast to (X) can be removed if the same 'Z' method would be called.
+            // The rules here can be subtle.  For example, if Z is virtual, and (X) is a cast up the inheritance
+            // hierarchy then this is *normally* ok.  HOwever, the language resolve default parameter values 
+            // from the overridden method.  So if they differ, we can't actually remove the cast.
+            //
+            // Similarly, if (X) is a cast to an interface, and Z is an impl of that interface method, it might
+            // be possible to remove, but only if y's type is sealed, as otherwise the interface method could be
+            // reimplemented in a derived type.
+            if (castNode.WalkUpParentheses().Parent is MemberAccessExpressionSyntax memberAccessExpression)
+            {
+                if (IsComplimentaryMemberAfterCastRemoval(
+                        memberAccessExpression, originalSemanticModel, rewrittenSemanticModel, cancellationToken))
+                {
+                    return true;
+                }
+            }
+
+            // If the types of the expressions are different, then removing the conversion changed semantics
+            // and we can't remove it.
+            if (!SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(originalConvertedType, rewrittenConvertedType))
+                return false;
+
+            return true;
+        }
+
+        private static bool IsComplimentaryMemberAfterCastRemoval(
+            MemberAccessExpressionSyntax memberAccessExpression,
+            SemanticModel originalSemanticModel,
+            SemanticModel rewrittenSemanticModel,
+            CancellationToken cancellationToken)
+        {
+            var originalMemberSymbol = originalSemanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol;
+            if (originalMemberSymbol == null)
+                return false;
+
+            var rewrittenSyntaxTree = rewrittenSemanticModel.SyntaxTree;
+            var rewrittenRoot = rewrittenSyntaxTree.GetRoot(cancellationToken);
+
+            var rewrittenExpression = (ExpressionSyntax)rewrittenRoot.GetAnnotatedNodes(s_annotation).Single();
+            var rewrittenMemberAccessExpression = (MemberAccessExpressionSyntax)rewrittenExpression.WalkUpParentheses().GetRequiredParent();
+            var rewrittenMemberSymbol = rewrittenSemanticModel.GetSymbolInfo(rewrittenMemberAccessExpression, cancellationToken).Symbol;
+            if (rewrittenMemberSymbol == null)
+                return false;
+
+            // Ok, we had two good member symbols before/after the cast removal.  In other words we have:
+            //
+            //      ((X)expr).Y
+            //      (expr).Y
+
+            // First, if the symbols are the same, then this is totally fine.  The cast was not necessary 
+            // to resolve that specific symbol.
+            if (SymbolEquivalenceComparer.Instance.Equals(originalMemberSymbol, rewrittenMemberSymbol))
+                return true;
+
+            // Ok, we have different Y members.  This may be ok in some cases.
+
+            // Second, check if this is a virtual call to a different location in the inheritance hierarchy.
+            for (var current = rewrittenMemberSymbol.GetOverriddenMember(); current != null; current = current.GetOverriddenMember())
+            {
+                if (SymbolEquivalenceComparer.Instance.Equals(originalMemberSymbol, rewrittenMemberSymbol))
+                {
+                    // we're calling into a override of a higher up virtual in the original code.
+                    // This is safe as long as the names of the parameters and all default values
+                    // are the same.  This is because the compiler uses the names and default
+                    // values of the overridden member, even though it emits a virtual call to the
+                    // the highest in the inheritance chain.
+                    return ParameterNamesAndDefaultValuesMatch(originalMemberSymbol, rewrittenMemberSymbol);
+                }
+            }
+
+            // Finally, see if this is a call from an interface to a direct implementation member.  This is safe
+            // to do as long as the expr being casted was sealed.  We need it to be sealed so that we can be
+            // sure that the interface was not reimplemented deeper in the inheritance hierarchy.
+            if (originalMemberSymbol.ContainingType.TypeKind == TypeKind.Interface)
+            {
+                var rewrittenType = rewrittenSemanticModel.GetTypeInfo(rewrittenExpression, cancellationToken).Type;
+                if (rewrittenType is null or IErrorTypeSymbol)
+                    return false;
+
+                if (!rewrittenType.IsSealed)
+                    return false;
+
+                // Ok, we have a sealed type casted to an interface.  It may be safe to remove this 
+                // interface cast if we still call into the implementation of that interface member
+                // afterwards.
+
+                // First, map the interface method we were calling in the original compilation over to the new
+                // compilation.
+                var originalMemberSymbolInRewrittenCompilation = originalMemberSymbol.GetSymbolKey(cancellationToken).Resolve(
+                    rewrittenSemanticModel.Compilation, cancellationToken: cancellationToken).Symbol;
+                if (originalMemberSymbolInRewrittenCompilation == null)
+                    return false;
+
+                // Then look for the current implementation of that interface member.
+                var rewrittenContainingType = rewrittenMemberSymbol.ContainingType;
+                var implementationMember = rewrittenContainingType.FindImplementationForInterfaceMember(originalMemberSymbolInRewrittenCompilation);
+                if (implementationMember == null)
+                    return false;
+
+                // if that's not the method we're currently calling, then this definitely isn't safe to remove.
+                return implementationMember.Equals(rewrittenMemberSymbol);
+            }
+
+            return false;
+        }
+
+        private static bool ParameterNamesAndDefaultValuesMatch(ISymbol originalMemberSymbol, ISymbol rewrittenMemberSymbol)
+        {
+            if (originalMemberSymbol is IMethodSymbol originalMethodSymbol &&
+                rewrittenMemberSymbol is IMethodSymbol rewrittenMethodSymbol)
+            {
+                var originalParameters = originalMethodSymbol.Parameters;
+                var rewrittenParameters = rewrittenMethodSymbol.Parameters;
+                if (originalParameters.Length != rewrittenParameters.Length)
+                    return false;
+
+                for (var i = 0; i < originalParameters.Length; i++)
+                {
+                    var originalParameter = originalParameters[i];
+                    var rewrittenParameter = rewrittenParameters[i];
+                    if (originalParameter.Name != rewrittenParameter.Name)
+                        return false;
+
+                    if (originalParameter.HasExplicitDefaultValue &&
+                        rewrittenParameter.HasExplicitDefaultValue &&
+                        !Equals(originalParameter.ExplicitDefaultValue, rewrittenParameter.ExplicitDefaultValue))
+                    {
+                        return false;
+                    }
+                }
+            }
+
             return true;
         }
 
         private static (ITypeSymbol? rewrittenConvertedType, Conversion rewrittenConversion) GetRewrittenInfo(
-            ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
-            SemanticModel originalSemanticModel, CancellationToken cancellationToken)
+            ExpressionSyntax castNode, SemanticModel originalSemanticModel, SemanticModel rewrittenSemanticModel, CancellationToken cancellationToken)
         {
             if (castNode.WalkUpParentheses().Parent is InterpolationSyntax)
             {
@@ -157,23 +284,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return (originalSemanticModel.Compilation.ObjectType, default);
             }
 
-            var originalSyntaxTree = originalSemanticModel.SyntaxTree;
-            var originalRoot = originalSyntaxTree.GetRoot(cancellationToken);
-            var originalCompilation = originalSemanticModel.Compilation;
-
-            var annotation = new SyntaxAnnotation();
-
-            var rewrittenSyntaxTree = originalSyntaxTree.WithRootAndOptions(
-                originalRoot.ReplaceNode(castNode, castedExpressionNode.WithAdditionalAnnotations(annotation)), originalSyntaxTree.Options);
+            var rewrittenSyntaxTree = rewrittenSemanticModel.SyntaxTree;
             var rewrittenRoot = rewrittenSyntaxTree.GetRoot(cancellationToken);
-            var rewrittenCompilation = originalCompilation.ReplaceSyntaxTree(originalSyntaxTree, rewrittenSyntaxTree);
-            var rewrittenSemanticModel = rewrittenCompilation.GetSemanticModel(rewrittenSyntaxTree);
 
-            var rewrittenExpression = rewrittenRoot.GetAnnotatedNodes(annotation).Single();
+            var rewrittenExpression = rewrittenRoot.GetAnnotatedNodes(s_annotation).Single();
             var rewrittenConvertedType = rewrittenSemanticModel.GetTypeInfo(rewrittenExpression, cancellationToken).ConvertedType;
             var rewrittenConversion = rewrittenSemanticModel.GetConversion(rewrittenExpression, cancellationToken);
 
             return (rewrittenConvertedType, rewrittenConversion);
+        }
+
+        private static SemanticModel GetSemanticModelWithCastRemoved(
+            ExpressionSyntax castNode,
+            ExpressionSyntax castedExpressionNode,
+            SemanticModel originalSemanticModel,
+            CancellationToken cancellationToken)
+        {
+            var originalSyntaxTree = originalSemanticModel.SyntaxTree;
+            var originalRoot = originalSyntaxTree.GetRoot(cancellationToken);
+            var originalCompilation = originalSemanticModel.Compilation;
+
+            var rewrittenSyntaxTree = originalSyntaxTree.WithRootAndOptions(
+                originalRoot.ReplaceNode(castNode, castedExpressionNode.WithAdditionalAnnotations(s_annotation)), originalSyntaxTree.Options);
+            var rewrittenCompilation = originalCompilation.ReplaceSyntaxTree(originalSyntaxTree, rewrittenSyntaxTree);
+            var rewrittenSemanticModel = rewrittenCompilation.GetSemanticModel(rewrittenSyntaxTree);
+            return rewrittenSemanticModel;
         }
     }
 }
