@@ -2476,6 +2476,135 @@ class A : Attribute
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
+        [WorkItem(545894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545894")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveUnnecessaryCastInAttribute()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"using System;
+
+[A([|(int)|]0)]
+class A : Attribute
+{
+    public A(object x)
+    {
+    }
+}",
+                @"using System;
+
+[A(0)]
+class A : Attribute
+{
+    public A(object x)
+    {
+    }
+}");
+        }
+
+        [WorkItem(545894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545894")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveImplicitConstantConversionToDifferentType()
+        {
+            var source =
+@"using System;
+
+class A : Attribute
+{
+    public A()
+    {
+        object x = (byte)0;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(545894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545894")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveImplicitConstantConversionToSameType()
+        {
+            var source =
+@"using System;
+
+class A : Attribute
+{
+    public A()
+    {
+        object x = (int)0;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(545894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545894")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNumericConversionBoxed()
+        {
+            var source =
+@"using System;
+
+class A : Attribute
+{
+    public A(int i)
+    {
+        object x = (long)i;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(545894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545894")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveNumericConversionNotBoxed()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"using System;
+
+class A : Attribute
+{
+    public A(int i)
+    {
+        long x = [|(long)|]i;
+    }
+}",
+                @"using System;
+
+class A : Attribute
+{
+    public A(int i)
+    {
+        long x = i;
+    }
+}");
+        }
+
+        [WorkItem(545894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545894")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveNecessaryCastInAttribute()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"using System;
+
+[A([|(IComparable)|]0)]
+class A : Attribute
+{
+    public A(object x)
+    {
+    }
+}",
+                @"using System;
+
+[A(0)]
+class A : Attribute
+{
+    public A(object x)
+    {
+    }
+}");
+        }
+
         [WorkItem(39042, "https://github.com/dotnet/roslyn/issues/39042")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoNotRemoveNecessaryCastForImplicitNumericCastsThatLoseInformation()

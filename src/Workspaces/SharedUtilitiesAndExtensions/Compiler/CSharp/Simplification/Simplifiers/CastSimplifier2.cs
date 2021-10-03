@@ -49,14 +49,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             // If the conversion doesn't exist then we can't do anything with this as the code isn't
             // semantically valid.
-            var conversion = conversionOperation.GetConversion();
-            if (!conversion.Exists)
+            var originalConversion = conversionOperation.GetConversion();
+            if (!originalConversion.Exists)
                 return false;
 
             // Explicit conversions are conversions that cannot be proven to always succeed, conversions
             // that are known to possibly lose information.  As such, we need to preserve this as it 
             // has necessary runtime behavior that must be kept.
-            if (conversion.IsExplicit)
+            if (originalConversion.IsExplicit)
                 return false;
 
             // A conversion must either not exist, or it must be explciit or implicit. At this point we
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // changing the types of things (which can affect other things like overload resolution),
             // or the runtime values of code.  We only want to remove the cast if it will do none of those
             // things.
-            Contract.ThrowIfFalse(conversion.IsImplicit);
+            Contract.ThrowIfFalse(originalConversion.IsImplicit);
 
             // we are starting with code like `(X)expr` and converting to just `expr`. Post rewrite we need
             // to ensure that the final converted-type of `expr` matches the final converted type of `(X)expr`.
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (isNullLiteralCast && !originalConvertedType.IsReferenceType && !originalConvertedType.IsNullable())
                 return false;
 
-            var rewrittenConvertedType = GetRewrittenConvertedType(castNode, castedExpressionNode, originalSemanticModel, cancellationToken);
+            var (rewrittenConvertedType, rewrittenConversion) = GetRewrittenInfo(castNode, castedExpressionNode, originalSemanticModel, cancellationToken);
             if (rewrittenConvertedType == null || rewrittenConvertedType.TypeKind == TypeKind.Error)
                 return false;
 
@@ -96,10 +96,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (!SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(originalConvertedType, rewrittenConvertedType))
                 return false;
 
+            // The final converted type may be the same even after removing the cast.  However, the cast may 
+            // have been necessary to convert the type and/or value in a way that could be observable.  For example:
+            //
+            // object o1 = (long)expr; // or (long)0
+            // object o2 = (IFormattable)$"";
+            //
+            // With the former, we need to keep the cast so that the stored value stays a 'long' (as that's observable
+            // with an `is` check).
+            if (originalConversion.IsConstantExpression || originalConversion.IsNumeric)
+            {
+                if (rewrittenConversion.IsBoxing)
+                    return false;
+            }
+
             return true;
         }
 
-        private static ITypeSymbol? GetRewrittenConvertedType(
+        private static (ITypeSymbol? rewrittenConvertedType, Conversion rewrittenConversion) GetRewrittenInfo(
             ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
             SemanticModel originalSemanticModel, CancellationToken cancellationToken)
         {
@@ -111,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 //
                 // Note: this may need to be revisited with improved interpolated strings (as they could take
                 // strongly typed args and could avoid the object boxing).
-                return originalSemanticModel.Compilation.ObjectType;
+                return (originalSemanticModel.Compilation.ObjectType, default);
             }
 
             var originalSyntaxTree = originalSemanticModel.SyntaxTree;
@@ -128,7 +142,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             var rewrittenExpression = rewrittenRoot.GetAnnotatedNodes(annotation).Single();
             var rewrittenConvertedType = rewrittenSemanticModel.GetTypeInfo(rewrittenExpression, cancellationToken).ConvertedType;
-            return rewrittenConvertedType;
+            var rewrittenConversion = rewrittenSemanticModel.GetConversion(rewrittenExpression, cancellationToken);
+
+            return (rewrittenConvertedType, rewrittenConversion);
         }
     }
 }
