@@ -6309,14 +6309,10 @@ class C
 
         [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task TestMissingOnInterfaceCallOnSealedClass()
+        public async Task TestOnInterfaceCallOnSealedClass()
         {
-            // While we could offer this, we choose not to because things might change in the future in subtle ways. For
-            // example, if the user makes the type unsealed and later adds a subclass that reimplements the interface
-            // this will break.
-
-            var source =
-@"
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
 using System;
 
 public sealed class DbContext : IDisposable
@@ -6329,24 +6325,33 @@ public sealed class DbContext : IDisposable
 
 class C
 {
-    private readonly DbContext _dbContext = new MyContext();
+    private readonly DbContext _dbContext = null;
 
-    static void Main()
+    void Main()
     {
-        ((IDisposable)_dbContext).Dispose();
+        ([|(IDisposable)|]_dbContext).Dispose();
     }
-}";
+}",
+                @"
+using System;
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source,
-                new[]
-                {
-                    // /0/Test0.cs(14,49): error CS0246: The type or namespace name 'MyContext' could not be found (are you missing a using directive or an assembly reference?)
-                    DiagnosticResult.CompilerError("CS0246").WithSpan(14, 49, 14, 58).WithArguments("MyContext"),
-                    // /0/Test0.cs(18,23): error CS0120: An object reference is required for the non-static field, method, or property 'C._dbContext'
-                    DiagnosticResult.CompilerError("CS0120").WithSpan(18, 23, 18, 33).WithArguments("C._dbContext"),
-                },
-                source);
+public sealed class DbContext : IDisposable
+{
+    public void Dispose()
+    {
+        Console.WriteLine(""Base called"");
+    }
+}
+
+class C
+{
+    private readonly DbContext _dbContext = null;
+
+    void Main()
+    {
+        _dbContext.Dispose();
+    }
+}");
         }
 
         [WorkItem(29726, "https://github.com/dotnet/roslyn/issues/29726")]

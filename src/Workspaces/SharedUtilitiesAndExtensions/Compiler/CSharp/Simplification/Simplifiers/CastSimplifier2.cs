@@ -203,7 +203,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 //
                 // Note: intrinsics and enums are also safe as we know they don't have state and thus
                 // will have the same semantics whether or not they're boxed.
-                if (!rewrittenType.IsReferenceType && !rewrittenType.IsIntrinsicType() && !rewrittenType.IsEnumType())
+                var isIntrinsicOrEnum = rewrittenType.IsIntrinsicType() || rewrittenType.IsEnumType();
+                if (!rewrittenType.IsReferenceType && !isIntrinsicOrEnum)
                     return false;
 
                 // if we are still calling through to the same interface method, then this is safe to call.
@@ -215,7 +216,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 // type has to be sealed, otherwise the interface method may have been reimplemented lower
                 // in the inheritance hierarchy.
 
-                var isSealed = rewrittenType.IsSealed || rewrittenType.TypeKind == TypeKind.Array;
+                var isSealed =
+                    rewrittenType.IsSealed ||
+                    rewrittenType.TypeKind == TypeKind.Array ||
+                    isIntrinsicOrEnum;
+
                 if (!isSealed)
                     return false;
 
