@@ -202,7 +202,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
                 // If we don't have a reference type, then we can't remove the cast.  It would box the 
                 // value and the semantics could change (operating on a copy instead of the original).
-                if (!rewrittenType.IsReferenceType)
+                //
+                // Note: intrinsics and enums are also safe as we know they don't have state and thus
+                // will have the same semantics whether or not they're boxed.
+                if (!rewrittenType.IsReferenceType && !rewrittenType.IsIntrinsicType() && !rewrittenType.IsEnumType())
                     return false;
 
                 // if we are still calling through to the same interface method, then this is safe to call.
@@ -214,7 +217,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 // type has to be sealed, otherwise the interface method may have been reimplemented lower
                 // in the inheritance hierarchy.
 
-                if (!rewrittenType.IsSealed)
+                var isSealed = rewrittenType.IsSealed || rewrittenType.TypeKind == TypeKind.Array;
+                if (!isSealed)
                     return false;
 
                 // Then look for the current implementation of that interface member.

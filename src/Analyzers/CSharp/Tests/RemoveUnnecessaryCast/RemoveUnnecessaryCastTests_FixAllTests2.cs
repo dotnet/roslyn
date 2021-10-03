@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
     public class RemoveUnnecessaryCastTests_FixAllTests2 : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public RemoveUnnecessaryCastTests_FixAllTests2(ITestOutputHelper logger)
-          : base(logger)
+            : base(logger)
         {
         }
 
