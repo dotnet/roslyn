@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     }
                     else
                     {
-                        return default(SyntaxTriviaList);
+                        return default;
                     }
                 }
             }
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         if (removeNextSeparator)
                         {
                             removeNextSeparator = false;
-                            visited = default(SyntaxNodeOrToken);
+                            visited = default;
                         }
                         else
                         {

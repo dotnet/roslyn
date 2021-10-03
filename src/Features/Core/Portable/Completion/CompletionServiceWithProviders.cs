@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return context;
         }
 
-        public override async Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken = default)
+        public override async Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken = default)
         {
             var provider = GetProvider(item);
             if (provider is null)
