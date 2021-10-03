@@ -2952,7 +2952,39 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastOnCallToMethodWithParamsArgsWithIncorrectMethodDefintion()
+        public async Task DoRemoveCastOnCallToMethodWithIncorrectParamsArgs()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        TakesParams([|null as string|]);
+    }
+
+    private static void TakesParams(params string wrongDefined)
+    {
+        Console.WriteLine(wrongDefined.Length);
+    }
+}",
+@"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        TakesParams(null);
+    }
+
+    private static void TakesParams(params string wrongDefined)
+    {
+        Console.WriteLine(wrongDefined.Length);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastOnCallToMethodWithCorrectParamsArgs()
         {
             await TestMissingInRegularAndScriptAsync(
 @"
@@ -2963,7 +2995,7 @@ class Program
         TakesParams([|null as string|]);
     }
 
-    private static void TakesParams(params string wrongDefined)
+    private static void TakesParams(params string[] wrongDefined)
     {
         Console.WriteLine(wrongDefined.Length);
     }
@@ -3134,9 +3166,9 @@ static class Program
 
         [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastOnCallToAttributeWithParamsArgsNamedArgsWithIncorrectMethodDefintion()
+        public async Task DoRemoveCastOnCallToAttributeWithInvalidParamsArgs()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 sealed class MarkAttribute : Attribute
@@ -3148,6 +3180,45 @@ sealed class MarkAttribute : Attribute
 }
 
 [Mark(true, [|null as string|], Prop = 1)]
+static class Program
+{
+}",
+@"
+using System;
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool otherArg, params string wrongDefined)
+    {
+    }
+    public int Prop { get; set; }
+}
+
+[Mark(true, null, Prop = 1)]
+static class Program
+{
+}");
+        }
+
+        [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastOfNullToParamsArg()
+        {
+            await TestMissingAsync(
+@"
+using System;
+using System.Reflection;
+
+class MarkAttribute : Attribute
+{
+  public readonly string[] Arr;
+
+  public MarkAttribute(params string[] arr)
+  {
+    Arr = arr;
+  }
+}
+
+[Mark([|(string)|]null)]
 static class Program
 {
 }");
