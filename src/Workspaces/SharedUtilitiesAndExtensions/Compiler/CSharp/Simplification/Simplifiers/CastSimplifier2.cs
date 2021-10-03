@@ -52,13 +52,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             // If we don't have a conversion then we can't do anything with this as the code isn't
             // semantically valid. 
-            var conversionOperation = originalSemanticModel.GetOperation(castNode, cancellationToken) as IConversionOperation;
-            if (conversionOperation == null)
+            var originalConversionOperation = originalSemanticModel.GetOperation(castNode, cancellationToken) as IConversionOperation;
+            if (originalConversionOperation == null)
                 return false;
 
             // If the conversion doesn't exist then we can't do anything with this as the code isn't
             // semantically valid.
-            var originalConversion = conversionOperation.GetConversion();
+            var originalConversion = originalConversionOperation.GetConversion();
             if (!originalConversion.Exists)
                 return false;
 
@@ -122,6 +122,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // object o2 = (IFormattable)$"";
             if (originalConversion.IsInterpolatedString && !rewrittenConversion.IsInterpolatedString)
                 return false;
+
+            // If we have:
+            //
+            //      public static implicit operator A(string x)
+            //      A x = (string)null;
+            //
+            // Then the original code has an implicit user defined conversion in it.  We can only remove this
+            // if the new code would have the same conversion as well.
+            if (originalConversionOperation.Parent is IConversionOperation { IsImplicit: true, Conversion: { IsUserDefined: true } } originalParentImplicitConversion)
+            {
+                if (!rewrittenConversion.IsUserDefined)
+                    return false;
+
+                if (!SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(originalParentImplicitConversion.Conversion.MethodSymbol, rewrittenConversion.MethodSymbol))
+                    return false;
+            }
 
             return true;
         }

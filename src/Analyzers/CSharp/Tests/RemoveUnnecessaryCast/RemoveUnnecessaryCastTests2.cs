@@ -201,6 +201,42 @@ class Program
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
+        [WorkItem(545142, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545142")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveCastNotNeededForUserDefinedOperator()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"class A
+{
+    public static implicit operator A(string x)
+    {
+        return new A();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        A x = [|(string)|]"""";
+    }
+}", @"class A
+{
+    public static implicit operator A(string x)
+    {
+        return new A();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        A x = """";
+    }
+}");
+        }
+
         [WorkItem(545143, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545143")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoNotRemovePointerCast1()
@@ -2523,18 +2559,25 @@ class A : Attribute
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoRemoveImplicitConstantConversionToSameType()
         {
-            var source =
-@"using System;
+            await VerifyCS.VerifyCodeFixAsync(
+                @"using System;
 
 class A : Attribute
 {
     public A()
     {
-        object x = (int)0;
+        object x = [|(int)|]0;
     }
-}";
+}",
+                @"using System;
 
-            await VerifyCS.VerifyCodeFixAsync(source, source);
+class A : Attribute
+{
+    public A()
+    {
+        object x = 0;
+    }
+}");
         }
 
         [WorkItem(545894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545894")]
@@ -2584,8 +2627,7 @@ class A : Attribute
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoNotRemoveNonConstantCastInAttribute()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-                @"using System;
+            var source = @"using System;
 
 [A([|(IComparable)|]0)]
 class A : Attribute
@@ -2593,16 +2635,8 @@ class A : Attribute
     public A(object x)
     {
     }
-}",
-                @"using System;
-
-[A(0)]
-class A : Attribute
-{
-    public A(object x)
-    {
-    }
-}");
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [WorkItem(39042, "https://github.com/dotnet/roslyn/issues/39042")]
