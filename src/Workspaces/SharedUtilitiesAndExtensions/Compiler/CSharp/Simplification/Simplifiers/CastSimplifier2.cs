@@ -180,6 +180,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (rewrittenMemberSymbol == null)
                 return false;
 
+            if (originalMemberSymbol.Kind != rewrittenMemberSymbol.Kind)
+                return false;
+
             // Ok, we had two good member symbols before/after the cast removal.  In other words we have:
             //
             //      ((X)expr).Y
