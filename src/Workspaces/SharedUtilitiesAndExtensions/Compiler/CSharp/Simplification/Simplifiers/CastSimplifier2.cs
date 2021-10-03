@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -205,14 +206,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 // will have the same semantics whether or not they're boxed.
                 //
                 // It is also safe if we know the value is already a copy to begin with.
-                var isIntrinsicOrEnum =
-                    rewrittenType.IsIntrinsicType() ||
-                    rewrittenType.IsEnumType() ||
-                    rewrittenType.SpecialType == SpecialType.System_Enum;
+                //
+                // TODO(cyrusn): this may not be true of floating point numbers.  Are we sure that it's
+                // safe to remove an interface cast in that case?  Could that cast narrow the precision of 
+                // a wider FP number to a narrower amount (like 80bit FP to 64bit)?
 
                 if (!rewrittenType.IsReferenceType &&
-                    !isIntrinsicOrEnum &&
-                    !IsValueTypeRValue(rewrittenSemanticModel, rewrittenExpression, rewrittenType, cancellationToken))
+                    !IsIntrinsicOrEnum(rewrittenType) &&
+                    !IsCopy(rewrittenSemanticModel, rewrittenExpression, rewrittenType, cancellationToken))
                 {
                     return false;
                 }
@@ -230,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     rewrittenType.IsSealed ||
                     rewrittenType.IsValueType ||
                     rewrittenType.TypeKind == TypeKind.Array ||
-                    isIntrinsicOrEnum;
+IsIntrinsicOrEnum(rewrittenType);
 
                 if (!isSealed)
                     return false;
@@ -263,30 +264,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static bool IsValueTypeRValue(
-            SemanticModel rewrittenSemanticModel,
-            ExpressionSyntax rewrittenExpression,
+        private static bool IsIntrinsicOrEnum(ITypeSymbol rewrittenType)
+            => rewrittenType.IsIntrinsicType() ||
+               rewrittenType.IsEnumType() ||
+               rewrittenType.SpecialType == SpecialType.System_Enum;
+
+        private static bool IsCopy(
+            SemanticModel semanticModel,
+            ExpressionSyntax expression,
             ITypeSymbol rewrittenType,
             CancellationToken cancellationToken)
         {
-            if (!rewrittenType.IsValueType)
-                return false;
+            // Checked by caller first.
+            Debug.Assert(!rewrittenType.IsReferenceType && !IsIntrinsicOrEnum(rewrittenType));
 
-            return !IsLValue(rewrittenSemanticModel, rewrittenExpression, cancellationToken);
-        }
+            // Be conservative here.  If we can't prove it's not a copy assume it's a copy.
+            expression = expression.WalkDownParentheses();
+            var operation = semanticModel.GetOperation(expression, cancellationToken);
+            if (operation != null)
+            {
+                // All operators return a fresh copy.  Note: this may need to be revisited if operators
+                // ever can return byref in the future.
+                if (operation is IBinaryOperation { OperatorMethod: not null })
+                    return true;
 
-        private static bool IsLValue(
-            SemanticModel semanticModel,
-            ExpressionSyntax expression,
-            CancellationToken cancellationToken)
-        {
-            // C# defines seven categories of variables: static variables, instance variables, array elements,
-            // value parameters, reference parameters, output parameters, and local variables.
-            var symbol = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol;
-            if (symbol is IFieldSymbol or ILocalSymbol or IRangeVariableSymbol or IParameterSymbol)
-                return true;
+                if (operation is IUnaryOperation { OperatorMethod: not null })
+                    return true;
 
-            return expression.WalkDownParentheses() is ElementAccessExpressionSyntax;
+                // if we're getting the struct through a non-ref property, then it will make a copy.
+                if (operation is IPropertyReferenceOperation { Property.RefKind: not RefKind.Ref })
+                    return true;
+
+                // if we're getting the struct as the return value of a non-ref method, then it will make a copy.
+                if (operation is IInvocationOperation { TargetMethod.RefKind: not RefKind.Ref })
+                    return true;
+            }
+
+            return false;
         }
 
         private static bool ParameterNamesAndDefaultValuesMatch(ISymbol originalMemberSymbol, ISymbol rewrittenMemberSymbol)

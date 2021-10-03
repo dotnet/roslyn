@@ -3306,6 +3306,211 @@ class Program
 ");
         }
 
+        [WorkItem(529897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529897")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task KeepCastToIConvertibleOnNonCopiedStruct()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(DateTime dt)
+    {
+        var y = ((IConvertible)dt).GetTypeCode();
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(529897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529897")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveCastToIConvertibleOnCopiedStruct1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var y = ([|(IConvertible)|](DateTime.Now + TimeSpan.Zero)).GetTypeCode();
+    }
+}
+", @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var y = (DateTime.Now + TimeSpan.Zero).GetTypeCode();
+    }
+}
+");
+        }
+
+        [WorkItem(529897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529897")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task KeepCastToIConvertibleOnByRefIndexer()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    ref DateTime this[int i] => ref this[i];
+
+    void Main()
+    {
+        var y = ((IConvertible)this[0]).GetTypeCode();
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(529897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529897")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveCastToIConvertibleOnIndexer()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+using System;
+
+class Program
+{
+    DateTime this[int i] => default;
+
+    void Main()
+    {
+        var y = ([|(IConvertible)|]this[0]).GetTypeCode();
+    }
+}
+",
+                @"
+using System;
+
+class Program
+{
+    DateTime this[int i] => default;
+
+    void Main()
+    {
+        var y = this[0].GetTypeCode();
+    }
+}
+");
+        }
+
+        [WorkItem(529897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529897")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task KeepCastToIConvertibleOnByRefProperty()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    ref DateTime X => ref X;
+
+    void Main()
+    {
+        var y = ((IConvertible)X).GetTypeCode();
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(529897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529897")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveCastToIConvertibleOnProperty()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+using System;
+
+class Program
+{
+    DateTime X => default;
+
+    void Main()
+    {
+        var y = ([|(IConvertible)|]X).GetTypeCode();
+    }
+}
+",
+                @"
+using System;
+
+class Program
+{
+    DateTime X => default;
+
+    void Main()
+    {
+        var y = X.GetTypeCode();
+    }
+}
+");
+        }
+
+        [WorkItem(529897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529897")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task KeepCastToIConvertibleOnByRefMethod()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    ref DateTime X() => ref X();
+
+    void Main()
+    {
+        var y = ((IConvertible)X()).GetTypeCode();
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(529897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529897")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveCastToIConvertibleOnMethod()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+using System;
+
+class Program
+{
+    DateTime X() => default;
+
+    void Main()
+    {
+        var y = ([|(IConvertible)|]X()).GetTypeCode();
+    }
+}
+",
+                @"
+using System;
+
+class Program
+{
+    DateTime X() => default;
+
+    void Main()
+    {
+        var y = X().GetTypeCode();
+    }
+}
+");
+        }
+
         #endregion
 
         #region ParamArray Parameter Casts
