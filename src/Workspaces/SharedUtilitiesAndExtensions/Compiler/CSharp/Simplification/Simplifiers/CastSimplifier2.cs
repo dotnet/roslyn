@@ -191,17 +191,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             // Ok, we have different Y members.  This may be ok in some cases.
 
+            // Map the original member that was called over to the new compilation so we can do proper symbol
+            // checks against it.
+            var originalMemberSymbolInRewrittenCompilation = originalMemberSymbol.GetSymbolKey(cancellationToken).Resolve(
+                rewrittenSemanticModel.Compilation, cancellationToken: cancellationToken).Symbol;
+            if (originalMemberSymbolInRewrittenCompilation == null)
+                return false;
+
             // Second, check if this is a virtual call to a different location in the inheritance hierarchy.
             for (var current = rewrittenMemberSymbol.GetOverriddenMember(); current != null; current = current.GetOverriddenMember())
             {
-                if (SymbolEquivalenceComparer.Instance.Equals(originalMemberSymbol, rewrittenMemberSymbol))
+                if (SymbolEquivalenceComparer.Instance.Equals(
+                        originalMemberSymbolInRewrittenCompilation, rewrittenMemberSymbol))
                 {
                     // we're calling into a override of a higher up virtual in the original code.
                     // This is safe as long as the names of the parameters and all default values
                     // are the same.  This is because the compiler uses the names and default
                     // values of the overridden member, even though it emits a virtual call to the
                     // the highest in the inheritance chain.
-                    return ParameterNamesAndDefaultValuesMatch(originalMemberSymbol, rewrittenMemberSymbol);
+                    return ParameterNamesAndDefaultValuesMatch(originalMemberSymbolInRewrittenCompilation, rewrittenMemberSymbol);
                 }
             }
 
@@ -221,13 +229,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 // interface cast if we still call into the implementation of that interface member
                 // afterwards.
 
-                // First, map the interface method we were calling in the original compilation over to the new
-                // compilation.
-                var originalMemberSymbolInRewrittenCompilation = originalMemberSymbol.GetSymbolKey(cancellationToken).Resolve(
-                    rewrittenSemanticModel.Compilation, cancellationToken: cancellationToken).Symbol;
-                if (originalMemberSymbolInRewrittenCompilation == null)
-                    return false;
-
                 // Then look for the current implementation of that interface member.
                 var rewrittenContainingType = rewrittenMemberSymbol.ContainingType;
                 var implementationMember = rewrittenContainingType.FindImplementationForInterfaceMember(originalMemberSymbolInRewrittenCompilation);
@@ -235,7 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     return false;
 
                 // if that's not the method we're currently calling, then this definitely isn't safe to remove.
-                return implementationMember.Equals(rewrittenMemberSymbol);
+                return implementationMember.Equals(rewrittenMemberSymbol) &&
+                    ParameterNamesAndDefaultValuesMatch(originalMemberSymbolInRewrittenCompilation, rewrittenMemberSymbol);
             }
 
             return false;
