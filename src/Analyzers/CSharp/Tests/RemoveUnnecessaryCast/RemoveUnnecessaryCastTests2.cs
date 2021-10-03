@@ -9361,5 +9361,42 @@ class C
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
+
+        [WorkItem(52524, "https://github.com/dotnet/roslyn/issues/52524")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveForValueTaskConstrutor()
+        {
+            var source =
+@"
+#nullable enable
+
+using System.Threading.Tasks;
+
+struct ValueTask<TResult>
+{
+    public ValueTask(TResult result)
+    {
+    }
+
+    public ValueTask(Task<TResult> task)
+    {
+    }
+}
+
+class A
+{
+    static void Main()
+    {
+        ValueTask<object?> v = new((object?)null);
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
     }
 }
