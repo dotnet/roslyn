@@ -40,6 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (castNode.WalkUpParentheses().ContainsDiagnostics)
                 return false;
 
+            var conversionOperation = semanticModel.GetOperation(castNode, cancellationToken) as IConversionOperation;
+            if (conversionOperation == null)
+                return false;
+
             return true;
         }
     }
