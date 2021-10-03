@@ -144,6 +144,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // Similarly, if (X) is a cast to an interface, and Z is an impl of that interface method, it might
             // be possible to remove, but only if y's type is sealed, as otherwise the interface method could be
             // reimplemented in a derived type.
+            //
+            // Note: this path is fundamentally different from the other forms of cast removal we perform.  The
+            // casts are removed because statically they make no difference to the meaning of the code.  Here,
+            // the code statically changes meaning.  However, we can use our knowledge of how the language/runtime
+            // works to know at *runtime* that the user will get the exact same behavior.
             if (castNode.WalkUpParentheses().Parent is MemberAccessExpressionSyntax memberAccessExpression)
             {
                 if (IsComplimentaryMemberAfterCastRemoval(
