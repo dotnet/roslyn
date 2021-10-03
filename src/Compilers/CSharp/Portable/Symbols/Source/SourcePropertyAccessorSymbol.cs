@@ -599,6 +599,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal SourcePropertySymbolBase Property => _property;
+
 #nullable enable
         public sealed override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {

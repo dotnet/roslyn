@@ -4365,7 +4365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     new SourceLocation(propertySyntax.Identifier));
                             }
 
-                            var property = SourcePropertySymbol.Create(this, bodyBinder, propertySyntax, diagnostics);
+                            var property = SourcePropertySymbol.Create(this, bodyBinder, propertySyntax, diagnostics, ignoreFieldKeyword: true);
                             builder.NonTypeMembers.Add(property);
 
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.GetMethod);
