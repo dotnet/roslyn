@@ -58,8 +58,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (conversion.IsExplicit)
                 return false;
 
-            // A conversion must either not exist, or it must be explciit or implicit.
+            // A conversion must either not exist, or it must be explciit or implicit. At this point we
+            // have conversions that will always succeed, but which could have impact on the code by 
+            // changing the types of things (which can affect other things like overload resolution),
+            // or the runtime values of code.  We only want to remove the cast if it will do none of those
+            // things.
             Contract.ThrowIfFalse(conversion.IsImplicit);
+
+            // we are starting with code like `(X)expr` and converting to just `expr`. Post rewrite we need
+            // to ensure that the final converted-type of `expr` matches the final converted type of `(X)expr`.
+            var originalConvertedType = semanticModel.GetTypeInfo(castNode.WalkUpParentheses(), cancellationToken).ConvertedType;
+            if (originalConvertedType == null || originalConvertedType.TypeKind == TypeKind.Error)
+                return false;
 
             return true;
         }
