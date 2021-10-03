@@ -331,6 +331,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // Disable roaming settings to avoid interference from the online user profile
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\" RoamingEnabled string \"1*System.Boolean*False\"")).WaitForExit();
 
+                // Disable IntelliCode line completions to avoid interference with argument completion testing
+                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\\IntelliCode\" wholeLineCompletions string \"0*System.Int32*2\"")).WaitForExit();
+
                 // Disable background download UI to avoid toasts
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Setup\\BackgroundDownload\" Value dword 0")).WaitForExit();
 

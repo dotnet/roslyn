@@ -154,21 +154,10 @@ namespace Microsoft.CodeAnalysis
         }
 
 #nullable enable
-        protected bool IsKnownDependencyLocation(string fullPath)
+        protected HashSet<string>? GetPaths(string simpleName)
         {
-            CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
-            var simpleName = PathUtilities.GetFileName(fullPath, includeExtension: false);
-            if (!_knownAssemblyPathsBySimpleName.TryGetValue(simpleName, out var paths))
-            {
-                return false;
-            }
-
-            if (!paths.Contains(fullPath))
-            {
-                return false;
-            }
-
-            return true;
+            _knownAssemblyPathsBySimpleName.TryGetValue(simpleName, out var paths);
+            return paths;
         }
 
         /// <summary>

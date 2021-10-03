@@ -47,7 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
             var parenthesesSettings = GetParenthesesCodeStyleOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
             AddRange(parenthesesSettings);
 
-            // TODO(jmarolf): set as stable
+            var experimentalSettings = GetExperimentalCodeStyleOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
+            AddRange(experimentalSettings);
         }
 
         private IEnumerable<CodeStyleSetting> GetQualifyCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
                 falseValueDescription: ServicesVSResources.Prefer_framework_type,
                 editorConfigOptions: options,
                 visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
-            yield return CodeStyleSetting.Create(option: CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration,
+            yield return CodeStyleSetting.Create(option: CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess,
                 description: ServicesVSResources.For_member_access_expressions,
                 trueValueDescription: ServicesVSResources.Prefer_predefined_type,
                 falseValueDescription: ServicesVSResources.Prefer_framework_type,
@@ -112,6 +113,13 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
 
         private IEnumerable<CodeStyleSetting> GetModifierCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
         {
+            yield return CodeStyleSetting.Create(option: CodeStyleOptions2.RequireAccessibilityModifiers,
+                description: ServicesVSResources.Require_accessibility_modifiers,
+                enumValues: new[] { AccessibilityModifiersRequired.Always, AccessibilityModifiersRequired.ForNonInterfaceMembers, AccessibilityModifiersRequired.Never, AccessibilityModifiersRequired.OmitIfDefault },
+                valueDescriptions: new[] { ServicesVSResources.Always, ServicesVSResources.For_non_interface_members, ServicesVSResources.Never, ServicesVSResources.Omit_if_default },
+                editorConfigOptions: options,
+                visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
+
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.PreferReadonly,
                 description: ServicesVSResources.Prefer_readonly_fields,
                 editorConfigOptions: options,
@@ -141,6 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
             yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferInferredTupleNames, description: ServicesVSResources.Prefer_inferred_tuple_names, options, visualStudioOptions, updater, FileName);
             yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferInferredAnonymousTypeMemberNames, description: ServicesVSResources.Prefer_inferred_anonymous_type_member_names, options, visualStudioOptions, updater, FileName);
             yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferCompoundAssignment, description: ServicesVSResources.Prefer_compound_assignments, options, visualStudioOptions, updater, FileName);
+            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferSimplifiedInterpolation, description: ServicesVSResources.Prefer_simplified_interpolation, options, visualStudioOptions, updater, FileName);
         }
 
         private IEnumerable<CodeStyleSetting> GetParenthesesCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
@@ -186,6 +195,24 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
                 new[] { ServicesVSResources.Non_public_methods, ServicesVSResources.All_methods },
                 editorConfigOptions: options,
                 visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
+        }
+
+        private IEnumerable<CodeStyleSetting> GetExperimentalCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
+        {
+            yield return CodeStyleSetting.Create(
+                option: CodeStyleOptions2.PreferNamespaceAndFolderMatchStructure,
+                description: ServicesVSResources.Prefer_namespace_and_folder_match_structure,
+                editorConfigOptions: options, visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
+
+            yield return CodeStyleSetting.Create(
+                option: CodeStyleOptions2.AllowMultipleBlankLines,
+                description: ServicesVSResources.Allow_multiple_blank_lines,
+                editorConfigOptions: options, visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
+
+            yield return CodeStyleSetting.Create(
+                option: CodeStyleOptions2.AllowStatementImmediatelyAfterBlock,
+                description: ServicesVSResources.Allow_statement_immediately_after_block,
+                editorConfigOptions: options, visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
         }
     }
 }
