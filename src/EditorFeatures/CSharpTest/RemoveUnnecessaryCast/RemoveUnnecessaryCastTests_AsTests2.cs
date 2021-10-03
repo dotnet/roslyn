@@ -1544,9 +1544,9 @@ sealed class C : I
 
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DoNotRemoveCastToInterfaceForSealedType2()
+        public async Task DoRemoveCastToInterfaceForSealedType2()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 
@@ -1568,6 +1568,30 @@ sealed class C : I
     static void Main()
     {
         Console.WriteLine(([|new C() as I|]).Goo);
+    }
+}
+",
+@"
+using System;
+
+interface I
+{
+    string Goo { get; }
+}
+
+sealed class C : I
+{
+    public string Goo
+    {
+        get
+        {
+            return ""Nikov Rules"";
+        }
+    }
+
+    static void Main()
+    {
+        Console.WriteLine(new C().Goo);
     }
 }
 ");

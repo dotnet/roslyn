@@ -203,7 +203,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 //
                 // Note: intrinsics and enums are also safe as we know they don't have state and thus
                 // will have the same semantics whether or not they're boxed.
-                var isIntrinsicOrEnum = rewrittenType.IsIntrinsicType() || rewrittenType.IsEnumType();
+                var isIntrinsicOrEnum =
+                    rewrittenType.IsIntrinsicType() ||
+                    rewrittenType.IsEnumType() ||
+                    rewrittenType.SpecialType == SpecialType.System_Enum;
                 if (!rewrittenType.IsReferenceType && !isIntrinsicOrEnum)
                     return false;
 
