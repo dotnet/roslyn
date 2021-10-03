@@ -4,6 +4,9 @@
 
 #nullable disable
 
+using System;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -519,9 +522,9 @@ class Test
 
         [WorkItem(545459, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545459")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task RemoveUnneededCastInsideADelegateConstructor()
+        public async Task DoNotRemoveIllegalAsCastInsideADelegateConstructor()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
             @"
 using System;
 class Test
@@ -531,20 +534,6 @@ class Test
     static void Main(string[] args)
     {
         var cd1 = new D([|M1 as Action<int>|]);
-    }
-
-    public static void M1(int i) { }
-}",
-
-@"
-using System;
-class Test
-{
-    delegate void D(int x);
-
-    static void Main(string[] args)
-    {
-        var cd1 = new D(M1);
     }
 
     public static void M1(int i) { }
@@ -867,9 +856,9 @@ class X
 
         [WorkItem(545855, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545855")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task RemoveUnnecessaryLambdaToDelegateCast()
+        public async Task DoRemoveIllegalAsCastOnLambda()
         {
-            await TestAsync(
+            await TestMissingInRegularAndScriptAsync(
             @"
 using System;
 using System.Collections.Generic;
@@ -893,33 +882,7 @@ static class Program
         return true;
     }
 }
-",
-
-@"
-using System;
-using System.Collections.Generic;
-using System.Reflection;
-
-static class Program
-{
-    static void Main()
-    {
-        FieldInfo[] fields = typeof(Exception).GetFields();
-        Console.WriteLine(fields.Any(field => field.IsStatic));
-    }
-
-    static bool Any<T>(this IEnumerable<T> s, Func<T, bool> predicate)
-    {
-        return false;
-    }
-
-    static bool Any<T>(this ICollection<T> s, Func<T, bool> predicate)
-    {
-        return true;
-    }
-}
-",
-    parseOptions: null);
+");
         }
 
         [WorkItem(529816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529816")]
