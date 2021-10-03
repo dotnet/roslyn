@@ -66,6 +66,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // things.
             Contract.ThrowIfFalse(originalConversion.IsImplicit);
 
+            var isNullLiteralCast = castedExpressionNode.WalkDownParentheses().Kind() == SyntaxKind.NullLiteralExpression;
+            var isDefaultLiteralCast = castedExpressionNode.WalkDownParentheses().Kind() == SyntaxKind.DefaultLiteralExpression;
+
+            // Language does not allow `if (x is default)` ever.  So if we have `if (x is (Y)default)`
+            // then we can't remove the cast.
+            if (isDefaultLiteralCast && castNode.WalkUpParentheses().Parent is PatternSyntax)
+                return false;
+
             // we are starting with code like `(X)expr` and converting to just `expr`. Post rewrite we need
             // to ensure that the final converted-type of `expr` matches the final converted type of `(X)expr`.
             var originalConvertedType = originalSemanticModel.GetTypeInfo(castNode.WalkUpParentheses(), cancellationToken).ConvertedType;
@@ -83,7 +91,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // Effectively, this constrains S to be a reference type (as T could not otherwise derive from it).
             // However, such a invariant isn't understood by the compiler.  So if the (T) cast is removed it will
             // fail as 'null' cannot be converted to an unconstrained generic type.
-            var isNullLiteralCast = castedExpressionNode.WalkDownParentheses().Kind() == SyntaxKind.NullLiteralExpression;
             if (isNullLiteralCast && !originalConvertedType.IsReferenceType && !originalConvertedType.IsNullable())
                 return false;
 
