@@ -41,6 +41,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (castNode.WalkUpParentheses().ContainsDiagnostics)
                 return false;
 
+            // Quick syntactic checks we can do before semantic work.
+            var isNullLiteralCast = castedExpressionNode.WalkDownParentheses().Kind() == SyntaxKind.NullLiteralExpression;
+            var isDefaultLiteralCast = castedExpressionNode.WalkDownParentheses().Kind() == SyntaxKind.DefaultLiteralExpression;
+
+            // Language does not allow `if (x is default)` ever.  So if we have `if (x is (Y)default)`
+            // then we can't remove the cast.
+            if (isDefaultLiteralCast && castNode.WalkUpParentheses().Parent is PatternSyntax or CaseSwitchLabelSyntax)
+                return false;
+
             // If we don't have a conversion then we can't do anything with this as the code isn't
             // semantically valid. 
             var conversionOperation = originalSemanticModel.GetOperation(castNode, cancellationToken) as IConversionOperation;
@@ -65,14 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // or the runtime values of code.  We only want to remove the cast if it will do none of those
             // things.
             Contract.ThrowIfFalse(originalConversion.IsImplicit);
-
-            var isNullLiteralCast = castedExpressionNode.WalkDownParentheses().Kind() == SyntaxKind.NullLiteralExpression;
-            var isDefaultLiteralCast = castedExpressionNode.WalkDownParentheses().Kind() == SyntaxKind.DefaultLiteralExpression;
-
-            // Language does not allow `if (x is default)` ever.  So if we have `if (x is (Y)default)`
-            // then we can't remove the cast.
-            if (isDefaultLiteralCast && castNode.WalkUpParentheses().Parent is PatternSyntax)
-                return false;
 
             // we are starting with code like `(X)expr` and converting to just `expr`. Post rewrite we need
             // to ensure that the final converted-type of `expr` matches the final converted type of `(X)expr`.
