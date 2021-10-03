@@ -2582,7 +2582,7 @@ class A : Attribute
 
         [WorkItem(545894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545894")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DoRemoveNecessaryCastInAttribute()
+        public async Task DoNotRemoveNonConstantCastInAttribute()
         {
             await VerifyCS.VerifyCodeFixAsync(
                 @"using System;
@@ -5863,6 +5863,33 @@ class C
 
         [WorkItem(36631, "https://github.com/dotnet/roslyn/issues/36631")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestFormattableString1_1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        IFormattable x = [|(IFormattable)|]$"""";
+    }
+}",
+                @"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        IFormattable x = $"""";
+    }
+}");
+        }
+
+        [WorkItem(36631, "https://github.com/dotnet/roslyn/issues/36631")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestFormattableString2()
         {
             var source =
@@ -5878,6 +5905,33 @@ class C
 }";
 
             await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(36631, "https://github.com/dotnet/roslyn/issues/36631")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestFormattableString2_2()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        FormattableString x = [|(FormattableString)|]$"""";
+    }
+}",
+                @"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        FormattableString x = $"""";
+    }
+}");
         }
 
         [WorkItem(36631, "https://github.com/dotnet/roslyn/issues/36631")]

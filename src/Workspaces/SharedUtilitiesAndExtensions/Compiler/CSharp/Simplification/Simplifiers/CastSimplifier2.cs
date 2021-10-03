@@ -100,15 +100,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // have been necessary to convert the type and/or value in a way that could be observable.  For example:
             //
             // object o1 = (long)expr; // or (long)0
-            // object o2 = (IFormattable)$"";
             //
-            // With the former, we need to keep the cast so that the stored value stays a 'long' (as that's observable
-            // with an `is` check).
+            // We need to keep the cast so that the stored value stays a 'long'.
             if (originalConversion.IsConstantExpression || originalConversion.IsNumeric)
             {
                 if (rewrittenConversion.IsBoxing)
                     return false;
             }
+
+            // We have to specially handle formattable string conversions.  If we remove them, we may end up with
+            // a string value instead.  For example:
+            //
+            // object o2 = (IFormattable)$"";
+            if (originalConversion.IsInterpolatedString && !rewrittenConversion.IsInterpolatedString)
+                return false;
 
             return true;
         }
