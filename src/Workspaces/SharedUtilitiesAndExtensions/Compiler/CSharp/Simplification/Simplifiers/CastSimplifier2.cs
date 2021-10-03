@@ -44,6 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (conversionOperation == null)
                 return false;
 
+            var conversion = conversionOperation.GetConversion();
+            if (!conversion.Exists)
+                return false;
+
             return true;
         }
     }
