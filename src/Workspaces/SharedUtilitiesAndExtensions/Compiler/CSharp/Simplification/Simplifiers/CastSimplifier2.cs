@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // However, such a invariant isn't understood by the compiler.  So if the (T) cast is removed it will
             // fail as 'null' cannot be converted to an unconstrained generic type.
             var isNullLiteralCast = castedExpressionNode.WalkDownParentheses().Kind() == SyntaxKind.NullLiteralExpression;
-            if (isNullLiteralCast && !originalConvertedType.IsReferenceType)
+            if (isNullLiteralCast && !originalConvertedType.IsReferenceType && !originalConvertedType.IsNullable())
                 return false;
 
             var originalSyntaxTree = originalSemanticModel.SyntaxTree;
