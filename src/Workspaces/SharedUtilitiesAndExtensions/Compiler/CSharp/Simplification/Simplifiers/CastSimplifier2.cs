@@ -151,6 +151,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (IntroducedAmbiguity(castNode, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel, cancellationToken))
                 return false;
 
+            // Removing a cast may cause a conditional-expression conversion to come into existence.  This is
+            // fine as long as we're in C# 9 or above.
+            var languageVersion = ((CSharpCompilation)originalSemanticModel.Compilation).LanguageVersion;
+            if (languageVersion < LanguageVersion.CSharp9 &&
+                IntroducedConditionalExpressionConversion(rewrittenExpression, rewrittenSemanticModel, cancellationToken))
+            {
+                return false;
+            }
+
             #endregion blacklist cases
 
             #region whitelist cases that allow this cast to be removed.
@@ -183,6 +192,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return true;
 
             #endregion whitelist cases.
+
+            return false;
+        }
+
+        private static bool IntroducedConditionalExpressionConversion(
+            ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            for (SyntaxNode? current = expression; current != null; current = current.Parent)
+            {
+                var conversion = semanticModel.GetConversion(current, cancellationToken);
+                if (conversion.IsConditionalExpression)
+                    return true;
+            }
 
             return false;
         }

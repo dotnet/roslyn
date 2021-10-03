@@ -7863,6 +7863,7 @@ public class sign
         int? y = x ? 1 : null;
     }
 }",
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -7904,9 +7905,10 @@ public class sign
 {
     void M(bool x)
     {
-        int? y = x ? (1) : null;
+        int? y = x ? 1 : null;
     }
 }",
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -7951,6 +7953,7 @@ public class sign
         int? y = x ? 1 : (null);
     }
 }",
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -8043,6 +8046,7 @@ public class sign
         int? y = x ? null : 1;
     }
 }",
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -8087,6 +8091,7 @@ public class sign
         int? y = x ? null : (1);
     }
 }",
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -8113,7 +8118,7 @@ public class sign
 
         [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DoNotRemoveNecessaryCastInConditional12()
+        public async Task DoRemoveUnnecessaryCastInConditional12()
         {
             await new VerifyCS.Test
             {
@@ -8131,6 +8136,7 @@ public class sign
         int? y = x ? (null) : 1;
     }
 }",
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
