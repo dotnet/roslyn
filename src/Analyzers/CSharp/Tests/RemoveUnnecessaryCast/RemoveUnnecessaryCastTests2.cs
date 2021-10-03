@@ -8293,7 +8293,12 @@ public class sign
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedCode,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
         }
 
         [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
