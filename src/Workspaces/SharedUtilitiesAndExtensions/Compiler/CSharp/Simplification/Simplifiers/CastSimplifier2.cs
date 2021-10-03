@@ -198,17 +198,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 if (rewrittenType is null or IErrorTypeSymbol)
                     return false;
 
-                // If we don't have a reference type, then we can't remove the cast.  It would box the 
-                // value and the semantics could change (operating on a copy instead of the original).
+                // If we don't have a reference type, then it may not be safe to remove the cast.  The cast could
+                // could have been boxing the value and removing that could cause us to operate not on the copy.
                 //
                 // Note: intrinsics and enums are also safe as we know they don't have state and thus
                 // will have the same semantics whether or not they're boxed.
+                //
+                // It is also safe if we know the value is already a copy to begin with.
                 var isIntrinsicOrEnum =
                     rewrittenType.IsIntrinsicType() ||
                     rewrittenType.IsEnumType() ||
                     rewrittenType.SpecialType == SpecialType.System_Enum;
-                if (!rewrittenType.IsReferenceType && !isIntrinsicOrEnum)
+
+                if (!rewrittenType.IsReferenceType &&
+                    !isIntrinsicOrEnum &&
+                    !IsValueTypeRValue(rewrittenSemanticModel, rewrittenExpression, rewrittenType, cancellationToken))
+                {
                     return false;
+                }
 
                 // if we are still calling through to the same interface method, then this is safe to call.
                 if (originalMemberSymbol.Equals(rewrittenMemberSymbol))
@@ -221,6 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
                 var isSealed =
                     rewrittenType.IsSealed ||
+                    rewrittenType.IsValueType ||
                     rewrittenType.TypeKind == TypeKind.Array ||
                     isIntrinsicOrEnum;
 
@@ -253,6 +261,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             }
 
             return false;
+        }
+
+        private static bool IsValueTypeRValue(
+            SemanticModel rewrittenSemanticModel,
+            ExpressionSyntax rewrittenExpression,
+            ITypeSymbol rewrittenType,
+            CancellationToken cancellationToken)
+        {
+            if (!rewrittenType.IsValueType)
+                return false;
+
+            return !IsLValue(rewrittenSemanticModel, rewrittenExpression, cancellationToken);
+        }
+
+        private static bool IsLValue(
+            SemanticModel semanticModel,
+            ExpressionSyntax expression,
+            CancellationToken cancellationToken)
+        {
+            // C# defines seven categories of variables: static variables, instance variables, array elements,
+            // value parameters, reference parameters, output parameters, and local variables.
+            var symbol = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol;
+            if (symbol is IFieldSymbol or ILocalSymbol or IRangeVariableSymbol or IParameterSymbol)
+                return true;
+
+            return expression.WalkDownParentheses() is ElementAccessExpressionSyntax;
         }
 
         private static bool ParameterNamesAndDefaultValuesMatch(ISymbol originalMemberSymbol, ISymbol rewrittenMemberSymbol)
