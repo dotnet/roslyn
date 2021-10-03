@@ -9427,5 +9427,29 @@ class E
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
+
+        [WorkItem(55621, "https://github.com/dotnet/roslyn/issues/55621")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveForNullWithMultipleMatchingParameterTypes()
+        {
+            var source =
+@"
+#nullable enable
+using System;
+public class TestClass
+{
+	public TestClass(object? value) { }
+	public TestClass(Func<object?> value) { }
+
+    public TestClass Create1() => new ((object?)null);
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
     }
 }
