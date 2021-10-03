@@ -556,7 +556,7 @@ class Program
 {
     static void M1()
     {
-        Func<long> f1 = _ => { return [|(long)|]5; };
+        Func<long> f1 = () => { return [|(long)|]5; };
     }
 }";
             var fixedSource =
@@ -566,7 +566,7 @@ class Program
 {
     static void M1()
     {
-        Func<long> f1 = _ => { return 5; };
+        Func<long> f1 = () => { return 5; };
     }
 }";
 
@@ -575,20 +575,10 @@ class Program
                 TestState =
                 {
                     Sources = { source },
-                    ExpectedDiagnostics =
-                    {
-                        // /0/Test0.cs(7,25): error CS1593: Delegate 'Func<long>' does not take 1 arguments
-                        DiagnosticResult.CompilerError("CS1593").WithSpan(7, 25, 7, 49).WithArguments("System.Func<long>", "1"),
-                    },
                 },
                 FixedState =
                 {
                     Sources = { fixedSource },
-                    ExpectedDiagnostics =
-                    {
-                        // /0/Test0.cs(7,25): error CS1593: Delegate 'Func<long>' does not take 1 arguments
-                        DiagnosticResult.CompilerError("CS1593").WithSpan(7, 25, 7, 43).WithArguments("System.Func<long>", "1"),
-                    },
                 },
             }.RunAsync();
         }
@@ -604,7 +594,7 @@ class Program
 {
     static void M1()
     {
-        Func<long> f1 = _ => [|(long)|]5;
+        Func<long> f1 = () => [|(long)|]5;
     }
 }";
             var fixedSource =
@@ -614,7 +604,7 @@ class Program
 {
     static void M1()
     {
-        Func<long> f1 = _ => 5;
+        Func<long> f1 = () => 5;
     }
 }";
 
@@ -623,20 +613,10 @@ class Program
                 TestState =
                 {
                     Sources = { source },
-                    ExpectedDiagnostics =
-                    {
-                        // /0/Test0.cs(7,25): error CS1593: Delegate 'Func<long>' does not take 1 arguments
-                        DiagnosticResult.CompilerError("CS1593").WithSpan(7, 25, 7, 37).WithArguments("System.Func<long>", "1"),
-                    },
                 },
                 FixedState =
                 {
                     Sources = { fixedSource },
-                    ExpectedDiagnostics =
-                    {
-                        // /0/Test0.cs(7,25): error CS1593: Delegate 'Func<long>' does not take 1 arguments
-                        DiagnosticResult.CompilerError("CS1593").WithSpan(7, 25, 7, 31).WithArguments("System.Func<long>", "1"),
-                    },
                 },
             }.RunAsync();
         }
@@ -8088,7 +8068,7 @@ public class sign
 {
     void M(bool x)
     {
-        int? y = x ? null : (1);
+        int? y = x ? null : 1;
     }
 }",
                 LanguageVersion = LanguageVersion.CSharp9,
