@@ -9451,5 +9451,28 @@ public class TestClass
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
+
+        [WorkItem(56207, "https://github.com/dotnet/roslyn/issues/56207")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveForNintPointerToVoidPointer()
+        {
+            var source =
+@"
+using System;
+public class TestClass
+{
+	unsafe void M(nint** ptr)
+    {
+        nint value = (nint)(void*)*ptr;
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
     }
 }
