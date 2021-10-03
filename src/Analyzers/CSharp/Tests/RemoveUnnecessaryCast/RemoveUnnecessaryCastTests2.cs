@@ -2625,9 +2625,10 @@ class A : Attribute
 
         [WorkItem(545894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545894")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DoNotRemoveNonConstantCastInAttribute()
+        public async Task DoRemoveNonConstantCastInAttribute()
         {
-            var source = @"using System;
+            await VerifyCS.VerifyCodeFixAsync(
+                @"using System;
 
 [A([|(IComparable)|]0)]
 class A : Attribute
@@ -2635,8 +2636,18 @@ class A : Attribute
     public A(object x)
     {
     }
-}";
-            await VerifyCS.VerifyCodeFixAsync(source, source);
+}",
+                // /0/Test0.cs(3,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                DiagnosticResult.CompilerError("CS0182").WithSpan(3, 4, 3, 18),
+                @"using System;
+
+[A(0)]
+class A : Attribute
+{
+    public A(object x)
+    {
+    }
+}");
         }
 
         [WorkItem(39042, "https://github.com/dotnet/roslyn/issues/39042")]
@@ -2824,14 +2835,12 @@ sealed class C : I
         }
     }
 
-    static void Main()
+    void Main()
     {
         Console.WriteLine(([|(I)|]Instance).Goo);
     }
 }
 ",
-                // /0/Test0.cs(23,31): error CS0120: An object reference is required for the non-static field, method, or property 'C.Instance'
-                DiagnosticResult.CompilerError("CS0120").WithSpan(23, 31, 23, 39).WithArguments("C.Instance"),
                 @"
 using System;
 
@@ -2852,7 +2861,7 @@ sealed class C : I
         }
     }
 
-    static void Main()
+    void Main()
     {
         Console.WriteLine(Instance.Goo);
     }
