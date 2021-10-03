@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast;
@@ -7815,6 +7816,406 @@ public class sign
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestUnintendedReferenceComparison1()
         {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"using System;
+
+public class Symbol
+{
+    public static bool operator ==(Symbol a, Symbol b) => false;
+    public static bool operator !=(Symbol a, Symbol b) => false;
+}
+
+public class MethodSymbol : Symbol
+{
+}
+
+class Program
+{
+    void Main()
+    {
+        Object a1 = null;
+        MethodSymbol a2 = new MethodSymbol();
+
+        Console.WriteLine(a1 == [|(object)|]a2);
+    }
+}",
+                @"using System;
+
+public class Symbol
+{
+    public static bool operator ==(Symbol a, Symbol b) => false;
+    public static bool operator !=(Symbol a, Symbol b) => false;
+}
+
+public class MethodSymbol : Symbol
+{
+}
+
+class Program
+{
+    void Main()
+    {
+        Object a1 = null;
+        MethodSymbol a2 = new MethodSymbol();
+
+        Console.WriteLine(a1 == a2);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestUnintendedReferenceComparison2()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"using System;
+
+public class Symbol
+{
+    public static bool operator ==(Symbol a, Symbol b) => false;
+    public static bool operator !=(Symbol a, Symbol b) => false;
+}
+
+public class MethodSymbol : Symbol
+{
+}
+
+class Program
+{
+    void Main()
+    {
+        Object a1 = null;
+        MethodSymbol a2 = new MethodSymbol();
+
+        Console.WriteLine([|(object)|]a1 == a2);
+    }
+}",
+                @"using System;
+
+public class Symbol
+{
+    public static bool operator ==(Symbol a, Symbol b) => false;
+    public static bool operator !=(Symbol a, Symbol b) => false;
+}
+
+public class MethodSymbol : Symbol
+{
+}
+
+class Program
+{
+    void Main()
+    {
+        Object a1 = null;
+        MethodSymbol a2 = new MethodSymbol();
+
+        Console.WriteLine(a1 == a2);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestUnintendedReferenceComparison3()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"using System;
+
+public class Symbol
+{
+    public static bool operator ==(Symbol a, Symbol b) => false;
+    public static bool operator !=(Symbol a, Symbol b) => false;
+}
+
+public class MethodSymbol : Symbol
+{
+}
+
+class Program
+{
+    void Main()
+    {
+        Object a1 = null;
+        MethodSymbol a2 = new MethodSymbol();
+
+        Console.WriteLine(a1 != [|(object)|]a2);
+    }
+}",
+                @"using System;
+
+public class Symbol
+{
+    public static bool operator ==(Symbol a, Symbol b) => false;
+    public static bool operator !=(Symbol a, Symbol b) => false;
+}
+
+public class MethodSymbol : Symbol
+{
+}
+
+class Program
+{
+    void Main()
+    {
+        Object a1 = null;
+        MethodSymbol a2 = new MethodSymbol();
+
+        Console.WriteLine(a1 != a2);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestUnintendedReferenceComparison4()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"using System;
+
+public class Symbol
+{
+    public static bool operator ==(Symbol a, Symbol b) => false;
+    public static bool operator !=(Symbol a, Symbol b) => false;
+}
+
+public class MethodSymbol : Symbol
+{
+}
+
+class Program
+{
+    void Main()
+    {
+        Object a1 = null;
+        MethodSymbol a2 = new MethodSymbol();
+
+        Console.WriteLine([|(object)|]a1 != a2);
+    }
+}",
+                @"using System;
+
+public class Symbol
+{
+    public static bool operator ==(Symbol a, Symbol b) => false;
+    public static bool operator !=(Symbol a, Symbol b) => false;
+}
+
+public class MethodSymbol : Symbol
+{
+}
+
+class Program
+{
+    void Main()
+    {
+        Object a1 = null;
+        MethodSymbol a2 = new MethodSymbol();
+
+        Console.WriteLine(a1 != a2);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestUnintendedReferenceComparison5()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"using System;
+
+public class Symbol
+{
+    public static bool operator ==(Symbol a, Symbol b) => false;
+    public static bool operator !=(Symbol a, Symbol b) => false;
+}
+
+public class MethodSymbol : Symbol
+{
+}
+
+class Program
+{
+    void Main()
+    {
+        Object a1 = null;
+        MethodSymbol a2 = new MethodSymbol();
+
+        Console.WriteLine(a2 == [|(object)|]a1);
+    }
+}",
+                @"using System;
+
+public class Symbol
+{
+    public static bool operator ==(Symbol a, Symbol b) => false;
+    public static bool operator !=(Symbol a, Symbol b) => false;
+}
+
+public class MethodSymbol : Symbol
+{
+}
+
+class Program
+{
+    void Main()
+    {
+        Object a1 = null;
+        MethodSymbol a2 = new MethodSymbol();
+
+        Console.WriteLine(a2 == a1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestUnintendedReferenceComparison6()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"using System;
+
+public class Symbol
+{
+    public static bool operator ==(Symbol a, Symbol b) => false;
+    public static bool operator !=(Symbol a, Symbol b) => false;
+}
+
+public class MethodSymbol : Symbol
+{
+}
+
+class Program
+{
+    void Main()
+    {
+        Object a1 = null;
+        MethodSymbol a2 = new MethodSymbol();
+
+        Console.WriteLine([|(object)|]a2 == a1);
+    }
+}",
+                @"using System;
+
+public class Symbol
+{
+    public static bool operator ==(Symbol a, Symbol b) => false;
+    public static bool operator !=(Symbol a, Symbol b) => false;
+}
+
+public class MethodSymbol : Symbol
+{
+}
+
+class Program
+{
+    void Main()
+    {
+        Object a1 = null;
+        MethodSymbol a2 = new MethodSymbol();
+
+        Console.WriteLine(a2 == a1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestUnintendedReferenceComparison7()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"using System;
+
+public class Symbol
+{
+    public static bool operator ==(Symbol a, Symbol b) => false;
+    public static bool operator !=(Symbol a, Symbol b) => false;
+}
+
+public class MethodSymbol : Symbol
+{
+}
+
+class Program
+{
+    void Main()
+    {
+        Object a1 = null;
+        MethodSymbol a2 = new MethodSymbol();
+
+        Console.WriteLine(a2 != [|(object)|]a1);
+    }
+}",
+                @"using System;
+
+public class Symbol
+{
+    public static bool operator ==(Symbol a, Symbol b) => false;
+    public static bool operator !=(Symbol a, Symbol b) => false;
+}
+
+public class MethodSymbol : Symbol
+{
+}
+
+class Program
+{
+    void Main()
+    {
+        Object a1 = null;
+        MethodSymbol a2 = new MethodSymbol();
+
+        Console.WriteLine(a2 != a1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestUnintendedReferenceComparison8()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"using System;
+
+public class Symbol
+{
+    public static bool operator ==(Symbol a, Symbol b) => false;
+    public static bool operator !=(Symbol a, Symbol b) => false;
+}
+
+public class MethodSymbol : Symbol
+{
+}
+
+class Program
+{
+    void Main()
+    {
+        Object a1 = null;
+        MethodSymbol a2 = new MethodSymbol();
+
+        Console.WriteLine([|(object)|]a2 != a1);
+    }
+}",
+                @"using System;
+
+public class Symbol
+{
+    public static bool operator ==(Symbol a, Symbol b) => false;
+    public static bool operator !=(Symbol a, Symbol b) => false;
+}
+
+public class MethodSymbol : Symbol
+{
+}
+
+class Program
+{
+    void Main()
+    {
+        Object a1 = null;
+        MethodSymbol a2 = new MethodSymbol();
+
+        Console.WriteLine(a2 != a1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestIntendedReferenceComparison1()
+        {
             var source =
 @"using System;
 
@@ -7832,7 +8233,7 @@ class Program
 {
     void Main()
     {
-        Object a1 = null;
+        MethodSymbol a1 = null;
         MethodSymbol a2 = new MethodSymbol();
 
         Console.WriteLine(a1 == (object)a2);
@@ -7843,7 +8244,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task TestUnintendedReferenceComparison2()
+        public async Task TestIntendedReferenceComparison2()
         {
             var source =
 @"using System;
@@ -7862,7 +8263,7 @@ class Program
 {
     void Main()
     {
-        Object a1 = null;
+        MethodSymbol a1 = null;
         MethodSymbol a2 = new MethodSymbol();
 
         Console.WriteLine((object)a1 == a2);
@@ -7873,7 +8274,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task TestUnintendedReferenceComparison3()
+        public async Task TestIntendedReferenceComparison3()
         {
             var source =
 @"using System;
@@ -7892,7 +8293,7 @@ class Program
 {
     void Main()
     {
-        Object a1 = null;
+        MethodSymbol a1 = null;
         MethodSymbol a2 = new MethodSymbol();
 
         Console.WriteLine(a1 != (object)a2);
@@ -7903,7 +8304,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task TestUnintendedReferenceComparison4()
+        public async Task TestIntendedReferenceComparison4()
         {
             var source =
 @"using System;
@@ -7922,7 +8323,7 @@ class Program
 {
     void Main()
     {
-        Object a1 = null;
+        MethodSymbol a1 = null;
         MethodSymbol a2 = new MethodSymbol();
 
         Console.WriteLine((object)a1 != a2);
@@ -7933,7 +8334,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task TestUnintendedReferenceComparison5()
+        public async Task TestIntendedReferenceComparison5()
         {
             var source =
 @"using System;
@@ -7952,7 +8353,7 @@ class Program
 {
     void Main()
     {
-        Object a1 = null;
+        MethodSymbol a1 = null;
         MethodSymbol a2 = new MethodSymbol();
 
         Console.WriteLine(a2 == (object)a1);
@@ -7963,7 +8364,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task TestUnintendedReferenceComparison6()
+        public async Task TestIntendedReferenceComparison6()
         {
             var source =
 @"using System;
@@ -7982,7 +8383,7 @@ class Program
 {
     void Main()
     {
-        Object a1 = null;
+        MethodSymbol a1 = null;
         MethodSymbol a2 = new MethodSymbol();
 
         Console.WriteLine((object)a2 == a1);
@@ -7993,7 +8394,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task TestUnintendedReferenceComparison7()
+        public async Task TestIntendedReferenceComparison7()
         {
             var source =
 @"using System;
@@ -8012,7 +8413,7 @@ class Program
 {
     void Main()
     {
-        Object a1 = null;
+        MethodSymbol a1 = null;
         MethodSymbol a2 = new MethodSymbol();
 
         Console.WriteLine(a2 != (object)a1);
@@ -8023,7 +8424,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task TestUnintendedReferenceComparison8()
+        public async Task TestIntendedReferenceComparison8()
         {
             var source =
 @"using System;
@@ -8042,7 +8443,7 @@ class Program
 {
     void Main()
     {
-        Object a1 = null;
+        MethodSymbol a1 = null;
         MethodSymbol a2 = new MethodSymbol();
 
         Console.WriteLine((object)a2 != a1);
