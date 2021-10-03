@@ -184,13 +184,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             //      ((X)expr).Y
             //      (expr).Y
 
-            // First, if the symbols are the same, then this is totally fine.  The cast was not necessary 
-            // to resolve that specific symbol.
-            if (SymbolEquivalenceComparer.Instance.Equals(originalMemberSymbol, rewrittenMemberSymbol))
-                return true;
-
-            // Ok, we have different Y members.  This may be ok in some cases.
-
             // Map the original member that was called over to the new compilation so we can do proper symbol
             // checks against it.
             var originalMemberSymbolInRewrittenCompilation = originalMemberSymbol.GetSymbolKey(cancellationToken).Resolve(
@@ -198,8 +191,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (originalMemberSymbolInRewrittenCompilation == null)
                 return false;
 
+            originalMemberSymbol = originalMemberSymbolInRewrittenCompilation;
+
+            // Next, see if this is a call to an interface method.
+            if (originalMemberSymbol.ContainingType.TypeKind == TypeKind.Interface)
+            {
+                var rewrittenType = rewrittenSemanticModel.GetTypeInfo(rewrittenExpression, cancellationToken).Type;
+                if (rewrittenType is null or IErrorTypeSymbol)
+                    return false;
+
+                // If we don't have a reference type, then we can't remove the cast.  It would box the 
+                // value and the semantics could change (operating on a copy instead of the original).
+                if (!rewrittenType.IsReferenceType)
+                    return false;
+
+                // if we are still calling through to the same interface method, then this is safe to call.
+                if (originalMemberSymbol.Equals(rewrittenMemberSymbol))
+                    return true;
+
+                // Ok, we have a type casted to an interface.  It may be safe to remove this interface cast
+                // if we still call into the implementation of that interface member afterwards.  Note: the
+                // type has to be sealed, otherwise the interface method may have been reimplemented lower
+                // in the inheritance hierarchy.
+
+                if (!rewrittenType.IsSealed)
+                    return false;
+
+                // Then look for the current implementation of that interface member.
+                var rewrittenContainingType = rewrittenMemberSymbol.ContainingType;
+                var implementationMember = rewrittenContainingType.FindImplementationForInterfaceMember(originalMemberSymbolInRewrittenCompilation);
+                if (implementationMember == null)
+                    return false;
+
+                // if that's not the method we're currently calling, then this definitely isn't safe to remove.
+                return implementationMember.Equals(rewrittenMemberSymbol) &&
+                    ParameterNamesAndDefaultValuesMatch(originalMemberSymbolInRewrittenCompilation, rewrittenMemberSymbol);
+            }
+
             // Second, check if this is a virtual call to a different location in the inheritance hierarchy.
-            for (var current = rewrittenMemberSymbol.GetOverriddenMember(); current != null; current = current.GetOverriddenMember())
+            for (var current = rewrittenMemberSymbol; current != null; current = current.GetOverriddenMember())
             {
                 if (SymbolEquivalenceComparer.Instance.Equals(
                         originalMemberSymbolInRewrittenCompilation, rewrittenMemberSymbol))
@@ -211,39 +241,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     // the highest in the inheritance chain.
                     return ParameterNamesAndDefaultValuesMatch(originalMemberSymbolInRewrittenCompilation, rewrittenMemberSymbol);
                 }
-            }
-
-            // Finally, see if this is a call from an interface to a direct implementation member.  This is safe
-            // to do as long as the expr being casted was a sealed reference type.  We need it to be sealed so
-            // that we can be sure that the interface was not reimplemented deeper in the inheritance hierarchy.
-            //
-            // We need it to be a reference type as if it's a value type, the cast would box it, and different
-            // behavior could happen if we were calling a member on a struct versus a boxed struct.
-            if (originalMemberSymbol.ContainingType.TypeKind == TypeKind.Interface)
-            {
-                var rewrittenType = rewrittenSemanticModel.GetTypeInfo(rewrittenExpression, cancellationToken).Type;
-                if (rewrittenType is null or IErrorTypeSymbol)
-                    return false;
-
-                if (!rewrittenType.IsSealed)
-                    return false;
-
-                if (!rewrittenType.IsReferenceType)
-                    return false;
-
-                // Ok, we have a sealed type casted to an interface.  It may be safe to remove this 
-                // interface cast if we still call into the implementation of that interface member
-                // afterwards.
-
-                // Then look for the current implementation of that interface member.
-                var rewrittenContainingType = rewrittenMemberSymbol.ContainingType;
-                var implementationMember = rewrittenContainingType.FindImplementationForInterfaceMember(originalMemberSymbolInRewrittenCompilation);
-                if (implementationMember == null)
-                    return false;
-
-                // if that's not the method we're currently calling, then this definitely isn't safe to remove.
-                return implementationMember.Equals(rewrittenMemberSymbol) &&
-                    ParameterNamesAndDefaultValuesMatch(originalMemberSymbolInRewrittenCompilation, rewrittenMemberSymbol);
             }
 
             return false;
