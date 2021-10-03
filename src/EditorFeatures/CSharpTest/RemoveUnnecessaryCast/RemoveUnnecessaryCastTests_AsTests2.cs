@@ -1126,7 +1126,7 @@ static class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontCrashOnIncompleteMethodDeclaration()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class A
@@ -1135,6 +1135,20 @@ class A
     {
         string
         Goo(x => 1, [|"""" as string|]);
+    }
+
+    static void Goo<T, S>(T x, )
+    {
+    }
+}",
+@"using System;
+
+class A
+{
+    static void Main()
+    {
+        string
+        Goo(x => 1, """");
     }
 
     static void Goo<T, S>(T x, )
@@ -1355,12 +1369,9 @@ static class C
 
         [WorkItem(545942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545942")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastFromValueTypeToObjectInReferenceEquality()
+        public async Task DontRemoveCastFromStringTypeToObjectInReferenceEquality()
         {
-            // Note: The cast below can't be removed because it would result in an
-            // illegal reference equality test between object and a value type.
-
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -1369,6 +1380,17 @@ class Program
     {
         object x = """";
         Console.WriteLine(x == ([|"""" as object|]));
+    }
+}",
+
+@"using System;
+
+class Program
+{
+    static void Main()
+    {
+        object x = """";
+        Console.WriteLine(x == """");
     }
 }");
         }
@@ -1473,9 +1495,9 @@ class Y : X, IDisposable
 
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DoNotRemoveCastToInterfaceForSealedType1()
+        public async Task DoRemoveCastToInterfaceForSealedType1()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 
@@ -1494,6 +1516,27 @@ sealed class C : I
     static void Main()
     {
         ([|new C() as I|]).Goo();
+    }
+}
+",
+@"
+using System;
+
+interface I
+{
+    void Goo(int x = 0);
+}
+
+sealed class C : I
+{
+    public void Goo(int x = 0)
+    {
+        Console.WriteLine(x);
+    }
+
+    static void Main()
+    {
+        new C().Goo();
     }
 }
 ");

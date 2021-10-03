@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     // are the same.  This is because the compiler uses the names and default
                     // values of the overridden member, even though it emits a virtual call to the
                     // the highest in the inheritance chain.
-                    return ParameterNamesAndDefaultValuesMatch(originalMemberSymbol, current);
+                    return ParameterNamesAndDefaultValuesMatch(originalMemberSymbol, rewrittenMemberSymbol);
                 }
             }
 
