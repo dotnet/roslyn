@@ -40,13 +40,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (castNode.WalkUpParentheses().ContainsDiagnostics)
                 return false;
 
+            // If we don't have a conversion then we can't do anything with this as the code isn't
+            // semantically valid. 
             var conversionOperation = semanticModel.GetOperation(castNode, cancellationToken) as IConversionOperation;
             if (conversionOperation == null)
                 return false;
 
+            // If the conversion doesn't exist then we can't do anything with this as the code isn't
+            // semantically valid.
             var conversion = conversionOperation.GetConversion();
             if (!conversion.Exists)
                 return false;
+
+            // Explicit conversions are conversions that cannot be proven to always succeed, conversions
+            // that are known to possibly lose information.  As such, we need to preserve this as it 
+            // has necessary runtime behavior that must be kept.
+            if (conversion.IsExplicit)
+                return false;
+
+            // A conversion must either not exist, or it must be explciit or implicit.
+            Contract.ThrowIfFalse(conversion.IsImplicit);
 
             return true;
         }
