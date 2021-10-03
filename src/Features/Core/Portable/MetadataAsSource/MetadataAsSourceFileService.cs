@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return _rootTemporaryPathWithGuid;
         }
 
-        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, bool allowDecompilation, CancellationToken cancellationToken = default)
+        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, bool signaturesOnly, CancellationToken cancellationToken = default)
         {
             if (project == null)
             {
@@ -98,8 +98,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 InitializeWorkspace(project);
                 Contract.ThrowIfNull(_workspace);
 
-                var infoKey = await GetUniqueDocumentKeyAsync(project, topLevelNamedType, allowDecompilation, cancellationToken).ConfigureAwait(false);
-                fileInfo = _keyToInformation.GetOrAdd(infoKey, _ => new MetadataAsSourceGeneratedFileInfo(GetRootPathWithGuid_NoLock(), project, topLevelNamedType, allowDecompilation));
+                var infoKey = await GetUniqueDocumentKeyAsync(project, topLevelNamedType, signaturesOnly, cancellationToken).ConfigureAwait(false);
+                fileInfo = _keyToInformation.GetOrAdd(infoKey, _ => new MetadataAsSourceGeneratedFileInfo(GetRootPathWithGuid_NoLock(), project, topLevelNamedType, signaturesOnly));
 
                 _generatedFilenameToInformation[fileInfo.TemporaryFilePath] = fileInfo;
 
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                     Contract.ThrowIfNull(temporaryDocument, "The temporary ProjectInfo didn't contain the document it said it would.");
 
-                    var useDecompiler = allowDecompilation;
+                    var useDecompiler = !signaturesOnly;
                     if (useDecompiler)
                     {
                         useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == nameof(SuppressIldasmAttribute)
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             _openedDocumentIds = _openedDocumentIds.RemoveKey(fileInfo);
         }
 
-        private static async Task<UniqueDocumentKey> GetUniqueDocumentKeyAsync(Project project, INamedTypeSymbol topLevelNamedType, bool allowDecompilation, CancellationToken cancellationToken)
+        private static async Task<UniqueDocumentKey> GetUniqueDocumentKeyAsync(Project project, INamedTypeSymbol topLevelNamedType, bool signaturesOnly, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(compilation, "We are trying to produce a key for a language that doesn't support compilations.");
@@ -280,12 +280,12 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             if (peMetadataReference?.FilePath != null)
             {
-                return new UniqueDocumentKey(peMetadataReference.FilePath, peMetadataReference.GetMetadataId(), project.Language, SymbolKey.Create(topLevelNamedType, cancellationToken), allowDecompilation);
+                return new UniqueDocumentKey(peMetadataReference.FilePath, peMetadataReference.GetMetadataId(), project.Language, SymbolKey.Create(topLevelNamedType, cancellationToken), signaturesOnly);
             }
             else
             {
                 var containingAssembly = topLevelNamedType.ContainingAssembly;
-                return new UniqueDocumentKey(containingAssembly.Identity, containingAssembly.GetMetadata()?.Id, project.Language, SymbolKey.Create(topLevelNamedType, cancellationToken), allowDecompilation);
+                return new UniqueDocumentKey(containingAssembly.Identity, containingAssembly.GetMetadata()?.Id, project.Language, SymbolKey.Create(topLevelNamedType, cancellationToken), signaturesOnly);
             }
         }
 
@@ -440,9 +440,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             private readonly MetadataId? _metadataId;
             private readonly string _language;
             private readonly SymbolKey _symbolId;
-            private readonly bool _allowDecompilation;
+            private readonly bool _signaturesOnly;
 
-            public UniqueDocumentKey(string filePath, MetadataId? metadataId, string language, SymbolKey symbolId, bool allowDecompilation)
+            public UniqueDocumentKey(string filePath, MetadataId? metadataId, string language, SymbolKey symbolId, bool signaturesOnly)
             {
                 Contract.ThrowIfNull(filePath);
 
@@ -450,10 +450,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 _metadataId = metadataId;
                 _language = language;
                 _symbolId = symbolId;
-                _allowDecompilation = allowDecompilation;
+                _signaturesOnly = signaturesOnly;
             }
 
-            public UniqueDocumentKey(AssemblyIdentity assemblyIdentity, MetadataId? metadataId, string language, SymbolKey symbolId, bool allowDecompilation)
+            public UniqueDocumentKey(AssemblyIdentity assemblyIdentity, MetadataId? metadataId, string language, SymbolKey symbolId, bool signaturesOnly)
             {
                 Contract.ThrowIfNull(assemblyIdentity);
 
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 _metadataId = metadataId;
                 _language = language;
                 _symbolId = symbolId;
-                _allowDecompilation = allowDecompilation;
+                _signaturesOnly = signaturesOnly;
             }
 
             public bool Equals(UniqueDocumentKey? other)
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     object.Equals(_metadataId, other._metadataId) &&
                     _language == other._language &&
                     s_symbolIdComparer.Equals(_symbolId, other._symbolId) &&
-                    _allowDecompilation == other._allowDecompilation;
+                    _signaturesOnly == other._signaturesOnly;
             }
 
             public override bool Equals(object? obj)
@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                             Hash.Combine(_metadataId?.GetHashCode() ?? 0,
                                 Hash.Combine(_language.GetHashCode(),
                                     Hash.Combine(s_symbolIdComparer.GetHashCode(_symbolId),
-                                        _allowDecompilation.GetHashCode())))));
+                                        _signaturesOnly.GetHashCode())))));
             }
         }
     }

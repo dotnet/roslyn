@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     allowDecompilation = project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources) && !symbol.IsFromSource();
                 }
 
-                result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, allowDecompilation, cancellationToken).WaitAndGetResult(cancellationToken);
+                result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: !allowDecompilation, cancellationToken).WaitAndGetResult(cancellationToken);
             }
 
             var vsRunningDocumentTable4 = IServiceProviderExtensions.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>(_serviceProvider);
