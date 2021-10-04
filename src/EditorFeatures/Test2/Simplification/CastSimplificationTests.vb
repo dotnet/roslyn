@@ -3158,7 +3158,7 @@ struct D : IDisposable
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529889, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529889")>
-        Public Async Function TestCsharp_Remove_UnnecessaryCastFromImmutableValueTypeToInterface() As Task
+        Public Async Function TestCSharp_Remove_UnnecessaryCastFromImmutableValueTypeToInterface() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -3194,7 +3194,46 @@ class Program
 </code>
 
             Await TestAsync(input, expected)
+        End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529889, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529889")>
+        Public Async Function TestCsharp_Keep_NecessaryCastFromImmutableValueTypeToInterfaceWhenParameterNameIsDifferent() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+ 
+class Program
+{
+    static void Main()
+    {
+        int x = 1;
+        var y = ({|Simplify:(IComparable<int>)x|}).CompareTo(other:=0);
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+ 
+class Program
+{
+    static void Main()
+    {
+        int x = 1;
+        var y = ((IComparable<int>)x).CompareTo(other:=0);
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>

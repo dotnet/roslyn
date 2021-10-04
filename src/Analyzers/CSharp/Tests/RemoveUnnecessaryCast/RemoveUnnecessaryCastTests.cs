@@ -2896,9 +2896,9 @@ sealed class C : I
         [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DoNotRemoveCastToInterfaceForSealedType5()
+        public async Task DoRemoveCastToInterfaceForSealedTypeWhenParameterValuesDifferButExplicitValueIsProvided()
         {
-            var source =
+            await VerifyCS.VerifyCodeFixAsync(
 @"
 using System;
 
@@ -2916,12 +2916,31 @@ sealed class C : I
 
     static void Main()
     {
-        ((I)new C()).Goo(2);
+        ([|(I)|]new C()).Goo(2);
     }
 }
-";
+",
+@"
+using System;
 
-            await VerifyCS.VerifyCodeFixAsync(source, source);
+interface I
+{
+    void Goo(int x = 0);
+}
+
+sealed class C : I
+{
+    public void Goo(int x = 1)
+    {
+        Console.WriteLine(x);
+    }
+
+    static void Main()
+    {
+        new C().Goo(2);
+    }
+}
+");
         }
 
         [WorkItem(545888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
@@ -2950,6 +2969,240 @@ sealed class C : I
     static void Main()
     {
         ((I)new C()).Goo(x: 1);
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(545888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveCastToInterfaceWhenNoDefaultArgsPassedAndValuesAreTheSame()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"using System;
+
+interface I
+{
+    void Goo(int x = 0);
+}
+
+sealed class C : I
+{
+    public void Goo(int x = 0)
+    {
+        Console.WriteLine(x);
+    }
+
+    static void Main()
+    {
+        ([|(I)|]new C()).Goo();
+    }
+}",
+@"using System;
+
+interface I
+{
+    void Goo(int x = 0);
+}
+
+sealed class C : I
+{
+    public void Goo(int x = 0)
+    {
+        Console.WriteLine(x);
+    }
+
+    static void Main()
+    {
+        new C().Goo();
+    }
+}");
+        }
+
+        [WorkItem(545888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveCastToInterfaceWhenDefaultArgPassedAndValuesAreDifferent()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"using System;
+
+interface I
+{
+    void Goo(int x = 0);
+}
+
+sealed class C : I
+{
+    public void Goo(int x = 1)
+    {
+        Console.WriteLine(x);
+    }
+
+    static void Main()
+    {
+        ([|(I)|]new C()).Goo(2);
+    }
+}",
+@"using System;
+
+interface I
+{
+    void Goo(int x = 0);
+}
+
+sealed class C : I
+{
+    public void Goo(int x = 1)
+    {
+        Console.WriteLine(x);
+    }
+
+    static void Main()
+    {
+        new C().Goo(2);
+    }
+}");
+        }
+
+        [WorkItem(545888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastToInterfaceWhenNoDefaultArgsPassedAndValuesAreDifferent()
+        {
+            var source = @"using System;
+
+interface I
+{
+    void Goo(int x = 0);
+}
+
+sealed class C : I
+{
+    public void Goo(int x = 1)
+    {
+        Console.WriteLine(x);
+    }
+
+    static void Main()
+    {
+        ((I)new C()).Goo();
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(545888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveCastToInterfaceWhenNamesAreTheSameAndNoNameProvided()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"using System;
+
+interface I
+{
+    void Goo(int x);
+}
+
+sealed class C : I
+{
+    public void Goo(int x)
+    {
+        Console.WriteLine(x);
+    }
+
+    static void Main()
+    {
+        ([|(I)|]new C()).Goo(0);
+    }
+}",
+@"using System;
+
+interface I
+{
+    void Goo(int x);
+}
+
+sealed class C : I
+{
+    public void Goo(int x)
+    {
+        Console.WriteLine(x);
+    }
+
+    static void Main()
+    {
+        new C().Goo(0);
+    }
+}");
+        }
+
+        [WorkItem(545888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveCastToInterfaceWhenNamesAreDifferentAndNoNameProvided()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"using System;
+
+interface I
+{
+    void Goo(int x);
+}
+
+sealed class C : I
+{
+    public void Goo(int y)
+    {
+        Console.WriteLine(y);
+    }
+
+    static void Main()
+    {
+        ([|(I)|]new C()).Goo(0);
+    }
+}",
+@"using System;
+
+interface I
+{
+    void Goo(int x);
+}
+
+sealed class C : I
+{
+    public void Goo(int y)
+    {
+        Console.WriteLine(y);
+    }
+
+    static void Main()
+    {
+        new C().Goo(0);
+    }
+}");
+        }
+
+        [WorkItem(545888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastToInterfaceWhenNamesAreDifferentAndNameProvided()
+        {
+            var source = @"using System;
+
+interface I
+{
+    void Goo(int x);
+}
+
+sealed class C : I
+{
+    public void Goo(int y)
+    {
+        Console.WriteLine(y);
+    }
+
+    static void Main()
+    {
+        ((I)new C()).Goo(x: 0);
     }
 }";
 

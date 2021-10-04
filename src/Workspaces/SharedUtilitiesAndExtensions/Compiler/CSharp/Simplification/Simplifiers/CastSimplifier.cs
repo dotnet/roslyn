@@ -649,13 +649,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             //      ((X)expr).Y
             //      (expr).Y
 
-            // Map the original member that was called over to the new compilation so we can do proper symbol
-            // checks against it.
-            originalMemberSymbol = originalMemberSymbol.GetSymbolKey(cancellationToken).Resolve(
-                rewrittenSemanticModel.Compilation, cancellationToken: cancellationToken).Symbol;
-            if (originalMemberSymbol is null)
-                return false;
-
             // Next, see if this is a call to an interface method.
             if (originalMemberSymbol.ContainingType.TypeKind == TypeKind.Interface)
             {
@@ -707,8 +700,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     return false;
 
                 // if that's not the method we're currently calling, then this definitely isn't safe to remove.
-                return implementationMember.Equals(rewrittenMemberSymbol) &&
-                    ParameterNamesAndDefaultValuesAndReturnTypesMatch(originalMemberSymbol, rewrittenMemberSymbol);
+                return
+                    implementationMember.Equals(rewrittenMemberSymbol) &&
+                    ParameterNamesAndDefaultValuesAndReturnTypesMatch(
+                        memberAccessExpression, originalSemanticModel, originalMemberSymbol, rewrittenMemberSymbol, cancellationToken);
             }
 
             // Second, check if this is a virtual call to a different location in the inheritance hierarchy.
@@ -723,7 +718,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     // are the same.  This is because the compiler uses the names and default
                     // values of the overridden member, even though it emits a virtual call to the
                     // the highest in the inheritance chain.
-                    return ParameterNamesAndDefaultValuesAndReturnTypesMatch(originalMemberSymbol, rewrittenMemberSymbol);
+                    return ParameterNamesAndDefaultValuesAndReturnTypesMatch(
+                        memberAccessExpression, originalSemanticModel, originalMemberSymbol, rewrittenMemberSymbol, cancellationToken);
                 }
             }
 
@@ -806,33 +802,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static bool ParameterNamesAndDefaultValuesAndReturnTypesMatch(ISymbol originalMemberSymbol, ISymbol rewrittenMemberSymbol)
+        private static bool ParameterNamesAndDefaultValuesAndReturnTypesMatch(
+            MemberAccessExpressionSyntax memberAccessExpression, SemanticModel semanticModel,
+            ISymbol originalMemberSymbol, ISymbol rewrittenMemberSymbol, CancellationToken cancellationToken)
         {
             var originalMemberType = originalMemberSymbol.GetMemberType();
             var rewrittenMemberType = rewrittenMemberSymbol.GetMemberType();
             if (!Equals(originalMemberType, rewrittenMemberType))
                 return false;
 
-            if (originalMemberSymbol is IMethodSymbol originalMethodSymbol &&
-                rewrittenMemberSymbol is IMethodSymbol rewrittenMethodSymbol)
+            // if this member actually invoked, ensure that we end up with the same values for default
+            // parameters, and that the same names are used.  Note: we technically only need to check
+            // default values for arguments not passed, and we only need to check names for those that
+            // are passed.
+            if (memberAccessExpression.GetRequiredParent() is InvocationExpressionSyntax invocationExpression &&
+                semanticModel.GetOperation(invocationExpression, cancellationToken) is IInvocationOperation invocationOperation)
             {
-                var originalParameters = originalMethodSymbol.Parameters;
-                var rewrittenParameters = rewrittenMethodSymbol.Parameters;
-                if (originalParameters.Length != rewrittenParameters.Length)
-                    return false;
-
-                for (var i = 0; i < originalParameters.Length; i++)
+                if (originalMemberSymbol is IMethodSymbol originalMethodSymbol &&
+                    rewrittenMemberSymbol is IMethodSymbol rewrittenMethodSymbol)
                 {
-                    var originalParameter = originalParameters[i];
-                    var rewrittenParameter = rewrittenParameters[i];
-                    if (originalParameter.Name != rewrittenParameter.Name)
+                    var originalParameters = originalMethodSymbol.Parameters;
+                    var rewrittenParameters = rewrittenMethodSymbol.Parameters;
+                    if (originalParameters.Length != rewrittenParameters.Length)
                         return false;
 
-                    if (originalParameter.HasExplicitDefaultValue &&
-                        rewrittenParameter.HasExplicitDefaultValue &&
-                        !Equals(originalParameter.ExplicitDefaultValue, rewrittenParameter.ExplicitDefaultValue))
+                    for (var i = 0; i < originalParameters.Length; i++)
                     {
-                        return false;
+                        var originalParameter = originalParameters[i];
+                        var rewrittenParameter = rewrittenParameters[i];
+
+                        var argument = invocationOperation.Arguments.FirstOrDefault(a => originalParameter.Equals(a.Parameter));
+                        var argumentSyntax = argument?.Syntax as ArgumentSyntax;
+
+                        if (originalParameter.Name != rewrittenParameter.Name &&
+                            argumentSyntax?.NameColon != null)
+                        {
+                            // names are different.  this is a problem if the original user code provided a named arg here.
+                            return false;
+                        }
+
+                        if (originalParameter.HasExplicitDefaultValue &&
+                            rewrittenParameter.HasExplicitDefaultValue &&
+                            !Equals(originalParameter.ExplicitDefaultValue, rewrittenParameter.ExplicitDefaultValue) &&
+                            argumentSyntax == null)
+                        {
+                            // parameter values are different, this is a problem if the original user code did *not* provide
+                            // an argument here.
+                            return false;
+                        }
                     }
                 }
             }

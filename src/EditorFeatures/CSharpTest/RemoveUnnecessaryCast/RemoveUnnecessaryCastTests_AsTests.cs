@@ -1635,9 +1635,9 @@ sealed class C : I
 
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DoNotRemoveCastToInterfaceForSealedType5()
+        public async Task DoRemoveCastToInterfaceForSealedTypeWhenDefaultValuesAreDifferentButParameterIsPassed()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 
@@ -1656,6 +1656,27 @@ sealed class C : I
     static void Main()
     {
         ([|new C() as I|]).Goo(2);
+    }
+}
+",
+@"
+using System;
+
+interface I
+{
+    void Goo(int x = 0);
+}
+
+sealed class C : I
+{
+    public void Goo(int x = 1)
+    {
+        Console.WriteLine(x);
+    }
+
+    static void Main()
+    {
+        new C().Goo(2);
     }
 }
 ");
