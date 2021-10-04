@@ -2336,7 +2336,7 @@ sealed class C : I
  
     static void Main()
     {
-        new C().Goo();
+        (new C()).Goo();
     }
 }]]>
 </code>
@@ -3882,9 +3882,9 @@ public class Class1
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529858")>
-        Public Async Function TestCsharp_Remove_UnnecessaryCastFromEnumTypeToUnderlyingType() As Task
+        Public Async Function TestCSharp_Remove_UnnecessaryCastFromEnumTypeToUnderlyingType() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
