@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -763,18 +764,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             SemanticModel originalSemanticModel,
             CancellationToken cancellationToken)
         {
-            var originalSyntaxTree = originalSemanticModel.SyntaxTree;
-            var originalRoot = originalSyntaxTree.GetRoot(cancellationToken);
-            var originalCompilation = originalSemanticModel.Compilation;
+            var analyzer = new SpeculationAnalyzer(castNode, castedExpressionNode, originalSemanticModel, cancellationToken);
 
-            var annotation = new SyntaxAnnotation();
-            var rewrittenSyntaxTree = originalSyntaxTree.WithRootAndOptions(
-                originalRoot.ReplaceNode(castNode, castedExpressionNode.WithAdditionalAnnotations(annotation)), originalSyntaxTree.Options);
-            var rewrittenCompilation = originalCompilation.ReplaceSyntaxTree(originalSyntaxTree, rewrittenSyntaxTree);
-
-            var rewrittenRoot = rewrittenSyntaxTree.GetRoot(cancellationToken);
-            var rewrittenExpression = (ExpressionSyntax)rewrittenRoot.GetAnnotatedNodes(annotation).Single();
-            var rewrittenSemanticModel = rewrittenCompilation.GetSemanticModel(rewrittenSyntaxTree);
+            var rewrittenExpression = analyzer.ReplacedExpression;
+            var rewrittenSemanticModel = analyzer.SpeculativeSemanticModel;
 
             // Because of error tolerance in the compiler layer, it's possible for an overload resolution error
             // to occur, but all the checks above pass.  Specifically, with overload resolution, the binding layer
