@@ -183,8 +183,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return token.GetPreviousTokenIfTouchingWord(position);
         }
 
-        public override ImmutableArray<ISymbol> FilterOverrides(ImmutableArray<ISymbol> members, ITypeSymbol returnType)
+        public override ImmutableArray<ISymbol> FilterOverrides(ImmutableArray<ISymbol> members, ITypeSymbol? returnType)
         {
+            if (returnType == null)
+            {
+                return members;
+            }
+
             var filteredMembers = members.WhereAsArray(m =>
                 SymbolEquivalenceComparer.Instance.Equals(GetReturnType(m), returnType));
 

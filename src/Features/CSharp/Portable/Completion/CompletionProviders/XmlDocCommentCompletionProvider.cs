@@ -126,7 +126,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                             || (token.Parent.IsKind(SyntaxKind.XmlName) && !token.HasLeadingTrivia);
                         var includeKeywords = !xmlNameOnly;
 
-                        Contract.ThrowIfNull(declaredSymbol);
                         items.AddRange(GetNestedItems(declaredSymbol, includeKeywords));
                     }
 
@@ -144,7 +143,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     if (token.Parent.Parent is DocumentationCommentTriviaSyntax ||
                         (token.Parent.Parent.IsKind(SyntaxKind.XmlEmptyElement) && token.Parent.Parent.Parent is DocumentationCommentTriviaSyntax))
                     {
-                        Contract.ThrowIfNull(declaredSymbol);
                         items.AddRange(GetTopLevelItems(declaredSymbol, parentTrivia));
                     }
                 }

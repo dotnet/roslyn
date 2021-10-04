@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return CreateCompletionItem(prefix, beforeCaretText: "<" + prefix, afterCaretText: suffix);
         }
 
-        protected IEnumerable<CompletionItem> GetNestedItems(ISymbol symbol, bool includeKeywords)
+        protected IEnumerable<CompletionItem> GetNestedItems(ISymbol? symbol, bool includeKeywords)
         {
             var items = s_nestedTagNames.Select(GetItem);
 
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SpecializedCollections.EmptyEnumerable<CompletionItem>();
         }
 
-        protected ImmutableArray<CompletionItem> GetTopLevelItems(ISymbol symbol, TSyntax syntax)
+        protected ImmutableArray<CompletionItem> GetTopLevelItems(ISymbol? symbol, TSyntax syntax)
         {
             using var _1 = ArrayBuilder<CompletionItem>.GetInstance(out var items);
             using var _2 = PooledHashSet<string>.GetInstance(out var existingTopLevelTags);
