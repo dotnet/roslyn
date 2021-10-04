@@ -1092,7 +1092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundPointerIndirectionOperator : BoundExpression
     {
-        public BoundPointerIndirectionOperator(SyntaxNode syntax, BoundExpression operand, TypeSymbol type, bool hasErrors = false)
+        public BoundPointerIndirectionOperator(SyntaxNode syntax, BoundExpression operand, bool refersToLocation, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.PointerIndirectionOperator, syntax, type, hasErrors || operand.HasErrors())
         {
 
@@ -1100,20 +1100,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Operand = operand;
+            this.RefersToLocation = refersToLocation;
         }
 
 
         public new TypeSymbol Type => base.Type!;
 
         public BoundExpression Operand { get; }
+
+        public bool RefersToLocation { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitPointerIndirectionOperator(this);
 
-        public BoundPointerIndirectionOperator Update(BoundExpression operand, TypeSymbol type)
+        public BoundPointerIndirectionOperator Update(BoundExpression operand, bool refersToLocation, TypeSymbol type)
         {
-            if (operand != this.Operand || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (operand != this.Operand || refersToLocation != this.RefersToLocation || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundPointerIndirectionOperator(this.Syntax, operand, type, this.HasErrors);
+                var result = new BoundPointerIndirectionOperator(this.Syntax, operand, refersToLocation, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1123,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundPointerElementAccess : BoundExpression
     {
-        public BoundPointerElementAccess(SyntaxNode syntax, BoundExpression expression, BoundExpression index, bool @checked, TypeSymbol type, bool hasErrors = false)
+        public BoundPointerElementAccess(SyntaxNode syntax, BoundExpression expression, BoundExpression index, bool @checked, bool refersToLocation, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.PointerElementAccess, syntax, type, hasErrors || expression.HasErrors() || index.HasErrors())
         {
 
@@ -1134,6 +1137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Expression = expression;
             this.Index = index;
             this.Checked = @checked;
+            this.RefersToLocation = refersToLocation;
         }
 
 
@@ -1144,14 +1148,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Index { get; }
 
         public bool Checked { get; }
+
+        public bool RefersToLocation { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitPointerElementAccess(this);
 
-        public BoundPointerElementAccess Update(BoundExpression expression, BoundExpression index, bool @checked, TypeSymbol type)
+        public BoundPointerElementAccess Update(BoundExpression expression, BoundExpression index, bool @checked, bool refersToLocation, TypeSymbol type)
         {
-            if (expression != this.Expression || index != this.Index || @checked != this.Checked || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (expression != this.Expression || index != this.Index || @checked != this.Checked || refersToLocation != this.RefersToLocation || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundPointerElementAccess(this.Syntax, expression, index, @checked, type, this.HasErrors);
+                var result = new BoundPointerElementAccess(this.Syntax, expression, index, @checked, refersToLocation, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10077,14 +10083,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(operand, type);
+            return node.Update(operand, node.RefersToLocation, type);
         }
         public override BoundNode? VisitPointerElementAccess(BoundPointerElementAccess node)
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             BoundExpression index = (BoundExpression)this.Visit(node.Index);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(expression, index, node.Checked, type);
+            return node.Update(expression, index, node.Checked, node.RefersToLocation, type);
         }
         public override BoundNode? VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
         {
@@ -11462,12 +11468,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(operand, infoAndType.Type!);
+                updatedNode = node.Update(operand, node.RefersToLocation, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(operand, node.Type);
+                updatedNode = node.Update(operand, node.RefersToLocation, node.Type);
             }
             return updatedNode;
         }
@@ -11480,12 +11486,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(expression, index, node.Checked, infoAndType.Type!);
+                updatedNode = node.Update(expression, index, node.Checked, node.RefersToLocation, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(expression, index, node.Checked, node.Type);
+                updatedNode = node.Update(expression, index, node.Checked, node.RefersToLocation, node.Type);
             }
             return updatedNode;
         }
@@ -13793,6 +13799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node, object? arg) => new TreeDumperNode("pointerIndirectionOperator", null, new TreeDumperNode[]
         {
             new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
+            new TreeDumperNode("refersToLocation", node.RefersToLocation, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
@@ -13803,6 +13810,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("index", null, new TreeDumperNode[] { Visit(node.Index, null) }),
             new TreeDumperNode("@checked", node.Checked, null),
+            new TreeDumperNode("refersToLocation", node.RefersToLocation, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
