@@ -194,6 +194,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     return false;
             }
 
+            // Identity fp-casts can actually change the runtime value of the fp number.  This can happen because the
+            // runtime is allowed to perform the operations with wider precision than the actual specified fp-precision.
+            // i.e. 64-bit doubles can actually be 80 bits at runtime.  Even though the language considers this to be an
+            // identity cast, we don't want to remove these because the user may be depending on that truncation.
+            if (IsIdentityFloatingPointCastThatMustBePreserved(castNode, castedExpressionNode, originalSemanticModel, originalConversion, cancellationToken))
+                return false;
+
             #endregion blacklist cases
 
             #region whitelist cases that allow this cast to be removed.
@@ -228,6 +235,72 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             #endregion whitelist cases.
 
             return false;
+        }
+
+        private static bool IsIdentityFloatingPointCastThatMustBePreserved(
+           ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
+           SemanticModel semanticModel, Conversion conversion, CancellationToken cancellationToken)
+        {
+            if (!conversion.IsIdentity)
+                return false;
+
+            var castType = semanticModel.GetTypeInfo(castNode, cancellationToken).Type;
+            var castedExpressionType = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken).Type;
+
+            // Floating point casts can have subtle runtime behavior, even between the same fp types. For example, a
+            // cast from float-to-float can still change behavior because it may take a higher precision computation and
+            // truncate it to 32bits.
+            //
+            // Because of this we keep floating point conversions unless we can prove that it's safe.  The only safe
+            // times are when we're loading or storing into a location we know has the same size as the cast size
+            // (i.e. reading/writing into a field).
+            if (castedExpressionType?.SpecialType != SpecialType.System_Double &&
+                castedExpressionType?.SpecialType != SpecialType.System_Single &&
+                castType?.SpecialType != SpecialType.System_Double &&
+                castType?.SpecialType != SpecialType.System_Single)
+            {
+                // wasn't a floating point conversion.
+                return false;
+            }
+
+            // Identity fp conversion is safe if this is a read from a fp field/array
+            if (IsFieldOrArrayElement(semanticModel, castedExpressionNode, cancellationToken))
+                return false;
+
+            // It wasn't a read from a fp/field/array.  But it might be a write into one.
+
+            castNode = castNode.WalkUpParentheses();
+            if (castNode.Parent is AssignmentExpressionSyntax assignmentExpression &&
+                assignmentExpression.Right == castNode)
+            {
+                // Identity fp conversion is safe if this is a write to a fp field/array
+                if (IsFieldOrArrayElement(semanticModel, assignmentExpression.Left, cancellationToken))
+                    return false;
+            }
+            else if (castNode.Parent.IsKind(SyntaxKind.ArrayInitializerExpression, out InitializerExpressionSyntax? arrayInitializer))
+            {
+                // Identity fp conversion is safe if this is in an array initializer.
+                var typeInfo = semanticModel.GetTypeInfo(arrayInitializer, cancellationToken);
+                return typeInfo.Type?.Kind == SymbolKind.ArrayType;
+            }
+            else if (castNode.Parent is EqualsValueClauseSyntax equalsValue &&
+                     equalsValue.Value == castNode &&
+                     equalsValue.Parent is VariableDeclaratorSyntax variableDeclarator)
+            {
+                // Identity fp conversion is safe if this is in a field initializer.
+                var symbol = semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
+                if (symbol?.Kind == SymbolKind.Field)
+                    return false;
+            }
+
+            // We have to preserve this cast.
+            return true;
+        }
+
+        private static bool IsFieldOrArrayElement(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
+        {
+            var operation = semanticModel.GetOperation(expression.WalkDownParentheses(), cancellationToken);
+            return operation is IFieldReferenceOperation or IArrayElementReferenceOperation;
         }
 
         private static bool IntroducedConditionalExpressionConversion(
