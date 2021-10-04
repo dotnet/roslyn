@@ -7766,34 +7766,32 @@ public class sign
 
         [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/20211")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task RemoveDoubleNullCastInSwitch1()
+        public async Task DoNotRemoveDoubleNullCastInSwitch1()
         {
+            // Removing the 'object' cast would make `case object:` unreachable.
             var source =
 @"class Program
 {
-    static void Main()
+    static int Main()
     {
-        switch ([|(object)|][|(string)|]null)
+        switch ((object)(string)null)
         {
-          case var _:
-            break;
-        }
-    }
-}";
-            var fixedCode =
-@"class Program
-{
-    static void Main()
-    {
-        switch ((string)null)
-        {
-          case var _:
-            break;
+            case null:
+                return 0;
+            case string:
+                return 1;
+            case object:
+                return 2;
         }
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
         }
 
         [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
