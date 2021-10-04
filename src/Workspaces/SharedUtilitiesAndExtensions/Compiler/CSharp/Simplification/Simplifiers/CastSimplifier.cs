@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // Explicit conversions are conversions that cannot be proven to always succeed, conversions
             // that are known to possibly lose information.  As such, we need to preserve this as it 
             // has necessary runtime behavior that must be kept.
-            if (originalConversion.IsExplicit)
+            if (IsExplicitCastThatMustBePreserved(castNode, originalConversion))
                 return false;
 
             // A conversion must either not exist, or it must be explicit or implicit. At this point we
@@ -347,7 +347,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // changing the types of things (which can affect other things like overload resolution),
             // or the runtime values of code.  We only want to remove the cast if it will do none of those
             // things.
-            Contract.ThrowIfFalse(originalConversion.IsImplicit);
 
             // we are starting with code like `(X)expr` and converting to just `expr`. Post rewrite we need
             // to ensure that the final converted-type of `expr` matches the final converted type of `(X)expr`.
@@ -458,6 +457,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             #endregion whitelist cases.
 
             return false;
+        }
+
+        private static bool IsExplicitCastThatMustBePreserved(ExpressionSyntax castNode, Conversion conversion)
+        {
+            if (!conversion.IsExplicit)
+                return false;
+
+            // Some explicit casts are safe to remove as they still will have no runtime impact, (or the compiler would
+            // insert the implicit cast for it later due to surrounding context).
+
+            // Explicit identity casts arise with things like `(string?)""`.  In this case, there is no runtime impact,
+            // just type system impact.  This is a candidate for removal, and our later checks will ensure the same 
+            // types remain.
+            if (conversion.IsIdentity)
+                return false;
+
+            // Explicit nullable casts arise with things like `(int?)0`.  These will succeed at runtime, but are potentially
+            // removable if teh language would insert such a cast anyways (for things like `x ? (int?)0 : null`).  In C# 9
+            // and above this will create a legal conditional conversion that implicitly adds that cast.
+            //
+            // Note: this does not apply for `as byte?`.  This is an explicit as-cast that can produce null values and
+            // so it should be maintained.
+            if (conversion.IsNullable && castNode is CastExpressionSyntax)
+                return false;
+
+            return true;
         }
 
         private static bool IsIdentityFloatingPointCastThatMustBePreserved(

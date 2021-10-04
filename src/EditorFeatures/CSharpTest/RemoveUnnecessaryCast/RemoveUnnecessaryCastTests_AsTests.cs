@@ -1407,7 +1407,7 @@ class Program
 
         [WorkItem(26640, "https://github.com/dotnet/roslyn/issues/26640")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastToByteFromIntInConditionalExpression()
+        public async Task DontRemoveCastToByteFromIntInConditionalExpression_CSharp8()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -1416,7 +1416,21 @@ class Program
     {
         return [|b ? (1 as byte?) : (0 as byte?)|];
     }
-}");
+}", new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
+        }
+
+        [WorkItem(26640, "https://github.com/dotnet/roslyn/issues/26640")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastToByteFromIntInConditionalExpression_CSharp9()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    object M1(bool b)
+    {
+        return [|b ? (1 as byte?) : (0 as byte?)|];
+    }
+}", new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
         }
 
         #region Interface Casts

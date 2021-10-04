@@ -1230,7 +1230,7 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(531431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531431")>
         Public Async Function TestCSharp_DoNotRemove_RequiredExplicitNullableCast_And_Remove_UnnecessaryExplicitNullableCast() As Task
             Dim input =
@@ -1563,7 +1563,7 @@ class C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529844, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529844")>
-        Public Async Function TestCSharp_DoNotRemove_NecessaryCastInNumericConversion() As Task
+        Public Async Function TestCSharp_DoRemove_UnnecessaryFPCastFromInteger() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1598,7 +1598,7 @@ class Program
     {
         int x = int.MaxValue;
         double y = x;
-        double z = (float)x;
+        double z = x;
         Console.WriteLine(x);
         Console.WriteLine(y);
         Console.WriteLine(z);
@@ -3652,7 +3652,7 @@ unsafe class C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(835537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835537")>
-        Public Async Function TestCsharp_DoNotRemove_NecessaryExplicitCastInReferenceComparison() As Task
+        Public Async Function TestCsharp_Remove_UnnecessaryExplicitCastInReferenceComparison1() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -3677,7 +3677,7 @@ class Program
     void F()
     {
         object x = string.Intern("Hi!");
-        bool wasInterned = (object)x == "Hi!";
+        bool wasInterned = x == "Hi!";
     }
 }
 ]]>
@@ -3688,7 +3688,7 @@ class Program
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(835537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835537")>
-        Public Async Function TestCsharp_DoNotRemove_NecessaryExplicitCastInReferenceComparison2() As Task
+        Public Async Function TestCsharp_Remove_UnnecessaryExplicitCastInReferenceComparison3() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -3713,7 +3713,7 @@ class Program
     void F()
     {
         object x = string.Intern("Hi!");
-        bool wasInterned = x == (object)"Hi!";
+        bool wasInterned = x == "Hi!";
     }
 }
 ]]>
@@ -3837,7 +3837,6 @@ class C
 </code>
 
             Await TestAsync(input, expected)
-
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
