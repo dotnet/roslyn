@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return false;
 
             // Quick syntactic checks we can do before semantic work.
-            var isNullLiteralCast = castedExpressionNode.WalkDownParentheses().Kind() == SyntaxKind.NullLiteralExpression;
             var isDefaultLiteralCast = castedExpressionNode.WalkDownParentheses().Kind() == SyntaxKind.DefaultLiteralExpression;
 
             // Language does not allow `if (x is default)` ever.  So if we have `if (x is (Y)default)`
@@ -47,12 +46,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (isDefaultLiteralCast && castNode.WalkUpParentheses().Parent is PatternSyntax or CaseSwitchLabelSyntax)
                 return false;
 
-            // If we don't have a conversion then we can't do anything with this as the code isn't
-            // semantically valid. 
-            var originalConversionOperation = originalSemanticModel.GetOperation(castNode, cancellationToken) as IConversionOperation;
-            if (originalConversionOperation == null)
-                return false;
+            // There are cases in the roslyn API where a direct cast does not result in a conversion operation
+            // (for example, casting a anonymous-method to a delegate type).  We have to handle these cases
+            // specially.
 
+            var originalOperation = originalSemanticModel.GetOperation(castNode, cancellationToken);
+            if (originalOperation is IConversionOperation originalConversionOperation)
+            {
+                return IsConversionCastSafeToRemove(
+                    castNode, castedExpressionNode, originalSemanticModel, originalConversionOperation, cancellationToken);
+            }
+
+            return false;
+        }
+
+        private static bool IsNullLiteralCast(ExpressionSyntax castedExpressionNode)
+            => castedExpressionNode.WalkDownParentheses().Kind() == SyntaxKind.NullLiteralExpression;
+
+        private static bool IsConversionCastSafeToRemove(
+            ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
+            SemanticModel originalSemanticModel, IConversionOperation originalConversionOperation,
+            CancellationToken cancellationToken)
+        {
             // If the conversion doesn't exist then we can't do anything with this as the code isn't
             // semantically valid.
             var originalConversion = originalConversionOperation.GetConversion();
@@ -65,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (originalConversion.IsExplicit)
                 return false;
 
-            // A conversion must either not exist, or it must be explciit or implicit. At this point we
+            // A conversion must either not exist, or it must be explicit or implicit. At this point we
             // have conversions that will always succeed, but which could have impact on the code by 
             // changing the types of things (which can affect other things like overload resolution),
             // or the runtime values of code.  We only want to remove the cast if it will do none of those
@@ -89,6 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // Effectively, this constrains S to be a reference type (as T could not otherwise derive from it).
             // However, such a invariant isn't understood by the compiler.  So if the (T) cast is removed it will
             // fail as 'null' cannot be converted to an unconstrained generic type.
+            var isNullLiteralCast = IsNullLiteralCast(castedExpressionNode);
             if (isNullLiteralCast && !originalConvertedType.IsReferenceType && !originalConvertedType.IsNullable())
                 return false;
 
@@ -96,6 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // semantic model for the rewritten code so we can check it to make sure semantics were preserved.
             var (rewrittenSemanticModel, rewrittenExpression) = GetSemanticModelWithCastRemoved(
                 castNode, castedExpressionNode, originalSemanticModel, cancellationToken);
+            if (rewrittenSemanticModel == null || rewrittenExpression == null)
+                return false;
 
             var (rewrittenConvertedType, rewrittenConversion) = GetRewrittenInfo(
                 castNode, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel, cancellationToken);
@@ -135,29 +153,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
                 if (!SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(originalParentImplicitConversion.Conversion.MethodSymbol, rewrittenConversion.MethodSymbol))
                     return false;
-            }
-
-            // Because of error tolerance in the compiler layer, it's possible for an overload resolution error
-            // to occur, but all the checks above pass.  Specifically, with overload resolution, the binding layer
-            // will still return results (in lambdas especially) for one of the overloads.  For example:
-            //
-            //    Goo(x => (int)x);
-            //    void Goo(Func<int, object> x)
-            //    Goo(Func<string, object> x)
-            //
-            // Here, removing the cast will cause an ambiguity issue. However, the type of 'x' will still appear to
-            // be an 'int' because of error tolerance.  To address this, walk up all containing invocations and 
-            // make sure they're calls to the same methods.
-            if (IntroducedAmbiguity(castNode, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel, cancellationToken))
-                return false;
-
-            // Removing a cast may cause a conditional-expression conversion to come into existence.  This is
-            // fine as long as we're in C# 9 or above.
-            var languageVersion = ((CSharpCompilation)originalSemanticModel.Compilation).LanguageVersion;
-            if (languageVersion < LanguageVersion.CSharp9 &&
-                IntroducedConditionalExpressionConversion(rewrittenExpression, rewrittenSemanticModel, cancellationToken))
-            {
-                return false;
             }
 
             #endregion blacklist cases
@@ -428,7 +423,7 @@ IsIntrinsicOrEnum(rewrittenType);
             return (rewrittenConvertedType, rewrittenConversion);
         }
 
-        private static (SemanticModel rewrittenSemanticModel, ExpressionSyntax rewrittenExpression) GetSemanticModelWithCastRemoved(
+        private static (SemanticModel? rewrittenSemanticModel, ExpressionSyntax? rewrittenExpression) GetSemanticModelWithCastRemoved(
             ExpressionSyntax castNode,
             ExpressionSyntax castedExpressionNode,
             SemanticModel originalSemanticModel,
@@ -444,8 +439,33 @@ IsIntrinsicOrEnum(rewrittenType);
             var rewrittenCompilation = originalCompilation.ReplaceSyntaxTree(originalSyntaxTree, rewrittenSyntaxTree);
 
             var rewrittenRoot = rewrittenSyntaxTree.GetRoot(cancellationToken);
-            return (rewrittenCompilation.GetSemanticModel(rewrittenSyntaxTree),
-                    (ExpressionSyntax)rewrittenRoot.GetAnnotatedNodes(annotation).Single());
+            var rewrittenExpression = (ExpressionSyntax)rewrittenRoot.GetAnnotatedNodes(annotation).Single();
+            var rewrittenSemanticModel = rewrittenCompilation.GetSemanticModel(rewrittenSyntaxTree);
+
+            // Because of error tolerance in the compiler layer, it's possible for an overload resolution error
+            // to occur, but all the checks above pass.  Specifically, with overload resolution, the binding layer
+            // will still return results (in lambdas especially) for one of the overloads.  For example:
+            //
+            //    Goo(x => (int)x);
+            //    void Goo(Func<int, object> x)
+            //    Goo(Func<string, object> x)
+            //
+            // Here, removing the cast will cause an ambiguity issue. However, the type of 'x' will still appear to
+            // be an 'int' because of error tolerance.  To address this, walk up all containing invocations and 
+            // make sure they're calls to the same methods.
+            if (IntroducedAmbiguity(castNode, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel, cancellationToken))
+                return default;
+
+            // Removing a cast may cause a conditional-expression conversion to come into existence.  This is
+            // fine as long as we're in C# 9 or above.
+            var languageVersion = ((CSharpCompilation)originalSemanticModel.Compilation).LanguageVersion;
+            if (languageVersion < LanguageVersion.CSharp9 &&
+                IntroducedConditionalExpressionConversion(rewrittenExpression, rewrittenSemanticModel, cancellationToken))
+            {
+                return default;
+            }
+
+            return (rewrittenSemanticModel, rewrittenExpression);
         }
     }
 }
