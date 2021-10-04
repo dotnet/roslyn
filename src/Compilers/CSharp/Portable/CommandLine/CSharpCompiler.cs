@@ -437,7 +437,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Add tracking annotations to the input tree.
             annotatedInputCompilation = inputCompilation;
-            if (!ShouldDebugTransformedCode(analyzerConfigProvider))
+            bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
+            if (!shouldDebugTransformedCode)
             {
                 // mark old trees as debuggable
                 foreach (var tree in inputCompilation.SyntaxTrees)
@@ -470,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             diagnosticFilters = diagnosticFiltersBuilder.ToImmutable();
 
-            if (!ShouldDebugTransformedCode(analyzerConfigProvider))
+            if (!shouldDebugTransformedCode)
             {
                 // mark new trees as not debuggable
                 // in Debug mode, also mark transformed trees as undebuggable "poison", which triggers assert if used in a sequence point

@@ -19,5 +19,6 @@
     <CompilerVisibleProperty Include="CaravelaDebugTransformedCode" />
     <CompilerVisibleProperty Include="CaravelaCompilerTransformerOrder" />
     <CompilerVisibleProperty Include="CaravelaCompilerTransformedFilesOutputPath" />
+    <CompilerVisibleProperty Include="CaravelaDebugCompiler" />
   </ItemGroup>
 </Project>

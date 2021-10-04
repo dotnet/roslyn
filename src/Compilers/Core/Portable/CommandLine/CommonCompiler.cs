@@ -962,9 +962,16 @@ namespace Microsoft.CodeAnalysis
         // <Caravela>
         protected static bool ShouldDebugTransformedCode(AnalyzerConfigOptionsProvider options)
         {
-            options.GlobalOptions.TryGetValue("build_property.CaravelaDebugTransformedCode", out var shouldDebugTransformedCodeString);
-            bool.TryParse(shouldDebugTransformedCodeString, out var shouldDebugTransformedCode);
-            return shouldDebugTransformedCode;
+            options.GlobalOptions.TryGetValue("build_property.CaravelaDebugTransformedCode", out var value);
+            bool.TryParse(value, out var parsedValue);
+            return parsedValue;
+        }
+        
+        protected static bool ShouldAttachDebugger(AnalyzerConfigOptionsProvider options)
+        {
+            options.GlobalOptions.TryGetValue("build_property.CaravelaDebugCompiler", out var value);
+            bool.TryParse(value, out var parsedValue);
+            return parsedValue;
         }
 
         protected string? GetTransformedFilesOutputDirectory(AnalyzerConfigOptionsProvider options)
@@ -978,6 +985,8 @@ namespace Microsoft.CodeAnalysis
                 return FileUtilities.ResolveRelativePath(transformedFilesOutputDirectory, _workingDirectory);
             }
         }
+        
+        
         // </Caravela>
 
         /// <summary>
@@ -1116,6 +1125,12 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // <Caravela>
+                bool shouldAttachDebugger = ShouldAttachDebugger(analyzerConfigProvider);
+                if (shouldAttachDebugger)
+                {
+                    Debugger.Launch();
+                }
+                
                 if (!transfomers.IsEmpty)
                 {
                     var compilationBeforeTransformation = compilation;
