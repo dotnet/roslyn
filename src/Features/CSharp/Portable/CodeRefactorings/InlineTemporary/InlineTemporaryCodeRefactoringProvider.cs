@@ -424,30 +424,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             return newScope.RemoveNode(newLocalDeclaration, SyntaxRemoveOptions.KeepNoTrivia);
         }
 
-        private static ExpressionSyntax SkipRedundantExteriorParentheses(ExpressionSyntax expression)
-        {
-            while (expression.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenthesized))
-            {
-                if (parenthesized.Expression == null ||
-                    parenthesized.Expression.IsMissing)
-                {
-                    break;
-                }
-
-                if (parenthesized.Expression.IsKind(SyntaxKind.ParenthesizedExpression) ||
-                    parenthesized.Expression.IsKind(SyntaxKind.IdentifierName))
-                {
-                    expression = parenthesized.Expression;
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            return expression;
-        }
-
         private static async Task<ExpressionSyntax> CreateExpressionToInlineAsync(
             VariableDeclaratorSyntax variableDeclarator,
             Document document,
@@ -455,25 +431,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
         {
             var updatedDocument = document;
 
-            var expression = SkipRedundantExteriorParentheses(variableDeclarator.Initializer.Value);
+            var expression = variableDeclarator.Initializer.Value.WalkDownParentheses();
             var semanticModel = await updatedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
+
             var newExpression = InitializerRewriter.Visit(expression, localSymbol, semanticModel);
 
-            // Consider: C c = new(); Console.WriteLine(c.ToString());
-            // Inlining result should be: Console.WriteLine(new C().ToString()); instead of Console.WriteLine(new().ToString());
-            // This condition converts implicit object creation expression to normal object creation expression.
             if (newExpression.IsKind(SyntaxKind.ImplicitObjectCreationExpression))
             {
+                // Consider: C c = new(); Console.WriteLine(c.ToString());
+                // Inlining result should be: Console.WriteLine(new C().ToString()); instead of Console.WriteLine(new().ToString());
+                // This condition converts implicit object creation expression to normal object creation expression.
+
                 var implicitCreation = (ImplicitObjectCreationExpressionSyntax)newExpression;
                 var type = localSymbol.Type.GenerateTypeSyntax();
                 newExpression = SyntaxFactory.ObjectCreationExpression(implicitCreation.NewKeyword, type, implicitCreation.ArgumentList, implicitCreation.Initializer);
+                newExpression = newExpression.WithAdditionalAnnotations(InitializerAnnotation);
             }
-
-            // If this is an array initializer, we need to transform it into an array creation
-            // expression for inlining.
-            if (newExpression.Kind() == SyntaxKind.ArrayInitializerExpression)
+            else if (newExpression.Kind() == SyntaxKind.ArrayInitializerExpression)
             {
+                // If this is an array initializer, we need to transform it into an array creation
+                // expression for inlining.
+
                 var arrayType = (ArrayTypeSyntax)localSymbol.Type.GenerateTypeSyntax();
                 var arrayInitializer = (InitializerExpressionSyntax)newExpression;
 
@@ -489,9 +468,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 }
 
                 newExpression = SyntaxFactory.ArrayCreationExpression(arrayType, arrayInitializer);
+                newExpression = newExpression.WithAdditionalAnnotations(InitializerAnnotation);
             }
-
-            newExpression = newExpression.WithAdditionalAnnotations(InitializerAnnotation);
+            else if (!localSymbol.Type.ContainsAnonymousType() &&
+                     !localSymbol.Type.Equals(semanticModel.GetTypeInfo(expression, cancellationToken).Type))
+            {
+                // If the initializer doesn't have the same type as the local variable itself, then an implicit
+                // conversion occurred.  Put in an explicit conversion so that the conversion is maintained at
+                // reference locations.  Note: these conversions will be removed later during the cleanup pass
+                // if they are not necessary at that location.
+                newExpression = newExpression.WithAdditionalAnnotations(InitializerAnnotation);
+                newExpression = newExpression.Cast(localSymbol.Type);
+            }
+            else
+            {
+                newExpression = newExpression.WithAdditionalAnnotations(InitializerAnnotation);
+            }
 
             updatedDocument = await updatedDocument.ReplaceNodeAsync(variableDeclarator.Initializer.Value, newExpression, cancellationToken).ConfigureAwait(false);
             semanticModel = await updatedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -499,13 +491,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var newVariableDeclarator = await FindDeclaratorAsync(updatedDocument, cancellationToken).ConfigureAwait(false);
             localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(newVariableDeclarator, cancellationToken);
 
-            var explicitCastExpression = newExpression.CastIfPossible(localSymbol.Type, newVariableDeclarator.SpanStart, semanticModel, cancellationToken);
-            if (explicitCastExpression != newExpression)
-            {
-                updatedDocument = await updatedDocument.ReplaceNodeAsync(newExpression, explicitCastExpression, cancellationToken).ConfigureAwait(false);
-                semanticModel = await updatedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                newVariableDeclarator = await FindDeclaratorAsync(updatedDocument, cancellationToken).ConfigureAwait(false);
-            }
+            //var explicitCastExpression = newExpression.CastIfPossible(localSymbol.Type, newVariableDeclarator.SpanStart, semanticModel, cancellationToken);
+            //if (explicitCastExpression != newExpression)
+            //{
+            //    updatedDocument = await updatedDocument.ReplaceNodeAsync(newExpression, explicitCastExpression, cancellationToken).ConfigureAwait(false);
+            //    semanticModel = await updatedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            //    newVariableDeclarator = await FindDeclaratorAsync(updatedDocument, cancellationToken).ConfigureAwait(false);
+            //}
 
             // Now that the variable declarator is normalized, make its initializer
             // value semantically explicit.
@@ -564,9 +556,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                     // Get this annotated node and compute the symbol info for this node in the inlined document.
                     var innerInitializerInInlineNodeOrToken = inlinedNode.GetAnnotatedNodesAndTokens(InitializerAnnotation).First();
 
-                    var innerInitializerInInlineNode = (ExpressionSyntax)(innerInitializerInInlineNodeOrToken.IsNode ?
-                        innerInitializerInInlineNodeOrToken.AsNode() :
-                        innerInitializerInInlineNodeOrToken.AsToken().Parent);
+                    var innerInitializerInInlineNode = (ExpressionSyntax)(innerInitializerInInlineNodeOrToken.IsNode
+                        ? innerInitializerInInlineNodeOrToken.AsNode()
+                        : innerInitializerInInlineNodeOrToken.AsToken().Parent);
                     var newInitializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(innerInitializerInInlineNode, cancellationToken);
 
                     // Verification: The symbol info associated with any of the inlined expressions does not match the symbol info for original initializer expression prior to inline.

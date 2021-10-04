@@ -9697,5 +9697,21 @@ class Program
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveBoxingEnumCast()
+        {
+            var source = @"
+using System;
+class Program
+{
+    static void M()
+    {
+        object y = (DayOfWeek)0;
+        Console.WriteLine(y);
+    }
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
     }
 }

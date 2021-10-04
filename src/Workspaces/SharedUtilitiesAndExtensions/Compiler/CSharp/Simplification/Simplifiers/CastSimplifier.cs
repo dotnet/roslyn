@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // object o1 = (long)expr; // or (long)0
             //
             // We need to keep the cast so that the stored value stays a 'long'.
-            if (originalConversion.IsConstantExpression || originalConversion.IsNumeric)
+            if (originalConversion.IsConstantExpression || originalConversion.IsNumeric || originalConversion.IsEnumeration)
             {
                 if (rewrittenConversion.IsBoxing)
                     return false;
