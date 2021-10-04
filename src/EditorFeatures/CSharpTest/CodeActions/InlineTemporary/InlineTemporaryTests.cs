@@ -2625,8 +2625,8 @@ class Program
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public async Task DontInsertCastInForeachIfUnneeded01()
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DoNotInsertCastInForeachIfUnneeded01()
         {
             await TestInRegularAndScriptAsync(
             @"
