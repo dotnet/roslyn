@@ -9713,5 +9713,63 @@ class Program
 }";
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveFPCastFromNonFPTypeToWidenedType1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(@"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        int x = int.MaxValue;
+        double y = x;
+        double z = [|(float)|]x;
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+        Console.WriteLine(z);
+        Console.WriteLine(y == z);
+    }
+}", @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        int x = int.MaxValue;
+        double y = x;
+        double z = x;
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+        Console.WriteLine(z);
+        Console.WriteLine(y == z);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveFPCastToWidenedType2()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        float x = 0;
+        double y = x;
+        double z = (float)x;
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+        Console.WriteLine(z);
+        Console.WriteLine(y == z);
+    }
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
     }
 }

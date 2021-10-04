@@ -485,7 +485,7 @@ class C
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestCSharp_DoNotRemove_LambdaToDelegateTypeWithVar() As Task
+        Public Async Function TestCSharp_DoNotRemove_LambdaToDelegateTypeWithVar_CSharp9() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -512,8 +512,38 @@ class C
 }
 </code>
 
-            Await TestAsync(input, expected)
+            Await TestAsync(input, expected, csharpParseOptions:=CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9))
+        End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_DoNotRemove_LambdaToDelegateTypeWithVar_CSharp10() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M()
+    {
+        var a = {|Simplify:(System.Action)(() => { })|};
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class C
+{
+    void M()
+    {
+        var a = () => { };
+    }
+}
+</code>
+
+            Await TestAsync(input, expected, csharpParseOptions:=CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>

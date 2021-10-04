@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // runtime is allowed to perform the operations with wider precision than the actual specified fp-precision.
             // i.e. 64-bit doubles can actually be 80 bits at runtime.  Even though the language considers this to be an
             // identity cast, we don't want to remove these because the user may be depending on that truncation.
-            if (IsIdentityFloatingPointCastThatMustBePreserved(castNode, castedExpressionNode, originalSemanticModel, originalConversion, cancellationToken))
+            if (IsIdentityFloatingPointCastThatMustBePreserved(castNode, castedExpressionNode, originalSemanticModel, cancellationToken))
                 return false;
 
             #endregion blacklist cases
@@ -462,8 +462,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
         private static bool IsIdentityFloatingPointCastThatMustBePreserved(
            ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
-           SemanticModel semanticModel, Conversion conversion, CancellationToken cancellationToken)
+           SemanticModel semanticModel, CancellationToken cancellationToken)
         {
+            var conversion = semanticModel.GetConversion(castedExpressionNode, cancellationToken);
             if (!conversion.IsIdentity)
                 return false;
 
@@ -477,10 +478,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // Because of this we keep floating point conversions unless we can prove that it's safe.  The only safe
             // times are when we're loading or storing into a location we know has the same size as the cast size
             // (i.e. reading/writing into a field).
-            if (castedExpressionType?.SpecialType != SpecialType.System_Double &&
-                castedExpressionType?.SpecialType != SpecialType.System_Single &&
-                castType?.SpecialType != SpecialType.System_Double &&
-                castType?.SpecialType != SpecialType.System_Single)
+            if (!IsFloatingPointType(castedExpressionType) ||
+                !IsFloatingPointType(castType))
             {
                 // wasn't a floating point conversion.
                 return false;
@@ -519,6 +518,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // We have to preserve this cast.
             return true;
         }
+
+        private static bool IsFloatingPointType(ITypeSymbol? type)
+            => type?.SpecialType is SpecialType.System_Double or SpecialType.System_Single;
 
         private static bool IsFieldOrArrayElement(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
         {
