@@ -5845,6 +5845,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CannotInferDelegateType" xml:space="preserve">
     <value>The delegate type could not be inferred.</value>
   </data>
+  <data name="ERR_LambdaExplicitReturnTypeVar" xml:space="preserve">
+    <value>The contextual keyword 'var' cannot be used as an explicit lambda return type</value>
+  </data>
   <data name="ERR_SingleElementPositionalPatternRequiresDisambiguation" xml:space="preserve">
     <value>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</value>
   </data>

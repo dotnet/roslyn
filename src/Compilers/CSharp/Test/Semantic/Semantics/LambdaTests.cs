@@ -5370,6 +5370,199 @@ class B
         }
 
         [Fact]
+        public void VarReturnType_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Delegate d;
+        d = var () => throw null;
+        d = ref var () => throw null;
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS8975: The contextual keyword 'var' cannot be used as an explicit lambda return type
+                //         d = var () => throw null;
+                Diagnostic(ErrorCode.ERR_LambdaExplicitReturnTypeVar, "var").WithLocation(7, 13),
+                // (7,13): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                //         d = var () => throw null;
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(7, 13),
+                // (8,17): error CS8975: The contextual keyword 'var' cannot be used as an explicit lambda return type
+                //         d = ref var () => throw null;
+                Diagnostic(ErrorCode.ERR_LambdaExplicitReturnTypeVar, "var").WithLocation(8, 17),
+                // (8,17): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                //         d = ref var () => throw null;
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(8, 17));
+        }
+
+        [Fact]
+        public void VarReturnType_02()
+        {
+            var source =
+@"using System;
+class var { }
+class Program
+{
+    static void Main()
+    {
+        Delegate d;
+        d = var () => default;
+        d = ref var (ref var v) => ref v;
+        d = @var () => default;
+        d = ref @var (ref var v) => ref v;
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS8975: The contextual keyword 'var' cannot be used as an explicit lambda return type
+                //         d = var () => default;
+                Diagnostic(ErrorCode.ERR_LambdaExplicitReturnTypeVar, "var").WithLocation(8, 13),
+                // (9,17): error CS8975: The contextual keyword 'var' cannot be used as an explicit lambda return type
+                //         d = ref var (ref var v) => ref v;
+                Diagnostic(ErrorCode.ERR_LambdaExplicitReturnTypeVar, "var").WithLocation(9, 17));
+        }
+
+        [Fact]
+        public void VarReturnType_03()
+        {
+            var source =
+@"using System;
+class var { }
+class Program
+{
+    static void Main()
+    {
+        F(var () => default);
+        F(ref var (ref var v) => ref v);
+        F(@var () => default);
+        F(ref @var (ref var v) => ref v);
+        F(() => default(var));
+    }
+    static void F(Delegate d) { }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,11): error CS8975: The contextual keyword 'var' cannot be used as an explicit lambda return type
+                //         F(var () => default);
+                Diagnostic(ErrorCode.ERR_LambdaExplicitReturnTypeVar, "var").WithLocation(7, 11),
+                // (8,15): error CS8975: The contextual keyword 'var' cannot be used as an explicit lambda return type
+                //         F(ref var (ref var v) => ref v);
+                Diagnostic(ErrorCode.ERR_LambdaExplicitReturnTypeVar, "var").WithLocation(8, 15));
+        }
+
+        [Fact]
+        public void VarReturnType_04()
+        {
+            var source =
+@"using System;
+struct var
+{
+    internal class other { }
+    internal other o;
+}
+class Program
+{
+    static void Main()
+    {
+        F(var () => default);
+        F(ref var () => throw null);
+        F(var[] () => default);
+        F(var? (var v) => v);
+        F(var.other (var v) => v.o);
+    }
+    static void F(Delegate d) { }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,11): error CS8975: The contextual keyword 'var' cannot be used as an explicit lambda return type
+                //         F(var () => default);
+                Diagnostic(ErrorCode.ERR_LambdaExplicitReturnTypeVar, "var").WithLocation(11, 11),
+                // (12,15): error CS8975: The contextual keyword 'var' cannot be used as an explicit lambda return type
+                //         F(ref var () => throw null);
+                Diagnostic(ErrorCode.ERR_LambdaExplicitReturnTypeVar, "var").WithLocation(12, 15));
+        }
+
+        [Fact]
+        public void VarReturnType_05()
+        {
+            var source =
+@"using System;
+using var = System.Int32;
+class Program
+{
+    static void Main()
+    {
+        F(var (var v) => v);
+        F(@var (var v) => v);
+        F(() => default(var));
+    }
+    static void F(Delegate d) { }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,11): error CS8975: The contextual keyword 'var' cannot be used as an explicit lambda return type
+                //         F(var (var v) => v);
+                Diagnostic(ErrorCode.ERR_LambdaExplicitReturnTypeVar, "var").WithLocation(7, 11));
+        }
+
+        [Fact]
+        public void VarReturnType_06()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void M<var>()
+    {
+        F(var (var v) => v);
+        F(@var (var v) => v);
+        F(() => default(var));
+    }
+    static void F(Delegate d) { }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,11): error CS8975: The contextual keyword 'var' cannot be used as an explicit lambda return type
+                //         F(var () => default);
+                Diagnostic(ErrorCode.ERR_LambdaExplicitReturnTypeVar, "var").WithLocation(6, 11));
+        }
+
+        [Fact]
+        public void VarReturnType_07()
+        {
+            var source =
+@"using System;
+static class var { }
+class Program
+{
+    static void Main()
+    {
+        F(var () => default);
+    }
+    static void F(Delegate d) { }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,11): error CS8975: The contextual keyword 'var' cannot be used as an explicit lambda return type
+                //         F(var () => default);
+                Diagnostic(ErrorCode.ERR_LambdaExplicitReturnTypeVar, "var").WithLocation(7, 11),
+                // (7,11): error CS0722: 'var': static types cannot be used as return types
+                //         F(var () => default);
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "var").WithArguments("var").WithLocation(7, 11));
+        }
+
+        [Fact]
         public void AsyncLambdaParameters_01()
         {
             var source =
