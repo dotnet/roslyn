@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Testing.Extensions;
 using Microsoft.CodeAnalysis.Testing.Model;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
@@ -407,6 +408,19 @@ namespace Microsoft.CodeAnalysis.Testing
                         GetArguments(actual.diagnostic).Select(argument => argument?.ToString() ?? string.Empty),
                         StringComparer.Ordinal,
                         message);
+                }
+
+                if (expected.IsSuppressed.HasValue)
+                {
+                    if (actual.diagnostic.TryGetIsSuppressed(out var actualValue))
+                    {
+                        message = FormatVerifierMessage(analyzers, actual.diagnostic, expected, $"Expected diagnostic suppression state to match");
+                        verifier.Equal(expected.IsSuppressed.Value, actualValue, message);
+                    }
+                    else
+                    {
+                        throw new NotSupportedException("DiagnosticSuppressors are not supported on this platform.");
+                    }
                 }
 
                 DiagnosticVerifier?.Invoke(actual.diagnostic, expected, verifier);
@@ -803,6 +817,13 @@ namespace Microsoft.CodeAnalysis.Testing
                     builder.Append(")");
                 }
 
+                if (diagnostics[i].TryGetIsSuppressed(out var isSuppressed) && isSuppressed)
+                {
+                    builder.Append($".{nameof(DiagnosticResult.WithIsSuppressed)}(");
+                    builder.Append(isSuppressed);
+                    builder.Append(")");
+                }
+
                 builder.AppendLine(",");
             }
 
@@ -883,6 +904,13 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     builder.Append($".{nameof(DiagnosticResult.WithArguments)}(");
                     builder.Append(string.Join(", ", arguments.Select(a => "\"" + a?.ToString() + "\"")));
+                    builder.Append(")");
+                }
+
+                if (diagnostics[i].IsSuppressed.HasValue)
+                {
+                    builder.Append($".{nameof(DiagnosticResult.WithIsSuppressed)}(");
+                    builder.Append(diagnostics[i].IsSuppressed.GetValueOrDefault());
                     builder.Append(")");
                 }
 
