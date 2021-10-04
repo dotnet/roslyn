@@ -82,7 +82,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return false;
 
             var rewrittenOperation = rewrittenSemanticModel.GetOperation(rewrittenExpression.WalkDownParentheses(), cancellationToken);
-            if (rewrittenOperation is not IAnonymousFunctionOperation { Parent: IDelegateCreationOperation rewrittenDelegateCreationOperation })
+            if (rewrittenOperation is not IAnonymousFunctionOperation &&
+                rewrittenOperation is not IMethodReferenceOperation)
+            {
+                return false;
+            }
+
+            if (rewrittenOperation.Parent is not IDelegateCreationOperation rewrittenDelegateCreationOperation)
                 return false;
 
             if (rewrittenDelegateCreationOperation.Type?.TypeKind != TypeKind.Delegate)
