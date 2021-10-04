@@ -3784,8 +3784,6 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task CastInterpolatedStringWhenInliningIntoInvalidCall()
         {
-            // Note: This is an error case.  This test just demonstrates our current behavior.  It
-            // is ok if this behavior changes in the future in response to an implementation change.
             await TestInRegularAndScriptAsync(
 @"class C
 {
@@ -3799,7 +3797,7 @@ class C
 {
     public void M()
     {
-        var s2 = string.Replace((string)$""hello"", ""world"");
+        var s2 = string.Replace($""hello"", ""world"");
     }
 }");
         }
