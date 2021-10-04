@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -30,6 +31,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
     {
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract AbstractFormattingRule GetMultiLineFormattingRule();
 
 #if CODE_STYLE
@@ -104,6 +106,9 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var parseOPtions = syntaxTree.Options;
+
             var condition = ifOperation.Condition.Syntax;
             if (!isRef)
             {
@@ -125,8 +130,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             var conditionalExpression = (TConditionalExpressionSyntax)generator.ConditionalExpression(
                 condition.WithoutTrivia(),
-                MakeRef(generatorInternal, isRef, CastValueIfNecessary(generator, trueStatement, trueValue)),
-                MakeRef(generatorInternal, isRef, CastValueIfNecessary(generator, falseStatement, falseValue)));
+                MakeRef(generatorInternal, isRef, CastValueIfNecessary(generator, parseOPtions, trueStatement, trueValue)),
+                MakeRef(generatorInternal, isRef, CastValueIfNecessary(generator, parseOPtions, falseStatement, falseValue)));
 
             conditionalExpression = conditionalExpression.WithAdditionalAnnotations(Simplifier.Annotation);
             var makeMultiLine = await MakeMultiLineAsync(
@@ -187,7 +192,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         }
 
         private TExpressionSyntax CastValueIfNecessary(
-            SyntaxGenerator generator, IOperation statement, IOperation value)
+            SyntaxGenerator generator, ParseOptions options, IOperation statement, IOperation value)
         {
             if (statement is IThrowOperation throwOperation)
                 return ConvertToExpression(throwOperation);
@@ -199,7 +204,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             // inference in conditional expressions, so we need to ensure that the same conversions
             // that were occurring previously still occur after conversion. Note: the simplifier
             // will remove any of these casts that are unnecessary.
-            if (value is IConversionOperation conversion &&
+            if (!this.SyntaxFacts.SupportsTargetTypedConditionalExpression(options) &&
+                value is IConversionOperation conversion &&
                 conversion.IsImplicit &&
                 conversion.Type != null &&
                 conversion.Type.TypeKind != TypeKind.Error)
