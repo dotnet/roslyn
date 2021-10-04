@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (rewrittenSemanticModel is null || rewrittenExpression is null)
                 return false;
 
-            var rewrittenOperation = rewrittenSemanticModel.GetOperation(rewrittenExpression, cancellationToken);
+            var rewrittenOperation = rewrittenSemanticModel.GetOperation(rewrittenExpression.WalkDownParentheses(), cancellationToken);
             if (rewrittenOperation is not IAnonymousFunctionOperation { Parent: IDelegateCreationOperation rewrittenDelegateCreationOperation })
                 return false;
 

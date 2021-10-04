@@ -1117,6 +1117,48 @@ class MyAction
 }");
         }
 
+        [WorkItem(545616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545616")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastFromLambdaToDelegateWithVar1()
+        {
+            var source = @"
+using System;
+class MyAction
+{
+    static void Goo()
+    {
+        var y = (Action)(() => {});
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(545616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545616")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveCastFromLambdaToDelegateWithTypedVariable()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+using System;
+class MyAction
+{
+    static void Goo()
+    {
+        Action y = [|(Action)|](() => { });
+    }
+}",
+                @"
+using System;
+class MyAction
+{
+    static void Goo()
+    {
+        Action y = () => { };
+    }
+}");
+        }
+
         [WorkItem(545822, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545822")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnnecessaryCastShouldInsertWhitespaceWhereNeededToKeepCorrectParsing()
