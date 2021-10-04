@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return CompletionChange.Create(
                 new TextChange(replacementSpan, replacementText),
-                newPosition, includesCommitCharacter: false);
+                newPosition, includesCommitCharacter: true);
         }
 
         private CompletionItem CreateCompletionItem(string displayText)
