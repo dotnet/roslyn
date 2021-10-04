@@ -2532,7 +2532,7 @@ static class Program
 
         <WorkItem(529877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529877")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestCsharp_Remove_UnnecessarySealedClassToInterfaceCast() As Task
+        Public Async Function TestCSharp_Remove_UnnecessarySealedClassToInterfaceCast() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -2571,7 +2571,7 @@ sealed class D : C
     static void Main()
     {
         D s = new D();
-        ((IDisposable)s).Dispose();
+        (s).Dispose();
     }
 }
 ]]>
