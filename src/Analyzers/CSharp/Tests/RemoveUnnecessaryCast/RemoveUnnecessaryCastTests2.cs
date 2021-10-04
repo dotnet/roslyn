@@ -644,7 +644,7 @@ class Test
     {
         int b = 5;
 
-        long f1 = (b == 5) ? 4 : [|(long)|]5;
+        long f1 = (b == 5) ? 4 : (long)5;
     }
 }";
             var batchFixedSource =
@@ -701,7 +701,7 @@ class Test
     {
         int b = 5;
 
-        long f1 = (b == 5) ? [|(long)|]4 : 5;
+        long f1 = (b == 5) ? (long)4 : 5;
     }
 }";
             var batchFixedSource =
@@ -725,7 +725,6 @@ class Test
                 FixedState =
                 {
                     Sources = { fixedSource },
-                    MarkupHandling = MarkupMode.Allow,
                 },
                 BatchFixedState =
                 {
@@ -738,10 +737,12 @@ class Test
 
         [WorkItem(545291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task RemoveUnneededCastInConditionalExpression3()
+        public async Task DoNotRemoveUnneededCastInConditionalExpression3()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-            @"
+            // We could support removing the cast here, but it would take understanding
+            // that the end values will be the same and will be converted to the same 
+            // destination type.
+            var source = @"
 class Test
 {
     public static void Main()
@@ -750,18 +751,9 @@ class Test
 
         long f1 = (b == 5) ? 4 : [|(long)|]5;
     }
-}",
+}";
 
-@"
-class Test
-{
-    public static void Main()
-    {
-        int b = 5;
-
-        long f1 = (b == 5) ? 4 : 5;
-    }
-}");
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [WorkItem(545291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
