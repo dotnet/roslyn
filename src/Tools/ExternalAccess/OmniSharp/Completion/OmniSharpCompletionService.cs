@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
 {
     internal static class OmniSharpCompletionService
     {
-        public static Task<(CompletionList completionList, bool expandItemsAvailable)> GetCompletionsAsync(
+        public static Task<(CompletionList? completionList, bool expandItemsAvailable)> GetCompletionsAsync(
             this CompletionService completionService,
             Document document,
             int caretPosition,
