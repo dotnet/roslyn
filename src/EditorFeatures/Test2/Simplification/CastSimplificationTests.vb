@@ -1074,7 +1074,7 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529917")>
         Public Async Function TestCSharp_Remove_NullableTypeToInterfaceTypeInNullComparison() As Task
             Dim input =
