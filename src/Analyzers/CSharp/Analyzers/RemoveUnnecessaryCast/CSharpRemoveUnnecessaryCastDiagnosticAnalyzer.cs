@@ -30,22 +30,4 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
             => node is CastExpressionSyntax cast ? TextSpan.FromBounds(cast.OpenParenToken.SpanStart, cast.CloseParenToken.Span.End) :
                node is BinaryExpressionSyntax binary ? TextSpan.FromBounds(binary.OperatorToken.SpanStart, node.Span.End) : throw ExceptionUtilities.Unreachable;
     }
-
-    /// <summary>
-    /// Supports simplifying cast expressions like <c>(T)x</c> as well as try-cast expressions like <c>x as T</c>
-    /// </summary>
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpRemoveUnnecessaryCastDiagnosticAnalyzer2
-        : AbstractRemoveUnnecessaryCastDiagnosticAnalyzer<SyntaxKind, ExpressionSyntax>
-    {
-        protected override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest { get; } =
-            ImmutableArray.Create(SyntaxKind.CastExpression, SyntaxKind.AsExpression);
-
-        protected override bool IsUnnecessaryCast(SemanticModel model, ExpressionSyntax cast, CancellationToken cancellationToken)
-            => CastSimplifier2.IsUnnecessaryCast(cast, model, cancellationToken);
-
-        protected override TextSpan GetFadeSpan(ExpressionSyntax node)
-            => node is CastExpressionSyntax cast ? TextSpan.FromBounds(cast.OpenParenToken.SpanStart, cast.CloseParenToken.Span.End) :
-               node is BinaryExpressionSyntax binary ? TextSpan.FromBounds(binary.OperatorToken.SpanStart, node.Span.End) : throw ExceptionUtilities.Unreachable;
-    }
 }
