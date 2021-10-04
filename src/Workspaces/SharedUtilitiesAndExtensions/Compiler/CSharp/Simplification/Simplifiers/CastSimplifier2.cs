@@ -57,7 +57,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     castNode, castedExpressionNode, originalSemanticModel, originalConversionOperation, cancellationToken);
             }
 
+            if (originalOperation is IDelegateCreationOperation originalDelegateCreationOperation)
+            {
+                return IsDelegateCreationCastSafeToRemove(
+                    castNode, castedExpressionNode, originalSemanticModel, originalDelegateCreationOperation, cancellationToken);
+            }
+
             return false;
+        }
+
+        private static bool IsDelegateCreationCastSafeToRemove(
+            ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
+            SemanticModel originalSemanticModel, IDelegateCreationOperation originalDelegateCreationOperation,
+            CancellationToken cancellationToken)
+        {
+            if (originalDelegateCreationOperation.Type?.TypeKind != TypeKind.Delegate)
+                return false;
+
+            // for a cast of an anonymous method to a delegate, we have to make sure that after cast-removal
+            // that we still have the same.
+            var (rewrittenSemanticModel, rewrittenExpression) = GetSemanticModelWithCastRemoved(
+                castNode, castedExpressionNode, originalSemanticModel, cancellationToken);
+            if (rewrittenSemanticModel is null || rewrittenExpression is null)
+                return false;
+
+            var rewrittenOperation = rewrittenSemanticModel.GetOperation(rewrittenExpression, cancellationToken);
+            if (rewrittenOperation is not IAnonymousFunctionOperation { Parent: IDelegateCreationOperation rewrittenDelegateCreationOperation })
+                return false;
+
+            if (rewrittenDelegateCreationOperation.Type?.TypeKind != TypeKind.Delegate)
+                return false;
+
+            // having to be converting to the same delegate type.
+            return SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(
+                originalDelegateCreationOperation.Type, rewrittenDelegateCreationOperation.Type);
         }
 
         private static bool IsNullLiteralCast(ExpressionSyntax castedExpressionNode)
@@ -90,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // we are starting with code like `(X)expr` and converting to just `expr`. Post rewrite we need
             // to ensure that the final converted-type of `expr` matches the final converted type of `(X)expr`.
             var originalConvertedType = originalSemanticModel.GetTypeInfo(castNode.WalkUpParentheses(), cancellationToken).ConvertedType;
-            if (originalConvertedType == null || originalConvertedType.TypeKind == TypeKind.Error)
+            if (originalConvertedType is null || originalConvertedType.TypeKind == TypeKind.Error)
                 return false;
 
             // if the expression being casted is the `null` literal, then we can't remove the cast if the final
@@ -112,12 +145,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // semantic model for the rewritten code so we can check it to make sure semantics were preserved.
             var (rewrittenSemanticModel, rewrittenExpression) = GetSemanticModelWithCastRemoved(
                 castNode, castedExpressionNode, originalSemanticModel, cancellationToken);
-            if (rewrittenSemanticModel == null || rewrittenExpression == null)
+            if (rewrittenSemanticModel is null || rewrittenExpression is null)
                 return false;
 
             var (rewrittenConvertedType, rewrittenConversion) = GetRewrittenInfo(
                 castNode, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel, cancellationToken);
-            if (rewrittenConvertedType == null || rewrittenConvertedType.TypeKind == TypeKind.Error)
+            if (rewrittenConvertedType is null || rewrittenConvertedType.TypeKind == TypeKind.Error)
                 return false;
 
             // The final converted type may be the same even after removing the cast.  However, the cast may 
@@ -220,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     // if previously we bound to a single symbol, but now we don't, then we introduced an
                     // error of some sort.  Have to bail out immediately and keep the cast.
                     var newSymbolInfo = rewrittenSemanticModel.GetSymbolInfo(currentNew, cancellationToken);
-                    if (newSymbolInfo.Symbol == null)
+                    if (newSymbolInfo.Symbol is null)
                         return true;
                 }
 
@@ -239,12 +272,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             CancellationToken cancellationToken)
         {
             var originalMemberSymbol = originalSemanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol;
-            if (originalMemberSymbol == null)
+            if (originalMemberSymbol is null)
                 return false;
 
             var rewrittenMemberAccessExpression = (MemberAccessExpressionSyntax)rewrittenExpression.WalkUpParentheses().GetRequiredParent();
             var rewrittenMemberSymbol = rewrittenSemanticModel.GetSymbolInfo(rewrittenMemberAccessExpression, cancellationToken).Symbol;
-            if (rewrittenMemberSymbol == null)
+            if (rewrittenMemberSymbol is null)
                 return false;
 
             if (originalMemberSymbol.Kind != rewrittenMemberSymbol.Kind)
@@ -259,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // checks against it.
             originalMemberSymbol = originalMemberSymbol.GetSymbolKey(cancellationToken).Resolve(
                 rewrittenSemanticModel.Compilation, cancellationToken: cancellationToken).Symbol;
-            if (originalMemberSymbol == null)
+            if (originalMemberSymbol is null)
                 return false;
 
             // Next, see if this is a call to an interface method.
@@ -301,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     rewrittenType.IsSealed ||
                     rewrittenType.IsValueType ||
                     rewrittenType.TypeKind == TypeKind.Array ||
-IsIntrinsicOrEnum(rewrittenType);
+                    IsIntrinsicOrEnum(rewrittenType);
 
                 if (!isSealed)
                     return false;
@@ -309,7 +342,7 @@ IsIntrinsicOrEnum(rewrittenType);
                 // Then look for the current implementation of that interface member.
                 var rewrittenContainingType = rewrittenMemberSymbol.ContainingType;
                 var implementationMember = rewrittenContainingType.FindImplementationForInterfaceMember(originalMemberSymbol);
-                if (implementationMember == null)
+                if (implementationMember is null)
                     return false;
 
                 // if that's not the method we're currently calling, then this definitely isn't safe to remove.
