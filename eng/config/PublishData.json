@@ -196,7 +196,7 @@
       "version": "4.0.*",
       "packageFeeds": "default",
       "channels": [],
-      "vsBranch": "main",
+      "vsBranch": "rel/d17.0",
       "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17p5]"
     },
