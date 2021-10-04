@@ -2290,7 +2290,7 @@ sealed class C : I
 
         <WorkItem(529884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529884")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestCsharp_Remove_ParamDefaultValueZero() As Task
+        Public Async Function TestCSharp_Remove_ParamDefaultValueZero() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -2336,7 +2336,7 @@ sealed class C : I
  
     static void Main()
     {
-        ((I)new C()).Goo();
+        new C().Goo();
     }
 }]]>
 </code>
