@@ -2652,15 +2652,13 @@ class A : Attribute
             await VerifyCS.VerifyCodeFixAsync(
                 @"using System;
 
-[A([|(IComparable)|]0)]
+[A({|CS0182:[|(IComparable)|]0|})]
 class A : Attribute
 {
     public A(object x)
     {
     }
 }",
-                // /0/Test0.cs(3,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                DiagnosticResult.CompilerError("CS0182").WithSpan(3, 4, 3, 18),
                 @"using System;
 
 [A(0)]
