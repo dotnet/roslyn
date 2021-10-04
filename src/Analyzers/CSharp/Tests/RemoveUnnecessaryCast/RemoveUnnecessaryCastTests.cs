@@ -647,17 +647,6 @@ class Test
         long f1 = (b == 5) ? 4 : (long)5;
     }
 }";
-            var batchFixedSource =
-@"
-class Test
-{
-    public static void Main()
-    {
-        int b = 5;
-
-        long f1 = (b == 5) ? 4 : 5;
-    }
-}";
 
             await new VerifyCS.Test
             {
