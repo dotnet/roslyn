@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 
         protected abstract ImmutableArray<NodeOrTokenToReduce> GetNodesAndTokensToReduce(SyntaxNode root, Func<SyntaxNodeOrToken, bool> isNodeOrTokenOutsideSimplifySpans);
         protected abstract SemanticModel GetSpeculativeSemanticModel(ref SyntaxNode nodeToSpeculate, SemanticModel originalSemanticModel, SyntaxNode originalNode);
-        protected abstract bool CanNodeBeSimplifiedWithoutSpeculation(SyntaxNode node);
+        protected abstract bool NodeRequiresNonSpeculativeSemanticModel(SyntaxNode node);
 
         protected virtual SyntaxNode TransformReducedNode(SyntaxNode reducedNode, SyntaxNode originalNode)
             => reducedNode;
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                                 if (isNode)
                                 {
                                     var currentNode = currentNodeOrToken.AsNode();
-                                    if (this.CanNodeBeSimplifiedWithoutSpeculation(nodeOrToken.AsNode()))
+                                    if (this.NodeRequiresNonSpeculativeSemanticModel(nodeOrToken.AsNode()))
                                     {
                                         // Since this node cannot be speculated, we are replacing the Document with the changes and get a new SemanticModel
                                         var marker = new SyntaxAnnotation();
