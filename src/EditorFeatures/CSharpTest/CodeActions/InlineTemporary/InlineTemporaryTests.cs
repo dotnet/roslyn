@@ -642,7 +642,7 @@ class Program
     static void Main()
     {
         int x = 2;
-        Bar(x < x, (x > (1 + 2)));
+        Bar(x < x, (x > 1 + 2));
     }
 
     static void Bar(object a, object b)
@@ -672,7 +672,7 @@ class Program
     static void Main()
     {
         int x = 2;
-        var z = new[] { x < x, (x > (1 + 2)) };
+        var z = new[] { x < x, (x > 1 + 2) };
     }
 }");
         }
