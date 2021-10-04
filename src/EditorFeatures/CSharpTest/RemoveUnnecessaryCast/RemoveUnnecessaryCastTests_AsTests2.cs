@@ -1329,7 +1329,7 @@ static class C
 
         [WorkItem(545942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545942")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastFromStringTypeToObjectInReferenceEquality()
+        public async Task DoRemoveCastFromStringTypeToObjectInReferenceEquality()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
