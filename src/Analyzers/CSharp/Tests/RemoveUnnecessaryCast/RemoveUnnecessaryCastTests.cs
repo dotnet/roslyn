@@ -9771,5 +9771,31 @@ class Program
 }";
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastIfOverriddenMethodHasDifferentReturnType()
+        {
+            var source =
+@"using System;
+
+abstract class Y
+{
+    public abstract object Goo();
+}
+
+class X : Y
+{
+    static void Main()
+    {
+        var v = ((Y)new X()).Goo();
+    }
+
+    public override string {|CS8830:Goo|}()
+    {
+        return null;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
     }
 }

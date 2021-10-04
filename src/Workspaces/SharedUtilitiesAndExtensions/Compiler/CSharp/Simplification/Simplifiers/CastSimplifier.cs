@@ -442,8 +442,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // works to know at *runtime* that the user will get the exact same behavior.
             if (castNode.WalkUpParentheses().Parent is MemberAccessExpressionSyntax memberAccessExpression)
             {
-                if (IsComplimentaryMemberAfterCastRemoval(
+                if (IsComplimentaryMemberAccessAfterCastRemoval(
                         memberAccessExpression, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel, cancellationToken))
+                {
+                    return true;
+                }
+            }
+
+            // In code like `((X)y)()` the cast to (X) can be removed if this was an implicit reference conversion
+            // to a complimentary delegate (because of delegate variance) *and* the return type of the delegate
+            // invoke methods are the same.  For example:
+            //
+            //      Action<object> a = Console.WriteLine;
+            //      ((Action<string>)a)("A");
+            //
+            // This is safe as delegate variance ensures that any parameter type has an implicit ref conversion to
+            // the original delegate type.  However, the following would not be safe:
+            //
+            //      Func<object, string> a = ...;
+            //      var v = ((Func<string, object>)a)("A");
+            //
+            // Here the type of 'v' would change to 'object' from 'string'.
+            //
+            // Note: this path is fundamentally different from the other forms of cast removal we perform.  The
+            // casts are removed because statically they make no difference to the meaning of the code.  Here,
+            // the code statically changes meaning.  However, we can use our knowledge of how the language/runtime
+            // works to know at *runtime* that the user will get the exact same behavior.
+            if (castNode.WalkUpParentheses().Parent is InvocationExpressionSyntax invocationExpression)
+            {
+                if (IsComplimentaryInvocationAfterCastRemoval(
+                        invocationExpression, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel, cancellationToken))
                 {
                     return true;
                 }
@@ -593,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static bool IsComplimentaryMemberAfterCastRemoval(
+        private static bool IsComplimentaryMemberAccessAfterCastRemoval(
             MemberAccessExpressionSyntax memberAccessExpression,
             ExpressionSyntax rewrittenExpression,
             SemanticModel originalSemanticModel,
@@ -611,6 +639,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             if (originalMemberSymbol.Kind != rewrittenMemberSymbol.Kind)
                 return false;
+
+            // check for: ((X)expr).Invoke(...);
+            if (IsComplimentaryDelegateInvoke(originalMemberSymbol, rewrittenMemberSymbol))
+                return true;
 
             // Ok, we had two good member symbols before/after the cast removal.  In other words we have:
             //
@@ -676,10 +708,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
                 // if that's not the method we're currently calling, then this definitely isn't safe to remove.
                 return implementationMember.Equals(rewrittenMemberSymbol) &&
-                    ParameterNamesAndDefaultValuesMatch(originalMemberSymbol, rewrittenMemberSymbol);
+                    ParameterNamesAndDefaultValuesAndReturnTypesMatch(originalMemberSymbol, rewrittenMemberSymbol);
             }
 
             // Second, check if this is a virtual call to a different location in the inheritance hierarchy.
+            // Importantly though, because of covariant return types, we have to make sure the overrides 
+            // agree on the return type, or else this could change the final type of hte expression.
             for (var current = rewrittenMemberSymbol; current != null; current = current.GetOverriddenMember())
             {
                 if (SymbolEquivalenceComparer.Instance.Equals(originalMemberSymbol, current))
@@ -689,11 +723,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     // are the same.  This is because the compiler uses the names and default
                     // values of the overridden member, even though it emits a virtual call to the
                     // the highest in the inheritance chain.
-                    return ParameterNamesAndDefaultValuesMatch(originalMemberSymbol, rewrittenMemberSymbol);
+                    return ParameterNamesAndDefaultValuesAndReturnTypesMatch(originalMemberSymbol, rewrittenMemberSymbol);
                 }
             }
 
             return false;
+        }
+
+        private static bool IsComplimentaryInvocationAfterCastRemoval(
+            InvocationExpressionSyntax memberAccessExpression,
+            ExpressionSyntax rewrittenExpression,
+            SemanticModel originalSemanticModel,
+            SemanticModel rewrittenSemanticModel,
+            CancellationToken cancellationToken)
+        {
+            var originalMemberSymbol = originalSemanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol;
+            if (originalMemberSymbol is null)
+                return false;
+
+            var rewrittenMemberAccessExpression = (InvocationExpressionSyntax)rewrittenExpression.WalkUpParentheses().GetRequiredParent();
+            var rewrittenMemberSymbol = rewrittenSemanticModel.GetSymbolInfo(rewrittenMemberAccessExpression, cancellationToken).Symbol;
+            if (rewrittenMemberSymbol is null)
+                return false;
+
+            return IsComplimentaryDelegateInvoke(originalMemberSymbol, rewrittenMemberSymbol);
+        }
+
+        private static bool IsComplimentaryDelegateInvoke(ISymbol originalMemberSymbol, ISymbol rewrittenMemberSymbol)
+        {
+            if (originalMemberSymbol is not IMethodSymbol { MethodKind: MethodKind.DelegateInvoke } originalMethodSymbol ||
+                rewrittenMemberSymbol is not IMethodSymbol { MethodKind: MethodKind.DelegateInvoke } rewrittenMethodSymbol)
+            {
+                return false;
+            }
+
+            // if we're invoking a delegate method, then the removal of the cast is mostly safe (as the 
+            // compiler will only allow implicit reference conversions between variant delegates and 
+            // variant delegates will only allow different implicit reference conversions of their
+            // parameters and return type.
+
+            // However, if the delegate return type differs, then that could change semantics higher
+            // up, so we must disallow this if they're not the same.
+            return Equals(originalMethodSymbol.ReturnType, rewrittenMethodSymbol.ReturnType);
         }
 
         private static bool IsIntrinsicOrEnum(ITypeSymbol rewrittenType)
@@ -735,8 +806,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static bool ParameterNamesAndDefaultValuesMatch(ISymbol originalMemberSymbol, ISymbol rewrittenMemberSymbol)
+        private static bool ParameterNamesAndDefaultValuesAndReturnTypesMatch(ISymbol originalMemberSymbol, ISymbol rewrittenMemberSymbol)
         {
+            var originalMemberType = originalMemberSymbol.GetMemberType();
+            var rewrittenMemberType = rewrittenMemberSymbol.GetMemberType();
+            if (!Equals(originalMemberType, rewrittenMemberType))
+                return false;
+
             if (originalMemberSymbol is IMethodSymbol originalMethodSymbol &&
                 rewrittenMemberSymbol is IMethodSymbol rewrittenMethodSymbol)
             {

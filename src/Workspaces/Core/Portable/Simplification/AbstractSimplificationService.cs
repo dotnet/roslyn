@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             return document;
         }
 
-        private Task ReduceAsync(
+        private async Task ReduceAsync(
             Document document,
             SyntaxNode root,
             ImmutableArray<NodeOrTokenToReduce> nodesAndTokensToReduce,
@@ -179,6 +179,9 @@ namespace Microsoft.CodeAnalysis.Simplification
             ConcurrentDictionary<SyntaxToken, SyntaxToken> reducedTokensMap,
             CancellationToken cancellationToken)
         {
+            // Debug flag to help processing things serially instead of parallel.
+            var executeSerially = false;
+
             Contract.ThrowIfFalse(nodesAndTokensToReduce.Any());
 
             // Reduce each node or token in the given list by running it through each reducer.
@@ -271,9 +274,12 @@ namespace Microsoft.CodeAnalysis.Simplification
                         }
                     }
                 }, cancellationToken);
+
+                if (executeSerially)
+                    await simplifyTasks[i].ConfigureAwait(false);
             }
 
-            return Task.WhenAll(simplifyTasks);
+            await Task.WhenAll(simplifyTasks).ConfigureAwait(false);
         }
 
         // find any namespace imports / using directives marked for simplification in the specified spans

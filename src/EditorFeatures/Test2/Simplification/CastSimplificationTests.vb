@@ -2048,7 +2048,7 @@ class C
 
         <WorkItem(529919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529919")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestCsharp_Remove_DelegateVarianceConversions() As Task
+        Public Async Function TestCSharp_Remove_DelegateVarianceConversions1() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -2086,7 +2086,90 @@ class Program
 </code>
 
             Await TestAsync(input, expected)
+        End Function
 
+        <WorkItem(529919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529919")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_Remove_DelegateVarianceConversions2() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Func<object, string> a = null;
+        Func<string, string> b = {|Simplify:(Func<string, string>)a|};
+        ({|Simplify:(Func<string, string>)a|})("A");
+        ({|Simplify:(Func<string, string>)a|}).Invoke("A");
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Func<object, string> a = null;
+        Func<string, string> b = a;
+        (a)("A");
+        (a).Invoke("A");
+    }
+}]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <WorkItem(529919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529919")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_DoNotRemove_DelegateVarianceConversions1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Func<object, string> a = null;
+        Func<string, object> b = {|Simplify:(Func<string, object>)a|};
+        var v1 = ({|Simplify:(Func<string, object>)a|})("A");
+        var v2 = ({|Simplify:(Func<string, object>)a|}).Invoke("A");
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Func<object, string> a = null;
+        Func<string, object> b = a;
+        var v1 = ((Func<string, object>)a)("A");
+        var v2 = ((Func<string, object>)a).Invoke("A");
+    }
+}]]>
+</code>
+
+            Await TestAsync(input, expected)
         End Function
 
         <WorkItem(529884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529884")>
