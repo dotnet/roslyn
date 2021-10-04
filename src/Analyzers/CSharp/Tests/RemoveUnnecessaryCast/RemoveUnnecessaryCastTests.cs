@@ -9651,5 +9651,51 @@ public class TestClass
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveUnnecessaryCastInPattern1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+            @"
+class Program
+{
+    void Main(int? n)
+    {
+        var v = n is [|(int)|]0;
+    }
+}",
+
+            @"
+class Program
+{
+    void Main(int? n)
+    {
+        var v = n is 0;
+    }
+}");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveUnnecessaryNullableCastInPattern1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+            @"
+class Program
+{
+    void Main(int? n)
+    {
+        var v = n is [|(int?)|]0;
+    }
+}",
+
+            @"
+class Program
+{
+    void Main(int? n)
+    {
+        var v = n is 0;
+    }
+}");
+        }
     }
 }
