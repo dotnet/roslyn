@@ -15,17 +15,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
     {
         private class ReferenceRewriter : CSharpSyntaxRewriter
         {
+            private readonly SemanticModel _semanticModel;
             private readonly ISet<IdentifierNameSyntax> _conflictReferences;
             private readonly ISet<IdentifierNameSyntax> _nonConflictReferences;
             private readonly ExpressionSyntax _expressionToInline;
             private readonly CancellationToken _cancellationToken;
 
             private ReferenceRewriter(
+                SemanticModel semanticModel,
                 ISet<IdentifierNameSyntax> conflictReferences,
                 ISet<IdentifierNameSyntax> nonConflictReferences,
                 ExpressionSyntax expressionToInline,
                 CancellationToken cancellationToken)
             {
+                _semanticModel = semanticModel;
                 _conflictReferences = conflictReferences;
                 _nonConflictReferences = nonConflictReferences;
                 _expressionToInline = expressionToInline;
@@ -47,31 +50,48 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             public override SyntaxNode? VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
             {
-                var expression = node.Expression;
-                var identifier = expression as IdentifierNameSyntax;
+                if (node.NameEquals == null &&
+                    node.Expression is IdentifierNameSyntax identifier &&
+                    _nonConflictReferences.Contains(identifier))
+                {
 
-                if (node.NameEquals != null || identifier == null || !_nonConflictReferences.Contains(identifier))
-                    return base.VisitAnonymousObjectMemberDeclarator(node);
+                    // Special case inlining into anonymous types to ensure that we keep property names:
+                    //
+                    // E.g.
+                    //     int x = 42;
+                    //     var a = new { x; };
+                    //
+                    // Should become:
+                    //     var a = new { x = 42; };
+                    return node.Update(SyntaxFactory.NameEquals(identifier), (ExpressionSyntax)Visit(node.Expression));
+                }
 
-                // Special case inlining into anonymous types to ensure that we keep property names:
-                //
-                // E.g.
-                //     int x = 42;
-                //     var a = new { x; };
-                //
-                // Should become:
-                //     var a = new { x = 42; };
-                return node.Update(SyntaxFactory.NameEquals(identifier), (ExpressionSyntax)Visit(expression));
+                return base.VisitAnonymousObjectMemberDeclarator(node);
+            }
+
+            public override SyntaxNode? VisitArgument(ArgumentSyntax node)
+            {
+                if (node.Parent is TupleExpressionSyntax &&
+                    node.NameColon == null &&
+                    node.Expression is IdentifierNameSyntax identifier &&
+                    _nonConflictReferences.Contains(identifier) &&
+                    !SyntaxFacts.IsReservedTupleElementName(identifier.Identifier.ValueText))
+                {
+                    return node.Update(SyntaxFactory.NameColon(identifier), node.RefKindKeyword, (ExpressionSyntax)Visit(node.Expression));
+                }
+
+                return base.VisitArgument(node);
             }
 
             public static SyntaxNode Visit(
                 SyntaxNode scope,
+                SemanticModel semanticModel,
                 ISet<IdentifierNameSyntax> conflictReferences,
                 ISet<IdentifierNameSyntax> nonConflictReferences,
                 ExpressionSyntax expressionToInline,
                 CancellationToken cancellationToken)
             {
-                var rewriter = new ReferenceRewriter(conflictReferences, nonConflictReferences, expressionToInline, cancellationToken);
+                var rewriter = new ReferenceRewriter(semanticModel, conflictReferences, nonConflictReferences, expressionToInline, cancellationToken);
                 return rewriter.Visit(scope);
             }
         }

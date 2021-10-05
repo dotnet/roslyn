@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.InlineTemporary
                 var referencedSymbol = findReferencesResult.SingleOrDefault(r => Equals(r.Definition, local));
                 if (referencedSymbol != null)
                 {
-                    var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     return referencedSymbol.Locations
                         .Where(loc => !semanticModel.SyntaxTree.OverlapsHiddenPosition(loc.Location.SourceSpan, cancellationToken))
                         .Select(loc => root.FindToken(loc.Location.SourceSpan.Start).Parent as TIdentifierNameSyntax)

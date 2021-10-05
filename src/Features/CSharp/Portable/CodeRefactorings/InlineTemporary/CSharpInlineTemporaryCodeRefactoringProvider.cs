@@ -100,6 +100,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 return true;
 
             var identifierNode = identifier.WalkUpParentheses();
+            if (IsInDeconstructionAssignmentLeft(identifierNode))
+                return true;
+
             if (identifierNode.IsParentKind(SyntaxKind.Argument, out ArgumentSyntax argument))
             {
                 if (argument.RefOrOutKeyword.Kind() != SyntaxKind.None)
@@ -163,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 MayContainSideEffects(declarator.Initializer.Value);
 
             var scope = GetScope(declarator);
-            var newScope = ReferenceRewriter.Visit(scope, conflictReferences, nonConflictReferences, expressionToInline, cancellationToken);
+            var newScope = ReferenceRewriter.Visit(scope, semanticModel, conflictReferences, nonConflictReferences, expressionToInline, cancellationToken);
 
             document = await document.ReplaceNodeAsync(scope, newScope, cancellationToken).ConfigureAwait(false);
             semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -583,6 +586,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
         //    return await inlinedDocument.ReplaceNodesAsync(replacementNodesWithChangedSemantics.Keys, conflictAnnotationAdder, cancellationToken).ConfigureAwait(false);
         //}
+
+        private static bool IsInDeconstructionAssignmentLeft(ExpressionSyntax node)
+        {
+            var parent = node.Parent;
+            while (parent.IsKind(SyntaxKind.ParenthesizedExpression, SyntaxKind.CastExpression))
+                parent = parent.Parent;
+
+            while (parent.IsKind(SyntaxKind.Argument))
+            {
+                parent = parent.Parent;
+                if (!parent.IsKind(SyntaxKind.TupleExpression))
+                {
+                    return false;
+                }
+                else if (parent.IsParentKind(SyntaxKind.SimpleAssignmentExpression, out AssignmentExpressionSyntax assignment))
+                {
+                    return assignment.Left == parent;
+                }
+
+                parent = parent.Parent;
+            }
+
+            return false;
+        }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

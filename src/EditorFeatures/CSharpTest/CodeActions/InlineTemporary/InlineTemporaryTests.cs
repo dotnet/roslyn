@@ -4307,7 +4307,7 @@ class C
 {
     void M()
     {
-        var t = (1 + 2, 1 + 2);
+        var t = (i: 1 + 2, i: 1 + 2);
     }
 }";
             await TestInRegularAndScriptAsync(code, expected);
@@ -4334,7 +4334,7 @@ class C
     void M()
     {
         int i = C.y;
-        var t = (({|Conflict:(int)C.y|}, ({|Conflict:(int)C.y|}, _)) = (1, (C.y, 3)));
+        var t = (({|Conflict:i|}, ({|Conflict:i|}, _)) = (1, (i: C.y, 3)));
     }
 }";
             await TestInRegularAndScriptAsync(code, expected);
@@ -4361,7 +4361,7 @@ class C
     void M()
     {
         int i = C.y;
-        var t = (({|Conflict:(int)C.y|}, _) = (1, 2));
+        var t = (({|Conflict:i|}, _) = (1, 2));
     }
 }";
             await TestInRegularAndScriptAsync(code, expected);
@@ -4440,7 +4440,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public async Task ExplicitTupleNameAdded_DoNotEscapeContextualKeywords()
+        public async Task ExplicitTupleNameAdded_KeepEscapedName()
         {
             var code = @"
 class C
@@ -4457,7 +4457,7 @@ class C
 {
     void M()
     {
-        var t = (where: 1 + 2, 3);
+        var t = (@where: 1 + 2, 3);
     }
 }";
             await TestInRegularAndScriptAsync(code, expected);
