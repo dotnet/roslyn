@@ -258,12 +258,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (fromExpression)
                 {
                     Debug.Assert(expressionOpt is { });
-                    return conversions.ClassifyImplicitConversionFromExpression(expressionOpt, targetInterface, ref useSiteInfo);
+                    var result = conversions.ClassifyImplicitConversionFromExpression(expressionOpt, targetInterface, ref useSiteInfo);
+
+                    Debug.Assert(expressionOpt.Type?.IsDynamic() != true || result.Kind == ConversionKind.ImplicitDynamic);
+                    return result;
                 }
                 else
                 {
                     Debug.Assert(declarationTypeOpt is { });
-                    return conversions.ClassifyImplicitConversionFromType(declarationTypeOpt, targetInterface, ref useSiteInfo);
+                    var result = conversions.ClassifyImplicitConversionFromType(declarationTypeOpt, targetInterface, ref useSiteInfo);
+
+                    Debug.Assert(!declarationTypeOpt.IsDynamic() || result.Kind == ConversionKind.ImplicitDynamic);
+                    return result;
                 }
             }
 
