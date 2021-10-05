@@ -318,8 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return false;
 
             // having to be converting to the same delegate type.
-            return SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(
-                originalDelegateCreationOperation.Type, rewrittenDelegateCreationOperation.Type);
+            return Equals(originalDelegateCreationOperation.Type, rewrittenDelegateCreationOperation.Type);
         }
 
         private static bool IsNullLiteralCast(ExpressionSyntax castedExpressionNode)
@@ -414,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 if (!rewrittenConversion.IsUserDefined)
                     return false;
 
-                if (!SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(originalParentImplicitConversion.Conversion.MethodSymbol, rewrittenConversion.MethodSymbol))
+                if (!Equals(originalParentImplicitConversion.Conversion.MethodSymbol, rewrittenConversion.MethodSymbol))
                     return false;
             }
 
@@ -481,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             // If the types of the expressions are different, then removing the conversion changed semantics
             // and we can't remove it.
-            if (SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(originalConvertedType, rewrittenConvertedType))
+            if (Equals(originalConvertedType, rewrittenConvertedType))
                 return true;
 
             #endregion whitelist cases.
@@ -708,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 }
 
                 // if we are still calling through to the same interface method, then this is safe to call.
-                if (originalMemberSymbol.Equals(rewrittenMemberSymbol))
+                if (Equals(originalMemberSymbol, rewrittenMemberSymbol))
                     return true;
 
                 // Ok, we have a type casted to an interface.  It may be safe to remove this interface cast
@@ -737,7 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
                 // if that's not the method we're currently calling, then this definitely isn't safe to remove.
                 return
-                    implementationMember.Equals(rewrittenMemberSymbol) &&
+                    Equals(implementationMember, rewrittenMemberSymbol) &&
                     ParameterNamesAndDefaultValuesAndReturnTypesMatch(
                         memberAccessExpression, originalSemanticModel, originalMemberSymbol, rewrittenMemberSymbol, cancellationToken);
             }
@@ -747,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // agree on the return type, or else this could change the final type of hte expression.
             for (var current = rewrittenMemberSymbol; current != null; current = current.GetOverriddenMember())
             {
-                if (SymbolEquivalenceComparer.Instance.Equals(originalMemberSymbol, current))
+                if (Equals(originalMemberSymbol, current))
                 {
                     // we're calling into a override of a higher up virtual in the original code.
                     // This is safe as long as the names of the parameters and all default values
@@ -871,7 +870,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                         var originalParameter = originalParameters[i];
                         var rewrittenParameter = rewrittenParameters[i];
 
-                        var argument = invocationOperation.Arguments.FirstOrDefault(a => originalParameter.Equals(a.Parameter));
+                        var argument = invocationOperation.Arguments.FirstOrDefault(a => Equals(originalParameter, a.Parameter));
                         var argumentSyntax = argument?.Syntax as ArgumentSyntax;
 
                         if (originalParameter.Name != rewrittenParameter.Name &&
