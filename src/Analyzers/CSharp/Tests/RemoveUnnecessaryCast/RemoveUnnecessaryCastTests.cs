@@ -10088,5 +10088,29 @@ class C
 
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task KeepCastNeededToPickCorrectOverload()
+        {
+            // removing the 'byte' cast will switch the overload called.
+            var source =
+@"
+     using System;
+     
+     class Program
+     {
+         static void Main()
+         {
+             byte z = 0;
+             Func<byte, byte> p = x => 0;
+             Goo(p, y => (byte)0, z, z);
+         }
+     
+         static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
+         static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
+     }";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
     }
 }

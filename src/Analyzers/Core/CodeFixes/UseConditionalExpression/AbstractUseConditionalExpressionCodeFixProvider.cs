@@ -106,8 +106,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-
             var condition = ifOperation.Condition.Syntax;
             if (!isRef)
             {

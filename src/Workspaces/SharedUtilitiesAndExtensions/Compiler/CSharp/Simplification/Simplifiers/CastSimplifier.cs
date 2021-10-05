@@ -614,15 +614,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     if (newSymbolInfo.Symbol is null)
                         return true;
                 }
-
-                // TODO(cyrusn): Do we need to validate the old symbol maps to the new symbol?
-                // We could easily add that if necessary.
             }
 
             return false;
         }
 
-        private static bool ForEachResolutionChanged(
+        private static bool ChangedOverloadResolution(
+            ExpressionSyntax castNode, ExpressionSyntax rewrittenExpression,
+            SemanticModel originalSemanticModel, SemanticModel rewrittenSemanticModel,
+            CancellationToken cancellationToken)
+        {
+            // walk upwards checking overload resolution results.  note: we skip until we hit the first argument
+            // as we don't care about symbol resolution changing when removing a cast in something like `((D)b).X()`
+            var haveHitArgumentNode = false;
+            for (SyntaxNode? currentOld = castNode.WalkUpParentheses().Parent, currentNew = rewrittenExpression.WalkUpParentheses().Parent;
+                 currentOld != null && currentNew != null;
+                 currentOld = currentOld.Parent, currentNew = currentNew.Parent)
+            {
+                Debug.Assert(currentOld.Kind() == currentNew.Kind());
+                if (!haveHitArgumentNode && currentOld.Kind() != SyntaxKind.Argument)
+                    continue;
+
+                haveHitArgumentNode = true;
+
+                var oldSymbolInfo = originalSemanticModel.GetSymbolInfo(currentOld, cancellationToken).Symbol;
+                var newSymbolInfo = rewrittenSemanticModel.GetSymbolInfo(currentNew, cancellationToken).Symbol;
+
+                // ignore local functions.  First, we can't test them for equality in speculative situations, but also we 
+                // can't end up with an overload resolution issue for them as they don't have overloads.
+                if (oldSymbolInfo is IMethodSymbol method &&
+                    method.MethodKind is not (MethodKind.LocalFunction or MethodKind.LambdaMethod) &&
+                    !Equals(oldSymbolInfo, newSymbolInfo))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool ChangedForEachResolution(
             ExpressionSyntax castNode, ExpressionSyntax rewrittenExpression,
             SemanticModel originalSemanticModel, SemanticModel rewrittenSemanticModel)
         {
@@ -945,9 +976,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (IntroducedAmbiguity(castNode, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel, cancellationToken))
                 return default;
 
+            if (ChangedOverloadResolution(castNode, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel, cancellationToken))
+                return default;
+
             // It's possible that removing a cast in a foreach collection expression will change how the foreach methods
             // and conversions resolve.  Ensure these stay the same to proceed.
-            if (ForEachResolutionChanged(castNode, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel))
+            if (ChangedForEachResolution(castNode, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel))
                 return default;
 
             // Removing a cast may cause a conditional-expression conversion to come into existence.  This is
