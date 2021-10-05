@@ -158,23 +158,11 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 var matchingDirectives = directiveTrivia.GetMatchingConditionalDirectives(cancellationToken);
                 var matchesBefore = matchingDirectives
                     .TakeWhile(d => d.SpanStart < directiveTrivia.SpanStart)
+                    .Select(d => d.Span)
                     .ToImmutableArray();
-                using var _ = ArrayBuilder<TextSpan>.GetInstance(capacity: matchesBefore.Length, out var builder);
-                for (var i = 0; i < matchesBefore.Length; i++)
-                {
-                    var match = matchesBefore[i];
-                    var lastMatch = i == matchesBefore.Length - 1;
-                    builder.Add(lastMatch
-                        ? match.Span
-                        // Include the first newLine trailing the directive, if more directives following
-                        // This makes sure, that the directives are separated by a new line
-                        : TextSpan.FromBounds(start: match.SpanStart, end: match.GetTrailingTrivia().GetFirstNewLine()?.Span.End ?? match.Span.End));
-
-                }
-
                 if (matchesBefore.Length > 0)
                 {
-                    return QuickInfoItem.Create(token.Span, relatedSpans: builder.ToImmutable());
+                    return QuickInfoItem.Create(token.Span, relatedSpans: matchesBefore);
                 }
             }
 
