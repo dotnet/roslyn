@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -17,7 +16,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.InlineTemporary;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -32,8 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
     {
         private static readonly SyntaxAnnotation DefinitionAnnotation = new();
         private static readonly SyntaxAnnotation ReferenceAnnotation = new();
-        private static readonly SyntaxAnnotation InitializerAnnotation = new();
-        private static readonly SyntaxAnnotation ExpressionToInlineAnnotation = new();
         private static readonly SyntaxAnnotation ExpressionAnnotation = new();
 
         [ImportingConstructor]
@@ -86,6 +82,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             var references = await GetReferenceLocationsAsync(document, variableDeclarator, cancellationToken).ConfigureAwait(false);
             if (!references.Any())
+                return;
+
+            // If the variable is itself referenced in its own initializer then don't offer anything here.  This
+            // practically does not occur (though the language allows it), and it only serves to add a huge amount
+            // of complexity to this feature.
+            if (references.Any(r => variableDeclarator.Initializer.Span.Contains(r.Span)))
                 return;
 
             context.RegisterRefactoring(
@@ -166,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 MayContainSideEffects(declarator.Initializer.Value);
 
             var scope = GetScope(declarator);
-            var newScope = ReferenceRewriter.Visit(scope, semanticModel, conflictReferences, nonConflictReferences, expressionToInline, cancellationToken);
+            var newScope = ReferenceRewriter.Visit(scope, conflictReferences, nonConflictReferences, expressionToInline, cancellationToken);
 
             document = await document.ReplaceNodeAsync(scope, newScope, cancellationToken).ConfigureAwait(false);
             semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -249,9 +251,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
         private static async Task<VariableDeclaratorSyntax> FindDeclaratorAsync(Document document, CancellationToken cancellationToken)
             => await FindNodeWithAnnotationAsync<VariableDeclaratorSyntax>(document, DefinitionAnnotation, cancellationToken).ConfigureAwait(false);
-
-        private static async Task<ExpressionSyntax> FindInitializerAsync(Document document, CancellationToken cancellationToken)
-            => await FindNodeWithAnnotationAsync<ExpressionSyntax>(document, InitializerAnnotation, cancellationToken).ConfigureAwait(false);
 
         private static async Task<T> FindNodeWithAnnotationAsync<T>(Document document, SyntaxAnnotation annotation, CancellationToken cancellationToken)
             where T : SyntaxNode
@@ -364,30 +363,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             return newScope.RemoveNode(newLocalDeclaration, SyntaxRemoveOptions.KeepNoTrivia);
         }
 
-        //private static ExpressionSyntax SkipRedundantExteriorParentheses(ExpressionSyntax expression)
-        //{
-        //    while (expression.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenthesized))
-        //    {
-        //        if (parenthesized.Expression == null ||
-        //            parenthesized.Expression.IsMissing)
-        //        {
-        //            break;
-        //        }
-
-        //        if (parenthesized.Expression.IsKind(SyntaxKind.ParenthesizedExpression) ||
-        //            parenthesized.Expression.IsKind(SyntaxKind.IdentifierName))
-        //        {
-        //            expression = parenthesized.Expression;
-        //        }
-        //        else
-        //        {
-        //            break;
-        //        }
-        //    }
-
-        //    return expression;
-        //}
-
         private static async Task<ExpressionSyntax> CreateExpressionToInlineAsync(
             Document document,
             VariableDeclaratorSyntax variableDeclarator,
@@ -398,7 +373,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var expression = variableDeclarator.Initializer.Value.WalkDownParentheses();
 
             var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
-            expression = InitializerRewriter.Visit(expression, localSymbol, semanticModel);
 
             if (expression is ImplicitObjectCreationExpressionSyntax implicitCreation)
             {
@@ -433,6 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 // directly in the existing code.  The same holds for `new Y[]` or `(Y)...`
                 return expression;
             }
+            else
             {
                 if (localSymbol.Type.ContainsAnonymousType() || localSymbol.Type is IErrorTypeSymbol { Name: null or "" })
                     return expression;
@@ -502,92 +477,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
         private static SyntaxNode GetTopMostParentingExpression(ExpressionSyntax expression)
             => expression.AncestorsAndSelf().OfType<ExpressionSyntax>().Last();
-
-        //private static async Task<Document> DetectSemanticConflictsAsync(
-        //    Document inlinedDocument,
-        //    SemanticModel newSemanticModelForInlinedDocument,
-        //    SemanticModel semanticModelBeforeInline,
-        //    SymbolInfo originalInitializerSymbolInfo,
-        //    CancellationToken cancellationToken)
-        //{
-        //    // In this method we detect if inlining the expression introduced the following semantic change:
-        //    // The symbol info associated with any of the inlined expressions does not match the symbol info for original initializer expression prior to inline.
-
-        //    // If any semantic changes were introduced by inlining, we update the document with conflict annotations.
-        //    // Otherwise we return the given inlined document without any changes.
-
-        //    var syntaxRootBeforeInline = await semanticModelBeforeInline.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-
-        //    // Get all the identifier nodes which were replaced with inlined expression.
-        //    var originalIdentifierNodes = FindReferenceAnnotatedNodes(syntaxRootBeforeInline);
-
-        //    if (originalIdentifierNodes.IsEmpty())
-        //    {
-        //        // No conflicts
-        //        return inlinedDocument;
-        //    }
-
-        //    // Get all the inlined expression nodes.
-        //    var syntaxRootAfterInline = await inlinedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        //    var inlinedExprNodes = syntaxRootAfterInline.GetAnnotatedNodesAndTokens(ExpressionToInlineAnnotation);
-        //    Debug.Assert(originalIdentifierNodes.Count() == inlinedExprNodes.Count());
-
-        //    Dictionary<SyntaxNode, SyntaxNode> replacementNodesWithChangedSemantics = null;
-        //    using (var originalNodesEnum = originalIdentifierNodes.GetEnumerator())
-        //    {
-        //        using var inlinedNodesOrTokensEnum = inlinedExprNodes.GetEnumerator();
-
-        //        while (originalNodesEnum.MoveNext())
-        //        {
-        //            inlinedNodesOrTokensEnum.MoveNext();
-        //            var originalNode = originalNodesEnum.Current;
-
-        //            // expressionToInline is Parenthesized prior to replacement, so get the parenting parenthesized expression.
-        //            var inlinedNode = (ExpressionSyntax)inlinedNodesOrTokensEnum.Current.Parent;
-        //            Debug.Assert(inlinedNode.IsKind(SyntaxKind.ParenthesizedExpression));
-
-        //            // inlinedNode is the expanded form of the actual initializer expression in the original document.
-        //            // We have annotated the inner initializer with a special syntax annotation "InitializerAnnotation".
-        //            // Get this annotated node and compute the symbol info for this node in the inlined document.
-        //            var innerInitializerInInlineNodeOrToken = inlinedNode.GetAnnotatedNodesAndTokens(InitializerAnnotation).First();
-
-        //            var innerInitializerInInlineNode = (ExpressionSyntax)(innerInitializerInInlineNodeOrToken.IsNode ?
-        //                innerInitializerInInlineNodeOrToken.AsNode() :
-        //                innerInitializerInInlineNodeOrToken.AsToken().Parent);
-        //            var newInitializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(innerInitializerInInlineNode, cancellationToken);
-
-        //            // Verification: The symbol info associated with any of the inlined expressions does not match the symbol info for original initializer expression prior to inline.
-        //            if (!SpeculationAnalyzer.SymbolInfosAreCompatible(originalInitializerSymbolInfo, newInitializerSymbolInfo, performEquivalenceCheck: true))
-        //            {
-        //                newInitializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(inlinedNode, cancellationToken);
-        //                if (!SpeculationAnalyzer.SymbolInfosAreCompatible(originalInitializerSymbolInfo, newInitializerSymbolInfo, performEquivalenceCheck: true))
-        //                {
-        //                    replacementNodesWithChangedSemantics ??= new Dictionary<SyntaxNode, SyntaxNode>();
-        //                    replacementNodesWithChangedSemantics.Add(inlinedNode, originalNode);
-        //                }
-        //            }
-
-        //            // Verification: Do not inline a variable into the left side of a deconstruction-assignment
-        //            if (IsInDeconstructionAssignmentLeft(innerInitializerInInlineNode))
-        //            {
-        //                replacementNodesWithChangedSemantics ??= new Dictionary<SyntaxNode, SyntaxNode>();
-        //                replacementNodesWithChangedSemantics.Add(inlinedNode, originalNode);
-        //            }
-        //        }
-        //    }
-
-        //    if (replacementNodesWithChangedSemantics == null)
-        //    {
-        //        // No conflicts.
-        //        return inlinedDocument;
-        //    }
-
-        //    // Replace the conflicting inlined nodes with the original nodes annotated with conflict annotation.
-        //    static SyntaxNode conflictAnnotationAdder(SyntaxNode oldNode, SyntaxNode newNode) =>
-        //            newNode.WithAdditionalAnnotations(ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected));
-
-        //    return await inlinedDocument.ReplaceNodesAsync(replacementNodesWithChangedSemantics.Keys, conflictAnnotationAdder, cancellationToken).ConfigureAwait(false);
-        //}
 
         private static bool IsInDeconstructionAssignmentLeft(ExpressionSyntax node)
         {

@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,20 +18,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
     {
         private class ReferenceRewriter : CSharpSyntaxRewriter
         {
-            private readonly SemanticModel _semanticModel;
             private readonly ISet<IdentifierNameSyntax> _conflictReferences;
             private readonly ISet<IdentifierNameSyntax> _nonConflictReferences;
             private readonly ExpressionSyntax _expressionToInline;
             private readonly CancellationToken _cancellationToken;
 
             private ReferenceRewriter(
-                SemanticModel semanticModel,
                 ISet<IdentifierNameSyntax> conflictReferences,
                 ISet<IdentifierNameSyntax> nonConflictReferences,
                 ExpressionSyntax expressionToInline,
                 CancellationToken cancellationToken)
             {
-                _semanticModel = semanticModel;
                 _conflictReferences = conflictReferences;
                 _nonConflictReferences = nonConflictReferences;
                 _expressionToInline = expressionToInline;
@@ -71,11 +71,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             public override SyntaxNode? VisitArgument(ArgumentSyntax node)
             {
-                if (node.Parent is TupleExpressionSyntax &&
-                    node.NameColon == null &&
-                    node.Expression is IdentifierNameSyntax identifier &&
-                    _nonConflictReferences.Contains(identifier) &&
-                    !SyntaxFacts.IsReservedTupleElementName(identifier.Identifier.ValueText))
+                if (node.Parent is TupleExpressionSyntax tupleExpression &&
+                    ShouldAddTupleMemberName(node, out var identifier) &&
+                    tupleExpression.Arguments.Count(a => ShouldAddTupleMemberName(a, out _)) == 1)
                 {
                     return node.Update(SyntaxFactory.NameColon(identifier), node.RefKindKeyword, (ExpressionSyntax)Visit(node.Expression));
                 }
@@ -83,15 +81,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 return base.VisitArgument(node);
             }
 
+            private bool ShouldAddTupleMemberName(ArgumentSyntax node, [NotNullWhen(true)] out IdentifierNameSyntax? identifier)
+            {
+                if (node.NameColon == null &&
+                    node.Expression is IdentifierNameSyntax id &&
+                    _nonConflictReferences.Contains(id) &&
+                    !SyntaxFacts.IsReservedTupleElementName(id.Identifier.ValueText))
+                {
+                    identifier = id;
+                    return true;
+                }
+
+                identifier = null;
+                return false;
+            }
+
             public static SyntaxNode Visit(
                 SyntaxNode scope,
-                SemanticModel semanticModel,
                 ISet<IdentifierNameSyntax> conflictReferences,
                 ISet<IdentifierNameSyntax> nonConflictReferences,
                 ExpressionSyntax expressionToInline,
                 CancellationToken cancellationToken)
             {
-                var rewriter = new ReferenceRewriter(semanticModel, conflictReferences, nonConflictReferences, expressionToInline, cancellationToken);
+                var rewriter = new ReferenceRewriter(conflictReferences, nonConflictReferences, expressionToInline, cancellationToken);
                 return rewriter.Visit(scope);
             }
         }

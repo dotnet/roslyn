@@ -418,16 +418,7 @@ class C
     }
 }";
 
-            var expected = @"
-class C
-{
-    void M()
-    {
-        int y = 1;
-    }
-}";
-
-            await TestInRegularAndScriptAsync(code, expected);
+            await TestMissingAsync(code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -912,20 +903,7 @@ class C
     }
 }";
 
-            var expected =
-@"using System;
-class C
-{
-    static int x;
-
-    static void M()
-    {
-        int x = ({|Conflict:x|} = 0) + ({|Conflict:x|} += 1);
-        int y = 0 + ({|Conflict:x|} += 1);
-    }
-}";
-
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestMissingAsync(initial);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4307,7 +4285,7 @@ class C
 {
     void M()
     {
-        var t = (i: 1 + 2, i: 1 + 2);
+        var t = (1 + 2, 1 + 2);
     }
 }";
             await TestInRegularAndScriptAsync(code, expected);
