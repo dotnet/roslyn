@@ -390,6 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             VariableDeclaratorSyntax variableDeclarator,
             CancellationToken cancellationToken)
         {
+            var isVar = ((VariableDeclarationSyntax)variableDeclarator.Parent).Type.IsVar;
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var expression = variableDeclarator.Initializer.Value.WalkDownParentheses();
             var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
@@ -421,7 +422,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
                 return SyntaxFactory.ArrayCreationExpression(arrayType, arrayInitializer);
             }
-            else
+            else if (isVar && expression is ObjectCreationExpressionSyntax or ArrayCreationExpressionSyntax or CastExpressionSyntax)
+            {
+                // if we have `var x = new Y();` there's no need to do any casting as the type is indicated
+                // directly in the existing code.  The same holds for `new Y[]` or `(Y)...`
+                return expression;
+            }
             {
                 if (localSymbol.Type.ContainsAnonymousType() || localSymbol.Type is IErrorTypeSymbol { Name: null or "" })
                     return expression;
