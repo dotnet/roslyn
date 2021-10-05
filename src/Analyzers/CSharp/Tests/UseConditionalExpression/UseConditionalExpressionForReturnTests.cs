@@ -516,7 +516,7 @@ class C
 {
     object M()
     {
-        return true ? ""a"" : ""b"";
+        return true ? ""a"" : (object)""b"";
     }
 }", parseOptions: CSharp9);
         }
@@ -576,7 +576,7 @@ class C
 {
     object M()
     {
-        return true ? throw new System.Exception() : ""b"";
+        return true ? throw new System.Exception() : (object)""b"";
     }
 }", parseOptions: CSharp9);
         }
@@ -636,7 +636,7 @@ class C
 {
     object M()
     {
-        return true ? ""a"" : throw new System.Exception();
+        return true ? (object)""a"" : throw new System.Exception();
     }
 }", parseOptions: CSharp9);
         }

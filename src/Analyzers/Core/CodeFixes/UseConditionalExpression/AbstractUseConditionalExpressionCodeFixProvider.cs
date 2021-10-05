@@ -107,7 +107,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var parseOPtions = syntaxTree.Options;
 
             var condition = ifOperation.Condition.Syntax;
             if (!isRef)
@@ -130,8 +129,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             var conditionalExpression = (TConditionalExpressionSyntax)generator.ConditionalExpression(
                 condition.WithoutTrivia(),
-                MakeRef(generatorInternal, isRef, CastValueIfNecessary(generator, parseOPtions, trueStatement, trueValue)),
-                MakeRef(generatorInternal, isRef, CastValueIfNecessary(generator, parseOPtions, falseStatement, falseValue)));
+                MakeRef(generatorInternal, isRef, CastValueIfNecessary(generator, trueStatement, trueValue)),
+                MakeRef(generatorInternal, isRef, CastValueIfNecessary(generator, falseStatement, falseValue)));
 
             conditionalExpression = conditionalExpression.WithAdditionalAnnotations(Simplifier.Annotation);
             var makeMultiLine = await MakeMultiLineAsync(
@@ -192,7 +191,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         }
 
         private TExpressionSyntax CastValueIfNecessary(
-            SyntaxGenerator generator, ParseOptions options, IOperation statement, IOperation value)
+            SyntaxGenerator generator, IOperation statement, IOperation value)
         {
             if (statement is IThrowOperation throwOperation)
                 return ConvertToExpression(throwOperation);
@@ -204,8 +203,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             // inference in conditional expressions, so we need to ensure that the same conversions
             // that were occurring previously still occur after conversion. Note: the simplifier
             // will remove any of these casts that are unnecessary.
-            if (!this.SyntaxFacts.SupportsTargetTypedConditionalExpression(options) &&
-                value is IConversionOperation conversion &&
+            if (value is IConversionOperation conversion &&
                 conversion.IsImplicit &&
                 conversion.Type != null &&
                 conversion.Type.TypeKind != TypeKind.Error)
