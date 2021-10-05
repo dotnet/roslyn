@@ -396,7 +396,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var isVar = ((VariableDeclarationSyntax)variableDeclarator.Parent).Type.IsVar;
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var expression = variableDeclarator.Initializer.Value.WalkDownParentheses();
+
             var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
+            expression = InitializerRewriter.Visit(expression, localSymbol, semanticModel);
 
             if (expression is ImplicitObjectCreationExpressionSyntax implicitCreation)
             {
