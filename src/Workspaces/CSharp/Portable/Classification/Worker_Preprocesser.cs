@@ -94,16 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 ClassifyPreprocessorTrivia(trivia, allowComments);
             }
-
-            foreach (var trivia in node.EndOfDirectiveToken.TrailingTrivia)
-            {
-                switch (trivia.Kind())
-                {
-                    case SyntaxKind.EndOfLineTrivia:
-                        AddClassification(trivia, ClassificationTypeNames.WhiteSpace);
-                        break;
-                }
-            }
         }
 
         private void ClassifyPreprocessorTrivia(SyntaxTrivia trivia, bool allowComments)
