@@ -621,6 +621,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
+        private static bool ForEachResolutionChanged(
+            ExpressionSyntax castNode, ExpressionSyntax rewrittenExpression,
+            SemanticModel originalSemanticModel, SemanticModel rewrittenSemanticModel)
+        {
+            for (SyntaxNode? currentOld = castNode.WalkUpParentheses().Parent, currentNew = rewrittenExpression.WalkUpParentheses().Parent;
+                 currentOld != null && currentNew != null;
+                 currentOld = currentOld.Parent, currentNew = currentNew.Parent)
+            {
+                Debug.Assert(currentOld.Kind() == currentNew.Kind());
+                if (currentOld is CommonForEachStatementSyntax oldForEach &&
+                    currentNew is CommonForEachStatementSyntax newForEach)
+                {
+                    // TODO(cyrusn): Do we need to validate anything else in the foreach infos?
+                    var oldForEachInfo = originalSemanticModel.GetForEachStatementInfo(oldForEach);
+                    var newForEachInfo = rewrittenSemanticModel.GetForEachStatementInfo(newForEach);
+
+                    var oldConversion = oldForEachInfo.ElementConversion;
+                    var newConversion = newForEachInfo.ElementConversion;
+
+                    if (oldConversion.IsUserDefined != newConversion.IsUserDefined)
+                        return true;
+
+                    if (!Equals(oldConversion.MethodSymbol, newConversion.MethodSymbol))
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
         private static bool IsComplimentaryMemberAccessAfterCastRemoval(
             MemberAccessExpressionSyntax memberAccessExpression,
             ExpressionSyntax rewrittenExpression,
@@ -909,6 +939,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // be an 'int' because of error tolerance.  To address this, walk up all containing invocations and 
             // make sure they're calls to the same methods.
             if (IntroducedAmbiguity(castNode, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel, cancellationToken))
+                return default;
+
+            // It's possible that removing a cast in a foreach collection expression will change how the foreach methods
+            // and conversions resolve.  Ensure these stay the same to proceed.
+            if (ForEachResolutionChanged(castNode, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel))
                 return default;
 
             // Removing a cast may cause a conditional-expression conversion to come into existence.  This is
