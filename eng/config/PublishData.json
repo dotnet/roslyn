@@ -210,8 +210,8 @@
       "channels": [],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[Validation]"
+      "insertionCreateDraftPR": false,
+      "insertionTitlePrefix": "[d17.1]"
     },
     "main": {
       "nugetKind": [
