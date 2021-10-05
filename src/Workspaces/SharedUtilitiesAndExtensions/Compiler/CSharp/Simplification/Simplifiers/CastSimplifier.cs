@@ -683,12 +683,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 // if we still call into the implementation of that interface member afterwards.  Note: the
                 // type has to be sealed, otherwise the interface method may have been reimplemented lower
                 // in the inheritance hierarchy.
+                //
+                // However, if this was an object creation expression, then we know the exact type that was
+                // created, and don't have to worry about subclassing.
 
                 var isSealed =
                     rewrittenType.IsSealed ||
                     rewrittenType.IsValueType ||
                     rewrittenType.TypeKind == TypeKind.Array ||
-                    IsIntrinsicOrEnum(rewrittenType);
+                    IsIntrinsicOrEnum(rewrittenType) ||
+                    rewrittenExpression.WalkDownParentheses() is ObjectCreationExpressionSyntax;
 
                 if (!isSealed)
                     return false;
@@ -796,6 +800,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
                 // if we're getting the struct as the return value of a non-ref method, then it will make a copy.
                 if (operation is IInvocationOperation { TargetMethod.RefKind: not RefKind.Ref })
+                    return true;
+
+                // If we're new'ing up this struct then we have a fresh copy that we can operate on.
+                if (operation is IObjectCreationOperation)
                     return true;
             }
 

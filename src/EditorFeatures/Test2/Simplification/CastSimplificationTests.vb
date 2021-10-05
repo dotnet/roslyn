@@ -2645,7 +2645,6 @@ struct S : IIncrementable
 </code>
 
             Await TestAsync(input, expected)
-
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -2690,7 +2689,7 @@ class X : IDisposable
 {
     static void Main()
     {
-        ((IDisposable)new X()).Dispose();
+        (new X()).Dispose();
         (new Y()).Dispose();
     }
  
