@@ -18,8 +18,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.InlineTemporary), [Shared]>
-    Partial Friend Class InlineTemporaryCodeRefactoringProvider
-        Inherits AbstractInlineTemporaryCodeRefactoringProvider(Of ModifiedIdentifierSyntax)
+    Partial Friend Class VisualBasicInlineTemporaryCodeRefactoringProvider
+        Inherits AbstractInlineTemporaryCodeRefactoringProvider(Of IdentifierNameSyntax, ModifiedIdentifierSyntax)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
@@ -132,7 +132,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             ' Collect the target statement for each reference.
 
             Dim nonConflictingIdentifierNodes = references _
-                .Select(Function(loc) DirectCast(syntaxRoot.FindToken(loc.Location.SourceSpan.Start).Parent, IdentifierNameSyntax)) _
                 .Where(Function(ident) Not HasConflict(ident, modifiedIdentifier, expressionToInline, semanticModel))
 
             ' Add referenceAnnotations to identifier nodes being replaced.
