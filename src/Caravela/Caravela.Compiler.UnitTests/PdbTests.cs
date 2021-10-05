@@ -130,7 +130,7 @@ class Library
 
                 var rewriter = new Rewriter(stepStatement);
 
-                context.Compilation = context.Compilation.ReplaceSyntaxTree(programTree, programTree.WithRootAndOptions(rewriter.Visit(programTree.GetRoot()), programTree.Options));
+                context.ReplaceSyntaxTree(programTree, programTree.WithRootAndOptions(rewriter.Visit(programTree.GetRoot()), programTree.Options));
             }
 
             class Rewriter : CSharpSyntaxRewriter
@@ -201,9 +201,8 @@ class C
                 var compilation = context.Compilation;
                 foreach (var tree in compilation.SyntaxTrees)
                 {
-                    compilation = compilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(rewriter.Visit(tree.GetRoot()), tree.Options));
+                    context.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(rewriter.Visit(tree.GetRoot()), tree.Options));
                 }
-                context.Compilation = compilation;
             }
 
             class Rewriter : CSharpSyntaxRewriter

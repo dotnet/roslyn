@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -14,8 +15,22 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Caravela.Compiler
 {
+    public readonly struct SyntaxTreeTransformation
+    {
+        public SyntaxTreeTransformation(SyntaxTree newTree, SyntaxTree? oldTree)
+        {
+            OldTree = oldTree;
+            NewTree = newTree;
+        }
+
+        public SyntaxTree? OldTree { get;  }
+        public SyntaxTree NewTree { get;  }
+    }
+
     /// <summary>
     /// Context passed to a source transformer when <see cref="ISourceTransformer.Execute(TransformerContext)"/> is called.
+    /// The implementation can modify the compilation using the methods <see cref="AddSyntaxTrees(Microsoft.CodeAnalysis.SyntaxTree[])"/>, <see cref="ReplaceSyntaxTree"/> or
+    /// <see cref="AddResources(Microsoft.CodeAnalysis.ResourceDescription[])"/>. It can report a diagnostic using <see cref="ReportDiagnostic"/> or suppress diagnostics using <see cref="RegisterDiagnosticFilter"/>.
     /// </summary>
     public sealed class TransformerContext
     {
@@ -23,29 +38,80 @@ namespace Caravela.Compiler
         private readonly DiagnosticBag _diagnostics;
         private readonly IAnalyzerAssemblyLoader _assemblyLoader;
 
+        internal List<SyntaxTreeTransformation> TransformedTrees { get; } = new();
+        internal List<ResourceDescription> AddedResources { get; } = new();
+        internal List<DiagnosticFilter> DiagnosticFilters { get; } = new();
+
         internal TransformerContext(
-            Compilation compilation, ImmutableArray<object> plugins, AnalyzerConfigOptions globalOptions, IList<ResourceDescription> manifestResources,
+            Compilation compilation, ImmutableArray<object> plugins, AnalyzerConfigOptions globalOptions, ImmutableArray<ResourceDescription> manifestResources,
             DiagnosticBag diagnostics, IAnalyzerAssemblyLoader assemblyLoader)
         {
             Compilation = compilation;
             Plugins = plugins;
             GlobalOptions = globalOptions;
-            ManifestResources = manifestResources;
+            Resources = manifestResources;
             _diagnostics = diagnostics;
             _assemblyLoader = assemblyLoader;
         }
-
-        internal List<Action<DiagnosticRequest>> DiagnosticFilters { get; } = new();
 #else
         private TransformerContext()
         {
         }
 #endif
 
+        public void ReplaceSyntaxTree(SyntaxTree oldTree, SyntaxTree newTree)
+        {
+#if !CARAVELA_COMPILER_INTERFACE            
+            if (!this.Compilation.ContainsSyntaxTree(oldTree))
+            {
+                throw new InvalidOperationException("The original compilation does not contain this syntax tree.");
+            }
+
+            TrackTreeReplacement(oldTree, newTree);
+
+            this.TransformedTrees.Add(new SyntaxTreeTransformation(newTree, oldTree));
+#endif            
+        }
+
+#if !CARAVELA_COMPILER_INTERFACE
+        private static void TrackTreeReplacement(SyntaxTree oldTree, SyntaxTree newTree)
+        {
+            SyntaxTreeHistory.Update(oldTree, newTree);
+        }
+#endif
+
+        public void AddSyntaxTreeTransformations(IEnumerable<SyntaxTreeTransformation> transformations)
+        {
+#if !CARAVELA_COMPILER_INTERFACE
+            foreach (var transformation in transformations)
+            {
+                if (transformation.OldTree != null)
+                {
+                    TrackTreeReplacement(transformation.OldTree, transformation.NewTree);
+                }
+                this.TransformedTrees.Add(transformation);
+            }
+#endif
+        }
+
+        public void AddSyntaxTrees(params SyntaxTree[] syntaxTrees)
+        {
+#if !CARAVELA_COMPILER_INTERFACE
+            this.TransformedTrees.AddRange(syntaxTrees.Select(t => new SyntaxTreeTransformation(t, null)));
+#endif
+        }
+
+        public void AddSyntaxTrees(IEnumerable<SyntaxTree> syntaxTrees)
+        {
+#if !CARAVELA_COMPILER_INTERFACE
+            this.TransformedTrees.AddRange(syntaxTrees.Select(t => new SyntaxTreeTransformation(t, null)));
+#endif
+        }
+
         /// <summary>
         /// Gets or sets the <see cref="Compilation"/>. Transformers typically replace the value of this property. 
         /// </summary>
-        public Compilation Compilation { get; set; }
+        public Compilation Compilation { get; }
 
         /// <summary>
         /// Gets plugins that were registered by being marked with the <c>Caravela.CompilerPluginAttribute</c> attribute.
@@ -59,11 +125,11 @@ namespace Caravela.Compiler
         public AnalyzerConfigOptions GlobalOptions { get; }
 
         /// <summary>
-        /// Gets the list of managed resources. Transformers can add, remove or change the list.
+        /// Gets the list of managed resources. 
         ///
         /// To inspect existing resources, use extension methods from <see cref="ResourceDescriptionExtensions "/>.
         /// </summary>
-        public IList<ResourceDescription> ManifestResources { get; }
+        public ImmutableArray<ResourceDescription> Resources { get; }
 
         /// <summary>
         /// Adds a <see cref="Diagnostic"/> to the user's compilation.
@@ -79,18 +145,30 @@ namespace Caravela.Compiler
 #endif
         }
 
+        public void AddResources(params ResourceDescription[] resources)
+        {
+#if !CARAVELA_COMPILER_INTERFACE
+            this.AddedResources.AddRange(resources);
+#endif
+        }
+
+        public void AddResources(IEnumerable<ResourceDescription> resources)
+        {
+#if !CARAVELA_COMPILER_INTERFACE
+            this.AddedResources.AddRange(resources);
+#endif
+        }
+
         /// <summary>
         /// Registers a delegate that can suppress a diagnostic.
         /// </summary>
-        /// <param name="filter">A delegate that can suppress a diagnostic using <see cref="DiagnosticRequest.Suppress"/>.</param>
+        /// <param name="filter">A delegate that can suppress a diagnostic using <see cref="DiagnosticFilteringRequest.Suppress"/>.</param>
         /// <exception cref="InvalidOperationException"></exception>
-        public void RegisterDiagnosticFilter(Action<DiagnosticRequest> filter)
+        public void RegisterDiagnosticFilter(SuppressionDescriptor descriptor, Action<DiagnosticFilteringRequest> filter)
         {
-#if CARAVELA_COMPILER_INTERFACE
-            throw new InvalidOperationException("This operation works only inside Caravela.");
-#else
-            this.DiagnosticFilters.Add(filter);
-#endif 
+#if !CARAVELA_COMPILER_INTERFACE
+            this.DiagnosticFilters.Add(new DiagnosticFilter(descriptor, filter));
+#endif
         }
 
         public Assembly LoadReferencedAssembly(IAssemblySymbol assemblySymbol)
@@ -110,5 +188,6 @@ namespace Caravela.Compiler
             return _assemblyLoader.LoadFromPath(path);
 #endif
         }
+
     }
 }

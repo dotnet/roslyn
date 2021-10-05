@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Extensions<ISourceGenerator> _generators;
         // <Caravela>
         private readonly Extensions<ISourceTransformer> _transformers;
-        private readonly Extensions<object> _plugins;
+        private readonly Extensions<object>? _plugins;
         // </Caravela>
 
         private string? _lazyDisplay;
@@ -158,7 +158,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override ImmutableArray<object> GetPlugins()
         {
-            return _plugins?.GetExtensions(LanguageNames.CSharp) ?? ImmutableArray<object>.Empty;
+            if (_plugins == null)
+            {
+                return ImmutableArray<object>.Empty;
+            }
+            else
+            {
+                return _plugins?.GetExtensions(LanguageNames.CSharp) ?? ImmutableArray<object>.Empty;
+            }
         }
         // </Caravela>
 

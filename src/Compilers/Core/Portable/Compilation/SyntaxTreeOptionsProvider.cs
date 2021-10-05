@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Threading;
+using Caravela.Compiler;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -24,6 +25,11 @@ namespace Microsoft.CodeAnalysis
         /// Get diagnostic severity set globally for a given diagnostic identifier
         /// </summary>
         public abstract bool TryGetGlobalDiagnosticValue(string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity);
+        
+        // <Caravela>
+        private protected SyntaxTree GetSourceTree(SyntaxTree tree) => SyntaxTreeHistory.GetFirst(tree);
+        // </Caravela>
+
     }
 
     internal sealed class CompilerSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider
@@ -72,10 +78,19 @@ namespace Microsoft.CodeAnalysis
         }
 
         public override GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken _)
-            => _options.TryGetValue(tree, out var value) ? value.IsGenerated : GeneratedKind.Unknown;
+        {
+            // <Caravela>
+            tree = GetSourceTree(tree);
+            // </Caravela>
+            return _options.TryGetValue(tree, out var value) ? value.IsGenerated : GeneratedKind.Unknown;
+        }
 
         public override bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken _, out ReportDiagnostic severity)
         {
+            // <Caravela>
+            tree = GetSourceTree(tree);
+            // </Caravela>
+            
             if (_options.TryGetValue(tree, out var value))
             {
                 return value.DiagnosticOptions.TryGetValue(diagnosticId, out severity);

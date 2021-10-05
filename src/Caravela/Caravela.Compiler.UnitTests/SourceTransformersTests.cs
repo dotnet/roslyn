@@ -45,7 +45,7 @@ namespace Caravela.Compiler.UnitTests
             var assembly = LoadCompiledAssembly(Path.Combine(dir.Path, "temp.dll"));
 
             Assert.NotNull(assembly.GetType("Generated"));
-            Assert.Null(assembly.GetType("C"));
+            Assert.NotNull(assembly.GetType("C"));
 
             CleanupAllGeneratedFiles(src.Path);
         }
@@ -57,7 +57,7 @@ namespace Caravela.Compiler.UnitTests
             {
                 context.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic.Create("TEST001", "Test", "Test warning", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 1));
 
-                context.Compilation = context.Compilation.ReplaceSyntaxTree(context.Compilation.SyntaxTrees.Single(), SyntaxFactory.ParseSyntaxTree("class Generated {}"));
+                context.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("class Generated {}"));
             }
         }
         
@@ -131,7 +131,7 @@ namespace Caravela.Compiler.UnitTests
             }
             public void Execute(TransformerContext context)
             {
-                context.Compilation = context.Compilation.AddSyntaxTrees( SyntaxFactory.ParseSyntaxTree(this._introducedText));
+                context.AddSyntaxTrees( SyntaxFactory.ParseSyntaxTree(this._introducedText));
             }
         }
 
@@ -170,7 +170,7 @@ config_transformer_class_name = ConfigTestClass
             {
                 context.GlobalOptions.TryGetValue("config_transformer_class_name", out var className);
 
-                context.Compilation = context.Compilation.ReplaceSyntaxTree(context.Compilation.SyntaxTrees.Single(), SyntaxFactory.ParseSyntaxTree($"class {className} {{}}"));
+                context.ReplaceSyntaxTree(context.Compilation.SyntaxTrees.Single(), SyntaxFactory.ParseSyntaxTree($"class {className} {{}}"));
             }
         }
 
@@ -242,7 +242,7 @@ build_property.CaravelaCompilerTransformedFilesOutputPath = {transformedDir.Path
             Assert.Equal("/* comment */class C { }", File.ReadAllText(Path.Combine(transformedDir.Path, "C.cs")));
             Assert.Equal("/* comment */class D { }", File.ReadAllText(Path.Combine(transformedDir.Path, "dir/D.cs")));
 
-            var generatedFile = Directory.EnumerateFiles(transformedDir.Path).Single(p => Guid.TryParse(Path.GetFileNameWithoutExtension(p), out _));
+            var generatedFile = Directory.EnumerateFiles(transformedDir.Path).Single(p => Path.GetFileNameWithoutExtension(p).Length > 8 );
             Assert.Equal("class G {}", File.ReadAllText(generatedFile));
 
             // Clean up temp files
@@ -259,10 +259,10 @@ build_property.CaravelaCompilerTransformedFilesOutputPath = {transformedDir.Path
 
                 foreach (var tree in compilation.SyntaxTrees)
                 {
-                    compilation = compilation.ReplaceSyntaxTree(tree, tree.WithInsertAt(0, "/* comment */"));
+                    context.ReplaceSyntaxTree(tree, tree.WithInsertAt(0, "/* comment */"));
                 }
 
-                context.Compilation = compilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("class G {}"));
+                context.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("class G {}"));
             }
         }
     }

@@ -1,13 +1,20 @@
 *REMOVED*Microsoft.CodeAnalysis.SyntaxNode.IsEquivalentTo(Microsoft.CodeAnalysis.SyntaxNode! other) -> bool
-Caravela.Compiler.DiagnosticRequest
-Caravela.Compiler.DiagnosticRequest.Compilation.get -> Microsoft.CodeAnalysis.Compilation?
-Caravela.Compiler.DiagnosticRequest.Diagnostic.get -> Microsoft.CodeAnalysis.Diagnostic!
-Caravela.Compiler.DiagnosticRequest.IsSuppressed.get -> bool
-Caravela.Compiler.DiagnosticRequest.Suppress() -> void
-Caravela.Compiler.DiagnosticRequest.SyntaxNode.get -> Microsoft.CodeAnalysis.SyntaxNode?
+Caravela.Compiler.DiagnosticFilteringRequest
+Caravela.Compiler.DiagnosticFilteringRequest.Compilation.get -> Microsoft.CodeAnalysis.Compilation!
+Caravela.Compiler.DiagnosticFilteringRequest.Diagnostic.get -> Microsoft.CodeAnalysis.Diagnostic!
+Caravela.Compiler.DiagnosticFilteringRequest.IsSuppressed.get -> bool
+Caravela.Compiler.DiagnosticFilteringRequest.Suppress() -> void
+Caravela.Compiler.DiagnosticFilteringRequest.Symbol.get -> Microsoft.CodeAnalysis.ISymbol!
+Caravela.Compiler.DiagnosticFilteringRequest.SyntaxNode.get -> Microsoft.CodeAnalysis.SyntaxNode!
 Caravela.Compiler.ISourceTransformer.Execute(Caravela.Compiler.TransformerContext! context) -> void
-Caravela.Compiler.TransformerContext.Compilation.set -> void
-Caravela.Compiler.TransformerContext.RegisterDiagnosticFilter(System.Action<Caravela.Compiler.DiagnosticRequest!>! filter) -> void
+Caravela.Compiler.TransformerContext.AddResources(params Microsoft.CodeAnalysis.ResourceDescription![]! resources) -> void
+Caravela.Compiler.TransformerContext.AddResources(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ResourceDescription!>! resources) -> void
+Caravela.Compiler.TransformerContext.AddSyntaxTrees(params Microsoft.CodeAnalysis.SyntaxTree![]! syntaxTrees) -> void
+Caravela.Compiler.TransformerContext.AddSyntaxTrees(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTree!>! syntaxTrees) -> void
+Caravela.Compiler.TransformerContext.AddSyntaxTreeTransformations(System.Collections.Generic.IEnumerable<Caravela.Compiler.SyntaxTreeTransformation>! transformations) -> void
+Caravela.Compiler.TransformerContext.RegisterDiagnosticFilter(Microsoft.CodeAnalysis.SuppressionDescriptor! descriptor, System.Action<Caravela.Compiler.DiagnosticFilteringRequest!>! filter) -> void
+Caravela.Compiler.TransformerContext.ReplaceSyntaxTree(Microsoft.CodeAnalysis.SyntaxTree! oldTree, Microsoft.CodeAnalysis.SyntaxTree! newTree) -> void
+Caravela.Compiler.TransformerContext.Resources.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ResourceDescription!>
 const Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.CompilerPlugInAttributeAssembly = "Caravela.Framework.Sdk" -> string!
 const Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.CompilerPlugInAttributeTypeNamespace = "Caravela.Framework.Impl.Sdk" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.PrintMembersMethodName = "PrintMembers" -> string!
@@ -50,7 +57,7 @@ override Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.Visit(Micr
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetGenerators(string! language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetGeneratorsForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
 abstract Microsoft.CodeAnalysis.Compilation.GetUsedAssemblyReferences(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MetadataReference!>
-Caravela.Compiler.TransformerContext.Plugins.get -> System.Collections.Immutable.ImmutableArray<object>
+Caravela.Compiler.TransformerContext.Plugins.get -> System.Collections.Immutable.ImmutableArray<object!>
 Caravela.Compiler.ISourceTransformer
 Caravela.Compiler.TransformerAttribute
 Caravela.Compiler.TransformerAttribute.TransformerAttribute() -> void
@@ -61,14 +68,13 @@ Caravela.Compiler.Intrinsics
 Caravela.Compiler.ResourceDescriptionExtensions
 Caravela.Compiler.CaravelaCompilerInfo
 Caravela.Compiler.TransformerContext
-Caravela.Compiler.TransformerContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
-Caravela.Compiler.TransformerContext.GlobalOptions.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
-Caravela.Compiler.TransformerContext.LoadReferencedAssembly(Microsoft.CodeAnalysis.IAssemblySymbol assemblySymbol) -> System.Reflection.Assembly
-Caravela.Compiler.TransformerContext.ManifestResources.get -> System.Collections.Generic.IList<Microsoft.CodeAnalysis.ResourceDescription>
-Caravela.Compiler.TransformerContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
-const Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.CompilerPlugInAttributeTypeName = "CompilerPluginAttribute" -> string
-override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetPlugins() -> System.Collections.Immutable.ImmutableArray<object>
-override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetTransformers() -> System.Collections.Immutable.ImmutableArray<Caravela.Compiler.ISourceTransformer>
+Caravela.Compiler.TransformerContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation!
+Caravela.Compiler.TransformerContext.GlobalOptions.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions!
+Caravela.Compiler.TransformerContext.LoadReferencedAssembly(Microsoft.CodeAnalysis.IAssemblySymbol! assemblySymbol) -> System.Reflection.Assembly!
+Caravela.Compiler.TransformerContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic! diagnostic) -> void
+const Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.CompilerPlugInAttributeTypeName = "CompilerPluginAttribute" -> string!
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetPlugins() -> System.Collections.Immutable.ImmutableArray<object!>
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetTransformers() -> System.Collections.Immutable.ImmutableArray<Caravela.Compiler.ISourceTransformer!>
 static Caravela.Compiler.Intrinsics.GetRuntimeFieldHandle(string documentationId) -> System.RuntimeFieldHandle
 static Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(string documentationId) -> System.RuntimeMethodHandle
 static Caravela.Compiler.Intrinsics.GetRuntimeTypeHandle(string documentationId) -> System.RuntimeTypeHandle

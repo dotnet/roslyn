@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis
         public CommonCompiler(CommandLineParser parser, string? responseFile, string[] args, BuildPaths buildPaths, string? additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
         {
             IEnumerable<string> allArgs = args;
-            
+
             // <Caravela>
             _workingDirectory = buildPaths.WorkingDirectory;
             // </Caravela>
@@ -571,6 +571,11 @@ namespace Microsoft.CodeAnalysis
                     return;
                 }
 
+                // <Caravela>
+                var unmappedDiagnostic = diag;
+                diag = TreeTracker.MapDiagnostic(diag);
+                // </Caravela
+
                 // We want to report diagnostics with source suppression in the error log file.
                 // However, these diagnostics should not be reported on the console output.
                 errorLoggerOpt?.LogDiagnostic(diag, suppressionInfo);
@@ -588,7 +593,7 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
-                    _reportedDiagnostics.Add(diag);
+                    _reportedDiagnostics.Add(unmappedDiagnostic);
                     return;
                 }
 
@@ -606,7 +611,7 @@ namespace Microsoft.CodeAnalysis
 
                 PrintError(diag, consoleOutput);
 
-                _reportedDiagnostics.Add(diag);
+                _reportedDiagnostics.Add(unmappedDiagnostic);
             }
         }
 
@@ -755,13 +760,15 @@ namespace Microsoft.CodeAnalysis
         private protected virtual Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts, DiagnosticBag generatorDiagnostics) { return input; }
 
         // <Caravela>
-        private protected virtual void RunTransformers(
+
+        private protected virtual TransformersResult RunTransformers(
             Compilation inputCompilation, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins,
-            AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics, out Compilation annotatedInputCompilation, out Compilation outputCompilation,
-            out ImmutableArray<Action<DiagnosticRequest>> diagnosticFilters)
+            AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics)
         {
-            annotatedInputCompilation = outputCompilation = inputCompilation;
-            diagnosticFilters = ImmutableArray<Action<DiagnosticRequest>>.Empty;
+            return TransformersResult.Empty(inputCompilation);
+
+
+
         }
         // </Caravela>
 
@@ -966,7 +973,7 @@ namespace Microsoft.CodeAnalysis
             bool.TryParse(value, out var parsedValue);
             return parsedValue;
         }
-        
+
         protected static bool ShouldAttachDebugger(AnalyzerConfigOptionsProvider options)
         {
             options.GlobalOptions.TryGetValue("build_property.CaravelaDebugCompiler", out var value);
@@ -985,8 +992,8 @@ namespace Microsoft.CodeAnalysis
                 return FileUtilities.ResolveRelativePath(transformedFilesOutputDirectory, _workingDirectory);
             }
         }
-        
-        
+
+
         // </Caravela>
 
         /// <summary>
@@ -1023,13 +1030,12 @@ namespace Microsoft.CodeAnalysis
             {
                 return;
             }
-            
-            ImmutableArray<Action<DiagnosticRequest>> diagnosticFilters = ImmutableArray<Action<DiagnosticRequest>>.Empty;
+
             DiagnosticBag? analyzerExceptionDiagnostics = null;
             if (!analyzers.IsEmpty || !generators.IsEmpty
                                    // <Caravela>
                                    || !transfomers.IsEmpty
-                                  // </Caravela>
+                                   // </Caravela>
                                    )
             {
                 var analyzerConfigProvider = CompilerAnalyzerConfigOptionsProvider.Empty;
@@ -1130,14 +1136,19 @@ namespace Microsoft.CodeAnalysis
                 {
                     Debugger.Launch();
                 }
-                
+                var diagnosticFilters = DiagnosticFilters.Empty;
+
                 if (!transfomers.IsEmpty)
                 {
                     var compilationBeforeTransformation = compilation;
-                    RunTransformers(compilationBeforeTransformation, transfomers, plugins, analyzerConfigProvider, diagnostics, out var annotatedInputCompilation, out compilation, out diagnosticFilters);
+                    var transformersDiagnostics = new DiagnosticBag();
+                    var transformersResult = RunTransformers(compilationBeforeTransformation, transfomers, plugins, analyzerConfigProvider, transformersDiagnostics);
+                    diagnosticFilters = transformersResult.DiagnosticFilters;
+                    MapDiagnosticSyntaxTreesToFinalCompilation(transformersDiagnostics, diagnostics, transformersResult.TransformedCompilation);
+                    compilation = transformersResult.TransformedCompilation;
 
                     bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
-                    var transformedOutputPath = GetTransformedFilesOutputDirectory(analyzerConfigProvider);
+                    var transformedOutputPath = GetTransformedFilesOutputDirectory(analyzerConfigProvider)!;
                     bool hasTransformedOutputPath = !string.IsNullOrWhiteSpace(transformedOutputPath);
 
                     // fix whitespace and embed transformed code into PDB or write it to disk
@@ -1150,12 +1161,15 @@ namespace Microsoft.CodeAnalysis
                             diagnostics.Add(diagnostic);
                         }
 
-                        var transformedTrees = compilation.SyntaxTrees.Where(tree => !compilationBeforeTransformation.ContainsSyntaxTree(tree)).ToList();
-                        var prefixRemover = CommonPath.MakePrefixRemover(transformedTrees.Select(t => t.FilePath));
+
+                        var prefixRemover = CommonPath.MakePrefixRemover(transformersResult.TransformedTrees.Select(t => t.NewTree.FilePath));
                         var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                        foreach (var tree in transformedTrees)
+
+                        foreach (var transformedTree in transformersResult.TransformedTrees)
                         {
+                            var tree = transformedTree.NewTree;
+
                             cancellationToken.ThrowIfCancellationRequested();
 
                             var path = prefixRemover(tree.FilePath);
@@ -1167,7 +1181,7 @@ namespace Microsoft.CodeAnalysis
                                 .WithRootAndOptions(tree.GetRoot(cancellationToken), tree.Options);
 
                             var text = newTree.GetText(cancellationToken);
-                            
+
                             if (!text.CanBeEmbedded)
                             {
                                 text = SourceText.From(text.ToString(), Encoding.UTF8);
@@ -1206,10 +1220,12 @@ namespace Microsoft.CodeAnalysis
 
                             void EnsurePathIsUnique()
                             {
-                                // tree has no path, generate one
+                                // The tree has no path, generate one using a deterministic algorithm.
                                 if (string.IsNullOrWhiteSpace(path))
                                 {
-                                    path = $"{Guid.NewGuid()}.cs";
+                                    var checksum = string.Join("",
+                                        tree.GetText().GetChecksum().Select(t => t.ToString("x2")));
+                                    path = $"{checksum}.cs";
                                     return;
                                 }
 
@@ -1224,6 +1240,10 @@ namespace Microsoft.CodeAnalysis
                             }
                         }
                     }
+
+                    // We have to add a fake suppressor because we're using the suppression control flow to
+                    // run our own suppression logic.
+                    analyzers = analyzers.Add(new TransformerDiagnosticSuppressor(diagnosticFilters));
                 }
                 // </Caravela>
 
@@ -1254,6 +1274,7 @@ namespace Microsoft.CodeAnalysis
                         out compilation,
                         analyzerCts.Token);
                     reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;
+
                 }
 
             }
@@ -1453,6 +1474,13 @@ namespace Microsoft.CodeAnalysis
                         moduleBeingBuilt.CompilationFinished();
                     }
 
+
+                    // <Caravela>
+                    RemoveDiagnosticsFromGeneratedCode(diagnostics);
+                    // </Caravela>
+
+
+
                     if (HasUnsuppressedErrors(diagnostics))
                     {
                         success = false;
@@ -1506,8 +1534,6 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
                 }
-                
-                FilterDiagnostics(diagnostics, diagnosticFilters);
 
                 if (HasUnsuppressableErrors(diagnostics))
                 {
@@ -1542,40 +1568,60 @@ namespace Microsoft.CodeAnalysis
                 return;
             }
         }
-        
+
         // <Caravela>
-        private static void FilterDiagnostics(DiagnosticBag diagnostics, ImmutableArray<Action<DiagnosticRequest>> filters)
+        private static void MapDiagnosticSyntaxTreesToFinalCompilation(DiagnosticBag sourceDiagnostics, DiagnosticBag targetDiagnostics, Compilation compilation)
         {
-            if (filters.IsEmpty)
+            foreach (var diagnostic in sourceDiagnostics.AsEnumerable())
             {
-                return;
-            }
-
-            var inputDiagnostics = diagnostics.ToReadOnly();
-            diagnostics.Clear();
-
-            foreach (var diagnostic in inputDiagnostics)
-            {
-                if (!diagnostic.IsSuppressed)
+                if (!diagnostic.Location.IsInSource)
                 {
-                    if (TreeTracker.TryGetDiagnosticInfo(diagnostic, out var compilation, out var syntaxNode))
-                    {
-                        DiagnosticRequest request = new(diagnostic, syntaxNode, compilation);
-                        foreach (var filter in filters)
-                        {
-                            filter(request);
-                        }
-
-                        if (request.IsSuppressed)
-                        {
-                            // Continue without adding the diagnostic.
-                            continue;
-                        }
-                    }
+                    targetDiagnostics.Add(diagnostic);
+                    continue;
                 }
 
-                diagnostics.Add(diagnostic);
+                // Find the node in the tree where the diagnostic was reported.
+                var reportedSyntaxNode =
+                    diagnostic.Location.SourceTree.GetRoot().FindNode(diagnostic.Location.SourceSpan);
+
+                // Find the node in the source syntax tree.
+                var sourceSyntaxNode = TreeTracker.GetSourceSyntaxNode(reportedSyntaxNode);
+
+                if (sourceSyntaxNode == null)
+                {
+                    // The node was reported in generated code.
+                    targetDiagnostics.Add(diagnostic);
+                    continue;
+                }
+
+                // Find the final tree.
+                SyntaxTree? finalTree = SyntaxTreeHistory.GetLast(diagnostic.Location.SourceTree);
+                RoslynDebug.Assert(compilation.ContainsSyntaxTree(finalTree));
+
+                // Find the node in the final tree corresponding to the node in the original tree.
+                var finalNode = finalTree.GetRoot().DescendantNodes().FirstOrDefault(n =>
+                    TreeTracker.GetSourceSyntaxNode(n) == sourceSyntaxNode);
+
+                if (finalNode == null)
+                {
+                    // The diagnostic was reported on a node that has been removed by another transformation.
+                    // It can be skipped.
+                    continue;
+                }
+
+                targetDiagnostics.Add(diagnostic.WithLocation(finalNode.Location));
             }
+
+        }
+
+        // Remove warnings and analyzer errors in generated code.
+        private static void RemoveDiagnosticsFromGeneratedCode(DiagnosticBag diagnostics)
+        {
+            var inputDiagnostics = diagnostics.ToReadOnly();
+            diagnostics.Clear();
+            diagnostics.AddRange(
+                inputDiagnostics.Where(diagnostic => diagnostic.Severity >= DiagnosticSeverity.Error && diagnostic.Id.StartsWith("CS", StringComparison.OrdinalIgnoreCase) ||
+                                                     !TreeTracker.IsTransformedLocation(diagnostic.Location)));
         }
         // </Caravela>
 

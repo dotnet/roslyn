@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitRestorePreviousSequencePoint(BoundRestorePreviousSequencePoint node)
         {
             Debug.Assert(node.Syntax is { });
-            
+
             // <Caravela> - changed TextSpan to Location 
             if (_savedSequencePoints is null || !_savedSequencePoints.TryGetValue(node.Identifier, out var location))
                 return;
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 // <Caravela>
                 // find the pre-transformation root that corresponds to the root node of the tree where the method is
-                var preTransformationRoot = TreeTracker.GetPreTransformationSyntax(_methodBodySyntaxOpt.SyntaxTree.GetRoot());
+                var preTransformationRoot = TreeTracker.GetSourceSyntaxNode(_methodBodySyntaxOpt.SyntaxTree.GetRoot());
                 if (preTransformationRoot == null)
                     return;
                 // </Caravela>
@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitSequencePoint(SyntaxNode syntax)
         {
             // <Caravela>
-            syntax = TreeTracker.GetPreTransformationSyntax(syntax);
+            syntax = TreeTracker.GetSourceSyntaxNode(syntax);
 
             if (syntax == null)
             {
@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             // <Caravela>
             var location = Location.Create(syntaxTree, span);
-            location = TreeTracker.GetPreTransformationLocation(location);
+            location = TreeTracker.GetSourceLocation(location);
 
             if (location.SourceSpan == default)
             {

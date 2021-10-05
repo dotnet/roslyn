@@ -9,14 +9,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis;
+using Caravela.Compiler;
+using Caravela.Compiler.Interface.TypeForwards;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Caravela.Compiler;
-using Caravela.Compiler.Interface.TypeForwards;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -406,89 +405,164 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // <Caravela>
-        private protected override void RunTransformers(
+
+
+        private protected override TransformersResult RunTransformers(
             Compilation inputCompilation, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider,
-            DiagnosticBag diagnostics,  out Compilation annotatedInputCompilation, out Compilation outputCompilation, out ImmutableArray<Action<DiagnosticRequest>> diagnosticFilters)
+            DiagnosticBag diagnostics)
         {
-            var resources = Arguments.ManifestResources.ToList();
+            ImmutableArray<ResourceDescription> resources = Arguments.ManifestResources;
 
-            RunTransformers(inputCompilation, transformers, plugins, analyzerConfigProvider, diagnostics, resources, AssemblyLoader, out annotatedInputCompilation,
-                out outputCompilation, out diagnosticFilters );
+            var result = RunTransformers(inputCompilation, transformers, plugins, analyzerConfigProvider, diagnostics,
+                resources, AssemblyLoader);
 
-            Arguments.ManifestResources = resources.ToImmutableArray();
+            Arguments.ManifestResources = resources.AddRange(result.AdditionalResources);
+
+            return result;
         }
 
-        internal static void RunTransformers(
+        internal static TransformersResult RunTransformers(
             Compilation inputCompilation, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider,
-            DiagnosticBag diagnostics, IList<ResourceDescription> manifestResources, IAnalyzerAssemblyLoader assemblyLoader, out Compilation annotatedInputCompilation, out Compilation outputCompilation,
-            out ImmutableArray<Action<DiagnosticRequest>> diagnosticFilters )
+            DiagnosticBag diagnostics, ImmutableArray<ResourceDescription> manifestResources,
+            IAnalyzerAssemblyLoader assemblyLoader)
         {
             
+        
 
             // if there are no transformers, don't do anything, not even annotating
             if (transformers.IsEmpty)
             {
-                annotatedInputCompilation = inputCompilation;
-                outputCompilation = inputCompilation;
-                diagnosticFilters = ImmutableArray<Action<DiagnosticRequest>>.Empty;
-                
-                return;
+                return TransformersResult.Empty(inputCompilation);
             }
+            
+            Dictionary<SyntaxTree, (SyntaxTree NewTree,bool IsModified)> oldTreeToNewTrees = new();
+            Dictionary<SyntaxTree, SyntaxTree?> newTreesToOldTrees = new();
+            HashSet<SyntaxTree> addedTrees = new();
+            List<ResourceDescription> addedResources = new();
+            var diagnosticFiltersBuilder = ImmutableArray.CreateBuilder<DiagnosticFilter>();
+            var manifestResourcesBuilder = ImmutableArray.CreateBuilder<ResourceDescription>();
+
+
 
             // Add tracking annotations to the input tree.
-            annotatedInputCompilation = inputCompilation;
+            var annotatedInputCompilation = inputCompilation;
             bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
             if (!shouldDebugTransformedCode)
             {
                 // mark old trees as debuggable
                 foreach (var tree in inputCompilation.SyntaxTrees)
                 {
-                    annotatedInputCompilation = annotatedInputCompilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(TreeTracker.AnnotateNodeAndChildren(tree.GetRoot(), inputCompilation), tree.Options));
+                    SyntaxTree annotatedTree = tree.WithRootAndOptions(TreeTracker.AnnotateNodeAndChildren(tree.GetRoot()), tree.Options);
+                    SyntaxTreeHistory.Update(tree, annotatedTree );
+                    annotatedInputCompilation = annotatedInputCompilation.ReplaceSyntaxTree(tree, annotatedTree);
+                    oldTreeToNewTrees[tree] = (annotatedTree,false);
+                    newTreesToOldTrees[annotatedTree] = tree;
                 }
             }
 
             // Execute the transformers.
-            outputCompilation = annotatedInputCompilation;
+            var outputCompilation = annotatedInputCompilation;
 
-            var diagnosticFiltersBuilder = ImmutableArray.CreateBuilder<Action<DiagnosticRequest>>();
-
+          
+         
             foreach (var transformer in transformers)
             {
                 try
                 {
-                    var context = new TransformerContext(outputCompilation, plugins, analyzerConfigProvider.GlobalOptions, manifestResources, diagnostics, assemblyLoader);
+                    var context = new TransformerContext(outputCompilation, plugins,
+                        analyzerConfigProvider.GlobalOptions, manifestResources.AddRange(addedResources), diagnostics,
+                        assemblyLoader);
                     transformer.Execute(context);
-                    outputCompilation = context.Compilation;
+                    
                     diagnosticFiltersBuilder.AddRange(context.DiagnosticFilters);
+                    manifestResourcesBuilder.AddRange(context.AddedResources);
+
+                    
+
+                    foreach (var transformedTree in context.TransformedTrees)
+                    {
+                        SyntaxTree newTree = transformedTree.NewTree;
+                        
+                        
+                        // Annotate the new tree.
+                        /*
+                        if (!shouldDebugTransformedCode)
+                        {
+                            // mark new trees as not debuggable
+                            // in Debug mode, also mark transformed trees as undebuggable "poison", which triggers assert if used in a sequence point
+                            if (TreeTracker.IsAnnotated(newTree.GetRoot()))
+                            {
+#if DEBUG
+                                TreeTracker.MarkAsUndebuggable(newTree);
+#endif
+                            }
+                            else
+                            {
+                                // TODO: this is at most not efficient because we may have reference to hundreds of compilations.
+                                newTree = newTree.WithRootAndOptions(
+                                    TreeTracker.AnnotateNodeAndChildren(newTree.GetRoot(), null, outputCompilation),
+                                    newTree.Options);
+                            }
+                        }
+                        */
+                        
+                        // Update the compilation and indices.
+                        if (transformedTree.OldTree != null)
+                        {
+                            // Find the original tree.
+                            if (!newTreesToOldTrees.TryGetValue(transformedTree.OldTree, out SyntaxTree? oldTree))
+                            {
+                                oldTree = transformedTree.OldTree;
+                            }
+
+                            // Updates the index that allows to find the original tree.
+                            newTreesToOldTrees[newTree] = oldTree;
+
+                            if (oldTree != null)
+                            {
+                                // Update the index mapping old trees to new trees.
+                                oldTreeToNewTrees[oldTree] = (newTree,true);
+                            }
+                            else
+                            {
+                                // We are updating a tree that was added by a previous transformer.
+                                addedTrees.Remove(transformedTree.OldTree);
+                                addedTrees.Add(newTree);
+                            }
+
+                            outputCompilation =
+                                outputCompilation.ReplaceSyntaxTree(transformedTree.OldTree, newTree);
+                        }
+                        else
+                        {
+                            addedTrees.Add(newTree);
+                            newTreesToOldTrees[newTree] = null;
+                            outputCompilation = outputCompilation.AddSyntaxTrees(newTree);
+                        }
+                    }
+                    
+                    addedResources.AddRange(context.AddedResources);
+
                 }
                 catch (Exception ex)
                 {
                     var diagnostic = Diagnostic.Create(new DiagnosticInfo(
-                        CaravelaCompilerMessageProvider.Instance, (int)Caravela.Compiler.ErrorCode.ERR_TransformerFailed, transformer.GetType().Name, ex.ToString()));
+                        CaravelaCompilerMessageProvider.Instance, (int)global::Caravela.Compiler.ErrorCode.ERR_TransformerFailed, transformer.GetType().Name, ex.ToString()));
                     diagnostics.Add(diagnostic);
                 }
             }
 
-            diagnosticFilters = diagnosticFiltersBuilder.ToImmutable();
 
-            if (!shouldDebugTransformedCode)
-            {
-                // mark new trees as not debuggable
-                // in Debug mode, also mark transformed trees as undebuggable "poison", which triggers assert if used in a sequence point
-                foreach (var tree in outputCompilation.SyntaxTrees)
-                {
-                    if (TreeTracker.IsAnnotated(tree.GetRoot()))
-                    {
-#if DEBUG
-                        TreeTracker.MarkAsUndebuggable(tree);
-#endif
-                    }
-                    else
-                    {
-                        outputCompilation = outputCompilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(TreeTracker.AnnotateNodeAndChildren(tree.GetRoot(), null, outputCompilation), tree.Options));
-                    }
-                }
-            }
+            var replacements = oldTreeToNewTrees
+                .Where( p => p.Value.IsModified )
+                .Select(p => new SyntaxTreeTransformation(p.Value.NewTree, p.Key))
+                .Concat(addedTrees.Select(t => new SyntaxTreeTransformation(t, null)))
+                .ToImmutableArray();
+
+            return new TransformersResult(annotatedInputCompilation, outputCompilation,
+                 replacements, new DiagnosticFilters(diagnosticFiltersBuilder.ToImmutable()), addedResources.ToImmutableArray());
+            
+    
         }
         // </Caravela>
     }

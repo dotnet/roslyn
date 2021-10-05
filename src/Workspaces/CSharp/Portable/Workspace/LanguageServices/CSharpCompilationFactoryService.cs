@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // <Caravela>
         public Func<Compilation, (Compilation, ImmutableArray<Diagnostic>)> GetRunTransformersDelegate(ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider, IAnalyzerAssemblyLoader assemblyLoader)
         {
-            return compilation => CSharpTransformerDriver.RunTransformers(compilation, transformers, plugins, analyzerConfigProvider, new List<ResourceDescription>(), assemblyLoader);
+            return compilation => 
+                CSharpTransformerDriver.RunTransformers(compilation, transformers, plugins, analyzerConfigProvider, ImmutableArray<ResourceDescription>.Empty, assemblyLoader);
         }
         // </Caravela>
     }

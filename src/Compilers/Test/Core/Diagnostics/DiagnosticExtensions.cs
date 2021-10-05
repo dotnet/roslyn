@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Caravela.Compiler;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -106,7 +107,9 @@ namespace Microsoft.CodeAnalysis
 
             if (CaravelaCompilerTest.ShouldExecuteTransformer)
             {
-                // GetDiagnostics() has side-effects that some tests are relying on (e.g. UnusedGlobalUsingNamespace_02 reads comp2.UsageOfUsingsRecordedInTrees).
+                // GetDiagnostics() has side-effects that some tests are relying on
+                // (e.g. UnusedGlobalUsingNamespace_02 reads comp2.UsageOfUsingsRecordedInTrees
+                //  or Microsoft.CodeAnalysis.CSharp.UnitTests.InheritanceBindingTests.ImplementInterfaceUsingNonVirtualEvent )
                 _ = c.GetDiagnostics();
 
 
@@ -121,7 +124,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            var diagnostics = compilation.GetDiagnostics();
+            var diagnostics = TreeTracker.MapDiagnostics(compilation.GetDiagnostics()).ToImmutableArray();
             diagnostics.Verify(expected);
             VerifyAssemblyIds(compilation, diagnostics);
 

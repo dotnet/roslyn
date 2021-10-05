@@ -146,10 +146,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             var id = diagnostic.Id;
-            // <Caravela>
-            var location = diagnostic is Diagnostic.SimpleDiagnostic simpleDiagnostic ? simpleDiagnostic.OriginalLocation : diagnostic.Location;
-            // </Caravela>
-
+            var location = diagnostic.Location;
+            
             if (IsDiagnosticGloballySuppressed(id, symbolOpt: null, isImmediatelyContainingSymbol: false, info: out info))
             {
                 return true;

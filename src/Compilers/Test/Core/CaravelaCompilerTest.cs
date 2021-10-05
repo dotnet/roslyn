@@ -23,13 +23,12 @@ namespace Roslyn.Test.Utilities
             var transformers = ImmutableArray.Create(transformer);
             var diagnostics = new DiagnosticBag();
 
-            CSharpCompiler.RunTransformers(
-                compilation, transformers, ImmutableArray.Create<object>(), CompilerAnalyzerConfigOptionsProvider.Empty, diagnostics, null!, null!, 
-                out _, out var result, out _);
+            var transformersResult =  CSharpCompiler.RunTransformers(
+                compilation, transformers, ImmutableArray.Create<object>(), CompilerAnalyzerConfigOptionsProvider.Empty, diagnostics, ImmutableArray<ResourceDescription>.Empty, null!);
 
             diagnostics.ToReadOnlyAndFree().Verify();
 
-            return result;
+            return transformersResult.TransformedCompilation;
         }
 
         public class TokenPerLineTransformer : ISourceTransformer
@@ -63,9 +62,9 @@ namespace Roslyn.Test.Utilities
                     var newRoot = tree.GetRoot().ReplaceTokens(
                         tree.GetRoot().DescendantTokens(descendIntoTrivia: true), (_, token) => ChangeWhitespace(token));
 
-                    compilation = compilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(newRoot, tree.Options));
+                    context.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(newRoot, tree.Options));
                 }
-                context.Compilation=  compilation;
+                
             }
         }
     }

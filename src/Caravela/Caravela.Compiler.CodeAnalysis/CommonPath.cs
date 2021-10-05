@@ -46,7 +46,7 @@ namespace Caravela.Compiler
             return GetPrefix(directories);
         }
 
-        static ReadOnlyMemory<string> GetPrefix(IEnumerable<ReadOnlyMemory<string>> directories) => directories.Aggregate(GetPrefix);
+        static ReadOnlyMemory<string> GetPrefix(IEnumerable<ReadOnlyMemory<string>> directories) => directories.AggregateOrDefault(GetPrefix);
 
         internal static ReadOnlyMemory<string> GetPrefix(ReadOnlyMemory<string> directory1, ReadOnlyMemory<string> directory2)
         {

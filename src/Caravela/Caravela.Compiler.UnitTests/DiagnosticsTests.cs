@@ -55,7 +55,11 @@ namespace Caravela.Compiler.UnitTests
 
             var transformers = new ISourceTransformer[] { new AppendTransformer("class D { }") }
                 .ToImmutableArray();
-            var analyzers = new DiagnosticAnalyzer[] { new WarningForEachClassAnalyzer(outWriter) }.ToImmutableArray();
+            var analyzers = new DiagnosticAnalyzer[]
+            {
+                new DiagnosticForEachClassAnalyzer("MY001", DiagnosticSeverity.Warning, outWriter),
+                new DiagnosticForEachClassAnalyzer("MY002", DiagnosticSeverity.Error, outWriter)
+            }.ToImmutableArray();
             var csc = CreateCSharpCompiler(null, dir.Path, args, analyzers: analyzers, transformers: transformers);
 
             var exitCode = csc.Run(outWriter);
@@ -71,8 +75,10 @@ namespace Caravela.Compiler.UnitTests
             Assert.Contains("Analyzing 'C'.", output);
             Assert.Contains("Analyzing 'D'.", output);
             Assert.Contains("warning MY001: Found a class 'C'.", output);
-            Assert.Contains("error MY002: Found a class 'C'.", output);
             Assert.DoesNotContain("warning MY001: Found a class 'D'.", output);
+            
+            // Errors should also be suppressed because they don't have the CS prefix.
+            Assert.Contains("error MY002: Found a class 'C'.", output);
             Assert.DoesNotContain("error MY002: Found a class 'D'.", output);
         }
 
@@ -84,11 +90,13 @@ namespace Caravela.Compiler.UnitTests
 
             var args = new[] { "/t:library", src.Path };
 
-            var analyzers = new DiagnosticAnalyzer[] { new WarningForEachClassAnalyzer() }.ToImmutableArray();
+            var analyzers = new DiagnosticAnalyzer[] { new DiagnosticForEachClassAnalyzer("MY001", DiagnosticSeverity.Warning) }.ToImmutableArray();
             var transformers =
                 new ISourceTransformer[]
                 {
-                    new AppendTransformer("class D { int _f; }"), new SuppressAnythingTransformer()
+                    new AppendTransformer("class D { int _f; }"), 
+                    new SuppressTransformer("MY001"),
+                    new SuppressTransformer("CS0169"),
                 }.ToImmutableArray();
             var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers, analyzers: analyzers);
 
@@ -125,23 +133,21 @@ namespace Caravela.Compiler.UnitTests
         }
 
 
-        private class WarningForEachClassAnalyzer : DiagnosticAnalyzer
+        private class DiagnosticForEachClassAnalyzer : DiagnosticAnalyzer
         {
             private readonly StringWriter? _outWriter;
 
-            private readonly DiagnosticDescriptor _warning = new("MY001", "", "Found a class '{0}'.",
-                "test", DiagnosticSeverity.Warning, true);
+            private readonly DiagnosticDescriptor _diagnostic;
 
-            private readonly DiagnosticDescriptor _error = new("MY002", "", "Found a class '{0}'.",
-                "test", DiagnosticSeverity.Error, true);
 
-            public WarningForEachClassAnalyzer(StringWriter? outWriter = null)
+            public DiagnosticForEachClassAnalyzer(string id, DiagnosticSeverity severity, StringWriter? outWriter = null)
             {
                 _outWriter = outWriter;
+                _diagnostic = new(id, "", "Found a class '{0}'.", "test", severity, true);
             }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-                ImmutableArray.Create(_warning, _error);
+                ImmutableArray.Create(_diagnostic);
 
             public override void Initialize(AnalysisContext context)
             {
@@ -156,8 +162,7 @@ namespace Caravela.Compiler.UnitTests
                 foreach (var c in context.Tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>())
                 {
                     _outWriter?.WriteLine($"Analyzing '{c.Identifier.Text}'.");
-                    context.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic.Create(_warning, c.Location, c.Identifier.Text));
-                    context.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic.Create(_error, c.Location, c.Identifier.Text));
+                    context.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic.Create(_diagnostic, c.Location, c.Identifier.Text));
                 }
             }
         }
@@ -177,15 +182,24 @@ namespace Caravela.Compiler.UnitTests
                 var oldRoot = (CompilationUnitSyntax)syntaxTree.GetRoot();
                 var newRoot = oldRoot.AddMembers(_newCode.Members.ToArray());
                 var modifiedSyntaxTree = syntaxTree.WithRootAndOptions(newRoot, syntaxTree.Options);
-                context.Compilation = context.Compilation.ReplaceSyntaxTree(syntaxTree, modifiedSyntaxTree);
+                context.ReplaceSyntaxTree(syntaxTree, modifiedSyntaxTree);
             }
         }
 
-        private  class SuppressAnythingTransformer : ISourceTransformer
+        private  class SuppressTransformer : ISourceTransformer
         {
+            private string _diagnosticId;
+
+            public SuppressTransformer(string diagnosticId)
+            {
+                _diagnosticId = diagnosticId;
+            }
+
             public void Execute(TransformerContext context)
             {
-                context.RegisterDiagnosticFilter(request => request.Suppress());
+                context.RegisterDiagnosticFilter(
+                    new SuppressionDescriptor("Suppress." + _diagnosticId, _diagnosticId, ""),
+                    request => request.Suppress());
             }
         }
     }
