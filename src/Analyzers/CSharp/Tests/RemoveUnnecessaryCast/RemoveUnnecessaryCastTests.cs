@@ -10071,5 +10071,22 @@ class C
 
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task KeepIntToLongCastWithIComparable()
+        {
+            var source =
+@"using System;
+ 
+class C
+{
+    static void Main()
+    {
+        IComparable<long> result = (long)0;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
     }
 }

@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 castNode, rewrittenExpression,
                 originalSemanticModel, rewrittenSemanticModel,
                 originalConversion, originalConvertedType, cancellationToken);
-            if (rewrittenConvertedType is null || rewrittenConvertedType.TypeKind == TypeKind.Error)
+            if (rewrittenConvertedType is null || rewrittenConvertedType.TypeKind == TypeKind.Error || !rewrittenConversion.Exists)
                 return false;
 
             // The final converted type may be the same even after removing the cast.  However, the cast may 
