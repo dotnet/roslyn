@@ -10024,6 +10024,7 @@ class Program
 }";
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoNotRemoveCastIfOverriddenMethodHasDifferentReturnType()
         {
@@ -10045,6 +10046,26 @@ class X : Y
     public override string {|CS8830:Goo|}()
     {
         return null;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task KeepCastToObjectToPreserveDynamicOverload()
+        {
+            var source =
+@"using System;
+ 
+class C
+{
+    static void Bar(int x, Action y) { }
+    static void Bar(dynamic x, Action y) { }
+ 
+    static void Main()
+    {
+        Bar((object)1, Console.WriteLine);
     }
 }";
 
