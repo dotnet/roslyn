@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 _cancellationToken.ThrowIfCancellationRequested();
 
                 if (_conflictReferences.Contains(node))
-                    node.Update(node.Identifier.WithAdditionalAnnotations(CreateConflictAnnotation()));
+                    return node.Update(node.Identifier.WithAdditionalAnnotations(CreateConflictAnnotation()));
 
                 if (_nonConflictReferences.Contains(node))
                     return _expressionToInline;

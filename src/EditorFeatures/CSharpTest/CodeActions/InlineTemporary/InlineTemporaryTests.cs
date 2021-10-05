@@ -640,7 +640,7 @@ class Program
     static void Main()
     {
         int x = 2;
-        Bar(x < x, (x > (1 + 2)));
+        Bar(x < x, (x > 1 + 2));
     }
 
     static void Bar(object a, object b)
@@ -670,7 +670,7 @@ class Program
     static void Main()
     {
         int x = 2;
-        var z = new[] { x < x, (x > (1 + 2)) };
+        var z = new[] { x < x, x > 1 + 2 };
     }
 }");
         }
@@ -2131,7 +2131,7 @@ class C
     static void Main()
     {
         Action<string> g = null;
-        var h = Goo + g;
+        var h = (Goo<string>) + g;
     }
 
     static void Goo<T>(T y) { }
@@ -2368,7 +2368,7 @@ class C
 {
     static void Main()
     {
-        Goo((Action<int[]>)(x => { x[1] = x[0]; }));
+        Goo(x => { x[1] = (int)x[0]; });
     }
  
     static void Goo(Action<int[]> x) { }
@@ -2847,7 +2847,7 @@ class C
 {
     static void M()
     {
-        Goo(() => { return 42; }, (Func<long>)(() => { return 42; }));
+        Goo(() => { return 42; }, () => { return (long)42; });
     }
 
     static void Goo(Func<int> x, Func<int> y) { }
@@ -3043,10 +3043,10 @@ class C
 
     static void Main()
     {
-        Goo((Action<string>)(x =>
+        Goo(x =>
         {
-            var y = x;
-        }));
+            var y = (string)x;
+        });
     }
 }");
         }
@@ -3378,7 +3378,7 @@ static class C
 
     static void Main()
     {
-        Outer(y => Inner(x => { Action a = () => x.GetType(); }, y), null);
+        Outer(y => Inner(x => { Action a = () => ((string)x).GetType(); }, y), null);
     }
 }
 ");
@@ -5118,8 +5118,8 @@ class C
 
     void M()
     {
-        {|Warning:(new C()).P = 1|};
-        var c2 = (new C());
+        {|Warning:new C().P = 1|};
+        var c2 = new C();
     }
 }");
         }
@@ -5345,7 +5345,7 @@ System.Console.WriteLine(val2);
 
             var expected = @"
 int val = 0;
-global::System.Console.WriteLine(val + 1);
+System.Console.WriteLine(val + 1);
 ";
 
             // Global statements in regular code are local variables, so Inline Temporary works. Script code is not
@@ -5370,7 +5370,7 @@ global::System.Console.WriteLine(val + 1);
 @"
 {
     int val = 0;
-    global::System.Console.WriteLine(val + 1);
+    System.Console.WriteLine(val + 1);
 }
 ",
                 TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));

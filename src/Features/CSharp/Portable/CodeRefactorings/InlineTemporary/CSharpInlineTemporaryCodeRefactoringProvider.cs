@@ -423,6 +423,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             }
             else
             {
+                if (localSymbol.Type.ContainsAnonymousType() || localSymbol.Type is IErrorTypeSymbol { Name: null or "" })
+                    return expression;
+
                 return expression.Cast(localSymbol.Type);
             }
 
