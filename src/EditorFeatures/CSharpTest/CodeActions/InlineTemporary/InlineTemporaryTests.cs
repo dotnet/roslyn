@@ -640,7 +640,7 @@ class Program
     static void Main()
     {
         int x = 2;
-        Bar(x < x, (x > 1 + 2));
+        Bar(x < x, x > 1 + 2);
     }
 
     static void Bar(object a, object b)
@@ -2957,7 +2957,7 @@ class X
     {
         unchecked
         {
-            Console.WriteLine(Goo(X => (byte)X.Value, (object)null));
+            Console.WriteLine(Goo(X => (byte)X.Value, null));
         }
     }
 }");
@@ -3004,7 +3004,7 @@ static class C
     {
         unsafe
         {
-            Console.WriteLine(Outer(x => Inner(x, null), (object)null));
+            Console.WriteLine(Outer(x => Inner(x, null), null));
         }
     }
 }");
@@ -5345,7 +5345,7 @@ System.Console.WriteLine(val2);
 
             var expected = @"
 int val = 0;
-System.Console.WriteLine(val + 1);
+System.Console.WriteLine((int)(val + 1));
 ";
 
             // Global statements in regular code are local variables, so Inline Temporary works. Script code is not
@@ -5370,7 +5370,7 @@ System.Console.WriteLine(val + 1);
 @"
 {
     int val = 0;
-    System.Console.WriteLine(val + 1);
+    System.Console.WriteLine((int)(val + 1));
 }
 ",
                 TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
