@@ -1499,6 +1499,65 @@ class C
             Await TestAsync(input, expected)
         End Function
 
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529956")>
+        Public Async Function TestCSharp_DoRemove_UnnecessaryCastInForEachExpression() As Task
+            ' Currently not working, but would make sense to support in the future.
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+using System.Collections;
+using System.Collections.Generic;
+ 
+class C
+{
+    static void Main()
+    {
+        foreach (C x in {|Simplify:(IEnumerable<string>) new string[] { null }|})
+        {
+            Console.WriteLine(x == null);
+        }
+    }
+ 
+    public static implicit operator C(string s)
+    {
+        return new C();
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+using System.Collections;
+using System.Collections.Generic;
+ 
+class C
+{
+    static void Main()
+    {
+        foreach (C x in new string[] { null })
+        {
+            Console.WriteLine(x == null);
+        }
+    }
+ 
+    public static implicit operator C(string s)
+    {
+        return new C();
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529956")>
         Public Async Function TestCSharp_DoNotRemove_NecessaryCastInForEachExpressionInsideLambda() As Task
@@ -3329,7 +3388,7 @@ static class Program
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529988")>
         Public Async Function TestCSharp_Remove_UnnecessaryCastInDelegateCreationExpression3() As Task
             ' Note: Removing the cast changes the lambda parameter type, but doesn't change the semantics of the lambda body.
@@ -3518,7 +3577,7 @@ static class Program
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529988")>
         Public Async Function TestCSharp_Remove_UnnecessaryCastInDelegateCreationExpression7() As Task
             ' Note: Removing the cast changes the parameter type of lambda parameter "z"
