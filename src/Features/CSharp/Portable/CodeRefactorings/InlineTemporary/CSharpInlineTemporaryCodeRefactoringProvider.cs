@@ -414,65 +414,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
                 return expression.Cast(localSymbol.Type);
             }
-
-#if false
-            var expression = variableDeclarator.Initializer.Value.WalkDownParentheses();
-            var semanticModel = await updatedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
-            var newExpression = InitializerRewriter.Visit(expression, localSymbol, semanticModel);
-
-            // Consider: C c = new(); Console.WriteLine(c.ToString());
-            // Inlining result should be: Console.WriteLine(new C().ToString()); instead of Console.WriteLine(new().ToString());
-            // This condition converts implicit object creation expression to normal object creation expression.
-            if (newExpression.IsKind(SyntaxKind.ImplicitObjectCreationExpression))
-            {
-                var implicitCreation = (ImplicitObjectCreationExpressionSyntax)newExpression;
-                var type = localSymbol.Type.GenerateTypeSyntax();
-                newExpression = SyntaxFactory.ObjectCreationExpression(implicitCreation.NewKeyword, type, implicitCreation.ArgumentList, implicitCreation.Initializer);
-            }
-
-            // If this is an array initializer, we need to transform it into an array creation
-            // expression for inlining.
-            if (newExpression.Kind() == SyntaxKind.ArrayInitializerExpression)
-            {
-                var arrayType = (ArrayTypeSyntax)localSymbol.Type.GenerateTypeSyntax();
-                var arrayInitializer = (InitializerExpressionSyntax)newExpression;
-
-                // Add any non-whitespace trailing trivia from the equals clause to the type.
-                var equalsToken = variableDeclarator.Initializer.EqualsToken;
-                if (equalsToken.HasTrailingTrivia)
-                {
-                    var trailingTrivia = equalsToken.TrailingTrivia.SkipInitialWhitespace();
-                    if (trailingTrivia.Any())
-                    {
-                        arrayType = arrayType.WithTrailingTrivia(trailingTrivia);
-                    }
-                }
-
-                newExpression = SyntaxFactory.ArrayCreationExpression(arrayType, arrayInitializer);
-            }
-
-            newExpression = newExpression.WithAdditionalAnnotations(InitializerAnnotation);
-
-            updatedDocument = await updatedDocument.ReplaceNodeAsync(variableDeclarator.Initializer.Value, newExpression, cancellationToken).ConfigureAwait(false);
-            semanticModel = await updatedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            newExpression = await FindInitializerAsync(updatedDocument, cancellationToken).ConfigureAwait(false);
-            var newVariableDeclarator = await FindDeclaratorAsync(updatedDocument, cancellationToken).ConfigureAwait(false);
-            localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(newVariableDeclarator, cancellationToken);
-
-            var explicitCastExpression = newExpression.CastIfPossible(localSymbol.Type, newVariableDeclarator.SpanStart, semanticModel, cancellationToken);
-            if (explicitCastExpression != newExpression)
-            {
-                updatedDocument = await updatedDocument.ReplaceNodeAsync(newExpression, explicitCastExpression, cancellationToken).ConfigureAwait(false);
-                semanticModel = await updatedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                newVariableDeclarator = await FindDeclaratorAsync(updatedDocument, cancellationToken).ConfigureAwait(false);
-            }
-
-            // Now that the variable declarator is normalized, make its initializer
-            // value semantically explicit.
-            newExpression = await Simplifier.ExpandAsync(newVariableDeclarator.Initializer.Value, updatedDocument, cancellationToken: cancellationToken).ConfigureAwait(false);
-            return newExpression.WithAdditionalAnnotations(ExpressionToInlineAnnotation);
-#endif
         }
 
         private static SyntaxNode GetTopMostParentingExpression(ExpressionSyntax expression)
