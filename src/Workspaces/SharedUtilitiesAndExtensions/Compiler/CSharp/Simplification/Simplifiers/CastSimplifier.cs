@@ -478,10 +478,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 }
             }
 
-            // If the types of the expressions are different, then removing the conversion changed semantics
-            // and we can't remove it.
+            // If the types of the expressions are the same, then we can remove safely.
             if (Equals(originalConvertedType, rewrittenConvertedType))
                 return true;
+
+            // There are cases where the types change but things may still be safe to remove.
+
+            // Case1.  A value type casted to `object` is safe if it's now getting converted to `dynamic`.
+            // At runtime `dynamic` is just an `object` as well, and precasting to `object` will end up
+            // with the same value and type still in the `dynamic` final location.
+            if (originalConversion.IsBoxing && rewrittenConversion.IsBoxing &&
+                originalConvertedType.IsReferenceType && rewrittenConvertedType.TypeKind == TypeKind.Dynamic)
+            {
+                return true;
+            }
 
             #endregion whitelist cases.
 
