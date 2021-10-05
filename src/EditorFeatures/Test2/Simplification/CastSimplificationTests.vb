@@ -1651,7 +1651,7 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529962")>
         Public Async Function TestCSharp_Remove_UnnecessaryCastInIsExpression() As Task
             Dim input =
@@ -1693,7 +1693,7 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(662196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/662196")>
         Public Async Function TestCSharp_Remove_UnnecessaryCastInAsExpression() As Task
             Dim input =
@@ -2650,7 +2650,7 @@ struct S : IIncrementable
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529888")>
-        Public Async Function TestCsharp_Remove_UnnecessaryObjectCreationToInterfaceCast() As Task
+        Public Async Function TestCSharp_Remove_UnnecessaryObjectCreationToInterfaceCast() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -3332,7 +3332,7 @@ static class Program
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529988")>
-        Public Async Function TestCsharp_Remove_UnnecessaryCastInDelegateCreationExpression3() As Task
+        Public Async Function TestCSharp_Remove_UnnecessaryCastInDelegateCreationExpression3() As Task
             ' Note: Removing the cast changes the lambda parameter type, but doesn't change the semantics of the lambda body.
 
             Dim input =
@@ -3521,7 +3521,7 @@ static class Program
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529988")>
-        Public Async Function TestCsharp_Remove_UnnecessaryCastInDelegateCreationExpression7() As Task
+        Public Async Function TestCSharp_Remove_UnnecessaryCastInDelegateCreationExpression7() As Task
             ' Note: Removing the cast changes the parameter type of lambda parameter "z"
             ' but not that of parameter "y" and hence the semantics of the lambda body aren't changed.
 
