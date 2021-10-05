@@ -15,18 +15,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Caravela.Compiler
 {
-    public readonly struct SyntaxTreeTransformation
-    {
-        public SyntaxTreeTransformation(SyntaxTree newTree, SyntaxTree? oldTree)
-        {
-            OldTree = oldTree;
-            NewTree = newTree;
-        }
-
-        public SyntaxTree? OldTree { get;  }
-        public SyntaxTree NewTree { get;  }
-    }
-
     /// <summary>
     /// Context passed to a source transformer when <see cref="ISourceTransformer.Execute(TransformerContext)"/> is called.
     /// The implementation can modify the compilation using the methods <see cref="AddSyntaxTrees(Microsoft.CodeAnalysis.SyntaxTree[])"/>, <see cref="ReplaceSyntaxTree"/> or
