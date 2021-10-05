@@ -61,8 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 //
                 // Should become:
                 //     var a = new { x = 42; };
-                return node.Update(SyntaxFactory.NameEquals(identifier), (ExpressionSyntax)Visit(expression))
-                           .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
+                return node.Update(SyntaxFactory.NameEquals(identifier), (ExpressionSyntax)Visit(expression));
             }
 
             public static SyntaxNode Visit(
