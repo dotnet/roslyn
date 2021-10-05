@@ -197,10 +197,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 }
 
                 // If the refactoring may potentially change the code's semantics, display a warning message to the user.
+                // on the first inlined location.
                 if (mayContainSideEffects)
                 {
                     n = n.WithAdditionalAnnotations(
                         WarningAnnotation.Create(CSharpFeaturesResources.Warning_Inlining_temporary_variable_may_change_code_meaning));
+                    mayContainSideEffects = false;
                 }
 
                 return n;
