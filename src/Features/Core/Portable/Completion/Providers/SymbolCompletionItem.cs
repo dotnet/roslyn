@@ -196,17 +196,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static Document FindAppropriateDocumentForDescriptionContext(Document document, SupportedPlatformData? supportedPlatforms)
         {
-            Document? contextDocument = null;
             if (supportedPlatforms != null && supportedPlatforms.InvalidProjects.Contains(document.Id.ProjectId))
             {
                 var contextId = document.GetLinkedDocumentIds().FirstOrDefault(id => !supportedPlatforms.InvalidProjects.Contains(id.ProjectId));
                 if (contextId != null)
                 {
-                    contextDocument = document.Project.Solution.GetDocument(contextId);
+                    return document.Project.Solution.GetRequiredDocument(contextId);
                 }
             }
 
-            return contextDocument ?? document;
+            return document;
         }
 
         private static CompletionItem WithSupportedPlatforms(CompletionItem completionItem, SupportedPlatformData? supportedPlatforms)

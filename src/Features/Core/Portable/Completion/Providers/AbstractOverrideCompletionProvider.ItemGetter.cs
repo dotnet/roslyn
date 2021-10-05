@@ -58,9 +58,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfNull(syntaxTree);
-
+                var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var startLineNumber = text.Lines.IndexOf(position);
                 return new ItemGetter(overrideCompletionProvider, document, position, text, syntaxTree, startLineNumber, cancellationToken);
             }
