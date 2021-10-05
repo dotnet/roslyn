@@ -377,7 +377,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return false;
 
             var (rewrittenConvertedType, rewrittenConversion) = GetRewrittenInfo(
-                castNode, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel, cancellationToken);
+                castNode, rewrittenExpression,
+                originalSemanticModel, rewrittenSemanticModel,
+                originalConversion, originalConvertedType, cancellationToken);
             if (rewrittenConvertedType is null || rewrittenConvertedType.TypeKind == TypeKind.Error)
                 return false;
 
@@ -897,7 +899,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
         private static (ITypeSymbol? rewrittenConvertedType, Conversion rewrittenConversion) GetRewrittenInfo(
             ExpressionSyntax castNode, ExpressionSyntax rewrittenExpression,
-            SemanticModel originalSemanticModel, SemanticModel rewrittenSemanticModel, CancellationToken cancellationToken)
+            SemanticModel originalSemanticModel, SemanticModel rewrittenSemanticModel,
+            Conversion originalConversion, ITypeSymbol originalConvertedType,
+            CancellationToken cancellationToken)
         {
             if (castNode.WalkUpParentheses().Parent is InterpolationSyntax)
             {
@@ -907,7 +911,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 //
                 // Note: this may need to be revisited with improved interpolated strings (as they could take
                 // strongly typed args and could avoid the object boxing).
-                return (originalSemanticModel.Compilation.ObjectType, default);
+                var convertedType = originalConversion.IsIdentity ? originalConvertedType : originalSemanticModel.Compilation.ObjectType;
+                return (convertedType, default);
             }
 
             var rewrittenConvertedType = rewrittenSemanticModel.GetTypeInfo(rewrittenExpression, cancellationToken).ConvertedType;
