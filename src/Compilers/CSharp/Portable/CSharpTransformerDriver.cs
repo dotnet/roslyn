@@ -14,11 +14,11 @@ namespace Caravela.Compiler
     {
         public static (Compilation, ImmutableArray<Diagnostic>) RunTransformers(
             Compilation input, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider,
-            IList<ResourceDescription> manifestResources, IAnalyzerAssemblyLoader assemblyLoader)
+            ImmutableArray<ResourceDescription> manifestResources, IAnalyzerAssemblyLoader assemblyLoader)
         {
             var diagnostics = DiagnosticBag.GetInstance();
-            CSharpCompiler.RunTransformers(input, transformers, plugins, analyzerConfigProvider, diagnostics, manifestResources, assemblyLoader, out _, out var output, out _);
-            return (output, diagnostics.ToReadOnlyAndFree());
+            var results = CSharpCompiler.RunTransformers(input, transformers, plugins, analyzerConfigProvider, diagnostics, manifestResources, assemblyLoader);
+            return (results.TransformedCompilation, diagnostics.ToReadOnlyAndFree());
         }
     }
 }

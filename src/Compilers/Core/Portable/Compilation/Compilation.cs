@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis
 
         public ScriptCompilationInfo? ScriptCompilationInfo => CommonScriptCompilationInfo;
         internal abstract ScriptCompilationInfo? CommonScriptCompilationInfo { get; }
-
+        
         internal Compilation(
             string? name,
             ImmutableArray<MetadataReference> references,
@@ -2215,7 +2215,7 @@ namespace Microsoft.CodeAnalysis
                     if (existingDoc == null)
                     {
                         // <Caravela>
-                        var actualTree = TreeTracker.GetPreTransformationSyntax(tree.GetRoot())?.SyntaxTree ?? tree;
+                        var actualTree = TreeTracker.GetSourceSyntaxNode(tree.GetRoot())?.SyntaxTree ?? tree;
                         // </Caravela>
 
                         documentsBuilder.AddDebugDocument(new Cci.DebugSourceDocument(

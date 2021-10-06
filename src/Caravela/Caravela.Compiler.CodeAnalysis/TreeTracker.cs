@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -19,7 +20,6 @@ namespace Caravela.Compiler
     internal static class TreeTracker
     {
         private static readonly ConditionalWeakTable<SyntaxAnnotation, MappedNode> preTransformationNodeMap = new();
-        private static readonly ConditionalWeakTable<Diagnostic, DiagnosticInfo> diagnosticMap = new();
 
         private const string TrackingAnnotationKind = "Caravela.Compiler.Tracking";
 
@@ -31,30 +31,29 @@ namespace Caravela.Compiler
         // this is used for nodes that changed from the pre-transformation tree
         private const string ExcludeDescendantsData = "ExcludeDescendants";
 
-        private static SyntaxAnnotation CreateAnnotation(SyntaxNode? node, Compilation compilation,
+        private static SyntaxAnnotation CreateAnnotation(SyntaxNode? node,
             bool includeChildren)
         {
             var annotation = new SyntaxAnnotation(TrackingAnnotationKind,
                 includeChildren ? IncludeDescendantsData : ExcludeDescendantsData);
 
-            preTransformationNodeMap.Add(annotation, new MappedNode(compilation, node));
+            preTransformationNodeMap.Add(annotation, new MappedNode(node));
 
             return annotation;
         }
 
-        private static SyntaxAnnotation CreateAnnotation(SyntaxToken token, Compilation compilation)
+        private static SyntaxAnnotation CreateAnnotation(SyntaxToken token)
         {
             var annotation = new SyntaxAnnotation(TrackingAnnotationKind, null);
 
-            preTransformationNodeMap.Add(annotation, new MappedNode(compilation, token));
+            preTransformationNodeMap.Add(annotation, new MappedNode(token));
 
             return annotation;
         }
 
         public static bool IsAnnotated(SyntaxNode node) => node.HasAnnotations(TrackingAnnotationKind);
 
-        public static TNode AnnotateNodeAndChildren<TNode>(TNode node, SyntaxNode? preTransformationNode,
-            Compilation compilation)
+        public static TNode AnnotateNodeAndChildren<TNode>(TNode node, SyntaxNode? preTransformationNode)
             where TNode : SyntaxNode
         {
             Debug.Assert(!node.GetAnnotations(TrackingAnnotationKind).Any());
@@ -62,16 +61,15 @@ namespace Caravela.Compiler
             // copied from SyntaxNode.WithAdditionalAnnotationsInternal to avoid infinite recursion
             return (TNode)node.Green.WithAdditionalAnnotationsGreen(new[]
             {
-                CreateAnnotation(preTransformationNode, compilation, includeChildren: preTransformationNode != null)
+                CreateAnnotation(preTransformationNode, includeChildren: preTransformationNode != null)
             }).CreateRed();
         }
 
-        public static TNode AnnotateNodeAndChildren<TNode>(TNode node, Compilation compilation)
+        public static TNode AnnotateNodeAndChildren<TNode>(TNode node)
             where TNode : SyntaxNode =>
-            AnnotateNodeAndChildren(node, node, compilation);
+            AnnotateNodeAndChildren(node, node);
 
-        private static SyntaxToken AnnotateToken(SyntaxToken token, SyntaxToken preTransformationToken,
-            Compilation compilation)
+        private static SyntaxToken AnnotateToken(SyntaxToken token, SyntaxToken preTransformationToken)
         {
             // copied from SyntaxToken.WithAdditionalAnnotations to avoid infinite recursion
             if (token.Node != null)
@@ -80,7 +78,7 @@ namespace Caravela.Compiler
                     parent: null,
                     token: token.Node.WithAdditionalAnnotationsGreen(new[]
                     {
-                        CreateAnnotation(preTransformationToken, compilation)
+                        CreateAnnotation(preTransformationToken)
                     }),
                     position: 0,
                     index: 0);
@@ -91,11 +89,11 @@ namespace Caravela.Compiler
 
         public static void SetAnnotationExcludeChildren(ref SyntaxAnnotation[] annotations, SyntaxNode node)
         {
-            if (NeedsTracking(node, out var preTransformationNode, out var compilation))
+            if (NeedsTracking(node, out var preTransformationNode))
             {
                 // no annotation found, but is needed, create a new one
                 Array.Resize(ref annotations, annotations.Length + 1);
-                annotations[^1] = CreateAnnotation(preTransformationNode, compilation, includeChildren: false);
+                annotations[^1] = CreateAnnotation(preTransformationNode, includeChildren: false);
             }
             else
             {
@@ -115,7 +113,7 @@ namespace Caravela.Compiler
                     preTransformationNodeMap.TryGetValue(oldAnnotation, out var oldNode);
                     Debug.Assert(oldNode != null);
                     annotations = annotations.ToArray();
-                    annotations[index] = CreateAnnotation(oldNode.NodeOrToken.AsNode(), oldNode.Compilation,
+                    annotations[index] = CreateAnnotation(oldNode.NodeOrToken.AsNode(),
                         includeChildren: false);
                 }
             }
@@ -216,7 +214,7 @@ namespace Caravela.Compiler
         }
 
         [return: NotNull]
-        private static (T, Compilation) LocatePreTransformationSyntax<T>([DisallowNull] T node, SyntaxNode ancestor,
+        private static T LocatePreTransformationSyntax<T>([DisallowNull] T node, SyntaxNode ancestor,
             SyntaxAnnotation annotation) where T : SyntaxNode?
         {
             preTransformationNodeMap.TryGetValue(annotation, out var preTransformationAncestor);
@@ -224,13 +222,12 @@ namespace Caravela.Compiler
 
             var originalPosition = node.Position - ancestor.Position + preTransformationAncestor.NodeOrToken.Position;
             var nodeOriginalSpan = new TextSpan(originalPosition, node.FullWidth);
-            return (
+            return
                 preTransformationAncestor.NodeOrToken.AsNode()!
-                    .FindNode<T>(nodeOriginalSpan, node.IsPartOfStructuredTrivia()),
-                preTransformationAncestor.Compilation);
+                    .FindNode<T>(nodeOriginalSpan, node.IsPartOfStructuredTrivia());
         }
 
-        private static (SyntaxToken, Compilation) LocatePreTransformationSyntax(SyntaxToken token, SyntaxNode parent,
+        private static SyntaxToken LocatePreTransformationSyntax(SyntaxToken token, SyntaxNode parent,
             SyntaxAnnotation annotation)
         {
             preTransformationNodeMap.TryGetValue(annotation, out var preTransformationAncestor);
@@ -264,16 +261,16 @@ namespace Caravela.Compiler
                 Debug.Assert(foundToken.RawKind == token.RawKind);
             }
 
-            return (foundToken, preTransformationAncestor.Compilation);
+            return foundToken;
         }
 
         [return: NotNullIfNotNull("node")]
         public static T TrackIfNeeded<T>(T node) where T : SyntaxNode?
         {
-            if (NeedsTracking(node, out var preTransformationNode, out var compilation))
+            if (NeedsTracking(node, out var preTransformationNode))
 #pragma warning disable CS8631, CS8825
             {
-                return AnnotateNodeAndChildren(node, preTransformationNode, compilation);
+                return AnnotateNodeAndChildren(node, preTransformationNode);
             }
 #pragma warning restore CS8631, CS8825
 
@@ -282,9 +279,9 @@ namespace Caravela.Compiler
 
         public static SyntaxToken TrackIfNeeded(SyntaxToken token)
         {
-            if (NeedsTracking(token, out var preTransformationToken, out var compilation))
+            if (NeedsTracking(token, out var preTransformationToken))
             {
-                return AnnotateToken(token, preTransformationToken.Value, compilation);
+                return AnnotateToken(token, preTransformationToken.Value);
             }
 
             return token;
@@ -305,12 +302,10 @@ namespace Caravela.Compiler
             return trivia;
         }
 
-        private static bool NeedsTracking<T>([NotNullWhen(true)] T node,
-            [NotNullWhen(true)] out T? preTransformationNode, [NotNullWhen(true)] out Compilation compilation)
+        private static bool NeedsTracking<T>([NotNullWhen(true)] T node, [NotNullWhen(true)] out T? preTransformationNode)
             where T : SyntaxNode?
         {
             preTransformationNode = null!;
-            compilation = null!;
 
             if (node == null)
             {
@@ -346,15 +341,13 @@ namespace Caravela.Compiler
             }
 
             // compute original node of the current node from the original node of the annotated ancestor
-            (preTransformationNode, compilation) = LocatePreTransformationSyntax(node, ancestor, annotation);
+            preTransformationNode = LocatePreTransformationSyntax(node, ancestor, annotation);
             return true;
         }
 
-        public static bool NeedsTracking(SyntaxToken token, [NotNullWhen(true)] out SyntaxToken? preTransformationToken,
-            out Compilation compilation)
+        public static bool NeedsTracking(SyntaxToken token, [NotNullWhen(true)] out SyntaxToken? preTransformationToken)
         {
             preTransformationToken = null;
-            compilation = null;
 
             var (ancestor, annotation) = FindAncestorWithAnnotation(token);
 
@@ -381,19 +374,19 @@ namespace Caravela.Compiler
             }
 
             // compute original node of the current node from the original node of the annotated ancestor
-            (preTransformationToken, compilation) =
+            preTransformationToken =
                 LocatePreTransformationSyntax(token, ancestor.Value.AsNode()!, annotation);
             return true;
         }
 
-        private static (SyntaxToken?, Compilation?) GetPreTransformationSyntax(SyntaxToken token)
+        private static SyntaxToken? GetSourceSyntaxToken(SyntaxToken token)
         {
             var (ancestor, annotation) = FindAncestorWithAnnotation(token);
 
             // no annotation means no change
             if (annotation == null)
             {
-                return (token, null);
+                return token;
             }
 
             Debug.Assert(ancestor != null);
@@ -402,7 +395,7 @@ namespace Caravela.Compiler
             if (ancestor == token)
             {
                 preTransformationNodeMap.TryGetValue(annotation, out var preTransformationToken);
-                return (preTransformationToken!.NodeOrToken.AsToken(), preTransformationToken.Compilation);
+                return preTransformationToken!.NodeOrToken.AsToken();
             }
 
             Debug.Assert(ancestor.Value.IsNode);
@@ -410,22 +403,20 @@ namespace Caravela.Compiler
             // unannotated children of ancestor annotated as "exclude children" don't have original node
             if (annotation.Data == ExcludeDescendantsData)
             {
-                return (null, null);
+                return null;
             }
 
             // compute original node of the current node from the original node of the annotated ancestor
             return LocatePreTransformationSyntax(token, ancestor.Value.AsNode()!, annotation);
         }
 
-        public static T? GetPreTransformationSyntax<T>(T node) where T : SyntaxNode?
-            => GetPreTransformationSyntaxAndCompilation(node).Node;
 
-        private static (T? Node, Compilation? Compilation) GetPreTransformationSyntaxAndCompilation<T>(T node)
+        public static T? GetSourceSyntaxNode<T>(T node)
             where T : SyntaxNode?
         {
             if (node == null)
             {
-                return (null, null);
+                return null;
             }
 
             var (ancestor, annotation) = FindAncestorWithAnnotation(node);
@@ -433,7 +424,7 @@ namespace Caravela.Compiler
             // no annotation means no change
             if (annotation == null)
             {
-                return (node, null);
+                return node;
             }
 
             Debug.Assert(ancestor != null);
@@ -442,112 +433,81 @@ namespace Caravela.Compiler
             if (ancestor == node)
             {
                 preTransformationNodeMap.TryGetValue(annotation, out var preTransformationNode);
-                return ((T?)preTransformationNode?.NodeOrToken.AsNode(), preTransformationNode?.Compilation);
+                return (T?)preTransformationNode?.NodeOrToken.AsNode();
             }
 
             // unannotated children of ancestor annotated as "exclude children" don't have original node
             if (annotation.Data == ExcludeDescendantsData)
             {
-                return (null, null);
+                return null;
             }
 
             // compute original node of the current node from the original node of the annotated ancestor
             return LocatePreTransformationSyntax(node, ancestor, annotation);
         }
 
+
+        public static IEnumerable<Diagnostic> MapDiagnostics(IEnumerable<Diagnostic> diagnostics)
+         => diagnostics.Select(MapDiagnostic);
+
         public static Diagnostic MapDiagnostic(Diagnostic diagnostic)
         {
             var locationInfo = GetPreTransformationLocationInfo(diagnostic.Location);
             var location = locationInfo.Location;
-            var isSuppressed = diagnostic.IsSuppressed;
 
-            if (location == null)
+            if (location != null)
             {
-                // null means that there is no location in source code, so it must be in generated code.
-
-                if (diagnostic.Severity < DiagnosticSeverity.Error || !diagnostic.Id.StartsWith("CS", StringComparison.OrdinalIgnoreCase))
-                {
-                    // Do not report warnings or analyzer messages infos in generated code.
-                    isSuppressed = true;
-                }
-
-                location = Location.Create(diagnostic.Location.SourceTree!, default);
-            }
-            
-            var mappedDiagnostic = diagnostic.WithLocation(location).WithIsSuppressed(isSuppressed);
-
-            if (locationInfo.Compilation != null && locationInfo.SyntaxNode != null)
-            {
-                diagnosticMap.Add(mappedDiagnostic,
-                    new DiagnosticInfo(locationInfo.Compilation, locationInfo.SyntaxNode));
-            }
-
-            return mappedDiagnostic;
-        }
-
-        public static bool TryGetDiagnosticInfo(
-            Diagnostic diagnostic, [
-            NotNullWhen(true)] out Compilation? compilation,
-            [NotNullWhen(true)] out SyntaxNode? syntaxNode)
-        {
-            if (diagnosticMap.TryGetValue(diagnostic, out var info))
-            {
-                compilation = info.Compilation;
-                syntaxNode = info.SyntaxNode;
-                return true;
+                return diagnostic.WithLocation(location);
             }
             else
             {
-                compilation = null;
-                syntaxNode = null;
-                return false;
+                return diagnostic;
             }
         }
 
-        public static Location GetPreTransformationLocation(Location location) =>
+        public static bool IsTransformedLocation(Location location)
+            => GetPreTransformationLocationInfo(location).Location == null;
+
+        public static Location GetSourceLocation(Location location) =>
             GetPreTransformationLocationInfo(location).Location ?? Location.Create(location.SourceTree!, default);
 
-        private static (Location? Location, SyntaxNode? SyntaxNode, Compilation? Compilation)
-            GetPreTransformationLocationInfo(Location location)
+        private static (Location? Location, SyntaxNode? SyntaxNode) GetPreTransformationLocationInfo(Location location)
         {
             var tree = location.SourceTree;
             if (tree == null)
             {
-                return (location, null, null);
+                return (location, null);
             }
 
             // if there are no annotations in the whole tree, then there is nothing to do
             if (!tree.GetRoot().GetAnnotations(TrackingAnnotationKind).Any())
             {
-                return (location, null, null);
+                return (location, null);
             }
 
             // from the given location, try to find the corresponding node, token or token pair and then proceed as usual
             var foundNode = tree.GetRoot()
                 .FindNode(location.SourceSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
-            Compilation? preTransformationCompilation;
             if (foundNode.Span == location.SourceSpan)
             {
-                (var preTransformationNode, preTransformationCompilation) =
-                    GetPreTransformationSyntaxAndCompilation(foundNode);
+                var preTransformationNode = GetSourceSyntaxNode(foundNode);
 
-                return (preTransformationNode?.GetLocation(), preTransformationNode, preTransformationCompilation);
+                return (preTransformationNode?.GetLocation(), preTransformationNode);
             }
 
             var startToken = foundNode.FindToken(location.SourceSpan.Start, findInsideTrivia: true);
-            (var preTransformationStartToken, preTransformationCompilation) = GetPreTransformationSyntax(startToken);
+            var preTransformationStartToken = GetSourceSyntaxToken(startToken);
 
             if (preTransformationStartToken == null)
             {
-                return (null, null, null);
+                return (null, null);
             }
 
             var preTransformationSyntaxNode = preTransformationStartToken.Value.Parent;
 
             if (startToken.Span == location.SourceSpan)
             {
-                return (preTransformationStartToken.Value.GetLocation(), preTransformationSyntaxNode,
-                    preTransformationCompilation);
+                return (preTransformationStartToken.Value.GetLocation(), preTransformationSyntaxNode);
             }
 
             if (location.SourceSpan.IsEmpty)
@@ -555,8 +515,7 @@ namespace Caravela.Compiler
                 return (Location.Create(
                         preTransformationStartToken.Value.SyntaxTree!,
                         new TextSpan(preTransformationStartToken.Value.Position, 0)),
-                    preTransformationSyntaxNode,
-                    preTransformationCompilation);
+                    preTransformationSyntaxNode);
             }
 
             // if the location is contained within a single token and the width of the token didn't change during transformation,
@@ -570,19 +529,18 @@ namespace Caravela.Compiler
                             new TextSpan(
                                 location.SourceSpan.Start - startToken.SpanStart +
                                 preTransformationStartToken.Value.SpanStart, location.SourceSpan.Length)),
-                        preTransformationSyntaxNode,
-                        preTransformationCompilation);
+                        preTransformationSyntaxNode);
                 }
                 else
                 {
-                    return (null, null, null);
+                    return (null, null);
                 }
             }
 
             var endToken = foundNode.FindToken(location.SourceSpan.End - 1);
             if (TextSpan.FromBounds(startToken.Span.Start, endToken.Span.End) == location.SourceSpan)
             {
-                (var preTransformationEndToken, preTransformationCompilation) = GetPreTransformationSyntax(endToken);
+                var preTransformationEndToken = GetSourceSyntaxToken(endToken);
 
                 if (preTransformationEndToken != null)
                 {
@@ -590,12 +548,11 @@ namespace Caravela.Compiler
                             preTransformationStartToken.Value.SyntaxTree!,
                             TextSpan.FromBounds(preTransformationStartToken.Value.SpanStart,
                                 preTransformationEndToken.Value.Span.End)),
-                        preTransformationSyntaxNode,
-                        preTransformationCompilation);
+                        preTransformationSyntaxNode);
                 }
             }
 
-            return (null, null, null);
+            return (null, null);
         }
 
 #if DEBUG
@@ -609,26 +566,13 @@ namespace Caravela.Compiler
 
         private class MappedNode
         {
-            public Compilation Compilation { get; }
             public SyntaxNodeOrToken NodeOrToken { get; }
 
-            public MappedNode(Compilation compilation, SyntaxNodeOrToken nodeOrToken)
+            public MappedNode(SyntaxNodeOrToken nodeOrToken)
             {
-                Compilation = compilation;
                 NodeOrToken = nodeOrToken;
             }
         }
 
-        private class DiagnosticInfo
-        {
-            public Compilation Compilation { get; }
-            public SyntaxNode SyntaxNode { get; }
-
-            public DiagnosticInfo(Compilation compilation, SyntaxNode syntaxNode)
-            {
-                Compilation = compilation;
-                SyntaxNode = syntaxNode;
-            }
-        }
     }
 }

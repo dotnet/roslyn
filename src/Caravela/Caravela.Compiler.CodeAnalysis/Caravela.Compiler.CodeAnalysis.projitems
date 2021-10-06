@@ -11,11 +11,14 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CaravelaCompilerMessageProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CommonPath.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticFilter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TransformerDiagnosticSuppressor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphs\AbstractGraph.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphs\Graph.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphs\SimpleLinkedListNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TimeBomb.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformerDependencyResolver.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TransformersResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TreeTracker.cs" />
   </ItemGroup>
 </Project>

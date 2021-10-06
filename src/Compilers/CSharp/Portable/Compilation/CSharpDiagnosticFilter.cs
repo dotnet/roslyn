@@ -47,20 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return d;
             }
 
-            // <Caravela>
-            // Translate the location of the diagnostic back to the source tree.
-            var reportedDiagnostic = TreeTracker.MapDiagnostic(d);
-            if ( reportedDiagnostic == null )
-            {
-                // Warnings from generate code are ignored.
-                return null;
-            }
-            else
-            {
-                d = reportedDiagnostic;
-            }
-            // </Caravela>
-
             if (d.IsNotConfigurable())
             {
                 if (d.IsEnabledByDefault)

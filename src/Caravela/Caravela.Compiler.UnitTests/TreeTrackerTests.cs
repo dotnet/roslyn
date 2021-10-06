@@ -14,7 +14,7 @@ namespace Caravela.Compiler.UnitTests
 
             var omittedExpression = type.DescendantNodes().OfType<OmittedArraySizeExpressionSyntax>().Single();
 
-            Assert.Same(omittedExpression, TreeTracker.FindNode<OmittedArraySizeExpressionSyntax>(type, omittedExpression.FullSpan, findInsideTrivia: false));
+            Assert.Same(omittedExpression, type.FindNode<OmittedArraySizeExpressionSyntax>(omittedExpression.FullSpan, findInsideTrivia: false));
         }
 
         [Fact]
@@ -22,13 +22,13 @@ namespace Caravela.Compiler.UnitTests
         {
             var originalBlock = (BlockSyntax)SyntaxFactory.ParseStatement("{ int i; }");
 
-            var block = TreeTracker.AnnotateNodeAndChildren(originalBlock, null!);
+            var block = TreeTracker.AnnotateNodeAndChildren(originalBlock);
 
             block = block.AddStatements(SyntaxFactory.ParseStatement("i++;"));
 
-            Assert.Same(originalBlock, TreeTracker.GetPreTransformationSyntax(block));
-            Assert.Same(originalBlock.Statements[0], TreeTracker.GetPreTransformationSyntax(block.Statements[0]));
-            Assert.Null(TreeTracker.GetPreTransformationSyntax(block.Statements[1]));
+            Assert.Same(originalBlock, TreeTracker.GetSourceSyntaxNode(block));
+            Assert.Same(originalBlock.Statements[0], TreeTracker.GetSourceSyntaxNode(block.Statements[0]));
+            Assert.Null(TreeTracker.GetSourceSyntaxNode(block.Statements[1]));
         }
 
         [Fact]
@@ -36,13 +36,13 @@ namespace Caravela.Compiler.UnitTests
         {
             var originalBlock = (BlockSyntax)SyntaxFactory.ParseStatement("{ int i; }");
 
-            var block = TreeTracker.AnnotateNodeAndChildren(originalBlock, null!);
+            var block = TreeTracker.AnnotateNodeAndChildren(originalBlock);
 
             block = SyntaxFactory.Block(block.Statements.Append(SyntaxFactory.ParseStatement("i++;")));
 
-            Assert.Same(block, TreeTracker.GetPreTransformationSyntax(block));
-            Assert.Same(originalBlock.Statements[0], TreeTracker.GetPreTransformationSyntax(block.Statements[0]));
-            Assert.Same(block.Statements[1], TreeTracker.GetPreTransformationSyntax(block.Statements[1]));
+            Assert.Same(block, TreeTracker.GetSourceSyntaxNode(block));
+            Assert.Same(originalBlock.Statements[0], TreeTracker.GetSourceSyntaxNode(block.Statements[0]));
+            Assert.Same(block.Statements[1], TreeTracker.GetSourceSyntaxNode(block.Statements[1]));
         }
     }
 }

@@ -6,6 +6,9 @@ using Caravela.Compiler;
 [assembly: TypeForwardedTo(typeof(TransformerAttribute))]
 [assembly: TypeForwardedTo(typeof(TransformerOrderAttribute))]
 [assembly: TypeForwardedTo(typeof(CaravelaCompilerInfo))]
+[assembly: TypeForwardedTo(typeof(SyntaxTreeTransformation))]
+[assembly: TypeForwardedTo(typeof(DiagnosticFilteringRequest))]
+
 
 namespace Caravela.Compiler.Interface.TypeForwards
 {

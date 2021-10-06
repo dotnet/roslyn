@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static BoundStatement AddSequencePoint(BoundStatement node)
         {
             // <Caravela> changed from constructor call to call to Create method
-            var nodeSyntax = TreeTracker.GetPreTransformationSyntax(node.Syntax);
+            var nodeSyntax = TreeTracker.GetSourceSyntaxNode(node.Syntax);
 
             return BoundSequencePoint.Create(nodeSyntax, node);
             // </Caravela>

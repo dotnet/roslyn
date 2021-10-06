@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < info.Arguments.Length; i++)
             {
                 if (info.Arguments[i] is SyntaxNode node)
-                    info.Arguments[i] = TreeTracker.GetPreTransformationSyntax(node);
+                    info.Arguments[i] = TreeTracker.GetSourceSyntaxNode(node);
             }
 
             return info;

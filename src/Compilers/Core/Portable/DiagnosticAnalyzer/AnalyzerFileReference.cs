@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Extensions<ISourceGenerator> _generators;
         // <Caravela>
         private readonly Extensions<ISourceTransformer> _transformers;
-        private readonly Extensions<object> _plugins;
+        private readonly Extensions<object>? _plugins;
         // </Caravela>
 
         private string? _lazyDisplay;
