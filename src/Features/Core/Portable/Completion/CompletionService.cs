@@ -148,12 +148,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <paramref name="item"/> was created against.</param>
         /// <param name="item">The item to get the description for.</param>
         /// <param name="cancellationToken"></param>
-        public virtual Task<CompletionDescription> GetDescriptionAsync(
+        public virtual Task<CompletionDescription?> GetDescriptionAsync(
             Document document,
             CompletionItem item,
             CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(CompletionDescription.Empty);
+            return Task.FromResult<CompletionDescription?>(CompletionDescription.Empty);
         }
 
         /// <summary>

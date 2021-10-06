@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -19,6 +17,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -57,7 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 ?? token.GetAncestor<EventDeclarationSyntax>()
                 ?? token.GetAncestor<PropertyDeclarationSyntax>()
                 ?? token.GetAncestor<IndexerDeclarationSyntax>()
-                ?? (SyntaxNode)token.GetAncestor<MethodDeclarationSyntax>();
+                ?? (SyntaxNode?)token.GetAncestor<MethodDeclarationSyntax>()
+                ?? throw ExceptionUtilities.UnexpectedValue(token);
         }
 
         protected override int GetTargetCaretPosition(SyntaxNode caretTarget)

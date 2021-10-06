@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -104,10 +103,10 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public static async Task<CompletionDescription> CreateDescriptionAsync(
-            Workspace workspace, SemanticModel semanticModel, int position, ISymbol symbol, int overloadCount, SupportedPlatformData supportedPlatforms, CancellationToken cancellationToken)
+            Workspace workspace, SemanticModel semanticModel, int position, ISymbol symbol, int overloadCount, SupportedPlatformData? supportedPlatforms, CancellationToken cancellationToken)
         {
-            var symbolDisplayService = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISymbolDisplayService>();
-            var formatter = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IDocumentationCommentFormattingService>();
+            var symbolDisplayService = workspace.Services.GetLanguageServices(semanticModel.Language).GetRequiredService<ISymbolDisplayService>();
+            var formatter = workspace.Services.GetLanguageServices(semanticModel.Language).GetRequiredService<IDocumentationCommentFormattingService>();
 
             // TODO(cyrusn): Figure out a way to cancel this.
             var sections = await symbolDisplayService.ToDescriptionGroupsAsync(workspace, semanticModel, position, ImmutableArray.Create(symbol), cancellationToken).ConfigureAwait(false);
@@ -169,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public static Task<CompletionDescription> CreateDescriptionAsync(
-            Workspace workspace, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols, SupportedPlatformData supportedPlatforms, CancellationToken cancellationToken)
+            Workspace workspace, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols, SupportedPlatformData? supportedPlatforms, CancellationToken cancellationToken)
         {
             // Lets try to find the first non-obsolete symbol (overload) and fall-back
             // to the first symbol if all are obsolete.
@@ -226,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return true;
         }
 
-        public static bool TryRemoveAttributeSuffix(ISymbol symbol, SyntaxContext context, out string name)
+        public static bool TryRemoveAttributeSuffix(ISymbol symbol, SyntaxContext context, [NotNullWhen(true)] out string? name)
         {
             var isAttributeNameContext = context.IsAttributeNameContext;
             var syntaxFacts = context.GetLanguageService<ISyntaxFactsService>();
