@@ -9120,7 +9120,7 @@ class C
 {
     [Attr1]
     [Attr2]
-    [Attr3] [Attr4] int i;
+    [Attr3][Attr4] int i;
 }",
 @"
 class C {
@@ -9140,7 +9140,7 @@ class C
 {
     [Attr1]
     [Attr2]
-    [Attr3] [Attr4] int i;
+    [Attr3][Attr4] int i;
 }",
 @"
 class C {
@@ -9693,6 +9693,48 @@ X = 1,
             var expectedCode = @"class C
 {
     void M([My][My] int x)
+    {
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingAfterAttribute_Multiple2()
+        {
+            var code = @"class C
+{
+    void M([My] [My]  int x)
+    {
+    }
+}";
+            var expectedCode = @"class C
+{
+    void M([My][My] int x)
+    {
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingAfterAttribute_MultipleOnDeclaration()
+        {
+            var code = @"class C
+{
+    [My] [My]  void M()
+    {
+    }
+}";
+            var expectedCode = @"class C
+{
+    [My]
+    [My]
+    void M()
     {
     }
 }";
@@ -10288,6 +10330,126 @@ class C
 {
     new  (int, int) this[int i] { get => throw null; }
 }
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnLambda()
+        {
+            await AssertFormatAsync(
+                expected: @"
+var f = [Attribute] () => { };
+",
+                code: @"
+var f =  [Attribute] () => { };
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnLambda_TwoAttributes()
+        {
+            await AssertFormatAsync(
+                expected: @"
+var f = [Attribute][Attribute2] () => { };
+",
+                code: @"
+var f =  [Attribute]  [Attribute2] () => { };
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnMethod_TwoAttributes()
+        {
+            await AssertFormatAsync(
+                expected: @"
+[Attribute][Attribute2]
+void M()
+{ }
+",
+                code: @"
+  [Attribute]  [Attribute2]
+void M()
+{ }
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnTypeParameter_TwoAttributes()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C<[Attribute][Attribute2] T> { }
+",
+                code: @"
+class C<  [Attribute]  [Attribute2]  T  > { }
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnTypeParameter_TwoAttributes_Method()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    void M<[Attribute][Attribute2] T>() { }
+}
+",
+                code: @"
+class C
+{
+    void M<  [Attribute]  [Attribute2]  T  > ( ) { }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnParameter_TwoAttributes()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    void M([Attribute][Attribute2] T t) { }
+}
+",
+                code: @"
+class C
+{
+    void M(  [Attribute]  [Attribute2]  T  t  ) { }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnLambdaWithExplicitType()
+        {
+            await AssertFormatAsync(
+                expected: @"
+var f = [Attribute] int () => 1;
+",
+                code: @"
+var f =  [Attribute] int () => 1;
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnLambdaInInvocation()
+        {
+            await AssertFormatAsync(
+                expected: @"
+f([Attribute] () => { });
+",
+                code: @"
+f( [Attribute] () => { });
 ");
         }
     }

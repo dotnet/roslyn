@@ -7836,6 +7836,65 @@ class A {
                 "delegate*<in Int32, ref readonly String>");
         }
 
+        private static readonly SymbolDisplayFormat s_fullDelegateFormat = new SymbolDisplayFormat(
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+            delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
+            parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut,
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
+            kindOptions: SymbolDisplayKindOptions.IncludeNamespaceKeyword | SymbolDisplayKindOptions.IncludeTypeKeyword);
+
+        [Fact]
+        public void TestInferredDelegateType()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        var v = (int i) => i.ToString();
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+            var syntaxTree = semanticModel.SyntaxTree;
+            var declaration = (LocalDeclarationStatementSyntax)semanticModel.SyntaxTree.GetRoot().DescendantNodes().Single(n => n.Kind() == SyntaxKind.LocalDeclarationStatement);
+            var type = semanticModel.GetTypeInfo(declaration.Declaration.Type).Type;
+
+            Verify(type.ToDisplayParts(), "System.Func<int, string>",
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation);
+
+            Verify(type.ToDisplayParts(s_fullDelegateFormat), "delegate string System.Func<int, string>(int arg)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+        }
+
         [Fact]
         public void TestSynthesizedAnonymousDelegateType1()
         {
@@ -7850,25 +7909,15 @@ class C
 ";
 
             var comp = CreateCompilation(source);
-
             var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
             var syntaxTree = semanticModel.SyntaxTree;
-
             var declaration = (LocalDeclarationStatementSyntax)semanticModel.SyntaxTree.GetRoot().DescendantNodes().Single(n => n.Kind() == SyntaxKind.LocalDeclarationStatement);
             var type = semanticModel.GetTypeInfo(declaration.Declaration.Type).Type;
 
             Verify(type.ToDisplayParts(), "<anonymous delegate>",
                 SymbolDisplayPartKind.DelegateName);
 
-            var format = new SymbolDisplayFormat(
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-                delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
-                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut,
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
-                kindOptions: SymbolDisplayKindOptions.IncludeNamespaceKeyword | SymbolDisplayKindOptions.IncludeTypeKeyword);
-
-            Verify(type.ToDisplayParts(format), "delegate string <anonymous delegate>(ref int)",
+            Verify(type.ToDisplayParts(s_fullDelegateFormat), "delegate string <anonymous delegate>(ref int)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
@@ -7879,7 +7928,33 @@ class C
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation);
+        }
 
+        [Fact]
+        public void TestSynthesizedAnonymousDelegateType2()
+        {
+            var source =
+@"Class Program
+    Shared Sub Main
+        Dim f = Function(ByRef i As Integer) i.ToString()
+    End Sub
+End Class";
+
+            var comp = CreateVisualBasicCompilation(source);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var name = tree.GetRoot().DescendantNodes().OfType<VisualBasic.Syntax.VariableDeclaratorSyntax>().Single();
+            var type = ((ILocalSymbol)model.GetDeclaredSymbol(name.Names[0])).Type;
+
+            Verify(SymbolDisplay.ToDisplayParts(type), "<empty anonymous type>",
+                SymbolDisplayPartKind.ClassName);
+
+            Verify(SymbolDisplay.ToDisplayParts(type, s_fullDelegateFormat), "AnonymousType string <empty anonymous type>",
+                SymbolDisplayPartKind.AnonymousTypeIndicator,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName);
         }
     }
 }

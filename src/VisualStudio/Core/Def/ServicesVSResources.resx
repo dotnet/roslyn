@@ -1802,12 +1802,6 @@ Additional information: {1}</value>
   <data name="Run_code_analysis_in_separate_process_requires_restart" xml:space="preserve">
     <value>Run code analysis in separate process (requires restart)</value>
   </data>
-  <data name="Compute_Quick_Actions_asynchronously_experimental" xml:space="preserve">
-    <value>Compute Quick Actions asynchronously (experimental, requires restart)</value>
-  </data>
-  <data name="Quick_Actions" xml:space="preserve">
-    <value>Quick Actions</value>
-  </data>
   <data name="Combine_inheritance_margin_with_indicator_margin" xml:space="preserve">
     <value>Combine inheritance margin with indicator margin</value>
   </data>
@@ -1864,5 +1858,27 @@ Additional information: {1}</value>
   </data>
   <data name="End_of_line" xml:space="preserve">
     <value>End of line</value>
+  </data>
+  <data name="Paste_valid_stack_trace" xml:space="preserve">
+    <value>Paste a valid stack trace to view and navigate it's values</value>
+    <comment>"Stack Trace" is a language term and should be kept the same. </comment>
+  </data>
+  <data name="Stack_Trace_Explorer" xml:space="preserve">
+    <value>Stack Trace Explorer</value>
+    <comment>"Stack Trace" is a language term and should be kept the same. This is for viewing/exploring stack traces</comment>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Clear content action</comment>
+  </data>
+  <data name="Close_tab" xml:space="preserve">
+    <value>Close Tab</value>
+  </data>
+  <data name="Paste" xml:space="preserve">
+    <value>Paste</value>
+  </data>
+  <data name="Stack_trace_0" xml:space="preserve">
+    <value>Stack Trace {0}</value>
+    <comment>Header for numbered stack trace view tabs</comment>
   </data>
 </root>

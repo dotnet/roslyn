@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// <summary>
             /// Callback to call into underlying <see cref="IRequestHandler"/> to perform the actual work of this item.
             /// </summary>
-            private readonly Func<RequestContext, CancellationToken, Task> _callbackAsync;
+            private readonly Func<RequestContext?, CancellationToken, Task> _callbackAsync;
 
             /// <summary>
             /// <see cref="CorrelationManager.ActivityId"/> used to properly correlate this work with the loghub
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Guid activityId,
                 ILspLogger logger,
                 RequestTelemetryLogger telemetryLogger,
-                Func<RequestContext, CancellationToken, Task> callbackAsync,
+                Func<RequestContext?, CancellationToken, Task> callbackAsync,
                 CancellationToken cancellationToken)
             {
                 Metrics = new RequestMetrics(methodName, telemetryLogger);
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// <summary>
             /// Processes the queued request. Exceptions that occur will be sent back to the requesting client, then re-thrown
             /// </summary>
-            public async Task CallbackAsync(RequestContext context, CancellationToken cancellationToken)
+            public async Task CallbackAsync(RequestContext? context, CancellationToken cancellationToken)
             {
                 // Restore our activity id so that logging/tracking works.
                 Trace.CorrelationManager.ActivityId = ActivityId;

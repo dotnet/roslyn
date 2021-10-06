@@ -180,7 +180,6 @@ Microsoft.CodeAnalysis.Completion.CompletionRules.WithDismissIfEmpty(bool dismis
 Microsoft.CodeAnalysis.Completion.CompletionRules.WithDismissIfLastCharacterDeleted(bool dismissIfLastCharacterDeleted) -> Microsoft.CodeAnalysis.Completion.CompletionRules
 Microsoft.CodeAnalysis.Completion.CompletionRules.WithSnippetsRule(Microsoft.CodeAnalysis.Completion.SnippetsRule snippetsRule) -> Microsoft.CodeAnalysis.Completion.CompletionRules
 Microsoft.CodeAnalysis.Completion.CompletionService
-Microsoft.CodeAnalysis.Completion.CompletionService.CompletionService() -> void
 Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders
 Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders.CompletionServiceWithProviders(Microsoft.CodeAnalysis.Workspace workspace) -> void
 Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders.GetProvider(Microsoft.CodeAnalysis.Completion.CompletionItem item) -> Microsoft.CodeAnalysis.Completion.CompletionProvider

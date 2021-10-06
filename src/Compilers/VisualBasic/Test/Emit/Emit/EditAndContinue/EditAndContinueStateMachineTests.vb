@@ -4367,7 +4367,7 @@ End Class
                     New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
 
             diff1.VerifySynthesizedMembers(
-                "C: {_Closure$__, VB$StateMachine_1_F}",
+                "C: {VB$StateMachine_1_F, _Closure$__}",
                 "C._Closure$__: {$I1-0, _Lambda$__1-0}",
                 "C.VB$StateMachine_1_F: {$State, $Builder, $VB$ResumableLocal_x$0, $VB$ResumableLocal_y$1, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
 
@@ -4380,7 +4380,7 @@ End Class
             ' Synthesized members collection still includes y field since members are only added to it and never deleted.
             ' The corresponding CLR field is also present.
             diff2.VerifySynthesizedMembers(
-                "C: {_Closure$__, VB$StateMachine_1_F}",
+                "C: {VB$StateMachine_1_F, _Closure$__}",
                 "C._Closure$__: {$I1-0, _Lambda$__1-0}",
                 "C.VB$StateMachine_1_F: {$State, $Builder, $VB$ResumableLocal_x$0, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $VB$ResumableLocal_y$1}")
 
@@ -4391,7 +4391,7 @@ End Class
                     New SemanticEdit(SemanticEditKind.Update, f2, f3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables:=True)))
 
             diff3.VerifySynthesizedMembers(
-                "C: {_Closure$__, VB$StateMachine_1_F}",
+                "C: {VB$StateMachine_1_F, _Closure$__}",
                 "C._Closure$__: {$I1-0, _Lambda$__1-0}",
                 "C.VB$StateMachine_1_F: {$State, $Builder, $VB$ResumableLocal_x$0, $VB$ResumableLocal_y$2, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $VB$ResumableLocal_y$1}")
 
@@ -4402,7 +4402,7 @@ End Class
                     New SemanticEdit(SemanticEditKind.Update, f3, f4, GetSyntaxMapFromMarkers(source3, source4), preserveLocalVariables:=True)))
 
             diff4.VerifySynthesizedMembers(
-                "C: {_Closure$__, VB$StateMachine_1_F}",
+                "C: {VB$StateMachine_1_F, _Closure$__}",
                 "C._Closure$__: {$I1-0, _Lambda$__1-0}",
                 "C.VB$StateMachine_1_F: {$State, $Builder, $VB$ResumableLocal_x$0, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $VB$ResumableLocal_y$2, $VB$ResumableLocal_y$1}")
 
@@ -4413,7 +4413,7 @@ End Class
                     New SemanticEdit(SemanticEditKind.Update, f4, f5, GetSyntaxMapFromMarkers(source4, source5), preserveLocalVariables:=True)))
 
             diff5.VerifySynthesizedMembers(
-                "C: {_Closure$__, VB$StateMachine_1_F}",
+                "C: {VB$StateMachine_1_F, _Closure$__}",
                 "C._Closure$__: {$I1-0, _Lambda$__1-0}",
                 "C.VB$StateMachine_1_F: {$State, $Builder, $VB$ResumableLocal_x$0, $VB$ResumableLocal_y$3, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $VB$ResumableLocal_y$2, $VB$ResumableLocal_y$1}")
         End Sub

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             Func<CodeLensFindReferencesProgress, Task<T>> onResults, Func<CodeLensFindReferencesProgress, Task<T>> onCapped,
             int searchCap, CancellationToken cancellationToken) where T : struct
         {
-            var document = solution.GetDocument(documentId);
+            var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
             if (document == null)
             {
                 return null;

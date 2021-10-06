@@ -41,42 +41,39 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override async Task<WorkspaceEdit?> HandleRequestAsync(RenameParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
-            if (document != null)
+            Contract.ThrowIfNull(document);
+
+            var oldSolution = document.Project.Solution;
+            var renameService = document.Project.LanguageServices.GetRequiredService<IEditorInlineRenameService>();
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+
+            var renameInfo = await renameService.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
+            if (!renameInfo.CanRename)
             {
-                var oldSolution = document.Project.Solution;
-                var renameService = document.Project.LanguageServices.GetRequiredService<IEditorInlineRenameService>();
-                var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
-
-                var renameInfo = await renameService.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
-                if (!renameInfo.CanRename)
-                {
-                    return null;
-                }
-
-                var renameLocationSet = await renameInfo.FindRenameLocationsAsync(oldSolution.Options, cancellationToken).ConfigureAwait(false);
-                var renameReplacementInfo = await renameLocationSet.GetReplacementsAsync(request.NewName, oldSolution.Options, cancellationToken).ConfigureAwait(false);
-
-                var renamedSolution = renameReplacementInfo.NewSolution;
-                var solutionChanges = renamedSolution.GetChanges(oldSolution);
-
-                // Linked files can correspond to multiple roslyn documents each with changes.  Merge the changes in the linked files so that all linked documents have the same text.
-                // Then we can just take the text changes from the first document to avoid returning duplicate edits.
-                renamedSolution = await renamedSolution.WithMergedLinkedFileChangesAsync(oldSolution, solutionChanges, cancellationToken: cancellationToken).ConfigureAwait(false);
-                solutionChanges = renamedSolution.GetChanges(oldSolution);
-                var changedDocuments = solutionChanges
-                    .GetProjectChanges()
-                    .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
-                    .GroupBy(docId => renamedSolution.GetRequiredDocument(docId).FilePath, StringComparer.OrdinalIgnoreCase).Select(group => group.First());
-
-                var textDiffService = renamedSolution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
-
-                var documentEdits = await ProtocolConversions.ChangedDocumentsToTextDocumentEditsAsync(changedDocuments, renamedSolution.GetRequiredDocument, oldSolution.GetRequiredDocument,
-                    textDiffService, cancellationToken).ConfigureAwait(false);
-
-                return new WorkspaceEdit { DocumentChanges = documentEdits };
+                return null;
             }
 
-            return null;
+            var renameLocationSet = await renameInfo.FindRenameLocationsAsync(oldSolution.Options, cancellationToken).ConfigureAwait(false);
+            var renameReplacementInfo = await renameLocationSet.GetReplacementsAsync(request.NewName, oldSolution.Options, cancellationToken).ConfigureAwait(false);
+
+            var renamedSolution = renameReplacementInfo.NewSolution;
+            var solutionChanges = renamedSolution.GetChanges(oldSolution);
+
+            // Linked files can correspond to multiple roslyn documents each with changes.  Merge the changes in the linked files so that all linked documents have the same text.
+            // Then we can just take the text changes from the first document to avoid returning duplicate edits.
+            renamedSolution = await renamedSolution.WithMergedLinkedFileChangesAsync(oldSolution, solutionChanges, cancellationToken: cancellationToken).ConfigureAwait(false);
+            solutionChanges = renamedSolution.GetChanges(oldSolution);
+            var changedDocuments = solutionChanges
+                .GetProjectChanges()
+                .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
+                .GroupBy(docId => renamedSolution.GetRequiredDocument(docId).FilePath, StringComparer.OrdinalIgnoreCase).Select(group => group.First());
+
+            var textDiffService = renamedSolution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
+
+            var documentEdits = await ProtocolConversions.ChangedDocumentsToTextDocumentEditsAsync(changedDocuments, renamedSolution.GetRequiredDocument, oldSolution.GetRequiredDocument,
+                textDiffService, cancellationToken).ConfigureAwait(false);
+
+            return new WorkspaceEdit { DocumentChanges = documentEdits };
         }
     }
 }

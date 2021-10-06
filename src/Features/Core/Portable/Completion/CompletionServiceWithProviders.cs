@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -41,14 +40,14 @@ namespace Microsoft.CodeAnalysis.Completion
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCompletionProvider>.CreateValueCallback _createProjectCompletionProvidersProvider
             = new(r => new ProjectCompletionProvider(r));
 
-        private readonly Dictionary<string, CompletionProvider> _nameToProvider = new();
+        private readonly Dictionary<string, CompletionProvider?> _nameToProvider = new();
         private readonly Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _rolesToProviders;
         private readonly Func<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _createRoleProviders;
-        private readonly Func<string, CompletionProvider> _getProviderByName;
+        private readonly Func<string, CompletionProvider?> _getProviderByName;
 
         private readonly Workspace _workspace;
 
-        private IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> _importedProviders;
+        private IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>>? _lazyImportedProviders;
 
         protected CompletionServiceWithProviders(Workspace workspace)
         {
@@ -71,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         internal IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> GetImportedProviders()
         {
-            if (_importedProviders == null)
+            if (_lazyImportedProviders == null)
             {
                 var language = Language;
                 var mefExporter = (IMefHostExportProvider)_workspace.Services.HostServices;
@@ -81,10 +80,10 @@ namespace Microsoft.CodeAnalysis.Completion
                         .Where(lz => lz.Metadata.Language == language)
                         ).ToList();
 
-                Interlocked.CompareExchange(ref _importedProviders, providers, null);
+                Interlocked.CompareExchange(ref _lazyImportedProviders, providers, null);
             }
 
-            return _importedProviders;
+            return _lazyImportedProviders;
         }
 
         private ImmutableArray<CompletionProvider> CreateRoleProviders(ImmutableHashSet<string> roles)
@@ -114,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return imported.Concat(builtin).ToImmutableArray();
         }
 
-        protected ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string> roles)
+        protected ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string>? roles)
         {
             roles ??= ImmutableHashSet<string>.Empty;
 
@@ -125,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         private ConcatImmutableArray<CompletionProvider> GetFilteredProviders(
-            Project project, ImmutableHashSet<string> roles, CompletionTrigger trigger, OptionSet options)
+            Project? project, ImmutableHashSet<string>? roles, CompletionTrigger trigger, OptionSet options)
         {
             var allCompletionProviders = FilterProviders(GetProviders(roles, trigger), trigger, options);
             var projectCompletionProviders = FilterProviders(GetProjectCompletionProviders(project), trigger, options);
@@ -133,12 +132,12 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         protected virtual ImmutableArray<CompletionProvider> GetProviders(
-            ImmutableHashSet<string> roles, CompletionTrigger trigger)
+            ImmutableHashSet<string>? roles, CompletionTrigger trigger)
         {
             return GetProviders(roles);
         }
 
-        private ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project project)
+        private ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project? project)
         {
             if (project is null)
             {
@@ -222,9 +221,9 @@ namespace Microsoft.CodeAnalysis.Completion
             return ImmutableArray<CompletionProvider>.Empty;
         }
 
-        protected internal CompletionProvider GetProvider(CompletionItem item)
+        protected internal CompletionProvider? GetProvider(CompletionItem item)
         {
-            CompletionProvider provider = null;
+            CompletionProvider? provider = null;
 
             if (item.ProviderName != null)
             {
@@ -237,18 +236,18 @@ namespace Microsoft.CodeAnalysis.Completion
             return provider;
         }
 
-        private CompletionProvider GetProviderByName(string providerName)
+        private CompletionProvider? GetProviderByName(string providerName)
         {
             var providers = GetAllProviders(roles: ImmutableHashSet<string>.Empty);
             return providers.FirstOrDefault(p => p.Name == providerName);
         }
 
-        public override async Task<CompletionList> GetCompletionsAsync(
+        public override async Task<CompletionList?> GetCompletionsAsync(
             Document document,
             int caretPosition,
             CompletionTrigger trigger,
-            ImmutableHashSet<string> roles,
-            OptionSet options,
+            ImmutableHashSet<string>? roles,
+            OptionSet? options,
             CancellationToken cancellationToken)
         {
             var (completionList, _) = await GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, trigger, roles, options, cancellationToken).ConfigureAwait(false);
@@ -261,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// In most cases we'd still end up with complete document, but we'd consider it an acceptable trade-off even when 
         /// we get into this transient state.
         /// </summary>
-        private async Task<(Document document, SemanticModel semanticModel)> GetDocumentWithFrozenPartialSemanticsAsync(Document document, CancellationToken cancellationToken)
+        private async Task<(Document document, SemanticModel? semanticModel)> GetDocumentWithFrozenPartialSemanticsAsync(Document document, CancellationToken cancellationToken)
         {
             var usePartialSemantic = _workspace.Options.GetOption(CompletionServiceOptions.UsePartialSemanticForCompletion);
             if (usePartialSemantic)
@@ -272,12 +271,12 @@ namespace Microsoft.CodeAnalysis.Completion
             return (document, await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false));
         }
 
-        private protected async Task<(CompletionList completionList, bool expandItemsAvailable)> GetCompletionsWithAvailabilityOfExpandedItemsAsync(
+        private protected async Task<(CompletionList? completionList, bool expandItemsAvailable)> GetCompletionsWithAvailabilityOfExpandedItemsAsync(
             Document document,
             int caretPosition,
             CompletionTrigger trigger,
-            ImmutableHashSet<string> roles,
-            OptionSet options,
+            ImmutableHashSet<string>? roles,
+            OptionSet? options,
             CancellationToken cancellationToken)
         {
             // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
@@ -458,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // list.  If no contexts changed it, then just use the default span provided by the service.
             var finalCompletionListSpan = completionContexts.FirstOrDefault(c => c.CompletionListSpan != defaultSpan)?.CompletionListSpan ?? defaultSpan;
             using var displayNameToItemsMap = new DisplayNameToItemsMap(this);
-            CompletionItem suggestionModeItem = null;
+            CompletionItem? suggestionModeItem = null;
 
             foreach (var context in completionContexts)
             {
@@ -529,7 +528,7 @@ namespace Microsoft.CodeAnalysis.Completion
             Document document,
             int position,
             CompletionTrigger triggerInfo,
-            OptionSet options,
+            OptionSet? options,
             TextSpan? defaultSpan,
             CancellationToken cancellationToken)
         {
@@ -546,7 +545,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return context;
         }
 
-        public override async Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken = default)
+        public override async Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken = default)
         {
             var provider = GetProvider(item);
             if (provider is null)
@@ -559,14 +558,14 @@ namespace Microsoft.CodeAnalysis.Completion
             return description;
         }
 
-        public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, ImmutableHashSet<string> roles = null, OptionSet options = null)
+        public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, ImmutableHashSet<string>? roles = null, OptionSet? options = null)
         {
             var document = text.GetOpenDocumentInCurrentContextWithChanges();
             return ShouldTriggerCompletion(document?.Project, text, caretPosition, trigger, roles, options);
         }
 
         internal override bool ShouldTriggerCompletion(
-            Project project, SourceText text, int caretPosition, CompletionTrigger trigger, ImmutableHashSet<string> roles = null, OptionSet options = null)
+            Project? project, SourceText text, int caretPosition, CompletionTrigger trigger, ImmutableHashSet<string>? roles = null, OptionSet? options = null)
         {
             options ??= _workspace.Options;
             if (!options.GetOption(CompletionOptions.TriggerOnTyping, Language))
@@ -576,7 +575,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             if (trigger.Kind == CompletionTriggerKind.Deletion && SupportsTriggerOnDeletion(options))
             {
-                return Char.IsLetterOrDigit(trigger.Character) || trigger.Character == '.';
+                return char.IsLetterOrDigit(trigger.Character) || trigger.Character == '.';
             }
 
             var providers = GetFilteredProviders(project, roles, trigger, options);
@@ -607,14 +606,14 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        bool IEqualityComparer<ImmutableHashSet<string>>.Equals(ImmutableHashSet<string> x, ImmutableHashSet<string> y)
+        bool IEqualityComparer<ImmutableHashSet<string>>.Equals([AllowNull] ImmutableHashSet<string> x, [AllowNull] ImmutableHashSet<string> y)
         {
             if (x == y)
             {
                 return true;
             }
 
-            if (x.Count != y.Count)
+            if (x == null || y == null || x.Count != y.Count)
             {
                 return false;
             }
@@ -630,7 +629,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return true;
         }
 
-        int IEqualityComparer<ImmutableHashSet<string>>.GetHashCode(ImmutableHashSet<string> obj)
+        int IEqualityComparer<ImmutableHashSet<string>>.GetHashCode([DisallowNull] ImmutableHashSet<string> obj)
         {
             var hash = 0;
             foreach (var o in obj)
@@ -753,7 +752,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 Document document,
                 int position,
                 CompletionTrigger triggerInfo,
-                OptionSet options,
+                OptionSet? options,
                 CancellationToken cancellationToken)
             {
                 return _completionServiceWithProviders.GetContextAsync(

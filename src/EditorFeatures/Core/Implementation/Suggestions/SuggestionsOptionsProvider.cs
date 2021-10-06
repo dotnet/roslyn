@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            SuggestionsOptions.Asynchronous,
             SuggestionsOptions.AsynchronousQuickActionsDisableFeatureFlag);
     }
 }

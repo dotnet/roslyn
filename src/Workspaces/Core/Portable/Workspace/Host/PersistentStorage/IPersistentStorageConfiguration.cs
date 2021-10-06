@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -58,20 +59,30 @@ namespace Microsoft.CodeAnalysis.Host
 
         public string? TryGetStorageLocation(SolutionKey solutionKey)
         {
-            if (solutionKey.WorkspaceKind is not (WorkspaceKind.RemoteWorkspace or WorkspaceKind.RemoteTemporaryWorkspace or WorkspaceKind.Host))
-                return null;
-
             if (string.IsNullOrWhiteSpace(solutionKey.FilePath))
                 return null;
 
             // Ensure that each unique workspace kind for any given solution has a unique
             // folder to store their data in.
 
-            var cacheDirectory = GetCacheDirectory();
-            var kind = StripInvalidPathChars(solutionKey.WorkspaceKind);
-            var hash = StripInvalidPathChars(Checksum.Create(solutionKey.FilePath).ToString());
+            return Path.Combine(
+                GetCacheDirectory(),
+                SafeName(Process.GetCurrentProcess().MainModule.FileName),
+                SafeName(solutionKey.FilePath));
 
-            return Path.Combine(cacheDirectory, kind, hash);
+            static string SafeName(string fullPath)
+            {
+                var fileName = Path.GetFileName(fullPath);
+
+                // we don't want to build too long a path.  So only take a portion of the text we started with.
+                // However, we want to avoid collisions, so ensure we also append a safe short piece of text
+                // that is based on the full text.
+                const int MaxLength = 20;
+                var prefix = fileName.Length > MaxLength ? fileName.Substring(0, MaxLength) : fileName;
+                var suffix = Checksum.Create(fullPath);
+                var fullName = $"{prefix}-{suffix}";
+                return StripInvalidPathChars(fullName);
+            }
 
             static string StripInvalidPathChars(string val)
             {
