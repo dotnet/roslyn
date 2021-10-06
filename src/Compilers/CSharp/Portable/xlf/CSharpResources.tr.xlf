@@ -1332,11 +1332,6 @@
         <target state="translated">yapılar ile birlikte</target>
         <note />
       </trans-unit>
-      <trans-unit id="Operation_only_valid_on_an_IOperation_with_a_non_null_SemanticModel">
-        <source>Operation only valid on an IOperation with a non-null SemanticModel</source>
-        <target state="new">Operation only valid on an IOperation with a non-null SemanticModel</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">'{1}' türünü içeren '{0}' bütünleştirilmiş kodu, desteklenmeyen .NET Framework'e başvuruyor.</target>

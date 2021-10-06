@@ -6875,7 +6875,4 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_CompileTimeCheckedOverflow_Title" xml:space="preserve">
     <value>The operation may overflow at runtime (use 'unchecked' syntax to override)</value>
   </data>
-  <data name="Operation_only_valid_on_an_IOperation_with_a_non_null_SemanticModel" xml:space="preserve">
-    <value>Operation only valid on an IOperation with a non-null SemanticModel</value>
-  </data>
 </root>

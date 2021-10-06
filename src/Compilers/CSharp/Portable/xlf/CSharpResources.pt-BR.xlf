@@ -1332,11 +1332,6 @@
         <target state="translated">com estruturas</target>
         <note />
       </trans-unit>
-      <trans-unit id="Operation_only_valid_on_an_IOperation_with_a_non_null_SemanticModel">
-        <source>Operation only valid on an IOperation with a non-null SemanticModel</source>
-        <target state="new">Operation only valid on an IOperation with a non-null SemanticModel</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">O assembly '{0}' contendo o tipo '{1}' referencia o .NET Framework, mas não há suporte para isso.</target>
