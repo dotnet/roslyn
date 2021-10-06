@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -267,7 +268,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public async Task RequestingGeneratedDocumentsTwiceGivesSameInstance()
         {
             using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
-            var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
+
+            var generatorRan = false;
+            var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
             var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
                 .AddAnalyzerReference(analyzerReference)
                 .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
@@ -276,7 +279,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var tree = await generatedDocumentFirstTime.GetSyntaxTreeAsync();
 
             // Fetch the compilation, and then wait for it to be GC'ed, then fetch it again. This ensures that
-            // finalizing a compilation more than once doesn't recreate things incorrectly.
+            // finalizing a compilation more than once doesn't recreate things incorrectly or run the generator more than once.
+            generatorRan = false;
             var compilationReference = ObjectReference.CreateFromFactory(() => project.GetCompilationAsync().Result);
             compilationReference.AssertReleased();
             var secondCompilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
@@ -285,6 +289,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Same(generatedDocumentFirstTime, generatedDocumentSecondTime);
             Assert.Same(tree, secondCompilation.SyntaxTrees.Single());
+            Assert.False(generatorRan);
         }
 
         [Fact]
