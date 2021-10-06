@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.Telemetry;
 using Microsoft.CodeAnalysis.Notification;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -51,8 +52,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 var telemetrySession = new TelemetrySession(serializedSession);
                 telemetrySession.Start();
 
+                // adds property to each event reported from this session
+                telemetrySession.SetSharedProperty("VS.Core.Version", Environment.GetEnvironmentVariable("VisualStudioVersion"));
+
                 telemetryService.InitializeTelemetrySession(telemetrySession);
                 telemetryService.RegisterUnexpectedExceptionLogger(TraceLogger);
+                WatsonReporter.InitializeFatalErrorHandlers();
 
                 // log telemetry that service hub started
                 RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(m => m["Host"] = hostProcessId));

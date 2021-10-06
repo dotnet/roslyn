@@ -28,7 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
         private readonly IUIThreadOperationExecutor _operationExecutor;
         private readonly Workspace _workspace;
-        private readonly IWpfTextView _textView;
         private readonly IAsynchronousOperationListener _listener;
 
         public InheritanceMarginContextMenu(
@@ -36,14 +35,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             IUIThreadOperationExecutor operationExecutor,
             Workspace workspace,
-            IWpfTextView textView,
             IAsynchronousOperationListener listener)
         {
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
             _workspace = workspace;
             _operationExecutor = operationExecutor;
-            _textView = textView;
             _listener = listener;
             InitializeComponent();
         }

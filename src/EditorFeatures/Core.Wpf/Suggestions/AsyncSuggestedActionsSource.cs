@@ -89,6 +89,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     if (document is null)
                         return;
 
+                    // Keep track of how many actions we've put in the lightbulb at each priority level.  We do
+                    // this as each priority level will both sort and inline actions.  However, we don't want to
+                    // inline actions at each priority if it's going to make the total number of actions too high.
+                    // This does mean we might inline actions from a higher priority group, and then disable 
+                    // inlining for lower pri groups.  However, intuitively, that is what we want.  More important
+                    // items should be pushed higher up, and less important items shouldn't take up that much space.
+                    var currentActionCount = 0;
+
                     // Collectors are in priority order.  So just walk them from highest to lowest.
                     foreach (var collector in collectors)
                     {
@@ -101,12 +109,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                         if (priority != null)
                         {
+                            // Only request suppression fixes if we're in the lowest priority group.  The other groups
+                            // should not show suppressions them as that would cause them to not appear at the end.
+
                             var allSets = GetCodeFixesAndRefactoringsAsync(
-                                state, requestedActionCategories, document, range, selection, _ => null, includeSuppressionFixes: false,
-                                priority.Value, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
+                                state, requestedActionCategories, document,
+                                range, selection,
+                                addOperationScope: _ => null,
+                                includeSuppressionFixes: priority.Value == CodeActionRequestPriority.Normal,
+                                priority.Value,
+                                currentActionCount, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
 
                             await foreach (var set in allSets)
+                            {
+                                currentActionCount += set.Actions.Count();
                                 collector.Add(set);
+                            }
                         }
 
                         // Ensure we always complete the collector even if we didn't add any items to it.
@@ -127,6 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 Func<string, IDisposable?> addOperationScope,
                 bool includeSuppressionFixes,
                 CodeActionRequestPriority priority,
+                int currentActionCount,
                 [EnumeratorCancellation] CancellationToken cancellationToken)
             {
                 var workspace = document.Project.Solution.Workspace;
@@ -139,39 +158,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     state, supportsFeatureService, requestedActionCategories, GlobalOptions, workspace, document, selection,
                     addOperationScope, priority, isBlocking: false, cancellationToken);
 
-                if (priority == CodeActionRequestPriority.High)
-                {
-                    // in a high pri scenario, return data as soon as possible so that the user can interact with them.
-                    // this is especially important for state-machine oriented refactorings (like rename) where the user
-                    // should always have access to them effectively synchronously.
-                    var firstTask = await Task.WhenAny(fixesTask, refactoringsTask).ConfigureAwait(false);
-                    var secondTask = firstTask == fixesTask ? refactoringsTask : fixesTask;
+                await Task.WhenAll(fixesTask, refactoringsTask).ConfigureAwait(false);
 
-                    var orderedTasks = new[] { firstTask, secondTask };
-                    foreach (var task in orderedTasks)
-                    {
-                        if (task == fixesTask)
-                        {
-                            var fixes = await fixesTask.ConfigureAwait(false);
-                            foreach (var set in ConvertToSuggestedActionSets(state, selection, fixes, ImmutableArray<UnifiedSuggestedActionSet>.Empty))
-                                yield return set;
-                        }
-                        else
-                        {
-                            Contract.ThrowIfFalse(task == refactoringsTask);
-
-                            var refactorings = await refactoringsTask.ConfigureAwait(false);
-                            foreach (var set in ConvertToSuggestedActionSets(state, selection, ImmutableArray<UnifiedSuggestedActionSet>.Empty, refactorings))
-                                yield return set;
-                        }
-                    }
-                }
-                else
-                {
-                    var actionsArray = await Task.WhenAll(fixesTask, refactoringsTask).ConfigureAwait(false);
-                    foreach (var set in ConvertToSuggestedActionSets(state, selection, fixes: actionsArray[0], refactorings: actionsArray[1]))
-                        yield return set;
-                }
+                var fixes = await fixesTask.ConfigureAwait(false);
+                var refactorings = await refactoringsTask.ConfigureAwait(false);
+                foreach (var set in ConvertToSuggestedActionSets(state, selection, fixes, refactorings, currentActionCount))
+                    yield return set;
             }
         }
     }

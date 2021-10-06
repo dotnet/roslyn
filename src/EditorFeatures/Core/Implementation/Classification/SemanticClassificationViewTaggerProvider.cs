@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, this.AsyncListener),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, ClassificationOptions.ClassifyReassignedVariables));
+                TaggerEventSources.OnOptionChanged(subjectBuffer, ClassificationOptions.Metadata.ClassifyReassignedVariables));
         }
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)

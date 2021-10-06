@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             {
                 var viewModel = (InheritanceMarginGlyphViewModel)DataContext;
 
-                ContextMenu = new InheritanceMarginContextMenu(_threadingContext, _streamingFindUsagesPresenter, _operationExecutor, _workspace, _textView, _listener);
+                ContextMenu = new InheritanceMarginContextMenu(_threadingContext, _streamingFindUsagesPresenter, _operationExecutor, _workspace, _listener);
                 ContextMenu.DataContext = viewModel;
                 ContextMenu.ItemsSource = viewModel.MenuItemViewModels;
                 ContextMenu.Opened += ContextMenu_OnOpen;

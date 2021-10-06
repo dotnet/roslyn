@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         private static (IList<SignatureHelpItem>? items, int? selectedItem) GetDelegateTypeConstructors(
             BaseObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
+            IStructuralTypeDisplayService structuralTypeDisplayService,
             INamedTypeSymbol delegateType)
         {
             var invokeMethod = delegateType.DelegateInvokeMethod;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var position = objectCreationExpression.SpanStart;
             var item = CreateItem(
                 invokeMethod, semanticModel, position,
-                anonymousTypeDisplayService,
+                structuralTypeDisplayService,
                 isVariadic: false,
                 documentationFactory: null,
                 prefixParts: GetDelegateTypePreambleParts(invokeMethod, semanticModel, position),
