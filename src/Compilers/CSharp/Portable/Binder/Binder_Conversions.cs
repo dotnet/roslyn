@@ -64,6 +64,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(result is BoundConversion || (conversion.IsIdentity && ((object)result == source) || source.NeedsToBeConverted()) || hasErrors);
 
+#if DEBUG
+            if (source is BoundValuePlaceholder placeholder1)
+            {
+                Debug.Assert(filterConversion(conversion));
+                Debug.Assert(BoundNode.GetConversion(result, placeholder1) == conversion);
+            }
+            else if (source.Type is not null && filterConversion(conversion))
+            {
+                var placeholder2 = new BoundValuePlaceholder(source.Syntax, source.Type);
+                var result2 = createConversion(syntax, placeholder2, conversion, isCast, conversionGroupOpt, wasCompilerGenerated, destination, BindingDiagnosticBag.Discarded, hasErrors);
+                Debug.Assert(BoundNode.GetConversion(result2, placeholder2) == conversion);
+            }
+
+            static bool filterConversion(Conversion conversion)
+            {
+                return !conversion.IsInterpolatedString &&
+                       !conversion.IsInterpolatedStringHandler &&
+                       !conversion.IsSwitchExpression &&
+                       !(conversion.IsTupleLiteralConversion || (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion)) &&
+                       (!conversion.IsUserDefined || filterConversion(conversion.UserDefinedFromConversion));
+            }
+#endif
+
             return result;
 
             BoundExpression createConversion(
