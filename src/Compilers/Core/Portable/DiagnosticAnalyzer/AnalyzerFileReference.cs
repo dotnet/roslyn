@@ -158,14 +158,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override ImmutableArray<object> GetPlugins()
         {
-            if (_plugins == null)
-            {
-                return ImmutableArray<object>.Empty;
-            }
-            else
-            {
-                return _plugins?.GetExtensions(LanguageNames.CSharp) ?? ImmutableArray<object>.Empty;
-            }
+            return _plugins?.GetExtensions(LanguageNames.CSharp) ?? ImmutableArray<object>.Empty;
         }
         // </Caravela>
 
