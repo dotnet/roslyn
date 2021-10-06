@@ -42,7 +42,7 @@ namespace AnalyzerRunner
             foreach (var projectId in solution.ProjectIds)
             {
                 var project = solution.GetProject(projectId)!;
-                if (project.Language != LanguageNames.CSharp && project.Language != LanguageNames.VisualBasic)
+                if (project.Language is not LanguageNames.CSharp and not LanguageNames.VisualBasic)
                     continue;
 
                 var modifiedSpecificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions
@@ -93,7 +93,7 @@ namespace AnalyzerRunner
                 // Make sure we have a compilation for each project
                 foreach (var project in solution.Projects)
                 {
-                    if (project.Language != LanguageNames.CSharp && project.Language != LanguageNames.VisualBasic)
+                    if (project.Language is not LanguageNames.CSharp and not LanguageNames.VisualBasic)
                         continue;
 
                     _ = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -104,7 +104,7 @@ namespace AnalyzerRunner
                 foreach (var projectId in solution.ProjectIds)
                 {
                     var project = solution.GetProject(projectId);
-                    if (project.Language != LanguageNames.CSharp && project.Language != LanguageNames.VisualBasic)
+                    if (project.Language is not LanguageNames.CSharp and not LanguageNames.VisualBasic)
                     {
                         continue;
                     }
@@ -326,7 +326,7 @@ namespace AnalyzerRunner
                 // Make sure we analyze the projects in parallel
                 foreach (var project in solution.Projects)
                 {
-                    if (project.Language != LanguageNames.CSharp && project.Language != LanguageNames.VisualBasic)
+                    if (project.Language is not LanguageNames.CSharp and not LanguageNames.VisualBasic)
                     {
                         continue;
                     }

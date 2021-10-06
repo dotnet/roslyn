@@ -22,20 +22,7 @@ namespace CloudCache
             Console.WriteLine($"Instantiated {nameof(IdeCoreBenchmarksCloudCacheServiceProvider)}");
         }
 
-        public AbstractPersistentStorageService Create(IPersistentStorageLocationService locationService)
-        {
-            return new MockCloudCachePersistentStorageService(
-                locationService, @"C:\github\roslyn", cs =>
-                {
-                    if (cs is IAsyncDisposable asyncDisposable)
-                    {
-                        asyncDisposable.DisposeAsync().AsTask().Wait();
-                    }
-                    else if (cs is IDisposable disposable)
-                    {
-                        disposable.Dispose();
-                    }
-                });
-        }
+        public AbstractPersistentStorageService Create(IPersistentStorageConfiguration configuration)
+            => new MockCloudCachePersistentStorageService(configuration, @"C:\github\roslyn");
     }
 }

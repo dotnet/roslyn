@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -1298,14 +1299,17 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundUnaryOperator.WasCompilerGenerated;
             return new UnaryOperation(unaryOperatorKind, operand, isLifted, isChecked, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit);
         }
-
         private IOperation CreateBoundBinaryOperatorBase(BoundBinaryOperatorBase boundBinaryOperatorBase)
         {
+            if (boundBinaryOperatorBase is BoundBinaryOperator { InterpolatedStringHandlerData: not null } binary)
+            {
+                return CreateBoundInterpolatedStringBinaryOperator(binary);
+            }
+
             // Binary operators can be nested _many_ levels deep, and cause a stack overflow if we manually recurse.
             // To solve this, we use a manual stack for the left side.
             var stack = ArrayBuilder<BoundBinaryOperatorBase>.GetInstance();
             BoundBinaryOperatorBase? currentBinary = boundBinaryOperatorBase;
-            InterpolatedStringHandlerData? interpolatedData = (boundBinaryOperatorBase as BoundBinaryOperator)?.InterpolatedStringHandlerData;
 
             do
             {
@@ -1313,19 +1317,16 @@ namespace Microsoft.CodeAnalysis.Operations
                 currentBinary = currentBinary.Left as BoundBinaryOperatorBase;
             } while (currentBinary is not null and not BoundBinaryOperator { InterpolatedStringHandlerData: not null });
 
-            Debug.Assert(interpolatedData == null || interpolatedData.GetValueOrDefault().PositionInfo.Length == stack.Count + 1);
-
             Debug.Assert(stack.Count > 0);
             IOperation? left = null;
-            int positionInfoIndex = 0;
 
             while (stack.TryPop(out currentBinary))
             {
-                left ??= visitOperand(currentBinary.Left);
-                IOperation right = visitOperand(currentBinary.Right);
+                left ??= Create(currentBinary.Left);
+                IOperation right = Create(currentBinary.Right);
                 left = currentBinary switch
                 {
-                    BoundBinaryOperator binaryOp => createBoundBinaryOperatorOperation(binaryOp, left, right),
+                    BoundBinaryOperator binaryOp => CreateBoundBinaryOperatorOperation(binaryOp, left, right),
                     BoundUserDefinedConditionalLogicalOperator logicalOp => createBoundUserDefinedConditionalLogicalOperator(logicalOp, left, right),
                     { Kind: var kind } => throw ExceptionUtilities.UnexpectedValue(kind)
                 };
@@ -1334,37 +1335,6 @@ namespace Microsoft.CodeAnalysis.Operations
             Debug.Assert(left is not null && stack.Count == 0);
             stack.Free();
             return left;
-
-            IOperation visitOperand(BoundExpression operand)
-                => interpolatedData is { } data
-                    ? CreateBoundInterpolatedStringExpressionOperation((BoundInterpolatedString)operand, data.PositionInfo[positionInfoIndex++])
-                    : Create(operand);
-
-            IBinaryOperation createBoundBinaryOperatorOperation(BoundBinaryOperator boundBinaryOperator, IOperation left, IOperation right)
-            {
-                BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundBinaryOperator.OperatorKind);
-                IMethodSymbol? operatorMethod = boundBinaryOperator.Method.GetPublicSymbol();
-                IMethodSymbol? unaryOperatorMethod = null;
-
-                // For dynamic logical operator MethodOpt is actually the unary true/false operator
-                if (boundBinaryOperator.Type.IsDynamic() &&
-                    (operatorKind == BinaryOperatorKind.ConditionalAnd || operatorKind == BinaryOperatorKind.ConditionalOr) &&
-                    operatorMethod?.Parameters.Length == 1)
-                {
-                    unaryOperatorMethod = operatorMethod;
-                    operatorMethod = null;
-                }
-
-                SyntaxNode syntax = boundBinaryOperator.Syntax;
-                ITypeSymbol? type = boundBinaryOperator.GetPublicTypeSymbol();
-                ConstantValue? constantValue = boundBinaryOperator.ConstantValue;
-                bool isLifted = boundBinaryOperator.OperatorKind.IsLifted();
-                bool isChecked = boundBinaryOperator.OperatorKind.IsChecked();
-                bool isCompareText = false;
-                bool isImplicit = boundBinaryOperator.WasCompilerGenerated;
-                return new BinaryOperation(operatorKind, left, right, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod,
-                                           _semanticModel, syntax, type, constantValue, isImplicit);
-            }
 
             IBinaryOperation createBoundUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator boundBinaryOperator, IOperation left, IOperation right)
             {
@@ -1383,6 +1353,57 @@ namespace Microsoft.CodeAnalysis.Operations
                 return new BinaryOperation(operatorKind, left, right, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod,
                                            _semanticModel, syntax, type, constantValue, isImplicit);
             }
+        }
+
+        private IBinaryOperation CreateBoundBinaryOperatorOperation(BoundBinaryOperator boundBinaryOperator, IOperation left, IOperation right)
+        {
+            BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundBinaryOperator.OperatorKind);
+            IMethodSymbol? operatorMethod = boundBinaryOperator.Method.GetPublicSymbol();
+            IMethodSymbol? unaryOperatorMethod = null;
+
+            // For dynamic logical operator MethodOpt is actually the unary true/false operator
+            if (boundBinaryOperator.Type.IsDynamic() &&
+                (operatorKind == BinaryOperatorKind.ConditionalAnd || operatorKind == BinaryOperatorKind.ConditionalOr) &&
+                operatorMethod?.Parameters.Length == 1)
+            {
+                unaryOperatorMethod = operatorMethod;
+                operatorMethod = null;
+            }
+
+            SyntaxNode syntax = boundBinaryOperator.Syntax;
+            ITypeSymbol? type = boundBinaryOperator.GetPublicTypeSymbol();
+            ConstantValue? constantValue = boundBinaryOperator.ConstantValue;
+            bool isLifted = boundBinaryOperator.OperatorKind.IsLifted();
+            bool isChecked = boundBinaryOperator.OperatorKind.IsChecked();
+            bool isCompareText = false;
+            bool isImplicit = boundBinaryOperator.WasCompilerGenerated;
+            return new BinaryOperation(operatorKind, left, right, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod,
+                                       _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private IOperation CreateBoundInterpolatedStringBinaryOperator(BoundBinaryOperator boundBinaryOperator)
+        {
+            Debug.Assert(boundBinaryOperator.InterpolatedStringHandlerData is not null);
+            Func<BoundInterpolatedString, int, (CSharpOperationFactory, InterpolatedStringHandlerData), IOperation> createInterpolatedString
+                = createInterpolatedStringOperand;
+
+            Func<BoundBinaryOperator, IOperation, IOperation, (CSharpOperationFactory, InterpolatedStringHandlerData), IOperation> createBinaryOperator
+                = createBoundBinaryOperatorOperation;
+
+            return boundBinaryOperator.RewriteInterpolatedStringAddition((this, boundBinaryOperator.InterpolatedStringHandlerData.GetValueOrDefault()), createInterpolatedString, createBinaryOperator);
+
+            static IInterpolatedStringOperation createInterpolatedStringOperand(
+                BoundInterpolatedString boundInterpolatedString,
+                int i,
+                (CSharpOperationFactory @this, InterpolatedStringHandlerData Data) arg)
+                => arg.@this.CreateBoundInterpolatedStringExpressionOperation(boundInterpolatedString, arg.Data.PositionInfo[i]);
+
+            static IBinaryOperation createBoundBinaryOperatorOperation(
+                BoundBinaryOperator boundBinaryOperator,
+                IOperation left,
+                IOperation right,
+                (CSharpOperationFactory @this, InterpolatedStringHandlerData _) arg)
+                => arg.@this.CreateBoundBinaryOperatorOperation(boundBinaryOperator, left, right);
         }
 
         private ITupleBinaryOperation CreateBoundTupleBinaryOperatorOperation(BoundTupleBinaryOperator boundTupleBinaryOperator)

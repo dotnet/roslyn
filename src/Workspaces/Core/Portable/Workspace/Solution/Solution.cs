@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -1706,6 +1707,7 @@ namespace Microsoft.CodeAnalysis
         /// Formerly, returned a copy of the solution isolated from the original so that they do not share computed state. It now does nothing.
         /// </summary>
         [Obsolete("This method no longer produces a Solution that does not share state and is no longer necessary to call.", error: false)]
+        [EditorBrowsable(EditorBrowsableState.Never)] // hide this since it is obsolete and only leads to confusion
         public Solution GetIsolatedSolution()
         {
             // To maintain compat, just return ourself, which will be functionally identical.

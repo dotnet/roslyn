@@ -24,9 +24,10 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
                 return;
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var headerFacts = document.GetRequiredLanguageService<IHeaderFactsService>();
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (!syntaxFacts.IsOnTypeHeader(root, diagnostic.Location.SourceSpan.Start, fullHeader: true, out var typeDecl))
+            if (!headerFacts.IsOnTypeHeader(root, diagnostic.Location.SourceSpan.Start, fullHeader: true, out var typeDecl))
                 return;
 
             var typeName = syntaxFacts.GetIdentifierOfTypeDeclaration(typeDecl);

@@ -68,6 +68,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         ///
         /// It will return true if it was able to return all up-to-date diagnostics.
         ///  otherwise, false indicating there are some missing diagnostics in the diagnostic list
+        ///  
+        /// This API will only force complete analyzers that support span based analysis, i.e. compiler analyzer and
+        /// <see cref="IBuiltInAnalyzer"/>s that support <see cref="DiagnosticAnalyzerCategory.SemanticSpanAnalysis"/>.
+        /// For the rest of the analyzers, it will only return diagnostics if the analyzer has already been executed.
+        /// Use <see cref="GetDiagnosticsForSpanAsync(Document, TextSpan?, string?, bool, CodeActionRequestPriority, Func{string, IDisposable?}?, CancellationToken)"/>
+        /// if you want to force complete all analyzers and get up-to-date diagnostics for all analyzers for the given span.
         /// </summary>
         Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, ArrayBuilder<DiagnosticData> diagnostics, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default);
 

@@ -58,10 +58,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             Contract.ThrowIfNull(newSemanticTokensData, "newSemanticTokensData is null.");
 
             // Getting the cached tokens for the document. If we don't have an applicable cached token set,
-            // we can't calculate edits, so we must return all semantic tokens instead.
+            // we can't calculate edits, so we must return all semantic tokens instead. Likewise, if the new
+            // token set is empty, there's no need to calculate edits.
             var oldSemanticTokensData = await _tokensCache.GetCachedTokensDataAsync(
                 request.TextDocument.Uri, request.PreviousResultId, cancellationToken).ConfigureAwait(false);
-            if (oldSemanticTokensData == null)
+            if (oldSemanticTokensData == null || newSemanticTokensData.Length == 0)
             {
                 var newResultId = _tokensCache.GetNextResultId();
                 var updatedTokens = new RoslynSemanticTokens
@@ -87,18 +88,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             if (editArray.Length != 0)
             {
                 resultId = _tokensCache.GetNextResultId();
-                if (newSemanticTokensData.Length > 0)
+                var updatedTokens = new RoslynSemanticTokens
                 {
-                    var updatedTokens = new RoslynSemanticTokens
-                    {
-                        ResultId = resultId,
-                        Data = newSemanticTokensData,
-                        IsFinalized = isFinalized
-                    };
+                    ResultId = resultId,
+                    Data = newSemanticTokensData,
+                    IsFinalized = isFinalized
+                };
 
-                    await _tokensCache.UpdateCacheAsync(
-                        request.TextDocument.Uri, updatedTokens, cancellationToken).ConfigureAwait(false);
-                }
+                await _tokensCache.UpdateCacheAsync(
+                    request.TextDocument.Uri, updatedTokens, cancellationToken).ConfigureAwait(false);
             }
 
             var edits = new RoslynSemanticTokensDelta

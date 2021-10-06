@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
                 case SyntaxKind.InterpolatedStringTextToken:
                     {
-                        if (!(token.Parent is InterpolatedStringTextSyntax interpolatedStringText))
+                        if (token.Parent is not InterpolatedStringTextSyntax interpolatedStringText)
                         {
                             return false;
                         }
@@ -370,9 +370,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         // list should be classified as punctuation; otherwise, they're operators.
                         if (token.Parent != null)
                         {
-                            if (token.Parent.Kind() == SyntaxKind.TypeParameterList ||
-                                token.Parent.Kind() == SyntaxKind.TypeArgumentList ||
-                                token.Parent.Kind() == SyntaxKind.FunctionPointerParameterList)
+                            if (token.Parent.Kind() is SyntaxKind.TypeParameterList or
+                                SyntaxKind.TypeArgumentList or
+                                SyntaxKind.FunctionPointerParameterList)
                             {
                                 return ClassificationTypeNames.Punctuation;
                             }

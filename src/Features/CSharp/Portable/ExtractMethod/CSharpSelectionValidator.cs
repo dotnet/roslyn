@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         }
 
         public override bool ContainsNonReturnExitPointsStatements(IEnumerable<SyntaxNode> jumpsOutOfRegion)
-            => jumpsOutOfRegion.Where(n => !(n is ReturnStatementSyntax)).Any();
+            => jumpsOutOfRegion.Where(n => n is not ReturnStatementSyntax).Any();
 
         public override IEnumerable<SyntaxNode> GetOuterReturnStatements(SyntaxNode commonRoot, IEnumerable<SyntaxNode> jumpsOutOfRegion)
         {
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             // now, only method is okay to be extracted out
-            if (!(body.Parent is MethodDeclarationSyntax method))
+            if (body.Parent is not MethodDeclarationSyntax method)
             {
                 return false;
             }

@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             foreach (var node in context.InputNodes)
             {
                 var symbol = graphBuilder.GetSymbol(node, cancellationToken);
-                if (!(symbol is INamedTypeSymbol namedType))
+                if (symbol is not INamedTypeSymbol namedType)
                     continue;
 
                 if (namedType.TypeKind == TypeKind.Class)

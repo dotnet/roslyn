@@ -107,8 +107,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 
             _tagger = tracker.CreateTagger<RenameTrackingTag>(_hostDocument.GetTextBuffer());
 
-            if (languageName == LanguageNames.CSharp ||
-                languageName == LanguageNames.VisualBasic)
+            if (languageName is LanguageNames.CSharp or
+                LanguageNames.VisualBasic)
             {
                 _codeRefactoringProvider = new RenameTrackingCodeRefactoringProvider(
                     _historyRegistry,
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
                 var operations = (await codeAction.GetOperationsAsync(CancellationToken.None)).ToArray();
                 Assert.Equal(1, operations.Length);
 
-                operations[0].TryApply(this.Workspace, new ProgressTracker(), CancellationToken.None);
+                await operations[0].TryApplyAsync(this.Workspace, new ProgressTracker(), CancellationToken.None);
             }
         }
 

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// examining all of them to go in both up and down directions in every project we process.  Any time we
             /// add a new symbol to it we'll continue to cascade in both directions looking for more.
             /// </summary>
-            private readonly HashSet<ISymbol> _allSymbols = new();
+            private readonly MetadataUnifyingSymbolHashSet _allSymbols = new();
 
             public BidirectionalSymbolSet(FindReferencesSearchEngine engine, HashSet<ISymbol> initialSymbols, HashSet<ISymbol> upSymbols)
                 : base(engine)

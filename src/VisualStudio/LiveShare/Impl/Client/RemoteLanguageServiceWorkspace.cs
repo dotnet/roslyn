@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
@@ -76,19 +77,20 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// </summary>
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteLanguageServiceWorkspace(ExportProvider exportProvider,
-                                              IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-                                              IVsFolderWorkspaceService vsFolderWorkspaceService,
-                                              SVsServiceProvider serviceProvider,
-                                              IDiagnosticService diagnosticService,
-                                              ITableManagerProvider tableManagerProvider,
-                                              IThreadingContext threadingContext)
+        public RemoteLanguageServiceWorkspace(
+            ExportProvider exportProvider,
+            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
+            IVsFolderWorkspaceService vsFolderWorkspaceService,
+            SVsServiceProvider serviceProvider,
+            IDiagnosticService diagnosticService,
+            ITableManagerProvider tableManagerProvider,
+            IGlobalOptionService globalOptions,
+            IThreadingContext threadingContext)
             : base(VisualStudioMefHostServices.Create(exportProvider), WorkspaceKind.CloudEnvironmentClientWorkspace)
-
         {
             _serviceProvider = serviceProvider;
 
-            _remoteDiagnosticListTable = new RemoteDiagnosticListTable(serviceProvider, this, diagnosticService, tableManagerProvider);
+            _remoteDiagnosticListTable = new RemoteDiagnosticListTable(serviceProvider, this, globalOptions, diagnosticService, tableManagerProvider);
 
             var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, this);
@@ -345,7 +347,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             {
                 return LanguageNames.CSharp;
             }
-            else if (fileExtension == ".ts" || fileExtension == ".js")
+            else if (fileExtension is ".ts" or ".js")
             {
                 return StringConstants.TypeScriptLanguageName;
             }

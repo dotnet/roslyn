@@ -313,6 +313,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                     errorReportingService.ShowGlobalErrorInfo(
                         message,
+                        ex,
                         new InfoBarUI(
                             WorkspacesResources.Show_Stack_Trace,
                             InfoBarUI.UIKind.HyperLink,

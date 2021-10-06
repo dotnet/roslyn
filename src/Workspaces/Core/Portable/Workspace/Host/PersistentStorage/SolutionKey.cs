@@ -5,7 +5,7 @@
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.PersistentStorage
+namespace Microsoft.CodeAnalysis.Storage
 {
     /// <summary>
     /// Handle that can be used with <see cref="IChecksummedPersistentStorage"/> to read data for a
@@ -18,8 +18,10 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
     {
         [DataMember(Order = 0)]
         public readonly SolutionId Id;
+
         [DataMember(Order = 1)]
         public readonly string? FilePath;
+
         [DataMember(Order = 2)]
         public readonly bool IsPrimaryBranch;
 

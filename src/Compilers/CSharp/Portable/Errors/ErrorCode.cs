@@ -1996,6 +1996,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters = 8971,
         ERR_LambdaWithAttributesToExpressionTree = 8972,
 
+        WRN_CompileTimeCheckedOverflow = 8973,
+        WRN_MethGrpToNonDel = 8974,
+
         // PROTOTYPE(list-patterns)
         ERR_UnsupportedTypeForListPattern = 9200,
         ERR_UnsupportedTypeForSlicePattern,

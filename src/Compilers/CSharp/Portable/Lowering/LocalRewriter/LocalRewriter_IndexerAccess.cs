@@ -205,12 +205,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression argument,
             bool isLeftOfAssignment)
         {
-            // Lowered code:
-            // ref var receiver = receiverExpr;
-            // int length = receiver.length;
-            // int index = argument.GetOffset(length);
-            // receiver[index];
-
             var F = _factory;
 
             Debug.Assert(receiver.Type is { });
@@ -219,37 +213,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out var receiverStore,
                 // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
                 receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
-            var lengthLocal = F.StoreToTemp(F.Property(receiverLocal, lengthOrCountProperty), out var lengthStore);
-            var indexLocal = F.StoreToTemp(
-                MakePatternIndexOffsetExpression(argument, lengthLocal, out bool usedLength),
-                out var indexStore);
-
-            // Hint the array size here because the only case when the length is not needed is if the
-            // user writes code like receiver[(Index)offset], as opposed to just receiver[offset]
-            // and that will probably be very rare.
-            var locals = ArrayBuilder<LocalSymbol>.GetInstance(3);
-            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(3);
-
-            locals.Add(receiverLocal.LocalSymbol);
-            sideEffects.Add(receiverStore);
-
-            if (usedLength)
-            {
-                locals.Add(lengthLocal.LocalSymbol);
-                sideEffects.Add(lengthStore);
-            }
-
-            locals.Add(indexLocal.LocalSymbol);
-            sideEffects.Add(indexStore);
+            var indexAccess = MakePatternIndexOffsetExpression(argument, F.Property(receiverLocal, lengthOrCountProperty), out _);
 
             return (BoundSequence)F.Sequence(
-                locals.ToImmutable(),
-                sideEffects.ToImmutable(),
+                ImmutableArray.Create<LocalSymbol>(receiverLocal.LocalSymbol),
+                ImmutableArray.Create<BoundExpression>(receiverStore),
                 MakeIndexerAccess(
                     syntax,
                     receiverLocal,
                     intIndexer,
-                    ImmutableArray.Create<BoundExpression>(indexLocal),
+                    ImmutableArray.Create<BoundExpression>(indexAccess),
                     default,
                     default,
                     expanded: false,

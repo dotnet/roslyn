@@ -189,7 +189,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Snippet_OnAfterInsertion = 155,
 
         Misc_NonReentrantLock_BlockingWait = 156,
-        Misc_VisualStudioWaitIndicator_Wait = 157,
         Misc_SaveEventsSink_OnBeforeSave = 158,
 
         TaskList_Refresh = 159,
@@ -531,5 +530,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         LSP_FindDocumentInWorkspace = 494,
 
         SuggestedActions_GetSuggestedActionsAsync = 500,
+
+        NavigateTo_CacheItemsMiss = 510,
     }
 }

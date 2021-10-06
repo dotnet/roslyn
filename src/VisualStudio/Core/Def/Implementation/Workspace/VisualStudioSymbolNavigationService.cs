@@ -36,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     internal partial class VisualStudioSymbolNavigationService : ForegroundThreadAffinitizedObject, ISymbolNavigationService
     {
         private readonly IServiceProvider _serviceProvider;
+        private readonly IGlobalOptionService _globalOptions;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
@@ -43,12 +44,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioSymbolNavigationService(
             SVsServiceProvider serviceProvider,
+            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             IVsEditorAdaptersFactoryService editorAdaptersFactory,
             IMetadataAsSourceFileService metadataAsSourceFileService)
             : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
+            _globalOptions = globalOptions;
             _editorAdaptersFactory = editorAdaptersFactory;
             _metadataAsSourceFileService = metadataAsSourceFileService;
         }
@@ -60,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            options ??= project.Solution.Workspace.Options;
+            options ??= project.Solution.Options;
             symbol = symbol.OriginalDefinition;
 
             // Prefer visible source locations if possible.
@@ -88,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             // Should we prefer navigating to the Object Browser over metadata-as-source?
-            if (options.GetOption(VisualStudioNavigationOptions.NavigateToObjectBrowser, project.Language))
+            if (_globalOptions.GetOption(VisualStudioNavigationOptions.NavigateToObjectBrowser, project.Language))
             {
                 var libraryService = project.LanguageServices.GetService<ILibraryService>();
                 if (libraryService == null)

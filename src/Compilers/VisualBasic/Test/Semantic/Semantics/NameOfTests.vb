@@ -2667,12 +2667,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.DebugExe)
 
-            AssertTheseDiagnostics(comp,
-<expected>
-BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
-        System.Console.WriteLine(NameOf(x.E1))
-                                        ~~~~
-</expected>)
+            AssertNoDiagnostics(comp)
 
             CompileAndVerify(comp, expectedOutput:=
             <![CDATA[
@@ -2690,6 +2685,7 @@ Module Module1
         Dim x As New C2()
         System.Console.WriteLine(NameOf(x.T1))
         System.Console.WriteLine(NameOf(x.P1.T2))
+        System.Console.WriteLine(NameOf(x.P1))
     End Sub
 End Module
 
@@ -2726,6 +2722,7 @@ BC42025: Access of shared member, constant member, enum member or nested type th
             <![CDATA[
 T1
 T2
+P1
 ]]>)
         End Sub
 

@@ -126,5 +126,10 @@ namespace Roslyn.Test.Utilities
         {
             throw MakeException();
         }
+
+        public override void AddCompilerInfo(ushort major, ushort minor, ushort build, ushort revision, string name)
+        {
+            throw MakeException();
+        }
     }
 }
