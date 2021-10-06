@@ -142,10 +142,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static bool IsNonTypeMember(ISymbol symbol)
         {
-            return symbol.Kind == SymbolKind.Method ||
-                   symbol.Kind == SymbolKind.Property ||
-                   symbol.Kind == SymbolKind.Event ||
-                   symbol.Kind == SymbolKind.Field;
+            return symbol.Kind is SymbolKind.Method or
+                   SymbolKind.Property or
+                   SymbolKind.Event or
+                   SymbolKind.Field;
         }
 
         private static bool IsOn(SymbolFilter filter, SymbolFilter flag)

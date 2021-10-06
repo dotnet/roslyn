@@ -207,4 +207,7 @@
   <data name="FeatureName_ValueTracking" xml:space="preserve">
     <value>Value Tracking</value>
   </data>
+  <data name="FeatureName_ProcessTelemetry" xml:space="preserve">
+    <value>Process telemetry</value>
+  </data>
 </root>

@@ -983,6 +983,9 @@ class Program {
                 // (5,35): error CS8917: The delegate type could not be inferred.
                 //         Console.WriteLine($"X = { x=>3 }.");
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x=>3").WithLocation(5, 35),
+                // (6,35): warning CS8974: Converting method group 'Main' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         Console.WriteLine($"X = { Program.Main }.");
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "Program.Main").WithArguments("Main", "object").WithLocation(6, 35),
                 // (7,35): error CS0029: Cannot implicitly convert type 'void' to 'object'
                 //         Console.WriteLine($"X = { Program.Main(null) }.");
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "Program.Main(null)").WithArguments("void", "object").WithLocation(7, 35)
@@ -1655,7 +1658,7 @@ value:1,alignment:2:format:Y";
 ",
                 (useDefaultParameters: false, useBoolReturns: false, constructorBoolArg: true) => @"
 {
-  // Code size       89 (0x59)
+  // Code size       84 (0x54)
   .maxstack  4
   .locals init (int V_0, //a
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1,
@@ -1668,7 +1671,7 @@ value:1,alignment:2:format:Y";
   IL_0006:  newobj     ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int, out bool)""
   IL_000b:  stloc.1
   IL_000c:  ldloc.2
-  IL_000d:  brfalse.s  IL_004a
+  IL_000d:  brfalse.s  IL_0047
   IL_000f:  ldloca.s   V_1
   IL_0011:  ldstr      ""base""
   IL_0016:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
@@ -1688,19 +1691,15 @@ value:1,alignment:2:format:Y";
   IL_003c:  ldc.i4.2
   IL_003d:  ldstr      ""Y""
   IL_0042:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, int, string)""
-  IL_0047:  ldc.i4.1
-  IL_0048:  br.s       IL_004b
-  IL_004a:  ldc.i4.0
-  IL_004b:  pop
-  IL_004c:  ldloca.s   V_1
-  IL_004e:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
-  IL_0053:  call       ""void System.Console.WriteLine(string)""
-  IL_0058:  ret
+  IL_0047:  ldloca.s   V_1
+  IL_0049:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+  IL_004e:  call       ""void System.Console.WriteLine(string)""
+  IL_0053:  ret
 }
 ",
                 (useDefaultParameters: true, useBoolReturns: false, constructorBoolArg: true) => @"
 {
-  // Code size       93 (0x5d)
+  // Code size       88 (0x58)
   .maxstack  4
   .locals init (int V_0, //a
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1,
@@ -1713,7 +1712,7 @@ value:1,alignment:2:format:Y";
   IL_0006:  newobj     ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int, out bool)""
   IL_000b:  stloc.1
   IL_000c:  ldloc.2
-  IL_000d:  brfalse.s  IL_004e
+  IL_000d:  brfalse.s  IL_004b
   IL_000f:  ldloca.s   V_1
   IL_0011:  ldstr      ""base""
   IL_0016:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
@@ -1737,14 +1736,10 @@ value:1,alignment:2:format:Y";
   IL_0040:  ldc.i4.2
   IL_0041:  ldstr      ""Y""
   IL_0046:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, int, string)""
-  IL_004b:  ldc.i4.1
-  IL_004c:  br.s       IL_004f
-  IL_004e:  ldc.i4.0
-  IL_004f:  pop
-  IL_0050:  ldloca.s   V_1
-  IL_0052:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
-  IL_0057:  call       ""void System.Console.WriteLine(string)""
-  IL_005c:  ret
+  IL_004b:  ldloca.s   V_1
+  IL_004d:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+  IL_0052:  call       ""void System.Console.WriteLine(string)""
+  IL_0057:  ret
 }
 ",
                 (useDefaultParameters: false, useBoolReturns: true, constructorBoolArg: true) => @"
@@ -2083,7 +2078,7 @@ value:1,alignment:2:format:Y";
 ",
                 (useDefaultParameters: false, useBoolReturns: false, constructorBoolArg: true) => @"
 {
-  // Code size       98 (0x62)
+  // Code size       93 (0x5d)
   .maxstack  4
   .locals init (System.ReadOnlySpan<char> V_0, //a
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1,
@@ -2097,7 +2092,7 @@ value:1,alignment:2:format:Y";
   IL_000f:  newobj     ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int, out bool)""
   IL_0014:  stloc.1
   IL_0015:  ldloc.2
-  IL_0016:  brfalse.s  IL_0053
+  IL_0016:  brfalse.s  IL_0050
   IL_0018:  ldloca.s   V_1
   IL_001a:  ldstr      ""base""
   IL_001f:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
@@ -2117,14 +2112,10 @@ value:1,alignment:2:format:Y";
   IL_0045:  ldc.i4.2
   IL_0046:  ldstr      ""Y""
   IL_004b:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
-  IL_0050:  ldc.i4.1
-  IL_0051:  br.s       IL_0054
-  IL_0053:  ldc.i4.0
-  IL_0054:  pop
-  IL_0055:  ldloca.s   V_1
-  IL_0057:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
-  IL_005c:  call       ""void System.Console.WriteLine(string)""
-  IL_0061:  ret
+  IL_0050:  ldloca.s   V_1
+  IL_0052:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+  IL_0057:  call       ""void System.Console.WriteLine(string)""
+  IL_005c:  ret
 }
 ",
                 (useDefaultParameters: false, useBoolReturns: true, constructorBoolArg: true) => @"
@@ -2178,7 +2169,7 @@ value:1,alignment:2:format:Y";
 ",
                 (useDefaultParameters: true, useBoolReturns: false, constructorBoolArg: true) => @"
 {
-  // Code size      102 (0x66)
+  // Code size       97 (0x61)
   .maxstack  4
   .locals init (System.ReadOnlySpan<char> V_0, //a
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1,
@@ -2192,7 +2183,7 @@ value:1,alignment:2:format:Y";
   IL_000f:  newobj     ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int, out bool)""
   IL_0014:  stloc.1
   IL_0015:  ldloc.2
-  IL_0016:  brfalse.s  IL_0057
+  IL_0016:  brfalse.s  IL_0054
   IL_0018:  ldloca.s   V_1
   IL_001a:  ldstr      ""base""
   IL_001f:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
@@ -2216,14 +2207,10 @@ value:1,alignment:2:format:Y";
   IL_0049:  ldc.i4.2
   IL_004a:  ldstr      ""Y""
   IL_004f:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
-  IL_0054:  ldc.i4.1
-  IL_0055:  br.s       IL_0058
-  IL_0057:  ldc.i4.0
-  IL_0058:  pop
-  IL_0059:  ldloca.s   V_1
-  IL_005b:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
-  IL_0060:  call       ""void System.Console.WriteLine(string)""
-  IL_0065:  ret
+  IL_0054:  ldloca.s   V_1
+  IL_0056:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+  IL_005b:  call       ""void System.Console.WriteLine(string)""
+  IL_0060:  ret
 }
 ",
                 (useDefaultParameters: true, useBoolReturns: true, constructorBoolArg: true) => @"
@@ -9816,60 +9803,56 @@ format:
 ",
                 (useBoolReturns: false, validityParameter: true) => @"
 {
-  // Code size       96 (0x60)
+  // Code size       95 (0x5f)
   .maxstack  6
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                CustomHandler V_1,
+                bool V_2,
                 int V_3,
-                CustomHandler V_4,
-                CustomHandler V_5,
-                bool V_6)
+                C V_4,
+                int V_5,
+                CustomHandler V_6)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
-  IL_0008:  ldc.i4.1
-  IL_0009:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000e:  stloc.1
-  IL_000f:  ldloc.1
-  IL_0010:  stloc.3
-  IL_0011:  ldc.i4.7
-  IL_0012:  ldc.i4.1
-  IL_0013:  ldloc.1
-  IL_0014:  ldloc.2
-  IL_0015:  ldloca.s   V_6
-  IL_0017:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
-  IL_001c:  stloc.s    V_5
-  IL_001e:  ldloc.s    V_6
-  IL_0020:  brfalse.s  IL_0040
-  IL_0022:  ldloca.s   V_5
-  IL_0024:  ldstr      ""literal""
-  IL_0029:  call       ""void CustomHandler.AppendLiteral(string)""
-  IL_002e:  ldloca.s   V_5
-  IL_0030:  ldloc.0
-  IL_0031:  box        ""int""
-  IL_0036:  ldc.i4.0
-  IL_0037:  ldnull
-  IL_0038:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
-  IL_003d:  ldc.i4.1
-  IL_003e:  br.s       IL_0041
-  IL_0040:  ldc.i4.0
-  IL_0041:  pop
-  IL_0042:  ldloc.s    V_5
-  IL_0044:  stloc.s    V_4
-  IL_0046:  ldloc.2
-  IL_0047:  ldloc.3
-  IL_0048:  ldloc.s    V_4
-  IL_004a:  ldloc.2
-  IL_004b:  ldloc.3
-  IL_004c:  ldloc.s    V_4
-  IL_004e:  callvirt   ""int C.this[int, CustomHandler].get""
-  IL_0053:  ldc.i4.2
-  IL_0054:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_0059:  add
-  IL_005a:  callvirt   ""void C.this[int, CustomHandler].set""
-  IL_005f:  ret
+  IL_0007:  stloc.s    V_4
+  IL_0009:  ldc.i4.1
+  IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
+  IL_000f:  stloc.3
+  IL_0010:  ldloc.3
+  IL_0011:  stloc.s    V_5
+  IL_0013:  ldc.i4.7
+  IL_0014:  ldc.i4.1
+  IL_0015:  ldloc.3
+  IL_0016:  ldloc.s    V_4
+  IL_0018:  ldloca.s   V_2
+  IL_001a:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.2
+  IL_0021:  brfalse.s  IL_003e
+  IL_0023:  ldloca.s   V_1
+  IL_0025:  ldstr      ""literal""
+  IL_002a:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_002f:  ldloca.s   V_1
+  IL_0031:  ldloc.0
+  IL_0032:  box        ""int""
+  IL_0037:  ldc.i4.0
+  IL_0038:  ldnull
+  IL_0039:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_003e:  ldloc.1
+  IL_003f:  stloc.s    V_6
+  IL_0041:  ldloc.s    V_4
+  IL_0043:  ldloc.s    V_5
+  IL_0045:  ldloc.s    V_6
+  IL_0047:  ldloc.s    V_4
+  IL_0049:  ldloc.s    V_5
+  IL_004b:  ldloc.s    V_6
+  IL_004d:  callvirt   ""int C.this[int, CustomHandler].get""
+  IL_0052:  ldc.i4.2
+  IL_0053:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
+  IL_0058:  add
+  IL_0059:  callvirt   ""void C.this[int, CustomHandler].set""
+  IL_005e:  ret
 }
 ",
                 (useBoolReturns: true, validityParameter: false) => @"
@@ -10105,13 +10088,14 @@ GetInt2
 ",
                 (useBoolReturns: false, validityParameter: true) => @"
 {
-  // Code size       82 (0x52)
-  .maxstack  7
+  // Code size       81 (0x51)
+  .maxstack  6
   .locals init (int V_0, //i
                 int V_1,
                 C V_2,
-                CustomHandler V_3,
-                bool V_4)
+                int V_3,
+                CustomHandler V_4,
+                bool V_5)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
@@ -10121,37 +10105,35 @@ GetInt2
   IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_000f:  stloc.1
   IL_0010:  ldloc.1
-  IL_0011:  ldc.i4.7
-  IL_0012:  ldc.i4.1
-  IL_0013:  ldloc.1
-  IL_0014:  ldloc.2
-  IL_0015:  ldloca.s   V_4
-  IL_0017:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
-  IL_001c:  stloc.3
-  IL_001d:  ldloc.s    V_4
-  IL_001f:  brfalse.s  IL_003f
-  IL_0021:  ldloca.s   V_3
-  IL_0023:  ldstr      ""literal""
-  IL_0028:  call       ""void CustomHandler.AppendLiteral(string)""
-  IL_002d:  ldloca.s   V_3
-  IL_002f:  ldloc.0
-  IL_0030:  box        ""int""
-  IL_0035:  ldc.i4.0
-  IL_0036:  ldnull
-  IL_0037:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
-  IL_003c:  ldc.i4.1
-  IL_003d:  br.s       IL_0040
-  IL_003f:  ldc.i4.0
-  IL_0040:  pop
-  IL_0041:  ldloc.3
-  IL_0042:  callvirt   ""ref int C.this[int, CustomHandler].get""
-  IL_0047:  dup
-  IL_0048:  ldind.i4
-  IL_0049:  ldc.i4.2
-  IL_004a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_004f:  add
-  IL_0050:  stind.i4
-  IL_0051:  ret
+  IL_0011:  stloc.3
+  IL_0012:  ldc.i4.7
+  IL_0013:  ldc.i4.1
+  IL_0014:  ldloc.1
+  IL_0015:  ldloc.2
+  IL_0016:  ldloca.s   V_5
+  IL_0018:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
+  IL_001d:  stloc.s    V_4
+  IL_001f:  ldloc.s    V_5
+  IL_0021:  brfalse.s  IL_003e
+  IL_0023:  ldloca.s   V_4
+  IL_0025:  ldstr      ""literal""
+  IL_002a:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_002f:  ldloca.s   V_4
+  IL_0031:  ldloc.0
+  IL_0032:  box        ""int""
+  IL_0037:  ldc.i4.0
+  IL_0038:  ldnull
+  IL_0039:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_003e:  ldloc.3
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  callvirt   ""ref int C.this[int, CustomHandler].get""
+  IL_0046:  dup
+  IL_0047:  ldind.i4
+  IL_0048:  ldc.i4.2
+  IL_0049:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
+  IL_004e:  add
+  IL_004f:  stind.i4
+  IL_0050:  ret
 }
 ",
                 (useBoolReturns: true, validityParameter: false) => @"
@@ -10370,13 +10352,14 @@ GetInt2
 ",
                 (useBoolReturns: false, validityParameter: true) => @"
 {
-  // Code size       82 (0x52)
-  .maxstack  7
+  // Code size       81 (0x51)
+  .maxstack  6
   .locals init (int V_0, //i
                 int V_1,
                 C V_2,
-                CustomHandler V_3,
-                bool V_4)
+                int V_3,
+                CustomHandler V_4,
+                bool V_5)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
@@ -10386,37 +10369,35 @@ GetInt2
   IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_000f:  stloc.1
   IL_0010:  ldloc.1
-  IL_0011:  ldc.i4.7
-  IL_0012:  ldc.i4.1
-  IL_0013:  ldloc.1
-  IL_0014:  ldloc.2
-  IL_0015:  ldloca.s   V_4
-  IL_0017:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
-  IL_001c:  stloc.3
-  IL_001d:  ldloc.s    V_4
-  IL_001f:  brfalse.s  IL_003f
-  IL_0021:  ldloca.s   V_3
-  IL_0023:  ldstr      ""literal""
-  IL_0028:  call       ""void CustomHandler.AppendLiteral(string)""
-  IL_002d:  ldloca.s   V_3
-  IL_002f:  ldloc.0
-  IL_0030:  box        ""int""
-  IL_0035:  ldc.i4.0
-  IL_0036:  ldnull
-  IL_0037:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
-  IL_003c:  ldc.i4.1
-  IL_003d:  br.s       IL_0040
-  IL_003f:  ldc.i4.0
-  IL_0040:  pop
-  IL_0041:  ldloc.3
-  IL_0042:  callvirt   ""ref int C.M(int, CustomHandler)""
-  IL_0047:  dup
-  IL_0048:  ldind.i4
-  IL_0049:  ldc.i4.2
-  IL_004a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_004f:  add
-  IL_0050:  stind.i4
-  IL_0051:  ret
+  IL_0011:  stloc.3
+  IL_0012:  ldc.i4.7
+  IL_0013:  ldc.i4.1
+  IL_0014:  ldloc.1
+  IL_0015:  ldloc.2
+  IL_0016:  ldloca.s   V_5
+  IL_0018:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
+  IL_001d:  stloc.s    V_4
+  IL_001f:  ldloc.s    V_5
+  IL_0021:  brfalse.s  IL_003e
+  IL_0023:  ldloca.s   V_4
+  IL_0025:  ldstr      ""literal""
+  IL_002a:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_002f:  ldloca.s   V_4
+  IL_0031:  ldloc.0
+  IL_0032:  box        ""int""
+  IL_0037:  ldc.i4.0
+  IL_0038:  ldnull
+  IL_0039:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_003e:  ldloc.3
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  callvirt   ""ref int C.M(int, CustomHandler)""
+  IL_0046:  dup
+  IL_0047:  ldind.i4
+  IL_0048:  ldc.i4.2
+  IL_0049:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
+  IL_004e:  add
+  IL_004f:  stind.i4
+  IL_0050:  ret
 }
 ",
                 (useBoolReturns: true, validityParameter: false) => @"
@@ -10767,7 +10748,7 @@ format:
 ",
                 (useBoolReturns: false, validityParameter: true) => @"
 {
-  // Code size       87 (0x57)
+  // Code size       77 (0x4d)
   .maxstack  6
   .locals init (int V_0,
                 CustomHandler V_1,
@@ -10785,7 +10766,7 @@ format:
   IL_0008:  newobj     ""CustomHandler..ctor(int, int, int, out bool)""
   IL_000d:  stloc.1
   IL_000e:  ldloc.2
-  IL_000f:  brfalse.s  IL_004e
+  IL_000f:  brfalse.s  IL_0046
   IL_0011:  ldloc.1
   IL_0012:  stloc.3
   IL_0013:  ldloc.3
@@ -10796,29 +10777,21 @@ format:
   IL_001a:  newobj     ""CustomHandler..ctor(int, int, CustomHandler, out bool)""
   IL_001f:  stloc.s    V_4
   IL_0021:  ldloc.s    V_5
-  IL_0023:  brfalse.s  IL_0034
+  IL_0023:  brfalse.s  IL_0031
   IL_0025:  ldloc.s    V_4
   IL_0027:  ldstr      ""Inner string""
   IL_002c:  callvirt   ""void CustomHandler.AppendLiteral(string)""
-  IL_0031:  ldc.i4.1
-  IL_0032:  br.s       IL_0035
-  IL_0034:  ldc.i4.0
-  IL_0035:  pop
-  IL_0036:  ldloc.s    V_4
-  IL_0038:  callvirt   ""void CustomHandler.AppendFormatted(CustomHandler)""
-  IL_003d:  ldloc.1
-  IL_003e:  ldc.i4.2
-  IL_003f:  box        ""int""
-  IL_0044:  ldc.i4.0
-  IL_0045:  ldnull
-  IL_0046:  callvirt   ""void CustomHandler.AppendFormatted(object, int, string)""
-  IL_004b:  ldc.i4.1
-  IL_004c:  br.s       IL_004f
-  IL_004e:  ldc.i4.0
-  IL_004f:  pop
-  IL_0050:  ldloc.1
-  IL_0051:  call       ""void C.M(int, CustomHandler)""
-  IL_0056:  ret
+  IL_0031:  ldloc.s    V_4
+  IL_0033:  callvirt   ""void CustomHandler.AppendFormatted(CustomHandler)""
+  IL_0038:  ldloc.1
+  IL_0039:  ldc.i4.2
+  IL_003a:  box        ""int""
+  IL_003f:  ldc.i4.0
+  IL_0040:  ldnull
+  IL_0041:  callvirt   ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0046:  ldloc.1
+  IL_0047:  call       ""void C.M(int, CustomHandler)""
+  IL_004c:  ret
 }
 ",
                 (useBoolReturns: true, validityParameter: false) => @"
@@ -12711,15 +12684,17 @@ o3.ToString();
             );
         }
 
-        [Fact]
-        public void ParenthesizedAdditiveExpression_01()
+        [Theory]
+        [InlineData(@"($""{i1}"" + $""{i2}"") + $""{i3}""")]
+        [InlineData(@"$""{i1}"" + ($""{i2}"" + $""{i3}"")")]
+        public void ParenthesizedAdditiveExpression_01(string expression)
         {
             var code = @"
 int i1 = 1;
 int i2 = 2;
 int i3 = 3;
 
-CustomHandler c = ($""{i1}"" + $""{i2}"") + $""{i3}"";
+CustomHandler c = " + expression + @";
 System.Console.WriteLine(c.ToString());";
 
             var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) });
@@ -12790,16 +12765,543 @@ format:
 int i1 = 1;
 int i2 = 2;
 int i3 = 3;
+int i4 = 4;
+int i5 = 5;
+int i6 = 6;
 
-CustomHandler c = $""{i1}"" + ($""{i2}"" + $""{i3}"");
+CustomHandler c = /*<bind>*/((($""{i1}"" + $""{i2}"") + $""{i3}"") + ($""{i4}"" + ($""{i5}"" + $""{i6}""))) + (($""{i1}"" + ($""{i2}"" + $""{i3}"")) + (($""{i4}"" + $""{i5}"") + $""{i6}""))/*</bind>*/;
 System.Console.WriteLine(c.ToString());";
 
             var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) });
-            comp.VerifyDiagnostics(
-                // (6,19): error CS0029: Cannot implicitly convert type 'string' to 'CustomHandler'
-                // CustomHandler c = $"{i1}" + ($"{i2}" + $"{i3}");
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""{i1}"" + ($""{i2}"" + $""{i3}"")").WithArguments("string", "CustomHandler").WithLocation(6, 19)
-            );
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+value:1
+alignment:0
+format:
+value:2
+alignment:0
+format:
+value:3
+alignment:0
+format:
+value:4
+alignment:0
+format:
+value:5
+alignment:0
+format:
+value:6
+alignment:0
+format:
+value:1
+alignment:0
+format:
+value:2
+alignment:0
+format:
+value:3
+alignment:0
+format:
+value:4
+alignment:0
+format:
+value:5
+alignment:0
+format:
+value:6
+alignment:0
+format:
+");
+            verifier.VerifyDiagnostics();
+
+            VerifyOperationTreeForTest<BinaryExpressionSyntax>(comp, @"
+IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '((($""{i1}""  ... + $""{i6}""))')
+  Left:
+    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '(($""{i1}"" + ... + $""{i6}""))')
+      Left:
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '($""{i1}"" +  ... ) + $""{i3}""')
+          Left:
+            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i1}"" + $""{i2}""')
+              Left:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i1}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i1}')
+                        Expression:
+                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i1')
+                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            Operand:
+                              ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+              Right:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i2}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i2}')
+                        Expression:
+                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i2')
+                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            Operand:
+                              ILocalReferenceOperation: i2 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i2')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+          Right:
+            IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i3}""')
+              Parts(1):
+                  IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i3}')
+                    Expression:
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i3')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          ILocalReferenceOperation: i3 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i3')
+                    Alignment:
+                      null
+                    FormatString:
+                      null
+      Right:
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i4}"" + ( ...  + $""{i6}"")')
+          Left:
+            IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i4}""')
+              Parts(1):
+                  IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i4}')
+                    Expression:
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i4')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          ILocalReferenceOperation: i4 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i4')
+                    Alignment:
+                      null
+                    FormatString:
+                      null
+          Right:
+            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i5}"" + $""{i6}""')
+              Left:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i5}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i5}')
+                        Expression:
+                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i5')
+                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            Operand:
+                              ILocalReferenceOperation: i5 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i5')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+              Right:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i6}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i6}')
+                        Expression:
+                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i6')
+                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            Operand:
+                              ILocalReferenceOperation: i6 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i6')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+  Right:
+    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '($""{i1}"" +  ...  + $""{i6}"")')
+      Left:
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i1}"" + ( ...  + $""{i3}"")')
+          Left:
+            IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i1}""')
+              Parts(1):
+                  IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i1}')
+                    Expression:
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i1')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
+                    Alignment:
+                      null
+                    FormatString:
+                      null
+          Right:
+            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i2}"" + $""{i3}""')
+              Left:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i2}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i2}')
+                        Expression:
+                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i2')
+                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            Operand:
+                              ILocalReferenceOperation: i2 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i2')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+              Right:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i3}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i3}')
+                        Expression:
+                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i3')
+                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            Operand:
+                              ILocalReferenceOperation: i3 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i3')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+      Right:
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '($""{i4}"" +  ... ) + $""{i6}""')
+          Left:
+            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i4}"" + $""{i5}""')
+              Left:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i4}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i4}')
+                        Expression:
+                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i4')
+                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            Operand:
+                              ILocalReferenceOperation: i4 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i4')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+              Right:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i5}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i5}')
+                        Expression:
+                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i5')
+                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            Operand:
+                              ILocalReferenceOperation: i5 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i5')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+          Right:
+            IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i6}""')
+              Parts(1):
+                  IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i6}')
+                    Expression:
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i6')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          ILocalReferenceOperation: i6 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i6')
+                    Alignment:
+                      null
+                    FormatString:
+                      null
+");
+        }
+
+        [Fact]
+        public void ParenthesizedAdditiveExpression_03()
+        {
+            var code = @"
+int i1 = 1;
+int i2 = 2;
+int i3 = 3;
+int i4 = 4;
+int i5 = 5;
+int i6 = 6;
+
+string s = (($""{i1}"" + $""{i2}"") + $""{i3}"") + ($""{i4}"" + ($""{i5}"" + $""{i6}""));
+System.Console.WriteLine(s);";
+
+            var verifier = CompileAndVerify(code, expectedOutput: @"123456");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParenthesizedAdditiveExpression_04()
+        {
+            var code = @"
+using System.Threading.Tasks;
+int i1 = 2;
+int i2 = 3;
+
+string s = $""{await GetInt()}"" + ($""{i1}"" + $""{i2}"");
+System.Console.WriteLine(s);
+
+Task<int> GetInt() => Task.FromResult(1);
+";
+
+            var verifier = CompileAndVerify(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) }, expectedOutput: @"
+1value:2
+value:3");
+            verifier.VerifyDiagnostics();
+
+            // Note the two DefaultInterpolatedStringHandlers in the IL here. In a future rewrite step in the LocalRewriter, we can potentially
+            // transform the tree to change its shape and pull out all individual Append calls in a sequence (regardless of the level of the tree)
+            // and combine these and other unequal tree shapes. For now, we're going with a simple solution where, if the entire binary expression
+            // cannot be combined, none of it is.
+
+            verifier.VerifyIL("Program.<<Main>$>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+  // Code size      244 (0xf4)
+  .maxstack  4
+  .locals init (int V_0,
+                int V_1,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<<Main>$>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004f
+    IL_000a:  ldarg.0
+    IL_000b:  ldc.i4.2
+    IL_000c:  stfld      ""int Program.<<Main>$>d__0.<i1>5__2""
+    IL_0011:  ldarg.0
+    IL_0012:  ldc.i4.3
+    IL_0013:  stfld      ""int Program.<<Main>$>d__0.<i2>5__3""
+    IL_0018:  call       ""System.Threading.Tasks.Task<int> Program.<<Main>$>g__GetInt|0_0()""
+    IL_001d:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0022:  stloc.2
+    IL_0023:  ldloca.s   V_2
+    IL_0025:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_002a:  brtrue.s   IL_006b
+    IL_002c:  ldarg.0
+    IL_002d:  ldc.i4.0
+    IL_002e:  dup
+    IL_002f:  stloc.0
+    IL_0030:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
+    IL_0035:  ldarg.0
+    IL_0036:  ldloc.2
+    IL_0037:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1""
+    IL_003c:  ldarg.0
+    IL_003d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder""
+    IL_0042:  ldloca.s   V_2
+    IL_0044:  ldarg.0
+    IL_0045:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<<Main>$>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<<Main>$>d__0)""
+    IL_004a:  leave      IL_00f3
+    IL_004f:  ldarg.0
+    IL_0050:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1""
+    IL_0055:  stloc.2
+    IL_0056:  ldarg.0
+    IL_0057:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1""
+    IL_005c:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_0062:  ldarg.0
+    IL_0063:  ldc.i4.m1
+    IL_0064:  dup
+    IL_0065:  stloc.0
+    IL_0066:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
+    IL_006b:  ldloca.s   V_2
+    IL_006d:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_0072:  stloc.1
+    IL_0073:  ldstr      ""{0}""
+    IL_0078:  ldloc.1
+    IL_0079:  box        ""int""
+    IL_007e:  call       ""string string.Format(string, object)""
+    IL_0083:  ldc.i4.0
+    IL_0084:  ldc.i4.1
+    IL_0085:  newobj     ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
+    IL_008a:  stloc.3
+    IL_008b:  ldloca.s   V_3
+    IL_008d:  ldarg.0
+    IL_008e:  ldfld      ""int Program.<<Main>$>d__0.<i1>5__2""
+    IL_0093:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)""
+    IL_0098:  ldloca.s   V_3
+    IL_009a:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+    IL_009f:  ldc.i4.0
+    IL_00a0:  ldc.i4.1
+    IL_00a1:  newobj     ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
+    IL_00a6:  stloc.3
+    IL_00a7:  ldloca.s   V_3
+    IL_00a9:  ldarg.0
+    IL_00aa:  ldfld      ""int Program.<<Main>$>d__0.<i2>5__3""
+    IL_00af:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)""
+    IL_00b4:  ldloca.s   V_3
+    IL_00b6:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+    IL_00bb:  call       ""string string.Concat(string, string, string)""
+    IL_00c0:  call       ""void System.Console.WriteLine(string)""
+    IL_00c5:  leave.s    IL_00e0
+  }
+  catch System.Exception
+  {
+    IL_00c7:  stloc.s    V_4
+    IL_00c9:  ldarg.0
+    IL_00ca:  ldc.i4.s   -2
+    IL_00cc:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
+    IL_00d1:  ldarg.0
+    IL_00d2:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder""
+    IL_00d7:  ldloc.s    V_4
+    IL_00d9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00de:  leave.s    IL_00f3
+  }
+  IL_00e0:  ldarg.0
+  IL_00e1:  ldc.i4.s   -2
+  IL_00e3:  stfld      ""int Program.<<Main>$>d__0.<>1__state""
+  IL_00e8:  ldarg.0
+  IL_00e9:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder""
+  IL_00ee:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00f3:  ret
+}");
+        }
+        [Fact]
+        public void ParenthesizedAdditiveExpression_05()
+        {
+            var code = @"
+int i1 = 1;
+int i2 = 2;
+int i3 = 3;
+int i4 = 4;
+int i5 = 5;
+int i6 = 6;
+
+string s = /*<bind>*/((($""{i1}"" + $""{i2}"") + $""{i3}"") + ($""{i4}"" + ($""{i5}"" + $""{i6}""))) + (($""{i1}"" + ($""{i2}"" + $""{i3}"")) + (($""{i4}"" + $""{i5}"") + $""{i6}""))/*</bind>*/;
+System.Console.WriteLine(s);";
+
+            var comp = CreateCompilation(code);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"123456123456");
+            verifier.VerifyDiagnostics();
+
+            VerifyOperationTreeForTest<BinaryExpressionSyntax>(comp, @"
+IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '((($""{i1}""  ... + $""{i6}""))')
+  Left:
+    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '(($""{i1}"" + ... + $""{i6}""))')
+      Left:
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '($""{i1}"" +  ... ) + $""{i3}""')
+          Left:
+            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i1}"" + $""{i2}""')
+              Left:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i1}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i1}')
+                        Expression:
+                          ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+              Right:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i2}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i2}')
+                        Expression:
+                          ILocalReferenceOperation: i2 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i2')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+          Right:
+            IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i3}""')
+              Parts(1):
+                  IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i3}')
+                    Expression:
+                      ILocalReferenceOperation: i3 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i3')
+                    Alignment:
+                      null
+                    FormatString:
+                      null
+      Right:
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i4}"" + ( ...  + $""{i6}"")')
+          Left:
+            IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i4}""')
+              Parts(1):
+                  IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i4}')
+                    Expression:
+                      ILocalReferenceOperation: i4 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i4')
+                    Alignment:
+                      null
+                    FormatString:
+                      null
+          Right:
+            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i5}"" + $""{i6}""')
+              Left:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i5}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i5}')
+                        Expression:
+                          ILocalReferenceOperation: i5 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i5')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+              Right:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i6}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i6}')
+                        Expression:
+                          ILocalReferenceOperation: i6 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i6')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+  Right:
+    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '($""{i1}"" +  ...  + $""{i6}"")')
+      Left:
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i1}"" + ( ...  + $""{i3}"")')
+          Left:
+            IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i1}""')
+              Parts(1):
+                  IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i1}')
+                    Expression:
+                      ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
+                    Alignment:
+                      null
+                    FormatString:
+                      null
+          Right:
+            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i2}"" + $""{i3}""')
+              Left:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i2}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i2}')
+                        Expression:
+                          ILocalReferenceOperation: i2 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i2')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+              Right:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i3}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i3}')
+                        Expression:
+                          ILocalReferenceOperation: i3 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i3')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+      Right:
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '($""{i4}"" +  ... ) + $""{i6}""')
+          Left:
+            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i4}"" + $""{i5}""')
+              Left:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i4}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i4}')
+                        Expression:
+                          ILocalReferenceOperation: i4 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i4')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+              Right:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i5}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i5}')
+                        Expression:
+                          ILocalReferenceOperation: i5 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i5')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+          Right:
+            IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i6}""')
+              Parts(1):
+                  IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i6}')
+                    Expression:
+                      ILocalReferenceOperation: i6 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i6')
+                    Alignment:
+                      null
+                    FormatString:
+                      null
+");
         }
 
         [Theory]
@@ -12933,6 +13435,7 @@ format:
 }
 ");
         }
+
 
         [Theory, WorkItem(55609, "https://github.com/dotnet/roslyn/issues/55609")]
         [InlineData(@"$""{h1}{h2}""")]
@@ -13344,7 +13847,7 @@ partial struct CustomHandler
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       38 (0x26)
+  // Code size       33 (0x21)
   .maxstack  4
   .locals init (CustomHandler V_0,
                 bool V_1)
@@ -13355,17 +13858,13 @@ partial struct CustomHandler
   IL_0005:  newobj     ""CustomHandler..ctor(int, int, out bool, int)""
   IL_000a:  stloc.0
   IL_000b:  ldloc.1
-  IL_000c:  brfalse.s  IL_001d
+  IL_000c:  brfalse.s  IL_001a
   IL_000e:  ldloca.s   V_0
   IL_0010:  ldstr      ""Literal""
   IL_0015:  call       ""void CustomHandler.AppendLiteral(string)""
-  IL_001a:  ldc.i4.1
-  IL_001b:  br.s       IL_001e
-  IL_001d:  ldc.i4.0
-  IL_001e:  pop
-  IL_001f:  ldloc.0
-  IL_0020:  call       ""void C.M(CustomHandler)""
-  IL_0025:  ret
+  IL_001a:  ldloc.0
+  IL_001b:  call       ""void C.M(CustomHandler)""
+  IL_0020:  ret
 }
 ");
         }
@@ -13445,7 +13944,7 @@ partial struct CustomHandler
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       42 (0x2a)
+  // Code size       37 (0x25)
   .maxstack  6
   .locals init (int V_0,
                 CustomHandler V_1,
@@ -13461,17 +13960,13 @@ partial struct CustomHandler
   IL_0009:  newobj     ""CustomHandler..ctor(int, int, int, out bool, int)""
   IL_000e:  stloc.1
   IL_000f:  ldloc.2
-  IL_0010:  brfalse.s  IL_0021
+  IL_0010:  brfalse.s  IL_001e
   IL_0012:  ldloca.s   V_1
   IL_0014:  ldstr      ""Literal""
   IL_0019:  call       ""void CustomHandler.AppendLiteral(string)""
-  IL_001e:  ldc.i4.1
-  IL_001f:  br.s       IL_0022
-  IL_0021:  ldc.i4.0
-  IL_0022:  pop
-  IL_0023:  ldloc.1
-  IL_0024:  call       ""void C.M(int, CustomHandler)""
-  IL_0029:  ret
+  IL_001e:  ldloc.1
+  IL_001f:  call       ""void C.M(int, CustomHandler)""
+  IL_0024:  ret
 }
 ");
         }

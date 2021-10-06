@@ -53,6 +53,7 @@ Microsoft.CodeAnalysis.IncrementalValueProvider<TValue>.IncrementalValueProvider
 Microsoft.CodeAnalysis.IncrementalValueProviderExtensions
 Microsoft.CodeAnalysis.IncrementalValuesProvider<TValues>
 Microsoft.CodeAnalysis.IncrementalValuesProvider<TValues>.IncrementalValuesProvider() -> void
+Microsoft.CodeAnalysis.ISymbol.MetadataToken.get -> int
 Microsoft.CodeAnalysis.ISyntaxContextReceiver
 Microsoft.CodeAnalysis.ISyntaxContextReceiver.OnVisitSyntaxNode(Microsoft.CodeAnalysis.GeneratorSyntaxContext context) -> void
 Microsoft.CodeAnalysis.GeneratorInitializationContext.RegisterForPostInitialization(System.Action<Microsoft.CodeAnalysis.GeneratorPostInitializationContext>! callback) -> void
@@ -71,6 +72,7 @@ Microsoft.CodeAnalysis.LineMapping.LineMapping() -> void
 Microsoft.CodeAnalysis.LineMapping.LineMapping(Microsoft.CodeAnalysis.Text.LinePositionSpan span, int? characterOffset, Microsoft.CodeAnalysis.FileLinePositionSpan mappedSpan) -> void
 Microsoft.CodeAnalysis.LineMapping.MappedSpan.get -> Microsoft.CodeAnalysis.FileLinePositionSpan
 Microsoft.CodeAnalysis.LineMapping.Span.get -> Microsoft.CodeAnalysis.Text.LinePositionSpan
+Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.CollapseTupleTypes = 512 -> Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions
 override Microsoft.CodeAnalysis.LineMapping.Equals(object? obj) -> bool
 override Microsoft.CodeAnalysis.LineMapping.GetHashCode() -> int
 override Microsoft.CodeAnalysis.LineMapping.ToString() -> string?

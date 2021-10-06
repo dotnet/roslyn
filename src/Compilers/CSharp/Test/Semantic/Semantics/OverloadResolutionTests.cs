@@ -11001,6 +11001,30 @@ class Program
         }
 
         [Fact]
+        public void GenericInferenceErrorRecovery()
+        {
+            var code = @"
+class Program
+{
+    public static void Method<T>(in T p)
+    {
+        System.Console.WriteLine(typeof(T).ToString());
+    }
+
+    static void Main()
+    {
+        Method((null, 1));
+    }
+}
+";
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0411: The type arguments for method 'Program.Method<T>(in T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Method((null, 1));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("Program.Method<T>(in T)").WithLocation(11, 9));
+        }
+
+        [Fact]
         public void GenericInferenceLambdaVariance()
         {
             var code = @"

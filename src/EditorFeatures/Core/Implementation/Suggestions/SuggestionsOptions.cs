@@ -14,6 +14,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             new RoamingProfileStorageLocation("TextEditor.Specific.Suggestions.Asynchronous2"));
 
         public static readonly Option2<bool> AsynchronousFeatureFlag = new(FeatureName, nameof(AsynchronousFeatureFlag), defaultValue: false,
-            new FeatureFlagStorageLocation("Roslyn.AsynchronousQuickActions"));
+            new FeatureFlagStorageLocation("Roslyn.AsynchronousQuickActions2"));
     }
 }

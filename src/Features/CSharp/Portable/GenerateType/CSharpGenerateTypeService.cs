@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 {
                     // Case : event goo name11
                     // Only Delegate
-                    if (simpleName.Parent != null && !(simpleName.Parent is QualifiedNameSyntax))
+                    if (simpleName.Parent is not null and not QualifiedNameSyntax)
                     {
                         generateTypeServiceStateOptions.IsDelegateOnly = true;
                         return true;
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                         // Case : event Something.Mytype.<Delegate> Identifier
                         if (nextToken.IsKind(SyntaxKind.DotToken))
                         {
-                            if (nameOrMemberAccessExpression.Parent != null && nameOrMemberAccessExpression.Parent is QualifiedNameSyntax)
+                            if (nameOrMemberAccessExpression.Parent is not null and QualifiedNameSyntax)
                             {
                                 return true;
                             }
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     }
 
                     outerMostMemberAccessExpression = outerMostMemberAccessExpression.GetAncestorsOrThis<ExpressionSyntax>().SkipWhile(n => n != null && n.IsKind(SyntaxKind.SimpleMemberAccessExpression)).FirstOrDefault();
-                    if (outerMostMemberAccessExpression != null && outerMostMemberAccessExpression is InvocationExpressionSyntax)
+                    if (outerMostMemberAccessExpression is not null and InvocationExpressionSyntax)
                     {
                         generateTypeServiceStateOptions.IsEnumNotAllowed = true;
                     }
@@ -401,12 +401,12 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 {
                     foreach (var expression in objectCreationExpressionOpt.Initializer.Expressions)
                     {
-                        if (!(expression is AssignmentExpressionSyntax simpleAssignmentExpression))
+                        if (expression is not AssignmentExpressionSyntax simpleAssignmentExpression)
                         {
                             continue;
                         }
 
-                        if (!(simpleAssignmentExpression.Left is SimpleNameSyntax name))
+                        if (simpleAssignmentExpression.Left is not SimpleNameSyntax name)
                         {
                             continue;
                         }
@@ -537,13 +537,13 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             {
                 var accessibilityConstraint = DetermineAccessibilityConstraint(state, semanticModel, cancellationToken);
 
-                if (accessibilityConstraint == Accessibility.Public ||
-                    accessibilityConstraint == Accessibility.Internal)
+                if (accessibilityConstraint is Accessibility.Public or
+                    Accessibility.Internal)
                 {
                     accessibility = accessibilityConstraint;
                 }
-                else if (accessibilityConstraint == Accessibility.Protected ||
-                         accessibilityConstraint == Accessibility.ProtectedOrInternal)
+                else if (accessibilityConstraint is Accessibility.Protected or
+                         Accessibility.ProtectedOrInternal)
                 {
                     // If nested type is declared in public type then we should generate public type instead of internal
                     accessibility = AllContainingTypesArePublicOrProtected(state, semanticModel, cancellationToken)
@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     node.Parent is TypeDeclarationSyntax)
                 {
                     // Make sure the GFU is not inside the Accessors
-                    if (previousNode != null && previousNode is AccessorListSyntax)
+                    if (previousNode is not null and AccessorListSyntax)
                     {
                         return false;
                     }
@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             out IPropertySymbol property)
         {
             var propertyType = GetPropertyType(propertyName, semanticModel, typeInference, cancellationToken);
-            if (propertyType == null || propertyType is IErrorTypeSymbol)
+            if (propertyType is null or IErrorTypeSymbol)
             {
                 property = CreatePropertySymbol(propertyName, semanticModel.Compilation.ObjectType);
                 return property != null;

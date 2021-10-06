@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             if (LambdaUtilities.IsLambdaBody(syntax))
             {
                 Debug.Assert(allowLambda);
-                Debug.Assert(syntax is ExpressionSyntax || syntax is BlockSyntax);
+                Debug.Assert(syntax is ExpressionSyntax or BlockSyntax);
                 return;
             }
 

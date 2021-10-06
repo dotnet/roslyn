@@ -139,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            if (!(workspace is VisualStudioWorkspace visualStudioWorkspace))
+            if (workspace is not VisualStudioWorkspace visualStudioWorkspace)
             {
                 return false;
             }
@@ -159,8 +159,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 var methodSymbol = symbol as IMethodSymbol;
 
-                if (methodSymbol.MethodKind == MethodKind.Constructor ||
-                    methodSymbol.MethodKind == MethodKind.Destructor)
+                if (methodSymbol.MethodKind is MethodKind.Constructor or
+                    MethodKind.Destructor)
                 {
                     symbol = symbol.ContainingType;
                 }

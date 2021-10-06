@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     internal partial class InvocationExpressionSignatureHelpProviderBase : AbstractOrdinaryMethodSignatureHelpProvider
     {
         public override bool IsTriggerCharacter(char ch)
-            => ch == '(' || ch == ',';
+            => ch is '(' or ',';
 
         public override bool IsRetriggerCharacter(char ch)
             => ch == ')';
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             methodGroup = methodGroup.Sort(
                 semanticModel, invocationExpression.SpanStart);
 
-            var anonymousTypeDisplayService = document.Project.LanguageServices.GetRequiredService<IAnonymousTypeDisplayService>();
+            var structuralTypeDisplayService = document.Project.LanguageServices.GetRequiredService<IStructuralTypeDisplayService>();
             var documentationCommentFormattingService = document.Project.LanguageServices.GetRequiredService<IDocumentationCommentFormattingService>();
 
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList);
@@ -111,14 +111,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var invokedType = semanticModel.GetTypeInfo(invocationExpression.Expression, cancellationToken).Type;
             if (invokedType is INamedTypeSymbol expressionType && expressionType.TypeKind == TypeKind.Delegate)
             {
-                var items = GetDelegateInvokeItems(invocationExpression, semanticModel, anonymousTypeDisplayService,
+                var items = GetDelegateInvokeItems(invocationExpression, semanticModel, structuralTypeDisplayService,
                     documentationCommentFormattingService, within, expressionType, out var selectedItem, cancellationToken);
 
                 return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
             }
             else if (invokedType is IFunctionPointerTypeSymbol functionPointerType)
             {
-                var items = GetFunctionPointerInvokeItems(invocationExpression, semanticModel, anonymousTypeDisplayService,
+                var items = GetFunctionPointerInvokeItems(invocationExpression, semanticModel, structuralTypeDisplayService,
                     documentationCommentFormattingService, functionPointerType, out var selectedItem, cancellationToken);
 
                 return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
