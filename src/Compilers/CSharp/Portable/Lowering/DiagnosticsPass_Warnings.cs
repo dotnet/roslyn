@@ -447,6 +447,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckForBitwiseOrSignExtend(BoundExpression node, BinaryOperatorKind operatorKind, BoundExpression leftOperand, BoundExpression rightOperand)
         {
+            if (IsBitwiseOrSignExtended(node, operatorKind, leftOperand, rightOperand))
+            {
+                // CS0675: Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first
+                Error(ErrorCode.WRN_BitwiseOrSignExtend, node);
+            }
+        }
+
+        internal static bool IsBitwiseOrSignExtended(BoundExpression node, BinaryOperatorKind operatorKind, BoundExpression leftOperand, BoundExpression rightOperand)
+        {
             // We wish to give a warning for situations where an unexpected sign extension wipes
             // out some bits. For example:
             //
@@ -504,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.LongOr:
                     break;
                 default:
-                    return;
+                    return false;
             }
 
             // The native compiler skips this warning if both sides of the operator are constants.
@@ -515,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.ConstantValue != null)
             {
-                return;
+                return false;
             }
 
             // Start by determining *which bits on each side are going to be unexpectedly turned on*.
@@ -527,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (left == right)
             {
-                return;
+                return false;
             }
 
             // Suppress the warning if one side is a constant, and either all the unexpected
@@ -539,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ulong val = constVal.UInt64Value;
                 if ((val & right) == right || (~val & right) == right)
                 {
-                    return;
+                    return false;
                 }
             }
 
@@ -549,12 +558,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ulong val = constVal.UInt64Value;
                 if ((val & left) == left || (~val & left) == left)
                 {
-                    return;
+                    return false;
                 }
             }
 
-            // CS0675: Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first
-            Error(ErrorCode.WRN_BitwiseOrSignExtend, node);
+            return true;
         }
 
         private static ConstantValue GetConstantValueForBitwiseOrCheck(BoundExpression operand)
