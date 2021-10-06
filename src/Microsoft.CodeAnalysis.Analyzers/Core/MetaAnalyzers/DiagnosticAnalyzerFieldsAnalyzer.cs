@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -10,30 +10,30 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
-    public abstract class DiagnosticAnalyzerFieldsAnalyzer<TClassDeclarationSyntax, TFieldDeclarationSyntax, TTypeSyntax, TVariableTypeDeclarationSyntax> : DiagnosticAnalyzerCorrectnessAnalyzer
+    using static CodeAnalysisDiagnosticsResources;
+
+    public abstract class DiagnosticAnalyzerFieldsAnalyzer<TClassDeclarationSyntax, TStructDeclarationSyntax, TFieldDeclarationSyntax, TTypeSyntax, TVariableTypeDeclarationSyntax> : DiagnosticAnalyzerCorrectnessAnalyzer
         where TClassDeclarationSyntax : SyntaxNode
+        where TStructDeclarationSyntax : SyntaxNode
         where TFieldDeclarationSyntax : SyntaxNode
         where TTypeSyntax : SyntaxNode
         where TVariableTypeDeclarationSyntax : SyntaxNode
     {
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotStorePerCompilationDataOntoFieldsTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotStorePerCompilationDataOntoFieldsMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotStorePerCompilationDataOntoFieldsDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources), nameof(AnalysisContext), DiagnosticWellKnownNames.RegisterCompilationStartActionName);
         private static readonly string s_compilationTypeFullName = typeof(Compilation).FullName;
         private static readonly string s_symbolTypeFullName = typeof(ISymbol).FullName;
         private static readonly string s_operationTypeFullName = typeof(IOperation).FullName;
 
-        public static readonly DiagnosticDescriptor DoNotStorePerCompilationDataOntoFieldsRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DoNotStorePerCompilationDataOntoFieldsRule = new(
             DiagnosticIds.DoNotStorePerCompilationDataOntoFieldsRuleId,
-            s_localizableTitle,
-            s_localizableMessage,
+            CreateLocalizableResourceString(nameof(DoNotStorePerCompilationDataOntoFieldsTitle)),
+            CreateLocalizableResourceString(nameof(DoNotStorePerCompilationDataOntoFieldsMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisPerformance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: s_localizableDescription,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            description: CreateLocalizableResourceString(nameof(DoNotStorePerCompilationDataOntoFieldsDescription), nameof(AnalysisContext), DiagnosticWellKnownNames.RegisterCompilationStartActionName),
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DoNotStorePerCompilationDataOntoFieldsRule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(DoNotStorePerCompilationDataOntoFieldsRule);
 
 #pragma warning disable RS1025 // Configure generated code analysis
         public override void Initialize(AnalysisContext context)
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             return new FieldsAnalyzer(compilationType, symbolType, operationType, attributeUsageAttribute, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
         }
 
-        private sealed class FieldsAnalyzer : SyntaxNodeWithinAnalyzerTypeCompilationAnalyzer<TClassDeclarationSyntax, TFieldDeclarationSyntax>
+        private sealed class FieldsAnalyzer : SyntaxNodeWithinAnalyzerTypeCompilationAnalyzer<TClassDeclarationSyntax, TStructDeclarationSyntax, TFieldDeclarationSyntax>
         {
             private readonly INamedTypeSymbol _compilationType;
             private readonly INamedTypeSymbol _symbolType;
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             private static void ReportDiagnostic(ITypeSymbol type, TTypeSyntax typeSyntax, SymbolAnalysisContext context)
             {
-                Diagnostic diagnostic = Diagnostic.Create(DoNotStorePerCompilationDataOntoFieldsRule, typeSyntax.GetLocation(), type.ToDisplayString());
+                Diagnostic diagnostic = typeSyntax.CreateDiagnostic(DoNotStorePerCompilationDataOntoFieldsRule, type.ToDisplayString());
                 context.ReportDiagnostic(diagnostic);
             }
         }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+#nullable disable warnings
 
 using System;
 using System.Collections.Concurrent;
@@ -12,25 +14,24 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
+    using static RoslynDiagnosticsAnalyzersResources;
+
     public abstract class SymbolDeclaredEventAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
         where TSyntaxKind : struct
     {
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.SymbolDeclaredEventMustBeGeneratedForSourceSymbolsMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.SymbolDeclaredEventMustBeGeneratedForSourceSymbolsDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
         private static readonly string s_fullNameOfSymbol = typeof(ISymbol).FullName;
 
-        internal static readonly DiagnosticDescriptor SymbolDeclaredEventRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor SymbolDeclaredEventRule = new(
             RoslynDiagnosticIds.SymbolDeclaredEventRuleId,
-            s_localizableTitle,
-            s_localizableMessage,
+            CreateLocalizableResourceString(nameof(SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle)),
+            CreateLocalizableResourceString(nameof(SymbolDeclaredEventMustBeGeneratedForSourceSymbolsMessage)),
             DiagnosticCategory.RoslynDiagnosticsReliability,
             DiagnosticSeverity.Error,
             isEnabledByDefault: false,
-            description: s_localizableDescription,
+            description: CreateLocalizableResourceString(nameof(SymbolDeclaredEventMustBeGeneratedForSourceSymbolsDescription)),
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(SymbolDeclaredEventRule);
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(SymbolDeclaredEventRule);
 
         public sealed override void Initialize(AnalysisContext context)
         {
@@ -62,8 +63,8 @@ namespace Roslyn.Diagnostics.Analyzers
         {
             private readonly INamedTypeSymbol _symbolType;
             private readonly INamedTypeSymbol _compilationType;
-            private readonly ConcurrentDictionary<INamedTypeSymbol, UnusedValue> _sourceSymbolsToCheck = new ConcurrentDictionary<INamedTypeSymbol, UnusedValue>();
-            private readonly ConcurrentDictionary<INamedTypeSymbol, UnusedValue> _typesWithSymbolDeclaredEventInvoked = new ConcurrentDictionary<INamedTypeSymbol, UnusedValue>();
+            private readonly ConcurrentDictionary<INamedTypeSymbol, UnusedValue> _sourceSymbolsToCheck = new();
+            private readonly ConcurrentDictionary<INamedTypeSymbol, UnusedValue> _typesWithSymbolDeclaredEventInvoked = new();
             private readonly bool _hasMemberNamedSymbolDeclaredEvent;
 
             private const string SymbolDeclaredEventName = "SymbolDeclaredEvent";

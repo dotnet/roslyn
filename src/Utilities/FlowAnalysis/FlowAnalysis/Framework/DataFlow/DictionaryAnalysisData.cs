@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections;
 using System.Collections.Generic;
@@ -57,15 +57,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        public ICollection<TValue> Values
-        {
-            get
-            {
-                // "Values" might be accessed during dispose.
-                //Debug.Assert(!IsDisposed);
-                return _coreAnalysisData.Values;
-            }
-        }
+        public ICollection<TValue> Values =>
+            // "Values" might be accessed during dispose.
+            //Debug.Assert(!IsDisposed);
+            _coreAnalysisData.Values;
 
         public int Count
         {

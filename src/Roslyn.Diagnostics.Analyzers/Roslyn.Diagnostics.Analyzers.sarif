@@ -5,7 +5,7 @@
     {
       "tool": {
         "name": "Roslyn.Diagnostics.Analyzers",
-        "version": "3.3.1",
+        "version": "3.3.3",
         "language": "en-US"
       },
       "rules": {
@@ -134,24 +134,6 @@
             ]
           }
         },
-        "RS0042": {
-          "id": "RS0042",
-          "shortDescription": "Do not copy value",
-          "fullDescription": "Do not unbox non-copyable value types.",
-          "defaultLevel": "warning",
-          "properties": {
-            "category": "RoslynDiagnosticsReliability",
-            "isEnabledByDefault": true,
-            "typeName": "DoNotCopyValue",
-            "languages": [
-              "C#",
-              "Visual Basic"
-            ],
-            "tags": [
-              "Telemetry"
-            ]
-          }
-        },
         "RS0043": {
           "id": "RS0043",
           "shortDescription": "Do not call 'GetTestAccessor()'",
@@ -169,13 +151,31 @@
               "Telemetry"
             ]
           }
+        },
+        "RS0049": {
+          "id": "RS0049",
+          "shortDescription": "Instance of TemporaryArray<T>.AsRef() must be a 'using' variable",
+          "fullDescription": "Instance of TemporaryArray<T>.AsRef() must be a 'using' variable.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsReliability",
+            "isEnabledByDefault": true,
+            "typeName": "TemporaryArrayAsRefAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
         }
       }
     },
     {
       "tool": {
         "name": "Roslyn.Diagnostics.CSharp.Analyzers",
-        "version": "3.3.1",
+        "version": "3.3.3",
         "language": "en-US"
       },
       "rules": {
@@ -248,6 +248,23 @@
             ]
           }
         },
+        "RS0042": {
+          "id": "RS0042",
+          "shortDescription": "Do not copy value",
+          "fullDescription": "Auto-properties always copy values, so they cannot be declared with non-copyable types.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsReliability",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpDoNotCopyValue",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
         "RS0046": {
           "id": "RS0046",
           "shortDescription": "Avoid the 'Opt' suffix",
@@ -264,64 +281,13 @@
               "Telemetry"
             ]
           }
-        },
-        "RS0100": {
-          "id": "RS0100",
-          "shortDescription": "Statements must be placed on their own line",
-          "fullDescription": "Statements must be placed on their own line",
-          "defaultLevel": "warning",
-          "properties": {
-            "category": "RoslynDiagnosticsMaintainability",
-            "isEnabledByDefault": true,
-            "typeName": "CSharpWrapStatementsDiagnosticAnalyzer",
-            "languages": [
-              "C#"
-            ],
-            "tags": [
-              "Telemetry"
-            ]
-          }
-        },
-        "RS0101": {
-          "id": "RS0101",
-          "shortDescription": "Avoid multiple blank lines",
-          "fullDescription": "Avoid multiple blank lines",
-          "defaultLevel": "warning",
-          "properties": {
-            "category": "RoslynDiagnosticsMaintainability",
-            "isEnabledByDefault": true,
-            "typeName": "CSharpBlankLinesDiagnosticAnalyzer",
-            "languages": [
-              "C#"
-            ],
-            "tags": [
-              "Telemetry"
-            ]
-          }
-        },
-        "RS0102": {
-          "id": "RS0102",
-          "shortDescription": "Braces must not have blank lines between them",
-          "fullDescription": "Braces must not have blank lines between them",
-          "defaultLevel": "warning",
-          "properties": {
-            "category": "RoslynDiagnosticsMaintainability",
-            "isEnabledByDefault": true,
-            "typeName": "CSharpBracePlacementDiagnosticAnalyzer",
-            "languages": [
-              "C#"
-            ],
-            "tags": [
-              "Telemetry"
-            ]
-          }
         }
       }
     },
     {
       "tool": {
         "name": "Roslyn.Diagnostics.VisualBasic.Analyzers",
-        "version": "3.3.1",
+        "version": "3.3.3",
         "language": "en-US"
       },
       "rules": {
@@ -394,15 +360,15 @@
             ]
           }
         },
-        "RS0101": {
-          "id": "RS0101",
-          "shortDescription": "Avoid multiple blank lines",
-          "fullDescription": "Avoid multiple blank lines",
+        "RS0042": {
+          "id": "RS0042",
+          "shortDescription": "Do not copy value",
+          "fullDescription": "Auto-properties always copy values, so they cannot be declared with non-copyable types.",
           "defaultLevel": "warning",
           "properties": {
-            "category": "RoslynDiagnosticsMaintainability",
+            "category": "RoslynDiagnosticsReliability",
             "isEnabledByDefault": true,
-            "typeName": "VisualBasicBlankLinesDiagnosticAnalyzer",
+            "typeName": "VisualBasicDoNotCopyValue",
             "languages": [
               "Visual Basic"
             ],

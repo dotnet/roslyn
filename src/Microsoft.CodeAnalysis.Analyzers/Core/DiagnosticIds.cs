@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.CodeAnalysis.Analyzers
 {
@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Analyzers
         public const string DefineDiagnosticTitleCorrectlyRuleId = "RS1031";
         public const string DefineDiagnosticMessageCorrectlyRuleId = "RS1032";
         public const string DefineDiagnosticDescriptionCorrectlyRuleId = "RS1033";
+        public const string PreferIsKindRuleId = "RS1034";
 
         // Release tracking analyzer IDs
         public const string DeclareDiagnosticIdInAnalyzerReleaseRuleId = "RS2000";

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -169,11 +169,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         protected sealed override void UpdateValuesForAnalysisData(GlobalFlowStateAnalysisData targetAnalysisData)
             => UpdateValuesForAnalysisData(targetAnalysisData, CurrentAnalysisData);
         protected sealed override GlobalFlowStateAnalysisData GetClonedAnalysisData(GlobalFlowStateAnalysisData analysisData)
-            => new GlobalFlowStateAnalysisData(analysisData);
+            => new(analysisData);
         public override GlobalFlowStateAnalysisData GetEmptyAnalysisData()
-            => new GlobalFlowStateAnalysisData();
+            => new();
         protected sealed override GlobalFlowStateAnalysisData GetExitBlockOutputData(GlobalFlowStateAnalysisResult analysisResult)
-            => new GlobalFlowStateAnalysisData(analysisResult.ExitBlockOutput.Data);
+            => new(analysisResult.ExitBlockOutput.Data);
         protected sealed override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(GlobalFlowStateAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
             => ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(dataAtException, CurrentAnalysisData, throwBranchWithExceptionType);
         protected sealed override bool Equals(GlobalFlowStateAnalysisData value1, GlobalFlowStateAnalysisData value2)

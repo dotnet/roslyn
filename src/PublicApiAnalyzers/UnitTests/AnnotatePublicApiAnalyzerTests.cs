@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 #pragma warning disable CA1305
 
@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
@@ -60,8 +61,136 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
 
         #region Fix tests
 
+        [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
+        public async Task NoObliviousWhenUnannotatedClassConstraintAsync()
+        {
+            var source = @"
+#nullable enable
+public class C<T> where T : class
+{
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = @"#nullable enable
+C<T>.C() -> void
+C<T>
+";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
+        public async Task NoObliviousWhenAnnotatedClassConstraintAsync()
+        {
+            var source = @"
+#nullable enable
+public class C<T> where T : class?
+{
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = @"#nullable enable
+C<T>.C() -> void
+C<T>
+";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
+        public async Task ObliviousWhenObliviousClassConstraintAsync()
+        {
+            var source = @"
+#nullable enable
+public class {|RS0041:C|}<T> // oblivious
+#nullable disable
+    where T : class
+{
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = @"#nullable enable
+C<T>.C() -> void
+~C<T>
+";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
+        public async Task NoObliviousWhenUnannotatedReferenceTypeConstraintAsync()
+        {
+            var source = @"
+#nullable enable
+public class D { }
+public class C<T> where T : D
+{
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = @"#nullable enable
+C<T>.C() -> void
+C<T>
+D
+D.D() -> void
+";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
+        public async Task NoObliviousWhenAnnotatedReferenceTypeConstraintAsync()
+        {
+            var source = @"
+#nullable enable
+public class D { }
+public class C<T> where T : D?
+{
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = @"#nullable enable
+C<T>.C() -> void
+C<T>
+D
+D.D() -> void
+";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
+        public async Task ObliviousWhenObliviousReferenceTypeConstraintAsync()
+        {
+            var source = @"
+#nullable enable
+public class D { }
+
+public class {|RS0041:C|}<T> // oblivious
+#nullable disable
+    where T : D
+{
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = @"#nullable enable
+C<T>.C() -> void
+~C<T>
+D
+D.D() -> void
+";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
         [Fact]
-        public async Task DoNotAnnotateMemberInUnannotatedUnshippedAPI_Nullable()
+        public async Task DoNotAnnotateMemberInUnannotatedUnshippedAPI_NullableAsync()
         {
             var source = @"
 #nullable enable
@@ -76,11 +205,11 @@ public class C
 C.C() -> void
 C.Field -> string";
 
-            await VerifyCSharpAsync(source, shippedText, unshippedText, System.Array.Empty<DiagnosticResult>());
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
         [Fact]
-        public async Task DoNotAnnotateMemberInUnannotatedUnshippedAPI_NonNullable()
+        public async Task DoNotAnnotateMemberInUnannotatedUnshippedAPI_NonNullableAsync()
         {
             var source = @"
 #nullable enable
@@ -95,11 +224,11 @@ public class C
 C.C() -> void
 C.Field2 -> string";
 
-            await VerifyCSharpAsync(source, shippedText, unshippedText, System.Array.Empty<DiagnosticResult>());
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
         [Fact]
-        public async Task DoNotAnnotateMemberInUnannotatedShippedAPI()
+        public async Task DoNotAnnotateMemberInUnannotatedShippedAPIAsync()
         {
             var source = @"
 #nullable enable
@@ -116,11 +245,11 @@ C.Field -> string
 C.Field2 -> string";
             var unshippedText = @"";
 
-            await VerifyCSharpAsync(source, shippedText, unshippedText, System.Array.Empty<DiagnosticResult>());
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
         [Fact]
-        public async Task AnnotatedMemberInAnnotatedShippedAPI()
+        public async Task AnnotatedMemberInAnnotatedShippedAPIAsync()
         {
             var source = @"
 #nullable enable
@@ -152,7 +281,7 @@ C.Field2 -> string!";
         }
 
         [Fact]
-        public async Task AnnotatedMemberInAnnotatedUnshippedAPI_EnabledViaUnshipped()
+        public async Task AnnotatedMemberInAnnotatedUnshippedAPI_EnabledViaUnshippedAsync()
         {
             var source = @"
 #nullable enable
@@ -184,7 +313,7 @@ C.Field2 -> string!";
         }
 
         [Fact]
-        public async Task AnnotatedMemberInAnnotatedUnshippedAPI_EnabledViaShipped()
+        public async Task AnnotatedMemberInAnnotatedUnshippedAPI_EnabledViaShippedAsync()
         {
             var source = @"
 #nullable enable
@@ -213,7 +342,7 @@ C.Field2 -> string!";
         }
 
         [Fact]
-        public async Task AnnotatedMemberInAnnotatedUnshippedAPI_EnabledViaBoth()
+        public async Task AnnotatedMemberInAnnotatedUnshippedAPI_EnabledViaBothAsync()
         {
             var source = @"
 #nullable enable
@@ -244,7 +373,7 @@ C.Field2 -> string!";
         }
 
         [Fact]
-        public async Task TestAddAndRemoveMembers_CSharp_Fix_WithAddedNullability_WithoutOblivious()
+        public async Task TestAddAndRemoveMembers_CSharp_Fix_WithAddedNullability_WithoutObliviousAsync()
         {
             var source = @"
 #nullable enable
@@ -264,7 +393,7 @@ C.ChangedField -> string?";
         }
 
         [Fact]
-        public async Task LegacyAPIShouldBeAnnotatedWithObliviousMarker()
+        public async Task LegacyAPIShouldBeAnnotatedWithObliviousMarkerAsync()
         {
             var source = @"
 public class C
@@ -283,7 +412,7 @@ C.C() -> void
         }
 
         [Fact]
-        public async Task LegacyAPIShouldBeAnnotatedWithObliviousMarker_ShippedFile()
+        public async Task LegacyAPIShouldBeAnnotatedWithObliviousMarker_ShippedFileAsync()
         {
             var source = @"
 public class C
@@ -304,7 +433,7 @@ C.C() -> void
         }
 
         [Fact]
-        public async Task LegacyAPIWithObliviousMarkerGetsAnnotatedAsNullable()
+        public async Task LegacyAPIWithObliviousMarkerGetsAnnotatedAsNullableAsync()
         {
             var source = @"
 #nullable enable
@@ -326,7 +455,7 @@ C.Field -> string?";
         }
 
         [Fact]
-        public async Task LegacyAPIWithObliviousMarkerGetsAnnotatedAsNotNullable()
+        public async Task LegacyAPIWithObliviousMarkerGetsAnnotatedAsNotNullableAsync()
         {
             var source = @"
 #nullable enable

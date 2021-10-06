@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using Analyzer.Utilities.Extensions;
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
                 var compilation = compilationStartContext.Compilation;
                 var attributeSymbol = compilation.GetOrCreateTypeByMetadataName(AllocationRules.PerformanceSensitiveAttributeName);
 
-                // Bail if PerformanceSensitiveAttribute is not delcared in the compilation.
+                // Bail if PerformanceSensitiveAttribute is not declared in the compilation.
                 if (attributeSymbol == null)
                 {
                     return;

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using Analyzer.Utilities.Extensions;
 
@@ -49,28 +49,22 @@ namespace Analyzer.Utilities
 
         public static bool AreExceptionPathsEnabled(this DisposeAnalysisKind disposeAnalysisKind)
         {
-            switch (disposeAnalysisKind)
+            return disposeAnalysisKind switch
             {
-                case DisposeAnalysisKind.NonExceptionPaths:
-                case DisposeAnalysisKind.NonExceptionPathsOnlyNotDisposed:
-                    return false;
-
-                default:
-                    return true;
-            }
+                DisposeAnalysisKind.NonExceptionPaths
+                or DisposeAnalysisKind.NonExceptionPathsOnlyNotDisposed => false,
+                _ => true,
+            };
         }
 
         public static bool AreMayBeNotDisposedViolationsEnabled(this DisposeAnalysisKind disposeAnalysisKind)
         {
-            switch (disposeAnalysisKind)
+            return disposeAnalysisKind switch
             {
-                case DisposeAnalysisKind.AllPathsOnlyNotDisposed:
-                case DisposeAnalysisKind.NonExceptionPathsOnlyNotDisposed:
-                    return false;
-
-                default:
-                    return true;
-            }
+                DisposeAnalysisKind.AllPathsOnlyNotDisposed
+                or DisposeAnalysisKind.NonExceptionPathsOnlyNotDisposed => false,
+                _ => true,
+            };
         }
     }
 }

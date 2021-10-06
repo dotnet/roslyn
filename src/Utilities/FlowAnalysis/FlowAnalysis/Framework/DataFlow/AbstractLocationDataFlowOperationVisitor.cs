@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         protected static DictionaryAnalysisData<AbstractLocation, TAbstractAnalysisValue> GetClonedAnalysisDataHelper(IDictionary<AbstractLocation, TAbstractAnalysisValue> analysisData)
-            => new DictionaryAnalysisData<AbstractLocation, TAbstractAnalysisValue>(analysisData);
+            => new(analysisData);
         protected static DictionaryAnalysisData<AbstractLocation, TAbstractAnalysisValue> GetEmptyAnalysisDataHelper()
             => GetClonedAnalysisDataHelper(ImmutableDictionary<AbstractLocation, TAbstractAnalysisValue>.Empty);
 

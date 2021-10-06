@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Xunit;
@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
     public class EnumeratorAllocationAnalyzerTests
     {
         [Fact]
-        public async Task EnumeratorAllocation_Basic()
+        public async Task EnumeratorAllocation_BasicAsync()
         {
             var sampleProgram =
 @"using System.Collections.Generic;
@@ -51,13 +51,17 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(25,24): warning HAA0401: Non-ValueType enumerator may result in a heap allocation
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic().WithLocation(25, 24),
+#pragma warning restore RS0030 // Do not used banned APIs
                 // Test0.cs(30,24): warning HAA0401: Non-ValueType enumerator may result in a heap allocation
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic().WithLocation(30, 24));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
-        public async Task EnumeratorAllocation_Advanced()
+        public async Task EnumeratorAllocation_AdvancedAsync()
         {
             var sampleProgram =
 @"using System.Collections.Generic;
@@ -88,11 +92,13 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(17,24): warning HAA0401: Non-ValueType enumerator may result in a heap allocation
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic().WithLocation(17, 24));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
-        public async Task EnumeratorAllocation_Via_InvocationExpressionSyntax()
+        public async Task EnumeratorAllocation_Via_InvocationExpressionSyntaxAsync()
         {
             var sampleProgram =
 @"using System.Collections.Generic;
@@ -131,11 +137,13 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(17,43): warning HAA0401: Non-ValueType enumerator may result in a heap allocation
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic().WithLocation(17, 43));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
-        public async Task EnumeratorAllocation_IterateOverString_NoWarning()
+        public async Task EnumeratorAllocation_IterateOverString_NoWarningAsync()
         {
             var sampleProgram =
 @"using System;

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
     public class UpgradeMSBuildWorkspaceAnalyzerTests
     {
         [Fact]
-        public async Task CSharp_VerifyWithMSBuildWorkspace()
+        public async Task CSharp_VerifyWithMSBuildWorkspaceAsync()
         {
             const string source1 = @"
 namespace Microsoft.CodeAnalysis.MSBuild
@@ -44,7 +44,7 @@ class Usage
         }
 
         [Fact]
-        public async Task CSharp_VerifyWithoutMSBuildWorkspace()
+        public async Task CSharp_VerifyWithoutMSBuildWorkspaceAsync()
         {
             const string source = @"
 using Microsoft.CodeAnalysis.MSBuild;
@@ -67,7 +67,7 @@ class Usage
         }
 
         [Fact]
-        public async Task VisualBasic_VerifyWithMSBuildWorkspace()
+        public async Task VisualBasic_VerifyWithMSBuildWorkspaceAsync()
         {
             const string source1 = @"
 Namespace Microsoft.CodeAnalysis.MSBuild
@@ -91,7 +91,7 @@ End Class";
         }
 
         [Fact]
-        public async Task VisualBasic_VerifyWithoutMSBuildWorkspace()
+        public async Task VisualBasic_VerifyWithoutMSBuildWorkspaceAsync()
         {
             const string source = @"
 Imports Microsoft.CodeAnalysis.MSBuild
@@ -110,10 +110,14 @@ End Class";
         }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyCS.Diagnostic().WithLocation(line, column);
+#pragma warning restore RS0030 // Do not used banned APIs
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyVB.Diagnostic().WithLocation(line, column);
+#pragma warning restore RS0030 // Do not used banned APIs
 
         [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Used via new() constraint: https://github.com/dotnet/roslyn-analyzers/issues/3199")]
         internal class TestCSharpUpgradeMSBuildWorkspaceAnalyzer : CSharpUpgradeMSBuildWorkspaceAnalyzer

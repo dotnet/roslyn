@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 {
     public abstract class ApplyDiagnosticAnalyzerAttributeFix : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(DiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -52,12 +52,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
         {
             var fix = new MyCodeAction(
                 codeFixTitle,
-                c => GetFix(context.Document, root, classDecl, generator, languages),
+                c => GetFixAsync(context.Document, root, classDecl, generator, languages),
                 equivalenceKey: codeFixTitle);
             context.RegisterCodeFix(fix, context.Diagnostics);
         }
 
-        private Task<Document> GetFix(Document document, SyntaxNode root, SyntaxNode classDecl, SyntaxGenerator generator, params string[] languages)
+        private Task<Document> GetFixAsync(Document document, SyntaxNode root, SyntaxNode classDecl, SyntaxGenerator generator, params string[] languages)
         {
             string languageNamesFullName = typeof(LanguageNames).FullName;
             var arguments = new SyntaxNode[languages.Length];

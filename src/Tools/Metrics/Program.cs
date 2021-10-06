@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -64,7 +64,7 @@ namespace Metrics
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            errorCode = writeOutput();
+            errorCode = await writeOutputAsync().ConfigureAwait(false);
             if (!quiet && errorCode == ErrorCode.None)
             {
                 Console.WriteLine("Completed Successfully.");
@@ -217,7 +217,7 @@ Display this help message.");
                 return ErrorCode.InvalidOutputFile;
             }
 
-            ErrorCode writeOutput()
+            async Task<ErrorCode> writeOutputAsync()
             {
                 XmlTextWriter? metricFile = null;
                 try
@@ -239,7 +239,7 @@ Display this help message.");
                     MetricsOutputWriter.WriteMetricFile(metricDatas, metricFile);
                     if (outputFile == null)
                     {
-                        metricFile.WriteString(Environment.NewLine + Environment.NewLine);
+                        await metricFile.WriteStringAsync(Environment.NewLine + Environment.NewLine).ConfigureAwait(false);
                     }
 
                     return ErrorCode.None;
@@ -253,10 +253,7 @@ Display this help message.");
 #pragma warning restore CA1031 // Do not catch general exception types
                 finally
                 {
-                    if (metricFile != null)
-                    {
-                        metricFile.Close();
-                    }
+                    metricFile?.Close();
                 }
             }
         }

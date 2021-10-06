@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicReportDiagnosticAnalyzer
-        Inherits ReportDiagnosticAnalyzer(Of ClassBlockSyntax, InvocationExpressionSyntax, IdentifierNameSyntax, VariableDeclaratorSyntax)
+        Inherits ReportDiagnosticAnalyzer(Of ClassBlockSyntax, StructureBlockSyntax, InvocationExpressionSyntax, IdentifierNameSyntax, VariableDeclaratorSyntax)
 
         Protected Overrides Function GetAnalyzer(contextTypes As ImmutableHashSet(Of INamedTypeSymbol),
                                                  diagnosticType As INamedTypeSymbol,

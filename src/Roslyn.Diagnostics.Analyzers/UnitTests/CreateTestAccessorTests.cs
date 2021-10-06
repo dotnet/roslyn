@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Xunit;
+using CSharpLanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion;
 using VerifyCS = Test.Utilities.CSharpCodeRefactoringVerifier<
     Roslyn.Diagnostics.CSharp.Analyzers.CSharpCreateTestAccessor>;
 using VerifyVB = Test.Utilities.VisualBasicCodeRefactoringVerifier<
@@ -19,7 +20,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [InlineData("class TestClass$$ ")]
         [InlineData("class [|TestClass|] ")]
         [InlineData("[|class TestClass|] ")]
-        public async Task CreateTestAccessorCSharp(string typeHeader)
+        public async Task CreateTestAccessorCSharpAsync(string typeHeader)
         {
             var source = typeHeader + @"{
 }";
@@ -31,11 +32,11 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
 
     internal readonly struct TestAccessor
     {
-        private readonly TestClass _testClass;
+        private readonly TestClass _instance;
 
-        internal TestAccessor(TestClass testClass)
+        internal TestAccessor(TestClass instance)
         {
-            _testClass = testClass;
+            _instance = instance;
         }
     }
 }";
@@ -54,7 +55,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [InlineData("struct TestStruct$$ ")]
         [InlineData("struct [|TestStruct|] ")]
         [InlineData("[|struct TestStruct|] ")]
-        public async Task CreateTestAccessorStructCSharp(string typeHeader)
+        public async Task CreateTestAccessorStructCSharpAsync(string typeHeader)
         {
             var source = typeHeader + @"{
 }";
@@ -66,11 +67,11 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
 
     internal readonly struct TestAccessor
     {
-        private readonly TestStruct _testStruct;
+        private readonly TestStruct _instance;
 
-        internal TestAccessor(TestStruct testStruct)
+        internal TestAccessor(TestStruct instance)
         {
-            _testStruct = testStruct;
+            _instance = instance;
         }
     }
 }";
@@ -83,11 +84,56 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
             await VerifyCS.VerifyRefactoringAsync(fixedSource, fixedSource);
         }
 
+        [Theory(Skip = "Needs Roslyn 16.9 Preview 1: https://github.com/dotnet/roslyn/pull/48096")]
+        [InlineData("$$record TestRecord ")]
+        [InlineData("record $$TestRecord ")]
+        [InlineData("record TestRecord$$ ")]
+        [InlineData("record [|TestRecord|] ")]
+        [InlineData("[|record TestRecord|] ")]
+        public async Task CreateTestAccessorRecordCSharpAsync(string typeHeader)
+        {
+            var source = typeHeader + @"{
+}";
+            var fixedSourceBody = @"{
+    internal TestAccessor GetTestAccessor()
+    {
+        return new TestAccessor(this);
+    }
+
+    internal readonly struct TestAccessor
+    {
+        private readonly TestRecord _instance;
+
+        internal TestAccessor(TestRecord instance)
+        {
+            _instance = instance;
+        }
+    }
+}";
+
+            var fixedSource = "record TestRecord " + fixedSourceBody;
+            await new VerifyCS.Test
+            {
+                LanguageVersion = CSharpLanguageVersion.CSharp9,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+
+            // Applying the refactoring a second time does not produce any changes
+            fixedSource = typeHeader + fixedSourceBody;
+            await new VerifyCS.Test
+            {
+                LanguageVersion = CSharpLanguageVersion.CSharp9,
+                TestCode = fixedSource,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
         [Theory]
         [InlineData(TypeKind.Delegate)]
         [InlineData(TypeKind.Enum)]
         [InlineData(TypeKind.Interface)]
-        public async Task UnsupportedTypeCSharp(TypeKind typeKind)
+        public async Task UnsupportedTypeCSharpAsync(TypeKind typeKind)
         {
             var declaration = typeKind switch
             {
@@ -106,7 +152,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [InlineData("Class TestClass$$")]
         [InlineData("Class [|TestClass|]")]
         [InlineData("[|Class TestClass|]")]
-        public async Task CreateTestAccessorVisualBasic(string typeHeader)
+        public async Task CreateTestAccessorVisualBasicAsync(string typeHeader)
         {
             var source = $@"{typeHeader}
 End Class";
@@ -116,10 +162,10 @@ End Class";
     End Function
 
     Friend Structure TestAccessor
-        Private ReadOnly _testClass As TestClass
+        Private ReadOnly _instance As TestClass
 
-        Friend Sub New(testClass As TestClass)
-            _testClass = testClass
+        Friend Sub New(instance As TestClass)
+            _instance = instance
         End Sub
     End Structure
 End Class";
@@ -138,7 +184,7 @@ End Class";
         [InlineData("Structure TestStructure$$")]
         [InlineData("Structure [|TestStructure|]")]
         [InlineData("[|Structure TestStructure|]")]
-        public async Task CreateTestAccessorStructureVisualBasic(string typeHeader)
+        public async Task CreateTestAccessorStructureVisualBasicAsync(string typeHeader)
         {
             var source = $@"{typeHeader}
 End Structure";
@@ -148,10 +194,10 @@ End Structure";
     End Function
 
     Friend Structure TestAccessor
-        Private ReadOnly _testStructure As TestStructure
+        Private ReadOnly _instance As TestStructure
 
-        Friend Sub New(testStructure As TestStructure)
-            _testStructure = testStructure
+        Friend Sub New(instance As TestStructure)
+            _instance = instance
         End Sub
     End Structure
 End Structure";
@@ -169,7 +215,7 @@ End Structure";
         [InlineData(TypeKind.Enum)]
         [InlineData(TypeKind.Interface)]
         [InlineData(TypeKind.Module)]
-        public async Task UnsupportedTypeVisualBasic(TypeKind typeKind)
+        public async Task UnsupportedTypeVisualBasicAsync(TypeKind typeKind)
         {
             var declaration = typeKind switch
             {

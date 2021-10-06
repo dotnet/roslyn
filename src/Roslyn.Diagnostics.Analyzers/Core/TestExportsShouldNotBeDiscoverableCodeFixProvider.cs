@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+#nullable disable warnings
 
 using System.Collections.Immutable;
 using System.Composition;
@@ -19,7 +21,7 @@ namespace Roslyn.Diagnostics.Analyzers
     [Shared]
     public class TestExportsShouldNotBeDiscoverableCodeFixProvider : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(TestExportsShouldNotBeDiscoverable.Rule.Id);
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(TestExportsShouldNotBeDiscoverable.Rule.Id);
 
         public override FixAllProvider GetFixAllProvider()
             => WellKnownFixAllProviders.BatchFixer;

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 #nullable enable
 
@@ -107,7 +107,7 @@ namespace Roslyn.Diagnostics.Analyzers
             return true;
 
             static string removeWhiteSpace(string self)
-                => new string(self.Where(c => !char.IsWhiteSpace(c)).ToArray());
+                => new(self.Where(c => !char.IsWhiteSpace(c)).ToArray());
         }
 
         /// <summary>

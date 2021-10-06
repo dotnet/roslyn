@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
     public class AddLanguageSupportToAnalyzerRuleTests
     {
         [Fact]
-        public async Task CSharp_VerifyDiagnostic()
+        public async Task CSharp_VerifyDiagnosticAsync()
         {
             var source = @"
 using System;
@@ -58,7 +58,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task VisualBasic_VerifyDiagnostic()
+        public async Task VisualBasic_VerifyDiagnosticAsync()
         {
             var source = @"
 Imports System
@@ -97,7 +97,7 @@ End Class
         }
 
         [Fact]
-        public async Task CSharp_NoDiagnosticCases()
+        public async Task CSharp_NoDiagnosticCasesAsync()
         {
             var source = @"
 using System;
@@ -152,7 +152,7 @@ public abstract class MyAbstractAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task VisualBasic_NoDiagnosticCases()
+        public async Task VisualBasic_NoDiagnosticCasesAsync()
         {
             var source = @"
 Imports System
@@ -201,13 +201,17 @@ End Class
         }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string analyzerTypeName, string missingLanguageName) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyCS.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.AddLanguageSupportToAnalyzerRule)
                 .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(analyzerTypeName, missingLanguageName);
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string analyzerTypeName, string missingLanguageName) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyVB.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.AddLanguageSupportToAnalyzerRule)
                 .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(analyzerTypeName, missingLanguageName);
     }
 }

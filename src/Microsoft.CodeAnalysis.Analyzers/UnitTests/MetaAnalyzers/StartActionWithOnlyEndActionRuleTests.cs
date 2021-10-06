@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
     public class StartActionWithOnlyEndActionRuleTests
     {
         [Fact]
-        public async Task CSharp_VerifyDiagnostic()
+        public async Task CSharp_VerifyDiagnosticAsync()
         {
             var source = @"
 using System;
@@ -75,7 +75,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task VisualBasic_VerifyDiagnostic()
+        public async Task VisualBasic_VerifyDiagnosticAsync()
         {
             var source = @"
 Imports System
@@ -128,7 +128,7 @@ End Class
         }
 
         [Fact]
-        public async Task CSharp_NoDiagnosticCases()
+        public async Task CSharp_NoDiagnosticCasesAsync()
         {
             var source = @"
 using System;
@@ -184,7 +184,7 @@ abstract class MyAnalyzer<T> : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task CSharp_NoDiagnosticCases_2()
+        public async Task CSharp_NoDiagnosticCases_2Async()
         {
             var source = @"
 using System;
@@ -233,7 +233,7 @@ abstract class MyAnalyzer<T> : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task VisualBasic_NoDiagnosticCases()
+        public async Task VisualBasic_NoDiagnosticCasesAsync()
         {
             var source = @"
 Imports System
@@ -284,7 +284,7 @@ End Class
         }
 
         [Fact]
-        public async Task VisualBasic_NoDiagnosticCases_2()
+        public async Task VisualBasic_NoDiagnosticCases_2Async()
         {
             var source = @"
 Imports System
@@ -331,13 +331,17 @@ End Class
         }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string parameterName, StartActionKind kind) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyCS.Diagnostic(CSharpRegisterActionAnalyzer.StartActionWithOnlyEndActionRule)
                 .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(GetExpectedArguments(parameterName, kind));
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string parameterName, StartActionKind kind) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyVB.Diagnostic(BasicRegisterActionAnalyzer.StartActionWithOnlyEndActionRule)
                 .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(GetExpectedArguments(parameterName, kind));
 
         private static string[] GetExpectedArguments(string parameterName, StartActionKind kind)
