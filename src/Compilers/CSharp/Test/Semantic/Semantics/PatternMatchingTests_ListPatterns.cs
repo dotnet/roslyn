@@ -1920,7 +1920,6 @@ class D
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "c[1..^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 21)
                 );
 
-
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
             var declarations = tree.GetRoot().DescendantNodes().OfType<VarPatternSyntax>().ToArray();
@@ -2225,66 +2224,13 @@ class C
         }
 
         [Theory]
-        [InlineData("[.._]")]
-        public void ListPattern_LengthButNoSliceCall(string pattern)
-        {
-            var source = $@"
-System.Console.Write(new C() is {pattern});
-
-public class C
-{{
-    public int Length {{ get {{ System.Console.Write(""Length ""); return 0; }} }}
-    public char this[int i] => throw null;
-    public int Slice(int i, int j) => throw null;
-}}
-";
-            var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "Length True");
-        }
-
-        [Theory]
-        [InlineData("[..]")]
-        public void ListPattern_NoLengthOrSliceCall(string pattern)
-        {
-            var source = $@"
-System.Console.Write(new C() is {pattern});
-
-public class C
-{{
-    public int Length {{ get {{ throw null; }} }}
-    public char this[int i] => throw null;
-    public int Slice(int i, int j) => throw null;
-}}
-";
-            var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "True");
-        }
-
-        [Theory]
-        [InlineData("[..var unused]")]
-        public void ListPattern_LengthAndSliceCall(string pattern)
-        {
-            var source = $@"
-System.Console.Write(new C() is {pattern});
-
-public class C
-{{
-    public int Length {{ get {{ System.Console.Write(""Length ""); return 0; }} }}
-    public char this[int i] => throw null;
-    public int Slice(int i, int j) {{ System.Console.Write(""Slice ""); return 0; }}
-}}
-";
-            var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "Length Slice True");
-        }
-
-        [Theory]
-        [InlineData("[42, ..]")]
-        [InlineData("[42, .._]")]
-        public void ListPattern_LengthAndIndexButNoSliceCall(string pattern)
+        [InlineData("[.._]", "Length True")]
+        [InlineData("[..]", "True")]
+        [InlineData("[..var unused]", "Length Slice True")]
+        [InlineData("[42, ..]", "Length Index True")]
+        [InlineData("[42, .._]", "Length Index True")]
+        [InlineData("[42, ..var unused]", "Length Index Slice True")]
+        public void ListPattern_OnlyCallApisRequiredByPattern(string pattern, string expectedOutput)
         {
             var source = $@"
 System.Console.Write(new C() is {pattern});
@@ -2292,32 +2238,13 @@ System.Console.Write(new C() is {pattern});
 public class C
 {{
     public int Length {{ get {{ System.Console.Write(""Length ""); return 1; }} }}
-    public int this[int i]  {{ get {{ System.Console.Write(""Index ""); return 42; }} }}
-    public int Slice(int i, int j) => throw null;
-}}
-";
-            var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "Length Index True");
-        }
-
-        [Theory]
-        [InlineData("[42, ..var unused]")]
-        public void ListPattern_LengthAndIndexAndSliceCall(string pattern)
-        {
-            var source = $@"
-System.Console.Write(new C() is {pattern});
-
-public class C
-{{
-    public int Length {{ get {{ System.Console.Write(""Length ""); return 1; }} }}
-    public int this[int i]  {{ get {{ System.Console.Write(""Index ""); return 42; }} }}
+    public int this[int i] {{ get {{ System.Console.Write(""Index ""); return 42; }} }}
     public int Slice(int i, int j) {{ System.Console.Write(""Slice ""); return 0; }}
 }}
 ";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "Length Index Slice True");
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -3179,6 +3106,223 @@ class D
         }
 
         [Fact]
+        public void Pattern_Nullability_Exhaustiveness()
+        {
+            var source = @"
+#nullable enable
+object?[]? o = null;
+
+_ = o switch
+{
+    null => 0,
+    [null] => 0,
+    [not null] => 0,
+    { Length: 0 or > 1 } => 0,
+};
+
+_ = o switch // didn't test for null
+{
+    [null] => 0,
+    [not null] => 0,
+    { Length: 0 or > 1 } => 0,
+};
+
+_ = o switch // didn't test for [null]
+{
+    null => 0,
+    [not null] => 0,
+    { Length: 0 or > 1 } => 0,
+};
+
+_ = o switch // didn't test for [not null]
+{
+    null => 0,
+    [null] => 0,
+    { Length: 0 or > 1 } => 0,
+};
+
+_ = o switch
+{
+    null => 0,
+    [] => 0,
+    [.., null] => 0,
+    [.., not null] => 0,
+};
+
+_ = o switch // didn't test for [.., null]
+{
+    null => 0,
+    [] => 0,
+    [.., not null] => 0,
+};
+
+_ = o switch // didn't test for [.., not null]
+{
+    null => 0,
+    [] => 0,
+    [.., null] => 0,
+};
+
+_ = o switch
+{
+    null => 0,
+    [.., null] => 0,
+    [not null, ..] => 0,
+    { Length: 0 or > 1 } => 0,
+};
+";
+            // PROTOTYPE: incorrect exhaustiveness examples from explainer
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics(
+                // (13,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                // _ = o switch // didn't test for null
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(13, 7),
+                // (20,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
+                // _ = o switch // didn't test for [null]
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(20, 7),
+                // (27,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                // _ = o switch // didn't test for [not null]
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(27, 7),
+                // (42,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
+                // _ = o switch // didn't test for [.., null]
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(42, 7),
+                // (49,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                // _ = o switch // didn't test for [.., not null]
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(49, 7)
+                );
+        }
+
+        [Fact]
+        public void SlicePattern_Nullability_Exhaustiveness()
+        {
+            var source = @"
+#nullable enable
+using System;
+class C
+{
+    public int Length => throw null!;
+    public object? this[Index i] => throw null!;
+    public object? this[Range r] => throw null!;
+
+    public void M()
+    {
+        _ = this switch
+        {
+            null => 0,
+            [] => 0,
+            [.. null] => 0,
+            [.. not null] => 0,
+        };
+
+        _ = this switch // no tests for null slice
+        {
+            null => 0,
+            [] => 0,
+            [.. not null] => 0,
+        };
+
+        _ = this switch // no test for not null slice
+        {
+            null => 0,
+            [] => 0,
+            [.. null] => 0,
+        };
+
+        _ = this switch
+        {
+            null => 0,
+            [] => 0,
+            [.. not null] => 0,
+            [..] => 0,
+        };
+
+        _ = this switch
+        {
+            null => 0,
+            [] => 0,
+            [.. null] => 0,
+            [..] => 0,
+        };
+
+        _ = this switch
+        {
+            null => 0,
+            [] => 0,
+            [null, .. null] => 0,
+            [..] => 0,
+        };
+    }
+}
+";
+            // PROTOTYPE: incorrect exhaustiveness examples from explainer
+            var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+            compilation.VerifyEmitDiagnostics(
+                // (20,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
+                //         _ = this switch // no tests for null slice
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(20, 18),
+                // (27,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //         _ = this switch // no test for not null slice
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(27, 18)
+                );
+        }
+
+        [Fact]
+        public void SlicePattern_Nullability_Exhaustiveness_NestedSlice()
+        {
+            var source = @"
+#nullable enable
+using System;
+class C
+{
+    public int Length => throw null!;
+    public object? this[Index i] => throw null!;
+    public C? this[Range r] => throw null!;
+
+    public void M()
+    {
+        _ = this switch
+        {
+            null => 0,
+            [] => 0,
+            [.. [null]] => 0,
+            [not null] => 0,
+            { Length: > 1 } => 0,
+        };
+
+        _ = this switch // didn't test for not null first element
+        {
+            null => 0,
+            [] => 0,
+            [.. [null]] => 0,
+            { Length: > 1 } => 0,
+        };
+
+        _ = this switch // didn't test for null first element
+        {
+            null => 0,
+            [] => 0,
+            [.. [not null]] => 0,
+            { Length: > 1 } => 0,
+        };
+    }
+}
+";
+            // PROTOTYPE: unexpected exhaustiveness diagnostic
+            var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+            compilation.VerifyEmitDiagnostics(
+                // (12,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
+                //         _ = this switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(12, 18),
+                // (21,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //         _ = this switch // didn't test for not null first element
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(21, 18),
+                // (29,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
+                //         _ = this switch // didn't test for null first element
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(29, 18)
+                );
+        }
+
+        [Fact]
         public void ListPattern_Dynamic()
         {
             var source = @"
@@ -3593,17 +3737,18 @@ class C
     public int Count => 2;
 
     public int this[int i] => throw null;
-    public int this[Index i] { get { Console.Write(""Index ""); return 0; } }
+    public int this[Index i] { get { Console.Write(""Index ""); return 42; } }
 
     public int Slice(int i, int j) => throw null;
-    public int this[Range r] { get { Console.Write(""Range ""); return 0; } }
+    public int this[Range r] { get { Console.Write(""Range ""); return 43; } }
 
     static void Main()
     {
-        Console.Write(new C() is [ var x, ..var y ]);
+        if (new C() is [var x, .. var y])
+            Console.Write((x, y));
     }
 }";
-            CompileAndVerify(new[] { src, TestSources.Index, TestSources.Range });
+            CompileAndVerify(new[] { src, TestSources.Index, TestSources.Range }, expectedOutput: "Index Range (42, 43)");
         }
 
         [Fact]
@@ -3719,17 +3864,10 @@ _ = new C() switch
     [0] => 4,
 };
 
-_ = new C() switch // 3
-{
-    { Property: > 0 } => 1,
-    { Property: < 0 } => 2,
-};
-
 class C
 {
     public int Count => throw null;
     public int this[int i] => throw null;
-    public int Property => throw null;
 }";
             // PROTOTYPE bad explanation for 2
             var comp = CreateCompilation(src);
@@ -3739,10 +3877,7 @@ class C
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 0 }").WithLocation(2, 13),
                 // (8,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
                 // _ = new C() switch // 2
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(8, 13),
-                // (23,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Property: 0 }' is not covered.
-                // _ = new C() switch // 3
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Property: 0 }").WithLocation(23, 13)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(8, 13)
                 );
         }
 
@@ -3779,17 +3914,10 @@ _ = new C() switch
     { Count: 0 or > 1 } => 3,
 };
 
-_ = new C() switch // 3
-{
-    null => 0,
-    { Property: not null } => 1,
-};
-
 class C
 {
     public int Count => throw null!;
     public string? this[int i] => throw null!;
-    public string? Property => throw null!;
 }";
             // PROTOTYPE bad explanations on 1 and 2
             var comp = CreateCompilation(src);
@@ -3799,10 +3927,7 @@ class C
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(3, 13),
                 // (18,13): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 // _ = new C() switch // 2
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(18, 13),
-                // (31,13): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{ Property: null }' is not covered.
-                // _ = new C() switch // 3
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("{ Property: null }").WithLocation(31, 13)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(18, 13)
                 );
         }
 

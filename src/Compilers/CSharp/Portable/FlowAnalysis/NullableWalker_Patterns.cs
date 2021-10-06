@@ -509,12 +509,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         else if (e.IndexerAccess is not null)
                                         {
                                             // this[Index]
+                                            Debug.Assert(e.IndexerSymbol is null && e.Input.Type is not ArrayTypeSymbol);
                                             var indexer = AsMemberOfType(inputType, e.IndexerAccess.Indexer);
                                             type = indexer.GetTypeOrReturnType();
                                         }
                                         else if (e.IndexerSymbol is not null)
                                         {
                                             // this[int]
+                                            Debug.Assert(e.Input.Type is not ArrayTypeSymbol);
                                             var indexer = AsMemberOfType(inputType, e.IndexerSymbol);
                                             type = indexer.GetTypeOrReturnType();
                                         }
@@ -543,19 +545,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         else if (e.IndexerAccess is not null)
                                         {
                                             // this[Range]
+                                            Debug.Assert(e.SliceMethod is null && e.Input.Type is not ArrayTypeSymbol);
                                             var symbol = AsMemberOfType(inputType, e.IndexerAccess.Indexer);
                                             type = symbol.GetTypeOrReturnType();
                                         }
                                         else if (e.SliceMethod is not null)
                                         {
                                             // Slice(int, int)
+                                            Debug.Assert(e.Input.Type is not ArrayTypeSymbol);
                                             var symbol = AsMemberOfType(inputType, e.SliceMethod);
                                             type = symbol.GetTypeOrReturnType();
                                         }
                                         else
                                         {
                                             // RuntimeHelpers.GetSubArray(T[], Range)
-                                            var arrayType = (ArrayTypeSymbol)e.Input.Type;
+                                            var arrayType = e.Input.Type;
+                                            Debug.Assert(arrayType is ArrayTypeSymbol);
                                             type = TypeWithAnnotations.Create(isNullableEnabled: true, arrayType, isAnnotated: false);
                                         }
 
