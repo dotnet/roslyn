@@ -823,8 +823,9 @@ namespace Microsoft.CodeAnalysis.Formatting
             Debug.Assert(IsWhitespaceOrEndOfLine(trivia2));
 
             // treat elastic as new line as long as its previous trivia is not elastic or
-            // it has line break right before it
-            if (trivia2.IsElastic())
+            // it has line break right before it; making sure to preserve consecutive new
+            // lines even if elastic.
+            if (trivia2.IsElastic() && (!IsEndOfLine(trivia1) || !IsEndOfLine(trivia2)))
             {
                 // eat up consecutive elastic trivia or next line
                 if (trivia1.IsElastic() || IsEndOfLine(trivia1))

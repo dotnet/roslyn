@@ -15,11 +15,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
-
-#if !CODE_STYLE
-using Microsoft.CodeAnalysis.Formatting;
-#endif
 
 namespace Microsoft.CodeAnalysis.FileHeaders
 {
@@ -29,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract ISyntaxKinds SyntaxKinds { get; }
 
-        protected abstract SyntaxTrivia EndOfLine(string text);
+        protected abstract SyntaxTrivia ElasticEndOfLine { get; }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.FileHeaderMismatch);
@@ -51,14 +46,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
         private Task<SyntaxNode> GetTransformedSyntaxRootAsync(Document document, CancellationToken cancellationToken)
         {
-#if CODE_STYLE
-            var newLineText = Environment.NewLine;
-#else
-            var newLineText = document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, document.Project.Language);
-#endif
-            var newLineTrivia = EndOfLine(newLineText);
-
-            return GetTransformedSyntaxRootAsync(SyntaxFacts, FileHeaderHelper, newLineTrivia, document, fileHeaderTemplate: null, cancellationToken);
+            return GetTransformedSyntaxRootAsync(SyntaxFacts, FileHeaderHelper, ElasticEndOfLine, document, fileHeaderTemplate: null, cancellationToken);
         }
 
         internal static async Task<SyntaxNode> GetTransformedSyntaxRootAsync(ISyntaxFacts syntaxFacts, AbstractFileHeaderHelper fileHeaderHelper, SyntaxTrivia newLineTrivia, Document document, string? fileHeaderTemplate, CancellationToken cancellationToken)
@@ -170,7 +158,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 triviaList = triviaList.RemoveAt(removalList[i]);
             }
 
-            var newHeaderTrivia = CreateNewHeader(syntaxFacts, leadingSpaces + fileHeaderHelper.CommentPrefix, expectedFileHeader, newLineTrivia.ToFullString());
+            var newHeaderTrivia = CreateNewHeader(syntaxFacts, leadingSpaces + fileHeaderHelper.CommentPrefix, expectedFileHeader, newLineTrivia);
 
             // Add a blank line and any remaining preserved trivia after the header.
             newHeaderTrivia = newHeaderTrivia.Add(newLineTrivia).Add(newLineTrivia).AddRange(triviaList);
@@ -181,7 +169,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
         private static SyntaxNode AddHeader(ISyntaxFacts syntaxFacts, AbstractFileHeaderHelper fileHeaderHelper, SyntaxTrivia newLineTrivia, SyntaxNode root, string expectedFileHeader)
         {
-            var newTrivia = CreateNewHeader(syntaxFacts, fileHeaderHelper.CommentPrefix, expectedFileHeader, newLineTrivia.ToFullString()).Add(newLineTrivia).Add(newLineTrivia);
+            var newTrivia = CreateNewHeader(syntaxFacts, fileHeaderHelper.CommentPrefix, expectedFileHeader, newLineTrivia).Add(newLineTrivia).Add(newLineTrivia);
 
             // Skip blank lines already at the beginning of the document, since we add our own
             var leadingTrivia = root.GetLeadingTrivia();
@@ -203,18 +191,35 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             return root.WithLeadingTrivia(newTrivia);
         }
 
-        private static SyntaxTriviaList CreateNewHeader(ISyntaxFacts syntaxFacts, string prefixWithLeadingSpaces, string expectedFileHeader, string newLineText)
+        private static SyntaxTriviaList CreateNewHeader(ISyntaxFacts syntaxFacts, string prefixWithLeadingSpaces, string expectedFileHeader, SyntaxTrivia newLineTrivia)
         {
-            var copyrightText = GetCopyrightText(prefixWithLeadingSpaces, expectedFileHeader, newLineText);
+            var copyrightText = GetCopyrightText(prefixWithLeadingSpaces, expectedFileHeader);
             var newHeader = copyrightText;
-            return syntaxFacts.ParseLeadingTrivia(newHeader);
+            var leadingTrivia = syntaxFacts.ParseLeadingTrivia(newHeader);
+            var elasticLeadingTrivia = SyntaxTriviaList.Empty;
+            foreach (var trivia in leadingTrivia)
+            {
+                if (syntaxFacts.IsEndOfLineTrivia(trivia))
+                {
+                    elasticLeadingTrivia = elasticLeadingTrivia.Add(newLineTrivia);
+                }
+                else
+                {
+                    elasticLeadingTrivia = elasticLeadingTrivia.Add(trivia);
+                }
+            }
+
+            return elasticLeadingTrivia;
         }
 
-        private static string GetCopyrightText(string prefixWithLeadingSpaces, string copyrightText, string newLineText)
+        /// <summary>
+        /// Gets the copyright header. Line endings within this string use a single line feed (<c>\n</c>).
+        /// </summary>
+        private static string GetCopyrightText(string prefixWithLeadingSpaces, string copyrightText)
         {
             copyrightText = copyrightText.Replace("\r\n", "\n");
             var lines = copyrightText.Split('\n');
-            return string.Join(newLineText, lines.Select(line =>
+            return string.Join("\n", lines.Select(line =>
             {
                 // Rewrite the lines of the header as comments without trailing whitespace.
                 if (string.IsNullOrEmpty(line))

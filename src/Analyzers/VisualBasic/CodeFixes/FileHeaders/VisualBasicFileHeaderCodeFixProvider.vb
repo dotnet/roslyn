@@ -38,8 +38,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
             End Get
         End Property
 
-        Protected Overrides Function EndOfLine(text As String) As SyntaxTrivia
-            Return SyntaxFactory.EndOfLine(text)
-        End Function
+        Protected Overrides ReadOnly Property ElasticEndOfLine As SyntaxTrivia
+            Get
+                Return SyntaxFactory.ElasticCarriageReturnLineFeed
+            End Get
+        End Property
     End Class
 End Namespace
