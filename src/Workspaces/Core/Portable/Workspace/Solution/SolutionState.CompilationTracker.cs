@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis
                 // check whether we can bail out quickly for typing case
                 var inProgressState = state as InProgressState;
 
-                generatorInfo = state.GeneratorInfo.WithDocumentsAreFinal(true);
+                generatorInfo = state.GeneratorInfo.WithDocumentsAreFinalAndFrozen();
 
                 // all changes left for this document is modifying the given document.
                 // we can use current state as it is since we will replace the document with latest document anyway.

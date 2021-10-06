@@ -595,10 +595,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [Fact]
         [WorkItem(56702, "https://github.com/dotnet/roslyn/issues/56702")]
-        public async Task ForkAfterFreezeWorks()
+        public async Task ForkAfterFreezeNoLongerRunsGenerators()
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();
-            var analyzerReference = new TestGeneratorReference(new SingleFileTestGenerator("// Hello, Source Generators!"));
+            var generatorRan = false;
+            var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
                 .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
@@ -606,13 +607,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Ensure generators are ran
             _ = await project.GetCompilationAsync();
 
+            Assert.True(generatorRan);
+            generatorRan = false;
+
             var document = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
 
-            // And fork with new contents; this will force generators to run again
+            // And fork with new contents; we'll ensure the contents of this tree are different, but the generator will still not be ran
             document = document.WithText(SourceText.From("// Something else"));
 
             var compilation = await document.Project.GetRequiredCompilationAsync(CancellationToken.None);
             Assert.Equal(2, compilation.SyntaxTrees.Count());
+            Assert.False(generatorRan);
+
+            Assert.Equal("// Something else", (await document.GetRequiredSyntaxRootAsync(CancellationToken.None)).ToFullString());
         }
     }
 }
