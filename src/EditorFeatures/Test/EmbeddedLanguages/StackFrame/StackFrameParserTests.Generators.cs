@@ -53,10 +53,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 
         private static StackFrameMethodDeclarationNode MethodDeclaration(
             StackFrameMemberAccessExpressionNode memberAccessExpression,
-            StackFrameParameterList argumentList,
-            StackFrameTypeArgumentList? typeArgumnets = null)
+            StackFrameTypeArgumentList? typeArguments = null,
+            StackFrameParameterList? argumentList = null)
         {
-            return new StackFrameMethodDeclarationNode(memberAccessExpression, typeArgumnets, argumentList);
+            return new StackFrameMethodDeclarationNode(memberAccessExpression, typeArguments, argumentList ?? ArgumentList(OpenParenToken, CloseParenToken));
         }
 
         private static StackFrameMemberAccessExpressionNode MemberAccessExpression(StackFrameExpressionNode expressionNode, StackFrameBaseIdentifierNode identifierNode)
@@ -70,6 +70,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 
         private static StackFrameGenericTypeIdentifier GenericType(string identifierName, int arity)
             => new(CreateToken(StackFrameKind.IdentifierToken, identifierName), AccentGraveToken, CreateToken(StackFrameKind.TextToken, arity.ToString()));
+
+        private static StackFrameTypeArgumentList TypeArgumentList(params StackFrameTypeArgument[] typeArguments)
+            => TypeArgumentList(useBrackets: true, typeArguments);
 
         private static StackFrameTypeArgumentList TypeArgumentList(bool useBrackets, params StackFrameTypeArgument[] typeArguments)
         {

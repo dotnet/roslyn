@@ -282,14 +282,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         {
             Debug.Assert(openParen.Kind == StackFrameKind.OpenParenToken);
             Debug.Assert(closeParen.Kind == StackFrameKind.CloseParenToken);
-            Debug.Assert(childNodesOrTokens.All(nodeOrToken => nodeOrToken.IsNode
+            Debug.Assert(childNodesOrTokens.IsDefaultOrEmpty || childNodesOrTokens.All(nodeOrToken => nodeOrToken.IsNode
                 ? nodeOrToken.Node is StackFrameIdentifierNode or StackFrameMemberAccessExpressionNode or StackFrameArrayExpressionNode
                 : nodeOrToken.Token.Kind is StackFrameKind.CommaToken));
 
             OpenParen = openParen;
             CloseParen = closeParen;
             _childNodesOrTokens = childNodesOrTokens;
-            ChildCount = _childNodesOrTokens.Length + 2;
+            ChildCount = _childNodesOrTokens.IsDefault ? 2 : _childNodesOrTokens.Length + 2;
         }
 
         internal override int ChildCount { get; }

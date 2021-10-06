@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 
     public partial class StackFrameParserTests
     {
-        private static void Verify(string input, StackFrameMethodDeclarationNode? methodDeclaration = null, bool expectSuccess = true)
+        private static void Verify(string input, StackFrameMethodDeclarationNode? methodDeclaration = null, bool expectFailure = false)
         {
             var tree = StackFrameParser.TryParse(input);
-            if (!expectSuccess)
+            if (expectFailure)
             {
                 Assert.Null(tree);
                 return;
