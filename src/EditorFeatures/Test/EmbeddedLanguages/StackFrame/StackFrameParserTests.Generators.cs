@@ -36,6 +36,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         private static ImmutableArray<StackFrameTrivia> CreateTriviaArray(params StackFrameTrivia[] trivia)
             => ImmutableArray.Create(trivia);
 
+        private static ImmutableArray<StackFrameTrivia> CreateTriviaArray(string s)
+            => CreateTriviaArray(CreateTrivia(StackFrameKind.TextTrivia, s));
+
         private static readonly StackFrameToken DotToken = CreateToken(StackFrameKind.DotToken, ".");
         private static readonly StackFrameToken CommaToken = CreateToken(StackFrameKind.CommaToken, ",");
         private static readonly StackFrameToken OpenParenToken = CreateToken(StackFrameKind.OpenParenToken, "(");
@@ -45,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         private static readonly StackFrameToken LessThanToken = CreateToken(StackFrameKind.LessThanToken, "<");
         private static readonly StackFrameToken GreaterThanToken = CreateToken(StackFrameKind.GreaterThanToken, ">");
         private static readonly StackFrameToken AccentGraveToken = CreateToken(StackFrameKind.GraveAccentToken, "`");
+        private static readonly StackFrameToken EOLToken = CreateToken(StackFrameKind.EndOfLine, "");
 
         private static readonly StackFrameTrivia AtTrivia = CreateTrivia(StackFrameKind.AtTrivia, "at ");
 

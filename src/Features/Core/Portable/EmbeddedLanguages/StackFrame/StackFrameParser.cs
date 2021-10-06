@@ -83,12 +83,19 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             var fileInformationExpression = inTrivia.HasValue
                 ? ParseFileInformation()
                 : null;
-            var trailingTrivia = _lexer.ScanTrailingTrivia();
+
+            var trailingTrivia = _lexer.ScanRemainingTrivia();
+            var eolToken = CurrentToken;
 
             Debug.Assert(_lexer.Position == _lexer.Text.Length);
-            Debug.Assert(_lexer.CurrentCharAsToken().Kind == StackFrameKind.EndOfLine);
+            Debug.Assert(eolToken.Kind == StackFrameKind.EndOfLine);
 
-            var root = new StackFrameCompilationUnit(methodDeclaration, inTrivia, fileInformationExpression, trailingTrivia);
+            if (trailingTrivia.HasValue)
+            {
+                eolToken = eolToken.With(leadingTrivia: ImmutableArray.Create(trailingTrivia.Value));
+            }
+
+            var root = new StackFrameCompilationUnit(methodDeclaration, fileInformationExpression, eolToken);
 
             return new StackFrameTree(
                 _lexer.Text, root, ImmutableArray<EmbeddedDiagnostic>.Empty);

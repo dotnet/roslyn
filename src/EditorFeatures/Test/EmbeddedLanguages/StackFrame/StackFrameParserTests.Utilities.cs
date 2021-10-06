@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 
     public partial class StackFrameParserTests
     {
-        private static void Verify(string input, StackFrameMethodDeclarationNode? methodDeclaration = null, bool expectFailure = false)
+        private static void Verify(string input, StackFrameMethodDeclarationNode? methodDeclaration = null, bool expectFailure = false, StackFrameToken? eolTokenOpt = null)
         {
             var tree = StackFrameParser.TryParse(input);
             if (expectFailure)
@@ -42,9 +42,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 AssertEqual(methodDeclaration, tree.Root.MethodDeclaration);
             }
 
-            Assert.False(tree.Root.InTrivia.HasValue);
-            Assert.Null(tree.Root.FileInformationExpression);
-            Assert.False(tree.Root.TrailingTrivia.HasValue);
+            var eolToken = eolTokenOpt.HasValue
+                ? eolTokenOpt.Value
+                : CreateToken(StackFrameKind.EndOfLine, "");
+
+            AssertEqual(eolToken, tree.Root.EndOfLineToken);
         }
         private static void AssertEqual(StackFrameNodeOrToken expected, StackFrameNodeOrToken actual)
         {
@@ -206,9 +208,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 yield return seq;
             }
 
-            if (root.TrailingTrivia.HasValue)
+            foreach (var charSequence in Enumerate(root.EndOfLineToken))
             {
-                yield return root.TrailingTrivia.Value.VirtualChars;
+                yield return charSequence;
             }
         }
 
@@ -225,24 +227,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 }
                 else if (!nodeOrToken.Token.VirtualChars.IsDefaultOrEmpty)
                 {
-                    var token = nodeOrToken.Token;
-                    if (!token.LeadingTrivia.IsDefault)
+                    foreach (var charSequence in Enumerate(nodeOrToken.Token))
                     {
-                        foreach (var trivia in token.LeadingTrivia)
-                        {
-                            yield return trivia.VirtualChars;
-                        }
+                        yield return charSequence;
                     }
+                }
+            }
+        }
 
-                    yield return nodeOrToken.Token.VirtualChars;
+        private static IEnumerable<VirtualCharSequence> Enumerate(StackFrameToken token)
+        {
+            if (!token.LeadingTrivia.IsDefault)
+            {
+                foreach (var trivia in token.LeadingTrivia)
+                {
+                    yield return trivia.VirtualChars;
+                }
+            }
 
-                    if (!token.TrailingTrivia.IsDefault)
-                    {
-                        foreach (var trivia in token.TrailingTrivia)
-                        {
-                            yield return trivia.VirtualChars;
-                        }
-                    }
+            yield return token.VirtualChars;
+
+            if (!token.TrailingTrivia.IsDefault)
+            {
+                foreach (var trivia in token.TrailingTrivia)
+                {
+                    yield return trivia.VirtualChars;
                 }
             }
         }

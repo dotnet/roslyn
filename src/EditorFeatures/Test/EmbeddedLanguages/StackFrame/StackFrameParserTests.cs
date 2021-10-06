@@ -18,6 +18,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 );
 
         [Fact]
+        public void TestTrailingTrivia()
+            => Verify(
+                @"at ConsoleApp4.MyClass.M() some other text",
+                methodDeclaration: MethodDeclaration(
+                    MemberAccessExpression("ConsoleApp4.MyClass.M", leadingTrivia: CreateTriviaArray(AtTrivia)),
+                    argumentList: ArgumentList()),
+
+                eolTokenOpt: EOLToken.With(leadingTrivia: CreateTriviaArray(" some other text"))
+                );
+
+        [Fact]
         public void TestNoParams_NoAtTrivia()
             => Verify(
                 @"ConsoleApp4.MyClass.M()",
@@ -170,6 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         [InlineData(@"at M.1c()")] // Invalid start character for identifier
         [InlineData(@"at 1M.C()")]
         [InlineData(@"at M.C(string& s)")] // "string&" represents a reference (ref, out) and is not supported yet
+        [InlineData(@"at StreamJsonRpc.JsonRpc.<InvokeCoreAsync>d__139`1.MoveNext()")] // Generated/Inline methods are not supported yet
         public void TestInvalidInputs(string input)
             => Verify(input, expectFailure: true);
     }

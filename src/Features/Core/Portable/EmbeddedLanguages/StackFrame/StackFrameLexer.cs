@@ -39,18 +39,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         public VirtualCharSequence GetSubPattern(int start, int end)
             => Text.GetSubSequence(TextSpan.FromBounds(start, end));
 
-        /// <summary>
-        /// Scans until EndOfLine is found, treating all text as trivia
-        /// </summary>
-        public StackFrameTrivia? ScanTrailingTrivia()
+        public StackFrameTrivia? ScanRemainingTrivia()
         {
             if (Position == Text.Length)
             {
                 return null;
             }
 
-            var length = Text.Length - Position;
-            return CreateTrivia(StackFrameKind.TrailingTrivia, Text.GetSubSequence(new TextSpan(Position - 1, length)));
+            var start = Position;
+            Position = Text.Length;
+
+            return CreateTrivia(StackFrameKind.TextTrivia, GetSubPatternToCurrentPos(start));
         }
 
         public StackFrameToken? ScanIdentifier()
@@ -74,8 +73,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 ch = CurrentChar;
             }
 
-            var identifierSpan = new TextSpan(startPosition, Position - startPosition);
-            var identifier = CreateToken(StackFrameKind.IdentifierToken, Text.GetSubSequence(identifierSpan));
+            var identifier = CreateToken(StackFrameKind.IdentifierToken, GetSubPatternToCurrentPos(startPosition));
             return identifier;
         }
 

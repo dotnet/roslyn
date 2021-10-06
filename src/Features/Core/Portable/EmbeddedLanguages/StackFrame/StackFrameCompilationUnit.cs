@@ -6,19 +6,21 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 {
+    using StackFrameNodeOrToken = EmbeddedSyntaxNodeOrToken<StackFrameKind, StackFrameNode>;
+    using StackFrameToken = EmbeddedSyntaxToken<StackFrameKind>;
+    using StackFrameTrivia = EmbeddedSyntaxTrivia<StackFrameKind>;
+
     internal class StackFrameCompilationUnit
     {
         public readonly StackFrameMethodDeclarationNode MethodDeclaration;
-        public readonly EmbeddedSyntaxTrivia<StackFrameKind>? InTrivia;
         public readonly StackFrameFileInformationNode? FileInformationExpression;
-        public readonly EmbeddedSyntaxTrivia<StackFrameKind>? TrailingTrivia;
+        public readonly StackFrameToken EndOfLineToken;
 
-        public StackFrameCompilationUnit(StackFrameMethodDeclarationNode methodDeclaration, EmbeddedSyntaxTrivia<StackFrameKind>? inTrivia, StackFrameFileInformationNode? fileInformationExpression, EmbeddedSyntaxTrivia<StackFrameKind>? trailingTrivia)
+        public StackFrameCompilationUnit(StackFrameMethodDeclarationNode methodDeclaration, StackFrameFileInformationNode? fileInformationExpression, StackFrameToken endOfLineToken)
         {
             MethodDeclaration = methodDeclaration;
-            InTrivia = inTrivia;
             FileInformationExpression = fileInformationExpression;
-            TrailingTrivia = trailingTrivia;
+            EndOfLineToken = endOfLineToken;
         }
     }
 }
