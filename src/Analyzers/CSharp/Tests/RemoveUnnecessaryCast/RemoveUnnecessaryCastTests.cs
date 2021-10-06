@@ -5570,7 +5570,7 @@ enum Sign
         }
 
         [WorkItem(18510, "https://github.com/dotnet/roslyn/issues/18510")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveCastOnValidUnaryOperatorEnumValue()
         {
             var source =

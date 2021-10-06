@@ -22,12 +22,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             => cast is CastExpressionSyntax castExpression ? IsUnnecessaryCast(castExpression, semanticModel, cancellationToken) :
                cast is BinaryExpressionSyntax binaryExpression ? IsUnnecessaryAsCast(binaryExpression, semanticModel, cancellationToken) : false;
 
-        public static bool IsUnnecessaryCast(CastExpressionSyntax cast, SemanticModel semanticModel, CancellationToken cancellationToken)
-            => IsCastSafeToRemove(cast, cast.Expression, semanticModel, cancellationToken);
-
         public static bool IsUnnecessaryAsCast(BinaryExpressionSyntax cast, SemanticModel semanticModel, CancellationToken cancellationToken)
             => cast.Kind() == SyntaxKind.AsExpression &&
                IsCastSafeToRemove(cast, cast.Left, semanticModel, cancellationToken);
+
+        public static bool IsUnnecessaryCast(CastExpressionSyntax cast, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            // Special case for: (int)E == 0 case.  Enums can always compare against the constant
+            // 0 without needing a cast.
+            if (IsEnumCastWithZeroCompare(cast, semanticModel, cancellationToken))
+                return true;
+
+            // Special case for: (E)~(int)e case.  Enums don't need to be converted to ints to get bitwise negated.
+            if (IsRemovableBitwiseEnumNegation(cast, semanticModel, cancellationToken))
+                return true;
+
+            return IsCastSafeToRemove(cast, cast.Expression, semanticModel, cancellationToken);
+        }
 
         private static bool IsCastSafeToRemove(
             ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
@@ -343,22 +354,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (!originalConversion.Exists)
                 return false;
 
-            // Special case for: (int)E == 0 case.  Enums can always compare against the constant
-            // 0 without needing a cast.
-            if (IsEnumCastWithZeroCompare(castNode, originalSemanticModel, originalConversion, cancellationToken))
-                return true;
+            // A conversion must either not exist, or it must be explicit or implicit. At this point we
+            // have conversions that will always succeed, but which could have impact on the code by 
+            // changing the types of things (which can affect other things like overload resolution),
+            // or the runtime values of code.  We only want to remove the cast if it will do none of those
+            // things.
 
             // Explicit conversions are conversions that cannot be proven to always succeed, conversions
             // that are known to possibly lose information.  As such, we need to preserve this as it 
             // has necessary runtime behavior that must be kept.
             if (IsExplicitCastThatMustBePreserved(castNode, originalConversion))
                 return false;
-
-            // A conversion must either not exist, or it must be explicit or implicit. At this point we
-            // have conversions that will always succeed, but which could have impact on the code by 
-            // changing the types of things (which can affect other things like overload resolution),
-            // or the runtime values of code.  We only want to remove the cast if it will do none of those
-            // things.
 
             // we are starting with code like `(X)expr` and converting to just `expr`. Post rewrite we need
             // to ensure that the final converted-type of `expr` matches the final converted type of `(X)expr`.
@@ -534,15 +540,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static bool IsEnumCastWithZeroCompare(ExpressionSyntax castNode, SemanticModel originalSemanticModel, Conversion originalConversion, CancellationToken cancellationToken)
+        private static bool IsRemovableBitwiseEnumNegation(
+            CastExpressionSyntax castExpression,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
         {
-            if (originalConversion.IsExplicit &&
-                originalConversion.IsEnumeration &&
-                castNode.WalkUpParentheses().Parent is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.EqualsExpression or (int)SyntaxKind.NotEqualsExpression } binary)
+            var enumType = semanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type as INamedTypeSymbol;
+            var castedType = semanticModel.GetTypeInfo(castExpression.Type, cancellationToken).Type;
+
+            if (Equals(enumType?.EnumUnderlyingType, castedType) &&
+                castExpression.WalkUpParentheses().Parent is PrefixUnaryExpressionSyntax(SyntaxKind.BitwiseNotExpression) parent &&
+                parent.WalkUpParentheses().Parent is CastExpressionSyntax parentCast)
             {
-                var type = originalSemanticModel.GetTypeInfo(castNode, cancellationToken).Type;
-                var constantValue = originalSemanticModel.GetConstantValue(binary.Right, cancellationToken);
-                if (type?.SpecialType == SpecialType.System_Int32 && constantValue.HasValue && constantValue.Value is 0)
+                var parentCastType = semanticModel.GetTypeInfo(parentCast.Type, cancellationToken).Type;
+                if (Equals(enumType, parentCastType))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsEnumCastWithZeroCompare(
+            CastExpressionSyntax castExpression,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            var enumType = semanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type as INamedTypeSymbol;
+            var castedType = semanticModel.GetTypeInfo(castExpression.Type, cancellationToken).Type;
+
+            if (Equals(enumType?.EnumUnderlyingType, castedType) &&
+                castExpression.WalkUpParentheses().Parent is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.EqualsExpression or (int)SyntaxKind.NotEqualsExpression } binary)
+            {
+                var constantValue = semanticModel.GetConstantValue(binary.Right, cancellationToken);
+                if (constantValue.HasValue &&
+                    IntegerUtilities.IsIntegral(constantValue.Value) &&
+                    IntegerUtilities.ToInt64(constantValue.Value) == 0)
                 {
                     return true;
                 }
