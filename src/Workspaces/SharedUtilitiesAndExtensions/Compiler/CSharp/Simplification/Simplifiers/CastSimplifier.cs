@@ -50,6 +50,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
         public static bool IsUnnecessaryCast(CastExpressionSyntax cast, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
+            // First handle very special cases where casts are safe to remove, but where we violate 
+            // the general rules of CastSimplifier.  Specifically, look for cases where there are multiple
+            // casts in an expression, which push values out of, but back into the same initial domain,
+            // and which can be proven to generate the same resultant values with some of the casts
+            // removed.
+            //
+            // This violates the rule that the same set of instructions would be emitted at runtime.
+            // However, it follows the spirit of the rule that this is not observable, and so removing
+            // the cast is beneficial to avoid unnecessary work at runtime.
+
             // Special case for: (int)E == 0 case.  Enums can always compare against the constant
             // 0 without needing a cast.
             if (IsEnumCastWithZeroCompare(cast, semanticModel, cancellationToken))
@@ -76,7 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             var isDefaultLiteralCast = castedExpressionNode.WalkDownParentheses().Kind() == SyntaxKind.DefaultLiteralExpression;
 
             // Language does not allow `if (x is default)` ever.  So if we have `if (x is (Y)default)`
-            // then we can't remove the cast.
+            // then we can't remove the cast.  This was special cased in the language due to user 
+            // confusion, and so we have to preserve this despite the standard conversion rules
+            // indicating this should be fine.
             if (isDefaultLiteralCast && castNode.WalkUpParentheses().Parent is PatternSyntax or CaseSwitchLabelSyntax)
                 return false;
 
