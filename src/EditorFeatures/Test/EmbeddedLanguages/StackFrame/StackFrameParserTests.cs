@@ -9,6 +9,53 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
     public partial class StackFrameParserTests
     {
         [Fact]
+        public void TestNoParams()
+            => Verify(
+                @"at ConsoleApp4.MyClass.M()",
+                methodDeclaration: MethodDeclaration(
+                    MemberAccessExpression("ConsoleApp4.MyClass.M", leadingTrivia: CreateTriviaArray(AtTrivia)),
+                    argumentList: ArgumentList())
+                );
+
+        [Fact]
+        public void TestNoParams_NoAtTrivia()
+            => Verify(
+                @"ConsoleApp4.MyClass.M()",
+                methodDeclaration: MethodDeclaration(
+                    MemberAccessExpression("ConsoleApp4.MyClass.M"),
+                    argumentList: ArgumentList())
+                );
+
+        [Fact]
+        public void TestNoParams_SpaceInParams_NoAtTrivia()
+            => Verify(
+                @"ConsoleApp4.MyClass.M(  )",
+                methodDeclaration: MethodDeclaration(
+                    MemberAccessExpression("ConsoleApp4.MyClass.M"),
+                    argumentList: ArgumentList(
+                        OpenParenToken.With(trailingTrivia: CreateTriviaArray(SpaceTrivia(2))),
+                        CloseParenToken))
+                );
+
+        [Fact]
+        public void TestNoParams_SpaceTrivia()
+            => Verify(
+                @" ConsoleApp4.MyClass.M()",
+                methodDeclaration: MethodDeclaration(
+                    MemberAccessExpression("ConsoleApp4.MyClass.M", leadingTrivia: CreateTriviaArray(SpaceTrivia())),
+                    argumentList: ArgumentList())
+                );
+
+        [Fact]
+        public void TestNoParams_SpaceTrivia2()
+            => Verify(
+                @"  ConsoleApp4.MyClass.M()",
+                methodDeclaration: MethodDeclaration(
+                    MemberAccessExpression("ConsoleApp4.MyClass.M", leadingTrivia: CreateTriviaArray(SpaceTrivia(2))),
+                    argumentList: ArgumentList())
+                );
+
+        [Fact]
         public void TestMethodOneParam()
             => Verify(
                 @"at ConsoleApp4.MyClass.M(string s)",
@@ -20,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                         Identifier("M")),
 
                     argumentList: ArgumentList(
-                        Identifier("string", trailingTrivia: CreateTriviaArray(SpaceTrivia)),
+                        Identifier("string", trailingTrivia: CreateTriviaArray(SpaceTrivia())),
                         Identifier("s"))
                     )
                 );
@@ -37,10 +84,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                         Identifier("M")),
 
                     argumentList: ArgumentList(
-                        Identifier("string", trailingTrivia: CreateTriviaArray(SpaceTrivia)),
+                        Identifier("string", trailingTrivia: CreateTriviaArray(SpaceTrivia())),
                         Identifier("s"),
                         CommaToken,
-                        Identifier("string", leadingTrivia: CreateTriviaArray(SpaceTrivia), trailingTrivia: CreateTriviaArray(SpaceTrivia)),
+                        Identifier("string", leadingTrivia: CreateTriviaArray(SpaceTrivia()), trailingTrivia: CreateTriviaArray(SpaceTrivia())),
                         Identifier("t"))
                     )
                 );
@@ -58,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 
                     argumentList: ArgumentList(
                         ArrayExpression(Identifier("string"), OpenBracketToken, CloseBracketToken),
-                        Identifier("s", leadingTrivia: CreateTriviaArray(SpaceTrivia)))
+                        Identifier("s", leadingTrivia: CreateTriviaArray(SpaceTrivia())))
                 )
             );
 
@@ -74,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                         Identifier("M")),
                     typeArguments: TypeArgumentList(TypeArgument("T")),
                     argumentList: ArgumentList(
-                        Identifier("T", trailingTrivia: CreateTriviaArray(SpaceTrivia)),
+                        Identifier("T", trailingTrivia: CreateTriviaArray(SpaceTrivia())),
                         Identifier("t"))
                 )
             );
@@ -91,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                         Identifier("M")),
                     typeArguments: TypeArgumentList(useBrackets: false, TypeArgument("T")),
                     argumentList: ArgumentList(
-                        Identifier("T", trailingTrivia: CreateTriviaArray(SpaceTrivia)),
+                        Identifier("T", trailingTrivia: CreateTriviaArray(SpaceTrivia())),
                         Identifier("t"))
                 )
             );
@@ -101,14 +148,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => Verify(
                 @"at _._[_](_ _)",
                 methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression(
-                        Identifier("_", leadingTrivia: CreateTriviaArray(AtTrivia)),
-                        Identifier("_")),
+                    MemberAccessExpression("_._", leadingTrivia: CreateTriviaArray(AtTrivia)),
                     typeArguments: TypeArgumentList(TypeArgument("_")),
                     argumentList: ArgumentList(
-                        Identifier("_", trailingTrivia: CreateTriviaArray(SpaceTrivia)),
+                        Identifier("_", trailingTrivia: CreateTriviaArray(SpaceTrivia())),
                         Identifier("_"))
                 )
+            );
+
+        [Fact]
+        public void TestAnonymousMethod()
+            => Verify(
+                @"Microsoft.VisualStudio.DesignTools.SurfaceDesigner.Tools.EventRouter.ScopeElement_MouseUp.AnonymousMethod__0()",
+                methodDeclaration: MethodDeclaration(
+                    MemberAccessExpression("Microsoft.VisualStudio.DesignTools.SurfaceDesigner.Tools.EventRouter.ScopeElement_MouseUp.AnonymousMethod__0"),
+                    argumentList: ArgumentList())
             );
 
         [Theory]

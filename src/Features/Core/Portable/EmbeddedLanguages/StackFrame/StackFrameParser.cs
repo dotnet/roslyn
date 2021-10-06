@@ -271,6 +271,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return null;
             }
 
+            var spaceTrivia = _lexer.ScanWhiteSpace();
+            if (spaceTrivia.HasValue)
+            {
+                openParen = openParen.With(trailingTrivia: ImmutableArray.Create(spaceTrivia.Value));
+            }
+
             StackFrameToken closeParen;
 
             using var _ = ArrayBuilder<StackFrameNodeOrToken>.GetInstance(out var builder);

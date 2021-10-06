@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         private static StackFrameTrivia CreateTrivia(StackFrameKind kind, string s)
             => new(kind, CodeAnalysis.EmbeddedLanguages.VirtualChars.VirtualCharSequence.Create(0, s), ImmutableArray<EmbeddedDiagnostic>.Empty);
 
-        private static ImmutableArray<StackFrameTrivia> CreateTriviaArray(StackFrameTrivia trivia)
+        private static ImmutableArray<StackFrameTrivia> CreateTriviaArray(params StackFrameTrivia[] trivia)
             => ImmutableArray.Create(trivia);
 
         private static readonly StackFrameToken DotToken = CreateToken(StackFrameKind.DotToken, ".");
@@ -46,11 +46,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         private static readonly StackFrameToken GreaterThanToken = CreateToken(StackFrameKind.GreaterThanToken, ">");
         private static readonly StackFrameToken AccentGraveToken = CreateToken(StackFrameKind.GraveAccentToken, "`");
 
-        private static readonly StackFrameTrivia SpaceTrivia = CreateTrivia(StackFrameKind.WhitespaceTrivia, " ");
         private static readonly StackFrameTrivia AtTrivia = CreateTrivia(StackFrameKind.AtTrivia, "at ");
 
         private static StackFrameParameterList ArgumentList(params StackFrameNodeOrToken[] nodesOrTokens)
             => new(OpenParenToken, nodesOrTokens.ToImmutableArray(), CloseParenToken);
+
+        private static StackFrameParameterList ArgumentList(StackFrameToken openToken, StackFrameToken closeToken, params StackFrameNodeOrToken[] nodesOrTokens)
+            => new(openToken, nodesOrTokens.ToImmutableArray(), closeToken);
 
         private static StackFrameMethodDeclarationNode MethodDeclaration(
             StackFrameMemberAccessExpressionNode memberAccessExpression,
@@ -59,6 +61,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         {
             return new StackFrameMethodDeclarationNode(memberAccessExpression, typeArguments, argumentList ?? ArgumentList(OpenParenToken, CloseParenToken));
         }
+
+        private static StackFrameMemberAccessExpressionNode MemberAccessExpression(string s, ImmutableArray<StackFrameTrivia> leadingTrivia = default, ImmutableArray<StackFrameTrivia> trailingTrivia = default)
+        {
+            StackFrameExpressionNode? current = null;
+            var identifiers = s.Split('.');
+            for (var i = 0; i < identifiers.Length; i++)
+            {
+                var identifier = identifiers[i];
+
+                if (current is null)
+                {
+                    current = Identifier(identifier, leadingTrivia: leadingTrivia);
+                }
+                else if (i == identifiers.Length - 1)
+                {
+                    current = MemberAccessExpression(current, Identifier(identifier, trailingTrivia: trailingTrivia));
+                }
+                else
+                {
+                    current = MemberAccessExpression(current, Identifier(identifier));
+                }
+            }
+
+            AssertEx.NotNull(current);
+            return (StackFrameMemberAccessExpressionNode)current;
+        }
+
+        private static StackFrameTrivia SpaceTrivia(int count = 1)
+            => CreateTrivia(StackFrameKind.WhitespaceTrivia, new string(' ', count));
 
         private static StackFrameMemberAccessExpressionNode MemberAccessExpression(StackFrameExpressionNode expressionNode, StackFrameBaseIdentifierNode identifierNode)
             => new(expressionNode, DotToken, identifierNode);
