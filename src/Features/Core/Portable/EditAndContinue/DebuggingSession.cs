@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         internal readonly bool ReportDiagnostics;
 
-        private readonly DebuggingSessionTelemetry _telemetry = new();
+        private readonly DebuggingSessionTelemetry _telemetry;
         private readonly EditSessionTelemetry _editSessionTelemetry = new();
 
         private PendingSolutionUpdate? _pendingUpdate;
@@ -105,6 +105,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             _compilationOutputsProvider = compilationOutputsProvider;
             _reportTelemetry = ReportTelemetry;
+            _telemetry = new DebuggingSessionTelemetry(solution.State.SolutionAttributes.TelemetryId);
 
             Id = id;
             DebuggerService = debuggerService;
@@ -581,6 +582,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             LastCommittedSolution.CommitSolution(pendingUpdate.Solution);
+
+            _editSessionTelemetry.LogCommitted();
 
             // Restart edit session with no active statements (switching to run mode).
             RestartEditSession(newNonRemappableRegions, inBreakState: false, out documentsToReanalyze);
