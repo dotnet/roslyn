@@ -82,6 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.SingleLineRawStringLiteralToken:
+                case SyntaxKind.MultiLineRawStringLiteralToken:
                 case SyntaxKind.InterpolatedStringTextToken:
                     if (((Green.SyntaxToken)before).Text != ((Green.SyntaxToken)after).Text)
                     {

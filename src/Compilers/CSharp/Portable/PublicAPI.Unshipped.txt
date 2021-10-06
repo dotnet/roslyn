@@ -24,6 +24,10 @@ Microsoft.CodeAnalysis.CSharp.Syntax.LineDirectivePositionSyntax.WithCommaToken(
 Microsoft.CodeAnalysis.CSharp.Syntax.LineDirectivePositionSyntax.WithLine(Microsoft.CodeAnalysis.SyntaxToken line) -> Microsoft.CodeAnalysis.CSharp.Syntax.LineDirectivePositionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.LineDirectivePositionSyntax.WithOpenParenToken(Microsoft.CodeAnalysis.SyntaxToken openParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.LineDirectivePositionSyntax
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.LineDirectiveTriviaSyntax.File.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.MultiLineRawStringLiteralExpression = 9075 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.MultiLineRawStringLiteralToken = 9073 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.SingleLineRawStringLiteralExpression = 9074 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.SingleLineRawStringLiteralToken = 9072 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 override Microsoft.CodeAnalysis.CSharp.Syntax.LineDirectiveTriviaSyntax.File.get -> Microsoft.CodeAnalysis.SyntaxToken
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.LineDirectiveTriviaSyntax.LineKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 override Microsoft.CodeAnalysis.CSharp.Syntax.LineDirectiveTriviaSyntax.LineKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken

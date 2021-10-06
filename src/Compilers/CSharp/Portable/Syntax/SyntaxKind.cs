@@ -862,5 +862,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ExpressionColon = 9069,
         LineDirectivePosition = 9070,
         LineSpanDirectiveTrivia = 9071,
+        SingleLineRawStringLiteralToken = 9072,
+        MultiLineRawStringLiteralToken = 9073,
+        SingleLineRawStringLiteralExpression = 9074,
+        MultiLineRawStringLiteralExpression = 9075,
     }
 }

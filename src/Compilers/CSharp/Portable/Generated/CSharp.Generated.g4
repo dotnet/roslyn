@@ -908,7 +908,9 @@ literal_expression
   | 'null'
   | 'true'
   | character_literal_token
+  | multi_line_raw_string_literal_token
   | numeric_literal_token
+  | single_line_raw_string_literal_token
   | string_literal_token
   ;
 
@@ -1341,7 +1343,15 @@ interpolated_string_text_token
   : /* see lexical specification */
   ;
 
+multi_line_raw_string_literal_token
+  : /* see lexical specification */
+  ;
+
 numeric_literal_token
+  : /* see lexical specification */
+  ;
+
+single_line_raw_string_literal_token
   : /* see lexical specification */
   ;
 

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
 @"
 class C
 {
-    public string $$S { get; set; } = """""";
+    public string $$S { get; set; } = """";
 
     public void SetS(string s)
     {
@@ -47,7 +47,7 @@ class C
                 itemInfo: new[]
                 {
                     (7, "s"),
-                    (3, "public string S { get; set; } = \"\""),
+                    (3, "public string S { get; set; } = \"\";"),
                 });
         }
 
@@ -59,7 +59,7 @@ class C
 @"
 class C
 {
-    public string $$S { get; set; } = """""";
+    public string $$S { get; set; } = """";
 
     public void SetS(string s)
     {
@@ -81,7 +81,7 @@ class C
                 itemInfo: new[]
                 {
                     (7, "s"),
-                    (3, "public string S { get; set; } = \"\""),
+                    (3, "public string S { get; set; } = \"\";"),
                 });
         }
 
@@ -93,7 +93,7 @@ class C
 @"
 class C
 {
-    private string $$_s = """""";
+    private string $$_s = """";
 
     public void SetS(string s)
     {
@@ -127,7 +127,7 @@ class C
 @"
 class C
 {
-    private string $$_s = """""";
+    private string $$_s = """";
 
     public void SetS(string s)
     {
@@ -276,7 +276,7 @@ namespace $$N
 @"
 class C
 {
-    public string S { get; set; } = """""";
+    public string S { get; set; } = """";
 
     public void SetS(string s)
     {
@@ -387,7 +387,7 @@ class Other
 @"
 class C
 {
-    public string S { get; set; } = """""";
+    public string S { get; set; } = """";
 
     public void SetS(string s)
     {
