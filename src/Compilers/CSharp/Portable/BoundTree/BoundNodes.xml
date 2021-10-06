@@ -83,6 +83,12 @@
   </AbstractNode>
 
   <!--
+  This node will not survive the local rewriting.
+  -->
+  <Node Name="BoundValuePlaceholder" Base="BoundValuePlaceholderBase">
+  </Node>
+  
+  <!--
   This node is used to represent an expression returning value of a certain type.
   It is used to perform intermediate binding, and will not survive the local rewriting.
   -->
@@ -298,15 +304,24 @@
     <Field Name="Operand" Type="BoundExpression"/>
     <Field Name="MethodOpt" Type="MethodSymbol?"/>
     <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow"/>
-    <Field Name="OperandConversion" Type="Conversion"/>
-    <Field Name="ResultConversion" Type="Conversion"/>
+    
+    <!-- Used as an operand to bind OperandConversion -->
+    <Field Name="OperandPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Could be a BoundConversion or, in some cases of an identity conversion, the OperandPlaceholder, or null for no conversion case -->
+    <Field Name="OperandConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+
+    <!-- Used as an operand to bind ResultConversion -->
+    <Field Name="ResultPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Could be a BoundConversion or, in some cases of an identity conversion, the ResultPlaceholder, or null for no conversion case -->
+    <Field Name="ResultConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+    
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <!--The set of method symbols from which this operator's method was chosen.
         Only kept in the tree if the operator was an error and overload resolution
         was unable to choose a best method.-->
     <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true"/>
   </Node>
-
+  
   <!-- Not really an operator since overload resolution is never required. -->
   <Node Name="BoundAddressOfOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
