@@ -182,8 +182,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 
             // Make sure the unimported types option is on by default.
             testLspServer.TestWorkspace.SetOptions(testLspServer.TestWorkspace.CurrentSolution.Options
-                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, true)
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, true));
+                .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, true)
+                .WithChangedOption(CompletionOptions.Metadata.IsExpandedCompletion, true));
 
             var completionParams = CreateCompletionParams(
                 locations["caret"].Single(),
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             using var testLspServer = CreateTestLspServer(markup, out var locations);
             var solution = testLspServer.TestWorkspace.CurrentSolution;
             solution = solution.WithOptions(solution.Options
-                .WithChangedOption(CompletionOptions.SnippetsBehavior, LanguageNames.CSharp, SnippetsRule.AlwaysInclude));
+                .WithChangedOption(CompletionOptions.Metadata.SnippetsBehavior, LanguageNames.CSharp, SnippetsRule.AlwaysInclude));
 
             var completionParams = CreateCompletionParams(
                 locations["caret"].Single(),
@@ -1187,8 +1187,10 @@ class A
                 triggerCharacter: "\0",
                 triggerKind: LSP.CompletionTriggerKind.Invoked);
 
+            var globalOptions = testLspServer.TestWorkspace.GetService<IGlobalOptionService>();
             var listMaxSize = 1;
-            testLspServer.TestWorkspace.SetOptions(testLspServer.TestWorkspace.CurrentSolution.Options.WithChangedOption(LspOptions.MaxCompletionListSize, listMaxSize));
+
+            globalOptions.SetGlobalOption(new OptionKey(LspOptions.MaxCompletionListSize), listMaxSize);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             Assert.True(results.IsIncomplete);

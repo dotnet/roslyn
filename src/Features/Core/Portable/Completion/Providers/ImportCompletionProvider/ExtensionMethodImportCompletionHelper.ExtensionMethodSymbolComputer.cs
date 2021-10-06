@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             public Task PopulateIndicesAsync(Project? project, CancellationToken cancellationToken)
                 => PopulateIndicesAsync(project, _cacheService, cancellationToken);
 
-            public async Task<(ImmutableArray<IMethodSymbol> symbols, bool isPartialResult)> GetExtensionMethodSymbolsAsync(bool forceIndexCreation, CancellationToken cancellationToken)
+            public async Task<(ImmutableArray<IMethodSymbol> symbols, bool isPartialResult)> GetExtensionMethodSymbolsAsync(bool forceIndexCreation, bool hideAdvancedMembers, CancellationToken cancellationToken)
             {
                 // Find applicable symbols in parallel
                 using var _1 = ArrayBuilder<Task<ImmutableArray<IMethodSymbol>?>>.GetInstance(out var tasks);
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
 
                 var browsableSymbols = symbols.ToImmutable()
-                    .FilterToVisibleAndBrowsableSymbols(_originatingDocument.ShouldHideAdvancedMembers(), _originatingSemanticModel.Compilation);
+                    .FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, _originatingSemanticModel.Compilation);
 
                 return (browsableSymbols, isPartialResult);
             }
