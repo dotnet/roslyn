@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis.Operations
             if (binaryOperation == null)
                 throw new ArgumentNullException(nameof(binaryOperation));
 
+            if (binaryOperation.SemanticModel == null)
+                throw new ArgumentNullException(CodeAnalysisResources.OperationMustNotBeControlFlowGraphPart);
+
             if (binaryOperation.SemanticModel is not CSharpSemanticModel semanticModel)
                 throw new ArgumentException(string.Format(CSharpResources.WrongSemanticModelType, LanguageNames.CSharp));
 
@@ -44,6 +47,9 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             if (assignmentOperation == null)
                 throw new ArgumentNullException(nameof(assignmentOperation));
+
+            if (assignmentOperation.SemanticModel == null)
+                throw new ArgumentNullException(CodeAnalysisResources.OperationMustNotBeControlFlowGraphPart);
 
             if (assignmentOperation.SemanticModel is not CSharpSemanticModel semanticModel)
                 throw new ArgumentException(string.Format(CSharpResources.WrongSemanticModelType, LanguageNames.CSharp));
