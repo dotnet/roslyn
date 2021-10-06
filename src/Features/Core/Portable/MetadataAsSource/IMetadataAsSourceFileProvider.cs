@@ -4,11 +4,35 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal interface IMetadataAsSourceFileProvider
     {
         string Name { get; }
+
+        /// <summary>
+        /// Generates a file from metadata. Will be called under a lock to prevent concurrent access.
+        /// </summary>
+        Task<MetadataAsSourceFile?> GetGeneratedFileAsync(Workspace workspace, Project project, ISymbol symbol, bool signaturesOnly, string tempPath, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Called when the file returned from <see cref="GetGeneratedFileAsync(Workspace, Project, ISymbol, bool, string, CancellationToken)"/>
+        /// needs to be added to the workspace, to be opened. Will be called under a lock to prevent concurrent access.
+        /// </summary>
+        bool TryAddDocumentToWorkspace(Workspace workspace, string filePath, SourceTextContainer sourceTextContainer);
+
+        /// <summary>
+        /// Called when the file is being closed, and so needs to be removed from the workspace.
+        /// Will be called under a lock to prevent concurrent access.
+        /// </summary>
+        bool TryRemoveDocumentFromWorkspace(Workspace workspace, string filePath);
+
+        /// <summary>
+        /// Called to clean up any state. Will be called under a lock to prevent concurrent access.
+        /// </summary>
+        void CleanupGeneratedFiles(Workspace? workspace);
+        Project? MapDocument(Document document);
     }
 }
