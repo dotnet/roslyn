@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return CompletionDescription.Empty;
 
-            static bool SymbolMatches((ISymbol symbol, bool preselect) tuple, string name, SymbolKind? kind, bool isGeneric)
+            static bool SymbolMatches((ISymbol symbol, bool preselect) tuple, string? name, SymbolKind? kind, bool isGeneric)
             {
                 return kind != null && tuple.symbol.Kind == kind && tuple.symbol.Name == name && isGeneric == tuple.symbol.GetArity() > 0;
             }

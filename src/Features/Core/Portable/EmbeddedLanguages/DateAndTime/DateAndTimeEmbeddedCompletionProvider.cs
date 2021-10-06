@@ -219,6 +219,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             var lengthString = item.Properties[LengthKey];
             var newText = item.Properties[NewTextKey];
 
+            Contract.ThrowIfNull(startString);
+            Contract.ThrowIfNull(lengthString);
+            Contract.ThrowIfNull(newText);
+
             return Task.FromResult(CompletionChange.Create(
                 new TextChange(new TextSpan(int.Parse(startString), int.Parse(lengthString)), newText)));
         }
