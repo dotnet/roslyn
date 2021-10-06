@@ -1332,6 +1332,11 @@
         <target state="translated">con estrcutras</target>
         <note />
       </trans-unit>
+      <trans-unit id="Operation_only_valid_on_an_IOperation_with_a_non_null_SemanticModel">
+        <source>Operation only valid on an IOperation with a non-null SemanticModel</source>
+        <target state="new">Operation only valid on an IOperation with a non-null SemanticModel</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">El ensamblado "{0}" que contiene el tipo "{1}" hace referencia a .NET Framework, lo cual no se admite.</target>
@@ -3464,6 +3469,11 @@
       <trans-unit id="WRN_UseDefViolation_Title">
         <source>Use of unassigned local variable</source>
         <target state="translated">Uso de una variable local no asignada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WrongSyntaxType">
+        <source>Expected a '{0}' SyntaxNode.</source>
+        <target state="new">Expected a '{0}' SyntaxNode.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">

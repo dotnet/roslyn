@@ -4578,6 +4578,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WrongSemanticModelType" xml:space="preserve">
     <value>Expected a {0} SemanticModel.</value>
   </data>
+  <data name="WrongSyntaxType" xml:space="preserve">
+    <value>Expected a '{0}' SyntaxNode.</value>
+  </data>
   <data name="IDS_FeatureLambda" xml:space="preserve">
     <value>lambda expression</value>
   </data>
@@ -6874,5 +6877,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_CompileTimeCheckedOverflow_Title" xml:space="preserve">
     <value>The operation may overflow at runtime (use 'unchecked' syntax to override)</value>
+  </data>
+  <data name="Operation_only_valid_on_an_IOperation_with_a_non_null_SemanticModel" xml:space="preserve">
+    <value>Operation only valid on an IOperation with a non-null SemanticModel</value>
   </data>
 </root>

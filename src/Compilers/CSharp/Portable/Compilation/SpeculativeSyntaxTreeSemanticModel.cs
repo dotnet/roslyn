@@ -132,5 +132,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expression = (ExpressionSyntax)node;
             return _parentSemanticModel.GetSpeculativeTypeInfoWorker(_position, expression, this.GetSpeculativeBindingOption(expression));
         }
+
+        internal override bool IsBitwiseOrOfSignExtendedOperand(CSharpSyntaxNode node, CancellationToken cancellationToken)
+        {
+            var expression = (ExpressionSyntax)node;
+            return _parentSemanticModel.GetSpeculativeIsBitwiseOrOfSignExtendedOperand(_position, expression);
+        }
     }
 }

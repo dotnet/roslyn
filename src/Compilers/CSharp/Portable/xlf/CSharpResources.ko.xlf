@@ -1332,6 +1332,11 @@
         <target state="translated">구조체에서 사용</target>
         <note />
       </trans-unit>
+      <trans-unit id="Operation_only_valid_on_an_IOperation_with_a_non_null_SemanticModel">
+        <source>Operation only valid on an IOperation with a non-null SemanticModel</source>
+        <target state="new">Operation only valid on an IOperation with a non-null SemanticModel</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">'{1}' 형식을 포함하는 '{0}' 어셈블리가 지원되지 않는 .NET Framework를 참조합니다.</target>
@@ -3463,6 +3468,11 @@
       <trans-unit id="WRN_UseDefViolation_Title">
         <source>Use of unassigned local variable</source>
         <target state="translated">할당되지 않은 지역 변수 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WrongSyntaxType">
+        <source>Expected a '{0}' SyntaxNode.</source>
+        <target state="new">Expected a '{0}' SyntaxNode.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">

@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckUnsafeType(node.Right);
             }
 
-            CheckForBitwiseOrSignExtend(node, node.OperatorKind, node.Left, node.Right);
+            CheckForBitwiseOrSignExtend(node);
             CheckNullableNullBinOp(node);
             CheckLiftedBinOp(node);
             CheckRelationals(node);
@@ -271,16 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
-            BoundExpression left = node.Left;
-
-            if (!node.Operator.Kind.IsDynamic() && !node.LeftConversion.IsIdentity && node.LeftConversion.Exists)
-            {
-                // Need to represent the implicit conversion as a node in order to be able to produce correct diagnostics.
-                left = new BoundConversion(left.Syntax, left, node.LeftConversion, node.Operator.Kind.IsChecked(),
-                                           explicitCastInCode: false, conversionGroupOpt: null, constantValueOpt: null, type: node.Operator.LeftType);
-            }
-
-            CheckForBitwiseOrSignExtend(node, node.Operator.Kind, left, node.Right);
+            CheckForBitwiseOrSignExtend(node);
             CheckLiftedCompoundAssignment(node);
 
             if (_inExpressionLambda)
@@ -445,17 +436,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void CheckForBitwiseOrSignExtend(BoundExpression node, BinaryOperatorKind operatorKind, BoundExpression leftOperand, BoundExpression rightOperand)
+        private void CheckForBitwiseOrSignExtend(BoundExpression node)
         {
-            if (IsBitwiseOrSignExtended(node, operatorKind, leftOperand, rightOperand))
+            if (IsBitwiseOrOfSignExtendedOperand(node))
             {
                 // CS0675: Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first
                 Error(ErrorCode.WRN_BitwiseOrSignExtend, node);
             }
         }
 
-        internal static bool IsBitwiseOrSignExtended(BoundExpression node, BinaryOperatorKind operatorKind, BoundExpression leftOperand, BoundExpression rightOperand)
+        internal static bool IsBitwiseOrOfSignExtendedOperand(BoundExpression node)
         {
+            BoundExpression leftOperand, rightOperand;
+            BinaryOperatorKind operatorKind;
+            if (node is BoundBinaryOperator binaryOperator)
+            {
+                leftOperand = binaryOperator.Left;
+                rightOperand = binaryOperator.Right;
+                operatorKind = binaryOperator.OperatorKind;
+            }
+            else if (node is BoundCompoundAssignmentOperator compoundOperator)
+            {
+                leftOperand = compoundOperator.Left;
+                rightOperand = compoundOperator.Right;
+                operatorKind = compoundOperator.Operator.Kind;
+
+                if (!operatorKind.IsDynamic() && !compoundOperator.LeftConversion.IsIdentity && compoundOperator.LeftConversion.Exists)
+                {
+                    // Need to represent the implicit conversion as a node in order to be able to produce correct diagnostics.
+                    leftOperand = new BoundConversion(
+                        leftOperand.Syntax, leftOperand, compoundOperator.LeftConversion, operatorKind.IsChecked(),
+                        explicitCastInCode: false, conversionGroupOpt: null, constantValueOpt: null, type: compoundOperator.Operator.LeftType);
+                }
+            }
+            else
+            {
+                return false;
+            }
+
             // We wish to give a warning for situations where an unexpected sign extension wipes
             // out some bits. For example:
             //
