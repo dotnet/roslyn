@@ -17,7 +17,8 @@ stages:
   displayName: VS insertion
   jobs:
   - deployment: insertion
-    pool: VSEng-ReleasePool
+    pool:
+      vmImage: windows-latest
     environment: No-Approval
     strategy:
       runOnce:
