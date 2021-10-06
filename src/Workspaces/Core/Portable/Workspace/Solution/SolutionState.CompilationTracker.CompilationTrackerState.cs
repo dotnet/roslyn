@@ -72,8 +72,11 @@ namespace Microsoft.CodeAnalysis
 
                 public CompilationTrackerGeneratorInfo WithDocumentsAreFinal(bool documentsAreFinal)
                 {
-                    // If we're already frozen, then we don't allow any further changes to whether we need to be regenerated;
-                    // otherwise we can return the same copy if nothing changed.
+                    // If we're already frozen, then we won't do anything even if somebody calls WithDocumentsAreFinal(false);
+                    // this for example would happen if we had a frozen snapshot, and then we fork it further with additional changes.
+                    // In that case we would be calling WithDocumentsAreFinal(false) to force generators to run again, but if we've
+                    // frozen in partial semantics, we're done running them period. So we'll just keep treating them as final,
+                    // no matter the wishes of the caller.
                     if (DocumentsAreFinalAndFrozen || DocumentsAreFinal == documentsAreFinal)
                         return this;
                     else
