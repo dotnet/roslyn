@@ -214,7 +214,7 @@ System.Console.WriteLine(
             }
             else
             {
-                Assert.True(spans.Count == 1);
+                Assert.Equal(1, spans.Count);
 
                 // If we get any diagnostics, then the token's value text should always be empty.
                 Assert.Equal("", token.ValueText);
