@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         // Trivia
         WhitespaceTrivia,
         AtTrivia, // "at " portion of the stack frame
-        InTrivia, // optionsal " in " portion of the stack frame
+        InTrivia, // optional " in " portion of the stack frame
         TrailingTrivia, // All trailing text that is not syntactically relavent
     }
 }
