@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
 using System.Linq;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.DecompiledSource;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -47,11 +49,15 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         private Mutex? _mutex;
         private string? _rootTemporaryPathWithGuid;
         private readonly string _rootTemporaryPath;
+        private readonly ImmutableArray<IMetadataAsSourceFileProvider> _providers;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public MetadataAsSourceFileService()
-            => _rootTemporaryPath = Path.Combine(Path.GetTempPath(), "MetadataAsSource");
+        public MetadataAsSourceFileService([ImportMany] IEnumerable<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>> providers)
+        {
+            _providers = ExtensionOrderer.Order(providers).Select(lz => lz.Value).ToImmutableArray();
+            _rootTemporaryPath = Path.Combine(Path.GetTempPath(), "MetadataAsSource");
+        }
 
         private static string CreateMutexName(string directoryName)
             => "MetadataAsSource-" + directoryName;
