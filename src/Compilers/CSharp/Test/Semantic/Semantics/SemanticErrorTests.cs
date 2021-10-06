@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Roslyn.Test.Utilities.TestMetadata;
@@ -21100,7 +21101,32 @@ class Test
     }
 }
 ";
+
             var comp = CreateCompilation(text);
+
+            assertIsBitwiseOrSignExtended("(((long)i32_hi) << 32) | i32_lo");
+            assertIsBitwiseOrSignExtended("(ulong)i32_hi | u64");
+            assertNotIsBitwiseOrSignExtended("(ulong)i32_hi | (ulong)i32_lo");
+            assertIsBitwiseOrSignExtended("(ulong)(uint)(ushort)i08 | (ulong)i32_lo");
+            assertNotIsBitwiseOrSignExtended("(int)i08 | (int)i32_lo");
+            assertNotIsBitwiseOrSignExtended("(((ulong)i32_hi) << 32) | (uint) i32_lo");
+            assertNotIsBitwiseOrSignExtended("0x0000BEEFU | (uint)i16");
+            assertNotIsBitwiseOrSignExtended("0xFFFFBEEFU | (uint)i16");
+            assertIsBitwiseOrSignExtended("0xDEADBEEFU | (uint)i16");
+
+            assertIsBitwiseOrSignExtended("(((long?)ni32_hi) << 32) | ni32_lo");
+            assertIsBitwiseOrSignExtended("(ulong?)ni32_hi | nu64");
+            assertNotIsBitwiseOrSignExtended("(ulong?)ni32_hi | (ulong?)ni32_lo");
+            assertIsBitwiseOrSignExtended("(ulong?)(uint?)(ushort?)ni08 | (ulong?)ni32_lo");
+            assertNotIsBitwiseOrSignExtended("(int?)ni08 | (int?)ni32_lo");
+            assertNotIsBitwiseOrSignExtended("(((ulong?)ni32_hi) << 32) | (uint?) ni32_lo");
+            assertNotIsBitwiseOrSignExtended("0x0000BEEFU | (uint?)ni16");
+            assertNotIsBitwiseOrSignExtended("0xFFFFBEEFU | (uint?)ni16");
+            assertIsBitwiseOrSignExtended("0xDEADBEEFU | (uint?)ni16");
+
+            assertIsBitwiseOrSignExtended("bits |= (1 << i)");
+            assertIsBitwiseOrSignExtended("bits | (1 << i)");
+
             comp.VerifyDiagnostics(
                 // (12,19): warning CS0675: Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first
                 //       object v1 = (((long)i32_hi) << 32) | i32_lo;          // CS0675
@@ -21131,8 +21157,31 @@ class Test
                 Diagnostic(ErrorCode.WRN_BitwiseOrSignExtend, "bits |= (1 << i)").WithLocation(53, 17),
                 // (54,24): warning CS0675: Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first
                 //                 bits = bits | (1 << i);
-                Diagnostic(ErrorCode.WRN_BitwiseOrSignExtend, "bits | (1 << i)").WithLocation(54, 24)
-                );
+                Diagnostic(ErrorCode.WRN_BitwiseOrSignExtend, "bits | (1 << i)").WithLocation(54, 24));
+
+            void assertIsBitwiseOrSignExtended(string text)
+                => testIsBitwiseOrSignExtended(text, true);
+
+            void assertNotIsBitwiseOrSignExtended(string text)
+                => testIsBitwiseOrSignExtended(text, false);
+
+            void testIsBitwiseOrSignExtended(string text, bool expected)
+            {
+                var syntaxTree = comp.SyntaxTrees.Single();
+                var root = syntaxTree.GetRoot();
+                var semanticModel = comp.GetSemanticModel(syntaxTree);
+                var syntaxNode = root.DescendantNodes().Single(n => n.ToString() == text);
+
+                var operation = semanticModel.GetOperation(syntaxNode);
+                var isBitwiseOrSignExtended = operation switch
+                {
+                    IBinaryOperation binaryOperation => binaryOperation.IsBitwiseOrOfSignExtendedOperand(),
+                    ICompoundAssignmentOperation compoundAssignment => compoundAssignment.IsBitwiseOrOfSignExtendedOperand(),
+                    _ => throw new InvalidOperationException(),
+                };
+
+                Assert.Equal(expected, isBitwiseOrSignExtended);
+            }
         }
 
         [Fact]
