@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
             CancellationToken cancellationToken = default)
             => completionService.GetCompletionsInternalAsync(document, caretPosition, trigger, roles, options, cancellationToken);
 
-        public static string GetProviderName(this CompletionItem completionItem) => completionItem.ProviderName;
+        public static string? GetProviderName(this CompletionItem completionItem) => completionItem.ProviderName;
 
         public static PerLanguageOption<bool?> ShowItemsFromUnimportedNamespaces = (PerLanguageOption<bool?>)CompletionOptions.ShowItemsFromUnimportedNamespaces;
     }

@@ -5,16 +5,15 @@
 #nullable disable
 
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
-using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
+namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
 {
-    internal partial class SplitStringLiteralCommandHandler
+    internal abstract partial class StringSplitter
     {
-        private class SimpleStringSplitter : StringSplitter
+        private sealed class SimpleStringSplitter : StringSplitter
         {
             private const char QuoteCharacter = '"';
             private readonly SyntaxToken _token;
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             public SimpleStringSplitter(
                 Document document, int position,
                 SyntaxNode root, SourceText sourceText, SyntaxToken token,
-                bool useTabs, int tabSize, IndentStyle indentStyle, CancellationToken cancellationToken)
+                bool useTabs, int tabSize, FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
                 : base(document, position, root, sourceText, useTabs, tabSize, indentStyle, cancellationToken)
             {
                 _token = token;

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Completion
         internal string Name { get; }
 
         protected CompletionProvider()
-            => Name = GetType().FullName;
+            => Name = GetType().FullName!;
 
         /// <summary>
         /// Implement to contribute <see cref="CompletionItem"/>'s and other details to a <see cref="CompletionList"/>
@@ -45,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="caretPosition">The position of the caret after the triggering action.</param>
         /// <param name="trigger">The triggering action.</param>
         /// <param name="options">The set of options in effect.</param>
-        internal virtual bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
+        internal virtual bool ShouldTriggerCompletion(HostLanguageServices? languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
             => ShouldTriggerCompletion(text, caretPosition, trigger, options);
 
         /// <summary>
@@ -59,8 +57,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Gets the description of the specified item.
         /// </summary>
-        public virtual Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => Task.FromResult(CompletionDescription.Empty);
+        public virtual Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            => Task.FromResult<CompletionDescription?>(CompletionDescription.Empty);
 
         /// <summary>
         /// Gets the change to be applied when the specified item is committed.
