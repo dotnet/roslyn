@@ -707,7 +707,7 @@
 
     <Field Name="Operand" Type="BoundExpression"/>
     <Field Name="TargetType" Type="BoundTypeExpression"/>
-    <Field Name="Conversion" Type="Conversion"/>
+    <Field Name="ConversionKind" Type="ConversionKind"/>
   </Node>
 
   <Node Name="BoundAsOperator" Base="BoundExpression">
