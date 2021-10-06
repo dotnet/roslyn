@@ -17,14 +17,17 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
-    [Export(typeof(IPdbSourceDocumentNavigationService)), Shared]
-    internal partial class PdbSourceDocumentNavigationService : IPdbSourceDocumentNavigationService
+    [ExportMetadataAsSourceFileProvider(ProviderName), Shared]
+    [ExtensionOrder(Before = DecompilationMetadataAsSourceFileProvider.ProviderName)]
+    internal class PdbSourceDocumentMetadataAsSourceFileProvider : IMetadataAsSourceFileProvider
     {
-        private MetadataAsSourceWorkspace? _workspace;
+        private const string ProviderName = "PdbSource";
+
         private readonly IPdbFileLocatorService _pdbFileLocatorService;
         private readonly IPdbSourceDocumentLoaderService _pdbSourceDocumentLoaderService;
 
@@ -32,14 +35,20 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PdbSourceDocumentNavigationService(IPdbFileLocatorService pdbFileLocatorService, IPdbSourceDocumentLoaderService pdbSourceDocumentLoaderService)
+        public PdbSourceDocumentMetadataAsSourceFileProvider(IPdbFileLocatorService pdbFileLocatorService, IPdbSourceDocumentLoaderService pdbSourceDocumentLoaderService)
         {
             _pdbFileLocatorService = pdbFileLocatorService;
             _pdbSourceDocumentLoaderService = pdbSourceDocumentLoaderService;
         }
 
-        public async Task<MetadataAsSourceFile?> GetPdbSourceDocumentAsync(Project project, ISymbol symbol, CancellationToken cancellationToken)
+        public string Name => ProviderName;
+
+        public async Task<MetadataAsSourceFile?> GetGeneratedFileAsync(Workspace workspace, Project project, ISymbol symbol, bool signaturesOnly, string tempPath, CancellationToken cancellationToken)
         {
+            // we don't support signatures only mode
+            if (signaturesOnly)
+                return null;
+
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var peReference = compilation.GetMetadataReference(symbol.ContainingAssembly) as PortableExecutableReference;
@@ -63,35 +72,31 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             if (sourceDocuments.Length == 0)
                 return null;
 
-            // Each assembly gets its own project, so we need a workspace
-            if (_workspace == null)
-            {
-                _workspace = new MetadataAsSourceWorkspace(null!, project.Solution.Workspace.Services.HostServices);
-            }
-
             var assemblyName = symbol.ContainingAssembly.Identity.Name;
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
 
             if (!_assemblyToProjectMap.TryGetValue(assemblyName, out var projectId))
             {
-                var projectInfo = CreateProjectInfo(project, pdbReader, assemblyName);
+                var projectInfo = CreateProjectInfo(workspace, project, pdbReader, assemblyName);
 
                 if (projectInfo is null)
                     return null;
 
                 projectId = projectInfo.Id;
 
-                _workspace.OnProjectAdded(projectInfo);
+                // TODO: Move to TryAddToWorkspace
+                workspace.OnProjectAdded(projectInfo);
                 _assemblyToProjectMap.Add(assemblyName, projectInfo.Id);
             }
 
-            var documentInfos = CreateDocumentInfos(sourceDocuments, projectId, pdbReader);
+            var documentInfos = CreateDocumentInfos(workspace, sourceDocuments, projectId, pdbReader);
             if (documentInfos.Length > 0)
             {
-                _workspace.OnDocumentsAdded(documentInfos);
+                // TODO: Move to TryAddToWorkspace
+                workspace.OnDocumentsAdded(documentInfos);
             }
 
-            var navigateProject = _workspace.CurrentSolution.GetRequiredProject(projectId);
+            var navigateProject = workspace.CurrentSolution.GetRequiredProject(projectId);
 
             var firstDocument = sourceDocuments.First().FilePath;
             var document = navigateProject.Documents.FirstOrDefault(d => d.FilePath?.Equals(firstDocument, StringComparison.OrdinalIgnoreCase) ?? false);
@@ -102,7 +107,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return new MetadataAsSourceFile(navigateDocument!.FilePath, navigateLocation, navigateDocument!.Name + " [from PDB]", navigateDocument.FilePath);
         }
 
-        private ProjectInfo? CreateProjectInfo(Project project, MetadataReader pdbReader, string assemblyName)
+        private static ProjectInfo? CreateProjectInfo(Workspace workspace, Project project, MetadataReader pdbReader, string assemblyName)
         {
             // If we don't already have a project for this assembly, we need to create one, and we want to use
             // the same compiler options for it that the DLL was created with.
@@ -112,7 +117,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             if (languageName is null)
                 return null;
 
-            var parser = _workspace!.Services.GetLanguageServices(languageName).GetRequiredService<ICommandLineParserService>();
+            var parser = workspace.Services.GetLanguageServices(languageName).GetRequiredService<ICommandLineParserService>();
             var arguments = parser.Parse(commandLineArguments, baseDirectory: null, isInteractive: false, sdkDirectory: null);
 
             var compilationOptions = arguments.CompilationOptions;
@@ -130,9 +135,9 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 metadataReferences: project.MetadataReferences.ToImmutableArray());
         }
 
-        private ImmutableArray<DocumentInfo> CreateDocumentInfos(ImmutableArray<SourceDocument> filePaths, ProjectId projectId, MetadataReader pdbReader)
+        private ImmutableArray<DocumentInfo> CreateDocumentInfos(Workspace workspace, ImmutableArray<SourceDocument> filePaths, ProjectId projectId, MetadataReader pdbReader)
         {
-            var project = _workspace!.CurrentSolution.GetRequiredProject(projectId);
+            var project = workspace.CurrentSolution.GetRequiredProject(projectId);
 
             using var _ = ArrayBuilder<DocumentInfo>.GetInstance(out var documents);
 
@@ -201,17 +206,24 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 _ => key
             };
 
-        internal TestAccessor GetTestAccessor()
-            => new(this);
-
-        internal class TestAccessor
+        public bool TryAddDocumentToWorkspace(Workspace workspace, string filePath, SourceTextContainer sourceTextContainer)
         {
-            private readonly PdbSourceDocumentNavigationService _service;
+            throw new NotImplementedException();
+        }
 
-            public TestAccessor(PdbSourceDocumentNavigationService service)
-                => _service = service;
+        public bool TryRemoveDocumentFromWorkspace(Workspace workspace, string filePath)
+        {
+            throw new NotImplementedException();
+        }
 
-            public MetadataAsSourceWorkspace? Workspace => _service._workspace;
+        public Project? MapDocument(Document document)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CleanupGeneratedFiles(Workspace? workspace)
+        {
+            _assemblyToProjectMap.Clear();
         }
     }
 }

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -473,12 +474,12 @@ public class C
 
             AssertEx.NotNull(symbol, $"Couldn't find symbol to go-to-def for.");
 
-            var service = workspace.GetService<IPdbSourceDocumentNavigationService>();
-            var file = await service.GetPdbSourceDocumentAsync(project, symbol, CancellationToken.None);
+            var service = workspace.GetService<IMetadataAsSourceFileService>();
+            var file = await service.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, CancellationToken.None);
 
             AssertEx.NotNull(file, $"No source document was found in the pdb for the symbol.");
 
-            var masWorkspace = ((PdbSourceDocumentNavigationService)service).GetTestAccessor().Workspace;
+            var masWorkspace = service.TryGetWorkspace();
 
             var document = masWorkspace!.CurrentSolution.Projects.First().Documents.First();
 
