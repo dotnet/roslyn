@@ -4059,10 +4059,9 @@ public class Class1
 </code>
 
             Await TestAsync(input, expected)
-
         End Function
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529858")>
         Public Async Function TestCSharp_Remove_UnnecessaryCastFromEnumTypeToUnderlyingType() As Task
             Dim input =
@@ -4094,6 +4093,86 @@ class C
     {
         DayOfWeek x = DayOfWeek.Monday;
         if (x == 0) { }
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529858")>
+        Public Async Function TestCSharp_Remove_UnnecessaryCastFromEnumTypeToUnderlyingType2() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+ 
+class C
+{
+    static void Main()
+    {
+        DayOfWeek x = DayOfWeek.Monday;
+        if ({|Simplify:(int)x|} != 0) { }
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+ 
+class C
+{
+    static void Main()
+    {
+        DayOfWeek x = DayOfWeek.Monday;
+        if (x != 0) { }
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529858")>
+        Public Async Function TestCSharp_Remove_UnnecessaryCastFromEnumTypeToUnderlyingType3() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+ 
+class C
+{
+    static void Main()
+    {
+        DayOfWeek x = DayOfWeek.Monday;
+        if ({|Simplify:(int)x|} == 1) { }
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+ 
+class C
+{
+    static void Main()
+    {
+        DayOfWeek x = DayOfWeek.Monday;
+        if ((int)x == 1) { }
     }
 }
 ]]>

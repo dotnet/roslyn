@@ -51,6 +51,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (CastRemovalWouldCauseSignExtensionWarning(castNode, originalSemanticModel, cancellationToken))
                 return false;
 
+            #endregion blacklist cases
+
+            #region whitelist cases
+
             // There are cases in the roslyn API where a direct cast does not result in a conversion operation
             // (for example, casting a anonymous-method to a delegate type).  We have to handle these cases
             // specially.
@@ -67,6 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return IsDelegateCreationCastSafeToRemove(
                     castNode, castedExpressionNode, originalSemanticModel, originalDelegateCreationOperation, cancellationToken);
             }
+
+            #endregion whitelist cases
 
             return false;
         }
@@ -329,11 +335,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             SemanticModel originalSemanticModel, IConversionOperation originalConversionOperation,
             CancellationToken cancellationToken)
         {
+            #region blacklist cases
+
             // If the conversion doesn't exist then we can't do anything with this as the code isn't
             // semantically valid.
             var originalConversion = originalConversionOperation.GetConversion();
             if (!originalConversion.Exists)
                 return false;
+
+            // Special case for: (int)E == 0 case.  Enums can always compare against the constant
+            // 0 without needing a cast.
+            if (IsEnumCastWithZeroCompare(castNode, originalSemanticModel, originalConversion, cancellationToken))
+                return true;
 
             // Explicit conversions are conversions that cannot be proven to always succeed, conversions
             // that are known to possibly lose information.  As such, we need to preserve this as it 
@@ -517,6 +530,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             }
 
             #endregion whitelist cases.
+
+            return false;
+        }
+
+        private static bool IsEnumCastWithZeroCompare(ExpressionSyntax castNode, SemanticModel originalSemanticModel, Conversion originalConversion, CancellationToken cancellationToken)
+        {
+            if (originalConversion.IsExplicit &&
+                originalConversion.IsEnumeration &&
+                castNode.WalkUpParentheses().Parent is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.EqualsExpression or (int)SyntaxKind.NotEqualsExpression } binary)
+            {
+                var type = originalSemanticModel.GetTypeInfo(castNode, cancellationToken).Type;
+                var constantValue = originalSemanticModel.GetConstantValue(binary.Right, cancellationToken);
+                if (type?.SpecialType == SpecialType.System_Int32 && constantValue.HasValue && constantValue.Value is 0)
+                {
+                    return true;
+                }
+            }
 
             return false;
         }
