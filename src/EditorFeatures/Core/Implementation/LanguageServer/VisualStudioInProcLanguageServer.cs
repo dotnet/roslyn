@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             string? clientName,
             string userVisibleServerName,
             string telemetryServerTypeName)
-            : base(requestDispatcherFactory, jsonRpc, capabilitiesProvider, workspaceRegistrationService, globalOptions, listenerProvider, logger, supportedLanguages, clientName, userVisibleServerName, telemetryServerTypeName)
+            : base(requestDispatcherFactory, jsonRpc, capabilitiesProvider, workspaceRegistrationService, lspMiscellaneousFilesWorkspace: null, globalOptions, listenerProvider, logger, supportedLanguages, clientName, userVisibleServerName, telemetryServerTypeName)
         {
             _supportedLanguages = supportedLanguages;
             _diagnosticService = diagnosticService;
