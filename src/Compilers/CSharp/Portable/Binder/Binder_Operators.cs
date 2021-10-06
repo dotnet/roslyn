@@ -2218,7 +2218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckNativeIntegerFeatureAvailability(signature.Kind, node, diagnostics);
             CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics);
 
-            var resultPlaceholder = new BoundValuePlaceholder(node, signature.ReturnType);
+            var resultPlaceholder = new BoundValuePlaceholder(node, signature.ReturnType).MakeCompilerGenerated();
 
             BoundExpression resultConversion = GenerateConversionForAssignment(operandType, resultPlaceholder, diagnostics, ConversionForAssignmentFlags.IncrementAssignment);
 
