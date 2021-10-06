@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis;
 
 namespace Microsoft.CodeAnalysis.AnalyzerUtilities.FlowAnalysis.Analysis.InvocationCountAnalysis
 {
-    internal enum InvocationCountAbstractValueKind
+    internal enum InvocationTimes
     {
         Zero,
         OneTime,
@@ -13,28 +13,31 @@ namespace Microsoft.CodeAnalysis.AnalyzerUtilities.FlowAnalysis.Analysis.Invocat
         Unknown
     }
 
-    internal class InvocationCountAbstractValue : CacheBasedEquatable<InvocationCountAbstractValue>
+    internal class InvocationCountAbstractValue : IAbstractAnalysisValue
     {
-        public static readonly InvocationCountAbstractValue Zero = new(InvocationCountAbstractValueKind.Zero);
-        public static readonly InvocationCountAbstractValue OneTime = new(InvocationCountAbstractValueKind.OneTime);
-        public static readonly InvocationCountAbstractValue MoreThanOneTime = new(InvocationCountAbstractValueKind.MoreThanOneTime);
-        public static readonly InvocationCountAbstractValue Unknown = new(InvocationCountAbstractValueKind.Unknown);
+        public AnalysisEntity InvocationInstance { get; }
 
-        public InvocationCountAbstractValueKind Kind { get; }
+        public InvocationTimes InvocationTimes { get; }
 
-        public InvocationCountAbstractValue(InvocationCountAbstractValueKind kind)
+        public InvocationCountAbstractValue(AnalysisEntity invocationInstance, InvocationTimes invocationTimes)
         {
-            Kind = kind;
+            InvocationInstance = invocationInstance;
+            InvocationTimes = invocationTimes;
         }
 
-        protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
+        public bool Equals(IAbstractAnalysisValue other)
         {
-            hashCode.Add(Kind.GetHashCode());
+            if (other is InvocationCountAbstractValue otherValue)
+            {
+                return otherValue.InvocationInstance.Equals(InvocationInstance) && otherValue.InvocationTimes == InvocationTimes;
+            }
+
+            return false;
         }
 
-        protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<InvocationCountAbstractValue> obj)
+        public IAbstractAnalysisValue GetNegatedValue()
         {
-            return ((InvocationCountAbstractValue)obj).Kind.GetHashCode() == Kind.GetHashCode();
+            return this;
         }
     }
 }
