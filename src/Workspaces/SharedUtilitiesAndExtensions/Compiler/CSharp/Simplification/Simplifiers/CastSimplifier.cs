@@ -478,6 +478,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 }
             }
 
+            // If we have an implicit reference conversion in an is expression then we remove the cast.  For example
+            //
+            //  if ((object)someRefType is string)
+            //
+            // However if we have:
+            //
+            //   List<int> list = null;
+            //   if ((object)list is string)
+            //
+            // then we don't want to remove the cast as it can cause an error.
+            if (castNode.WalkUpParentheses().Parent is BinaryExpressionSyntax(SyntaxKind.IsExpression) isExpression &&
+                originalConversion.IsIdentityOrImplicitReference())
+            {
+                var castedExpressionType = originalSemanticModel.GetTypeInfo(castedExpressionNode, cancellationToken).Type;
+                var isType = originalSemanticModel.GetTypeInfo(isExpression.Right, cancellationToken).Type;
+
+                if (castedExpressionType != null && isType != null &&
+                    originalSemanticModel.Compilation.ClassifyConversion(castedExpressionType, isType).Exists)
+                {
+                    return true;
+                }
+            }
+
             // If the types of the expressions are the same, then we can remove safely.
             if (Equals(originalConvertedType, rewrittenConvertedType))
                 return true;

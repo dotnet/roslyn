@@ -951,7 +951,7 @@ class X
             Await TestAsync(input, expected)
         End Function
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529855, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529855")>
         Public Async Function TestCSharp_Remove_CastInIsExpression() As Task
             Dim input =
@@ -983,6 +983,92 @@ static class A
     static void Goo(IEnumerable x)
     {
         if (x is string)
+        {
+        }
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529855, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529855")>
+        Public Async Function TestCSharp_Remove_CastInIsExpression2() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System.Collections;
+
+static class A
+{
+    static void Goo(IEnumerable x)
+    {
+        if ({|Simplify:(IEnumerable)x|} is string)
+        {
+        }
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System.Collections;
+
+static class A
+{
+    static void Goo(IEnumerable x)
+    {
+        if (x is string)
+        {
+        }
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529855, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529855")>
+        Public Async Function TestCSharp_Remove_CastInIsExpression3() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System.Collections;
+using System.Collections.Generic;
+
+static class A
+{
+    static void Goo(List<int> x)
+    {
+        if ({|Simplify:(object)x|} is string)
+        {
+        }
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System.Collections;
+using System.Collections.Generic;
+
+static class A
+{
+    static void Goo(List<int> x)
+    {
+        if ((object)x is string)
         {
         }
     }
