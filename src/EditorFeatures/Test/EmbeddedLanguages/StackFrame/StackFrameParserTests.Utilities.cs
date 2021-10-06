@@ -2,13 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 {
@@ -18,33 +21,32 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 
     public partial class StackFrameParserTests
     {
-        private static StackFrameToken CreateToken(StackFrameKind kind, string s, ImmutableArray<StackFrameTrivia> leadingTrivia = default, ImmutableArray<StackFrameTrivia> trailingTrivia = default)
-            => new(
-                kind,
-                leadingTrivia.IsDefaultOrEmpty ? ImmutableArray<StackFrameTrivia>.Empty : leadingTrivia,
-                CodeAnalysis.EmbeddedLanguages.VirtualChars.VirtualCharSequence.Create(0, s),
-                trailingTrivia.IsDefaultOrEmpty ? ImmutableArray<StackFrameTrivia>.Empty : trailingTrivia,
-                ImmutableArray<EmbeddedDiagnostic>.Empty,
-                value: null!);
+        private static void Verify(string input, StackFrameMethodDeclarationNode? methodDeclaration = null, bool expectSuccess = true)
+        {
+            var tree = StackFrameParser.TryParse(input);
+            if (!expectSuccess)
+            {
+                Assert.Null(tree);
+                return;
+            }
 
-        private static StackFrameTrivia CreateTrivia(StackFrameKind kind, string s)
-            => new(kind, CodeAnalysis.EmbeddedLanguages.VirtualChars.VirtualCharSequence.Create(0, s), ImmutableArray<EmbeddedDiagnostic>.Empty);
+            AssertEx.NotNull(tree);
+            VerifyCharacterSpans(input, tree);
 
-        private static ImmutableArray<StackFrameTrivia> CreateTriviaArray(StackFrameTrivia trivia)
-            => ImmutableArray.Create(trivia);
+            if (methodDeclaration is null)
+            {
+                Assert.Null(tree.Root.MethodDeclaration);
+            }
+            else
+            {
+                AssertEqual(methodDeclaration, tree.Root.MethodDeclaration);
+            }
 
-        private static readonly StackFrameToken DotToken = CreateToken(StackFrameKind.DotToken, ".");
-        private static readonly StackFrameToken CommaToken = CreateToken(StackFrameKind.CommaToken, ",");
-        private static readonly StackFrameToken OpenParenToken = CreateToken(StackFrameKind.OpenParenToken, "(");
-        private static readonly StackFrameToken CloseParenToken = CreateToken(StackFrameKind.CloseParenToken, ")");
-        private static readonly StackFrameToken OpenBracketToken = CreateToken(StackFrameKind.OpenBracketToken, "[");
-        private static readonly StackFrameToken CloseBracketToken = CreateToken(StackFrameKind.CloseBracketToken, "]");
-        private static readonly StackFrameToken LessThanToken = CreateToken(StackFrameKind.LessThanToken, "<");
-        private static readonly StackFrameToken GreaterThanToken = CreateToken(StackFrameKind.GreaterThanToken, ">");
-        private static readonly StackFrameToken AccentGraveToken = CreateToken(StackFrameKind.GraveAccentToken, "`");
-
-        private static readonly StackFrameTrivia SpaceTrivia = CreateTrivia(StackFrameKind.WhitespaceTrivia, " ");
-
+            Assert.True(tree.Root.AtTrivia.HasValue);
+            Assert.False(tree.Root.InTrivia.HasValue);
+            Assert.Null(tree.Root.FileInformationExpression);
+            Assert.False(tree.Root.TrailingTrivia.HasValue);
+        }
         private static void AssertEqual(StackFrameNodeOrToken expected, StackFrameNodeOrToken actual)
         {
             AssertEqual(expected.Node, actual.Node);
@@ -138,6 +140,117 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             Assert.Equal(expected.VirtualChars.CreateString(), actual.VirtualChars.CreateString());
         }
 
+        private static void VerifyCharacterSpans(string originalText, StackFrameTree tree)
+        {
+            var textSeq = VirtualCharSequence.Create(0, originalText);
+            var index = 0;
+            List<VirtualChar> enumeratedParsedCharacters = new();
+
+            foreach (var charSeq in EnumerateTree(tree))
+            {
+                foreach (var ch in charSeq)
+                {
+                    enumeratedParsedCharacters.Add(ch);
+
+                    if (textSeq[index++] != ch)
+                    {
+                        Assert.True(false, PrintDifference());
+                    }
+                }
+            }
+
+            // Make sure we enumerated the total input
+            Assert.Equal(index, textSeq.Length);
+
+            string PrintDifference()
+            {
+                var sb = new StringBuilder();
+
+                var start = Math.Max(0, index - 10);
+                var end = Math.Min(index, originalText.Length - 1);
+
+                sb.Append("Expected: \t");
+                PrintString(originalText, start, end, sb);
+                sb.AppendLine();
+
+                sb.Append("Actual: \t");
+                var enumeratedString = new string(enumeratedParsedCharacters.Select(ch => (char)ch.Value).ToArray());
+                PrintString(enumeratedString, start, end, sb);
+                sb.AppendLine();
+
+                return sb.ToString();
+
+                static void PrintString(string s, int start, int end, StringBuilder sb)
+                {
+                    if (start > 0)
+                    {
+                        sb.Append("...");
+                    }
+                    sb.Append(s[start..end]);
+                    if (end < s.Length - 1)
+                    {
+                        sb.Append("...");
+                    }
+                }
+            }
+        }
+
+        private static IEnumerable<VirtualCharSequence> EnumerateTree(StackFrameTree tree)
+        {
+            var root = tree.Root;
+
+            if (root.AtTrivia.HasValue)
+            {
+                yield return root.AtTrivia.Value.VirtualChars;
+            }
+
+            var methodDeclaration = root.MethodDeclaration;
+            foreach (var seq in Enumerate(methodDeclaration))
+            {
+                yield return seq;
+            }
+
+            if (root.TrailingTrivia.HasValue)
+            {
+                yield return root.TrailingTrivia.Value.VirtualChars;
+            }
+        }
+
+        private static IEnumerable<VirtualCharSequence> Enumerate(StackFrameNode node)
+        {
+            foreach (var nodeOrToken in node)
+            {
+                if (nodeOrToken.IsNode)
+                {
+                    foreach (var charSequence in Enumerate(nodeOrToken.Node).ToArray())
+                    {
+                        yield return charSequence;
+                    }
+                }
+                else if (!nodeOrToken.Token.VirtualChars.IsDefaultOrEmpty)
+                {
+                    var token = nodeOrToken.Token;
+                    if (!token.LeadingTrivia.IsDefault)
+                    {
+                        foreach (var trivia in token.LeadingTrivia)
+                        {
+                            yield return trivia.VirtualChars;
+                        }
+                    }
+
+                    yield return nodeOrToken.Token.VirtualChars;
+
+                    if (!token.TrailingTrivia.IsDefault)
+                    {
+                        foreach (var trivia in token.TrailingTrivia)
+                        {
+                            yield return trivia.VirtualChars;
+                        }
+                    }
+                }
+            }
+        }
+
         private static void AssertEqual(ImmutableArray<StackFrameTrivia> expected, ImmutableArray<StackFrameTrivia> actual)
         {
             var diffMessage = PrintDiff();
@@ -200,55 +313,5 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             Assert.Equal(expected.Kind, actual.Kind);
             Assert.Equal(expected.VirtualChars.CreateString(), actual.VirtualChars.CreateString());
         }
-
-        private static StackFrameParameterList ArgumentList(params StackFrameNodeOrToken[] nodesOrTokens)
-            => new(OpenParenToken, nodesOrTokens.ToImmutableArray(), CloseParenToken);
-
-        private static StackFrameMethodDeclarationNode MethodDeclaration(
-            StackFrameMemberAccessExpressionNode memberAccessExpression,
-            StackFrameParameterList argumentList,
-            StackFrameTypeArgumentList? typeArgumnets = null)
-        {
-            return new StackFrameMethodDeclarationNode(memberAccessExpression, typeArgumnets, argumentList);
-        }
-
-        private static StackFrameMemberAccessExpressionNode MemberAccessExpression(StackFrameExpressionNode expressionNode, StackFrameBaseIdentifierNode identifierNode)
-            => new(expressionNode, DotToken, identifierNode);
-
-        private static StackFrameIdentifierNode Identifier(string identifierName, ImmutableArray<StackFrameTrivia> leadingTrivia = default, ImmutableArray<StackFrameTrivia> trailingTrivia = default)
-            => new(CreateToken(StackFrameKind.IdentifierToken, identifierName, leadingTrivia: leadingTrivia, trailingTrivia: trailingTrivia));
-
-        private static StackFrameArrayExpressionNode ArrayExpression(StackFrameExpressionNode identifier, params StackFrameToken[] arrayTokens)
-            => new(identifier, arrayTokens.ToImmutableArray());
-
-        private static StackFrameGenericTypeIdentifier GenericType(string identifierName, int arity)
-            => new(CreateToken(StackFrameKind.IdentifierToken, identifierName), AccentGraveToken, CreateToken(StackFrameKind.TextToken, arity.ToString()));
-
-        private static StackFrameTypeArgumentList TypeArgumentList(bool useBrackets, params StackFrameTypeArgument[] typeArguments)
-        {
-            using var _ = PooledObjects.ArrayBuilder<StackFrameNodeOrToken>.GetInstance(out var builder);
-            var openToken = useBrackets ? OpenBracketToken : LessThanToken;
-            var closeToken = useBrackets ? CloseBracketToken : GreaterThanToken;
-
-            var isFirst = true;
-            foreach (var typeArgument in typeArguments)
-            {
-                if (isFirst)
-                {
-                    isFirst = false;
-                }
-                else
-                {
-                    builder.Add(CommaToken);
-                }
-
-                builder.Add(typeArgument);
-            }
-
-            return new(openToken, builder.ToImmutable(), closeToken);
-        }
-
-        private static StackFrameTypeArgument TypeArgument(string identifier)
-            => new(CreateToken(StackFrameKind.IdentifierToken, identifier));
     }
 }
