@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -86,7 +87,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             RequestTelemetryLogger telemetryLogger,
             ClientCapabilities clientCapabilities,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            LspMiscellaneousFilesWorkspace lspMiscellaneousFilesWorkspace,
             Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)>? solutionCache,
             IDocumentChangeTracker? documentChangeTracker,
             ImmutableArray<string> supportedLanguages,
@@ -102,14 +102,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 // we were given a request associated with a document.  Find the corresponding roslyn
                 // document for this.  If we can't, we cannot proceed.
-                document = FindDocument(logger, telemetryLogger, lspWorkspaceRegistrationService, lspMiscellaneousFilesWorkspace, textDocument, clientName);
+                document = FindDocument(logger, telemetryLogger, lspWorkspaceRegistrationService, textDocument, clientName);
                 if (document != null)
                     workspaceSolution = document.Project.Solution;
             }
 
             if (workspaceSolution == null)
             {
-                logger.TraceError("Could not find appropriate solution for operation");
+                logger.TraceWarning("Could not find appropriate solution for operation");
                 return default;
             }
 
@@ -142,61 +142,32 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             ILspLogger logger,
             RequestTelemetryLogger telemetryLogger,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            LspMiscellaneousFilesWorkspace lspMiscFilesWorkspace,
             TextDocumentIdentifier textDocument,
             string? clientName)
         {
             logger.TraceInformation($"Finding document corresponding to {textDocument.Uri}");
 
-            var document = TryGetDocumentFromRegisteredWorkspaces(textDocument, clientName, lspWorkspaceRegistrationService, telemetryLogger, logger);
-            if (document != null)
+            using var workspaceKinds = TemporaryArray<string?>.Empty;
+            foreach (var workspace in lspWorkspaceRegistrationService.GetAllRegistrations())
             {
-                return document;
-            }
-
-            // If the document was not in a registered workspace, try to retrieve from the LSP misc files workspace.
-            document = TryGetDocumentFromWorkspace(textDocument, clientName, lspMiscFilesWorkspace);
-            return document;
-
-            static Document? TryGetDocumentFromRegisteredWorkspaces(
-                TextDocumentIdentifier textDocument,
-                string? clientName,
-                ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-                RequestTelemetryLogger telemetryLogger,
-                ILspLogger logger)
-            {
-                var registeredWorkspaces = lspWorkspaceRegistrationService.GetAllRegistrations();
-                foreach (var workspace in registeredWorkspaces)
-                {
-                    var document = TryGetDocumentFromWorkspace(textDocument, clientName, workspace);
-                    if (document != null)
-                    {
-                        telemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspace.Kind);
-                        logger.TraceInformation($"Using document from workspace {workspace.Kind}: {document.FilePath}");
-                        return document;
-                    }
-                }
-
-                // We didn't find the document in a registered workspace, record a telemetry notification that we did not find it.
-                var searchedWorkspaceKinds = string.Join(";", registeredWorkspaces.SelectAsArray(w => w.Kind));
-                logger.TraceWarning($"Creating a miscellaneous file for '{textDocument.Uri}' as it was found in a registered workspace (searched {searchedWorkspaceKinds}, with client name '{clientName}'.");
-                telemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
-
-                return null;
-            }
-
-            static Document? TryGetDocumentFromWorkspace(TextDocumentIdentifier identifier, string? clientName, Workspace workspace)
-            {
-                var documents = workspace.CurrentSolution.GetDocuments(identifier.Uri, clientName);
+                workspaceKinds.Add(workspace.Kind);
+                var documents = workspace.CurrentSolution.GetDocuments(textDocument.Uri, clientName, logger);
 
                 if (!documents.IsEmpty)
                 {
-                    var document = documents.FindDocumentInProjectContext(identifier);
+                    var document = documents.FindDocumentInProjectContext(textDocument);
+                    logger.TraceInformation($"Found document in workspace {workspace.Kind}: {document.FilePath}");
+                    telemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspace.Kind);
                     return document;
                 }
-
-                return null;
             }
+
+            var searchedWorkspaceKinds = string.Join(";", workspaceKinds.ToImmutableAndClear());
+            logger.TraceWarning($"No document found for '{textDocument.Uri}' after looking in {searchedWorkspaceKinds} workspaces, with client name '{clientName}'.");
+
+            telemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
+
+            return null;
         }
 
         /// <summary>
