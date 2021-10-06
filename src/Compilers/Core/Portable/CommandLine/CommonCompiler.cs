@@ -1016,9 +1016,9 @@ namespace Microsoft.CodeAnalysis
                 bool MatchesAnyRule(string? name) => name != null && rules!.Contains(name);
 
                 var categorizedAnalyzers = analyzers.Select(
-                        a => (Analyzer: a, IsSourceOnly: MatchesAnyRule(a.GetType().FullName!) ||
-                                                         MatchesAnyRule(a.GetType().Namespace!) ||
-                                                         MatchesAnyRule(a.GetType().Assembly.GetName().Name!)))
+                        a => (Analyzer: a, IsSourceOnly: MatchesAnyRule(a.GetType().FullName) ||
+                                                         MatchesAnyRule(a.GetType().Namespace) ||
+                                                         MatchesAnyRule(a.GetType().Assembly.GetName().Name)))
                     .ToList();
 
                 return (categorizedAnalyzers.Where(a => a.IsSourceOnly).Select(a => a.Analyzer).ToImmutableArray(),
