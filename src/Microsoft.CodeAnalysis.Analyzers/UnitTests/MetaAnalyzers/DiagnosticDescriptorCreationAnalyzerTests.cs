@@ -1890,7 +1890,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 
 Class Resources
-    Public Shared Function CreateLocalizableResourceString(resourceName As String)
+    Public Shared Function CreateLocalizableResourceString(resourceName As String) As LocalizableResourceString
         Return Nothing
     End Function
     Public Shared Readonly Property AnalyzerTitle As String = """"
@@ -2536,7 +2536,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 
 Class Resources
-    Public Shared Function CreateLocalizableResourceString(resourceName As String)
+    Public Shared Function CreateLocalizableResourceString(resourceName As String) As LocalizableResourceString
         Return Nothing
     End Function
     Public Shared Readonly Property AnalyzerTitle As String = """"
