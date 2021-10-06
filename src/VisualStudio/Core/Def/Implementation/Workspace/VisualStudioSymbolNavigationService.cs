@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PdbSourceDocument;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -40,7 +39,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IGlobalOptionService _globalOptions;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
-        private readonly IPdbSourceDocumentNavigationService _pdbSourceDocumentNavigationService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -49,15 +47,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             IVsEditorAdaptersFactoryService editorAdaptersFactory,
-            IMetadataAsSourceFileService metadataAsSourceFileService,
-            IPdbSourceDocumentNavigationService pdbSourceDocumentNavigationService)
+            IMetadataAsSourceFileService metadataAsSourceFileService)
             : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
             _globalOptions = globalOptions;
             _editorAdaptersFactory = editorAdaptersFactory;
             _metadataAsSourceFileService = metadataAsSourceFileService;
-            _pdbSourceDocumentNavigationService = pdbSourceDocumentNavigationService;
         }
 
         public bool TryNavigateToSymbol(ISymbol symbol, Project project, OptionSet? options, CancellationToken cancellationToken)
@@ -119,24 +115,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 // Note: we'll fallback to Metadata-As-Source if we fail to get IVsNavInfo, but that should never happen.
             }
 
-            // First try loading the file from information stored in the PDB. This could give us the actual source, so is a better
-            // result that metadata
-            var result = _pdbSourceDocumentNavigationService.GetPdbSourceDocumentAsync(project, symbol, cancellationToken).WaitAndGetResult(cancellationToken);
+            // Generate new source or retrieve existing source for the symbol in question
+            var allowDecompilation = false;
 
-            // Otherwise lets generate a source file
-            if (result is null)
+            // Check whether decompilation is supported for the project. We currently only support this for C# projects.
+            if (project.LanguageServices.GetService<IDecompiledSourceService>() != null)
             {
-                // Generate new source or retrieve existing source for the symbol in question
-                var allowDecompilation = false;
-
-                // Check whether decompilation is supported for the project. We currently only support this for C# projects.
-                if (project.LanguageServices.GetService<IDecompiledSourceService>() != null)
-                {
-                    allowDecompilation = project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources) && !symbol.IsFromSource();
-                }
-
-                result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: !allowDecompilation, cancellationToken).WaitAndGetResult(cancellationToken);
+                allowDecompilation = project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources) && !symbol.IsFromSource();
             }
+
+            var result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: !allowDecompilation, cancellationToken).WaitAndGetResult(cancellationToken);
 
             var vsRunningDocumentTable4 = IServiceProviderExtensions.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>(_serviceProvider);
             var fileAlreadyOpen = vsRunningDocumentTable4.IsMonikerValid(result.FilePath);
