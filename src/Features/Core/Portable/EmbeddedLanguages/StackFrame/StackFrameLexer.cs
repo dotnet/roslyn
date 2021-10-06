@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     internal struct StackFrameLexer
     {
         public readonly VirtualCharSequence Text;
-        public int Position;
+        public int Position { get; private set; }
 
         public StackFrameLexer(string text)
             : this(VirtualCharSequence.Create(0, text))
@@ -38,20 +38,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
         public VirtualCharSequence GetSubPattern(int start, int end)
             => Text.GetSubSequence(TextSpan.FromBounds(start, end));
-
-        public StackFrameToken ScanNextToken(bool allowTrivia)
-        {
-            var trivia = ScanLeadingTrivia(allowTrivia);
-            if (Position == Text.Length)
-            {
-                return CreateToken(StackFrameKind.EndOfLine, trivia, VirtualCharSequence.Empty);
-            }
-
-            var ch = CurrentChar;
-            Position++;
-
-            return CreateToken(GetKind(ch), trivia, Text.GetSubSequence(new TextSpan(Position - 1, 1)));
-        }
 
         /// <summary>
         /// Scans until EndOfLine is found, treating all text as trivia
@@ -77,8 +63,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             var startPosition = Position;
 
             var ch = CurrentChar;
-            Position++;
-
             if (!UnicodeCharacterUtilities.IsIdentifierStartCharacter((char)ch.Value))
             {
                 return null;
@@ -86,12 +70,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             while (UnicodeCharacterUtilities.IsIdentifierPartCharacter((char)ch.Value))
             {
-                ch = CurrentChar;
                 Position++;
+                ch = CurrentChar;
             }
 
-            var identifierEnd = Position - 1;
-            var identifierSpan = new TextSpan(startPosition, identifierEnd - startPosition);
+            var identifierSpan = new TextSpan(startPosition, Position - startPosition);
             var identifier = CreateToken(StackFrameKind.IdentifierToken, Text.GetSubSequence(identifierSpan));
             return identifier;
         }
@@ -129,41 +112,32 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             while (Position < Text.Length)
             {
-                // Use PreviousCharAsToken here because we expect the 
-                // start of the brackets to be the previous token that started
-                // the need to parse for an array
-                var token = PreviousCharAsToken();
-                if (!IsArrayBracket(token))
+                var kind = GetKind(CurrentChar);
+                if (!IsArrayBracket(kind))
                 {
                     break;
                 }
 
+                builder.Add(CurrentCharAsToken());
                 Position++;
-                builder.Add(token);
             }
 
             Debug.Assert(builder.Count >= 2);
 
             return builder.ToImmutable();
 
-            static bool IsArrayBracket(StackFrameToken token)
-                => token.Kind is StackFrameKind.OpenBracketToken or StackFrameKind.CloseBracketToken;
+            static bool IsArrayBracket(StackFrameKind kind)
+                => kind is StackFrameKind.OpenBracketToken or StackFrameKind.CloseBracketToken;
         }
 
-        public StackFrameToken PreviousCharAsToken()
-        {
-            var previousChar = Text[Position - 1];
-            return CreateToken(GetKind(previousChar), Text.GetSubSequence(new TextSpan(Position - 1, 1)));
-        }
-
-        internal StackFrameTrivia? ScanWhiteSpace(bool includePrevious)
+        internal StackFrameTrivia? ScanWhiteSpace()
         {
             if (Position == Text.Length)
             {
                 return null;
             }
 
-            var startPosition = includePrevious ? Position - 1 : Position;
+            var startPosition = Position;
 
             while (IsBlank(CurrentChar))
             {
@@ -190,7 +164,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             return CreateToken(GetKind(previousChar), Text.GetSubSequence(new TextSpan(Position, 1)));
         }
 
-        public bool IsAt(string val)
+        public bool IsStringAtPosition(string val)
             => TextAt(Position, val);
 
         private bool TextAt(int position, string val)
@@ -207,19 +181,45 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             return true;
         }
 
-#nullable disable
-        public static StackFrameToken CreateToken(StackFrameKind kind, VirtualCharSequence virtualChars)
-            => new(kind, ImmutableArray<StackFrameTrivia>.Empty, virtualChars, ImmutableArray<StackFrameTrivia>.Empty, ImmutableArray<EmbeddedDiagnostic>.Empty, value: null);
+        /// <summary>
+        /// Progress the position by one if the current character
+        /// matches the kind.
+        /// </summary>
+        /// <returns>
+        /// <see langword="true"/> if the position was incremented
+        /// </returns>
+        internal bool ScanIfMatch(StackFrameKind kind, out StackFrameToken token)
+        {
+            if (GetKind(CurrentChar) == kind)
+            {
+                token = CurrentCharAsToken();
+                Position++;
+                return true;
+            }
 
-        public static StackFrameToken CreateToken(StackFrameKind kind, ImmutableArray<StackFrameTrivia> leadingTrivia, VirtualCharSequence virtualChars)
-            => new(kind, leadingTrivia, virtualChars, ImmutableArray<StackFrameTrivia>.Empty, ImmutableArray<EmbeddedDiagnostic>.Empty, value: null);
+            token = default;
+            return false;
+        }
 
-        public static StackFrameTrivia CreateTrivia(StackFrameKind kind, VirtualCharSequence virtualChars)
-            => CreateTrivia(kind, virtualChars, ImmutableArray<EmbeddedDiagnostic>.Empty);
+        /// <summary>
+        /// Progress the position by one if the current character
+        /// matches the kind.
+        /// </summary>
+        /// <returns>
+        /// <see langword="true"/> if the position was incremented
+        /// </returns>
+        internal bool ScanIfMatch(Func<StackFrameKind, bool> matchFn, out StackFrameToken token)
+        {
+            if (matchFn(GetKind(CurrentChar)))
+            {
+                token = CurrentCharAsToken();
+                Position++;
+                return true;
+            }
 
-        public static StackFrameTrivia CreateTrivia(StackFrameKind kind, VirtualCharSequence virtualChars, ImmutableArray<EmbeddedDiagnostic> diagnostics)
-            => new(kind, virtualChars, diagnostics);
-#nullable enable
+            token = default;
+            return false;
+        }
 
         private static StackFrameKind GetKind(VirtualChar ch)
             => ch.Value switch
@@ -248,48 +248,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         private static bool IsNumber(VirtualChar ch)
             => ch.Value switch
             {
-                '0' or '1' or '2' or '3' or '4' or '5' or '6' or '7' or '8' or '9'
-                  => true,
+                >= '0' and <= '9' => true,
                 _ => false
             };
-
-        private ImmutableArray<StackFrameTrivia> ScanLeadingTrivia(bool allowTrivia)
-        {
-            if (!allowTrivia)
-            {
-                return ImmutableArray<StackFrameTrivia>.Empty;
-            }
-
-            using var _ = ArrayBuilder<StackFrameTrivia>.GetInstance(out var result);
-
-            while (Position < Text.Length)
-            {
-                var atTrivia = ScanAtTrivia();
-                if (atTrivia != null)
-                {
-                    result.Add(atTrivia.Value);
-                    continue;
-                }
-
-                var whitespace = ScanWhitespace();
-                if (whitespace != null)
-                {
-                    result.Add(whitespace.Value);
-                    continue;
-                }
-
-                var inTrivia = ScanInTrivia();
-                if (inTrivia != null)
-                {
-                    result.Add(inTrivia.Value);
-                    continue;
-                }
-
-                break;
-            }
-
-            return result.ToImmutable();
-        }
 
         public StackFrameTrivia? ScanAtTrivia()
         {
@@ -301,28 +262,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             // TODO: Handle multiple languages? Right now we're going to only parse english
             const string AtString = "at ";
 
-            if (IsAt(AtString))
+            if (IsStringAtPosition(AtString))
             {
                 var start = Position;
                 Position += AtString.Length;
 
                 return CreateTrivia(StackFrameKind.AtTrivia, GetSubPatternToCurrentPos(start));
-            }
-
-            return null;
-        }
-
-        private StackFrameTrivia? ScanWhitespace()
-        {
-            var start = Position;
-            while (Position < Text.Length && IsBlank(Text[Position]))
-            {
-                Position++;
-            }
-
-            if (Position > start)
-            {
-                return CreateTrivia(StackFrameKind.WhitespaceTrivia, GetSubPatternToCurrentPos(start));
             }
 
             return null;
@@ -338,7 +283,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             // TODO: Handle multiple languages? Right now we're going to only parse english
             const string InString = " in ";
 
-            if (IsAt(InString))
+            if (IsStringAtPosition(InString))
             {
                 var start = Position;
                 Position += InString.Length;
@@ -364,5 +309,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                     return false;
             }
         }
+
+        public static StackFrameToken CreateToken(StackFrameKind kind, VirtualCharSequence virtualChars)
+            => new(kind, ImmutableArray<StackFrameTrivia>.Empty, virtualChars, ImmutableArray<StackFrameTrivia>.Empty, ImmutableArray<EmbeddedDiagnostic>.Empty, value: null!);
+
+        public static StackFrameToken CreateToken(StackFrameKind kind, ImmutableArray<StackFrameTrivia> leadingTrivia, VirtualCharSequence virtualChars)
+            => new(kind, leadingTrivia, virtualChars, ImmutableArray<StackFrameTrivia>.Empty, ImmutableArray<EmbeddedDiagnostic>.Empty, value: null!);
+
+        public static StackFrameTrivia CreateTrivia(StackFrameKind kind, VirtualCharSequence virtualChars)
+            => CreateTrivia(kind, virtualChars, ImmutableArray<EmbeddedDiagnostic>.Empty);
+
+        public static StackFrameTrivia CreateTrivia(StackFrameKind kind, VirtualCharSequence virtualChars, ImmutableArray<EmbeddedDiagnostic> diagnostics)
+            => new(kind, virtualChars, diagnostics);
     }
 }

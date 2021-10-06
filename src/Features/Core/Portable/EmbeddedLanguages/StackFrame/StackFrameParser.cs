@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -20,12 +21,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     internal struct StackFrameParser
     {
         private StackFrameLexer _lexer;
-
-        /// <summary>
-        /// The current token that has been consumed by the parse. Note that the lexer position
-        /// will be one character ahead to represent the next token to be consumed.
-        /// </summary>
-        private StackFrameToken CurrentToken => _lexer.PreviousCharAsToken();
+        private StackFrameToken CurrentToken => _lexer.CurrentCharAsToken();
 
         private StackFrameParser(VirtualCharSequence text)
         {
@@ -67,10 +63,20 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         {
             var atTrivia = _lexer.ScanAtTrivia();
 
-            var methodDeclaration = ParseMethodDeclaration(addLeadingWhitespaceAsTrivia: !atTrivia.HasValue);
+            var methodDeclaration = ParseMethodDeclaration();
             if (methodDeclaration is null)
             {
                 return null;
+            }
+
+            if (atTrivia.HasValue)
+            {
+                var currentTrivia = methodDeclaration.ChildAt(0).Token.LeadingTrivia;
+                var newList = currentTrivia.IsDefaultOrEmpty
+                    ? ImmutableArray.Create(atTrivia.Value)
+                    : currentTrivia.Prepend(atTrivia.Value).ToImmutableArray();
+
+                methodDeclaration = methodDeclaration.WithLeadingTrivia(newList);
             }
 
             var inTrivia = _lexer.ScanInTrivia();
@@ -82,7 +88,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             Debug.Assert(_lexer.Position == _lexer.Text.Length);
             Debug.Assert(_lexer.CurrentCharAsToken().Kind == StackFrameKind.EndOfLine);
 
-            var root = new StackFrameCompilationUnit(atTrivia, methodDeclaration, inTrivia, fileInformationExpression, trailingTrivia);
+            var root = new StackFrameCompilationUnit(methodDeclaration, inTrivia, fileInformationExpression, trailingTrivia);
 
             return new StackFrameTree(
                 _lexer.Text, root, ImmutableArray<EmbeddedDiagnostic>.Empty);
@@ -94,9 +100,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// 
         /// Ex: [|MyClass.MyMethod(string s)|]
         /// </summary>
-        private StackFrameMethodDeclarationNode? ParseMethodDeclaration(bool addLeadingWhitespaceAsTrivia)
+        private StackFrameMethodDeclarationNode? ParseMethodDeclaration()
         {
-            var identifierExpression = ParseIdentifierExpression(addLeadingWhitespaceAsTrivia: addLeadingWhitespaceAsTrivia);
+            var identifierExpression = ParseIdentifierExpression();
             if (identifierExpression is not StackFrameMemberAccessExpressionNode memberAccessExpression)
             {
                 return null;
@@ -122,25 +128,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// All of the following are valid identifiers, where "$$" marks the parsing starting point, and "[|" + "|]" mark the endpoints of the parsed identifier including trivia
         ///   * [|$$MyNamespace.MyClass.MyMethod|](string s)
         ///   * MyClass.MyMethod([|$$string |]s)
-        ///   * MyClass.MyMethod(string [|$$s|]) // <paramref name="addLeadingWhitespaceAsTrivia"/> = false
-        ///   * MyClass.MyMethod(string[| $$s|]) // <paramref name="addLeadingWhitespaceAsTrivia"/> = true
+        ///   * MyClass.MyMethod(string[| $$s|])
         ///   * [|$$MyClass`1.MyMethod|](string s)
         ///   * [|$$MyClass.MyMethod|][T](T t)
         /// </summary>
-        /// <param name="addLeadingWhitespaceAsTrivia">
-        ///   Set to true if leading whitespaces before the identifier should be considered leading trivia.
-        /// </param>
-        private StackFrameExpressionNode? ParseIdentifierExpression(bool addLeadingWhitespaceAsTrivia)
+        private StackFrameExpressionNode? ParseIdentifierExpression()
         {
             Queue<(StackFrameBaseIdentifierNode identifier, StackFrameToken separator)> typeIdentifierNodes = new();
 
-            // If allowed, add the leading whitespace as trivia to the first
-            // identifier token in the expression
-            var leadingTrivia = AllowWhitespace(CurrentToken)
-                    ? _lexer.ScanWhiteSpace(includePrevious: addLeadingWhitespaceAsTrivia && CurrentToken.Kind == StackFrameKind.WhitespaceToken)
-                    : null;
-
+            var leadingTrivia = _lexer.ScanWhiteSpace();
             var currentIdentifier = _lexer.ScanIdentifier();
+
             while (currentIdentifier.HasValue && currentIdentifier.Value.Kind == StackFrameKind.IdentifierToken)
             {
                 StackFrameToken? arity = null;
@@ -161,7 +159,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
                 typeIdentifierNodes.Enqueue((identifierNode, CurrentToken));
 
-                if (CurrentToken.Kind != StackFrameKind.DotToken)
+                // Progress the lexer if the current token is a dot token, which 
+                // was already added to the list. 
+                if (!_lexer.ScanIfMatch(StackFrameKind.DotToken, out var _))
                 {
                     break;
                 }
@@ -174,9 +174,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return null;
             }
 
-            var trailingTrivia = CurrentToken.Kind == StackFrameKind.WhitespaceToken
-                ? _lexer.ScanWhiteSpace(includePrevious: true)
-                : null;
+            var trailingTrivia = _lexer.ScanWhiteSpace();
 
             if (typeIdentifierNodes.Count == 1)
             {
@@ -209,16 +207,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             return trailingTrivia.HasValue
                     ? memberAccessExpression.WithTrailingTrivia(trailingTrivia.Value)
                     : memberAccessExpression;
-
-            static bool AllowWhitespace(StackFrameToken token)
-                => token.Kind
-                    is StackFrameKind.WhitespaceTrivia
-                    or StackFrameKind.CommaToken
-                    or StackFrameKind.OpenBracketToken
-                    or StackFrameKind.CloseBracketToken
-                    or StackFrameKind.OpenParenToken
-                    or StackFrameKind.CloseParenToken
-                    or StackFrameKind.WhitespaceToken;
         }
 
         /// <summary>
@@ -232,30 +220,29 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// </summary>
         private StackFrameTypeArgumentList? ParseTypeArguments()
         {
-            if (CurrentToken.Kind is not (StackFrameKind.OpenBracketToken or StackFrameKind.LessThanToken))
+            if (!_lexer.ScanIfMatch(
+                kind => kind is StackFrameKind.OpenBracketToken or StackFrameKind.LessThanToken,
+                out var openToken))
             {
                 return null;
             }
 
-            var openToken = CurrentToken;
             var useCloseBracket = openToken.Kind is StackFrameKind.OpenBracketToken;
 
             using var _ = ArrayBuilder<StackFrameNodeOrToken>.GetInstance(out var builder);
             var currentIdentifier = _lexer.ScanIdentifier();
-            StackFrameToken? closeToken = null;
+            StackFrameToken closeToken = default;
 
             while (currentIdentifier.HasValue && currentIdentifier.Value.Kind == StackFrameKind.IdentifierToken)
             {
                 builder.Add(new StackFrameTypeArgument(currentIdentifier.Value));
 
-                if ((useCloseBracket && CurrentToken.Kind == StackFrameKind.CloseBracketToken)
-                    || CurrentToken.Kind == StackFrameKind.GreaterThanToken)
+                if (useCloseBracket && _lexer.ScanIfMatch(StackFrameKind.CloseBracketToken, out closeToken))
                 {
-                    closeToken = CurrentToken;
-
-                    // Consume the token and move on to the next one, since it is already added
-                    // to the list of items for the TypeArgumentList
-                    _lexer.Position++;
+                    break;
+                }
+                else if (_lexer.ScanIfMatch(StackFrameKind.GreaterThanToken, out closeToken))
+                {
                     break;
                 }
 
@@ -263,12 +250,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 currentIdentifier = _lexer.ScanIdentifier();
             }
 
-            if (!closeToken.HasValue)
+            if (closeToken.IsMissing)
             {
                 return null;
             }
 
-            return new StackFrameTypeArgumentList(openToken, builder.ToImmutable(), closeToken.Value);
+            return new StackFrameTypeArgumentList(openToken, builder.ToImmutable(), closeToken);
         }
 
         /// <summary>
@@ -279,15 +266,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// </summary>
         private StackFrameParameterList? ParseMethodParameters()
         {
-            if (CurrentToken.Kind != StackFrameKind.OpenParenToken)
+            if (!_lexer.ScanIfMatch(StackFrameKind.OpenParenToken, out var openParen))
             {
                 return null;
             }
 
-            using var _ = ArrayBuilder<StackFrameNodeOrToken>.GetInstance(out var builder);
-            var openParen = CurrentToken;
+            StackFrameToken closeParen;
 
-            var identifier = ParseIdentifierExpression(addLeadingWhitespaceAsTrivia: true);
+            using var _ = ArrayBuilder<StackFrameNodeOrToken>.GetInstance(out var builder);
+            var identifier = ParseIdentifierExpression();
+
             while (identifier is not null)
             {
                 // Check if there's an array type for the identifier
@@ -300,30 +288,26 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                     builder.Add(identifier);
                 }
 
-                if (CurrentToken.Kind == StackFrameKind.CloseParenToken)
+                if (_lexer.ScanIfMatch(StackFrameKind.CloseParenToken, out closeParen))
                 {
-                    return new StackFrameParameterList(openParen, builder.ToImmutable(), CurrentToken);
+                    return new StackFrameParameterList(openParen, builder.ToImmutable(), closeParen);
                 }
 
-                // Let whitespace get added as trivia to the identifiers
-                // for the parameters
-                if (CurrentToken.Kind != StackFrameKind.WhitespaceToken)
+                if (_lexer.ScanIfMatch(StackFrameKind.CommaToken, out var commaToken))
                 {
-                    builder.Add(CurrentToken);
+                    builder.Add(commaToken);
                 }
 
                 var addLeadingWhitespaceAsTrivia = identifier.ChildAt(identifier.ChildCount - 1).Token.TrailingTrivia.IsDefaultOrEmpty;
-                identifier = ParseIdentifierExpression(addLeadingWhitespaceAsTrivia: addLeadingWhitespaceAsTrivia);
+                identifier = ParseIdentifierExpression();
             }
 
-            if (CurrentToken.Kind != StackFrameKind.CloseParenToken)
+            if (_lexer.ScanIfMatch(StackFrameKind.CloseParenToken, out closeParen))
             {
-                // If we parsed identifiers but never got to a closing portion for the argument list
-                // we need to bail and return null so we know that this isn't valid
-                return null;
+                return new StackFrameParameterList(openParen, builder.ToImmutable(), closeParen);
             }
 
-            return new StackFrameParameterList(openParen, builder.ToImmutable(), CurrentToken);
+            return null;
         }
 
         /// <summary>

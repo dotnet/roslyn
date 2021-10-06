@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 AssertEqual(methodDeclaration, tree.Root.MethodDeclaration);
             }
 
-            Assert.True(tree.Root.AtTrivia.HasValue);
             Assert.False(tree.Root.InTrivia.HasValue);
             Assert.Null(tree.Root.FileInformationExpression);
             Assert.False(tree.Root.TrailingTrivia.HasValue);
@@ -186,7 +185,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                     {
                         sb.Append("...");
                     }
+
                     sb.Append(s[start..end]);
+
                     if (end < s.Length - 1)
                     {
                         sb.Append("...");
@@ -198,11 +199,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         private static IEnumerable<VirtualCharSequence> EnumerateTree(StackFrameTree tree)
         {
             var root = tree.Root;
-
-            if (root.AtTrivia.HasValue)
-            {
-                yield return root.AtTrivia.Value.VirtualChars;
-            }
 
             var methodDeclaration = root.MethodDeclaration;
             foreach (var seq in Enumerate(methodDeclaration))

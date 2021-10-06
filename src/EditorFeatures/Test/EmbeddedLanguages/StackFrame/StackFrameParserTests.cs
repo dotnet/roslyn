@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 methodDeclaration: MethodDeclaration(
                     MemberAccessExpression(
                         MemberAccessExpression(
-                            Identifier("ConsoleApp4"),
+                            Identifier("ConsoleApp4", leadingTrivia: CreateTriviaArray(AtTrivia)),
                             Identifier("MyClass")),
                         Identifier("M")),
 
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 methodDeclaration: MethodDeclaration(
                     MemberAccessExpression(
                         MemberAccessExpression(
-                            Identifier("ConsoleApp4"),
+                            Identifier("ConsoleApp4", leadingTrivia: CreateTriviaArray(AtTrivia)),
                             Identifier("MyClass")),
                         Identifier("M")),
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 methodDeclaration: MethodDeclaration(
                     MemberAccessExpression(
                         MemberAccessExpression(
-                            Identifier("ConsoleApp4"),
+                            Identifier("ConsoleApp4", leadingTrivia: CreateTriviaArray(AtTrivia)),
                             Identifier("MyClass")),
                         Identifier("M")),
 
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 methodDeclaration: MethodDeclaration(
                     MemberAccessExpression(
                         MemberAccessExpression(
-                            Identifier("ConsoleApp4"),
+                            Identifier("ConsoleApp4", leadingTrivia: CreateTriviaArray(AtTrivia)),
                             Identifier("MyClass")),
                         Identifier("M")),
                     typeArguments: TypeArgumentList(TypeArgument("T")),
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 methodDeclaration: MethodDeclaration(
                     MemberAccessExpression(
                         MemberAccessExpression(
-                            Identifier("ConsoleApp4"),
+                            Identifier("ConsoleApp4", leadingTrivia: CreateTriviaArray(AtTrivia)),
                             Identifier("MyClass")),
                         Identifier("M")),
                     typeArguments: TypeArgumentList(useBrackets: false, TypeArgument("T")),
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 @"at _._[_](_ _)",
                 methodDeclaration: MethodDeclaration(
                     MemberAccessExpression(
-                        Identifier("_"),
+                        Identifier("_", leadingTrivia: CreateTriviaArray(AtTrivia)),
                         Identifier("_")),
                     typeArguments: TypeArgumentList(TypeArgument("_")),
                     argumentList: ArgumentList(

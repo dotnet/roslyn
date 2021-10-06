@@ -34,6 +34,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         protected StackFrameExpressionNode(StackFrameKind kind) : base(kind)
         {
         }
+
+        internal abstract StackFrameExpressionNode WithLeadingTrivia(ImmutableArray<StackFrameTrivia> trivia);
+        internal abstract StackFrameExpressionNode WithTrailingTrivia(ImmutableArray<StackFrameTrivia> trivia);
     }
 
     internal sealed class StackFrameMethodDeclarationNode : StackFrameNode
@@ -66,6 +69,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                  2 => ArgumentList,
                  _ => throw new InvalidOperationException(),
              };
+
+        internal StackFrameMethodDeclarationNode WithLeadingTrivia(ImmutableArray<StackFrameTrivia> trivia)
+            => new((StackFrameMemberAccessExpressionNode)MemberAccessExpression.WithLeadingTrivia(trivia), TypeArguments, ArgumentList);
     }
 
     internal sealed class StackFrameMemberAccessExpressionNode : StackFrameExpressionNode
@@ -95,8 +101,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 _ => throw new InvalidOperationException()
             };
 
-        internal StackFrameMemberAccessExpressionNode WithTrailingTrivia(StackFrameTrivia trivia)
-            => new(Expression, Operator, Identifier.WithTrailingTrivia(trivia));
+        internal StackFrameExpressionNode WithLeadingTrivia(StackFrameTrivia trivia)
+            => WithLeadingTrivia(ImmutableArray.Create(trivia));
+
+        internal override StackFrameExpressionNode WithLeadingTrivia(ImmutableArray<StackFrameTrivia> trivia)
+            => new StackFrameMemberAccessExpressionNode(Expression.WithLeadingTrivia(trivia), Operator, Identifier);
+
+        internal StackFrameExpressionNode WithTrailingTrivia(StackFrameTrivia trivia)
+            => WithTrailingTrivia(ImmutableArray.Create(trivia));
+
+        internal override StackFrameExpressionNode WithTrailingTrivia(ImmutableArray<StackFrameTrivia> trivia)
+            => new StackFrameMemberAccessExpressionNode(Expression, Operator, (StackFrameBaseIdentifierNode)Identifier.WithTrailingTrivia(trivia));
     }
 
     internal abstract class StackFrameBaseIdentifierNode : StackFrameExpressionNode
@@ -105,7 +120,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         {
         }
 
-        internal abstract StackFrameBaseIdentifierNode WithTrailingTrivia(StackFrameTrivia trailingTrivia);
+        internal StackFrameExpressionNode WithLeadingTrivia(StackFrameTrivia leadingTrivia)
+            => WithLeadingTrivia(ImmutableArray.Create(leadingTrivia));
+
+        internal StackFrameExpressionNode WithTrailingTrivia(StackFrameTrivia trailingTrivia)
+            => WithTrailingTrivia(ImmutableArray.Create(trailingTrivia));
     }
 
     internal sealed class StackFrameIdentifierNode : StackFrameBaseIdentifierNode
@@ -133,8 +152,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         public override string ToString()
             => Identifier.VirtualChars.CreateString();
 
-        internal override StackFrameBaseIdentifierNode WithTrailingTrivia(StackFrameTrivia trailingTrivia)
-            => new StackFrameIdentifierNode(Identifier.With(trailingTrivia: ImmutableArray.Create(trailingTrivia)));
+        internal override StackFrameExpressionNode WithTrailingTrivia(ImmutableArray<StackFrameTrivia> trailingTrivia)
+            => new StackFrameIdentifierNode(Identifier.With(trailingTrivia: trailingTrivia));
+
+        internal override StackFrameExpressionNode WithLeadingTrivia(ImmutableArray<StackFrameTrivia> leadingTrivia)
+            => new StackFrameIdentifierNode(Identifier.With(leadingTrivia: leadingTrivia));
     }
 
     internal sealed class StackFrameGenericTypeIdentifier : StackFrameBaseIdentifierNode
@@ -165,11 +187,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 _ => throw new InvalidOperationException()
             };
 
-        internal override StackFrameBaseIdentifierNode WithTrailingTrivia(StackFrameTrivia trailingTrivia)
+        internal override StackFrameExpressionNode WithLeadingTrivia(ImmutableArray<StackFrameTrivia> leadingTrivia)
+            => new StackFrameGenericTypeIdentifier(
+                Identifier.With(leadingTrivia: leadingTrivia),
+                ArityToken,
+                ArityNumericToken);
+
+        internal override StackFrameExpressionNode WithTrailingTrivia(ImmutableArray<StackFrameTrivia> trailingTrivia)
             => new StackFrameGenericTypeIdentifier(
                 Identifier,
                 ArityToken,
-                ArityNumericToken.With(trailingTrivia: ImmutableArray.Create(trailingTrivia)));
+                ArityNumericToken.With(trailingTrivia: trailingTrivia));
     }
 
     internal sealed class StackFrameArrayExpressionNode : StackFrameExpressionNode
@@ -197,6 +225,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 0 => _identifier,
                 _ => _arrayBrackets[index - 1]
             };
+
+        internal override StackFrameExpressionNode WithLeadingTrivia(ImmutableArray<StackFrameTrivia> trivia)
+            => new StackFrameArrayExpressionNode(_identifier.WithLeadingTrivia(trivia), _arrayBrackets);
+
+        internal override StackFrameExpressionNode WithTrailingTrivia(ImmutableArray<StackFrameTrivia> trivia)
+        {
+            var lastBracket = _arrayBrackets.Last().With(trailingTrivia: trivia);
+            var newBrackets = _arrayBrackets.RemoveAt(_arrayBrackets.Length - 1).Add(lastBracket);
+
+            return new StackFrameArrayExpressionNode(_identifier, newBrackets);
+        }
     }
 
     internal sealed class StackFrameTypeArgumentList : StackFrameNode
@@ -268,8 +307,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 _ => throw new InvalidOperationException()
             };
 
-        internal override StackFrameBaseIdentifierNode WithTrailingTrivia(StackFrameTrivia trailingTrivia)
-            => new StackFrameTypeArgument(Identifier.With(trailingTrivia: ImmutableArray.Create(trailingTrivia)));
+        internal override StackFrameExpressionNode WithTrailingTrivia(ImmutableArray<StackFrameTrivia> trailingTrivia)
+            => new StackFrameTypeArgument(Identifier.With(trailingTrivia: trailingTrivia));
+
+        internal override StackFrameExpressionNode WithLeadingTrivia(ImmutableArray<StackFrameTrivia> leadingTrivia)
+            => new StackFrameTypeArgument(Identifier.With(leadingTrivia: leadingTrivia));
     }
 
     internal sealed class StackFrameParameterList : StackFrameNode
@@ -335,32 +377,5 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         {
             throw new NotImplementedException();
         }
-    }
-
-    /// <summary>
-    /// Represents a chunk of text (can be multiple characters)
-    /// </summary>
-    internal sealed class StackFrameTextNode : StackFrameExpressionNode
-    {
-        public StackFrameTextNode(StackFrameToken textToken)
-            : base(StackFrameKind.Text)
-        {
-            Debug.Assert(textToken.Kind == StackFrameKind.TextToken);
-            TextToken = textToken;
-        }
-
-        public StackFrameToken TextToken { get; }
-
-        internal override int ChildCount => 1;
-
-        internal override StackFrameNodeOrToken ChildAt(int index)
-            => index switch
-            {
-                0 => TextToken,
-                _ => throw new InvalidOperationException(),
-            };
-
-        public override void Accept(IStackFrameNodeVisitor visitor)
-            => visitor.Visit(this);
     }
 }

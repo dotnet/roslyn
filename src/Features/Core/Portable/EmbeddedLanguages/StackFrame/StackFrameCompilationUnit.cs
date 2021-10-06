@@ -8,15 +8,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 {
     internal class StackFrameCompilationUnit
     {
-        public readonly EmbeddedSyntaxTrivia<StackFrameKind>? AtTrivia;
         public readonly StackFrameMethodDeclarationNode MethodDeclaration;
         public readonly EmbeddedSyntaxTrivia<StackFrameKind>? InTrivia;
         public readonly StackFrameFileInformationNode? FileInformationExpression;
         public readonly EmbeddedSyntaxTrivia<StackFrameKind>? TrailingTrivia;
 
-        public StackFrameCompilationUnit(EmbeddedSyntaxTrivia<StackFrameKind>? atTrivia, StackFrameMethodDeclarationNode methodDeclaration, EmbeddedSyntaxTrivia<StackFrameKind>? inTrivia, StackFrameFileInformationNode? fileInformationExpression, EmbeddedSyntaxTrivia<StackFrameKind>? trailingTrivia)
+        public StackFrameCompilationUnit(StackFrameMethodDeclarationNode methodDeclaration, EmbeddedSyntaxTrivia<StackFrameKind>? inTrivia, StackFrameFileInformationNode? fileInformationExpression, EmbeddedSyntaxTrivia<StackFrameKind>? trailingTrivia)
         {
-            AtTrivia = atTrivia;
             MethodDeclaration = methodDeclaration;
             InTrivia = inTrivia;
             FileInformationExpression = fileInformationExpression;

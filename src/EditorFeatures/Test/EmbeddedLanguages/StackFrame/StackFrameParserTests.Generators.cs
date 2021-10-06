@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         private static readonly StackFrameToken AccentGraveToken = CreateToken(StackFrameKind.GraveAccentToken, "`");
 
         private static readonly StackFrameTrivia SpaceTrivia = CreateTrivia(StackFrameKind.WhitespaceTrivia, " ");
+        private static readonly StackFrameTrivia AtTrivia = CreateTrivia(StackFrameKind.AtTrivia, "at ");
 
         private static StackFrameParameterList ArgumentList(params StackFrameNodeOrToken[] nodesOrTokens)
             => new(OpenParenToken, nodesOrTokens.ToImmutableArray(), CloseParenToken);
