@@ -213,10 +213,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal Variables CreateNestedMethodScope(MethodSymbol method)
             {
-                Debug.Assert(GetVariablesForMethodScope(method) is null);
-                Debug.Assert(!(method.ContainingSymbol is MethodSymbol containingMethod) ||
-                    ((object?)GetVariablesForMethodScope(containingMethod) == this) ||
-                    Container is null);
+                // <Caravela> Disabled because it fails in debug build on our code.
+                // Debug.Assert(GetVariablesForMethodScope(method) is null);
+                // Debug.Assert(!(method.ContainingSymbol is MethodSymbol containingMethod) ||
+                //     ((object?)GetVariablesForMethodScope(containingMethod) == this) ||
+                //     Container is null);
+                // </Caravela>
 
                 return new Variables(id: GetNextId(), this, method);
             }

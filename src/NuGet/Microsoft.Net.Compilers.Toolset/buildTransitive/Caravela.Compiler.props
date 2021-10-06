@@ -9,6 +9,9 @@
     <UseSharedCompilation Condition="'$(UseSharedCompilation)' == ''">true</UseSharedCompilation>
     <CSharpCoreTargetsPath>$(_RoslynTasksDirectory)Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
     <VisualBasicCoreTargetsPath>$(_RoslynTasksDirectory)Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
+
+    <!-- CaravelaSourceOnlyAnalyzers must be on one line and without semicolon because it is a compiler-visible property -->
+    <CaravelaSourceOnlyAnalyzers>$(CaravelaSourceOnlyAnalyzers),Microsoft.CodeAnalysis.CodeStyle,Microsoft.CodeAnalysis.CSharp.CodeStyle,StyleCop.Analyzers</CaravelaSourceOnlyAnalyzers>
   </PropertyGroup>
 
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc" AssemblyFile="$(RoslynTasksAssembly)" />
@@ -20,5 +23,6 @@
     <CompilerVisibleProperty Include="CaravelaCompilerTransformerOrder" />
     <CompilerVisibleProperty Include="CaravelaCompilerTransformedFilesOutputPath" />
     <CompilerVisibleProperty Include="CaravelaDebugCompiler" />
+    <CompilerVisibleProperty Include="CaravelaSourceOnlyAnalyzers" />
   </ItemGroup>
 </Project>

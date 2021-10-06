@@ -993,6 +993,89 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        private (ImmutableArray<DiagnosticAnalyzer> SourceOnlyAnalyzers, ImmutableArray<DiagnosticAnalyzer> WholeCodeAnalyzers) 
+            SplitAnalyzers(AnalyzerConfigOptionsProvider options, ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            if (!options.GlobalOptions.TryGetValue("build_property.CaravelaSourceOnlyAnalyzers", out var sourceOnlyAnalyzers))
+            {
+                return ( ImmutableArray<DiagnosticAnalyzer>.Empty, analyzers );
+            }
+            else
+            {
+                if (sourceOnlyAnalyzers.Trim().Equals("all", StringComparison.OrdinalIgnoreCase))
+                {
+                    return ( analyzers, ImmutableArray<DiagnosticAnalyzer>.Empty );
+                }
+
+                var rules = sourceOnlyAnalyzers
+                    .Split(',', ';', '\n', '\r')
+                    .Select(s => s.Trim())
+                    .Where(s => !string.IsNullOrEmpty(s))
+                    .ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
+
+                bool MatchesAnyRule(string? name) => name != null && rules!.Contains(name);
+
+                var categorizedAnalyzers = analyzers.Select(
+                        a => (Analyzer: a, IsSourceOnly: MatchesAnyRule(a.GetType().FullName!) ||
+                                                         MatchesAnyRule(a.GetType().Namespace!) ||
+                                                         MatchesAnyRule(a.GetType().Assembly.GetName().Name!)))
+                    .ToList();
+
+                return (categorizedAnalyzers.Where(a => a.IsSourceOnly).Select(a => a.Analyzer).ToImmutableArray(),
+                        categorizedAnalyzers.Where(a => !a.IsSourceOnly).Select(a => a.Analyzer).ToImmutableArray()
+                    );
+            }
+        }
+
+        private void ExecuteSourceOnlyAnalyzers(AnalyzerConfigOptionsProvider options, AnalyzerOptions analyzerOptions,
+            ref ImmutableArray<DiagnosticAnalyzer> analyzers,
+            Compilation compilation, DiagnosticBag diagnostics,
+            ref DiagnosticBag? analyzerExceptionDiagnostics, CancellationToken cancellationToken)
+        {
+            // Split analyzers between those that need to run before transformations, and those that must run after. 
+            (var sourceOnlyAnalyzers, analyzers) = SplitAnalyzers(options, analyzers);
+
+            if (!sourceOnlyAnalyzers.IsEmpty)
+            {
+                analyzerExceptionDiagnostics = new DiagnosticBag();
+
+                // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
+                //  1. Always filter out 'Hidden' analyzer diagnostics in build.
+                //  2. Filter out 'Info' analyzer diagnostics if they are not required to be logged in errorlog.
+                var severityFilter = SeverityFilter.Hidden;
+                if (Arguments.ErrorLogPath == null)
+                    severityFilter |= SeverityFilter.Info;
+
+                var analyzerManager = new AnalyzerManager(sourceOnlyAnalyzers);
+                
+                using var sourceOnlyAnalyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
+                    compilation,
+                    sourceOnlyAnalyzers,
+                    analyzerOptions,
+                    analyzerManager,
+                    analyzerExceptionDiagnostics.Add,
+                    Arguments.ReportAnalyzer,
+                    severityFilter,
+                    out var compilationWithSourceOnlyAnalyzers,
+                    cancellationToken);
+
+                // We must call Compilation.GetDiagnostics even if we drop the results because this has
+                // the effect of processing the event queue of the compilation, and the analyzer driver relies on this.
+                _ = compilationWithSourceOnlyAnalyzers.GetDiagnostics(cancellationToken);
+                
+                var sourceOnlyAnalyzerDiagnostics = sourceOnlyAnalyzerDriver
+                    .GetDiagnosticsAsync(compilationWithSourceOnlyAnalyzers).Result;
+                diagnostics.AddRange(sourceOnlyAnalyzerDiagnostics);
+
+                if (!diagnostics.IsEmptyWithoutResolution)
+                {
+                    // Apply diagnostic suppressions for analyzer and/or compiler diagnostics from diagnostic suppressors.
+                    sourceOnlyAnalyzerDriver.ApplyProgrammaticSuppressions(diagnostics,
+                        compilationWithSourceOnlyAnalyzers);
+                }
+            }
+        }
+
 
         // </Caravela>
 
@@ -1129,6 +1212,10 @@ namespace Microsoft.CodeAnalysis
                         embeddedTextBuilder.Free();
                     }
                 }
+                
+                AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
+                    additionalTextFiles, analyzerConfigProvider);
+
 
                 // <Caravela>
                 bool shouldAttachDebugger = ShouldAttachDebugger(analyzerConfigProvider);
@@ -1136,22 +1223,27 @@ namespace Microsoft.CodeAnalysis
                 {
                     Debugger.Launch();
                 }
-                var diagnosticFilters = DiagnosticFilters.Empty;
 
                 if (!transfomers.IsEmpty)
                 {
+                    // Execute transformers.
                     var compilationBeforeTransformation = compilation;
                     var transformersDiagnostics = new DiagnosticBag();
                     var transformersResult = RunTransformers(compilationBeforeTransformation, transfomers, plugins, analyzerConfigProvider, transformersDiagnostics);
-                    diagnosticFilters = transformersResult.DiagnosticFilters;
-                    MapDiagnosticSyntaxTreesToFinalCompilation(transformersDiagnostics, diagnostics, transformersResult.TransformedCompilation);
                     compilation = transformersResult.TransformedCompilation;
+                    
+                    // Map diagnostics to the final compilation, because suppressors need it.
+                    MapDiagnosticSyntaxTreesToFinalCompilation(transformersDiagnostics, diagnostics, compilation);
+                    
+                    // Execute the analyzers that should run on the source code.
+                    // We run them on the annotated compilation and not on the source compilation because this compilation is likely to be largely analyzed by the transformers. 
+                    ExecuteSourceOnlyAnalyzers(analyzerConfigProvider, analyzerOptions, ref analyzers, transformersResult.AnnotatedInputCompilation, diagnostics, ref analyzerExceptionDiagnostics, cancellationToken);
 
+                    // Fix whitespaces in generated syntax trees, embed them into the PDB or write them to disk.
                     bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
                     var transformedOutputPath = GetTransformedFilesOutputDirectory(analyzerConfigProvider)!;
                     bool hasTransformedOutputPath = !string.IsNullOrWhiteSpace(transformedOutputPath);
 
-                    // fix whitespace and embed transformed code into PDB or write it to disk
                     if (compilation != compilationBeforeTransformation && (shouldDebugTransformedCode || hasTransformedOutputPath))
                     {
                         if (shouldDebugTransformedCode && !hasTransformedOutputPath)
@@ -1241,20 +1333,16 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
-                    // We have to add a fake suppressor because we're using the suppression control flow to
-                    // run our own suppression logic.
-                    analyzers = analyzers.Add(new TransformerDiagnosticSuppressor(diagnosticFilters));
+                    // Add a suppressor to handle the suppressions given by the transformations.
+                    analyzers = analyzers.Add(new TransformerDiagnosticSuppressor(transformersResult.DiagnosticFilters));
                 }
                 // </Caravela>
 
 
-                AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
-                    additionalTextFiles, analyzerConfigProvider);
-
                 if (!analyzers.IsEmpty)
                 {
-                    analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                    analyzerExceptionDiagnostics = new DiagnosticBag();
+                    analyzerCts ??= CancellationTokenSource.CreateLinkedTokenSource(cancellationToken); // <Caravela /> ??=
+                    analyzerExceptionDiagnostics ??= new DiagnosticBag(); // <Caravela /> ??=
 
                     // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
                     //  1. Always filter out 'Hidden' analyzer diagnostics in build.
@@ -1462,10 +1550,7 @@ namespace Microsoft.CodeAnalysis
                             if (!diagnostics.IsEmptyWithoutResolution)
                             {
                                 // Apply diagnostic suppressions for analyzer and/or compiler diagnostics from diagnostic suppressors.
-                                analyzerDriver.ApplyProgrammaticSuppressions(
-                                    diagnostics,
-                                    compilation
-                                    );
+                                analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
                             }
                         }
                     }
