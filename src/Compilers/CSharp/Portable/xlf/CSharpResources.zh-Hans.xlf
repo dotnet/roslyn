@@ -3476,11 +3476,6 @@
         <target state="translated">使用未赋值的局部变量</target>
         <note />
       </trans-unit>
-      <trans-unit id="WrongSyntaxType">
-        <source>Expected a '{0}' SyntaxNode.</source>
-        <target state="new">Expected a '{0}' SyntaxNode.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="XML_InvalidToken">
         <source>The character(s) '{0}' cannot be used at this location.</source>
         <target state="translated">此位置无法使用字符“{0}”。</target>

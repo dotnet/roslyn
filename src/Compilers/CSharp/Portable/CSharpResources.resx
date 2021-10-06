@@ -4578,9 +4578,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WrongSemanticModelType" xml:space="preserve">
     <value>Expected a {0} SemanticModel.</value>
   </data>
-  <data name="WrongSyntaxType" xml:space="preserve">
-    <value>Expected a '{0}' SyntaxNode.</value>
-  </data>
   <data name="IDS_FeatureLambda" xml:space="preserve">
     <value>lambda expression</value>
   </data>

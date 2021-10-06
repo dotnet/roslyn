@@ -3470,11 +3470,6 @@
         <target state="translated">할당되지 않은 지역 변수 사용</target>
         <note />
       </trans-unit>
-      <trans-unit id="WrongSyntaxType">
-        <source>Expected a '{0}' SyntaxNode.</source>
-        <target state="new">Expected a '{0}' SyntaxNode.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="XML_InvalidToken">
         <source>The character(s) '{0}' cannot be used at this location.</source>
         <target state="translated">'{0}' 문자를 이 위치에 사용할 수 없습니다.</target>

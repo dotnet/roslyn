@@ -3471,11 +3471,6 @@
         <target state="translated">使用未指派的區域變數</target>
         <note />
       </trans-unit>
-      <trans-unit id="WrongSyntaxType">
-        <source>Expected a '{0}' SyntaxNode.</source>
-        <target state="new">Expected a '{0}' SyntaxNode.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="XML_InvalidToken">
         <source>The character(s) '{0}' cannot be used at this location.</source>
         <target state="translated">此位置不可使用字元 '{0}'。</target>

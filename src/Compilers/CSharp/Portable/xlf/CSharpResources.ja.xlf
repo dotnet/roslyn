@@ -3471,11 +3471,6 @@
         <target state="translated">割り当てられていないローカル変数の使用</target>
         <note />
       </trans-unit>
-      <trans-unit id="WrongSyntaxType">
-        <source>Expected a '{0}' SyntaxNode.</source>
-        <target state="new">Expected a '{0}' SyntaxNode.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="XML_InvalidToken">
         <source>The character(s) '{0}' cannot be used at this location.</source>
         <target state="translated">文字 '{0}' はこの位置では使用できません。</target>
