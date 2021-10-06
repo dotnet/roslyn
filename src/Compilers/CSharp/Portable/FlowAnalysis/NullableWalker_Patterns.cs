@@ -511,7 +511,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             // this[Index]
                                             var indexer = AsMemberOfType(inputType, e.IndexerAccess.Indexer);
                                             type = indexer.GetTypeOrReturnType();
-
                                         }
                                         else if (e.IndexerSymbol is not null)
                                         {
