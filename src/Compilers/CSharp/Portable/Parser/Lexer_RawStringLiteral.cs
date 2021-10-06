@@ -58,12 +58,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 ScanSingleLineRawStringLiteral(ref info, startingQuoteCount);
             }
 
-            // If we encounter any errors while scanning this raw string, then always treat its constant value
-            // as unknown.
+            // If we encounter any errors while scanning this raw string then we can't really determine the true
+            // value of the string.  So just do what we do with the normal strings and treat the contents as the
+            // value from after the starting quote to the current position.  Note that for normal strings this will
+            // have interpreted things like escape sequences.  However, as we're a raw string and there are no 
+            // escapes, we can just grab the text block directly.  This does mean that things like leading indentation
+            // will not be stripped, and that multiline raw strings will contain the contents of their first line.
+            // However, as this is error code anyways, the interpretation of the value is fine for us to define
+            // however we want.  The user can (and should) check for the presence of diagnostics before blindly
+            // trusting the contents.
             if (this.HasErrors)
-                info.StringValue = "";
+            {
+                var afterStartDelimiter = TextWindow.LexemeStartPosition + startingQuoteCount;
+                var valueLength = TextWindow.Position - afterStartDelimiter;
 
-            Debug.Assert(info.StringValue != null);
+                info.StringValue = TextWindow.GetText(
+                    position: afterStartDelimiter,
+                    length: valueLength,
+                    intern: true);
+            }
+            else
+            {
+                // If we didn't have an error, the subroutines better have set the string value for this literal.
+                Debug.Assert(info.StringValue != null);
+            }
+
             info.Text = TextWindow.GetText(intern: true);
         }
 
