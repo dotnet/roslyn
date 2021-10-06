@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -54,8 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             public TestContext(TestWorkspace workspace)
             {
                 Workspace = workspace;
-
-                _metadataAsSourceService = new MetadataAsSourceFileService(new DecompilationMetadataAsSourceFileProvider());
+                _metadataAsSourceService = Workspace.GetService<IMetadataAsSourceFileService>();
             }
 
             public Solution CurrentSolution
@@ -274,7 +274,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
     </Project>
 </Workspace>");
 
-                return TestWorkspace.Create(xmlString);
+                // We construct our own composition here because we only want the decompilation metadata as source provider
+                // to be available.
+                var composition = EditorTestCompositions.EditorFeatures
+                    .WithExcludedPartTypes(ImmutableHashSet.Create(typeof(IMetadataAsSourceFileProvider)))
+                    .AddParts(typeof(DecompilationMetadataAsSourceFileProvider));
+
+                return TestWorkspace.Create(xmlString, composition: composition);
             }
 
             internal Document GetDocument(MetadataAsSourceFile file)

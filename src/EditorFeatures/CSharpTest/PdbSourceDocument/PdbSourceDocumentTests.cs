@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Host;
@@ -419,11 +420,17 @@ public class C
                 ? $"PreprocessorSymbols=\"{string.Join(";", preprocessorSymbols)}\""
                 : "";
 
+            // We construct our own composition here because we only want the decompilation metadata as source provider
+            // to be available.
+            var composition = EditorTestCompositions.EditorFeatures
+                .WithExcludedPartTypes(ImmutableHashSet.Create(typeof(IMetadataAsSourceFileProvider)))
+                .AddParts(typeof(PdbSourceDocumentMetadataAsSourceFileProvider));
+
             using var workspace = TestWorkspace.Create(@$"
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"" {preprocessorSymbolsAttribute}>
     </Project>
-</Workspace>");
+</Workspace>", composition: composition);
 
             var project = workspace.CurrentSolution.Projects.First();
 

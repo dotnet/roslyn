@@ -50,13 +50,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             _rootTemporaryPath = Path.Combine(Path.GetTempPath(), "MetadataAsSource");
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should be marked with 'ImportingConstructorAttribute'", Justification = "Test constructor")]
-        internal MetadataAsSourceFileService(IMetadataAsSourceFileProvider provider)
-        {
-            _providers = ImmutableArray<IMetadataAsSourceFileProvider>.Empty.Add(provider);
-            _rootTemporaryPath = Path.Combine(Path.GetTempPath(), "MetadataAsSource");
-        }
-
         private static string CreateMutexName(string directoryName)
             => "MetadataAsSource-" + directoryName;
 
