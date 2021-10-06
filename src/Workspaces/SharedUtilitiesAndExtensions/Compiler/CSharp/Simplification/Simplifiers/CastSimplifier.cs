@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
             SemanticModel originalSemanticModel, CancellationToken cancellationToken)
         {
-            #region blacklist cases that disqualify this cast from being removed.
+            #region blocked cases that disqualify this cast from being removed.
 
             // Can't remove casts in code that has syntax errors.
             if (castNode.WalkUpParentheses().ContainsDiagnostics)
@@ -96,9 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (CastRemovalWouldCauseSignExtensionWarning(castNode, originalSemanticModel, cancellationToken))
                 return false;
 
-            #endregion blacklist cases
+            #endregion blocked cases
 
-            #region whitelist cases
+            #region allowed cases
 
             // There are cases in the roslyn API where a direct cast does not result in a conversion operation
             // (for example, casting a anonymous-method to a delegate type).  We have to handle these cases
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     castNode, castedExpressionNode, originalSemanticModel, originalDelegateCreationOperation, cancellationToken);
             }
 
-            #endregion whitelist cases
+            #endregion allowed cases
 
             return false;
         }
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             SemanticModel originalSemanticModel, IConversionOperation originalConversionOperation,
             CancellationToken cancellationToken)
         {
-            #region blacklist cases
+            #region blocked cases
 
             // If the conversion doesn't exist then we can't do anything with this as the code isn't
             // semantically valid.
@@ -477,9 +477,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (IsIdentityFloatingPointCastThatMustBePreserved(castNode, castedExpressionNode, originalSemanticModel, cancellationToken))
                 return false;
 
-            #endregion blacklist cases
+            #endregion blocked cases
 
-            #region whitelist cases that allow this cast to be removed.
+            #region allowed cases that allow this cast to be removed.
 
             // In code like `((X)y).Z()` the cast to (X) can be removed if the same 'Z' method would be called.
             // The rules here can be subtle.  For example, if Z is virtual, and (X) is a cast up the inheritance
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return true;
             }
 
-            #endregion whitelist cases.
+            #endregion allowed cases.
 
             return false;
         }
