@@ -3322,7 +3322,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InlineTempDoesNotInsertUnnecessaryExplicitTypeInLambdaParameter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
             @"
 using System;
 
@@ -3356,7 +3356,7 @@ static class C
 
     static void Main()
     {
-        Outer(y => Inner(x => { Action a = () => x.GetType(); }, y), null);
+        Outer(y => Inner(x => { Action a = () => ((string)x).GetType(); }, y), null);
     }
 }
 ");
