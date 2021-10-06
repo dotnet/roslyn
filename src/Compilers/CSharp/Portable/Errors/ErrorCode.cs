@@ -2004,7 +2004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region diagnostics introduced for C# 11.0
 
-        // PROTOTYPE: renumber these if necessary.
+        // PROTOTYPE(raw-string-literals): renumber these if necessary.
         ERR_RawStringNotInDirectives = 9100,
         ERR_UnterminatedRawString = 9101,
         ERR_TooManyQuotesForRawString = 9102,
