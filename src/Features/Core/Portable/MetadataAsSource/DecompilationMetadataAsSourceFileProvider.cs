@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         public string Name => ProviderName;
 
         [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code")]
         public DecompilationMetadataAsSourceFileProvider()
         {
         }

@@ -54,7 +54,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             public TestContext(TestWorkspace workspace)
             {
                 Workspace = workspace;
-                _metadataAsSourceService = Workspace.GetService<IMetadataAsSourceFileService>();
+
+                _metadataAsSourceService = new MetadataAsSourceFileService(new DecompilationMetadataAsSourceFileProvider());
             }
 
             public Solution CurrentSolution
