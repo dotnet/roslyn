@@ -15,9 +15,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         public readonly TSyntaxNode? Node;
         public readonly EmbeddedSyntaxToken<TSyntaxKind> Token;
 
-        private EmbeddedSyntaxNodeOrToken(TSyntaxNode node) : this()
+        private EmbeddedSyntaxNodeOrToken(TSyntaxNode? node) : this()
         {
-            RoslynDebug.AssertNotNull(node);
             Node = node;
         }
 
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         [MemberNotNullWhen(true, nameof(Node))]
         public bool IsNode => Node != null;
 
-        public static implicit operator EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>(TSyntaxNode node)
+        public static implicit operator EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>(TSyntaxNode? node)
             => new(node);
 
         public static implicit operator EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>(EmbeddedSyntaxToken<TSyntaxKind> token)

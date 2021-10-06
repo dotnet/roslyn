@@ -36,16 +36,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         }
     }
 
-    internal sealed class StackFrameMethodDeclarationNode : StackFrameExpressionNode
+    internal sealed class StackFrameMethodDeclarationNode : StackFrameNode
     {
         public readonly StackFrameMemberAccessExpressionNode MemberAccessExpression;
         public readonly StackFrameTypeArgumentList? TypeArguments;
-        public readonly StackFrameArgumentList ArgumentList;
+        public readonly StackFrameParameterList ArgumentList;
 
         internal StackFrameMethodDeclarationNode(
             StackFrameMemberAccessExpressionNode memberAccessExpression,
             StackFrameTypeArgumentList? typeArguments,
-            StackFrameArgumentList argumentList)
+            StackFrameParameterList argumentList)
             : base(StackFrameKind.MethodDeclaration)
         {
             MemberAccessExpression = memberAccessExpression;
@@ -53,19 +53,19 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             ArgumentList = argumentList;
         }
 
-        internal override int ChildCount => TypeArguments is null ? 2 : 3;
+        internal override int ChildCount => 3;
 
         public override void Accept(IStackFrameNodeVisitor visitor)
             => visitor.Visit(this);
 
         internal override StackFrameNodeOrToken ChildAt(int index)
-         => index switch
-         {
-             0 => MemberAccessExpression,
-             1 => TypeArguments is null ? ArgumentList : TypeArguments,
-             2 => TypeArguments is null ? throw new InvalidOperationException() : ArgumentList,
-             _ => throw new InvalidOperationException(),
-         };
+             => index switch
+             {
+                 0 => MemberAccessExpression,
+                 1 => TypeArguments,
+                 2 => ArgumentList,
+                 _ => throw new InvalidOperationException(),
+             };
     }
 
     internal sealed class StackFrameMemberAccessExpressionNode : StackFrameExpressionNode
@@ -201,57 +201,49 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
     internal sealed class StackFrameTypeArgumentList : StackFrameNode
     {
-        public static readonly StackFrameTypeArgumentList Empty = new(ImmutableArray<StackFrameNodeOrToken>.Empty);
-        public StackFrameTypeArgumentList(ImmutableArray<StackFrameNodeOrToken> childNodesOrTokens) : base(StackFrameKind.TypeArgument)
+        public readonly StackFrameToken OpenToken;
+        public readonly StackFrameToken CloseToken;
+
+        public StackFrameTypeArgumentList(StackFrameToken openToken, ImmutableArray<StackFrameNodeOrToken> childNodesOrTokens, StackFrameToken closeToken) : base(StackFrameKind.TypeArgument)
         {
-#if DEBUG
-            // The list should contain an open token, at least one identifier, and a close token
-            Debug.Assert(childNodesOrTokens.Length >= 3);
-            for (var i = 0; i < childNodesOrTokens.Length; i++)
-            {
-                var nodeOrToken = childNodesOrTokens[i];
+            Debug.Assert(openToken.Kind is StackFrameKind.OpenBracketToken or StackFrameKind.LessThanToken);
+            Debug.Assert(openToken.Kind == StackFrameKind.OpenBracketToken ? closeToken.Kind == StackFrameKind.CloseBracketToken : closeToken.Kind == StackFrameKind.GreaterThanToken);
+            Debug.Assert(childNodesOrTokens.All(nodeOrToken => nodeOrToken.IsNode
+                ? nodeOrToken.Node is StackFrameTypeArgument
+                : nodeOrToken.Token.Kind == StackFrameKind.CommaToken));
 
-                if (i == 0)
-                {
-                    Debug.Assert(nodeOrToken.Token.Kind is StackFrameKind.OpenBracketToken or StackFrameKind.LessThanToken);
-                    continue;
-                }
-
-                if (i == childNodesOrTokens.Length - 1)
-                {
-                    var openToken = childNodesOrTokens[0].Token;
-                    switch (openToken.Kind)
-                    {
-                        case StackFrameKind.OpenBracketToken: Debug.Assert(nodeOrToken.Token.Kind == StackFrameKind.CloseBracketToken); break;
-                        case StackFrameKind.LessThanToken: Debug.Assert(nodeOrToken.Token.Kind == StackFrameKind.GreaterThanToken); break;
-                        default: throw ExceptionUtilities.UnexpectedValue(openToken.Kind);
-                    }
-
-                    continue;
-                }
-
-                if (nodeOrToken.IsNode)
-                {
-                    Debug.Assert(nodeOrToken.Node is StackFrameTypeArgument);
-                }
-                else
-                {
-                    Debug.Assert(nodeOrToken.Token.Kind == StackFrameKind.CommaToken);
-                }
-            }
-#endif
+            OpenToken = openToken;
+            CloseToken = closeToken;
             _childNodesOrTokens = childNodesOrTokens;
+            ChildCount = childNodesOrTokens.Length + 2;
         }
 
         private readonly ImmutableArray<StackFrameNodeOrToken> _childNodesOrTokens;
 
-        internal override int ChildCount => _childNodesOrTokens.Length;
+        internal override int ChildCount { get; }
 
         public override void Accept(IStackFrameNodeVisitor visitor)
             => visitor.Visit(this);
 
         internal override StackFrameNodeOrToken ChildAt(int index)
-            => _childNodesOrTokens[index];
+        {
+            if (index >= ChildCount)
+            {
+                throw new InvalidOperationException();
+            }
+
+            if (index == 0)
+            {
+                return OpenToken;
+            }
+
+            if (index == ChildCount - 1)
+            {
+                return CloseToken;
+            }
+
+            return _childNodesOrTokens[index - 1];
+        }
     }
 
     internal sealed class StackFrameTypeArgument : StackFrameBaseIdentifierNode
@@ -280,51 +272,50 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             => new StackFrameTypeArgument(Identifier.With(trailingTrivia: ImmutableArray.Create(trailingTrivia)));
     }
 
-    internal sealed class StackFrameArgumentList : StackFrameNode
+    internal sealed class StackFrameParameterList : StackFrameNode
     {
+        public readonly StackFrameToken OpenParen;
+        public readonly StackFrameToken CloseParen;
         private readonly ImmutableArray<StackFrameNodeOrToken> _childNodesOrTokens;
 
-        public StackFrameArgumentList(ImmutableArray<StackFrameNodeOrToken> childNodesOrTokens) : base(StackFrameKind.ArgumentList)
+        public StackFrameParameterList(StackFrameToken openParen, ImmutableArray<StackFrameNodeOrToken> childNodesOrTokens, StackFrameToken closeParen) : base(StackFrameKind.ParameterList)
         {
-#if DEBUG
-            // The list should contain an open and close token, and optionally parameter definitions (each being type and name)
-            Debug.Assert(childNodesOrTokens.Length == 2 || childNodesOrTokens.Length >= 4);
-            for (var i = 0; i < childNodesOrTokens.Length; i++)
-            {
-                var nodeOrToken = childNodesOrTokens[i];
+            Debug.Assert(openParen.Kind == StackFrameKind.OpenParenToken);
+            Debug.Assert(closeParen.Kind == StackFrameKind.CloseParenToken);
+            Debug.Assert(childNodesOrTokens.All(nodeOrToken => nodeOrToken.IsNode
+                ? nodeOrToken.Node is StackFrameIdentifierNode or StackFrameMemberAccessExpressionNode or StackFrameArrayExpressionNode
+                : nodeOrToken.Token.Kind is StackFrameKind.CommaToken));
 
-                if (i == 0)
-                {
-                    Debug.Assert(nodeOrToken.Token.Kind is StackFrameKind.OpenParenToken);
-                    continue;
-                }
-
-                if (i == childNodesOrTokens.Length - 1)
-                {
-                    Debug.Assert(nodeOrToken.Token.Kind is StackFrameKind.CloseParenToken);
-                    continue;
-                }
-
-                if (nodeOrToken.IsNode)
-                {
-                    Debug.Assert(nodeOrToken.Node is StackFrameIdentifierNode or StackFrameMemberAccessExpressionNode or StackFrameArrayExpressionNode);
-                }
-                else
-                {
-                    Debug.Assert(nodeOrToken.Token.Kind is StackFrameKind.CommaToken or StackFrameKind.TextToken);
-                }
-            }
-#endif
+            OpenParen = openParen;
+            CloseParen = closeParen;
             _childNodesOrTokens = childNodesOrTokens;
+            ChildCount = _childNodesOrTokens.Length + 2;
         }
 
-        internal override int ChildCount => _childNodesOrTokens.Length;
+        internal override int ChildCount { get; }
 
         public override void Accept(IStackFrameNodeVisitor visitor)
             => visitor.Visit(this);
 
         internal override StackFrameNodeOrToken ChildAt(int index)
-            => _childNodesOrTokens[index];
+        {
+            if (index >= ChildCount)
+            {
+                throw new InvalidOperationException();
+            }
+
+            if (index == 0)
+            {
+                return OpenParen;
+            }
+
+            if (index == ChildCount - 1)
+            {
+                return CloseParen;
+            }
+
+            return _childNodesOrTokens[index - 1];
+        }
     }
 
     internal sealed class StackFrameFileInformationNode : StackFrameNode

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         void Visit(StackFrameMethodDeclarationNode stackFrameMethodDeclarationNode);
         void Visit(StackFrameMemberAccessExpressionNode stackFrameMemberAccessExpressionNode);
         void Visit(StackFrameTypeArgumentList stackFrameTypeArguments);
-        void Visit(StackFrameArgumentList stackFrameArgumentList);
+        void Visit(StackFrameParameterList stackFrameArgumentList);
         void Visit(StackFrameIdentifierNode stackFrameIdentifierNode);
         void Visit(StackFrameGenericTypeIdentifier stackFrameGenericTypeIdentifier);
         void Visit(StackFrameTypeArgument stackFrameTypeArgument);

@@ -99,5 +99,63 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 
             AssertEqual(expectedMethodDeclaration, methodDeclaration);
         }
+
+        [Fact]
+        public void TestGenericMethod_Brackets()
+        {
+            var input = @"at ConsoleApp4.MyClass.M[T](T t)";
+            var tree = StackFrameParser.TryParse(input);
+            AssertEx.NotNull(tree);
+
+            Assert.True(tree.Root.AtTrivia.HasValue);
+            Assert.False(tree.Root.InTrivia.HasValue);
+            Assert.Null(tree.Root.FileInformationExpression);
+            Assert.False(tree.Root.TrailingTrivia.HasValue);
+
+            var methodDeclaration = tree.Root.MethodDeclaration;
+
+            var expectedMethodDeclaration = MethodDeclaration(
+                MemberAccessExpression(
+                    MemberAccessExpression(
+                        Identifier("ConsoleApp4"),
+                        Identifier("MyClass")),
+                    Identifier("M")),
+                typeArgumnets: TypeArgumentList(useBrackets: true, TypeArgument("T")),
+                argumentList: ArgumentList(
+                    Identifier("T", trailingTrivia: CreateTriviaArray(SpaceTrivia)),
+                    Identifier("t"))
+                );
+
+            AssertEqual(expectedMethodDeclaration, methodDeclaration);
+        }
+
+        [Fact]
+        public void TestGenericMethod()
+        {
+            var input = @"at ConsoleApp4.MyClass.M<T>(T t)";
+            var tree = StackFrameParser.TryParse(input);
+            AssertEx.NotNull(tree);
+
+            Assert.True(tree.Root.AtTrivia.HasValue);
+            Assert.False(tree.Root.InTrivia.HasValue);
+            Assert.Null(tree.Root.FileInformationExpression);
+            Assert.False(tree.Root.TrailingTrivia.HasValue);
+
+            var methodDeclaration = tree.Root.MethodDeclaration;
+
+            var expectedMethodDeclaration = MethodDeclaration(
+                MemberAccessExpression(
+                    MemberAccessExpression(
+                        Identifier("ConsoleApp4"),
+                        Identifier("MyClass")),
+                    Identifier("M")),
+                typeArgumnets: TypeArgumentList(useBrackets: false, TypeArgument("T")),
+                argumentList: ArgumentList(
+                    Identifier("T", trailingTrivia: CreateTriviaArray(SpaceTrivia)),
+                    Identifier("t"))
+                );
+
+            AssertEqual(expectedMethodDeclaration, methodDeclaration);
+        }
     }
 }

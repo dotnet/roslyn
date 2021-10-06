@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         GenericTypeIdentifier,
         TypeArgument,
         TypeIdentifier,
-        ArgumentList,
+        ParameterList,
         ArrayExpression,
 
         // Tokens 

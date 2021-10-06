@@ -39,7 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         private static readonly StackFrameToken CloseParenToken = CreateToken(StackFrameKind.CloseParenToken, ")");
         private static readonly StackFrameToken OpenBracketToken = CreateToken(StackFrameKind.OpenBracketToken, "[");
         private static readonly StackFrameToken CloseBracketToken = CreateToken(StackFrameKind.CloseBracketToken, "]");
-        private static readonly StackFrameToken SpaceToken = CreateToken(StackFrameKind.TextToken, " ");
+        private static readonly StackFrameToken LessThanToken = CreateToken(StackFrameKind.LessThanToken, "<");
+        private static readonly StackFrameToken GreaterThanToken = CreateToken(StackFrameKind.GreaterThanToken, ">");
+        private static readonly StackFrameToken AccentGraveToken = CreateToken(StackFrameKind.GraveAccentToken, "`");
 
         private static readonly StackFrameTrivia SpaceTrivia = CreateTrivia(StackFrameKind.WhitespaceTrivia, " ");
 
@@ -199,15 +201,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             Assert.Equal(expected.VirtualChars.CreateString(), actual.VirtualChars.CreateString());
         }
 
-        private static StackFrameArgumentList ArgumentList(params StackFrameNodeOrToken[] nodesOrTokens)
-        {
-            var nodesWithParens = nodesOrTokens.Prepend(OpenParenToken).Append(CloseParenToken).ToImmutableArray();
-            return new StackFrameArgumentList(nodesWithParens);
-        }
+        private static StackFrameParameterList ArgumentList(params StackFrameNodeOrToken[] nodesOrTokens)
+            => new(OpenParenToken, nodesOrTokens.ToImmutableArray(), CloseParenToken);
 
         private static StackFrameMethodDeclarationNode MethodDeclaration(
             StackFrameMemberAccessExpressionNode memberAccessExpression,
-            StackFrameArgumentList argumentList,
+            StackFrameParameterList argumentList,
             StackFrameTypeArgumentList? typeArgumnets = null)
         {
             return new StackFrameMethodDeclarationNode(memberAccessExpression, typeArgumnets, argumentList);
@@ -221,5 +220,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 
         private static StackFrameArrayExpressionNode ArrayExpression(StackFrameExpressionNode identifier, params StackFrameToken[] arrayTokens)
             => new(identifier, arrayTokens.ToImmutableArray());
+
+        private static StackFrameGenericTypeIdentifier GenericType(string identifierName, int arity)
+            => new(CreateToken(StackFrameKind.IdentifierToken, identifierName), AccentGraveToken, CreateToken(StackFrameKind.TextToken, arity.ToString()));
+
+        private static StackFrameTypeArgumentList TypeArgumentList(bool useBrackets, params StackFrameTypeArgument[] typeArguments)
+        {
+            using var _ = PooledObjects.ArrayBuilder<StackFrameNodeOrToken>.GetInstance(out var builder);
+            var openToken = useBrackets ? OpenBracketToken : LessThanToken;
+            var closeToken = useBrackets ? CloseBracketToken : GreaterThanToken;
+
+            var isFirst = true;
+            foreach (var typeArgument in typeArguments)
+            {
+                if (isFirst)
+                {
+                    isFirst = false;
+                }
+                else
+                {
+                    builder.Add(CommaToken);
+                }
+
+                builder.Add(typeArgument);
+            }
+
+            return new(openToken, builder.ToImmutable(), closeToken);
+        }
+
+        private static StackFrameTypeArgument TypeArgument(string identifier)
+            => new(CreateToken(StackFrameKind.IdentifierToken, identifier));
     }
 }

@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     internal struct StackFrameParser
     {
         private StackFrameLexer _lexer;
+
+        /// <summary>
+        /// The current token that has been consumed by the parse. Note that the lexer position
+        /// will be one character ahead to represent the next token to be consumed.
+        /// </summary>
         private StackFrameToken CurrentToken => _lexer.PreviousCharAsToken();
 
         private StackFrameParser(VirtualCharSequence text)
@@ -55,6 +60,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         public static StackFrameTree? TryParse(string text)
             => TryParse(VirtualCharSequence.Create(0, text));
 
+        /// <summary>
+        /// Attempts to parse the full tree. Returns null on malformed data
+        /// </summary>
         private StackFrameTree? ParseTree()
         {
             var atTrivia = _lexer.ScanAtTrivia();
@@ -80,6 +88,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 _lexer.Text, root, ImmutableArray<EmbeddedDiagnostic>.Empty);
         }
 
+        /// <summary>
+        /// Attempts to parse the full method declaration, optionally adding leading whitespace as trivia. Includes
+        /// all of the generic indicators for types, 
+        /// 
+        /// Ex: [|MyClass.MyMethod(string s)|]
+        /// </summary>
         private StackFrameMethodDeclarationNode? ParseMethodDeclaration(bool addLeadingWhitespaceAsTrivia)
         {
             var identifierExpression = ParseIdentifierExpression(addLeadingWhitespaceAsTrivia: addLeadingWhitespaceAsTrivia);
@@ -89,7 +103,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             }
 
             var typeArguments = ParseTypeArguments();
-            var arguments = ParseMethodArguments();
+            var arguments = ParseMethodParameters();
 
             if (arguments is null)
             {
@@ -100,8 +114,22 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         }
 
         /// <summary>
-        /// Parses an identifier expression which could either be a <see cref="StackFrameBaseIdentifierNode"/> or <see cref="StackFrameMemberAccessExpressionNode"/>
+        /// Parses an identifier expression which could either be a <see cref="StackFrameBaseIdentifierNode"/> or <see cref="StackFrameMemberAccessExpressionNode" />. Combines
+        /// identifiers that are separated by <see cref="StackFrameKind.DotToken"/> into <see cref="StackFrameMemberAccessExpressionNode" />.
+        /// 
+        /// Identifiers will be parsed for arity but not generic type arguments.
+        ///
+        /// All of the following are valid identifiers, where "$$" marks the parsing starting point, and "[|" + "|]" mark the endpoints of the parsed identifier including trivia
+        ///   * [|$$MyNamespace.MyClass.MyMethod|](string s)
+        ///   * MyClass.MyMethod([|$$string |]s)
+        ///   * MyClass.MyMethod(string [|$$s|]) // <paramref name="addLeadingWhitespaceAsTrivia"/> = false
+        ///   * MyClass.MyMethod(string[| $$s|]) // <paramref name="addLeadingWhitespaceAsTrivia"/> = true
+        ///   * [|$$MyClass`1.MyMethod|](string s)
+        ///   * [|$$MyClass.MyMethod|][T](T t)
         /// </summary>
+        /// <param name="addLeadingWhitespaceAsTrivia">
+        ///   Set to true if leading whitespaces before the identifier should be considered leading trivia.
+        /// </param>
         private StackFrameExpressionNode? ParseIdentifierExpression(bool addLeadingWhitespaceAsTrivia)
         {
             Queue<(StackFrameBaseIdentifierNode identifier, StackFrameToken separator)> typeIdentifierNodes = new();
@@ -193,39 +221,63 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                     or StackFrameKind.WhitespaceToken;
         }
 
+        /// <summary>
+        /// Type arguments for stacks are only valid on method declarations, and can have either '[' or '&lt;' as the 
+        /// starting character depending on output source.
+        /// 
+        /// ex: MyNamespace.MyClass.MyMethod[T](T t)
+        /// 
+        /// Assumes the identifier "MyMethod" has already been parsed, and the type arguments will need to be parsed. 
+        /// Returns null if no type arguments are found or if they are malformed.
+        /// </summary>
         private StackFrameTypeArgumentList? ParseTypeArguments()
         {
-            if (CurrentToken.Kind is not StackFrameKind.OpenBracketToken or StackFrameKind.LessThanToken)
+            if (CurrentToken.Kind is not (StackFrameKind.OpenBracketToken or StackFrameKind.LessThanToken))
             {
                 return null;
             }
 
-            var useCloseBracket = CurrentToken.Kind is StackFrameKind.OpenBracketToken;
-
-            Func<StackFrameToken, bool> stopParsing = (token) => useCloseBracket ? token.Kind == StackFrameKind.CloseBracketToken : token.Kind == StackFrameKind.GreaterThanToken;
+            var openToken = CurrentToken;
+            var useCloseBracket = openToken.Kind is StackFrameKind.OpenBracketToken;
 
             using var _ = ArrayBuilder<StackFrameNodeOrToken>.GetInstance(out var builder);
-            builder.Add(CurrentToken);
-
             var currentIdentifier = _lexer.ScanIdentifier();
+            StackFrameToken? closeToken = null;
 
             while (currentIdentifier.HasValue && currentIdentifier.Value.Kind == StackFrameKind.IdentifierToken)
             {
-                builder.Add(currentIdentifier.Value);
-                builder.Add(CurrentToken);
+                builder.Add(new StackFrameTypeArgument(currentIdentifier.Value));
 
-                if (stopParsing(CurrentToken))
+                if ((useCloseBracket && CurrentToken.Kind == StackFrameKind.CloseBracketToken)
+                    || CurrentToken.Kind == StackFrameKind.GreaterThanToken)
                 {
+                    closeToken = CurrentToken;
+
+                    // Consume the token and move on to the next one, since it is already added
+                    // to the list of items for the TypeArgumentList
+                    _lexer.Position++;
                     break;
                 }
 
+                builder.Add(CurrentToken);
                 currentIdentifier = _lexer.ScanIdentifier();
             }
 
-            return new StackFrameTypeArgumentList(builder.ToImmutable());
+            if (!closeToken.HasValue)
+            {
+                return null;
+            }
+
+            return new StackFrameTypeArgumentList(openToken, builder.ToImmutable(), closeToken.Value);
         }
 
-        private StackFrameArgumentList? ParseMethodArguments()
+        /// <summary>
+        /// MyNamespace.MyClass.MyMethod[|(string s1, string s2, int i1)|]
+        /// Takes parameter declarations from method text and parses them into a <see cref="StackFrameParameterList"/>. 
+        /// 
+        /// Returns null in cases where the input is malformed.
+        /// </summary>
+        private StackFrameParameterList? ParseMethodParameters()
         {
             if (CurrentToken.Kind != StackFrameKind.OpenParenToken)
             {
@@ -233,7 +285,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             }
 
             using var _ = ArrayBuilder<StackFrameNodeOrToken>.GetInstance(out var builder);
-            builder.Add(CurrentToken);
+            var openParen = CurrentToken;
 
             var identifier = ParseIdentifierExpression(addLeadingWhitespaceAsTrivia: true);
             while (identifier is not null)
@@ -248,16 +300,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                     builder.Add(identifier);
                 }
 
+                if (CurrentToken.Kind == StackFrameKind.CloseParenToken)
+                {
+                    return new StackFrameParameterList(openParen, builder.ToImmutable(), CurrentToken);
+                }
+
                 // Let whitespace get added as trivia to the identifiers
                 // for the parameters
                 if (CurrentToken.Kind != StackFrameKind.WhitespaceToken)
                 {
                     builder.Add(CurrentToken);
-                }
-
-                if (CurrentToken.Kind == StackFrameKind.CloseParenToken)
-                {
-                    return new StackFrameArgumentList(builder.ToImmutable());
                 }
 
                 var addLeadingWhitespaceAsTrivia = identifier.ChildAt(identifier.ChildCount - 1).Token.TrailingTrivia.IsDefaultOrEmpty;
@@ -271,9 +323,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return null;
             }
 
-            return new StackFrameArgumentList(builder.ToImmutable());
+            return new StackFrameParameterList(openParen, builder.ToImmutable(), CurrentToken);
         }
 
+        /// <summary>
+        /// Given an input like "string[]" where "string" is the existing <paramref name="identifier"/>
+        /// passed in, converts it into <see cref="StackFrameExpressionNode"/> by parsing the array portion
+        /// of the identifier.
+        /// </summary>
         private StackFrameExpressionNode ParseArrayIdentifier(StackFrameExpressionNode identifier)
         {
             if (CurrentToken.Kind != StackFrameKind.OpenBracketToken)
