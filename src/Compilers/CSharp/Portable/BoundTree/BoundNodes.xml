@@ -956,7 +956,6 @@
   -->
   <Node Name="BoundUsingLocalDeclarations" Base="BoundMultipleLocalDeclarationsBase">
     <Field Name="PatternDisposeInfoOpt" Type="MethodArgumentInfo?"/>
-    <Field Name="IDisposableConversion" Type="Conversion"/>
     <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
   </Node>
 
@@ -1122,7 +1121,6 @@
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="DeclarationsOpt" Type="BoundMultipleLocalDeclarations?"/>
     <Field Name="ExpressionOpt" Type="BoundExpression?"/>
-    <Field Name="IDisposableConversion" Type="Conversion" />
     <Field Name="Body" Type="BoundStatement"/>
     <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
     <Field Name="PatternDisposeInfoOpt" Type="MethodArgumentInfo?"/>
