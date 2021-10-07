@@ -762,8 +762,8 @@ namespace Microsoft.CodeAnalysis
         // <Caravela>
 
         private protected virtual TransformersResult RunTransformers(
-            Compilation inputCompilation, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins,
-            AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics)
+            Compilation inputCompilation, ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions sourceOnlyAnalyzersOptions,
+            ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             return TransformersResult.Empty(inputCompilation);
 
@@ -1027,35 +1027,25 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void ExecuteSourceOnlyAnalyzers(AnalyzerConfigOptionsProvider options, AnalyzerOptions analyzerOptions,
-            ref ImmutableArray<DiagnosticAnalyzer> analyzers,
-            Compilation compilation, DiagnosticBag diagnostics,
-            ref DiagnosticBag? analyzerExceptionDiagnostics, CancellationToken cancellationToken)
+        internal record SourceOnlyAnalyzersOptions(AnalyzerOptions AnalyzerOptions,
+            ImmutableArray<DiagnosticAnalyzer> Analyzers, SeverityFilter SeverityFilter, bool ReportAnalyzer);
+
+        protected static Compilation ExecuteSourceOnlyAnalyzers(SourceOnlyAnalyzersOptions options, Compilation compilation, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             // Split analyzers between those that need to run before transformations, and those that must run after. 
-            (var sourceOnlyAnalyzers, analyzers) = SplitAnalyzers(options, analyzers);
-
-            if (!sourceOnlyAnalyzers.IsEmpty)
+            
+            if (!options.Analyzers.IsEmpty)
             {
-                analyzerExceptionDiagnostics = new DiagnosticBag();
-
-                // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
-                //  1. Always filter out 'Hidden' analyzer diagnostics in build.
-                //  2. Filter out 'Info' analyzer diagnostics if they are not required to be logged in errorlog.
-                var severityFilter = SeverityFilter.Hidden;
-                if (Arguments.ErrorLogPath == null)
-                    severityFilter |= SeverityFilter.Info;
-
-                var analyzerManager = new AnalyzerManager(sourceOnlyAnalyzers);
+                var analyzerManager = new AnalyzerManager(options.Analyzers);
                 
                 using var sourceOnlyAnalyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
                     compilation,
-                    sourceOnlyAnalyzers,
-                    analyzerOptions,
+                    options.Analyzers,
+                    options.AnalyzerOptions,
                     analyzerManager,
-                    analyzerExceptionDiagnostics.Add,
-                    Arguments.ReportAnalyzer,
-                    severityFilter,
+                    diagnostics.Add,
+                    options.ReportAnalyzer,
+                    options.SeverityFilter,
                     out var compilationWithSourceOnlyAnalyzers,
                     cancellationToken);
 
@@ -1073,6 +1063,12 @@ namespace Microsoft.CodeAnalysis
                     sourceOnlyAnalyzerDriver.ApplyProgrammaticSuppressions(diagnostics,
                         compilationWithSourceOnlyAnalyzers);
                 }
+
+                return compilationWithSourceOnlyAnalyzers;
+            }
+            else
+            {
+                return compilation;
             }
         }
 
@@ -1226,19 +1222,28 @@ namespace Microsoft.CodeAnalysis
 
                 if (!transfomers.IsEmpty)
                 {
+                    // Split analyzers between those that must run on source code only and those that will run on transformed code.
+                    (var sourceOnlyAnalyzers, analyzers) = SplitAnalyzers(analyzerConfigProvider, analyzers);
+                    
+                    // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
+                    //  1. Always filter out 'Hidden' analyzer diagnostics in build.
+                    //  2. Filter out 'Info' analyzer diagnostics if they are not required to be logged in errorlog.
+                    var severityFilter = SeverityFilter.Hidden;
+                    if (Arguments.ErrorLogPath == null)
+                        severityFilter |= SeverityFilter.Info;
+
+                    var sourceOnlyAnalyzerOptions = new SourceOnlyAnalyzersOptions(
+                        analyzerOptions, sourceOnlyAnalyzers, severityFilter, Arguments.ReportAnalyzer);
+                    
                     // Execute transformers.
                     var compilationBeforeTransformation = compilation;
                     var transformersDiagnostics = new DiagnosticBag();
-                    var transformersResult = RunTransformers(compilationBeforeTransformation, transfomers, plugins, analyzerConfigProvider, transformersDiagnostics);
+                    var transformersResult = RunTransformers(compilationBeforeTransformation, transfomers, sourceOnlyAnalyzerOptions, plugins, analyzerConfigProvider, transformersDiagnostics, cancellationToken );
                     compilation = transformersResult.TransformedCompilation;
                     
                     // Map diagnostics to the final compilation, because suppressors need it.
                     MapDiagnosticSyntaxTreesToFinalCompilation(transformersDiagnostics, diagnostics, compilation);
                     
-                    // Execute the analyzers that should run on the source code.
-                    // We run them on the annotated compilation and not on the source compilation because this compilation is likely to be largely analyzed by the transformers. 
-                    ExecuteSourceOnlyAnalyzers(analyzerConfigProvider, analyzerOptions, ref analyzers, transformersResult.AnnotatedInputCompilation, diagnostics, ref analyzerExceptionDiagnostics, cancellationToken);
-
                     // Fix whitespaces in generated syntax trees, embed them into the PDB or write them to disk.
                     bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
                     var transformedOutputPath = GetTransformedFilesOutputDirectory(analyzerConfigProvider)!;
@@ -1684,10 +1689,7 @@ namespace Microsoft.CodeAnalysis
                 RoslynDebug.Assert(compilation.ContainsSyntaxTree(finalTree));
 
                 // Find the node in the final tree corresponding to the node in the original tree.
-                var finalNode = finalTree.GetRoot().DescendantNodes().FirstOrDefault(n =>
-                    TreeTracker.GetSourceSyntaxNode(n) == sourceSyntaxNode);
-
-                if (finalNode == null)
+                if (!TryFindSourceNodeInFinalSyntaxTree(sourceSyntaxNode, finalTree, out var finalNode))
                 {
                     // The diagnostic was reported on a node that has been removed by another transformation.
                     // It can be skipped.
@@ -1697,6 +1699,38 @@ namespace Microsoft.CodeAnalysis
                 targetDiagnostics.Add(diagnostic.WithLocation(finalNode.Location));
             }
 
+        }
+
+        private static bool TryFindSourceNodeInFinalSyntaxTree(SyntaxNode sourceNode, SyntaxTree finalSyntaxTree,
+            [NotNullWhen(true)] out SyntaxNode? finalNode)
+        {
+            if (sourceNode.Parent == null)
+            {
+                finalNode = finalSyntaxTree.GetRoot();
+                return true;
+            }
+            else
+            {
+                if (!TryFindSourceNodeInFinalSyntaxTree(sourceNode.Parent, finalSyntaxTree, out var finalParentNode))
+                {
+                    finalNode = null;
+                    return false;
+                }
+                else
+                {
+                    finalNode = finalParentNode.ChildNodes().FirstOrDefault( child => TreeTracker.GetSourceSyntaxNode( child) == sourceNode);
+
+                    if (finalNode == null)
+                    {
+                        // It is possible that the child node has been moved to a different parent by the transformation. In this case, we flatten
+                        // the subtree and look linearly in all descendants for the node. 
+                        finalNode = finalParentNode.DescendantNodes().FirstOrDefault(n => TreeTracker.GetSourceSyntaxNode(n) == sourceNode);
+                    }
+
+                    return finalNode != null;
+
+                }
+            }
         }
 
         // Remove warnings and analyzer errors in generated code.

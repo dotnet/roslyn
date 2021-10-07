@@ -23,8 +23,8 @@ namespace Roslyn.Test.Utilities
             var transformers = ImmutableArray.Create(transformer);
             var diagnostics = new DiagnosticBag();
 
-            var transformersResult =  CSharpCompiler.RunTransformers(
-                compilation, transformers, ImmutableArray.Create<object>(), CompilerAnalyzerConfigOptionsProvider.Empty, diagnostics, ImmutableArray<ResourceDescription>.Empty, null!);
+            var transformersResult = CSharpCompiler.RunTransformers(
+                compilation, transformers, null, ImmutableArray.Create<object>(), CompilerAnalyzerConfigOptionsProvider.Empty, diagnostics, ImmutableArray<ResourceDescription>.Empty, null!, CancellationToken.None);
 
             diagnostics.ToReadOnlyAndFree().Verify();
 

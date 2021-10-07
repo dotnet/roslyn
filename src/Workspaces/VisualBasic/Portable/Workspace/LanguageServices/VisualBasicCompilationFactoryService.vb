@@ -53,8 +53,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return VisualBasicGeneratorDriver.Create(generators, additionalTexts, DirectCast(parseOptions, VisualBasicParseOptions), optionsProvider)
         End Function
 
-        Public Function GetRunTransformersDelegate(transformers As ImmutableArray(Of ISourceTransformer), plugins As ImmutableArray(Of Object), analyzerConfigProvider As AnalyzerConfigOptionsProvider, assemblyLoader As IAnalyzerAssemblyLoader) As Func(Of Compilation, (Compilation, ImmutableArray(Of Diagnostic))) Implements ICompilationFactoryService.GetRunTransformersDelegate
-            Return Nothing
-        End Function
     End Class
 End Namespace

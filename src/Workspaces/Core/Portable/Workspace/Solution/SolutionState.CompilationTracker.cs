@@ -403,15 +403,6 @@ namespace Microsoft.CodeAnalysis
                 return compilationInfo.Compilation;
             }
 
-            // <Caravela>
-            public async Task<ImmutableArray<Diagnostic>> GetTransformerDiagnosticsAsync(SolutionState solution, CancellationToken cancellationToken)
-            {
-                var compilationInfo = await GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                return compilationInfo.TransformerDiagnostics;
-            }
-            // </Caravela>
-
             private async Task<Compilation> GetOrBuildDeclarationCompilationAsync(SolutionServices solutionServices, CancellationToken cancellationToken)
             {
                 try
@@ -483,9 +474,7 @@ namespace Microsoft.CodeAnalysis
                         if (finalCompilation != null)
                         {
                             RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
-                            // <Caravela>
-                            return new CompilationInfo(finalCompilation, state.HasSuccessfullyLoaded.Value, state.GeneratedDocuments, state.TransformerDiagnostics);
-                            // </Caravela>
+                            return new CompilationInfo(finalCompilation, state.HasSuccessfullyLoaded.Value, state.GeneratedDocuments);
                         }
 
                         // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
@@ -527,9 +516,7 @@ namespace Microsoft.CodeAnalysis
                 if (compilation != null)
                 {
                     RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
-                    // <Caravela>
-                    return Task.FromResult(new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value, state.GeneratedDocuments, state.TransformerDiagnostics));
-                    // </Caravela>
+                    return Task.FromResult(new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value, state.GeneratedDocuments));
                 }
 
                 compilation = state.CompilationWithoutGeneratedDocuments?.GetValueOrNull(cancellationToken);
@@ -719,18 +706,12 @@ namespace Microsoft.CodeAnalysis
                 public Compilation Compilation { get; }
                 public bool HasSuccessfullyLoaded { get; }
                 public TextDocumentStates<SourceGeneratedDocumentState> GeneratedDocuments { get; }
-                // <Caravela>
-                public ImmutableArray<Diagnostic> TransformerDiagnostics { get; }
-                // </Caravela>
-
-                public CompilationInfo(Compilation compilation, bool hasSuccessfullyLoaded, TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments, ImmutableArray<Diagnostic> transformerDiagnostics)
+                
+                public CompilationInfo(Compilation compilation, bool hasSuccessfullyLoaded, TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments)
                 {
                     Compilation = compilation;
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                     GeneratedDocuments = generatedDocuments;
-                    // <Caravela>
-                    TransformerDiagnostics = transformerDiagnostics;
-                    // </Caravela>
                 }
             }
             
@@ -934,22 +915,6 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
                     
-                    // <Caravela>
-                    ImmutableArray<Diagnostic> transformerDiagnostics = default;
-
-                    if (!compilationWithGenerators.GetParseDiagnostics(cancellationToken).HasAnyErrors())
-                    {
-                        var transformers = this.ProjectState.AnalyzerReferences.SelectMany(a => a.GetTransformers()).ToImmutableArray();
-                        var plugins = this.ProjectState.AnalyzerReferences.SelectMany(a => a.GetPlugins()).ToImmutableArray();
-
-                        var loader = this.ProjectState.LanguageServices.WorkspaceServices.GetRequiredService<IAnalyzerService>().GetLoader();
-
-                        var runTransformers = compilationFactory.GetRunTransformersDelegate(transformers, plugins, this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider, loader);
-                        if (runTransformers != null)
-                            (compilationWithGenerators, transformerDiagnostics) = runTransformers(compilationWithGenerators);
-                    }
-                    // </Caravela>
-
                     var finalState = FinalState.Create(
                         State.CreateValueSource(compilationWithGenerators, solution.Services),
                         State.CreateValueSource(compilationWithoutGenerators, solution.Services),
@@ -958,19 +923,12 @@ namespace Microsoft.CodeAnalysis
                         generatedDocuments,
                         compilationWithGenerators,
                         this.ProjectState.Id,
-                        metadataReferenceToProjectId,
-                        // <Caravela>
-                        transformerDiagnostics
-                        // </Caravela>
+                        metadataReferenceToProjectId
                         );
 
                     this.WriteState(finalState, solution.Services);
 
-                    return new CompilationInfo(compilationWithGenerators, hasSuccessfullyLoaded, generatedDocuments,
-                        // <Caravela>
-                        transformerDiagnostics
-                        // </Caravela>
-                        );
+                    return new CompilationInfo(compilationWithGenerators, hasSuccessfullyLoaded, generatedDocuments);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
