@@ -562,6 +562,53 @@ namespace Root
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotChangeToAliasIfConflict()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public int MyType => 3;
+
+        void M()
+        {
+            var x = [|System.ConsoleColor|].Red;
+        }
+    }
+}");
+        }
+
+         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToAliasIfConflictIsntType()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public int MyType => 3;
+
+        [|System.ConsoleColor|] x;
+    }
+}",@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public int MyType => 3;
+
+        MyType x;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TwoMissingOnAmbiguousCref1()
         {
             await TestMissingInRegularAndScriptAsync(

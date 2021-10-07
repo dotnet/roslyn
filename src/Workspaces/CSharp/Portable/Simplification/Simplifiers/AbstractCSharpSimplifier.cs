@@ -242,6 +242,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 }
             }
 
+            // If something is dotting off the node we need to make sure the name couldn't
+            // be a different symbol that is also in scope, but is not the alias.
+            if (node.IsLeftSideOfDot())
+            {
+                var symbols = semanticModel.LookupSymbols(node.SpanStart, name: aliasName);
+                if (symbols.Length == 1 && !symbols[0].Equals(aliasReplacement))
+                {
+                    return false;
+                }
+            }
+
             var boundSymbols = semanticModel.LookupNamespacesAndTypes(node.SpanStart, name: aliasName);
 
             if (boundSymbols.Length == 1)
