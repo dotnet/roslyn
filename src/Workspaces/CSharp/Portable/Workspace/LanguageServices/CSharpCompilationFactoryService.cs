@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Threading;
 using Caravela.Compiler;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
@@ -47,13 +48,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, optionsProvider);
         }
-
-        // <Caravela>
-        public Func<Compilation, (Compilation, ImmutableArray<Diagnostic>)> GetRunTransformersDelegate(ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider, IAnalyzerAssemblyLoader assemblyLoader)
-        {
-            return compilation => 
-                CSharpTransformerDriver.RunTransformers(compilation, transformers, plugins, analyzerConfigProvider, ImmutableArray<ResourceDescription>.Empty, assemblyLoader);
-        }
-        // </Caravela>
     }
 }

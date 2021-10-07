@@ -222,20 +222,13 @@ namespace Microsoft.CodeAnalysis
                 /// </summary>
                 public override ValueSource<Optional<Compilation>> FinalCompilationWithGeneratedDocuments { get; }
 
-                // <Caravela>
-                public override ImmutableArray<Diagnostic> TransformerDiagnostics { get; }
-                // </Caravela>
-
                 private FinalState(
                     ValueSource<Optional<Compilation>> finalCompilationSource,
                     ValueSource<Optional<Compilation>> compilationWithoutGeneratedFilesSource,
                     Compilation compilationWithoutGeneratedFiles,
                     bool hasSuccessfullyLoaded,
                     TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
-                    UnrootedSymbolSet unrootedSymbolSet,
-                    // <Caravela>
-                    ImmutableArray<Diagnostic> transformerDiagnostics
-                    // </Caravela>
+                    UnrootedSymbolSet unrootedSymbolSet
                     )
                     : base(compilationWithoutGeneratedFilesSource,
                            compilationWithoutGeneratedFiles.Clone().RemoveAllReferences(),
@@ -245,9 +238,6 @@ namespace Microsoft.CodeAnalysis
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                     FinalCompilationWithGeneratedDocuments = finalCompilationSource;
                     UnrootedSymbolSet = unrootedSymbolSet;
-                    // <Caravela>
-                    TransformerDiagnostics = transformerDiagnostics;
-                    // </Caravela>
 
                     if (GeneratedDocuments.IsEmpty)
                     {
@@ -269,10 +259,7 @@ namespace Microsoft.CodeAnalysis
                     TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
                     Compilation finalCompilation,
                     ProjectId projectId,
-                    Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId,
-                    // <Caravela>
-                    ImmutableArray<Diagnostic> transformerDiagnostics = default
-                    // </Caravela>
+                    Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId
                     )
                 {
                     // Keep track of information about symbols from this Compilation.  This will help support other APIs
@@ -286,10 +273,7 @@ namespace Microsoft.CodeAnalysis
                         compilationWithoutGeneratedFilesSource,
                         compilationWithoutGeneratedFiles,
                         hasSuccessfullyLoaded,
-                        generatedDocuments, unrootedSymbolSet,
-                        // <Caravela>
-                        transformerDiagnostics
-                        // </Caravela>
+                        generatedDocuments, unrootedSymbolSet
                         );
                 }
 

@@ -70,9 +70,6 @@ namespace Microsoft.CodeAnalysis
             bool TryGetCompilation([NotNullWhen(true)] out Compilation? compilation);
             SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(DocumentId documentId);
 
-            // <Caravela>
-            Task<ImmutableArray<Diagnostic>> GetTransformerDiagnosticsAsync(SolutionState solution, CancellationToken cancellationToken);
-            // </Caravela>
         }
     }
 }

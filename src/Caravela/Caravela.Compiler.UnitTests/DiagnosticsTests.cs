@@ -90,13 +90,16 @@ namespace Caravela.Compiler.UnitTests
 
             var args = new[] { "/t:library", src.Path };
 
-            var analyzers = new DiagnosticAnalyzer[] { new ReportDiagnosticForEachClassAnalyzer("MY001", DiagnosticSeverity.Warning) }.ToImmutableArray();
+            var analyzers =
+                new DiagnosticAnalyzer[]
+                {
+                    new ReportDiagnosticForEachClassAnalyzer("MY001", DiagnosticSeverity.Warning)
+                }.ToImmutableArray();
             var transformers =
                 new ISourceTransformer[]
                 {
-                    new AppendTransformer("class D { int _f; }"), 
-                    new SuppressTransformer("MY001"),
-                    new SuppressTransformer("CS0169"),
+                    new AppendTransformer("class D { int _f; }"), new SuppressTransformer("MY001"),
+                    new SuppressTransformer("CS0169")
                 }.ToImmutableArray();
             var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers, analyzers: analyzers);
 
@@ -137,28 +140,47 @@ namespace Caravela.Compiler.UnitTests
         {
             var dir = Temp.CreateDirectory();
             var src = dir.CreateFile("temp.cs").WriteAllText("class C {  }");
-            
+
             var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
 is_global = true
 build_property.CaravelaSourceOnlyAnalyzers = all");
 
             var args = new[] { "/t:library", $"/analyzerconfig:{analyzerConfig.Path}", src.Path };
-            
-            var transformers = ImmutableArray.Create<ISourceTransformer>( new AppendTransformer("class D { }"));
+
+            var transformers = ImmutableArray.Create<ISourceTransformer>(new AppendTransformer("class D { }"));
             var analyzers =
                 ImmutableArray.Create<DiagnosticAnalyzer>(new ReportWarningIfTwoCompilationUnitMembersAnalyzer());
-            
+
             var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers, analyzers: analyzers);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);
-            var output = outWriter.ToString(); 
+            var output = outWriter.ToString();
 
             Assert.Contains("warning MY002", output);
             Assert.DoesNotContain("warning MY001", output);
-            
+
+            Assert.Equal(0, exitCode);
+        }
+
+        [Fact]
+        public void DiagnosticOnMovedNodeIsFound()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("class C {  void M() { M(); }  }");
+
+            var args = new[] { "/t:library", src.Path };
+
+            var transformers = ImmutableArray.Create<ISourceTransformer>(new ChangeTreeParentAndReportTransformer());
+            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = csc.Run(outWriter);
+            var output = outWriter.ToString();
+
             Assert.Equal(0, exitCode);
 
+            Assert.Contains("MY001", output);
         }
 
 
@@ -169,10 +191,11 @@ build_property.CaravelaSourceOnlyAnalyzers = all");
             private readonly DiagnosticDescriptor _diagnostic;
 
 
-            public ReportDiagnosticForEachClassAnalyzer(string id, DiagnosticSeverity severity, StringWriter? outWriter = null)
+            public ReportDiagnosticForEachClassAnalyzer(string id, DiagnosticSeverity severity,
+                StringWriter? outWriter = null)
             {
                 _outWriter = outWriter;
-                _diagnostic = new(id, "", "Found a class '{0}'.", "test", severity, true);
+                _diagnostic = new DiagnosticDescriptor(id, "", "Found a class '{0}'.", "test", severity, true);
             }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
@@ -191,7 +214,8 @@ build_property.CaravelaSourceOnlyAnalyzers = all");
                 foreach (var c in context.Tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>())
                 {
                     _outWriter?.WriteLine($"Analyzing '{c.Identifier.Text}'.");
-                    context.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic.Create(_diagnostic, c.Location, c.Identifier.Text));
+                    context.ReportDiagnostic(
+                        Microsoft.CodeAnalysis.Diagnostic.Create(_diagnostic, c.Location, c.Identifier.Text));
                 }
             }
         }
@@ -234,9 +258,10 @@ build_property.CaravelaSourceOnlyAnalyzers = all");
 
         private class ReportWarningIfTwoCompilationUnitMembersAnalyzer : DiagnosticAnalyzer
         {
-            private static DiagnosticDescriptor _badWarning = new DiagnosticDescriptor("MY001", "Test",
+            private static DiagnosticDescriptor _badWarning = new("MY001", "Test",
                 "More than one member in compilation unit: {0}", "Test", DiagnosticSeverity.Warning, true);
-            private static DiagnosticDescriptor _goodWarning = new DiagnosticDescriptor("MY002", "Test",
+
+            private static DiagnosticDescriptor _goodWarning = new("MY002", "Test",
                 "Processing {0}", "Test", DiagnosticSeverity.Warning, true);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
@@ -249,23 +274,53 @@ build_property.CaravelaSourceOnlyAnalyzers = all");
 
             private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
             {
-                
-                var compilationUnit = (CompilationUnitSyntax) context.Tree.GetRoot();
-                
+                var compilationUnit = (CompilationUnitSyntax)context.Tree.GetRoot();
+
                 // Write a message for each member to make sure that the analyzer runs.
                 foreach (var member in compilationUnit.Members)
                 {
-                    context.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic.Create(_goodWarning, member.Location, member.ToString()));
+                    context.ReportDiagnostic(
+                        Microsoft.CodeAnalysis.Diagnostic.Create(_goodWarning, member.Location, member.ToString()));
                 }
-                
+
                 // Write a message if there are two members to make sure we see the source code.
                 if (compilationUnit.Members.Count > 1)
                 {
                     foreach (var member in compilationUnit.Members)
                     {
-                        context.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic.Create(_badWarning, member.Location, member.ToString()));
+                        context.ReportDiagnostic(
+                            Microsoft.CodeAnalysis.Diagnostic.Create(_badWarning, member.Location, member.ToString()));
                     }
                 }
+            }
+        }
+
+        private class ChangeTreeParentAndReportTransformer : CSharpSyntaxRewriter, ISourceTransformer
+        {
+            private static readonly DiagnosticDescriptor _warning = new("MY001", "Test", "Warning on '{0}'", "Test", DiagnosticSeverity.Warning, true);
+            private TransformerContext? _context;
+
+            public void Execute(TransformerContext context)
+            {
+                this._context = context;
+                foreach (var tree in context.Compilation.SyntaxTrees)
+                {
+                    var oldRoot = tree.GetRoot();
+                    var newRoot = Visit(oldRoot);
+                    if (newRoot != oldRoot)
+                    {
+                        context.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(newRoot, tree.Options));
+                    }
+                }
+            }
+
+            public override SyntaxNode? VisitMethodDeclaration(MethodDeclarationSyntax node)
+            {
+                var firstStatement = node.Body!.Statements.First();
+                _context!.ReportDiagnostic( Microsoft.CodeAnalysis.Diagnostic.Create(_warning, firstStatement.Location, firstStatement.ToString()));
+                
+                return node.WithBody(
+                    SyntaxFactory.Block(SyntaxFactory.LockStatement(SyntaxFactory.ThisExpression(), node.Body!)));
             }
         }
     }
