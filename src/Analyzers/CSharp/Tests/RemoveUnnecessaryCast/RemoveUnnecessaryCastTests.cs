@@ -6073,6 +6073,52 @@ class C
             }.RunAsync();
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotIntroduceDefaultLiteralInPropertyPattern1()
+        {
+            var source =
+@"
+class C
+{
+    void M(string s)
+    {
+        if (s is { Length: (int)default })
+        {
+        }
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotIntroduceDefaultLiteralInPropertyPattern2()
+        {
+            var source =
+@"
+class C
+{
+    void M(string s)
+    {
+        if (s is { Length: ((int)default) })
+        {
+        }
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
         [WorkItem(27239, "https://github.com/dotnet/roslyn/issues/27239")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoNotOfferToRemoveCastWhereNoConversionExists()
