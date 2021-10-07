@@ -49,8 +49,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         private static readonly StackFrameToken GreaterThanToken = CreateToken(StackFrameKind.GreaterThanToken, ">");
         private static readonly StackFrameToken AccentGraveToken = CreateToken(StackFrameKind.GraveAccentToken, "`");
         private static readonly StackFrameToken EOLToken = CreateToken(StackFrameKind.EndOfLine, "");
+        private static readonly StackFrameToken ColonToken = CreateToken(StackFrameKind.ColonToken, ":");
 
         private static readonly StackFrameTrivia AtTrivia = CreateTrivia(StackFrameKind.AtTrivia, "at ");
+        private static readonly StackFrameTrivia LineTrivia = CreateTrivia(StackFrameKind.LineTrivia, "line ");
+        private static readonly StackFrameTrivia InTrivia = CreateTrivia(StackFrameKind.InTrivia, " in ");
 
         private static StackFrameParameterList ArgumentList(params StackFrameNodeOrToken[] nodesOrTokens)
             => new(OpenParenToken, nodesOrTokens.ToImmutableArray(), CloseParenToken);
@@ -136,5 +139,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 
         private static StackFrameTypeArgument TypeArgument(string identifier)
             => new(CreateToken(StackFrameKind.IdentifierToken, identifier));
+
+        private static StackFrameFileInformationNode FileInformation(StackFrameToken path, StackFrameToken? colon = null, StackFrameToken? line = null)
+            => new(path.With(leadingTrivia: CreateTriviaArray(InTrivia)), colon, line);
+
+        private static StackFrameToken Path(string path)
+            => CreateToken(StackFrameKind.PathToken, path);
+
+        private static StackFrameToken Line(int lineNumber)
+            => CreateToken(StackFrameKind.NumberToken, lineNumber.ToString(), leadingTrivia: ImmutableArray.Create(LineTrivia));
     }
 }

@@ -154,16 +154,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 )
             );
 
-        [Fact]
-        public void TestUnderscoreNames()
+        [Theory]
+        [InlineData("_")]
+        [InlineData("_s")]
+        [InlineData("S0m3th1ng")]
+        [InlineData("ü")] // Unicode character
+        [InlineData("uʶ")] // character and modifier character
+        [InlineData("a\u00AD")] // Soft hyphen formatting character
+        [InlineData("a‿")] // Connecting punctuation (combining character
+
+        public void TestIdentifierNames(string identifierName)
             => Verify(
-                @"at _._[_](_ _)",
+                @$"at {identifierName}.{identifierName}[{identifierName}]({identifierName} {identifierName})",
                 methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression("_._", leadingTrivia: CreateTriviaArray(AtTrivia)),
-                    typeArguments: TypeArgumentList(TypeArgument("_")),
+                    MemberAccessExpression($"{identifierName}.{identifierName}", leadingTrivia: CreateTriviaArray(AtTrivia)),
+                    typeArguments: TypeArgumentList(TypeArgument(identifierName)),
                     argumentList: ArgumentList(
-                        Identifier("_", trailingTrivia: CreateTriviaArray(SpaceTrivia())),
-                        Identifier("_"))
+                        Identifier(identifierName, trailingTrivia: CreateTriviaArray(SpaceTrivia())),
+                        Identifier(identifierName))
                 )
             );
 
@@ -176,12 +184,33 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                     argumentList: ArgumentList())
             );
 
+        [Fact]
+        public void TestFileInformation()
+            => Verify(
+                @"M.M() in C:\folder\m.cs:line 1",
+                methodDeclaration: MethodDeclaration(
+                    MemberAccessExpression("M.M"),
+                    argumentList: ArgumentList()),
+
+                fileInformation: FileInformation(
+                    Path(@"C:\folder\m.cs"),
+                    ColonToken,
+                    Line(1))
+            );
+
         [Theory]
         [InlineData(@"at M()")] // Method with no class is invalid
         [InlineData(@"at M.1c()")] // Invalid start character for identifier
         [InlineData(@"at 1M.C()")]
         [InlineData(@"at M.C(string& s)")] // "string&" represents a reference (ref, out) and is not supported yet
         [InlineData(@"at StreamJsonRpc.JsonRpc.<InvokeCoreAsync>d__139`1.MoveNext()")] // Generated/Inline methods are not supported yet
+        [InlineData(@"at M(")] // Missing closing paren
+        [InlineData(@"at M)")] // MIssing open paren
+        [InlineData(@"at M.M[T>(T t)")] // Mismatched generic opening/close
+        [InlineData(@"at M.M<T](T t)")] // Mismatched generic opening/close
+        [InlineData(@"at M.M(string[ s)")] // Opening array bracket no close
+        [InlineData(@"at M.M(string] s)")] // Close only array bracket
+        [InlineData(@"at M.M(string[,] s)")] // Multidimensional array not supported yet
         public void TestInvalidInputs(string input)
             => Verify(input, expectFailure: true);
     }

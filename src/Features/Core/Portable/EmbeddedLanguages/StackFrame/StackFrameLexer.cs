@@ -6,7 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -240,7 +242,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 '`' => StackFrameKind.GraveAccentToken,
                 '\\' => StackFrameKind.BackslashToken,
                 '/' => StackFrameKind.ForwardSlashToken,
-                _ => IsBlank(ch) ? StackFrameKind.WhitespaceToken : StackFrameKind.TextToken,
+                _ => IsBlank(ch) ? StackFrameKind.WhitespaceTrivia : StackFrameKind.TextToken,
             };
 
         private static bool IsNumber(VirtualChar ch)
@@ -252,7 +254,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
         public StackFrameTrivia? ScanAtTrivia()
         {
-            if (Position >= Text.Length)
+            if (Position == Text.Length)
             {
                 return null;
             }
@@ -273,7 +275,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
         public StackFrameTrivia? ScanInTrivia()
         {
-            if (Position >= Text.Length)
+            if (Position == Text.Length)
             {
                 return null;
             }
@@ -286,10 +288,99 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 var start = Position;
                 Position += InString.Length;
 
-                return CreateTrivia(StackFrameKind.AtTrivia, GetSubPatternToCurrentPos(start));
+                return CreateTrivia(StackFrameKind.InTrivia, GetSubPatternToCurrentPos(start));
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Attempts to parse a path following https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#file-and-directory-names
+        /// </summary>
+        internal StackFrameToken? ScanPath()
+        {
+            if (Position == Text.Length)
+            {
+                return null;
+            }
+
+            var startPosition = Position;
+            var invalidChars = Path.GetInvalidPathChars();
+            var isRooted = false;
+
+            while (!invalidChars.Contains((char)CurrentChar.Value))
+            {
+                // If the path is rooted then we no longer accept
+                if (isRooted && IsInvalidCharForRootedPath((char)CurrentChar.Value))
+                {
+                    break;
+                }
+
+                Position++;
+
+                if (!isRooted)
+                {
+                    var str = GetSubPatternToCurrentPos(startPosition).CreateString();
+                    isRooted = Path.IsPathRooted(str);
+                }
+            }
+
+            if (startPosition == Position)
+            {
+                return null;
+            }
+
+            return CreateToken(StackFrameKind.PathToken, GetSubPatternToCurrentPos(startPosition));
+
+            static bool IsInvalidCharForRootedPath(char c)
+                => c switch
+                {
+                    '<' or
+                    '>' or
+                    '"' or
+                    '|' or
+                    '?' or
+                    '*' or
+                    ':' => true,
+
+                    _ => false
+                };
+        }
+
+        internal StackFrameTrivia? ScanLineTrivia()
+        {
+            if (Position == Text.Length)
+            {
+                return null;
+            }
+
+            // TODO: Handle multiple languages? Right now we're going to only parse english
+            const string LineString = "line ";
+            if (IsStringAtPosition(LineString))
+            {
+                var start = Position;
+                Position += LineString.Length;
+
+                return CreateTrivia(StackFrameKind.LineTrivia, GetSubPatternToCurrentPos(start));
+            }
+
+            return null;
+        }
+
+        internal StackFrameToken? ScanNumbers()
+        {
+            if (Position == Text.Length)
+            {
+                return null;
+            }
+
+            var start = Position;
+            while (IsNumber(CurrentChar))
+            {
+                Position++;
+            }
+
+            return CreateToken(StackFrameKind.NumberToken, GetSubPatternToCurrentPos(start));
         }
 
         public static bool IsBlank(VirtualChar ch)

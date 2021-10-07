@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         TypeIdentifier,
         ParameterList,
         ArrayExpression,
+        FileInformation,
 
         // Tokens 
         AmpersandToken,
@@ -40,12 +41,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         BackslashToken,
         ForwardSlashToken,
         IdentifierToken,
-        WhitespaceToken,
+        PathToken,
+        NumberToken,
 
         // Trivia
         WhitespaceTrivia,
         AtTrivia, // "at " portion of the stack frame
         InTrivia, // optional " in " portion of the stack frame
+        LineTrivia, // optional "line " string indicating the line number of a file
         TextTrivia,
     }
 }

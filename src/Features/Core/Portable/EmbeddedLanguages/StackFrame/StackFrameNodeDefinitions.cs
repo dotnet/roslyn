@@ -362,20 +362,34 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
     internal sealed class StackFrameFileInformationNode : StackFrameNode
     {
-        public StackFrameFileInformationNode(StackFrameKind kind) : base(kind)
+        public readonly StackFrameToken Path;
+        public readonly StackFrameToken? Colon;
+        public readonly StackFrameToken? Line;
+
+        public StackFrameFileInformationNode(StackFrameToken path, StackFrameToken? colon = null, StackFrameToken? line = null) : base(StackFrameKind.FileInformation)
         {
+            Path = path;
+            Colon = colon;
+            Line = line;
         }
 
-        internal override int ChildCount => throw new NotImplementedException();
+        internal override int ChildCount => 3;
 
         public override void Accept(IStackFrameNodeVisitor visitor)
-        {
-            throw new NotImplementedException();
-        }
+            => visitor.Visit(this);
 
         internal override StackFrameNodeOrToken ChildAt(int index)
-        {
-            throw new NotImplementedException();
-        }
+            => index switch
+            {
+                0 => Path,
+                1 => Colon.HasValue ? Colon.Value : null,
+                2 => Line.HasValue ? Line.Value : null,
+                _ => throw new InvalidOperationException()
+            };
+
+        internal StackFrameFileInformationNode WithLeadingTrivia(StackFrameTrivia inTrivia)
+            => new(Path.With(leadingTrivia: ImmutableArray.Create(inTrivia)),
+                Colon,
+                Line);
     }
 }

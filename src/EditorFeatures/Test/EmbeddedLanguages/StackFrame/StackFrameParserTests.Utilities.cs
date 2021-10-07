@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 
     public partial class StackFrameParserTests
     {
-        private static void Verify(string input, StackFrameMethodDeclarationNode? methodDeclaration = null, bool expectFailure = false, StackFrameToken? eolTokenOpt = null)
+        private static void Verify(string input, StackFrameMethodDeclarationNode? methodDeclaration = null, bool expectFailure = false, StackFrameFileInformationNode? fileInformation = null, StackFrameToken? eolTokenOpt = null)
         {
             var tree = StackFrameParser.TryParse(input);
             if (expectFailure)
@@ -42,6 +42,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 AssertEqual(methodDeclaration, tree.Root.MethodDeclaration);
             }
 
+            if (fileInformation is null)
+            {
+                Assert.Null(tree.Root.FileInformationExpression);
+            }
+            else
+            {
+                AssertEqual(fileInformation, tree.Root.FileInformationExpression);
+            }
+
             var eolToken = eolTokenOpt.HasValue
                 ? eolTokenOpt.Value
                 : CreateToken(StackFrameKind.EndOfLine, "");
@@ -50,8 +59,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         }
         private static void AssertEqual(StackFrameNodeOrToken expected, StackFrameNodeOrToken actual)
         {
-            AssertEqual(expected.Node, actual.Node);
-            AssertEqual(expected.Token, actual.Token);
+            Assert.Equal(expected.IsNode, actual.IsNode);
+            if (expected.IsNode)
+            {
+                AssertEqual(expected.Node, actual.Node);
+            }
+            else
+            {
+                AssertEqual(expected.Token, actual.Token);
+            }
         }
 
         private static void AssertEqual(StackFrameNode? expected, StackFrameNode? actual)
@@ -161,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             }
 
             // Make sure we enumerated the total input
-            Assert.Equal(index, textSeq.Length);
+            Assert.Equal(textSeq.Length, index);
 
             string PrintDifference()
             {
@@ -206,6 +222,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             foreach (var seq in Enumerate(methodDeclaration))
             {
                 yield return seq;
+            }
+
+            if (root.FileInformationExpression is not null)
+            {
+                foreach (var seq in Enumerate(root.FileInformationExpression))
+                {
+                    yield return seq;
+                }
             }
 
             foreach (var charSequence in Enumerate(root.EndOfLineToken))

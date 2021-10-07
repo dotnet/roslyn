@@ -18,5 +18,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         void Visit(StackFrameGenericTypeIdentifier stackFrameGenericTypeIdentifier);
         void Visit(StackFrameTypeArgument stackFrameTypeArgument);
         void Visit(StackFrameArrayExpressionNode stackFrameArrayExpressionNode);
+        void Visit(StackFrameFileInformationNode stackFrameFileInformationNode);
     }
 }
