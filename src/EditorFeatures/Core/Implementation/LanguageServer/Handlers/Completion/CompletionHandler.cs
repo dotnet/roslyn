@@ -95,10 +95,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var commitCharactersRuleCache = new Dictionary<ImmutableArray<CharacterSetModificationRule>, string[]>(CommitCharacterArrayComparer.Instance);
 
             // Feature flag to enable the return of TextEdits instead of InsertTexts (will increase payload size).
-            // We check against the CompletionOption for test purposes only.
             Contract.ThrowIfNull(context.Solution);
-            var returnTextEdits = _globalOptions.GetOption(LspOptions.LspCompletionFeatureFlag) ||
-                _globalOptions.GetOption(CompletionOptions.ForceRoslynLSPCompletionExperiment, document.Project.Language);
+            var returnTextEdits = _globalOptions.GetOption(LspOptions.LspCompletionFeatureFlag);
 
             TextSpan? defaultSpan = null;
             LSP.Range? defaultRange = null;
