@@ -13,7 +13,7 @@
     <!-- The PreReleaseVersionLabel property must be non-empty otherwise a random suffix is generated instead of 'preview'. -->
     <PreReleaseVersionLabel>4</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
-    <VersionSuffix>preview-a</VersionSuffix>
+    <VersionSuffix>preview</VersionSuffix>
     <!-- RoslynVersion is the version of the vanilla Roslyn nuget packages -->
     <RoslynVersion>$(MajorVersion).$(MinorVersion).0</RoslynVersion>
     <DotNetFinalVersionKind>caravela</DotNetFinalVersionKind>
