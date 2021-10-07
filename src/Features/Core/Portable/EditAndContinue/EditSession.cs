@@ -742,7 +742,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // Bail before analyzing documents as the analysis needs to read the PDB which will likely fail if we can't even read the MVID.
                         diagnostics.Add((newProject.Id, ImmutableArray.Create(mvidReadError)));
 
-                        Telemetry.LogProjectAnalysisSummary(ProjectAnalysisSummary.ValidChanges, ImmutableArray.Create(mvidReadError.Descriptor.Id), InBreakState);
+                        Telemetry.LogProjectAnalysisSummary(ProjectAnalysisSummary.ValidChanges, newProject.State.ProjectInfo.Attributes.TelemetryId, ImmutableArray.Create(mvidReadError.Descriptor.Id), InBreakState);
                         isBlocked = true;
                         continue;
                     }
@@ -813,7 +813,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (isModuleEncBlocked || projectSummary != ProjectAnalysisSummary.ValidChanges)
                     {
-                        Telemetry.LogProjectAnalysisSummary(projectSummary, moduleDiagnostics.NullToEmpty().SelectAsArray(d => d.Descriptor.Id), InBreakState);
+                        Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, moduleDiagnostics.NullToEmpty().SelectAsArray(d => d.Descriptor.Id), InBreakState);
                         continue;
                     }
 
@@ -824,7 +824,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // Report diagnosics even when the module is never going to be loaded (e.g. in multi-targeting scenario, where only one framework being debugged).
                         // This is consistent with reporting compilation errors - the IDE reports them for all TFMs regardless of what framework the app is running on.
                         diagnostics.Add((newProject.Id, createBaselineDiagnostics));
-                        Telemetry.LogProjectAnalysisSummary(projectSummary, createBaselineDiagnostics, InBreakState);
+                        Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, createBaselineDiagnostics, InBreakState);
                         isBlocked = true;
                         continue;
                     }
@@ -927,7 +927,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         diagnostics.Add((newProject.Id, emitResult.Diagnostics));
                     }
 
-                    Telemetry.LogProjectAnalysisSummary(projectSummary, emitResult.Diagnostics, InBreakState);
+                    Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, emitResult.Diagnostics, InBreakState);
                 }
 
                 // log capabilities for edit sessions with changes or reported errors:
