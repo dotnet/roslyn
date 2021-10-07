@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return false;
 
             // Quick syntactic checks we can do before semantic work.
-            var isDefaultLiteralCast = castedExpressionNode.WalkDownParentheses().Kind() == SyntaxKind.DefaultLiteralExpression;
+            var isDefaultLiteralCast = castedExpressionNode.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression);
 
             // Language does not allow `if (x is default)` ever.  So if we have `if (x is (Y)default)`
             // then we can't remove the cast.  This was special cased in the language due to user 
