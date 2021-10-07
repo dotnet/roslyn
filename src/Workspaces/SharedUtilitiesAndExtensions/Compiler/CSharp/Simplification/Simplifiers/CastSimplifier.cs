@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return false;
 
             // if the expression being casted is the `null` literal, then we can't remove the cast if the final
-            // converted type is a value type.  This can happen with code like: 
+            // converted type isn't known to be a reference type.  This can happen with code like: 
             //
             // void Goo<T, S>() where T : class, S
             // {
