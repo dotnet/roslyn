@@ -101,35 +101,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             return arityToken;
         }
 
-        internal ImmutableArray<StackFrameToken> ScanArrayBrackets()
-        {
-            if (Position == Text.Length)
-            {
-                return default;
-            }
-
-            using var _ = ArrayBuilder<StackFrameToken>.GetInstance(out var builder);
-
-            while (Position < Text.Length)
-            {
-                var kind = GetKind(CurrentChar);
-                if (!IsArrayBracket(kind))
-                {
-                    break;
-                }
-
-                builder.Add(CurrentCharAsToken());
-                Position++;
-            }
-
-            Debug.Assert(builder.Count >= 2);
-
-            return builder.ToImmutable();
-
-            static bool IsArrayBracket(StackFrameKind kind)
-                => kind is StackFrameKind.OpenBracketToken or StackFrameKind.CloseBracketToken;
-        }
-
         internal StackFrameTrivia? ScanWhiteSpace()
         {
             if (Position == Text.Length)

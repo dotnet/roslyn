@@ -325,7 +325,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 // Check if there's an array type for the identifier
                 if (CurrentToken.Kind == StackFrameKind.OpenBracketToken)
                 {
-                    builder.Add(TryParseArrayIdentifier(identifier));
+                    if (TryParseArrayIdentifier(identifier, out var parsedTokens))
+                    {
+                        builder.Add(new StackFrameArrayExpressionNode(identifier, parsedTokens));
+                    }
+                    else
+                    {
+                        // Invalid array identifiers, bail parsing parameters 
+                        return null;
+                    }
                 }
                 else
                 {
@@ -359,22 +367,42 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// passed in, converts it into <see cref="StackFrameExpressionNode"/> by parsing the array portion
         /// of the identifier.
         /// </summary>
-        private StackFrameExpressionNode TryParseArrayIdentifier(StackFrameExpressionNode identifier)
+        private bool TryParseArrayIdentifier(StackFrameExpressionNode identifier, out ImmutableArray<StackFrameToken> arrayTokens)
         {
-            if (CurrentToken.Kind != StackFrameKind.OpenBracketToken)
+            using var _ = ArrayBuilder<StackFrameToken>.GetInstance(out var builder);
+
+            while (true)
             {
-                throw new InvalidOperationException();
+                if (!_lexer.ScanIfMatch(StackFrameKind.OpenBracketToken, out var openBracket))
+                {
+                    arrayTokens = builder.ToImmutable();
+                    return arrayTokens.Length > 0 && arrayTokens[^1].Kind == StackFrameKind.CloseBracketToken;
+                }
+
+                builder.Add(AddTrailingWhitespace(openBracket));
+
+                if (_lexer.ScanIfMatch(StackFrameKind.CommaToken, out var commaToken))
+                {
+                    builder.Add(AddTrailingWhitespace(commaToken));
+                }
+
+                if (!_lexer.ScanIfMatch(StackFrameKind.CloseBracketToken, out var closeBracket))
+                {
+                    arrayTokens = builder.ToImmutable();
+                    return arrayTokens.Length > 0 && arrayTokens.Last().Kind == StackFrameKind.CloseBracketToken;
+                }
+
+                builder.Add(AddTrailingWhitespace(closeBracket));
             }
 
-            var arrayBrackets = _lexer.ScanArrayBrackets();
-            return new StackFrameArrayExpressionNode(identifier, arrayBrackets);
+            throw ExceptionUtilities.Unreachable;
         }
 
         /// <summary>
         /// Parses text for a valid file path using valid file characters. It's very possible this includes a path that doesn't exist but
         /// forms a valid path identifier. 
         /// </summary>
-        public (StackFrameFileInformationNode? fileInformation, bool isPathValid) TryParseFileInformation()
+        private (StackFrameFileInformationNode? fileInformation, bool isPathValid) TryParseFileInformation()
         {
             var path = _lexer.ScanPath();
             if (!path.HasValue)
@@ -442,6 +470,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                     colonToken,
                     numbers.Value.With(leadingTrivia: ImmutableArray.Create(lineIdentifier.Value)))
                 , true);
+        }
+
+        private StackFrameToken AddTrailingWhitespace(StackFrameToken token)
+        {
+            var whitespace = _lexer.ScanWhiteSpace();
+            if (whitespace.HasValue)
+            {
+                return token.With(trailingTrivia: ImmutableArray.Create(whitespace.Value));
+            }
+
+            return token;
         }
     }
 }
