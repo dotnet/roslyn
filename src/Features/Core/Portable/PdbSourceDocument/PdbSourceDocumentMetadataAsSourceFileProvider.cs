@@ -80,6 +80,16 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             if (sourceDocuments.Length == 0)
                 return null;
 
+            // Get text loaders for our documents. We do this here because if we can't load any of the files, then
+            // we can't provide any results.
+            var filesAndPaths = (from sd in sourceDocuments
+                                 let loader = _pdbSourceDocumentLoaderService.LoadSourceDocument(sd, pdbReader)
+                                 where loader is not null
+                                 select (sd.FilePath, loader)).ToImmutableArray();
+
+            if (filesAndPaths.Length == 0)
+                return null;
+
             var assemblyName = symbol.ContainingAssembly.Identity.Name;
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
 
@@ -97,7 +107,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 _assemblyToProjectMap.Add(assemblyName, projectInfo.Id);
             }
 
-            var documentInfos = CreateDocumentInfos(workspace, sourceDocuments, projectId, pdbReader);
+            var documentInfos = CreateDocumentInfos(workspace, filesAndPaths, projectId);
             if (documentInfos.Length > 0)
             {
                 // TODO: Move to TryAddToWorkspace
@@ -106,7 +116,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             var navigateProject = workspace.CurrentSolution.GetRequiredProject(projectId);
 
-            var firstDocument = sourceDocuments.First().FilePath;
+            var firstDocument = filesAndPaths[0].FilePath;
             var document = navigateProject.Documents.FirstOrDefault(d => d.FilePath?.Equals(firstDocument, StringComparison.OrdinalIgnoreCase) ?? false);
 
             var navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, document, cancellationToken).ConfigureAwait(false);
@@ -143,7 +153,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 metadataReferences: project.MetadataReferences.ToImmutableArray());
         }
 
-        private ImmutableArray<DocumentInfo> CreateDocumentInfos(Workspace workspace, ImmutableArray<SourceDocument> filePaths, ProjectId projectId, MetadataReader pdbReader)
+        private static ImmutableArray<DocumentInfo> CreateDocumentInfos(Workspace workspace, ImmutableArray<(string FilePath, TextLoader Loader)> filePaths, ProjectId projectId)
         {
             var project = workspace.CurrentSolution.GetRequiredProject(projectId);
 
@@ -151,7 +161,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             foreach (var sourceDocument in filePaths)
             {
-                // If a document has multiple symbols then we'll already know about it
+                // If a document has multiple symbols then we would already know about it
                 if (project.Documents.Contains(doc => doc.FilePath?.Equals(sourceDocument.FilePath, StringComparison.OrdinalIgnoreCase) ?? false))
                     continue;
 
@@ -159,7 +169,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     DocumentId.CreateNewId(projectId),
                     Path.GetFileName(sourceDocument.FilePath),
                     filePath: sourceDocument.FilePath,
-                    loader: _pdbSourceDocumentLoaderService.LoadSourceDocument(sourceDocument, pdbReader)));
+                    loader: sourceDocument.Loader));
             }
 
             return documents.ToImmutable();

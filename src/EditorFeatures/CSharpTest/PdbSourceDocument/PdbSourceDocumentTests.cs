@@ -422,7 +422,6 @@ public class C
             });
         }
 
-
         [Fact]
         public async Task NoDll_NullResult()
         {
@@ -440,6 +439,27 @@ public class C
 
                 // Now delete the DLL
                 File.Delete(GetDllPath(path));
+
+                await GenerateFileAndVerifyAsync(project, symbol, source, expectedSpan, expectNullResult: true);
+            });
+        }
+
+        [Fact]
+        public async Task NoSource_NullResult()
+        {
+            var source = @"
+public class C
+{
+    public event System.EventHandler [|E|] { add { } remove { } }
+}";
+            await RunTestAsync(async path =>
+            {
+                MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"), preprocessorSymbols: null, buildReferenceAssembly: false);
+
+                // Now delete the source
+                File.Delete(GetSourceFilePath(path));
 
                 await GenerateFileAndVerifyAsync(project, symbol, source, expectedSpan, expectNullResult: true);
             });
