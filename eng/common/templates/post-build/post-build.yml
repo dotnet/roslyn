@@ -167,6 +167,11 @@ stages:
             filePath: eng\common\enable-cross-org-publishing.ps1
             arguments: -token $(dn-bot-dnceng-artifact-feeds-rw)
 
+        - task: DeleteFiles@1
+          inputs:
+            SourceFolder: $(Build.ArtifactStagingDirectory)/PackageArtifacts
+            Contents: Microsoft.SourceBuild.Intermediate*
+
         # Signing validation will optionally work with the buildmanifest file which is downloaded from
         # Azure DevOps above.
         - task: PowerShell@2
