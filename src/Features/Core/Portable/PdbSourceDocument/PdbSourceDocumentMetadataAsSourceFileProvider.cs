@@ -9,6 +9,7 @@ using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Debugging;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
     [ExtensionOrder(Before = DecompilationMetadataAsSourceFileProvider.ProviderName)]
     internal class PdbSourceDocumentMetadataAsSourceFileProvider : IMetadataAsSourceFileProvider
     {
-        private const string ProviderName = "PdbSource";
+        internal const string ProviderName = "PdbSource";
 
         private readonly IPdbFileLocatorService _pdbFileLocatorService;
         private readonly IPdbSourceDocumentLoaderService _pdbSourceDocumentLoaderService;
@@ -47,6 +48,13 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         {
             // we don't support signatures only mode
             if (signaturesOnly)
+                return null;
+
+            // If this is a reference assembly then we won't have the right information available, so bail out
+            // TODO: find the implementation assembly for the reference assembly, and keep going: https://github.com/dotnet/roslyn/issues/55834
+            var isReferenceAssembly = symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == nameof(ReferenceAssemblyAttribute)
+                && attribute.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName);
+            if (isReferenceAssembly)
                 return null;
 
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);

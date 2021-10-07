@@ -27,7 +27,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
 {
     [UseExportProvider]
-    public class PdbSourceDocumentTests
+    public partial class PdbSourceDocumentTests
     {
         public enum Location
         {
@@ -52,7 +52,7 @@ public class C
     }
 #endif
 }";
-            await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.M"), "SOME_DEFINED_CONSTANT");
+            await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.M"), preprocessorSymbols: new[] { "SOME_DEFINED_CONSTANT" });
         }
 
         [Theory]
@@ -388,7 +388,19 @@ public class C
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.E"));
         }
 
-        private static async Task TestAsync(Location pdbLocation, Location sourceLocation, string metadataSource, Func<Compilation, ISymbol> symbolMatcher, params string[] preprocessorSymbols)
+        [Fact]
+        public async Task ReferenceAssembly_NullResult()
+        {
+            var source = @"
+public class C
+{
+    public event System.EventHandler [|E|] { add { } remove { } }
+}";
+            // A pdb won't be emitted when building a reference assembly so the first two parameters don't actually matter
+            await TestAsync(Location.OnDisk, Location.OnDisk, source, c => c.GetMember("C.E"), buildReferenceAssembly: true, expectNullResult: true);
+        }
+
+        private static async Task TestAsync(Location pdbLocation, Location sourceLocation, string metadataSource, Func<Compilation, ISymbol> symbolMatcher, string[]? preprocessorSymbols = null, bool buildReferenceAssembly = false, bool expectNullResult = false)
         {
             var path = Path.Combine(Path.GetTempPath(), nameof(PdbSourceDocumentTests));
 
@@ -396,7 +408,7 @@ public class C
             {
                 Directory.CreateDirectory(path);
 
-                await TestAsync(path, pdbLocation, sourceLocation, metadataSource, symbolMatcher, preprocessorSymbols);
+                await TestAsync(path, pdbLocation, sourceLocation, metadataSource, symbolMatcher, preprocessorSymbols, buildReferenceAssembly, expectNullResult);
             }
             finally
             {
@@ -407,7 +419,7 @@ public class C
             }
         }
 
-        private static async Task TestAsync(string path, Location pdbLocation, Location sourceLocation, string metadataSource, Func<Compilation, ISymbol> symbolMatcher, string[] preprocessorSymbols)
+        private static async Task TestAsync(string path, Location pdbLocation, Location sourceLocation, string metadataSource, Func<Compilation, ISymbol> symbolMatcher, string[]? preprocessorSymbols, bool buildReferenceAssembly, bool expectNullResult)
         {
             var assemblyName = "ReferencedAssembly";
             var sourceCodePath = Path.Combine(path, "source.cs");
@@ -416,7 +428,7 @@ public class C
 
             MarkupTestFile.GetSpan(metadataSource, out var input, out var expectedSpan);
 
-            var preprocessorSymbolsAttribute = preprocessorSymbols.Length > 0
+            var preprocessorSymbolsAttribute = preprocessorSymbols?.Length > 0
                 ? $"PreprocessorSymbols=\"{string.Join(";", preprocessorSymbols)}\""
                 : "";
 
@@ -424,7 +436,7 @@ public class C
             // to be available.
             var composition = EditorTestCompositions.EditorFeatures
                 .WithExcludedPartTypes(ImmutableHashSet.Create(typeof(IMetadataAsSourceFileProvider)))
-                .AddParts(typeof(PdbSourceDocumentMetadataAsSourceFileProvider));
+                .AddParts(typeof(PdbSourceDocumentMetadataAsSourceFileProvider), typeof(NullResultMetadataAsSourceFileProvider));
 
             using var workspace = TestWorkspace.Create(@$"
 <Workspace>
@@ -445,7 +457,6 @@ public class C
                 .AddReferences(project.MetadataReferences);
 
             IEnumerable<EmbeddedText>? embeddedTexts;
-            DebugInformationFormat debugInformationFormat;
             if (sourceLocation == Location.OnDisk)
             {
                 embeddedTexts = null;
@@ -456,20 +467,26 @@ public class C
                 embeddedTexts = new[] { EmbeddedText.FromSource(sourceCodePath, compilation.SyntaxTrees.First().GetText()) };
             }
 
-            if (pdbLocation == Location.OnDisk)
+            EmitOptions emitOptions;
+            if (buildReferenceAssembly)
             {
-                debugInformationFormat = DebugInformationFormat.PortablePdb;
+                pdbFilePath = null;
+                emitOptions = new EmitOptions(metadataOnly: true, includePrivateMembers: false);
+            }
+            else if (pdbLocation == Location.OnDisk)
+            {
+                emitOptions = new EmitOptions(debugInformationFormat: DebugInformationFormat.PortablePdb, pdbFilePath: pdbFilePath);
             }
             else
             {
                 pdbFilePath = null;
-                debugInformationFormat = DebugInformationFormat.Embedded;
+                emitOptions = new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded);
             }
 
             using (var dllStream = FileUtilities.CreateFileStreamChecked(File.Create, dllFilePath, nameof(dllFilePath)))
             using (var pdbStream = (pdbFilePath == null ? null : FileUtilities.CreateFileStreamChecked(File.Create, pdbFilePath, nameof(pdbFilePath))))
             {
-                var result = compilation.Emit(dllStream, pdbStream, options: new EmitOptions(debugInformationFormat: debugInformationFormat, pdbFilePath: pdbFilePath), embeddedTexts: embeddedTexts);
+                var result = compilation.Emit(dllStream, pdbStream, options: emitOptions, embeddedTexts: embeddedTexts);
                 Assert.Empty(result.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error));
             }
 
@@ -482,7 +499,13 @@ public class C
             AssertEx.NotNull(symbol, $"Couldn't find symbol to go-to-def for.");
 
             var service = workspace.GetService<IMetadataAsSourceFileService>();
-            var file = await service.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, CancellationToken.None);
+            var file = await service.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, CancellationToken.None).ConfigureAwait(false);
+
+            if (expectNullResult)
+            {
+                Assert.Same(NullResultMetadataAsSourceFileProvider.NullResult, file);
+                return;
+            }
 
             AssertEx.NotNull(file, $"No source document was found in the pdb for the symbol.");
 
