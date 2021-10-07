@@ -7435,7 +7435,8 @@ public class sign
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestSignExtensionWithOrCompilerCase2()
         {
-            var source =
+            // there is a sign extension warning both before and after.  so this is not worse to remove the cast.
+            await VerifyCS.VerifyCodeFixAsync(
 @"
 public class sign
 {
@@ -7447,11 +7448,23 @@ public class sign
         sbyte i08 = 1;
         short i16 = -1;
 
-        object v2 = (ulong)i32_hi | (ulong)u64;
+        object v2 = (ulong)i32_hi | [|(ulong)|]u64;
     }
-}";
+}",
+@"
+public class sign
+{
+    public static void Main()
+    {
+        int i32_hi = 1;
+        int i32_lo = 1;
+        ulong u64 = 1;
+        sbyte i08 = 1;
+        short i16 = -1;
 
-            await VerifyCS.VerifyCodeFixAsync(source, source);
+        object v2 = (ulong)i32_hi | u64;
+    }
+}");
         }
 
         [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
@@ -7481,7 +7494,9 @@ public class sign
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestSignExtensionWithOrCompilerCase4()
         {
-            var source = @"
+            // there is a sign extension warning both before and after.  so this is not worse to remove the cast.
+            await VerifyCS.VerifyCodeFixAsync(
+@"
 public class sign
 {
     public static void Main()
@@ -7492,11 +7507,23 @@ public class sign
         sbyte i08 = 1;
         short i16 = -1;
 
-        object v4 = (ulong)(uint)(ushort)i08 | (ulong)i32_lo;
+        object v4 = [|(ulong)|](uint)(ushort)i08 | (ulong)i32_lo;
     }
-}";
+}",
+@"
+public class sign
+{
+    public static void Main()
+    {
+        int i32_hi = 1;
+        int i32_lo = 1;
+        ulong u64 = 1;
+        sbyte i08 = 1;
+        short i16 = -1;
 
-            await VerifyCS.VerifyCodeFixAsync(source, source);
+        object v4 = (ushort)i08 | (ulong)i32_lo;
+    }
+}");
         }
 
         [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
@@ -7653,8 +7680,8 @@ public class sign
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestSignExtensionWithOrCompilerCaseNullable2()
         {
-            var source =
-@"
+            // there is a sign extension warning both before and after.  so this is not worse to remove the cast.
+            await VerifyCS.VerifyCodeFixAsync(@"
 public class sign
 {
     public static void Main()
@@ -7665,11 +7692,22 @@ public class sign
         sbyte? i08 = 1;
         short? i16 = -1;
 
-        object v2 = (ulong?)i32_hi | (ulong?)u64;
+        object v2 = (ulong?)i32_hi | [|(ulong?)|]u64;
     }
-}";
+}", @"
+public class sign
+{
+    public static void Main()
+    {
+        int? i32_hi = 1;
+        int? i32_lo = 1;
+        ulong? u64 = 1;
+        sbyte? i08 = 1;
+        short? i16 = -1;
 
-            await VerifyCS.VerifyCodeFixAsync(source, source);
+        object v2 = (ulong?)i32_hi | u64;
+    }
+}");
         }
 
         [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
@@ -7699,7 +7737,8 @@ public class sign
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestSignExtensionWithOrCompilerCaseNullable4()
         {
-            var source = @"
+            // there is a sign extension warning both before and after.  so this is not worse to remove the cast.
+            await VerifyCS.VerifyCodeFixAsync(@"
 public class sign
 {
     public static void Main()
@@ -7710,11 +7749,22 @@ public class sign
         sbyte? i08 = 1;
         short? i16 = -1;
 
-        object v4 = (ulong?)(uint?)(ushort?)i08 | (ulong?)i32_lo;
+        object v4 = [|(ulong?)|](uint?)(ushort?)i08 | (ulong?)i32_lo;
     }
-}";
+}", @"
+public class sign
+{
+    public static void Main()
+    {
+        int? i32_hi = 1;
+        int? i32_lo = 1;
+        ulong? u64 = 1;
+        sbyte? i08 = 1;
+        short? i16 = -1;
 
-            await VerifyCS.VerifyCodeFixAsync(source, source);
+        object v4 = (ushort?)i08 | (ulong?)i32_lo;
+    }
+}");
         }
 
         [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]

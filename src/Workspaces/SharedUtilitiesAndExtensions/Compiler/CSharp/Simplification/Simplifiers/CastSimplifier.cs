@@ -153,10 +153,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (isDefaultLiteralCast && castNode.WalkUpParentheses().Parent is PatternSyntax or CaseSwitchLabelSyntax)
                 return false;
 
-            // If removing the cast would cause the compiler to issue a new warning, then we have to preserve it.
-            if (CastRemovalWouldCauseSignExtensionWarning(castNode, originalSemanticModel, cancellationToken))
-                return false;
-
             #endregion blocked cases
 
             #region allowed cases
@@ -183,224 +179,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static bool CastRemovalWouldCauseSignExtensionWarning(ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static bool CastRemovalCouldCauseSignExtensionWarning(ExpressionSyntax castSyntax, IConversionOperation conversionOperation)
         {
-            // Logic copied from DiagnosticsPass_Warnings.CheckForBitwiseOrSignExtend.  Including comments.
-
-            if (expression is not CastExpressionSyntax castExpression)
-                return false;
-
-            var castRoot = castExpression.WalkUpParentheses();
-
-            // Check both binary-or, and assignment-or
+            // if we have  `... | (T)x` then disallow this cast if we have a widening numeric cast and both T and x are
+            // signed integers.  This can often lead to confusing situations due to sign extension bits getting padded
+            // to the front of the value.  The compiler even warns here in many cases.  We don't want to reimplement the
+            // entire complex compiler algorithm.  So just look for the general case and disallow entirely.
             //
-            //   x | (...)y
-            //   x |= (...)y
-
-            ExpressionSyntax leftOperand, rightOperand;
-
-            if (castRoot.Parent is BinaryExpressionSyntax parentBinary)
+            // Note: it is intentional that this only triggers when both types are integral, and the value that is 
+            // being cast is a signed integer.  In other words, the compiler warns both for (long)int, as well as (ulong)int.
+            if (castSyntax.WalkUpParentheses().GetRequiredParent().Kind() is SyntaxKind.BitwiseOrExpression or SyntaxKind.OrAssignmentExpression)
             {
-                if (!parentBinary.IsKind(SyntaxKind.BitwiseOrExpression))
-                    return false;
-
-                (leftOperand, rightOperand) = (parentBinary.Left, parentBinary.Right);
-            }
-            else if (castRoot.Parent is AssignmentExpressionSyntax parentAssignment)
-            {
-                if (!parentAssignment.IsKind(SyntaxKind.OrAssignmentExpression))
-                    return false;
-
-                (leftOperand, rightOperand) = (parentAssignment.Left, parentAssignment.Right);
-            }
-            else
-            {
-                return false;
-            }
-
-            // The native compiler skips this warning if both sides of the operator are constants.
-            //
-            // CONSIDER: Is that sensible? It seems reasonable that if we would warn on int | short
-            // when they are non-constants, or when one is a constant, that we would similarly warn 
-            // when both are constants.
-            var constantValue = semanticModel.GetConstantValue(castRoot.Parent, cancellationToken);
-
-            if (constantValue.HasValue && constantValue.Value != null)
-                return false;
-
-            // Start by determining *which bits on each side are going to be unexpectedly turned on*.
-
-            var leftOperation = semanticModel.GetOperation(leftOperand.WalkDownParentheses(), cancellationToken);
-            var rightOperation = semanticModel.GetOperation(rightOperand.WalkDownParentheses(), cancellationToken);
-
-            if (leftOperation == null || rightOperation == null)
-                return false;
-
-            // Note: we are asking the question about if there would be a problem removing the cast. So we have to act
-            // as if an explicit cast becomes an implicit one. We do this by ignoring the appropriate cast and not
-            // treating it as explicit when we encounter it.
-
-            var left = FindSurprisingSignExtensionBits(leftOperation, leftOperand == castRoot);
-            var right = FindSurprisingSignExtensionBits(rightOperation, rightOperand == castRoot);
-
-            // If they are all the same then there's no warning to give.
-            if (left == right)
-                return false;
-
-            // Suppress the warning if one side is a constant, and either all the unexpected
-            // bits are already off, or all the unexpected bits are already on.
-
-            var constVal = GetConstantValueForBitwiseOrCheck(leftOperation);
-            if (constVal != null)
-            {
-                var val = constVal.Value;
-                if ((val & right) == right || (~val & right) == right)
-                    return false;
-            }
-
-            constVal = GetConstantValueForBitwiseOrCheck(rightOperation);
-            if (constVal != null)
-            {
-                var val = constVal.Value;
-                if ((val & left) == left || (~val & left) == left)
-                    return false;
-            }
-
-            // This would produce a warning.  Don't offer to remove the cast.
-            return true;
-        }
-
-        private static ulong? GetConstantValueForBitwiseOrCheck(IOperation operation)
-        {
-            // We might have a nullable conversion on top of an integer constant. But only dig out
-            // one level.
-            if (operation is IConversionOperation conversion &&
-                conversion.Conversion.IsImplicit &&
-                conversion.Conversion.IsNullable)
-            {
-                operation = conversion.Operand;
-            }
-
-            var constantValue = operation.ConstantValue;
-            if (!constantValue.HasValue || constantValue.Value == null)
-                return null;
-
-            RoslynDebug.Assert(operation.Type is not null);
-            if (!operation.Type.SpecialType.IsIntegralType())
-                return null;
-
-            return IntegerUtilities.ToUInt64(constantValue.Value);
-        }
-
-        // A "surprising" sign extension is:
-        //
-        // * a conversion with no cast in source code that goes from a smaller
-        //   signed type to a larger signed or unsigned type.
-        //
-        // * an conversion (with or without a cast) from a smaller
-        //   signed type to a larger unsigned type.
-
-        private static ulong FindSurprisingSignExtensionBits(IOperation? operation, bool treatExplicitCastAsImplicit)
-        {
-            if (operation is not IConversionOperation conversion)
-                return 0;
-
-            var from = conversion.Operand.Type;
-            var to = conversion.Type;
-
-            if (from is null || to is null)
-                return 0;
-
-            if (from.IsNullable(out var fromUnderlying))
-                from = fromUnderlying;
-
-            if (to.IsNullable(out var toUnderlying))
-                to = toUnderlying;
-
-            var fromSpecialType = from.SpecialType;
-            var toSpecialType = to.SpecialType;
-
-            if (!fromSpecialType.IsIntegralType() || !toSpecialType.IsIntegralType())
-                return 0;
-
-            var fromSize = fromSpecialType.SizeInBytes();
-            var toSize = toSpecialType.SizeInBytes();
-
-            if (fromSize == 0 || toSize == 0)
-                return 0;
-
-            // The operand might itself be a conversion, and might be contributing
-            // surprising bits. We might have more, fewer or the same surprising bits
-            // as the operand.
-
-            var recursive = FindSurprisingSignExtensionBits(conversion.Operand, treatExplicitCastAsImplicit: false);
-
-            if (fromSize == toSize)
-            {
-                // No change.
-                return recursive;
-            }
-
-            if (toSize < fromSize)
-            {
-                // We are casting from a larger type to a smaller type, and are therefore
-                // losing surprising bits. 
-                switch (toSize)
+                var conversion = conversionOperation.GetConversion();
+                if (conversion.IsImplicit &&
+                    (conversion.IsNumeric || conversion.IsNullable) &&
+                    conversionOperation.Type.RemoveNullableIfPresent() is { SpecialType: var type1 } &&
+                    conversionOperation.Operand.Type.RemoveNullableIfPresent() is { SpecialType: var type2 } &&
+                    type1.IsIntegralType() &&
+                    type2.IsSignedIntegralType())
                 {
-                    case 1: return unchecked((ulong)(byte)recursive);
-                    case 2: return unchecked((ulong)(ushort)recursive);
-                    case 4: return unchecked((ulong)(uint)recursive);
+                    return true;
                 }
-
-                Debug.Assert(false, "How did we get here?");
-                return recursive;
             }
 
-            // We are converting from a smaller type to a larger type, and therefore might
-            // be adding surprising bits. First of all, the smaller type has got to be signed
-            // for there to be sign extension.
-
-            var fromSigned = fromSpecialType.IsSignedIntegralType();
-
-            if (!fromSigned)
-                return recursive;
-
-            // OK, we know that the "from" type is a signed integer that is smaller than the
-            // "to" type, so we are going to have sign extension. Is it surprising? The only
-            // time that sign extension is *not* surprising is when we have a cast operator
-            // to a *signed* type. That is, (int)myShort is not a surprising sign extension.
-
-            var explicitInCode = !conversion.IsImplicit;
-            if (!treatExplicitCastAsImplicit &&
-                explicitInCode &&
-                toSpecialType.IsSignedIntegralType())
-            {
-                return recursive;
-            }
-
-            // Note that we *could* be somewhat more clever here. Consider the following edge case:
-            //
-            // (ulong)(int)(uint)(ushort)mySbyte
-            //
-            // We could reason that the sbyte-to-ushort conversion is going to add one byte of
-            // unexpected sign extension. The conversion from ushort to uint adds no more bytes.
-            // The conversion from uint to int adds no more bytes. Does the conversion from int
-            // to ulong add any more bytes of unexpected sign extension? Well, no, because we 
-            // know that the previous conversion from ushort to uint will ensure that the top bit
-            // of the uint is off! 
-            //
-            // But we are not going to try to be that clever. In the extremely unlikely event that
-            // someone does this, we will record that the unexpectedly turned-on bits are 
-            // 0xFFFFFFFF0000FF00, even though we could in theory deduce that only 0x000000000000FF00
-            // are the unexpected bits.
-
-            var result = recursive;
-            for (var i = fromSize; i < toSize; ++i)
-                result |= (0xFFUL) << (i * 8);
-
-            return result;
+            return false;
         }
-
         private static bool IsDelegateCreationCastSafeToRemove(
             ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
             SemanticModel originalSemanticModel, IDelegateCreationOperation originalDelegateCreationOperation,
@@ -441,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             SemanticModel originalSemanticModel, IConversionOperation originalConversionOperation,
             CancellationToken cancellationToken)
         {
-            #region blocked cases
+#region blocked cases
 
             // If the conversion doesn't exist then we can't do anything with this as the code isn't
             // semantically valid.
@@ -465,6 +268,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // to ensure that the final converted-type of `expr` matches the final converted type of `(X)expr`.
             var originalConvertedType = originalSemanticModel.GetTypeInfo(castNode.WalkUpParentheses(), cancellationToken).ConvertedType;
             if (originalConvertedType is null || originalConvertedType.TypeKind == TypeKind.Error)
+                return false;
+
+            // If removing the cast could cause the compiler to issue a new warning, then we have to preserve it.
+            if (CastRemovalCouldCauseSignExtensionWarning(castNode, originalConversionOperation))
                 return false;
 
             // if the expression being casted is the `null` literal, then we can't remove the cast if the final
@@ -538,9 +345,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (IsIdentityFloatingPointCastThatMustBePreserved(castNode, castedExpressionNode, originalSemanticModel, cancellationToken))
                 return false;
 
-            #endregion blocked cases
+#endregion blocked cases
 
-            #region allowed cases that allow this cast to be removed.
+#region allowed cases that allow this cast to be removed.
 
             // In code like `((X)y).Z()` the cast to (X) can be removed if the same 'Z' method would be called.
             // The rules here can be subtle.  For example, if Z is virtual, and (X) is a cast up the inheritance
@@ -630,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return true;
             }
 
-            #endregion allowed cases.
+#endregion allowed cases.
 
             return false;
         }
