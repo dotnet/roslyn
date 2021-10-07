@@ -2135,13 +2135,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (boundExpr is BoundConvertedSwitchExpression { WasTargetTyped: true } convertedSwitch)
                 {
-                    if (highestBoundExpr is BoundConversion { ConversionKind: ConversionKind.SwitchExpression })
+                    if (highestBoundExpr is BoundConversion { ConversionKind: ConversionKind.SwitchExpression, Conversion: var convertedSwitchConversion })
                     {
                         // There was an implicit cast.
                         type = convertedSwitch.NaturalTypeOpt;
                         convertedType = convertedSwitch.Type;
                         convertedNullability = convertedSwitch.TopLevelNullability;
-                        conversion = convertedSwitch.Conversion.IsValid ? convertedSwitch.Conversion : Conversion.NoConversion;
+                        conversion = convertedSwitchConversion.IsValid ? convertedSwitchConversion : Conversion.NoConversion;
                     }
                     else
                     {
