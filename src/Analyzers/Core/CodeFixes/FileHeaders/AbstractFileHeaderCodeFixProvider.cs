@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -21,10 +23,6 @@ namespace Microsoft.CodeAnalysis.FileHeaders
     internal abstract class AbstractFileHeaderCodeFixProvider : CodeFixProvider
     {
         protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
-        protected abstract ISyntaxFacts SyntaxFacts { get; }
-        protected abstract ISyntaxKinds SyntaxKinds { get; }
-
-        protected abstract SyntaxTrivia ElasticEndOfLine { get; }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.FileHeaderMismatch);
@@ -44,9 +42,20 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         private async Task<Document> GetTransformedDocumentAsync(Document document, CancellationToken cancellationToken)
             => document.WithSyntaxRoot(await GetTransformedSyntaxRootAsync(document, cancellationToken).ConfigureAwait(false));
 
-        private Task<SyntaxNode> GetTransformedSyntaxRootAsync(Document document, CancellationToken cancellationToken)
+        private async Task<SyntaxNode> GetTransformedSyntaxRootAsync(Document document, CancellationToken cancellationToken)
         {
-            return GetTransformedSyntaxRootAsync(SyntaxFacts, FileHeaderHelper, ElasticEndOfLine, document, fileHeaderTemplate: null, cancellationToken);
+#if CODE_STYLE
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var options = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(root.SyntaxTree, cancellationToken);
+#else
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+#endif
+
+            var newLine = options.GetOption(FormattingOptions2.NewLine, document.Project.Language);
+            var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
+            var newLineTrivia = generator.EndOfLine(newLine);
+
+            return await GetTransformedSyntaxRootAsync(generator.SyntaxFacts, FileHeaderHelper, newLineTrivia, document, fileHeaderTemplate: null, cancellationToken).ConfigureAwait(false);
         }
 
         internal static async Task<SyntaxNode> GetTransformedSyntaxRootAsync(ISyntaxFacts syntaxFacts, AbstractFileHeaderHelper fileHeaderHelper, SyntaxTrivia newLineTrivia, Document document, string? fileHeaderTemplate, CancellationToken cancellationToken)
@@ -158,7 +167,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 triviaList = triviaList.RemoveAt(removalList[i]);
             }
 
-            var newHeaderTrivia = CreateNewHeader(syntaxFacts, leadingSpaces + fileHeaderHelper.CommentPrefix, expectedFileHeader, newLineTrivia);
+            var newHeaderTrivia = CreateNewHeader(syntaxFacts, leadingSpaces + fileHeaderHelper.CommentPrefix, expectedFileHeader, newLineTrivia.ToFullString());
 
             // Add a blank line and any remaining preserved trivia after the header.
             newHeaderTrivia = newHeaderTrivia.Add(newLineTrivia).Add(newLineTrivia).AddRange(triviaList);
@@ -169,7 +178,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
         private static SyntaxNode AddHeader(ISyntaxFacts syntaxFacts, AbstractFileHeaderHelper fileHeaderHelper, SyntaxTrivia newLineTrivia, SyntaxNode root, string expectedFileHeader)
         {
-            var newTrivia = CreateNewHeader(syntaxFacts, fileHeaderHelper.CommentPrefix, expectedFileHeader, newLineTrivia).Add(newLineTrivia).Add(newLineTrivia);
+            var newTrivia = CreateNewHeader(syntaxFacts, fileHeaderHelper.CommentPrefix, expectedFileHeader, newLineTrivia.ToFullString()).Add(newLineTrivia).Add(newLineTrivia);
 
             // Skip blank lines already at the beginning of the document, since we add our own
             var leadingTrivia = root.GetLeadingTrivia();
@@ -191,35 +200,18 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             return root.WithLeadingTrivia(newTrivia);
         }
 
-        private static SyntaxTriviaList CreateNewHeader(ISyntaxFacts syntaxFacts, string prefixWithLeadingSpaces, string expectedFileHeader, SyntaxTrivia newLineTrivia)
+        private static SyntaxTriviaList CreateNewHeader(ISyntaxFacts syntaxFacts, string prefixWithLeadingSpaces, string expectedFileHeader, string newLineText)
         {
-            var copyrightText = GetCopyrightText(prefixWithLeadingSpaces, expectedFileHeader);
+            var copyrightText = GetCopyrightText(prefixWithLeadingSpaces, expectedFileHeader, newLineText);
             var newHeader = copyrightText;
-            var leadingTrivia = syntaxFacts.ParseLeadingTrivia(newHeader);
-            var elasticLeadingTrivia = SyntaxTriviaList.Empty;
-            foreach (var trivia in leadingTrivia)
-            {
-                if (syntaxFacts.IsEndOfLineTrivia(trivia))
-                {
-                    elasticLeadingTrivia = elasticLeadingTrivia.Add(newLineTrivia);
-                }
-                else
-                {
-                    elasticLeadingTrivia = elasticLeadingTrivia.Add(trivia);
-                }
-            }
-
-            return elasticLeadingTrivia;
+            return syntaxFacts.ParseLeadingTrivia(newHeader);
         }
 
-        /// <summary>
-        /// Gets the copyright header. Line endings within this string use a single line feed (<c>\n</c>).
-        /// </summary>
-        private static string GetCopyrightText(string prefixWithLeadingSpaces, string copyrightText)
+        private static string GetCopyrightText(string prefixWithLeadingSpaces, string copyrightText, string newLineText)
         {
             copyrightText = copyrightText.Replace("\r\n", "\n");
             var lines = copyrightText.Split('\n');
-            return string.Join("\n", lines.Select(line =>
+            return string.Join(newLineText, lines.Select(line =>
             {
                 // Rewrite the lines of the header as comments without trailing whitespace.
                 if (string.IsNullOrEmpty(line))
