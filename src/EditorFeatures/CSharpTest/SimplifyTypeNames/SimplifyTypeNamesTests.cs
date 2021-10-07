@@ -582,6 +582,40 @@ namespace Root
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToAliasIfTypesMatch()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public System.ConsoleColor MyType => 3;
+
+        void M()
+        {
+            var x = [|System.ConsoleColor|].Red;
+        }
+    }
+}",
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public System.ConsoleColor MyType => 3;
+
+        void M()
+        {
+            var x = MyType.Red;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task DoChangeToAliasIfConflictIsntType()
         {
             await TestInRegularAndScriptAsync(
