@@ -104,6 +104,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
+            // Special case for: (E)~(int)e case.  Enums don't need to be converted to ints to get bitwise negated.
+            // The above is equivalent to `~e` as that keeps the same value and the same type. 
+
             var enumType = semanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type as INamedTypeSymbol;
             var castedType = semanticModel.GetTypeInfo(castExpression.Type, cancellationToken).Type;
 
