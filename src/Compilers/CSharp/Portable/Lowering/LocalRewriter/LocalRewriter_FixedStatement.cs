@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     cleanup[i] = _factory.Assignment(_factory.Local(pinnedTemp), new BoundPointerIndirectionOperator(
                         _factory.Syntax,
                         _factory.Default(new PointerTypeSymbol(pinnedTemp.TypeWithAnnotations)),
+                        refersToLocation: false,
                         pinnedTemp.Type),
                         isRef: true);
                 }

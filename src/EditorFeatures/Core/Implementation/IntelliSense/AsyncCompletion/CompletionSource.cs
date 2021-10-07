@@ -382,22 +382,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return null;
 
             var description = await service.GetDescriptionAsync(document, roslynItem, cancellationToken).ConfigureAwait(false);
+            if (description == null)
+                return null;
 
             var context = new IntellisenseQuickInfoBuilderContext(
                 document, ThreadingContext, _operationExecutor, _asyncListener, _streamingPresenter);
+
             var elements = IntelliSense.Helpers.BuildInteractiveTextElements(description.TaggedParts, context).ToArray();
             if (elements.Length == 0)
-            {
                 return new ClassifiedTextElement();
-            }
-            else if (elements.Length == 1)
-            {
+
+            if (elements.Length == 1)
                 return elements[0];
-            }
-            else
-            {
-                return new ContainerElement(ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding, elements);
-            }
+
+            return new ContainerElement(ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding, elements);
         }
 
         /// <summary>

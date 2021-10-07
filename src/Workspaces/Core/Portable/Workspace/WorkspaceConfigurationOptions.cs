@@ -9,17 +9,22 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
-namespace Microsoft.CodeAnalysis.Formatting
+namespace Microsoft.CodeAnalysis
 {
     [ExportOptionProvider, Shared]
-    internal sealed class FormattingOptionsProvider : IOptionProvider
+    internal class WorkspaceConfigurationOptions : IOptionProvider
     {
+        public static readonly Option<bool> DisableRecoverableTrees = new(
+            nameof(WorkspaceConfigurationOptions), nameof(DisableRecoverableTrees), defaultValue: false,
+            new FeatureFlagStorageLocation("Roslyn.DisableRecoverableTrees"));
+
+        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
+            DisableRecoverableTrees);
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FormattingOptionsProvider()
+        public WorkspaceConfigurationOptions()
         {
         }
-
-        public ImmutableArray<IOption> Options { get; } = FormattingOptions2.AllOptions.As<IOption>();
     }
 }

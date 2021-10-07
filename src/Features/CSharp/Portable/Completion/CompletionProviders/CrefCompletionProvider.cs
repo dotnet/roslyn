@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +21,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
-        private Action<SyntaxNode> _testSpeculativeNodeCallbackOpt;
+        private Action<SyntaxNode?>? _testSpeculativeNodeCallback;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -89,6 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
+                Contract.ThrowIfNull(semanticModel);
+
                 context.IsExclusive = true;
 
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -106,10 +108,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        protected override async Task<(SyntaxToken, SemanticModel, ImmutableArray<ISymbol>)> GetSymbolsAsync(
+        protected override async Task<(SyntaxToken, SemanticModel?, ImmutableArray<ISymbol>)> GetSymbolsAsync(
             Document document, int position, OptionSet options, CancellationToken cancellationToken)
         {
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (!tree.IsEntirelyWithinCrefSyntax(position, cancellationToken))
             {
                 return (default, null, ImmutableArray<ISymbol>.Empty);
@@ -120,8 +122,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             // To get a Speculative SemanticModel (which is much faster), we need to 
             // walk up to the node the DocumentationTrivia is attached to.
-            var parentNode = token.Parent.FirstAncestorOrSelf<DocumentationCommentTriviaSyntax>()?.ParentTrivia.Token.Parent;
-            _testSpeculativeNodeCallbackOpt?.Invoke(parentNode);
+            var parentNode = token.Parent?.FirstAncestorOrSelf<DocumentationCommentTriviaSyntax>()?.ParentTrivia.Token.Parent;
+            _testSpeculativeNodeCallback?.Invoke(parentNode);
             if (parentNode == null)
             {
                 return (default, null, ImmutableArray<ISymbol>.Empty);
@@ -202,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
             else if (IsCrefQualifiedNameContext(token))
             {
-                return GetQualifiedSymbols((QualifiedCrefSyntax)token.Parent, token, semanticModel, cancellationToken);
+                return GetQualifiedSymbols((QualifiedCrefSyntax)token.Parent!, token, semanticModel, cancellationToken);
             }
 
             return ImmutableArray<ISymbol>.Empty;
@@ -290,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static bool TryCreateSpecialTypeItem(
             SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder,
-            ImmutableDictionary<string, string> options, out CompletionItem item)
+            ImmutableDictionary<string, string> options, [NotNullWhen(true)] out CompletionItem? item)
         {
             // If the type is a SpecialType, create an additional item using 
             // its actual name (as opposed to intrinsic type keyword)
@@ -438,8 +440,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             public TestAccessor(CrefCompletionProvider crefCompletionProvider)
                 => _crefCompletionProvider = crefCompletionProvider;
 
-            public void SetSpeculativeNodeCallback(Action<SyntaxNode> value)
-                => _crefCompletionProvider._testSpeculativeNodeCallbackOpt = value;
+            public void SetSpeculativeNodeCallback(Action<SyntaxNode?> value)
+                => _crefCompletionProvider._testSpeculativeNodeCallback = value;
         }
     }
 }
