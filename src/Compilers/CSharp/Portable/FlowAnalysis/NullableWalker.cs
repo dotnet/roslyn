@@ -9052,9 +9052,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // foreach (DestinationType variable in collection)
                             // and asynchronous variants
                             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                            Conversion conversion = node.ElementConversion.Kind == ConversionKind.UnsetConversionKind
-                                ? _conversions.ClassifyImplicitConversionFromType(sourceType.Type, destinationType.Type, ref discardedUseSiteInfo)
-                                : node.ElementConversion;
+                            Conversion conversion = BoundNode.GetConversion(node.ElementConversion, node.ElementPlaceholder);
+                            if (conversion.Kind == ConversionKind.NoConversion)
+                            {
+                                conversion = _conversions.ClassifyImplicitConversionFromType(sourceType.Type, destinationType.Type, ref discardedUseSiteInfo);
+                            }
+
                             result = VisitConversion(
                                 conversionOpt: null,
                                 conversionOperand: node.IterationVariableType,
