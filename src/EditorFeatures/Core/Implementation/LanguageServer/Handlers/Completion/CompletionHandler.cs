@@ -64,10 +64,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public async Task<LSP.CompletionList?> HandleRequestAsync(LSP.CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
-            if (document == null)
-            {
-                return null;
-            }
+            Contract.ThrowIfNull(document);
 
             // C# and VB share the same LSP language server, and thus share the same default trigger characters.
             // We need to ensure the trigger character is valid in the document's language. For example, the '{'

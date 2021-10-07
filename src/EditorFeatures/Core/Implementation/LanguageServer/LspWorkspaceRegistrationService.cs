@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -24,20 +25,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         {
         }
 
-        public ImmutableArray<Workspace> GetAllRegistrations() => _registrations;
+        public ImmutableArray<Workspace> GetAllRegistrations()
+            => _registrations;
+
+        public Workspace? TryGetHostWorkspace()
+            => _registrations.FirstOrDefault(w => w.Kind == WorkspaceKind.Host);
 
         public void Register(Workspace workspace)
         {
+            Logger.Log(FunctionId.RegisterWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
+            {
+                m["WorkspaceKind"] = workspace.Kind;
+                m["WorkspaceCanOpenDocuments"] = workspace.CanOpenDocuments;
+                m["WorkspaceCanChangeActiveContextDocument"] = workspace.CanChangeActiveContextDocument;
+                m["WorkspacePartialSemanticsEnabled"] = workspace.PartialSemanticsEnabled;
+            }));
+
             lock (_gate)
             {
-                Logger.Log(FunctionId.RegisterWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
-                {
-                    m["WorkspaceKind"] = workspace.Kind;
-                    m["WorkspaceCanOpenDocuments"] = workspace.CanOpenDocuments;
-                    m["WorkspaceCanChangeActiveContextDocument"] = workspace.CanChangeActiveContextDocument;
-                    m["WorkspacePartialSemanticsEnabled"] = workspace.PartialSemanticsEnabled;
-                }));
-
                 _registrations = _registrations.Add(workspace);
             }
         }

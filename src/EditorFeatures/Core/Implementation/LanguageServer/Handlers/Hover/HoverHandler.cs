@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -44,10 +45,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
-            if (document == null)
-            {
-                return null;
-            }
+            Contract.ThrowIfNull(document);
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 

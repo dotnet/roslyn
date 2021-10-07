@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -28,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override IImmutableList<SyntaxNode> GetAssemblyScopedAttributeSyntaxNodesOfDocument(SyntaxNode documentRoot)
         {
-            var builder = (ImmutableList<SyntaxNode>.Builder)null;
+            var builder = (ImmutableList<SyntaxNode>.Builder?)null;
             if (documentRoot is CompilationUnitSyntax compilationUnit)
             {
                 foreach (var attributeList in compilationUnit.AttributeLists)
@@ -45,9 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 : builder.ToImmutable();
         }
 
-        protected override SyntaxNode GetConstructorArgumentOfInternalsVisibleToAttribute(SyntaxNode internalsVisibleToAttribute)
+        protected override SyntaxNode? GetConstructorArgumentOfInternalsVisibleToAttribute(SyntaxNode internalsVisibleToAttribute)
         {
-            var arguments = ((AttributeSyntax)internalsVisibleToAttribute).ArgumentList.Arguments;
+            var arguments = ((AttributeSyntax)internalsVisibleToAttribute).ArgumentList!.Arguments;
             // InternalsVisibleTo has only one constructor argument. 
             // https://msdn.microsoft.com/en-us/library/system.runtime.compilerservices.internalsvisibletoattribute.internalsvisibletoattribute(v=vs.110).aspx
             // We can assume that this is the assemblyName argument.

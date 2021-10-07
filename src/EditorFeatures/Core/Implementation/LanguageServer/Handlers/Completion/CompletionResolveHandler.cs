@@ -43,11 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
-            if (document == null)
-            {
-                context.TraceInformation("No associated document found for the provided completion item.");
-                return completionItem;
-            }
+            Contract.ThrowIfNull(document);
 
             var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
             var cacheEntry = GetCompletionListCacheEntry(completionItem);
@@ -67,19 +63,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return completionItem;
             }
 
-            var description = await completionService.GetDescriptionAsync(document, selectedItem, cancellationToken).ConfigureAwait(false);
-
-            var supportsVSExtensions = context.ClientCapabilities.HasVisualStudioLspCapability();
-            if (supportsVSExtensions)
+            var description = await completionService.GetDescriptionAsync(document, selectedItem, cancellationToken).ConfigureAwait(false)!;
+            if (description != null)
             {
-                var vsCompletionItem = (LSP.VSInternalCompletionItem)completionItem;
-                vsCompletionItem.Description = new ClassifiedTextElement(description.TaggedParts
-                    .Select(tp => new ClassifiedTextRun(tp.Tag.ToClassificationTypeName(), tp.Text)));
-            }
-            else
-            {
-                var clientSupportsMarkdown = context.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.DocumentationFormat.Contains(LSP.MarkupKind.Markdown) == true;
-                completionItem.Documentation = ProtocolConversions.GetDocumentationMarkupContent(description.TaggedParts, document, clientSupportsMarkdown);
+                var supportsVSExtensions = context.ClientCapabilities.HasVisualStudioLspCapability();
+                if (supportsVSExtensions)
+                {
+                    var vsCompletionItem = (LSP.VSInternalCompletionItem)completionItem;
+                    vsCompletionItem.Description = new ClassifiedTextElement(description.TaggedParts
+                        .Select(tp => new ClassifiedTextRun(tp.Tag.ToClassificationTypeName(), tp.Text)));
+                }
+                else
+                {
+                    var clientSupportsMarkdown = context.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.DocumentationFormat.Contains(LSP.MarkupKind.Markdown) == true;
+                    completionItem.Documentation = ProtocolConversions.GetDocumentationMarkupContent(description.TaggedParts, document, clientSupportsMarkdown);
+                }
             }
 
             // We compute the TextEdit resolves for complex text edits (e.g. override and partial

@@ -69,14 +69,15 @@ These are _function_type_conversions_.
     }
     ```
 
-    c. Method group conversion to `Expression` or `LambdaExpression`
+    c. Method group or anonymous method conversion to `Expression` or `LambdaExpression`
 
     ```csharp
     using System;
     using System.Linq.Expressions;
 
     var c = new C();
-    c.M(F); // error CS0428: Cannot convert method group 'F' to non-delegate type 'Expression'
+    c.M(F);                         // error CS0428: Cannot convert method group 'F' to non-delegate type 'Expression'
+    c.M(delegate () { return 1; }); // error CS1946: An anonymous method expression cannot be converted to an expression tree
 
     static int F() => 0;
 
@@ -106,4 +107,17 @@ These are _function_type_conversions_.
             F(() => () => 1, 2); // C#9: F(Func<Func<object>>, int); C#10: ambiguous
         }
     }
+    ```
+
+4. In Visual Studio 17.1, the contextual keyword `var` cannot be used as an explicit lambda return type.
+
+    ```csharp
+    using System;
+
+    F(var () => default);  // error: 'var' cannot be used as an explicit lambda return type
+    F(@var () => default); // ok
+
+    static void F(Func<var> f) { }
+
+    class var { }
     ```

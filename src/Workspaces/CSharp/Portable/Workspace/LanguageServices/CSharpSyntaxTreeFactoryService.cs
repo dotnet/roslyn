@@ -12,6 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -21,19 +22,22 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class CSharpSyntaxTreeFactoryServiceFactory : ILanguageServiceFactory
     {
         private static readonly CSharpParseOptions _parseOptionWithLatestLanguageVersion = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
+        private readonly IGlobalOptionService _optionService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpSyntaxTreeFactoryServiceFactory()
+        public CSharpSyntaxTreeFactoryServiceFactory(IGlobalOptionService optionService)
         {
+            _optionService = optionService;
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
-            => new CSharpSyntaxTreeFactoryService(provider);
+            => new CSharpSyntaxTreeFactoryService(_optionService, provider);
 
         private partial class CSharpSyntaxTreeFactoryService : AbstractSyntaxTreeFactoryService
         {
-            public CSharpSyntaxTreeFactoryService(HostLanguageServices languageServices) : base(languageServices)
+            public CSharpSyntaxTreeFactoryService(IGlobalOptionService optionService, HostLanguageServices languageServices)
+                : base(optionService, languageServices)
             {
             }
 
