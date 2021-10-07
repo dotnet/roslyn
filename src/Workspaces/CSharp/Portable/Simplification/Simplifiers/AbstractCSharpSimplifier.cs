@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (node.IsLeftSideOfDot())
             {
                 var symbols = semanticModel.LookupSymbols(node.SpanStart, name: aliasName);
-                if (symbols.Any(s => !s.Equals(aliasReplacement)))
+                if (symbols.Any((s, replacement) => !s.Equals(replacement), aliasReplacement))
                 {
                     return false;
                 }
