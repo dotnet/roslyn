@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
     /// <summary>
     /// By default the cast simplifier operates under several main principles:
     /// <list type="number">
-    /// <item>The final type that an cast-expression was converted to should be the same as the final
+    /// <item>The final type that a cast-expression was converted to should be the same as the final
     /// type that the underlying expression should convert to without the cast.  This tells us that 
     /// the compiler thinks that value should convert to that type implicitly, not just explicitly.</item>
     /// <item>Static semantics of the code should remain the same.  This means that things like overload
