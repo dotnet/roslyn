@@ -11,25 +11,30 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritDoc;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddInheritDoc
 {
-    public class AddInheritDocTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+
+    using VerifyCS = CSharpCodeFixVerifier<
+        EmptyDiagnosticAnalyzer,
+        AddInheritDocCodeFixProvider>;
+
+    public class AddInheritDocTests
     {
-        public AddInheritDocTests(ITestOutputHelper logger) : base(logger)
-        {
-        }
-
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new AddInheritDocCodeFixProvider());
-
         private async Task TestAsync(string initialMarkup, string expectedMarkup)
         {
-            await TestAsync(initialMarkup, expectedMarkup, CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
+            var test = new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = expectedMarkup,
+            };
+            await test.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritDoc)]
@@ -40,17 +45,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddInheritD
 /// Some doc.
 public class BaseClass
 {
+    /// Some doc.
+    public virtual void M() { }
 }
-public class [|Derived|]: BaseClass
+/// Some doc.
+public class Derived: BaseClass
 {
+    public override void {|CS1591:M|}() { }
 }",
             @"
 /// Some doc.
 public class BaseClass
 {
+    /// Some doc.
+    public virtual void M() { }
 }
-///<inheritdoc/> public class Derived: BaseClass
+/// Some doc.
+public class Derived: BaseClass
 {
+    public override void {|CS1591:M|}() { }
 }");
         }
     }
