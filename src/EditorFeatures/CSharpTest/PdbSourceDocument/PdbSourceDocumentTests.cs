@@ -400,7 +400,12 @@ public class C
             await TestAsync(Location.OnDisk, Location.OnDisk, source, c => c.GetMember("C.E"), buildReferenceAssembly: true, expectNullResult: true);
         }
 
-        private static async Task TestAsync(Location pdbLocation, Location sourceLocation, string metadataSource, Func<Compilation, ISymbol> symbolMatcher, string[]? preprocessorSymbols = null, bool buildReferenceAssembly = false, bool expectNullResult = false)
+        private static Task TestAsync(Location pdbLocation, Location sourceLocation, string metadataSource, Func<Compilation, ISymbol> symbolMatcher, string[]? preprocessorSymbols = null, bool buildReferenceAssembly = false, bool expectNullResult = false)
+        {
+            return RunTestAsync(path => TestAsync(path, pdbLocation, sourceLocation, metadataSource, symbolMatcher, preprocessorSymbols, buildReferenceAssembly, expectNullResult));
+        }
+
+        private static async Task RunTestAsync(Func<string, Task> testRunner)
         {
             var path = Path.Combine(Path.GetTempPath(), nameof(PdbSourceDocumentTests));
 
@@ -408,7 +413,7 @@ public class C
             {
                 Directory.CreateDirectory(path);
 
-                await TestAsync(path, pdbLocation, sourceLocation, metadataSource, symbolMatcher, preprocessorSymbols, buildReferenceAssembly, expectNullResult);
+                await testRunner(path);
             }
             finally
             {
@@ -421,12 +426,48 @@ public class C
 
         private static async Task TestAsync(string path, Location pdbLocation, Location sourceLocation, string metadataSource, Func<Compilation, ISymbol> symbolMatcher, string[]? preprocessorSymbols, bool buildReferenceAssembly, bool expectNullResult)
         {
-            var assemblyName = "ReferencedAssembly";
-            var sourceCodePath = Path.Combine(path, "source.cs");
-            var dllFilePath = Path.Combine(path, "reference.dll");
-            var pdbFilePath = Path.Combine(path, "reference.pdb");
+            MarkupTestFile.GetSpan(metadataSource, out var source, out var expectedSpan);
 
-            MarkupTestFile.GetSpan(metadataSource, out var input, out var expectedSpan);
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, sourceLocation, source, symbolMatcher, preprocessorSymbols, buildReferenceAssembly);
+
+            await GenerateFileAndVerifyAsync(project, symbol, source, expectedSpan, expectNullResult);
+        }
+
+        private static async Task GenerateFileAndVerifyAsync(Project project, ISymbol symbol, string source, Text.TextSpan expectedSpan, bool expectNullResult)
+        {
+            var workspace = (TestWorkspace)project.Solution.Workspace;
+
+            var service = workspace.GetService<IMetadataAsSourceFileService>();
+            var file = await service.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, CancellationToken.None).ConfigureAwait(false);
+
+            if (expectNullResult)
+            {
+                Assert.Same(NullResultMetadataAsSourceFileProvider.NullResult, file);
+                return;
+            }
+
+            AssertEx.NotNull(file, $"No source document was found in the pdb for the symbol.");
+
+            var masWorkspace = service.TryGetWorkspace();
+
+            var document = masWorkspace!.CurrentSolution.Projects.First().Documents.First();
+
+            var actual = await document.GetTextAsync();
+            var actualSpan = file!.IdentifierLocation.SourceSpan;
+
+            // Compare exact texts and verify that the location returned is exactly that
+            // indicated by expected
+            AssertEx.EqualOrDiff(source, actual.ToString());
+            Assert.Equal(expectedSpan.Start, actualSpan.Start);
+            Assert.Equal(expectedSpan.End, actualSpan.End);
+        }
+
+        private static async Task<(Project, ISymbol)> CompileAndFindSymbolAsync(string path, Location pdbLocation, Location sourceLocation, string source, Func<Compilation, ISymbol> symbolMatcher, string[]? preprocessorSymbols, bool buildReferenceAssembly)
+        {
+            var assemblyName = "ReferencedAssembly";
+            var sourceCodePath = GetSourceFilePath(path);
+            var dllFilePath = GetDllPath(path);
+            var pdbFilePath = GetPdbPath(path);
 
             var preprocessorSymbolsAttribute = preprocessorSymbols?.Length > 0
                 ? $"PreprocessorSymbols=\"{string.Join(";", preprocessorSymbols)}\""
@@ -453,14 +494,14 @@ public class C
 
             var compilation = compilationFactory
                 .CreateCompilation(assemblyName, options)
-                .AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(input, options: parseOptions, path: sourceCodePath, encoding: Encoding.UTF8))
+                .AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(source, options: parseOptions, path: sourceCodePath, encoding: Encoding.UTF8))
                 .AddReferences(project.MetadataReferences);
 
             IEnumerable<EmbeddedText>? embeddedTexts;
             if (sourceLocation == Location.OnDisk)
             {
                 embeddedTexts = null;
-                File.WriteAllText(sourceCodePath, input);
+                File.WriteAllText(sourceCodePath, source);
             }
             else
             {
@@ -492,35 +533,28 @@ public class C
 
             project = project.AddMetadataReference(MetadataReference.CreateFromFile(dllFilePath));
 
-            var mainCompilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
+            var mainCompilation = await project.GetRequiredCompilationAsync(CancellationToken.None).ConfigureAwait(false);
 
             var symbol = symbolMatcher(mainCompilation);
 
             AssertEx.NotNull(symbol, $"Couldn't find symbol to go-to-def for.");
 
-            var service = workspace.GetService<IMetadataAsSourceFileService>();
-            var file = await service.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, CancellationToken.None).ConfigureAwait(false);
+            return (project, symbol);
+        }
 
-            if (expectNullResult)
-            {
-                Assert.Same(NullResultMetadataAsSourceFileProvider.NullResult, file);
-                return;
-            }
+        private static string GetDllPath(string path)
+        {
+            return Path.Combine(path, "reference.dll");
+        }
 
-            AssertEx.NotNull(file, $"No source document was found in the pdb for the symbol.");
+        private static string GetSourceFilePath(string path)
+        {
+            return Path.Combine(path, "source.cs");
+        }
 
-            var masWorkspace = service.TryGetWorkspace();
-
-            var document = masWorkspace!.CurrentSolution.Projects.First().Documents.First();
-
-            var actual = await document.GetTextAsync();
-            var actualSpan = file!.IdentifierLocation.SourceSpan;
-
-            // Compare exact texts and verify that the location returned is exactly that
-            // indicated by expected
-            AssertEx.EqualOrDiff(input, actual.ToString());
-            Assert.Equal(expectedSpan.Start, actualSpan.Start);
-            Assert.Equal(expectedSpan.End, actualSpan.End);
+        private static string GetPdbPath(string path)
+        {
+            return Path.Combine(path, "reference.pdb");
         }
     }
 }
