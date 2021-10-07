@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 {
     /// <summary>
-    /// By default the cast simplifier operates under several main principles by default:
+    /// By default the cast simplifier operates under several main principles:
     /// <list type="number">
     /// <item>The final type that an cast-expression was converted to should be the same as the final
     /// type that the underlying expression should convert to without the cast.  This tells us that 
