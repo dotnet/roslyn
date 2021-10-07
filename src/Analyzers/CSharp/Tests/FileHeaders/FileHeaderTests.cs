@@ -75,8 +75,8 @@ namespace N
 
             await new VerifyCS.Test
             {
-                TestCode = testCode.Replace("\r\n", "\n").Replace("\n", lineEnding),
-                FixedCode = fixedCode.Replace("\r\n", "\n").Replace("\n", lineEnding),
+                TestCode = testCode.ReplaceLineEndings(lineEnding),
+                FixedCode = fixedCode.ReplaceLineEndings(lineEnding),
                 EditorConfig = TestSettings,
                 Options =
                 {

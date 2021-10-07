@@ -65,8 +65,8 @@ End Namespace
 
             Dim test As VerifyVB.Test = New VerifyVB.Test With
             {
-                .TestCode = testCode.Replace(vbCrLf, vbCr).Replace(vbCr, lineEnding),
-                .FixedCode = fixedCode.Replace(vbCrLf, vbCr).Replace(vbCr, lineEnding),
+                .TestCode = testCode.ReplaceLineEndings(lineEnding),
+                .FixedCode = fixedCode.ReplaceLineEndings(lineEnding),
                 .EditorConfig = TestSettings
             }
 
