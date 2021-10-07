@@ -97,6 +97,9 @@ namespace Microsoft.CodeAnalysis
 
         protected static ValueSource<TextAndVersion> CreateRecoverableText(TextAndVersion text, SolutionServices services)
         {
+            if (services.Workspace.Options.GetOption(WorkspaceConfigurationOptions.WorkspaceExperiment) == WorkspaceExperiment.DisableRecoverableText)
+                return CreateStrongText(text);
+
             var result = new RecoverableTextAndVersion(CreateStrongText(text), services.TemporaryStorage);
 
             // This RecoverableTextAndVersion is created directly from a TextAndVersion instance. In its initial state,
@@ -112,6 +115,9 @@ namespace Microsoft.CodeAnalysis
 
         protected static ValueSource<TextAndVersion> CreateRecoverableText(TextLoader loader, DocumentId documentId, SolutionServices services)
         {
+            if (services.Workspace.Options.GetOption(WorkspaceConfigurationOptions.WorkspaceExperiment) == WorkspaceExperiment.DisableRecoverableText)
+                return CreateStrongText(loader, documentId, services);
+
             return new RecoverableTextAndVersion(
                 new AsyncLazy<TextAndVersion>(
                     asynchronousComputeFunction: cancellationToken => loader.LoadTextAsync(services.Workspace, documentId, cancellationToken),
