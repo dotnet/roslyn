@@ -49,6 +49,11 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>>? _lazyImportedProviders;
 
+        /// <summary>
+        /// Test-only switch.
+        /// </summary>
+        private bool _suppressPartialSemantics;
+
         protected CompletionServiceWithProviders(Workspace workspace)
         {
             _workspace = workspace;
@@ -262,13 +267,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         private async Task<(Document document, SemanticModel? semanticModel)> GetDocumentWithFrozenPartialSemanticsAsync(Document document, CancellationToken cancellationToken)
         {
-            var usePartialSemantic = _workspace.Options.GetOption(CompletionServiceOptions.UsePartialSemanticForCompletion);
-            if (usePartialSemantic)
+            if (_suppressPartialSemantics)
             {
-                return await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                return (document, await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false));
             }
 
-            return (document, await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false));
+            return await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         }
 
         private protected async Task<(CompletionList? completionList, bool expandItemsAvailable)> GetCompletionsWithAvailabilityOfExpandedItemsAsync(
@@ -764,6 +768,9 @@ namespace Microsoft.CodeAnalysis.Completion
                     defaultSpan: null,
                     cancellationToken);
             }
+
+            public void SuppressPartialSemantics()
+                => _completionServiceWithProviders._suppressPartialSemantics = true;
         }
     }
 }
