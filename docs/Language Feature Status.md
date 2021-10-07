@@ -17,6 +17,7 @@ efforts behind them.
 | [Default in deconstruction](https://github.com/dotnet/roslyn/pull/25562) | [decon-default](https://github.com/dotnet/roslyn/tree/features/decon-default) | [Implemented](https://github.com/dotnet/roslyn/issues/25559) | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | [jcouv](https://github.com/jcouv) |
 | [List patterns](https://github.com/dotnet/csharplang/issues/3435) | [list-patterns](https://github.com/dotnet/roslyn/tree/features/list-patterns) | [In Progress](https://github.com/dotnet/roslyn/issues/51289) | [alrz](https://github.com/alrz) | [jcouv](https://github.com/jcouv), [333fred](https://github.com/333fred) | [333fred](https://github.com/333fred) |
 | [Raw string literals](https://github.com/dotnet/csharplang/issues/4304) | [RawStringLiterals](https://github.com/dotnet/roslyn/tree/features/features/RawStringLiterals) | [In Progress](https://github.com/dotnet/roslyn/issues/55306) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [jcouv](https://github.com/jcouv) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
+| [Semi-auto-properties](https://github.com/dotnet/csharplang/issues/140) | [semi-auto-properties](https://github.com/dotnet/roslyn/tree/features/features/semi-auto-properties) | [In Progress](https://github.com/dotnet/roslyn/issues/57012) | [Youssef1313](https://github.com/Youssef1313) | TBD | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
 
 # C# 10.0
 
