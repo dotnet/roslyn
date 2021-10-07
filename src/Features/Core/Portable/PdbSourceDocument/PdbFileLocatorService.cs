@@ -65,6 +65,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // 
             // Most of this info comes from the CodeView Debug Directory from the dll
 
+            dllStream.Dispose();
+            peReader.Dispose();
             return Task.FromResult<MultiMetadataReaderProvider?>(null);
         }
     }
