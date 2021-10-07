@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData(",  ,  , control_flow_statements", (int)SpacingWithinParenthesesOption.ControlFlowStatements)]
         public void TestParseParenthesesSpaceOptionsTrue(string value, int parenthesesSpacingOption)
         {
-            Assert.True(DetermineIfSpaceOptionIsSet(value, (SpacingWithinParenthesesOption)parenthesesSpacingOption),
+            Assert.True(EditorConfig.DetermineIfSpaceOptionIsSet(value, (SpacingWithinParenthesesOption)parenthesesSpacingOption),
                         $"Expected option {value} to be parsed as set.");
         }
 
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("*", (int)SpacingWithinParenthesesOption.Expressions)]
         public void TestParseParenthesesSpaceOptionsFalse(string value, int parenthesesSpacingOption)
         {
-            Assert.False(DetermineIfSpaceOptionIsSet(value, (SpacingWithinParenthesesOption)parenthesesSpacingOption),
+            Assert.False(EditorConfig.DetermineIfSpaceOptionIsSet(value, (SpacingWithinParenthesesOption)parenthesesSpacingOption),
                         $"Expected option {value} to be parsed as un-set.");
         }
 
@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("ignore", BinaryOperatorSpacingOptions.Ignore),
         InlineData("none", BinaryOperatorSpacingOptions.Remove),
         InlineData("before_and_after", BinaryOperatorSpacingOptions.Single)]
-        public void TestParseEditorConfigSpacingAroundBinaryOperatorTrue(string value, BinaryOperatorSpacingOptions expectedResult)
+        public void TestParseSpacingAroundBinaryOperatorTrue(string value, BinaryOperatorSpacingOptions expectedResult)
         {
-            Assert.True(ParseEditorConfigSpacingAroundBinaryOperator(value) == expectedResult,
+            Assert.True(EditorConfig.ParseSpacingAroundBinaryOperator(value).Value == expectedResult,
                         $"Expected option {value} to be parsed as set.");
         }
 
@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("ignore,"),
         InlineData("non"),
         InlineData("before_and_after,ignore")]
-        public void TestParseEditorConfigSpacingAroundBinaryOperatorFalse(string value)
+        public void TestParseSpacingAroundBinaryOperatorFalse(string value)
         {
-            Assert.True(ParseEditorConfigSpacingAroundBinaryOperator(value) == BinaryOperatorSpacingOptions.Single,
+            Assert.True(EditorConfig.ParseSpacingAroundBinaryOperator(value).Value == BinaryOperatorSpacingOptions.Single,
                         $"Expected option {value} to be parsed as default option.");
         }
 
@@ -64,9 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("flush_left", LabelPositionOptions.LeftMost),
         InlineData("no_change", LabelPositionOptions.NoIndent),
         InlineData("one_less_than_current", LabelPositionOptions.OneLess)]
-        public void TestParseEditorConfigLabelPositioningTrue(string value, LabelPositionOptions expectedValue)
+        public void TestParseLabelPositioningTrue(string value, LabelPositionOptions expectedValue)
         {
-            Assert.True(ParseEditorConfigLabelPositioning(value) == expectedValue,
+            Assert.True(EditorConfig.ParseLabelPositioning(value).Value == expectedValue,
                         $"Expected option {value} to be parsed as set.");
         }
 
@@ -74,9 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("left_most,"),
         InlineData("*"),
         InlineData("one_less_thancurrent")]
-        public void TestParseEditorConfigLabelPositioningFalse(string value)
+        public void TestParseLabelPositioningFalse(string value)
         {
-            Assert.True(ParseEditorConfigLabelPositioning(value) == LabelPositionOptions.NoIndent,
+            Assert.True(EditorConfig.ParseLabelPositioning(value).Value == LabelPositionOptions.NoIndent,
                         $"Expected option {value} to be parsed default");
         }
 
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("local_functions", (int)NewLineOption.LocalFunction)]
         public void TestParseNewLineOptionTrue(string value, int option)
         {
-            Assert.True(DetermineIfNewLineOptionIsSet(value, (NewLineOption)option),
+            Assert.True(EditorConfig.DetermineIfNewLineOptionIsSet(value, (NewLineOption)option),
                         $"Expected option {value} to be set");
         }
 
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData(",,,", (int)NewLineOption.Types)]
         public void TestParseNewLineOptionFalse(string value, int option)
         {
-            Assert.False(DetermineIfNewLineOptionIsSet(value, (NewLineOption)option),
+            Assert.False(EditorConfig.DetermineIfNewLineOptionIsSet(value, (NewLineOption)option),
                         $"Expected option {value} to be un-set");
         }
 
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData(" ignore ")]
         public void TestDetermineIfIgnoreSpacesAroundVariableDeclarationIsSetTrue(string value)
         {
-            Assert.True(DetermineIfIgnoreSpacesAroundVariableDeclarationIsSet(value),
+            Assert.True(EditorConfig.DetermineIfIgnoreSpacesAroundVariableDeclarationIsSet(value).Value,
                         $"Expected option {value} to be set");
         }
 
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData(" ignor ")]
         public void TestDetermineIfIgnoreSpacesAroundVariableDeclarationIsSetFalse(string value)
         {
-            Assert.False(DetermineIfIgnoreSpacesAroundVariableDeclarationIsSet(value),
+            Assert.False(EditorConfig.DetermineIfIgnoreSpacesAroundVariableDeclarationIsSet(value).Value,
                         $"Expected option {value} to be un-set");
         }
     }
