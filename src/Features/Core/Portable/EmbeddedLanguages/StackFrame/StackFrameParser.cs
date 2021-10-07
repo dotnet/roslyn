@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             try
             {
-                return new StackFrameParser(text).ParseTree();
+                return new StackFrameParser(text).TryParseTree();
             }
             catch (InsufficientExecutionStackException)
             {
@@ -62,11 +62,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// <summary>
         /// Attempts to parse the full tree. Returns null on malformed data
         /// </summary>
-        private StackFrameTree? ParseTree()
+        private StackFrameTree? TryParseTree()
         {
             var atTrivia = _lexer.ScanAtTrivia();
 
-            var methodDeclaration = ParseMethodDeclaration();
+            var methodDeclaration = TryParseMethodDeclaration();
             if (methodDeclaration is null)
             {
                 return null;
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             var inTrivia = _lexer.ScanInTrivia();
             var (fileInformation, isFilePathValid) = inTrivia.HasValue
-                ? ParseFileInformation()
+                ? TryParseFileInformation()
                 : (null, false);
 
             using var _ = ArrayBuilder<StackFrameTrivia>.GetInstance(out var trailingTriviaBuilder);
@@ -138,16 +138,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// 
         /// Ex: [|MyClass.MyMethod(string s)|]
         /// </summary>
-        private StackFrameMethodDeclarationNode? ParseMethodDeclaration()
+        private StackFrameMethodDeclarationNode? TryParseMethodDeclaration()
         {
-            var identifierExpression = ParseIdentifierExpression();
+            var identifierExpression = TryParseIdentifierExpression();
             if (identifierExpression is not StackFrameMemberAccessExpressionNode memberAccessExpression)
             {
                 return null;
             }
 
-            var typeArguments = ParseTypeArguments();
-            var arguments = ParseMethodParameters();
+            var typeArguments = TryParseTypeArguments();
+            var arguments = TryParseMethodParameters();
 
             if (arguments is null)
             {
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         ///   * [|$$MyClass`1.MyMethod|](string s)
         ///   * [|$$MyClass.MyMethod|][T](T t)
         /// </summary>
-        private StackFrameExpressionNode? ParseIdentifierExpression()
+        private StackFrameExpressionNode? TryParseIdentifierExpression()
         {
             Queue<(StackFrameBaseIdentifierNode identifier, StackFrameToken separator)> typeIdentifierNodes = new();
 
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// Assumes the identifier "MyMethod" has already been parsed, and the type arguments will need to be parsed. 
         /// Returns null if no type arguments are found or if they are malformed.
         /// </summary>
-        private StackFrameTypeArgumentList? ParseTypeArguments()
+        private StackFrameTypeArgumentList? TryParseTypeArguments()
         {
             if (!_lexer.ScanIfMatch(
                 kind => kind is StackFrameKind.OpenBracketToken or StackFrameKind.LessThanToken,
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// 
         /// Returns null in cases where the input is malformed.
         /// </summary>
-        private StackFrameParameterList? ParseMethodParameters()
+        private StackFrameParameterList? TryParseMethodParameters()
         {
             if (!_lexer.ScanIfMatch(StackFrameKind.OpenParenToken, out var openParen))
             {
@@ -318,14 +318,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             StackFrameToken closeParen;
 
             using var _ = ArrayBuilder<StackFrameNodeOrToken>.GetInstance(out var builder);
-            var identifier = ParseIdentifierExpression();
+            var identifier = TryParseIdentifierExpression();
 
             while (identifier is not null)
             {
                 // Check if there's an array type for the identifier
                 if (CurrentToken.Kind == StackFrameKind.OpenBracketToken)
                 {
-                    builder.Add(ParseArrayIdentifier(identifier));
+                    builder.Add(TryParseArrayIdentifier(identifier));
                 }
                 else
                 {
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 }
 
                 var addLeadingWhitespaceAsTrivia = identifier.ChildAt(identifier.ChildCount - 1).Token.TrailingTrivia.IsDefaultOrEmpty;
-                identifier = ParseIdentifierExpression();
+                identifier = TryParseIdentifierExpression();
             }
 
             if (_lexer.ScanIfMatch(StackFrameKind.CloseParenToken, out closeParen))
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// passed in, converts it into <see cref="StackFrameExpressionNode"/> by parsing the array portion
         /// of the identifier.
         /// </summary>
-        private StackFrameExpressionNode ParseArrayIdentifier(StackFrameExpressionNode identifier)
+        private StackFrameExpressionNode TryParseArrayIdentifier(StackFrameExpressionNode identifier)
         {
             if (CurrentToken.Kind != StackFrameKind.OpenBracketToken)
             {
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// Parses text for a valid file path using valid file characters. It's very possible this includes a path that doesn't exist but
         /// forms a valid path identifier. 
         /// </summary>
-        public (StackFrameFileInformationNode? fileInformation, bool isPathValid) ParseFileInformation()
+        public (StackFrameFileInformationNode? fileInformation, bool isPathValid) TryParseFileInformation()
         {
             var path = _lexer.ScanPath();
             if (!path.HasValue)
