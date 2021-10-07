@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly string? _workspaceKind;
         private readonly HostWorkspaceServices _services;
+
         private readonly BranchId _primaryBranchId;
 
         private readonly IOptionService _optionService;
@@ -64,6 +65,8 @@ namespace Microsoft.CodeAnalysis
 
         private Action<string>? _testMessageLogger;
 
+        internal readonly bool DisableBranchIds;
+
         /// <summary>
         /// Constructs a new workspace instance.
         /// </summary>
@@ -71,13 +74,15 @@ namespace Microsoft.CodeAnalysis
         /// <param name="workspaceKind">A string that can be used to identify the kind of workspace. Usually this matches the name of the class.</param>
         protected Workspace(HostServices host, string? workspaceKind)
         {
-            _primaryBranchId = BranchId.GetNextId();
             _workspaceKind = workspaceKind;
 
             _services = host.CreateWorkspaceServices(this);
 
             _optionService = _services.GetRequiredService<IOptionService>();
             _optionService.RegisterWorkspace(this);
+
+            this.DisableBranchIds = _optionService.GetOption(WorkspaceConfigurationOptions.WorkspaceExperiment) == WorkspaceExperiment.DisableBranchId;
+            _primaryBranchId = BranchId.GetNextId(this.DisableBranchIds);
 
             // queue used for sending events
             var schedulerProvider = _services.GetRequiredService<ITaskSchedulerProvider>();

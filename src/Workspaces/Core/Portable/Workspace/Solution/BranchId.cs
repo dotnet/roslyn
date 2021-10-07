@@ -10,19 +10,22 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// solution branch Id
     /// </summary>
-    [DebuggerDisplay("{_id}")]
+    [DebuggerDisplay($"{nameof(_id)}")]
     internal class BranchId
     {
-        private static int s_nextId;
+        /// <summary>
+        /// Used only if <see cref="WorkspaceExperiment.DisableBranchId"/> is set.
+        /// </summary>
+        private static readonly BranchId s_experimentSingleton = new(0);
 
-#pragma warning disable IDE0052 // Remove unread private members
+        private static int s_nextId = 1;
+
         private readonly int _id;
-#pragma warning restore IDE0052 // Remove unread private members
 
         private BranchId(int id)
             => _id = id;
 
-        internal static BranchId GetNextId()
-            => new(Interlocked.Increment(ref s_nextId));
+        internal static BranchId GetNextId(bool disableBranchIds)
+            => disableBranchIds ? s_experimentSingleton : new(Interlocked.Increment(ref s_nextId));
     }
 }
