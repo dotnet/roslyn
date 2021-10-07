@@ -25,6 +25,9 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         public Task<MultiMetadataReaderProvider?> GetMetadataReadersAsync(string dllPath, CancellationToken cancellationToken)
         {
+            if (!File.Exists(dllPath))
+                return Task.FromResult<MultiMetadataReaderProvider?>(null);
+
             var dllStream = File.OpenRead(dllPath);
 
             // The simplest possible thing is that the PDB happens to be right next to the DLL. You know, we might get lucky.

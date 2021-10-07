@@ -400,6 +400,51 @@ public class C
             await TestAsync(Location.OnDisk, Location.OnDisk, source, c => c.GetMember("C.E"), buildReferenceAssembly: true, expectNullResult: true);
         }
 
+        [Fact]
+        public async Task NoPdb_NullResult()
+        {
+            var source = @"
+public class C
+{
+    public event System.EventHandler [|E|] { add { } remove { } }
+}";
+
+            await RunTestAsync(async path =>
+            {
+                MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"), preprocessorSymbols: null, buildReferenceAssembly: false);
+
+                // Now delete the PDB
+                File.Delete(GetPdbPath(path));
+
+                await GenerateFileAndVerifyAsync(project, symbol, source, expectedSpan, expectNullResult: true);
+            });
+        }
+
+
+        [Fact]
+        public async Task NoDll_NullResult()
+        {
+            var source = @"
+public class C
+{
+    public event System.EventHandler [|E|] { add { } remove { } }
+}";
+
+            await RunTestAsync(async path =>
+            {
+                MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"), preprocessorSymbols: null, buildReferenceAssembly: false);
+
+                // Now delete the DLL
+                File.Delete(GetDllPath(path));
+
+                await GenerateFileAndVerifyAsync(project, symbol, source, expectedSpan, expectNullResult: true);
+            });
+        }
+
         private static Task TestAsync(Location pdbLocation, Location sourceLocation, string metadataSource, Func<Compilation, ISymbol> symbolMatcher, string[]? preprocessorSymbols = null, bool buildReferenceAssembly = false, bool expectNullResult = false)
         {
             return RunTestAsync(path => TestAsync(path, pdbLocation, sourceLocation, metadataSource, symbolMatcher, preprocessorSymbols, buildReferenceAssembly, expectNullResult));
