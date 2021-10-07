@@ -4103,6 +4103,46 @@ class C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529858")>
+        Public Async Function TestCSharp_Remove_UnnecessaryCastFromEnumTypeToUnderlyingType_Flipped() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+ 
+class C
+{
+    static void Main()
+    {
+        DayOfWeek x = DayOfWeek.Monday;
+        if (0 == {|Simplify:(int)x|}) { }
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+ 
+class C
+{
+    static void Main()
+    {
+        DayOfWeek x = DayOfWeek.Monday;
+        if (0 == x) { }
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529858")>
         Public Async Function TestCSharp_Remove_UnnecessaryCastFromEnumTypeToUnderlyingType2() As Task
             Dim input =
 <Workspace>
@@ -4133,6 +4173,46 @@ class C
     {
         DayOfWeek x = DayOfWeek.Monday;
         if (x != 0) { }
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529858")>
+        Public Async Function TestCSharp_Remove_UnnecessaryCastFromEnumTypeToUnderlyingType2_Flipped() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+ 
+class C
+{
+    static void Main()
+    {
+        DayOfWeek x = DayOfWeek.Monday;
+        if (0 != {|Simplify:(int)x|}) { }
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+ 
+class C
+{
+    static void Main()
+    {
+        DayOfWeek x = DayOfWeek.Monday;
+        if (0 != x) { }
     }
 }
 ]]>

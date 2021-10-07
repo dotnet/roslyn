@@ -81,22 +81,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            var enumType = semanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type as INamedTypeSymbol;
-            var castedType = semanticModel.GetTypeInfo(castExpression.Type, cancellationToken).Type;
-
-            if (Equals(enumType?.EnumUnderlyingType, castedType) &&
-                castExpression.WalkUpParentheses().Parent is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.EqualsExpression or (int)SyntaxKind.NotEqualsExpression } binary)
+            var leftOrRightChild = castExpression.WalkUpParentheses();
+            if (leftOrRightChild.Parent is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.EqualsExpression or (int)SyntaxKind.NotEqualsExpression } binary)
             {
-                var constantValue = semanticModel.GetConstantValue(binary.Right, cancellationToken);
-                if (constantValue.HasValue &&
-                    IntegerUtilities.IsIntegral(constantValue.Value) &&
-                    IntegerUtilities.ToInt64(constantValue.Value) == 0)
+                var enumType = semanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type as INamedTypeSymbol;
+                var castedType = semanticModel.GetTypeInfo(castExpression.Type, cancellationToken).Type;
+
+                if (Equals(enumType?.EnumUnderlyingType, castedType))
                 {
-                    return true;
+                    if (leftOrRightChild == binary.Left && IsConstantZero(binary.Right) ||
+                        leftOrRightChild == binary.Right && IsConstantZero(binary.Left))
+                    {
+                        return true;
+                    }
                 }
             }
 
             return false;
+
+            bool IsConstantZero(ExpressionSyntax child)
+            {
+                var constantValue = semanticModel.GetConstantValue(child, cancellationToken);
+                return constantValue.HasValue &&
+                       IntegerUtilities.IsIntegral(constantValue.Value) &&
+                       IntegerUtilities.ToInt64(constantValue.Value) == 0;
+            }
         }
 
         private static bool IsRemovableBitwiseEnumNegation(
@@ -107,17 +116,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // Special case for: (E)~(int)e case.  Enums don't need to be converted to ints to get bitwise negated.
             // The above is equivalent to `~e` as that keeps the same value and the same type. 
 
-            var enumType = semanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type as INamedTypeSymbol;
-            var castedType = semanticModel.GetTypeInfo(castExpression.Type, cancellationToken).Type;
-
-            if (Equals(enumType?.EnumUnderlyingType, castedType) &&
-                castExpression.WalkUpParentheses().Parent is PrefixUnaryExpressionSyntax(SyntaxKind.BitwiseNotExpression) parent &&
+            if (castExpression.WalkUpParentheses().Parent is PrefixUnaryExpressionSyntax(SyntaxKind.BitwiseNotExpression) parent &&
                 parent.WalkUpParentheses().Parent is CastExpressionSyntax parentCast)
             {
-                var parentCastType = semanticModel.GetTypeInfo(parentCast.Type, cancellationToken).Type;
-                if (Equals(enumType, parentCastType))
+                var enumType = semanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type as INamedTypeSymbol;
+                var castedType = semanticModel.GetTypeInfo(castExpression.Type, cancellationToken).Type;
+
+                if (Equals(enumType?.EnumUnderlyingType, castedType))
                 {
-                    return true;
+                    var parentCastType = semanticModel.GetTypeInfo(parentCast.Type, cancellationToken).Type;
+                    if (Equals(enumType, parentCastType))
+                        return true;
                 }
             }
 
