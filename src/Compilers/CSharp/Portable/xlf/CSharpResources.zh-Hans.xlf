@@ -1463,8 +1463,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter">
-        <source>Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
-        <target state="translated">参数 {0} 在参数列表中的 {1} 后发生，但被用作内插字符串处理程序转换的参数。这将要求调用方在调用站点使用命名参数重新排列参数。请考虑将内插字符串处理程序参数放在涉及的所有参数的后面。</target>
+        <source>Parameter '{0}' occurs after '{1}' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
+        <target state="needs-review-translation">参数 {0} 在参数列表中的 {1} 后发生，但被用作内插字符串处理程序转换的参数。这将要求调用方在调用站点使用命名参数重新排列参数。请考虑将内插字符串处理程序参数放在涉及的所有参数的后面。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">
