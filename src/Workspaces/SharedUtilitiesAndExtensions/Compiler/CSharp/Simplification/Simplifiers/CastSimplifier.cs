@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (isDefaultLiteralCast && castNode.WalkUpParentheses().Parent is PatternSyntax or CaseSwitchLabelSyntax)
                 return false;
 
-            // If removing the cast would cause the compiler to issue a specific warning, then we have to preserve it.
+            // If removing the cast would cause the compiler to issue a new warning, then we have to preserve it.
             if (CastRemovalWouldCauseSignExtensionWarning(castNode, originalSemanticModel, cancellationToken))
                 return false;
 
