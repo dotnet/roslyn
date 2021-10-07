@@ -41,8 +41,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
     internal static class CastSimplifier
     {
         public static bool IsUnnecessaryCast(ExpressionSyntax cast, SemanticModel semanticModel, CancellationToken cancellationToken)
-            => cast is CastExpressionSyntax castExpression ? IsUnnecessaryCast(castExpression, semanticModel, cancellationToken) :
-               cast is BinaryExpressionSyntax binaryExpression ? IsUnnecessaryAsCast(binaryExpression, semanticModel, cancellationToken) : false;
+            => cast switch
+            {
+                CastExpressionSyntax castExpression => IsUnnecessaryCast(castExpression, semanticModel, cancellationToken),
+                BinaryExpressionSyntax binaryExpression => IsUnnecessaryAsCast(binaryExpression, semanticModel, cancellationToken),
+                _ => false,
+            };
 
         public static bool IsUnnecessaryAsCast(BinaryExpressionSyntax cast, SemanticModel semanticModel, CancellationToken cancellationToken)
             => cast.Kind() == SyntaxKind.AsExpression &&
