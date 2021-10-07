@@ -581,7 +581,7 @@ namespace Root
 }");
         }
 
-         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task DoChangeToAliasIfConflictIsntType()
         {
             await TestInRegularAndScriptAsync(
@@ -595,7 +595,8 @@ namespace Root
 
         [|System.ConsoleColor|] x;
     }
-}",@"using MyType = System.ConsoleColor;
+}",
+@"using MyType = System.ConsoleColor;
 
 namespace Root
 {
