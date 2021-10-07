@@ -11364,7 +11364,7 @@ unsafe
 static void M(string s) => System.Console.WriteLine(s);
 ";
 
-            var verifier = CompileAndVerify(code, options: TestOptions.UnsafeReleaseExe, expectedOutput: "true");
+            var verifier = CompileAndVerifyFunctionPointers(code, expectedOutput: "true");
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
   // Code size       36 (0x24)
@@ -11410,7 +11410,7 @@ static void M1(string s) => System.Console.WriteLine(s);
 static void M2(string s) => throw null;
 ";
 
-            var verifier = CompileAndVerify(code, options: TestOptions.UnsafeReleaseExe, expectedOutput: "true");
+            var verifier = CompileAndVerifyFunctionPointers(code, expectedOutput: "true");
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
   // Code size       37 (0x25)
@@ -11456,7 +11456,7 @@ static void M1(string s) => System.Console.WriteLine(s);
 static void M2(object s) => throw null;
 ";
 
-            var verifier = CompileAndVerify(code, options: TestOptions.UnsafeReleaseExe, expectedOutput: "true");
+            var verifier = CompileAndVerifyFunctionPointers(code, expectedOutput: "true");
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
   // Code size       37 (0x25)
@@ -11502,7 +11502,7 @@ static void M1(string s) => System.Console.WriteLine(s);
 static void M2(string s) => throw null;
 ";
 
-            var verifier = CompileAndVerify(code, options: TestOptions.UnsafeReleaseExe, expectedOutput: "true");
+            var verifier = CompileAndVerifyFunctionPointers(code, expectedOutput: "true");
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
   // Code size       57 (0x39)
