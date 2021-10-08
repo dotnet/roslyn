@@ -658,23 +658,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinaryOperatorSignature @operator,
             BoundExpression left,
             BoundExpression right,
-            Conversion leftConversion,
-            Conversion finalConversion,
+            BoundValuePlaceholder? leftPlaceholder,
+            BoundExpression? leftConversion,
+            BoundValuePlaceholder? finalPlaceholder,
+            BoundExpression? finalConversion,
             LookupResultKind resultKind,
             TypeSymbol type,
             bool hasErrors = false)
-            : this(syntax, @operator, left, right, leftConversion, finalConversion, resultKind, originalUserDefinedOperatorsOpt: default, type, hasErrors)
+            : this(syntax, @operator, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, resultKind, originalUserDefinedOperatorsOpt: default, type, hasErrors)
         {
         }
 
         public BoundCompoundAssignmentOperator Update(BinaryOperatorSignature @operator,
                                                       BoundExpression left,
                                                       BoundExpression right,
-                                                      Conversion leftConversion,
-                                                      Conversion finalConversion,
+                                                      BoundValuePlaceholder? leftPlaceholder,
+                                                      BoundExpression? leftConversion,
+                                                      BoundValuePlaceholder? finalPlaceholder,
+                                                      BoundExpression? finalConversion,
                                                       LookupResultKind resultKind,
                                                       TypeSymbol type)
-            => Update(@operator, left, right, leftConversion, finalConversion, resultKind, this.OriginalUserDefinedOperatorsOpt, type);
+            => Update(@operator, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, resultKind, this.OriginalUserDefinedOperatorsOpt, type);
     }
 
     internal partial class BoundUnaryOperator

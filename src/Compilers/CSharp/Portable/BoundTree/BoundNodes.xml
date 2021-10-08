@@ -487,8 +487,17 @@
     <Field Name="Operator" Type="BinaryOperatorSignature" Null="NotApplicable"/>
     <Field Name="Left" Type="BoundExpression"/>
     <Field Name="Right" Type="BoundExpression"/>
-    <Field Name="LeftConversion" Type="Conversion"/>
-    <Field Name="FinalConversion" Type="Conversion"/>
+    
+    <!-- Used as an operand to bind LeftConversion -->
+    <Field Name="LeftPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Could be a BoundConversion or, in some cases of an identity conversion, the LeftPlaceholder, or null for no conversion case -->
+    <Field Name="LeftConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+    
+    <!-- Used as an operand to bind LeftConversion -->
+    <Field Name="FinalPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Could be a BoundConversion or, in some cases of an identity conversion, the FinalPlaceholder, or null for no conversion case -->
+    <Field Name="FinalConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+    
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <!--The set of method symbols from which this operator's method was chosen.
         Only kept in the tree if the operator was an error and overload resolution
