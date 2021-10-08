@@ -143,26 +143,23 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 
         private static QuickInfoItem? BuildQuickInfoDirectives(SyntaxToken token, CancellationToken cancellationToken)
         {
-            var directiveTrivia = token.Parent as DirectiveTriviaSyntax;
-            if (directiveTrivia is EndRegionDirectiveTriviaSyntax)
+            if (token.Parent is DirectiveTriviaSyntax directiveTrivia)
             {
-                var regionStart = directiveTrivia.GetMatchingDirective(cancellationToken);
-                if (regionStart is not null)
+                if (directiveTrivia is EndRegionDirectiveTriviaSyntax)
                 {
-                    return QuickInfoItem.Create(token.Span, relatedSpans: ImmutableArray.Create(regionStart.Span));
+                    var regionStart = directiveTrivia.GetMatchingDirective(cancellationToken);
+                    if (regionStart is not null)
+                        return QuickInfoItem.Create(token.Span, relatedSpans: ImmutableArray.Create(regionStart.Span));
                 }
-            }
-
-            if (directiveTrivia is ElifDirectiveTriviaSyntax or ElseDirectiveTriviaSyntax or EndIfDirectiveTriviaSyntax)
-            {
-                var matchingDirectives = directiveTrivia.GetMatchingConditionalDirectives(cancellationToken);
-                var matchesBefore = matchingDirectives
-                    .TakeWhile(d => d.SpanStart < directiveTrivia.SpanStart)
-                    .Select(d => d.Span)
-                    .ToImmutableArray();
-                if (matchesBefore.Length > 0)
+                else if (directiveTrivia is ElifDirectiveTriviaSyntax or ElseDirectiveTriviaSyntax or EndIfDirectiveTriviaSyntax)
                 {
-                    return QuickInfoItem.Create(token.Span, relatedSpans: matchesBefore);
+                    var matchingDirectives = directiveTrivia.GetMatchingConditionalDirectives(cancellationToken);
+                    var matchesBefore = matchingDirectives
+                        .TakeWhile(d => d.SpanStart < directiveTrivia.SpanStart)
+                        .Select(d => d.Span)
+                        .ToImmutableArray();
+                    if (matchesBefore.Length > 0)
+                        return QuickInfoItem.Create(token.Span, relatedSpans: matchesBefore);
                 }
             }
 
