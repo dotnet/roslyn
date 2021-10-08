@@ -10409,5 +10409,282 @@ class Program
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task CanNotRemoveStackallocToVarOutsideOfUnsafeRegion()
+        {
+            var source = @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        var x = (Span<int>)stackalloc int[8];
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task CanRemoveStackallocToSpanOutsideOfUnsafeRegion()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        Span<int> x = [|(Span<int>)|]stackalloc int[8]; // cast can be removed
+    }
+}",
+                @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        Span<int> x = stackalloc int[8]; // cast can be removed
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task CanNotRemoveStackallocToVarInsideOfUnsafeRegion1()
+        {
+            var source = @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        unsafe
+        {
+            var x = (Span<int>)stackalloc int[8]; // cast can not be removed
+        }
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task CanNotRemoveStackallocToVarInsideOfUnsafeRegion2()
+        {
+            var source = @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+class Program
+{
+    unsafe static void Main()
+    {
+        var x = (Span<int>)stackalloc int[8]; // cast can not be removed
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task CanRemoveStackallocToSpanInsideOfUnsafeRegion1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        unsafe
+        {
+            Span<int> x = [|(Span<int>)|]stackalloc int[8]; // cast can be removed
+        }
+    }
+}",
+                @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        unsafe
+        {
+            Span<int> x = stackalloc int[8]; // cast can be removed
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task CanRemoveStackallocToSpanInsideOfUnsafeRegion2()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+class Program
+{
+    unsafe static void Main()
+    {
+        Span<int> x = [|(Span<int>)|]stackalloc int[8]; // cast can be removed
+    }
+}",
+                @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+class Program
+{
+    unsafe static void Main()
+    {
+        Span<int> x = stackalloc int[8]; // cast can be removed
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task CanRemoveStackallocToVarInsideOfUnsafeRegion1()
+        {
+            // possibly incorrect error: https://github.com/dotnet/roslyn/issues/57040
+            var source = @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+class Program
+{
+    unsafe static void Main()
+    {
+        var x = {|CS8346:(int*)stackalloc int[8]|}; // cast can be removed
+    }
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task CanRemoveParenthesizedStackallocToVarInsideOfUnsafeRegion1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+class Program
+{
+    unsafe static void Main()
+    {
+        var x = [|(Span<int>)|](stackalloc int[8]); // cast can be removed
+    }
+}",
+                @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+class Program
+{
+    unsafe static void Main()
+    {
+        var x = (stackalloc int[8]); // cast can be removed
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task CanRemoveStackallocToPointerInsideOfUnsafeRegion1()
+        {
+            // Possibly a compiler bug.  Unclear why conversion to `(int*)` not allowed.
+            // https://github.com/dotnet/roslyn/issues/57040
+            var source = @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+class Program
+{
+    unsafe static void Main()
+    {
+        int* x = {|CS8346:(int*)stackalloc int[8]|}; // cast can be removed
+    }
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
     }
 }
