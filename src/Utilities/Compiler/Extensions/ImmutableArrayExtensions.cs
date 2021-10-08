@@ -38,5 +38,30 @@ namespace System.Collections.Immutable
         /// <param name="count">The number of elements to ensure exists.</param>
         /// <returns><see langword="true" /> the source sequence contains less then <paramref name="count"/> elements; otherwise, <see langword="false" />.</returns>
         public static bool HasFewerThan<TSource>(this ImmutableArray<TSource> source, int count) => source.Length < count;
+
+        /// <summary>
+        /// Determines whether a sequence contains any elements.
+        /// </summary>
+        /// <typeparam name="T">The type of the elements of array.</typeparam>
+        /// <typeparam name="TArg">The type of arg.</typeparam>
+        /// <param name="array">The <see cref="Immutable.ImmutableArray{T}"/> whose elements to apply the predicate to.</param>
+        /// <param name="predicate">A function to test each element for a condition.</param>
+        /// <param name="arg">The argument to pass into the predicate.</param>
+        /// <returns> true if any elements in the source sequence pass the test in the specified predicate otherwise, false.</returns>
+        public static bool Any<T, TArg>(this ImmutableArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            int n = array.Length;
+            for (int i = 0; i < n; i++)
+            {
+                var a = array[i];
+
+                if (predicate(a, arg))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }
