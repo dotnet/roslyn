@@ -582,7 +582,27 @@ namespace Root
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task DoChangeToAliasIfTypesMatch()
+        public async Task DoNotChangeToAliasIfConflict2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public System.ConsoleColor MyType() => 3;
+
+        void M()
+        {
+            var x = [|System.ConsoleColor|].Red;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToAliasIfTypesMatch1()
         {
             await TestInRegularAndScriptAsync(
 @"using MyType = System.ConsoleColor;
@@ -608,6 +628,70 @@ namespace Root
         public System.ConsoleColor MyType => 3;
 
         void M()
+        {
+            var x = MyType.Red;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToAliasIfTypesMatch2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public System.ConsoleColor MyType = 3;
+
+        void M()
+        {
+            var x = [|System.ConsoleColor|].Red;
+        }
+    }
+}",
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public System.ConsoleColor MyType = 3;
+
+        void M()
+        {
+            var x = MyType.Red;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToAliasIfTypesMatch3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        void M(System.ConsoleColor MyType)
+        {
+            var x = [|System.ConsoleColor|].Red;
+        }
+    }
+}",
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        void M(System.ConsoleColor MyType)
         {
             var x = MyType.Red;
         }
