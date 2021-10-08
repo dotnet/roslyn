@@ -50,11 +50,8 @@ namespace System.Collections.Immutable
         /// <returns> true if any elements in the source sequence pass the test in the specified predicate otherwise, false.</returns>
         public static bool Any<T, TArg>(this ImmutableArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
         {
-            int n = array.Length;
-            for (int i = 0; i < n; i++)
+            foreach (var a in array)
             {
-                var a = array[i];
-
                 if (predicate(a, arg))
                 {
                     return true;
