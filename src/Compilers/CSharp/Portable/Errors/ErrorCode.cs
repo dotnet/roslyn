@@ -2001,6 +2001,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_MethGrpToNonDel = 8974,
         ERR_LambdaExplicitReturnTypeVar = 8975,
 
+        // Added in VS 17.1. Technically a breaking change, but the code it breaks was already guaranteed to throw
+        // at runtime.
+        ERR_CannotUseRefInUnmanagedCallersOnly = 8976,
+
         #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)

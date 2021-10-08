@@ -8111,6 +8111,49 @@ class C
             );
         }
 
+        [Fact, WorkItem(57025, "https://github.com/dotnet/roslyn/issues/57025")]
+        public void UnmanagedCallersOnlyRequiresNonRef_Errors()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly]
+    static ref int M1() => throw null;
+
+    [UnmanagedCallersOnly]
+    static ref readonly int M2() => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M3(ref int o) => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M4(in int o) => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M5(out int o) => throw null;
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (6,12): error CS8976: Cannot use 'ref', 'in', or 'out' in a method attributed with 'UnmanagedCallersOnly'.
+                //     static ref int M1() => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, "ref int").WithLocation(6, 12),
+                // (9,12): error CS8976: Cannot use 'ref', 'in', or 'out' in a method attributed with 'UnmanagedCallersOnly'.
+                //     static ref readonly int M2() => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, "ref readonly int").WithLocation(9, 12),
+                // (12,20): error CS8976: Cannot use 'ref', 'in', or 'out' in a method attributed with 'UnmanagedCallersOnly'.
+                //     static void M3(ref int o) => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, "ref int o").WithLocation(12, 20),
+                // (15,20): error CS8976: Cannot use 'ref', 'in', or 'out' in a method attributed with 'UnmanagedCallersOnly'.
+                //     static void M4(in int o) => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, "in int o").WithLocation(15, 20),
+                // (18,20): error CS8976: Cannot use 'ref', 'in', or 'out' in a method attributed with 'UnmanagedCallersOnly'.
+                //     static void M5(out int o) => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, "out int o").WithLocation(18, 20)
+            );
+        }
+
         [Fact]
         public void UnmanagedCallersOnlyRequiresUnmanagedTypes_Valid()
         {

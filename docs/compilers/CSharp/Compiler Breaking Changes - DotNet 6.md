@@ -121,3 +121,24 @@ These are _function_type_conversions_.
 
     class var { }
     ```
+
+5. In Visual Studio 17.1, `ref`/`ref readonly`/`in`/`out` are not allowed to be used on return/parameters of a method attributed with `UnmanagedCallersOnly`.  
+https://github.com/dotnet/roslyn/issues/57025
+
+    ```cs
+    using System.Runtime.InteropServices;
+    [UnmanagedCallersOnly]
+    static ref int M1() => throw null; // error CS8976: Cannot use 'ref', 'in', or 'out' in a method attributed with 'UnmanagedCallersOnly'.
+
+    [UnmanagedCallersOnly]
+    static ref readonly int M2() => throw null; // error CS8976: Cannot use 'ref', 'in', or 'out' in a method attributed with 'UnmanagedCallersOnly'.
+
+    [UnmanagedCallersOnly]
+    static void M3(ref int o) => throw null; // error CS8976: Cannot use 'ref', 'in', or 'out' in a method attributed with 'UnmanagedCallersOnly'.
+
+    [UnmanagedCallersOnly]
+    static void M4(in int o) => throw null; // error CS8976: Cannot use 'ref', 'in', or 'out' in a method attributed with 'UnmanagedCallersOnly'.
+
+    [UnmanagedCallersOnly]
+    static void M5(out int o) => throw null; // error CS8976: Cannot use 'ref', 'in', or 'out' in a method attributed with 'UnmanagedCallersOnly'.
+    ```
