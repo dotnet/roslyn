@@ -27,13 +27,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddInheritD
 
     public class AddInheritDocTests
     {
-        private async Task TestAsync(string initialMarkup, string expectedMarkup)
+        private static async Task TestAsync(string initialMarkup, string expectedMarkup)
         {
             var test = new VerifyCS.Test
             {
                 TestCode = initialMarkup,
                 FixedCode = expectedMarkup,
                 CodeActionValidationMode = CodeActionValidationMode.Full,
+            };
+            await test.RunAsync();
+        }
+
+        private static async Task TestMissingAsync(string initialMarkup)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = initialMarkup,
             };
             await test.RunAsync();
         }
@@ -67,6 +77,27 @@ public class Derived: BaseClass
     ///<inheritdoc/>
     public override void M() { }
 }");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritDoc)]
+        [InlineData("public void {|CS1591:OtherMethod|}() { }")]
+        [InlineData("public void {|CS1591:M|}() { }")]
+        [InlineData("public new void {|CS1591:M|}() { }")]
+        public async Task DontOfferOnNotOverridenMethod(string methodDefintion)
+        {
+            await TestMissingAsync(
+            $@"
+/// Some doc.
+public class BaseClass
+{{
+    /// Some doc.
+    public virtual void M() {{ }}
+}}
+/// Some doc.
+public class Derived: BaseClass
+{{
+    {methodDefintion}
+}}");
         }
     }
 }

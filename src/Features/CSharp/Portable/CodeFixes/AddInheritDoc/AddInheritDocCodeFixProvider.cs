@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -41,14 +42,48 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritDoc
 
         internal override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.FirstOrDefault(d => d.Id == CS1591);
-            if (diagnostic != null)
+            if (diagnostic is null)
             {
-                context.RegisterCodeFix(new MyCodeAction("TODO", c => FixAsync(context.Document, diagnostic, c)), context.Diagnostics);
+                return;
             }
-            return Task.CompletedTask;
+
+            var document = context.Document;
+            var cancellationToken = context.CancellationToken;
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (root is null)
+            {
+                return;
+            }
+
+            var node = root.FindNode(diagnostic.Location.SourceSpan);
+            if (node.Kind() is not SyntaxKind.MethodDeclaration and not SyntaxKind.PropertyDeclaration)
+            {
+                return;
+            }
+
+            var semanticModel = await context.Document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            if (semanticModel is null)
+            {
+                return;
+            }
+
+            var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
+            if (symbol is null)
+            {
+                return;
+            }
+
+            if (symbol.Kind is SymbolKind.Method or SymbolKind.Property)
+            {
+                if (symbol.IsOverride ||
+                    symbol.ExplicitOrImplicitInterfaceImplementations().Any())
+                {
+                    context.RegisterCodeFix(new MyCodeAction("TODO", c => FixAsync(context.Document, diagnostic, c)), context.Diagnostics);
+                }
+            }
         }
 
         protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
