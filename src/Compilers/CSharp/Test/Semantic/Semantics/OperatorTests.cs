@@ -11199,5 +11199,127 @@ class M
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "d += p").WithArguments("+=", "dynamic", "int*").WithLocation(5, 9)
                 );
         }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedUnaryOperator_InvalidTypeArgument01()
+        {
+            var code = @"
+S1? s1 = default;
+var s2 = +s1;
+
+struct S1
+{
+    public static S2 operator+(S1 s1) => throw null;
+}
+
+ref struct S2 {}
+";
+
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (3,10): error CS0306: The type 'S2' may not be used as a type argument
+                // var s2 = +s1;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "+s1").WithArguments("S2").WithLocation(3, 10)
+            );
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedUnaryOperator_InvalidTypeArgument02()
+        {
+            var code = @"
+S1? s1 = default;
+var s2 = +s1;
+
+unsafe struct S1
+{
+    public static unsafe int* operator+(S1 s1) => throw null;
+}
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics(
+                // (3,10): error CS0306: The type 'int*' may not be used as a type argument
+                // var s2 = +s1;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "+s1").WithArguments("int*").WithLocation(3, 10)
+            );
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedBinaryOperator_InvalidTypeArgument01()
+        {
+            var code = @"
+var x = new S1();
+int? y = 1;
+(x + y)?.M();
+
+public readonly ref struct S1
+{
+    public static S1 operator+ (S1 x, int y) => throw null;
+    public void M() {}
+}
+";
+
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS0306: The type 'S1' may not be used as a type argument
+                // (x + y)?.M();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x").WithArguments("S1").WithLocation(4, 2),
+                // (4,2): error CS0306: The type 'S1' may not be used as a type argument
+                // (x + y)?.M();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x + y").WithArguments("S1").WithLocation(4, 2)
+            );
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedBinaryOperator_InvalidTypeArgument02()
+        {
+            var code = @"
+var x = new S1();
+int? y = 1;
+(y + x)?.M();
+
+public readonly ref struct S1
+{
+    public static S1 operator+ (int y, S1 x) => throw null;
+    public void M() {}
+}
+";
+
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS0306: The type 'S1' may not be used as a type argument
+                // (y + x)?.M();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "y + x").WithArguments("S1").WithLocation(4, 2),
+                // (4,6): error CS0306: The type 'S1' may not be used as a type argument
+                // (y + x)?.M();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x").WithArguments("S1").WithLocation(4, 6)
+
+            );
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedBinaryOperator_InvalidTypeArgument03()
+        {
+            var code = @"
+var x = new S1();
+int? y = 1;
+(y > x).ToString();
+
+public readonly ref struct S1
+{
+    public static bool operator >(int y, S1 x) => throw null;
+    public static bool operator <(int y, S1 x) => throw null;
+    public void M() {}
+}
+";
+
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (4,6): error CS0306: The type 'S1' may not be used as a type argument
+                // (y > x)?.M();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x").WithArguments("S1").WithLocation(4, 6)
+
+            );
+        }
     }
 }
