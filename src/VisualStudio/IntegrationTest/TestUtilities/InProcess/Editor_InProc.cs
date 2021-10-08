@@ -141,6 +141,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     throw new InvalidOperationException($"{WellKnownCommandNames.Edit_ToggleCompletionMode} did not leave the editor in the expected state.");
                 }
             }
+
+            if (!value)
+            {
+                // For blocking completion mode, make sure we don't have responsive completion interfering when
+                // integration tests run slowly.
+                ExecuteOnActiveView(view =>
+                {
+                    var options = view.Options.GlobalOptions;
+                    options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, false);
+
+                    var latencyGuardOptionKey = new EditorOptionKey<bool>("EnableTypingLatencyGuard");
+                    options.SetOptionValue(latencyGuardOptionKey, false);
+                });
+            }
         }
 
         public void VerifyNotSaved()
