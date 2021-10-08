@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(leftPlaceholder is not null);
 
-
                     leftConversion = ApplyConversion(leftConversion, leftPlaceholder, leftPlaceholder);
 
                     if (leftConversion is not BoundConversion { Conversion: { Exists: true } })
