@@ -148,5 +148,99 @@ public class MyClass: IInterface
     void IInterface.M() { }
 }");
         }
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritDoc)]
+        public async Task AddMissingInheritDocOnOverridenProperty()
+        {
+            await TestAsync(
+            @"
+/// Some doc.
+public class BaseClass
+{
+    /// Some doc.
+    public virtual string P { get; set; }
+}
+/// Some doc.
+public class Derived: BaseClass
+{
+    public override string {|CS1591:P|} { get; set; }
+}",
+            @"
+/// Some doc.
+public class BaseClass
+{
+    /// Some doc.
+    public virtual string P { get; set; }
+}
+/// Some doc.
+public class Derived: BaseClass
+{
+    ///<inheritdoc/>
+    public override string P { get; set; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritDoc)]
+        public async Task AddMissingInheritDocOnImplicitInterfaceProperty()
+        {
+            await TestAsync(
+            @"
+/// Some doc.
+public interface IInterface
+{
+    /// Some doc.
+    string P { get; }
+}
+/// Some doc.
+public class MyClass: IInterface
+{
+    public string {|CS1591:P|} { get; }
+}",
+            @"
+/// Some doc.
+public interface IInterface
+{
+    /// Some doc.
+    string P { get; }
+}
+/// Some doc.
+public class MyClass: IInterface
+{
+    ///<inheritdoc/>
+    public string P { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritDoc)]
+        public async Task AddMissingInheritDocTriviaTest_1()
+        {
+            await TestAsync(
+            @"
+/// Some doc.
+public class BaseClass
+{
+    /// Some doc.
+    public virtual void M() { }
+}
+/// Some doc.
+public class Derived: BaseClass
+{
+    // Comment
+    public override void {|CS1591:M|}() { }
+}",
+            @"
+/// Some doc.
+public class BaseClass
+{
+    /// Some doc.
+    public virtual void M() { }
+}
+/// Some doc.
+public class Derived: BaseClass
+{
+    ///<inheritdoc/>
+    // Comment
+    public override void M() { }
+}");
+        }
     }
 }
