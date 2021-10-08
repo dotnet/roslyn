@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         }
 
         private static bool IsNullLiteralCast(ExpressionSyntax castedExpressionNode)
-            => castedExpressionNode.WalkDownParentheses().Kind() == SyntaxKind.NullLiteralExpression;
+            => castedExpressionNode.WalkDownParentheses().IsKind(SyntaxKind.NullLiteralExpression);
 
         private static bool IsConversionCastSafeToRemove(
             ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
