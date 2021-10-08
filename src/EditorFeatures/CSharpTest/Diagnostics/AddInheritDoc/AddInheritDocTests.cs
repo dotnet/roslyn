@@ -38,6 +38,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddInheritD
             await test.RunAsync();
         }
 
+        private static async Task TestFixAllAsync(string initialMarkup, string expectedMarkup, int numberOfIterations)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = expectedMarkup,
+                BatchFixedCode = expectedMarkup,
+                NumberOfFixAllInDocumentIterations = 1,
+                NumberOfIncrementalIterations = numberOfIterations,
+                CodeActionValidationMode = CodeActionValidationMode.Full,
+            };
+            await test.RunAsync();
+        }
+
         private static async Task TestMissingAsync(string initialMarkup)
         {
             var test = new VerifyCS.Test
@@ -319,6 +333,44 @@ public class Derived: BaseClass
     [Dummy]
     public override void M() { }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritDoc)]
+        public async Task AddMissingInheritDocFixAll_1()
+        {
+            await TestFixAllAsync(
+            @"
+/// Some doc.
+public class BaseClass
+{
+    /// Some doc.
+    public virtual void M() { }
+    /// Some doc.
+    public virtual string P { get; }
+}
+/// Some doc.
+public class Derived: BaseClass
+{
+    public override void {|CS1591:M|}() { }
+    public override string {|CS1591:P|} { get; }
+}",
+            @"
+/// Some doc.
+public class BaseClass
+{
+    /// Some doc.
+    public virtual void M() { }
+    /// Some doc.
+    public virtual string P { get; }
+}
+/// Some doc.
+public class Derived: BaseClass
+{
+    ///<inheritdoc/>
+    public override void M() { }
+    ///<inheritdoc/>
+    public override string P { get; }
+}", numberOfIterations: 2);
         }
     }
 }
