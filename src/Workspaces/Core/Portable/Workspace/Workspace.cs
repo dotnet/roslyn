@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis
             _optionService = _services.GetRequiredService<IOptionService>();
             _optionService.RegisterWorkspace(this);
 
-            this.DisableBranchIds = _optionService.GetOption(WorkspaceConfigurationOptions.WorkspaceExperiment) == WorkspaceExperiment.DisableBranchId;
+            this.DisableBranchIds = _optionService.GetOption(WorkspaceConfigurationOptions.DisableBranchIds);
             _primaryBranchId = BranchId.GetNextId(this.DisableBranchIds);
 
             // queue used for sending events

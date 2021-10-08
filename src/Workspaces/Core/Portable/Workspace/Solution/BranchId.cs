@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
     internal class BranchId
     {
         /// <summary>
-        /// Used only if <see cref="WorkspaceExperiment.DisableBranchId"/> is set.
+        /// Used only if <see cref="WorkspaceExperiment.DisableBranchIds"/> is set.
         /// </summary>
         private static readonly BranchId s_experimentSingleton = new(0);
 

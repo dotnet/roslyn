@@ -14,24 +14,22 @@ namespace Microsoft.CodeAnalysis
     [ExportOptionProvider, Shared]
     internal class WorkspaceConfigurationOptions : IOptionProvider
     {
-        public static readonly Option<WorkspaceExperiment> WorkspaceExperiment = new(
-            nameof(WorkspaceConfigurationOptions), nameof(WorkspaceExperiment), defaultValue: CodeAnalysis.WorkspaceExperiment.None,
-            new FeatureFlagStorageLocation("Roslyn.WorkspaceExperiment"));
+        public static readonly Option<bool> DisableRecoverableTrees = new(
+            nameof(WorkspaceConfigurationOptions), nameof(DisableRecoverableTrees), defaultValue: false,
+            new FeatureFlagStorageLocation("Roslyn.DisableRecoverableTrees"));
+
+        public static readonly Option<bool> DisableBranchIds = new(
+            nameof(WorkspaceConfigurationOptions), nameof(DisableBranchIds), defaultValue: false,
+            new FeatureFlagStorageLocation("Roslyn.DisableBranchIds"));
 
         ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
-            WorkspaceExperiment);
+            DisableRecoverableTrees,
+            DisableBranchIds);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public WorkspaceConfigurationOptions()
         {
         }
-    }
-
-    internal enum WorkspaceExperiment
-    {
-        None,
-        DisableRecoverableTrees = 1,
-        DisableBranchId = 2,
     }
 }
