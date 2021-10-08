@@ -78,20 +78,6 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly PerLanguageOption2<bool?> EnableArgumentCompletionSnippets =
             new(nameof(CompletionOptions), nameof(EnableArgumentCompletionSnippets), defaultValue: null,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.EnableArgumentCompletionSnippets"));
-
-        // Test-only options
-
-        // This option is associated with the Roslyn.LSP.Completion flag and should be removed once the flag is removed.
-        // It is intended for testing purposes only.
-        public static readonly PerLanguageOption2<bool> ForceRoslynLSPCompletionExperiment =
-            new(nameof(CompletionOptions), nameof(ForceRoslynLSPCompletionExperiment), defaultValue: false,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ForceRoslynLSPCompletionExperiment"));
-
-        public static IEnumerable<PerLanguageOption2<bool>> GetDev15CompletionOptions()
-        {
-            yield return ShowCompletionItemFilters;
-            yield return HighlightMatchingPortionsOfCompletionListItems;
-        }
     }
 
     internal static class CompletionControllerOptions
