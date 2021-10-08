@@ -37,13 +37,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         DisableRecoverableTrees = 1,
         /// <summary>
-        /// Disables the BranchId concept idea entirely.  All solutions will have the same <see cref="Solution.BranchId"/> and
-        /// which will be equal to every <see cref="Workspace.PrimaryBranchId"/>.
-        /// </summary>
-        DisableBranchId = 2,
-        /// <summary>
         /// Disables holding onto the assembly references for runtime (not user/nuget/etc.) dlls weakly.
         /// </summary>
-        DisableReferenceManagerWeakRuntimeReferences = 3,
+        DisableReferenceManagerWeakRuntimeReferences = 2,
     }
 }
