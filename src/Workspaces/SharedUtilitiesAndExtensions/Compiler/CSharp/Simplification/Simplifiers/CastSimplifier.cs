@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 }
             }
 
-            // If we have an implicit reference conversion in an is expression then we remove the cast.  For example
+            // If we have an implicit reference conversion in an 'is' expression then we remove the cast.  For example
             //
             //  if ((object)someRefType is string)
             //
