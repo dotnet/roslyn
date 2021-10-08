@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddInheritD
             {
                 TestCode = initialMarkup,
                 FixedCode = expectedMarkup,
-                CodeActionValidationMode = CodeActionValidationMode.None,
+                CodeActionValidationMode = CodeActionValidationMode.Full,
             };
             await test.RunAsync();
         }

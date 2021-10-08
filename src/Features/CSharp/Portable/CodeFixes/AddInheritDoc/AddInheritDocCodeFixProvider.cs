@@ -14,7 +14,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritDoc
@@ -47,33 +51,37 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritDoc
             return Task.CompletedTask;
         }
 
-        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
+            string? newLine = null;
             foreach (var diagnostic in diagnostics)
             {
                 var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan);
+                newLine ??= (await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)).GetOption(FormattingOptions2.NewLine);
                 // We can safely assume, that there is no leading doc comment, because that is what CS1591 is telling us.
                 // So we create a new ///<inheritdoc/> comment.
-                var lessThanToken = Token(SyntaxKind.LessThanToken).WithLeadingTrivia(DocumentationCommentExterior("///"));
+                var lessThanToken = Token(SyntaxKind.LessThanToken).WithLeadingTrivia(DocumentationCommentExterior("///")).WithoutTrailingTrivia();
+                var slashGreaterThanToken = Token(SyntaxKind.SlashGreaterThanToken).WithoutTrivia();
+                var xmlNewLineToken = Token(leading: default, SyntaxKind.XmlTextLiteralNewLineToken, text: newLine, valueText: newLine, trailing: default);
+
                 var singleLineInheritDocComment = DocumentationCommentTrivia(
                     kind: SyntaxKind.SingleLineDocumentationCommentTrivia,
                     content: new SyntaxList<Syntax.XmlNodeSyntax>(new Syntax.XmlNodeSyntax[]
                     {
-                        XmlEmptyElement(lessThanToken, name: XmlName("inheritdoc"), attributes: default, slashGreaterThanToken: Token(SyntaxKind.SlashGreaterThanToken)),
-                        XmlText(Token(leading: default, SyntaxKind.XmlTextLiteralNewLineToken, text: "\r\n", valueText: "\r\n", trailing: default)),
+                        XmlEmptyElement(lessThanToken, name: XmlName("inheritdoc").WithoutTrivia(), attributes: default, slashGreaterThanToken),
+                        XmlText(xmlNewLineToken),
                     }),
-                    endOfComment: Token(SyntaxKind.EndOfDocumentationCommentToken));
-                var wrappedInheritedDoc = Trivia(singleLineInheritDocComment);
-                var existingLeadingTrivia = node.GetLeadingTrivia();
-                var newLeadingTrivia = existingLeadingTrivia.InsertRange(0, new SyntaxTrivia[]
-                {
-                    Whitespace("    "),
-                    wrappedInheritedDoc,
-                });
-                editor.ReplaceNode(node, node.WithLeadingTrivia(newLeadingTrivia));
-            }
+                    endOfComment: Token(SyntaxKind.EndOfDocumentationCommentToken).WithoutTrivia());
 
-            return Task.CompletedTask;
+                var intendation = node.GetLocation().GetLineSpan().StartLinePosition.Character;
+                var newLeadingTrivia = new SyntaxTrivia[]
+                {
+                    Whitespace(new string(' ', intendation)),
+                    Trivia(singleLineInheritDocComment),
+                };
+
+                editor.ReplaceNode(node, node.WithPrependedLeadingTrivia(newLeadingTrivia));
+            }
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
