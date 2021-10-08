@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             Workspace workspace,
             ImmutableArray<CodeFixCollection> fixCollections)
         {
-            var map = ImmutableDictionary.CreateBuilder<CodeFixGroupKey, ImmutableArray<IUnifiedSuggestedAction>.Builder>();
+            var map = ImmutableDictionary.CreateBuilder<CodeFixGroupKey, IList<IUnifiedSuggestedAction>>();
             using var _ = ArrayBuilder<CodeFixGroupKey>.GetInstance(out var order);
 
             // First group fixes by diagnostic and priority.
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         private static void GroupFixes(
            Workspace workspace,
            ImmutableArray<CodeFixCollection> fixCollections,
-           IDictionary<CodeFixGroupKey, ImmutableArray<IUnifiedSuggestedAction>.Builder> map,
+           IDictionary<CodeFixGroupKey, IList<IUnifiedSuggestedAction>> map,
            ArrayBuilder<CodeFixGroupKey> order)
         {
             foreach (var fixCollection in fixCollections)
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 
         private static void ProcessFixCollection(
             Workspace workspace,
-            IDictionary<CodeFixGroupKey, ImmutableArray<IUnifiedSuggestedAction>.Builder> map,
+            IDictionary<CodeFixGroupKey, IList<IUnifiedSuggestedAction>> map,
             ArrayBuilder<CodeFixGroupKey> order,
             CodeFixCollection fixCollection)
         {
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         }
 
         private static void AddCodeActions(
-            Workspace workspace, IDictionary<CodeFixGroupKey, ImmutableArray<IUnifiedSuggestedAction>.Builder> map,
+            Workspace workspace, IDictionary<CodeFixGroupKey, IList<IUnifiedSuggestedAction>> map,
             ArrayBuilder<CodeFixGroupKey> order, CodeFixCollection fixCollection,
             Func<CodeAction, UnifiedSuggestedActionSet?> getFixAllSuggestedActionSet,
             ImmutableArray<CodeFix> codeFixes)
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 
         private static void AddFix(
             CodeFix fix, IUnifiedSuggestedAction suggestedAction,
-            IDictionary<CodeFixGroupKey, ImmutableArray<IUnifiedSuggestedAction>.Builder> map,
+            IDictionary<CodeFixGroupKey, IList<IUnifiedSuggestedAction>> map,
             ArrayBuilder<CodeFixGroupKey> order)
         {
             var groupKey = GetGroupKey(fix);
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         /// always show up last after all other fixes (and refactorings) for the selected line of code.
         /// </remarks>
         private static ImmutableArray<UnifiedSuggestedActionSet> PrioritizeFixGroups(
-            ImmutableDictionary<CodeFixGroupKey, ImmutableArray<IUnifiedSuggestedAction>.Builder> map,
+            ImmutableDictionary<CodeFixGroupKey, IList<IUnifiedSuggestedAction>> map,
             ImmutableArray<CodeFixGroupKey> order,
             Workspace workspace)
         {
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 AddUnifiedSuggestedActionsSet(nonSuppressionActions, groupKey, nonSuppressionSets);
 
                 var suppressionActions = actions.Where(a => IsTopLevelSuppressionAction(a.OriginalCodeAction) &&
-                    !IsBulkConfigurationAction(a.OriginalCodeAction));
+                    !IsBulkConfigurationAction(a.OriginalCodeAction)).ToImmutableArray();
                 AddUnifiedSuggestedActionsSet(suppressionActions, groupKey, suppressionSets);
 
                 bulkConfigurationActions.AddRange(actions.Where(a => IsBulkConfigurationAction(a.OriginalCodeAction)));
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             return sets;
 
             // Local functions
-            static (TextSpan? span, string category) CombineSpansAndCategory(IEnumerable<UnifiedSuggestedActionSet> sets)
+            static (TextSpan? span, string category) CombineSpansAndCategory(ArrayBuilder<UnifiedSuggestedActionSet> sets)
             {
                 // We are combining the spans and categories of the given set of suggested action sets
                 // to generate a result span containing the spans of individual suggested action sets and
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         }
 
         private static void AddUnifiedSuggestedActionsSet(
-            IEnumerable<IUnifiedSuggestedAction> actions,
+            ImmutableArray<IUnifiedSuggestedAction> actions,
             CodeFixGroupKey groupKey,
             ArrayBuilder<UnifiedSuggestedActionSet> sets)
         {

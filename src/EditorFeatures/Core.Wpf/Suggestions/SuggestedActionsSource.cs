@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     operationContext.UserCancellationToken);
             }
 
-            public IEnumerable<SuggestedActionSet>? GetSuggestedActions(
+            private ImmutableArray<SuggestedActionSet>? GetSuggestedActions(
                 ISuggestedActionCategorySet requestedActionCategories,
                 SnapshotSpan range,
                 IUIThreadOperationContext? operationContext,
