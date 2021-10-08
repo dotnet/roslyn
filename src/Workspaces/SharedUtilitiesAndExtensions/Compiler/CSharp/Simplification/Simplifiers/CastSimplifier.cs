@@ -49,11 +49,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             };
 
         public static bool IsUnnecessaryAsCast(BinaryExpressionSyntax cast, SemanticModel semanticModel, CancellationToken cancellationToken)
-            => cast.Kind() == SyntaxKind.AsExpression &&
-               IsCastSafeToRemove(cast, cast.Left, semanticModel, cancellationToken);
+        {
+            return cast.Kind() == SyntaxKind.AsExpression &&
+                !cast.WalkUpParentheses().ContainsDiagnostics &&
+                IsCastSafeToRemove(cast, cast.Left, semanticModel, cancellationToken);
+        }
 
         public static bool IsUnnecessaryCast(CastExpressionSyntax cast, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
+            // Can't remove casts in code that has syntax errors.
+            if (cast.WalkUpParentheses().ContainsDiagnostics)
+                return false;
+
             // First handle very special cases where casts are safe to remove, but where we violate 
             // the general rules of CastSimplifier.  Specifically, look for cases where there are multiple
             // casts in an expression, which push values out of, but back into the same initial domain,
@@ -139,9 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         {
             #region blocked cases that disqualify this cast from being removed.
 
-            // Can't remove casts in code that has syntax errors.
-            if (castNode.WalkUpParentheses().ContainsDiagnostics)
-                return false;
+            // callers should have checked this.
+            Contract.ThrowIfTrue(castNode.WalkUpParentheses().ContainsDiagnostics);
 
             // Quick syntactic checks we can do before semantic work.
             var isDefaultLiteralCast = castedExpressionNode.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression);
