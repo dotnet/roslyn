@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
@@ -31,7 +32,18 @@ namespace Microsoft.CodeAnalysis
     internal enum WorkspaceExperiment
     {
         None,
+        /// <summary>
+        /// Disables if the workspace creates recoverable trees when from its <see cref="ISyntaxTreeFactoryService"/>s.
+        /// </summary>
         DisableRecoverableTrees = 1,
+        /// <summary>
+        /// Disables the BranchId concept idea entirely.  All solutions will have the same <see cref="Solution.BranchId"/> and
+        /// which will be equal to every <see cref="Workspace.PrimaryBranchId"/>.
+        /// </summary>
         DisableBranchId = 2,
+        /// <summary>
+        /// Disables holding onto the assembly references for runtime (not user/nuget/etc.) dlls weakly.
+        /// </summary>
+        DisableReferenceManagerWeakRuntimeReferences = 3,
     }
 }
