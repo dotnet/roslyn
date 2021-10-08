@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel.Design.Serialization;
+using System.Runtime;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis;
 
@@ -15,21 +18,18 @@ namespace Microsoft.CodeAnalysis.AnalyzerUtilities.FlowAnalysis.Analysis.Invocat
 
     internal class InvocationCountAbstractValue : IAbstractAnalysisValue
     {
-        public AnalysisEntity InvocationInstance { get; }
+        public IOperation InvocationOperation { get; }
 
-        public InvocationTimes InvocationTimes { get; }
-
-        public InvocationCountAbstractValue(AnalysisEntity invocationInstance, InvocationTimes invocationTimes)
+        public InvocationCountAbstractValue(IOperation operation)
         {
-            InvocationInstance = invocationInstance;
-            InvocationTimes = invocationTimes;
+            InvocationOperation = operation;
         }
 
         public bool Equals(IAbstractAnalysisValue other)
         {
             if (other is InvocationCountAbstractValue otherValue)
             {
-                return otherValue.InvocationInstance.Equals(InvocationInstance) && otherValue.InvocationTimes == InvocationTimes;
+                return InvocationOperation.Equals(otherValue.InvocationOperation);
             }
 
             return false;
