@@ -226,8 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return false;
 
             var rewrittenOperation = rewrittenSemanticModel.GetOperation(rewrittenExpression.WalkDownParentheses(), cancellationToken);
-            if (rewrittenOperation is not IAnonymousFunctionOperation &&
-                rewrittenOperation is not IMethodReferenceOperation)
+            if (rewrittenOperation is not (IAnonymousFunctionOperation or IMethodReferenceOperation))
             {
                 return false;
             }
