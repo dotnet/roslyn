@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             SemanticModel originalSemanticModel, IConversionOperation originalConversionOperation,
             CancellationToken cancellationToken)
         {
-#region blocked cases
+            #region blocked cases
 
             // If the conversion doesn't exist then we can't do anything with this as the code isn't
             // semantically valid.
@@ -345,9 +345,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (IsIdentityFloatingPointCastThatMustBePreserved(castNode, castedExpressionNode, originalSemanticModel, cancellationToken))
                 return false;
 
-#endregion blocked cases
+            #endregion blocked cases
 
-#region allowed cases that allow this cast to be removed.
+            #region allowed cases that allow this cast to be removed.
 
             // In code like `((X)y).Z()` the cast to (X) can be removed if the same 'Z' method would be called.
             // The rules here can be subtle.  For example, if Z is virtual, and (X) is a cast up the inheritance
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // works to know at *runtime* that the user will get the exact same behavior.
             if (castNode.WalkUpParentheses().Parent is MemberAccessExpressionSyntax memberAccessExpression)
             {
-                if (IsComplimentaryMemberAccessAfterCastRemoval(
+                if (IsComplementaryMemberAccessAfterCastRemoval(
                         memberAccessExpression, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel, cancellationToken))
                 {
                     return true;
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             }
 
             // In code like `((X)y)()` the cast to (X) can be removed if this was an implicit reference conversion
-            // to a complimentary delegate (because of delegate variance) *and* the return type of the delegate
+            // to a complementary delegate (because of delegate variance) *and* the return type of the delegate
             // invoke methods are the same.  For example:
             //
             //      Action<object> a = Console.WriteLine;
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // works to know at *runtime* that the user will get the exact same behavior.
             if (castNode.WalkUpParentheses().Parent is InvocationExpressionSyntax invocationExpression)
             {
-                if (IsComplimentaryInvocationAfterCastRemoval(
+                if (IsComplementaryInvocationAfterCastRemoval(
                         invocationExpression, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel, cancellationToken))
                 {
                     return true;
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return true;
             }
 
-#endregion allowed cases.
+            #endregion allowed cases.
 
             return false;
         }
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static bool IsComplimentaryMemberAccessAfterCastRemoval(
+        private static bool IsComplementaryMemberAccessAfterCastRemoval(
             MemberAccessExpressionSyntax memberAccessExpression,
             ExpressionSyntax rewrittenExpression,
             SemanticModel originalSemanticModel,
@@ -657,7 +657,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return false;
 
             // check for: ((X)expr).Invoke(...);
-            if (IsComplimentaryDelegateInvoke(originalMemberSymbol, rewrittenMemberSymbol))
+            if (IsComplementaryDelegateInvoke(originalMemberSymbol, rewrittenMemberSymbol))
                 return true;
 
             // Ok, we had two good member symbols before/after the cast removal.  In other words we have:
@@ -746,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static bool IsComplimentaryInvocationAfterCastRemoval(
+        private static bool IsComplementaryInvocationAfterCastRemoval(
             InvocationExpressionSyntax memberAccessExpression,
             ExpressionSyntax rewrittenExpression,
             SemanticModel originalSemanticModel,
@@ -762,10 +762,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (rewrittenMemberSymbol is null)
                 return false;
 
-            return IsComplimentaryDelegateInvoke(originalMemberSymbol, rewrittenMemberSymbol);
+            return IsComplementaryDelegateInvoke(originalMemberSymbol, rewrittenMemberSymbol);
         }
 
-        private static bool IsComplimentaryDelegateInvoke(ISymbol originalMemberSymbol, ISymbol rewrittenMemberSymbol)
+        private static bool IsComplementaryDelegateInvoke(ISymbol originalMemberSymbol, ISymbol rewrittenMemberSymbol)
         {
             if (originalMemberSymbol is not IMethodSymbol { MethodKind: MethodKind.DelegateInvoke } originalMethodSymbol ||
                 rewrittenMemberSymbol is not IMethodSymbol { MethodKind: MethodKind.DelegateInvoke } rewrittenMethodSymbol)
