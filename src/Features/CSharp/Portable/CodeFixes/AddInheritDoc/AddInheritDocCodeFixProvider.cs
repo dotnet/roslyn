@@ -57,11 +57,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritDoc
                 var lessThanToken = Token(SyntaxKind.LessThanToken).WithLeadingTrivia(DocumentationCommentExterior("///"));
                 var singleLineInheritDocComment = DocumentationCommentTrivia(
                     kind: SyntaxKind.SingleLineDocumentationCommentTrivia,
-                    content: new SyntaxList<Syntax.XmlNodeSyntax>(XmlEmptyElement(lessThanToken, name: XmlName("inheritdoc"), attributes: default, slashGreaterThanToken: Token(SyntaxKind.SlashGreaterThanToken))),
+                    content: new SyntaxList<Syntax.XmlNodeSyntax>(new Syntax.XmlNodeSyntax[]
+                    {
+                        XmlEmptyElement(lessThanToken, name: XmlName("inheritdoc"), attributes: default, slashGreaterThanToken: Token(SyntaxKind.SlashGreaterThanToken)),
+                        XmlText(Token(leading: default, SyntaxKind.XmlTextLiteralNewLineToken, text: "\r\n", valueText: "\r\n", trailing: default)),
+                    }),
                     endOfComment: Token(SyntaxKind.EndOfDocumentationCommentToken));
                 var wrappedInheritedDoc = Trivia(singleLineInheritDocComment);
                 var existingLeadingTrivia = node.GetLeadingTrivia();
-                var newLeadingTrivia = existingLeadingTrivia.Add(wrappedInheritedDoc);
+                var newLeadingTrivia = existingLeadingTrivia.InsertRange(0, new SyntaxTrivia[]
+                {
+                    Whitespace("    "),
+                    wrappedInheritedDoc,
+                });
                 editor.ReplaceNode(node, node.WithLeadingTrivia(newLeadingTrivia));
             }
 

@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddInheritD
             {
                 TestCode = initialMarkup,
                 FixedCode = expectedMarkup,
+                CodeActionValidationMode = CodeActionValidationMode.None,
             };
             await test.RunAsync();
         }
@@ -63,7 +64,8 @@ public class BaseClass
 /// Some doc.
 public class Derived: BaseClass
 {
-    public override void {|CS1591:M|}() { }
+    ///<inheritdoc/>
+    public override void M() { }
 }");
         }
     }
