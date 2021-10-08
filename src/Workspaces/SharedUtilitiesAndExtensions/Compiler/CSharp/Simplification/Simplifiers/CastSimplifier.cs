@@ -499,6 +499,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (IsFieldOrArrayElement(semanticModel, castedExpressionNode, cancellationToken))
                 return false;
 
+            // Boxing the result will automatically truncate this as well as this must be stored into a real 32bit or
+            // 64bit location.  As such, the explicit cast to truncate to 32/64 isn't necessary.  See
+            // https://github.com/dotnet/roslyn/pull/56932#discussion_r725241921 for more details.
+            var parentConversion = semanticModel.GetConversion(castNode, cancellationToken);
+            if (parentConversion.Exists && parentConversion.IsBoxing)
+                return false;
+
             // It wasn't a read from a fp/field/array.  But it might be a write into one.
 
             castNode = castNode.WalkUpParentheses();

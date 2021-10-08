@@ -7176,6 +7176,64 @@ public class C
 }");
         }
 
+        [WorkItem(34873, "https://github.com/dotnet/roslyn/issues/34873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestCanRemoveFPWithBoxing1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"
+using System;
+
+public class C
+{
+    void M()
+    {
+        float value = 0.0f;
+        object boxed = [|(float)|]value;
+    }
+}",
+@"
+using System;
+
+public class C
+{
+    void M()
+    {
+        float value = 0.0f;
+        object boxed = value;
+    }
+}");
+        }
+
+        [WorkItem(34873, "https://github.com/dotnet/roslyn/issues/34873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestCanRemoveFPWithBoxing2()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"
+using System;
+
+public class C
+{
+    void M()
+    {
+        double value = 0.0;
+        object boxed = [|(double)|]value;
+    }
+}",
+@"
+using System;
+
+public class C
+{
+    void M()
+    {
+        double value = 0.0;
+        object boxed = value;
+    }
+}");
+        }
+
         [WorkItem(37953, "https://github.com/dotnet/roslyn/issues/37953")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestCanRemoveFromUnnecessarySwitchExpressionCast1()
