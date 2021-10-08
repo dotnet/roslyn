@@ -324,6 +324,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal override bool IsBitwiseOrOfSignExtendedOperand(CSharpSyntaxNode node, CancellationToken cancellationToken)
+        {
+            // This only makes sense in executable code.  Find and use the model for that.
+            var model = this.GetMemberModel(node);
+            return model != null && model.IsBitwiseOrOfSignExtendedOperand(node, cancellationToken);
+        }
+
         // Common helper method for GetSymbolInfoWorker and GetTypeInfoWorker, which is called when there is no member model for the given syntax node.
         // Even if the  expression is not part of a member context, the caller may really just have a reference to a type or namespace name.
         // If so, the methods binds the syntax as a namespace or type or alias symbol. Otherwise, it returns null.

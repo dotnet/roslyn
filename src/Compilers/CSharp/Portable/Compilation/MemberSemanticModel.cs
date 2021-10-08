@@ -1257,6 +1257,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetTypeInfoForNode(lowestBoundNode, highestBoundNode, boundParent);
         }
 
+        internal override bool IsBitwiseOrOfSignExtendedOperand(CSharpSyntaxNode node, CancellationToken cancellationToken)
+        {
+            GetBoundNodes(node, out _, out var lowestBoundNode, out _, out _);
+            return IsBitwiseOrOfSignExtendedOperand(lowestBoundNode as BoundExpression);
+        }
+
         internal override ImmutableArray<Symbol> GetMemberGroupWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))
         {
             CSharpSyntaxNode bindableNode;

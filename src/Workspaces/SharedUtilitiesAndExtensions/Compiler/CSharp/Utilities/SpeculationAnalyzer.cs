@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -653,6 +654,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return true;
             }
 
+            var oldOperation = this.OriginalSemanticModel.GetOperation(binaryExpression, CancellationToken);
+            var newOperation = this.SpeculativeSemanticModel.GetOperation(newBinaryExpression, CancellationToken);
+            if (oldOperation is IBinaryOperation oldBinaryOperation &&
+                newOperation is IBinaryOperation newBinaryOperation &&
+                oldBinaryOperation.IsBitwiseOrOfSignExtendedOperand(CancellationToken) != newBinaryOperation.IsBitwiseOrOfSignExtendedOperand(CancellationToken))
+            {
+                return true;
+            }
+
             return !SymbolsAreCompatible(binaryExpression, newBinaryExpression) ||
                 !TypesAreCompatible(binaryExpression, newBinaryExpression) ||
                 !ImplicitConversionsAreCompatible(binaryExpression, newBinaryExpression);
@@ -695,10 +705,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             if (assignmentExpression.IsCompoundAssignExpression() &&
                 assignmentExpression.Kind() != SyntaxKind.LeftShiftAssignmentExpression &&
-                assignmentExpression.Kind() != SyntaxKind.RightShiftAssignmentExpression &&
-                ReplacementBreaksCompoundAssignment(assignmentExpression.Left, assignmentExpression.Right, newAssignmentExpression.Left, newAssignmentExpression.Right))
+                assignmentExpression.Kind() != SyntaxKind.RightShiftAssignmentExpression)
             {
-                return true;
+                if (ReplacementBreaksCompoundAssignment(assignmentExpression.Left, assignmentExpression.Right, newAssignmentExpression.Left, newAssignmentExpression.Right))
+                    return true;
+
+                var oldOperation = this.OriginalSemanticModel.GetOperation(assignmentExpression, CancellationToken);
+                var newOperation = this.SpeculativeSemanticModel.GetOperation(newAssignmentExpression, CancellationToken);
+                if (oldOperation is ICompoundAssignmentOperation oldBinaryOperation &&
+                    newOperation is ICompoundAssignmentOperation newBinaryOperation &&
+                    oldBinaryOperation.IsBitwiseOrOfSignExtendedOperand(CancellationToken) != newBinaryOperation.IsBitwiseOrOfSignExtendedOperand(CancellationToken))
+                {
+                    return true;
+                }
             }
 
             return !SymbolsAreCompatible(assignmentExpression, newAssignmentExpression) ||

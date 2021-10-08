@@ -154,6 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">The cancellation token.</param>
         internal abstract CSharpTypeInfo GetTypeInfoWorker(CSharpSyntaxNode node, CancellationToken cancellationToken = default(CancellationToken));
 
+        internal abstract bool IsBitwiseOrOfSignExtendedOperand(CSharpSyntaxNode node, CancellationToken cancellationToken);
+
         /// <summary>
         /// Binds the provided expression in the given context.
         /// </summary>
@@ -1048,6 +1050,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return typeInfo;
         }
+
+        internal bool GetSpeculativeIsBitwiseOrOfSignExtendedOperand(int position, ExpressionSyntax expression)
+        {
+            if (!CanGetSemanticInfo(expression, isSpeculative: true))
+                return false;
+
+            var boundNode = GetSpeculativelyBoundExpression(position, expression, SpeculativeBindingOption.BindAsExpression, out _, out var crefSymbols); //calls CheckAndAdjustPosition
+            Debug.Assert(boundNode == null || crefSymbols.IsDefault);
+            return IsBitwiseOrOfSignExtendedOperand(boundNode as BoundExpression);
+        }
+
+        internal bool IsBitwiseOrOfSignExtendedOperand(BoundExpression boundNode)
+            => DiagnosticsPass.IsBitwiseOrOfSignExtendedOperand(boundNode);
 
         /// <summary>
         /// Gets the conversion that occurred between the expression's type and type implied by the expression's context.
