@@ -29,6 +29,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 );
 
         [Fact]
+        public void TestTrailingTrivia_InTriviaNoSpace()
+            => Verify(
+                @"at ConsoleApp4.MyClass.M() inC:\My\Path\C.cs:line 26",
+                methodDeclaration: MethodDeclaration(
+                    MemberAccessExpression("ConsoleApp4.MyClass.M", leadingTrivia: CreateTriviaArray(AtTrivia)),
+                    argumentList: ArgumentList()),
+
+                eolTokenOpt: EOLToken.With(leadingTrivia: CreateTriviaArray(@" inC:\My\Path\C.cs:line 26"))
+                );
+
+        [Fact]
+        public void TestTrailingTrivia_InTriviaNoSpace2()
+            => Verify(
+                @"at ConsoleApp4.MyClass.M()in C:\My\Path\C.cs:line 26",
+                methodDeclaration: MethodDeclaration(
+                    MemberAccessExpression("ConsoleApp4.MyClass.M", leadingTrivia: CreateTriviaArray(AtTrivia)),
+                    argumentList: ArgumentList()),
+
+                eolTokenOpt: EOLToken.With(leadingTrivia: CreateTriviaArray(@"in C:\My\Path\C.cs:line 26"))
+                );
+
+        [Fact]
         public void TestNoParams_NoAtTrivia()
             => Verify(
                 @"ConsoleApp4.MyClass.M()",
@@ -259,6 +281,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 eolTokenOpt: EOLToken.With(leadingTrivia: CreateTriviaArray("[trailingtrivia]"))
             );
 
+        [Fact]
+        public void TestFileInformation_TrailingTrivia2()
+            => Verify(
+                @"M.M() in C:\folder\m.cs:[trailingtrivia]",
+                methodDeclaration: MethodDeclaration(
+                    MemberAccessExpression("M.M"),
+                    argumentList: ArgumentList()),
+
+                fileInformation: FileInformation(
+                    Path(@"C:\folder\m.cs").With(trailingTrivia: CreateTriviaArray(":"))),
+
+                eolTokenOpt: EOLToken.With(leadingTrivia: CreateTriviaArray("[trailingtrivia]"))
+            );
+
+        [Fact]
+        public void TestFileInformation_InvalidDirectory()
+            => Verify(
+                @"M.M() in C:\<\m.cs",
+                methodDeclaration: MethodDeclaration(
+                    MemberAccessExpression("M.M"),
+                    argumentList: ArgumentList()),
+
+                eolTokenOpt: EOLToken.With(leadingTrivia: CreateTriviaArray(" in ", @"C:\", @"<\m.cs"))
+            );
+
         [Theory]
         [InlineData(@"at M()")] // Method with no class is invalid
         [InlineData(@"at M.1c()")] // Invalid start character for identifier
@@ -273,6 +320,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         [InlineData(@"at M.M(string] s)")] // Close only array bracket
         [InlineData(@"at M.M(string[][][ s)")]
         [InlineData(@"at M.M(string[[]] s)")]
+        [InlineData(@"at M.N`.P()")] // Missing numeric for arity 
+        [InlineData(@"at M.N`9N.P()")] // Invalid character after arity
         public void TestInvalidInputs(string input)
             => Verify(input, expectFailure: true);
     }

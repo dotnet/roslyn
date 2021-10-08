@@ -329,6 +329,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 Position++;
             }
 
+            if (start == Position)
+            {
+                return null;
+            }
+
             return CreateToken(StackFrameKind.NumberToken, GetSubPatternToCurrentPos(start));
         }
 

@@ -30,6 +30,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         }
     }
 
+    /// <summary>
+    /// Attempts to parse a stack frame line from given input. StackFrame is generally
+    /// defined as a string line in a StackTrace. See https://docs.microsoft.com/en-us/dotnet/api/system.environment.stacktrace for 
+    /// more documentation on dotnet stack traces. 
+    /// </summary>
     internal struct StackFrameParser
     {
         private StackFrameLexer _lexer;
@@ -115,7 +120,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 {
                     // If we parsed a path but it's not valid for the file system,
                     // combine both with the remaining trivia as text
-                    trailingTriviaBuilder.Add(inTrivia.Value);
+                    trailingTriviaBuilder.Add(StackFrameLexer.CreateTrivia(StackFrameKind.TextTrivia, inTrivia.Value.VirtualChars));
 
                     if (fileInformation is not null)
                     {
@@ -140,7 +145,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             Debug.Assert(_lexer.Position == _lexer.Text.Length);
             Debug.Assert(eolToken.Kind == StackFrameKind.EndOfLine);
 
-            var root = new StackFrameCompilationUnit(methodDeclaration, fileInformation, eolToken);
+            var root = new StackFrameCompilationUnit(methodDeclaration, isFilePathValid ? fileInformation : null, eolToken);
 
             return new StackFrameTree(
                 _lexer.Text, root, ImmutableArray<EmbeddedDiagnostic>.Empty);
@@ -449,13 +454,28 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             {
                 var pathStr = path.Value.VirtualChars.CreateString();
                 var file = new FileInfo(pathStr);
+                if (file.FullName.Length != pathStr.Length)
+                {
+                    // Somewhere in the file info construction the path
+                    // was invalid and only partially parsed
+                    return false;
+                }
+
                 var invalidFileChars = Path.GetInvalidFileNameChars();
-                if (file.Name.Any(c => invalidFileChars.Contains(c)))
+
+                // File name is a requirement for a successful lookup
+                if (file.Name.IsEmpty() || file.Name.Any(c => invalidFileChars.Contains(c)))
                 {
                     return false;
                 }
 
+                // A file path may not have a directory, which is okay for our purposes
                 var directory = file.Directory;
+                if (directory is null)
+                {
+                    return true;
+                }
+
                 var invalidDirectoryChars = Path.GetInvalidPathChars();
                 if (directory.FullName.Any(c => invalidDirectoryChars.Contains(c)))
                 {
