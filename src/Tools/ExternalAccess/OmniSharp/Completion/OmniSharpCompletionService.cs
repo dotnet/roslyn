@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
 {
     internal static class OmniSharpCompletionService
     {
+        [Obsolete("Use the other overload")]
         public static Task<(CompletionList? completionList, bool expandItemsAvailable)> GetCompletionsAsync(
             this CompletionService completionService,
             Document document,
@@ -23,6 +24,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
             OptionSet? options = null,
             CancellationToken cancellationToken = default)
             => completionService.GetCompletionsInternalAsync(document, caretPosition, trigger, roles, options, cancellationToken);
+
+        public static Task<(CompletionList? completionList, bool expandItemsAvailable)> GetCompletionsAsync(
+            this CompletionService completionService,
+            Document document,
+            int caretPosition,
+            CompletionTrigger trigger,
+            ImmutableHashSet<string>? roles,
+            CancellationToken cancellationToken)
+            => completionService.GetCompletionsInternalAsync(document, caretPosition, trigger, roles, options: null, cancellationToken);
 
         public static string? GetProviderName(this CompletionItem completionItem) => completionItem.ProviderName;
 
