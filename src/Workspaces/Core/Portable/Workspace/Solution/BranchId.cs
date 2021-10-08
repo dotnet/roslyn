@@ -18,6 +18,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private static readonly BranchId s_experimentSingleton = new(0);
 
+        /// <summary>
+        /// Whether or not branch-ids are disabled.  Set when the first caller attempts to
+        /// get a branch id.  From that point on, this is the value that will be used.  This
+        /// way we don't get different behavior at some arbitrary point in time if the flag
+        /// changes in the middle of a VS session.
+        /// </summary>
+        private static bool? s_disabled;
+        private static readonly object s_gate = new();
+
         private static int s_nextId = 1;
 
         private readonly int _id;
@@ -25,7 +34,16 @@ namespace Microsoft.CodeAnalysis
         private BranchId(int id)
             => _id = id;
 
-        internal static BranchId GetNextId(bool disableBranchIds)
-            => disableBranchIds ? s_experimentSingleton : new(Interlocked.Increment(ref s_nextId));
+        internal static BranchId GetNextId(bool tryDisableBranchId)
+        {
+            lock (s_gate)
+            {
+                if (s_disabled == null)
+                    s_disabled = tryDisableBranchId;
+
+                var disabled = s_disabled.Value;
+                return disabled ? s_experimentSingleton : new BranchId(s_nextId++);
+            }
+        }
     }
 }
