@@ -69,6 +69,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private delegate Task<IEnumerable<DiagnosticData>> DiagnosticsGetterAsync(DiagnosticAnalyzer analyzer, DocumentAnalysisExecutor executor, CancellationToken cancellationToken);
 
+            private static readonly WeakReference<ProjectAndCompilationWithAnalyzers?> _lastProjectAndCompilationsWithAnalyzers = new(null);
+
             public static async Task<LatestDiagnosticsForSpanGetter> CreateAsync(
                  DiagnosticIncrementalAnalyzer owner,
                  Document document,
@@ -83,17 +85,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var stateSets = owner._stateManager
                                      .GetOrCreateStateSets(document.Project).Where(s => !owner.DiagnosticAnalyzerInfoCache.IsAnalyzerSuppressed(s.Analyzer, document.Project));
 
-                // filter to specific diagnostic it is looking for
-                if (shouldIncludeDiagnostic != null)
-                {
-                    stateSets = stateSets.Where(s => owner.DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(s.Analyzer).Any(d => shouldIncludeDiagnostic(d.Id))).ToList();
-                }
-
-                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(document.Project, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 return new LatestDiagnosticsForSpanGetter(
                     owner, compilationWithAnalyzers, document, stateSets, shouldIncludeDiagnostic, range,
                     blockForData, addOperationScope, includeSuppressedDiagnostics, priority);
+            }
+
+            private static async Task<CompilationWithAnalyzers?> GetOrCreateCompilationWithAnalyzersAsync(
+                Project project,
+                IEnumerable<StateSet> stateSets,
+                bool includeSuppressedDiagnostics,
+                CancellationToken cancellationToken)
+            {
+                if (_lastProjectAndCompilationsWithAnalyzers.TryGetTarget(out var projectAndCompilationWithAnalyzers) &&
+                    projectAndCompilationWithAnalyzers?.Project == project)
+                {
+                    return projectAndCompilationWithAnalyzers.CompilationWithAnalyzers;
+                }
+
+                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(project, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                _lastProjectAndCompilationsWithAnalyzers.SetTarget(new ProjectAndCompilationWithAnalyzers(project, compilationWithAnalyzers));
+                return compilationWithAnalyzers;
             }
 
             private LatestDiagnosticsForSpanGetter(
@@ -132,6 +145,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     using var _3 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var semanticDocumentBasedAnalyzers);
                     foreach (var stateSet in _stateSets)
                     {
+                        if (_shouldIncludeDiagnostic != null &&
+                            !_owner.DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(stateSet.Analyzer).Any(d => _shouldIncludeDiagnostic(d.Id)))
+                        {
+                            continue;
+                        }
+
                         if (!await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Syntax, list, cancellationToken).ConfigureAwait(false))
                             syntaxAnalyzers.Add(stateSet.Analyzer);
 
@@ -265,6 +284,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     (_range == null || _range.Value.IntersectsWith(diagnostic.GetTextSpan()))
                     && (_includeSuppressedDiagnostics || !diagnostic.IsSuppressed)
                     && (_shouldIncludeDiagnostic == null || _shouldIncludeDiagnostic(diagnostic.Id));
+            }
+        }
+
+        private sealed class ProjectAndCompilationWithAnalyzers
+        {
+            public Project Project { get; }
+            public CompilationWithAnalyzers? CompilationWithAnalyzers { get; }
+
+            public ProjectAndCompilationWithAnalyzers(Project project, CompilationWithAnalyzers? compilationWithAnalyzers)
+            {
+                Project = project;
+                CompilationWithAnalyzers = compilationWithAnalyzers;
             }
         }
     }
