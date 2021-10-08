@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static readonly Option<bool> DisableReferenceManagerWeakRuntimeReferences = new(
             nameof(WorkspaceConfigurationOptions), nameof(DisableReferenceManagerWeakRuntimeReferences), defaultValue: false,
-            new FeatureFlagStorageLocation("Roslyn.DisableRecoverableTrees"));
+            new FeatureFlagStorageLocation("Roslyn.DisableReferenceManagerWeakRuntimeReferences"));
 
         ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
             DisableRecoverableTrees,
