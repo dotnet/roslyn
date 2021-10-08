@@ -413,7 +413,7 @@ public class C
             {
                 MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
 
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"), preprocessorSymbols: null, buildReferenceAssembly: false, windowsPdb: false);
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
                 // Now delete the PDB
                 File.Delete(GetPdbPath(path));
@@ -435,7 +435,7 @@ public class C
             {
                 MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
 
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"), preprocessorSymbols: null, buildReferenceAssembly: false, windowsPdb: false);
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
                 // Now delete the DLL
                 File.Delete(GetDllPath(path));
@@ -456,7 +456,7 @@ public class C
             {
                 MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
 
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"), preprocessorSymbols: null, buildReferenceAssembly: false, windowsPdb: false);
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
                 // Now delete the source
                 File.Delete(GetSourceFilePath(path));
@@ -477,16 +477,31 @@ public class C
             {
                 MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
 
-                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"), preprocessorSymbols: null, buildReferenceAssembly: false, windowsPdb: true);
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"), windowsPdb: true);
 
                 //TODO: This should not be a null result: https://github.com/dotnet/roslyn/issues/55834
                 await GenerateFileAndVerifyAsync(project, symbol, source, expectedSpan, expectNullResult: true);
             });
         }
 
-        private static Task TestAsync(Location pdbLocation, Location sourceLocation, string metadataSource, Func<Compilation, ISymbol> symbolMatcher, string[]? preprocessorSymbols = null, bool buildReferenceAssembly = false, bool expectNullResult = false)
+        private static Task TestAsync(
+            Location pdbLocation,
+            Location sourceLocation,
+            string metadataSource,
+            Func<Compilation, ISymbol> symbolMatcher,
+            string[]? preprocessorSymbols = null,
+            bool buildReferenceAssembly = false,
+            bool expectNullResult = false)
         {
-            return RunTestAsync(path => TestAsync(path, pdbLocation, sourceLocation, metadataSource, symbolMatcher, preprocessorSymbols, buildReferenceAssembly, expectNullResult));
+            return RunTestAsync(path => TestAsync(
+                path,
+                pdbLocation,
+                sourceLocation,
+                metadataSource,
+                symbolMatcher,
+                preprocessorSymbols,
+                buildReferenceAssembly,
+                expectNullResult));
         }
 
         private static async Task RunTestAsync(Func<string, Task> testRunner)
@@ -508,16 +523,37 @@ public class C
             }
         }
 
-        private static async Task TestAsync(string path, Location pdbLocation, Location sourceLocation, string metadataSource, Func<Compilation, ISymbol> symbolMatcher, string[]? preprocessorSymbols, bool buildReferenceAssembly, bool expectNullResult)
+        private static async Task TestAsync(
+            string path,
+            Location pdbLocation,
+            Location sourceLocation,
+            string metadataSource,
+            Func<Compilation, ISymbol> symbolMatcher,
+            string[]? preprocessorSymbols,
+            bool buildReferenceAssembly,
+            bool expectNullResult)
         {
             MarkupTestFile.GetSpan(metadataSource, out var source, out var expectedSpan);
 
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, sourceLocation, source, symbolMatcher, preprocessorSymbols, buildReferenceAssembly, windowsPdb: false);
+            var (project, symbol) = await CompileAndFindSymbolAsync(
+                path,
+                pdbLocation,
+                sourceLocation,
+                source,
+                symbolMatcher,
+                preprocessorSymbols,
+                buildReferenceAssembly,
+                windowsPdb: false);
 
             await GenerateFileAndVerifyAsync(project, symbol, source, expectedSpan, expectNullResult);
         }
 
-        private static async Task GenerateFileAndVerifyAsync(Project project, ISymbol symbol, string source, Text.TextSpan expectedSpan, bool expectNullResult)
+        private static async Task GenerateFileAndVerifyAsync(
+            Project project,
+            ISymbol symbol,
+            string source,
+            Text.TextSpan expectedSpan,
+            bool expectNullResult)
         {
             var workspace = (TestWorkspace)project.Solution.Workspace;
 
@@ -546,7 +582,15 @@ public class C
             Assert.Equal(expectedSpan.End, actualSpan.End);
         }
 
-        private static async Task<(Project, ISymbol)> CompileAndFindSymbolAsync(string path, Location pdbLocation, Location sourceLocation, string source, Func<Compilation, ISymbol> symbolMatcher, string[]? preprocessorSymbols, bool buildReferenceAssembly, bool windowsPdb)
+        private static async Task<(Project, ISymbol)> CompileAndFindSymbolAsync(
+            string path,
+            Location pdbLocation,
+            Location sourceLocation,
+            string source,
+            Func<Compilation, ISymbol> symbolMatcher,
+            string[]? preprocessorSymbols = null,
+            bool buildReferenceAssembly = false,
+            bool windowsPdb = false)
         {
             var assemblyName = "ReferencedAssembly";
             var sourceCodePath = GetSourceFilePath(path);
