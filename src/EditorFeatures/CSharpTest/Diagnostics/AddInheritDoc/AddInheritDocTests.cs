@@ -242,5 +242,83 @@ public class Derived: BaseClass
     public override void M() { }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritDoc)]
+        public async Task AddMissingInheritDocTriviaTest_2()
+        {
+            await TestAsync(
+            @"
+/// Some doc.
+public class BaseClass
+{
+    /// Some doc.
+    public virtual void M() { }
+}
+/// Some doc.
+public class Derived: BaseClass
+{
+                   // Comment 1
+  /* Comment 2 */  public /* Comment 3 */ override void {|CS1591:M|} /* Comment 4 */ ()  /* Comment 5 */ { } /* Comment 6 */
+}",
+            @"
+/// Some doc.
+public class BaseClass
+{
+    /// Some doc.
+    public virtual void M() { }
+}
+/// Some doc.
+public class Derived: BaseClass
+{
+                   ///<inheritdoc/>
+                   // Comment 1
+  /* Comment 2 */  public /* Comment 3 */ override void M /* Comment 4 */ ()  /* Comment 5 */ { } /* Comment 6 */
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritDoc)]
+        public async Task AddMissingInheritDocMethodWithAttribute()
+        {
+            await TestAsync(
+            @"
+/// Some doc.
+[System.AttributeUsage(System.AttributeTargets.Method)]
+public sealed class DummyAttribute: System.Attribute
+{
+}
+
+/// Some doc.
+public class BaseClass
+{
+    /// Some doc.
+    public virtual void M() { }
+}
+/// Some doc.
+public class Derived: BaseClass
+{
+    [Dummy]
+    public override void {|CS1591:M|}() { }
+}",
+            @"
+/// Some doc.
+[System.AttributeUsage(System.AttributeTargets.Method)]
+public sealed class DummyAttribute: System.Attribute
+{
+}
+
+/// Some doc.
+public class BaseClass
+{
+    /// Some doc.
+    public virtual void M() { }
+}
+/// Some doc.
+public class Derived: BaseClass
+{
+    ///<inheritdoc/>
+    [Dummy]
+    public override void M() { }
+}");
+        }
     }
 }
