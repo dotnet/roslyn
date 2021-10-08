@@ -15,30 +15,28 @@ namespace Microsoft.CodeAnalysis
     [ExportOptionProvider, Shared]
     internal class WorkspaceConfigurationOptions : IOptionProvider
     {
-        public static readonly Option<WorkspaceExperiment> WorkspaceExperiment = new(
-            nameof(WorkspaceConfigurationOptions), nameof(WorkspaceExperiment), defaultValue: CodeAnalysis.WorkspaceExperiment.None,
-            new FeatureFlagStorageLocation("Roslyn.WorkspaceExperiment"));
+        /// <summary>
+        /// Disables if the workspace creates recoverable trees when from its <see cref="ISyntaxTreeFactoryService"/>s.
+        /// </summary>
+        public static readonly Option<bool> DisableRecoverableTrees = new(
+            nameof(WorkspaceConfigurationOptions), nameof(DisableRecoverableTrees), defaultValue: false,
+            new FeatureFlagStorageLocation("Roslyn.DisableRecoverableTrees"));
+
+        /// <summary>
+        /// Disables holding onto the assembly references for runtime (not user/nuget/etc.) dlls weakly.
+        /// </summary>
+        public static readonly Option<bool> DisableReferenceManagerWeakRuntimeReferences = new(
+            nameof(WorkspaceConfigurationOptions), nameof(DisableReferenceManagerWeakRuntimeReferences), defaultValue: false,
+            new FeatureFlagStorageLocation("Roslyn.DisableRecoverableTrees"));
 
         ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
-            WorkspaceExperiment);
+            DisableRecoverableTrees,
+            DisableReferenceManagerWeakRuntimeReferences);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public WorkspaceConfigurationOptions()
         {
         }
-    }
-
-    internal enum WorkspaceExperiment
-    {
-        None,
-        /// <summary>
-        /// Disables if the workspace creates recoverable trees when from its <see cref="ISyntaxTreeFactoryService"/>s.
-        /// </summary>
-        DisableRecoverableTrees = 1,
-        /// <summary>
-        /// Disables holding onto the assembly references for runtime (not user/nuget/etc.) dlls weakly.
-        /// </summary>
-        DisableReferenceManagerWeakRuntimeReferences = 2,
     }
 }

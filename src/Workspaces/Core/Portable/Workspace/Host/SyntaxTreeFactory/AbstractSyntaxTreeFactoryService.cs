@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Host
             this.MinimumLengthForRecoverableTree = languageServices.WorkspaceServices.Workspace.Options.GetOption(CacheOptions.RecoverableTreeLengthThreshold);
             _canCreateRecoverableTrees =
                 languageServices.WorkspaceServices.GetService<IProjectCacheHostService>() != null &&
-                optionService.GetOption(WorkspaceConfigurationOptions.WorkspaceExperiment) != WorkspaceExperiment.DisableRecoverableTrees;
+                !optionService.GetOption(WorkspaceConfigurationOptions.DisableRecoverableTrees);
         }
 
         public abstract ParseOptions GetDefaultParseOptions();
