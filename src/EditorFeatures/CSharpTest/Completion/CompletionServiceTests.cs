@@ -52,7 +52,7 @@ namespace N
             var generatorRanCount = 0;
             var generator = new CallbackGenerator(onInit: _ => { }, onExecute: _ => Interlocked.Increment(ref generatorRanCount));
 
-            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartalSemantics();
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
             var analyzerReference = new TestGeneratorReference(generator);
             var project = SolutionUtilities.AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)

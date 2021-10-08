@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             RequestTelemetryLogger telemetryLogger,
             ClientCapabilities clientCapabilities,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            LspMiscellaneousFilesWorkspace lspMiscellaneousFilesWorkspace,
+            LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
             Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)>? solutionCache,
             IDocumentChangeTracker? documentChangeTracker,
             ImmutableArray<string> supportedLanguages,
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             ILspLogger logger,
             RequestTelemetryLogger telemetryLogger,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            LspMiscellaneousFilesWorkspace lspMiscFilesWorkspace,
+            LspMiscellaneousFilesWorkspace? lspMiscFilesWorkspace,
             TextDocumentIdentifier textDocument,
             string? clientName)
         {
@@ -155,7 +155,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             // If the document was not in a registered workspace, try to retrieve from the LSP misc files workspace.
-            document = TryGetDocumentFromWorkspace(textDocument, clientName, lspMiscFilesWorkspace);
+            if (lspMiscFilesWorkspace is not null)
+            {
+                document = TryGetDocumentFromWorkspace(textDocument, clientName, lspMiscFilesWorkspace);
+            }
+
             return document;
 
             static Document? TryGetDocumentFromRegisteredWorkspaces(
