@@ -10268,5 +10268,96 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task NotOnWidenedNumericStoredInObject1()
+        {
+            var source =
+@"
+using System;
+     
+class Program
+{
+    static void Main()
+    {
+        int expr = 0;
+        object o1 = (long)expr;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task NotOnWidenedNumericConstantStoredInObject2()
+        {
+            var source =
+@"
+using System;
+     
+class Program
+{
+    static void Main()
+    {
+        object o1 = (long)0;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task OnNonWidenedNumericStoredInObject1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+using System;
+     
+class Program
+{
+    static void Main()
+    {
+        long lng = 0;
+        object o1 = [|(long)|]lng;
+    }
+}",
+                @"
+using System;
+     
+class Program
+{
+    static void Main()
+    {
+        long lng = 0;
+        object o1 = lng;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task OnNonWidenedNumericConstantStoredInObject2()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+using System;
+     
+class Program
+{
+    static void Main()
+    {
+        object o1 = [|(long)|]0L;
+    }
+}",
+                @"
+using System;
+     
+class Program
+{
+    static void Main()
+    {
+        object o1 = 0L;
+    }
+}");
+        }
     }
 }
