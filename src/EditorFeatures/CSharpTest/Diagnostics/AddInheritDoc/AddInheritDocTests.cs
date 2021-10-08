@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddInheritD
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritDoc)]
-        public async Task AddMissingInheritDocOnoverridenMethod()
+        public async Task AddMissingInheritDocOnOverridenMethod()
         {
             await TestAsync(
             @"
@@ -98,6 +98,55 @@ public class Derived: BaseClass
 {{
     {methodDefintion}
 }}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritDoc)]
+        public async Task AddMissingInheritDocOnImplicitInterfaceMethod()
+        {
+            await TestAsync(
+            @"
+/// Some doc.
+public interface IInterface
+{
+    /// Some doc.
+    void M();
+}
+/// Some doc.
+public class MyClass: IInterface
+{
+    public void {|CS1591:M|}() { }
+}",
+            @"
+/// Some doc.
+public interface IInterface
+{
+    /// Some doc.
+    void M();
+}
+/// Some doc.
+public class MyClass: IInterface
+{
+    ///<inheritdoc/>
+    public void M() { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritDoc)]
+        public async Task DontOfferOnExplicitInterfaceMethod()
+        {
+            await TestMissingAsync(
+            @"
+/// Some doc.
+public interface IInterface
+{
+    /// Some doc.
+    void M();
+}
+/// Some doc.
+public class MyClass: IInterface
+{
+    void IInterface.M() { }
+}");
         }
     }
 }
