@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritDoc
                 if (symbol.IsOverride ||
                     symbol.ImplicitInterfaceImplementations().Any())
                 {
-                    context.RegisterCodeFix(new MyCodeAction("TODO", c => FixAsync(context.Document, diagnostic, c)), context.Diagnostics);
+                    context.RegisterCodeFix(new MyCodeAction(FeaturesResources.Add_inheritdoc_documentation_comment, c => FixAsync(context.Document, diagnostic, c)), context.Diagnostics);
                 }
             }
         }
