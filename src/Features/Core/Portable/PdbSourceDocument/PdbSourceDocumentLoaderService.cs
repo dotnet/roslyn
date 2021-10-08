@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
     [Export(typeof(IPdbSourceDocumentLoaderService)), Shared]
-    internal class PdbSourceDocumentLoaderService : IPdbSourceDocumentLoaderService
+    internal sealed class PdbSourceDocumentLoaderService : IPdbSourceDocumentLoaderService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
     [ExportMetadataAsSourceFileProvider(ProviderName), Shared]
     [ExtensionOrder(Before = DecompilationMetadataAsSourceFileProvider.ProviderName)]
-    internal class PdbSourceDocumentMetadataAsSourceFileProvider : IMetadataAsSourceFileProvider
+    internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider : IMetadataAsSourceFileProvider
     {
         internal const string ProviderName = "PdbSource";
 

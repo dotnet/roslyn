@@ -13,22 +13,13 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
     /// <summary>
     /// Supports obtaining metadata readers from various types, and manages their disposal
     /// </summary>
-    internal class MultiMetadataReaderProvider : IDisposable
+    internal sealed class MultiMetadataReaderProvider : IDisposable
     {
         private readonly Stream _dllStream;
         private readonly Stream? _pdbStream;
-        private readonly ModuleMetadata? _moduleMetadata;
         private readonly MetadataReaderProvider _pdbReaderProvider;
-        private readonly PEReader? _peReader;
+        private readonly PEReader _peReader;
 
-        public MultiMetadataReaderProvider(Stream dllStream, ModuleMetadata moduleMetadata, Stream? pdbStream, MetadataReaderProvider pdbReaderProvider)
-        {
-            _dllStream = dllStream;
-            _pdbStream = pdbStream;
-
-            _moduleMetadata = moduleMetadata;
-            _pdbReaderProvider = pdbReaderProvider;
-        }
         public MultiMetadataReaderProvider(Stream dllStream, PEReader peReader, Stream? pdbStream, MetadataReaderProvider pdbReaderProvider)
         {
             _dllStream = dllStream;
@@ -40,9 +31,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         public MetadataReader GetDllMetadataReader()
         {
-            Debug.Assert(_peReader is not null || _moduleMetadata is not null);
-
-            return _peReader?.GetMetadataReader() ?? _moduleMetadata!.GetMetadataReader();
+            return _peReader.GetMetadataReader();
         }
 
         public MetadataReader GetPdbMetadataReader()
@@ -55,8 +44,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             _dllStream.Dispose();
             _pdbStream?.Dispose();
             _pdbReaderProvider.Dispose();
-            _moduleMetadata?.Dispose();
-            _peReader?.Dispose();
+            _peReader.Dispose();
         }
     }
 }
