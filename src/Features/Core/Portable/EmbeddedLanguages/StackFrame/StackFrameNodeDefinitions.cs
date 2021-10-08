@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             _identifier = identifier;
             _arrayBrackets = arrayBrackets;
 
-            Debug.Assert(arrayBrackets.All(t => t.Kind is StackFrameKind.OpenBracketToken or StackFrameKind.CloseBracketToken));
+            Debug.Assert(arrayBrackets.All(t => t.Kind is StackFrameKind.OpenBracketToken or StackFrameKind.CloseBracketToken or StackFrameKind.CommaToken));
         }
 
         internal override int ChildCount => _arrayBrackets.Length + 1;

@@ -149,12 +149,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 
         private static void AssertEqual(StackFrameToken expected, StackFrameToken actual)
         {
-            AssertEqual(expected.LeadingTrivia, actual.LeadingTrivia);
-            AssertEqual(expected.TrailingTrivia, actual.TrailingTrivia);
-
             Assert.Equal(expected.Kind, actual.Kind);
             Assert.Equal(expected.IsMissing, actual.IsMissing);
             Assert.Equal(expected.VirtualChars.CreateString(), actual.VirtualChars.CreateString());
+
+            AssertEqual(expected.LeadingTrivia, actual.LeadingTrivia, expected);
+            AssertEqual(expected.TrailingTrivia, actual.TrailingTrivia, expected);
         }
 
         private static void VerifyCharacterSpans(string originalText, StackFrameTree tree)
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             }
         }
 
-        private static void AssertEqual(ImmutableArray<StackFrameTrivia> expected, ImmutableArray<StackFrameTrivia> actual)
+        private static void AssertEqual(ImmutableArray<StackFrameTrivia> expected, ImmutableArray<StackFrameTrivia> actual, StackFrameToken token)
         {
             var diffMessage = PrintDiff();
 
@@ -301,6 +301,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             string PrintDiff()
             {
                 var sb = new StringBuilder();
+                sb.AppendLine($"Trivia is different on {token.Kind}");
                 sb.Append("Expected: ");
 
                 if (!expected.IsDefaultOrEmpty)

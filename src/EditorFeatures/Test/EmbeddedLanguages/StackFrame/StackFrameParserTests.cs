@@ -115,8 +115,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                         Identifier("M")),
 
                     argumentList: ArgumentList(
-                        ArrayExpression(Identifier("string"), OpenBracketToken, CloseBracketToken),
-                        Identifier("s", leadingTrivia: CreateTriviaArray(SpaceTrivia())))
+                        ArrayExpression(Identifier("string"), OpenBracketToken, CloseBracketToken.With(trailingTrivia: CreateTriviaArray(SpaceTrivia()))),
+                        Identifier("s"))
+                )
+            );
+
+        [Fact]
+        public void TestCommaArrayParam()
+            => Verify(
+                @"at ConsoleApp4.MyClass.M(string[,] s)",
+                methodDeclaration: MethodDeclaration(
+                    MemberAccessExpression(
+                        MemberAccessExpression(
+                            Identifier("ConsoleApp4", leadingTrivia: CreateTriviaArray(AtTrivia)),
+                            Identifier("MyClass")),
+                        Identifier("M")),
+
+                    argumentList: ArgumentList(
+                        ArrayExpression(Identifier("string"), OpenBracketToken, CommaToken, CloseBracketToken.With(trailingTrivia: CreateTriviaArray(SpaceTrivia()))),
+                        Identifier("s"))
                 )
             );
 
@@ -198,6 +215,50 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                     Line(1))
             );
 
+        [Fact]
+        public void TestFileInformation_PartialPath()
+            => Verify(
+                @"M.M() in C:\folder\m.cs:line",
+                methodDeclaration: MethodDeclaration(
+                    MemberAccessExpression("M.M"),
+                    argumentList: ArgumentList()),
+
+                fileInformation: FileInformation(
+                    Path(@"C:\folder\m.cs").With(trailingTrivia: CreateTriviaArray(":"))),
+
+                eolTokenOpt: EOLToken.With(leadingTrivia: CreateTriviaArray("line")
+                )
+            );
+
+        [Fact]
+        public void TestFileInformation_PartialPath2()
+            => Verify(
+                @"M.M() in C:\folder\m.cs:",
+                methodDeclaration: MethodDeclaration(
+                    MemberAccessExpression("M.M"),
+                    argumentList: ArgumentList()),
+
+                fileInformation: FileInformation(
+                    Path(@"C:\folder\m.cs").With(trailingTrivia: CreateTriviaArray(":"))
+                )
+            );
+
+        [Fact]
+        public void TestFileInformation_TrailingTrivia()
+            => Verify(
+                @"M.M() in C:\folder\m.cs:line 1[trailingtrivia]",
+                methodDeclaration: MethodDeclaration(
+                    MemberAccessExpression("M.M"),
+                    argumentList: ArgumentList()),
+
+                fileInformation: FileInformation(
+                    Path(@"C:\folder\m.cs"),
+                    ColonToken,
+                    Line(1)),
+
+                eolTokenOpt: EOLToken.With(leadingTrivia: CreateTriviaArray("[trailingtrivia]"))
+            );
+
         [Theory]
         [InlineData(@"at M()")] // Method with no class is invalid
         [InlineData(@"at M.1c()")] // Invalid start character for identifier
@@ -210,7 +271,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         [InlineData(@"at M.M<T](T t)")] // Mismatched generic opening/close
         [InlineData(@"at M.M(string[ s)")] // Opening array bracket no close
         [InlineData(@"at M.M(string] s)")] // Close only array bracket
-        [InlineData(@"at M.M(string[,] s)")] // Multidimensional array not supported yet
+        [InlineData(@"at M.M(string[][][ s)")]
+        [InlineData(@"at M.M(string[[]] s)")]
         public void TestInvalidInputs(string input)
             => Verify(input, expectFailure: true);
     }

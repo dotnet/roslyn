@@ -17,9 +17,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 {
+
     using StackFrameNodeOrToken = EmbeddedSyntaxNodeOrToken<StackFrameKind, StackFrameNode>;
     using StackFrameToken = EmbeddedSyntaxToken<StackFrameKind>;
     using StackFrameTrivia = EmbeddedSyntaxTrivia<StackFrameKind>;
+
+    internal class StackFrameParseException : Exception
+    {
+        public StackFrameParseException(StackFrameKind expectedKind, StackFrameToken actual)
+            : base($"Expected {expectedKind} instead of '{actual.VirtualChars.CreateString()}' at {actual.GetSpan().Start}")
+        {
+        }
+    }
 
     internal struct StackFrameParser
     {
@@ -46,6 +55,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             try
             {
                 return new StackFrameParser(text).TryParseTree();
+            }
+            catch (StackFrameParseException)
+            {
+                // Should we report why parsing failed here?
+                return null;
             }
             catch (InsufficientExecutionStackException)
             {
@@ -180,9 +194,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             while (currentIdentifier.HasValue && currentIdentifier.Value.Kind == StackFrameKind.IdentifierToken)
             {
                 StackFrameToken? arity = null;
-                if (CurrentToken.Kind == StackFrameKind.GraveAccentToken)
+                if (_lexer.ScanIfMatch(StackFrameKind.GraveAccentToken, out var graveAccentToken))
                 {
-                    arity = _lexer.ScanTypeArity();
+                    var numbers = _lexer.ScanNumbers();
+                    if (!numbers.HasValue)
+                    {
+                        throw new StackFrameParseException(StackFrameKind.NumberToken, CurrentToken);
+                    }
+
+                    var arityChars = VirtualCharSequence.FromBounds(graveAccentToken.VirtualChars, numbers.Value.VirtualChars);
+                    arity = StackFrameLexer.CreateToken(StackFrameKind.ArrayExpression, arityChars);
                 }
 
                 if (leadingTrivia.HasValue)
@@ -275,12 +296,25 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             {
                 builder.Add(new StackFrameTypeArgument(currentIdentifier.Value));
 
-                if (useCloseBracket && _lexer.ScanIfMatch(StackFrameKind.CloseBracketToken, out closeToken))
+                if (_lexer.ScanIfMatch(StackFrameKind.CloseBracketToken, out var closeBracket))
                 {
-                    break;
+                    if (useCloseBracket)
+                    {
+                        closeToken = closeBracket;
+                        break;
+                    }
+
+                    throw new StackFrameParseException(StackFrameKind.GreaterThanToken, closeBracket);
                 }
-                else if (_lexer.ScanIfMatch(StackFrameKind.GreaterThanToken, out closeToken))
+
+                if (_lexer.ScanIfMatch(StackFrameKind.GreaterThanToken, out var greaterThanToken))
                 {
+                    if (useCloseBracket)
+                    {
+                        throw new StackFrameParseException(StackFrameKind.CloseBracketToken, greaterThanToken);
+                    }
+
+                    closeToken = greaterThanToken;
                     break;
                 }
 
@@ -446,7 +480,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             {
                 // malformed, we have a "<path>: " with no "line " trivia
                 // add the colonToken as trivia to the valid path and return it
-                var colonTrivia = StackFrameLexer.CreateTrivia(StackFrameKind.Text, colonToken.VirtualChars);
+                var colonTrivia = StackFrameLexer.CreateTrivia(StackFrameKind.TextTrivia, colonToken.VirtualChars);
                 return
                     (new(path.Value.With(trailingTrivia: ImmutableArray.Create(colonTrivia)))
                     , true);
@@ -458,7 +492,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 // malformed, we have a "<path>:line " but no following number. 
                 // Add the colon and line trivia as trailing trivia
                 var jointTriviaSpan = new TextSpan(colonToken.GetSpan().Start, colonToken.VirtualChars.Length + lineIdentifier.Value.VirtualChars.Length);
-                var trailingTrivia = StackFrameLexer.CreateTrivia(StackFrameKind.Text, _lexer.Text.GetSubSequence(jointTriviaSpan));
+                var trailingTrivia = StackFrameLexer.CreateTrivia(StackFrameKind.TextTrivia, _lexer.Text.GetSubSequence(jointTriviaSpan));
                 return
                     (new(path.Value.With(trailingTrivia: ImmutableArray.Create(trailingTrivia)))
                     , true);

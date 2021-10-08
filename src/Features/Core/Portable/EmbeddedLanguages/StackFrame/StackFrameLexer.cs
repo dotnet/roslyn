@@ -79,28 +79,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             return identifier;
         }
 
-        public StackFrameToken ScanTypeArity()
-        {
-            if (Position == Text.Length)
-            {
-                return default;
-            }
-
-            var startPosition = Position;
-            var ch = CurrentChar;
-            Position++;
-
-            while (IsNumber(ch))
-            {
-                ch = CurrentChar;
-                Position++;
-            }
-
-            var aritySpan = new TextSpan(startPosition, (Position - 1) - startPosition);
-            var arityToken = CreateToken(StackFrameKind.TextToken, Text.GetSubSequence(aritySpan));
-            return arityToken;
-        }
-
         internal StackFrameTrivia? ScanWhiteSpace()
         {
             if (Position == Text.Length)

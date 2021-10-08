@@ -10,7 +10,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     {
         None = 0,
         EndOfLine,
-        Text,
         MethodDeclaration,
         MemberAccess,
         Identifier,
