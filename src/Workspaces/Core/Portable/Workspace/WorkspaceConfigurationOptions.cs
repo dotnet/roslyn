@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis
     {
         None,
         DisableRecoverableTrees = 1,
-        DisableRecoverableText = 2,
-        DisableBranchId = 3,
+        DisableBranchId = 2,
     }
 }
