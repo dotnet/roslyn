@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
 
         public static string? GetProviderName(this CompletionItem completionItem) => completionItem.ProviderName;
 
-        [Obsolete]
+        [Obsolete("Use IncludeItemsFromUnimportedNamespaces instead")]
         public static PerLanguageOption<bool?> ShowItemsFromUnimportedNamespaces = (PerLanguageOption<bool?>)CompletionOptions.ShowItemsFromUnimportedNamespaces;
 
         public static bool? IncludeItemsFromUnimportedNamespaces(Document document)
