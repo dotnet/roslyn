@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddInheritD
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritDoc)]
-        public async Task AddMissingInheritDocOnClass()
+        public async Task AddMissingInheritDocOnoverridenMethod()
         {
             await TestAsync(
             @"
