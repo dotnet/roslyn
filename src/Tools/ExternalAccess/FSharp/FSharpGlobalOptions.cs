@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
 {
     [Export(typeof(FSharpGlobalOptions)), Shared]
     internal sealed class FSharpGlobalOptions
