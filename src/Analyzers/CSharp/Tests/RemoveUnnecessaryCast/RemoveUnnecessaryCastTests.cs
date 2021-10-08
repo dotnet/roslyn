@@ -10359,5 +10359,55 @@ class Program
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DisallowNarrowingNullableNumericAsCast()
+        {
+            var source =
+@"
+using System;
+     
+class Program
+{
+    static void Main()
+    {
+        int? data = 1;
+        var x = data as byte?;
+        Console.WriteLine(x);
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task AllowNonNarrowingNullableNumericAsCast()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+using System;
+     
+class Program
+{
+    static void Main()
+    {
+        byte? data = 1;
+        var x = data [|as byte?|];
+        Console.WriteLine(x);
+    }
+}",
+                @"
+using System;
+     
+class Program
+{
+    static void Main()
+    {
+        byte? data = 1;
+        var x = data;
+        Console.WriteLine(x);
+    }
+}");
+        }
     }
 }
