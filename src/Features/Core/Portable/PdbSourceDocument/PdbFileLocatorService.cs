@@ -38,6 +38,14 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 var dllReaderProvider = ModuleMetadata.CreateFromStream(dllStream);
 
                 var pdbStream = File.OpenRead(pdbPath);
+                if (!IsPortable(pdbStream))
+                {
+                    // TODO: Support non portable PDBs: https://github.com/dotnet/roslyn/issues/55834
+                    dllStream.Dispose();
+                    pdbStream.Dispose();
+                    return Task.FromResult<MultiMetadataReaderProvider?>(null);
+                }
+
                 var pdbReaderProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
 
                 var result = new MultiMetadataReaderProvider(dllStream, dllReaderProvider, pdbStream, pdbReaderProvider);
@@ -71,6 +79,14 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             dllStream.Dispose();
             peReader.Dispose();
             return Task.FromResult<MultiMetadataReaderProvider?>(null);
+        }
+
+        private static bool IsPortable(Stream pdbStream)
+        {
+            var isPortable = pdbStream.ReadByte() == 'B' && pdbStream.ReadByte() == 'S' && pdbStream.ReadByte() == 'J' && pdbStream.ReadByte() == 'B';
+            pdbStream.Position = 0;
+
+            return isPortable;
         }
     }
 }
