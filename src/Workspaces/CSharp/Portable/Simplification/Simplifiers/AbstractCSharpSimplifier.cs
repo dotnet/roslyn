@@ -247,10 +247,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (node.IsLeftSideOfDot())
             {
                 var aliasIdentifier = SyntaxFactory.IdentifierName(aliasName);
-                var typeInfo = semanticModel.GetSpeculativeTypeInfo(node.SpanStart, aliasIdentifier, SpeculativeBindingOption.BindAsExpression);
-                if (!symbol.Equals(typeInfo.Type))
+
+                var symbolInfo = semanticModel.GetSpeculativeSymbolInfo(node.SpanStart, aliasIdentifier, SpeculativeBindingOption.BindAsExpression);
+                if (symbolInfo.Symbol is not INamespaceOrTypeSymbol)
                 {
-                    return false;
+                    // We bound the alias to something other than a namespace or a type, which is normally not good, but if the
+                    // types are the same then it is okay.
+                    var typeInfo = semanticModel.GetSpeculativeTypeInfo(node.SpanStart, aliasIdentifier, SpeculativeBindingOption.BindAsExpression);
+                    if (!symbol.Equals(typeInfo.Type))
+                    {
+                        return false;
+                    }
                 }
             }
 

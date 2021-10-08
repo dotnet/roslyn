@@ -562,7 +562,7 @@ namespace Root
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task DoNotChangeToAliasIfConflict()
+        public async Task DoNotChangeToAliasIfConflict1()
         {
             await TestMissingInRegularAndScriptAsync(
 @"using MyType = System.ConsoleColor;
@@ -610,6 +610,122 @@ namespace Root
         void M()
         {
             var x = MyType.Red;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotChangeToNamespaceAliasIfConflict()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = Root.Inner.Inner2;
+
+namespace Root
+{
+    namespace Inner
+    {
+        namespace Inner2
+        {
+            public class Red
+            {
+                public static void Goo()
+                {
+                }
+            }
+        }
+    }
+
+    class A
+    {
+        public int MyType => 3;
+
+        void M()
+        {
+            [|Root.Inner.Inner2|].Red.Goo();
+        }
+    }
+}",
+@"using MyType = Root.Inner.Inner2;
+
+namespace Root
+{
+    namespace Inner
+    {
+        namespace Inner2
+        {
+            public class Red
+            {
+                public static void Goo()
+                {
+                }
+            }
+        }
+    }
+
+    class A
+    {
+        public int MyType => 3;
+
+        void M()
+        {
+            Inner.Inner2.Red.Goo();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToNamespaceAliasIfNoConflict()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = Root.Inner.Inner2;
+
+namespace Root
+{
+    namespace Inner
+    {
+        namespace Inner2
+        {
+            public class Red
+            {
+                public static void Goo()
+                {
+                }
+            }
+        }
+    }
+
+    class A
+    {
+        void M()
+        {
+            [|Root.Inner.Inner2|].Red.Goo();
+        }
+    }
+}",
+@"using MyType = Root.Inner.Inner2;
+
+namespace Root
+{
+    namespace Inner
+    {
+        namespace Inner2
+        {
+            public class Red
+            {
+                public static void Goo()
+                {
+                }
+            }
+        }
+    }
+
+    class A
+    {
+        void M()
+        {
+            MyType.Red.Goo();
         }
     }
 }");
