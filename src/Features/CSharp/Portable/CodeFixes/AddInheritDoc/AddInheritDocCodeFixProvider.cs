@@ -95,15 +95,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritDoc
                 newLine ??= (await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)).GetOption(FormattingOptions2.NewLine);
                 // We can safely assume, that there is no leading doc comment, because that is what CS1591 is telling us.
                 // So we create a new ///<inheritdoc/> comment.
-                var lessThanToken = Token(SyntaxKind.LessThanToken).WithLeadingTrivia(DocumentationCommentExterior("///")).WithoutTrailingTrivia();
+                var xmlSpaceAfterTrippleSlash = Token(leading: new SyntaxTriviaList(DocumentationCommentExterior("///")), SyntaxKind.XmlTextLiteralToken, text: " ", valueText: " ", trailing: default);
+                var lessThanToken = Token(SyntaxKind.LessThanToken).WithoutTrivia();
+                var inheritdocTagName = XmlName("inheritdoc").WithoutTrivia();
                 var slashGreaterThanToken = Token(SyntaxKind.SlashGreaterThanToken).WithoutTrivia();
                 var xmlNewLineToken = Token(leading: default, SyntaxKind.XmlTextLiteralNewLineToken, text: newLine, valueText: newLine, trailing: default);
 
                 var singleLineInheritDocComment = DocumentationCommentTrivia(
                     kind: SyntaxKind.SingleLineDocumentationCommentTrivia,
-                    content: new SyntaxList<Syntax.XmlNodeSyntax>(new Syntax.XmlNodeSyntax[]
+                    content: new SyntaxList<XmlNodeSyntax>(new XmlNodeSyntax[]
                     {
-                        XmlEmptyElement(lessThanToken, name: XmlName("inheritdoc").WithoutTrivia(), attributes: default, slashGreaterThanToken),
+                        XmlText(xmlSpaceAfterTrippleSlash),
+                        XmlEmptyElement(lessThanToken, inheritdocTagName, attributes: default, slashGreaterThanToken),
                         XmlText(xmlNewLineToken),
                     }),
                     endOfComment: Token(SyntaxKind.EndOfDocumentationCommentToken).WithoutTrivia());

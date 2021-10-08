@@ -88,7 +88,7 @@ public class BaseClass
 /// Some doc.
 public class Derived: BaseClass
 {
-    ///<inheritdoc/>
+    /// <inheritdoc/>
     public override void M() { }
 }");
         }
@@ -140,7 +140,7 @@ public interface IInterface
 /// Some doc.
 public class MyClass: IInterface
 {
-    ///<inheritdoc/>
+    /// <inheritdoc/>
     public void M() { }
 }");
         }
@@ -188,7 +188,7 @@ public class BaseClass
 /// Some doc.
 public class Derived: BaseClass
 {
-    ///<inheritdoc/>
+    /// <inheritdoc/>
     public override string P { get; set; }
 }");
         }
@@ -219,7 +219,7 @@ public interface IInterface
 /// Some doc.
 public class MyClass: IInterface
 {
-    ///<inheritdoc/>
+    /// <inheritdoc/>
     public string P { get; }
 }");
         }
@@ -251,7 +251,7 @@ public class BaseClass
 /// Some doc.
 public class Derived: BaseClass
 {
-    ///<inheritdoc/>
+    /// <inheritdoc/>
     // Comment
     public override void M() { }
 }");
@@ -284,7 +284,7 @@ public class BaseClass
 /// Some doc.
 public class Derived: BaseClass
 {
-                   ///<inheritdoc/>
+                   /// <inheritdoc/>
                    // Comment 1
   /* Comment 2 */  public /* Comment 3 */ override void M /* Comment 4 */ ()  /* Comment 5 */ { } /* Comment 6 */
 }");
@@ -329,7 +329,7 @@ public class BaseClass
 /// Some doc.
 public class Derived: BaseClass
 {
-    ///<inheritdoc/>
+    /// <inheritdoc/>
     [Dummy]
     public override void M() { }
 }");
@@ -366,9 +366,9 @@ public class BaseClass
 /// Some doc.
 public class Derived: BaseClass
 {
-    ///<inheritdoc/>
+    /// <inheritdoc/>
     public override void M() { }
-    ///<inheritdoc/>
+    /// <inheritdoc/>
     public override string P { get; }
 }", numberOfIterations: 2);
         }
