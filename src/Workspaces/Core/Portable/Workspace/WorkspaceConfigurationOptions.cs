@@ -45,5 +45,9 @@ namespace Microsoft.CodeAnalysis
         /// Disables holding onto the assembly references for runtime (not user/nuget/etc.) dlls weakly.
         /// </summary>
         DisableReferenceManagerWeakRuntimeReferences = 3,
+        /// <summary>
+        /// Disables the <see cref="SolutionState.CompilationTracker"/> from holding onto compilations with weak references.
+        /// </summary>
+        DisableCompilationTrackerWeakCompilationReferences = 4,
     }
 }
