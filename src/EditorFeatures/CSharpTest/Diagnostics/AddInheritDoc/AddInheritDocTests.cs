@@ -336,7 +336,7 @@ public class Derived: BaseClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritDoc)]
-        public async Task AddMissingInheritDocFixAll_1()
+        public async Task AddMissingInheritDocFixAll()
         {
             await TestFixAllAsync(
             @"
