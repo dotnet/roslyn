@@ -242,9 +242,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return Equals(originalDelegateCreationOperation.Type, rewrittenDelegateCreationOperation.Type);
         }
 
-        private static bool IsNullLiteralCast(ExpressionSyntax castedExpressionNode)
-            => castedExpressionNode.WalkDownParentheses().Kind() == SyntaxKind.NullLiteralExpression;
-
         private static bool IsConversionCastSafeToRemove(
             ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
             SemanticModel originalSemanticModel, IConversionOperation originalConversionOperation,
@@ -291,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // Effectively, this constrains S to be a reference type (as T could not otherwise derive from it).
             // However, such a invariant isn't understood by the compiler.  So if the (T) cast is removed it will
             // fail as 'null' cannot be converted to an unconstrained generic type.
-            var isNullLiteralCast = IsNullLiteralCast(castedExpressionNode);
+            var isNullLiteralCast = castedExpressionNode.WalkDownParentheses().IsKind(SyntaxKind.NullLiteralExpression);
             if (isNullLiteralCast && !originalConvertedType.IsReferenceType && !originalConvertedType.IsNullable())
                 return false;
 
