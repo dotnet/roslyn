@@ -55,6 +55,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Explizite Umwandlung hinzufügen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_inheritdoc_documentation_comment">
+        <source>Add inheritdoc documentation comment.</source>
+        <target state="new">Add inheritdoc documentation comment.</target>
+        <note>{Locked="inheritdoc"} inheritdoc is a tag within a xml documentation code comment.</note>
+      </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
         <target state="translated">Membername hinzufügen</target>

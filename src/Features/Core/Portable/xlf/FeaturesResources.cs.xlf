@@ -55,6 +55,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Přidat explicitní přetypování</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_inheritdoc_documentation_comment">
+        <source>Add inheritdoc documentation comment.</source>
+        <target state="new">Add inheritdoc documentation comment.</target>
+        <note>{Locked="inheritdoc"} inheritdoc is a tag within a xml documentation code comment.</note>
+      </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
         <target state="translated">Přidat název členu</target>

@@ -55,6 +55,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Açık tür dönüştürme ekle</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_inheritdoc_documentation_comment">
+        <source>Add inheritdoc documentation comment.</source>
+        <target state="new">Add inheritdoc documentation comment.</target>
+        <note>{Locked="inheritdoc"} inheritdoc is a tag within a xml documentation code comment.</note>
+      </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
         <target state="translated">Üye adı Ekle</target>
