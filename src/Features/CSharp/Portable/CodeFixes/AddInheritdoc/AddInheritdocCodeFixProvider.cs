@@ -111,10 +111,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
                     }),
                     endOfComment: Token(SyntaxKind.EndOfDocumentationCommentToken).WithoutTrivia());
 
-                var intendation = node.GetLocation().GetLineSpan().StartLinePosition.Character;
+                var indendation = node.GetLocation().GetLineSpan().StartLinePosition.Character;
                 var newLeadingTrivia = new SyntaxTrivia[]
                 {
-                    Whitespace(new string(' ', intendation)),
+                    Whitespace(new string(' ', indendation)),
                     Trivia(singleLineInheritdocComment),
                 };
 
