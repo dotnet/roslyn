@@ -54,12 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddInheritd
 
         private static async Task TestMissingAsync(string initialMarkup)
         {
-            var test = new VerifyCS.Test
-            {
-                TestCode = initialMarkup,
-                FixedCode = initialMarkup,
-            };
-            await test.RunAsync();
+            await VerifyCS.VerifyCodeFixAsync(initialMarkup, initialMarkup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritdoc)]
