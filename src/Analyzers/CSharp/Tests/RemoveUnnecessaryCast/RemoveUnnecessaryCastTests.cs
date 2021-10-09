@@ -10858,6 +10858,44 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoNotRemoveNonIdentityCastInConstantPattern3()
         {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    void M(object o)
+    {
+        if (o is (sbyte)1 or (short)1 or [|(int)|]1 or (long)1 or
+                (byte)1 or (ushort)1 or (uint)1 or (ulong)1 or
+                1.0 or 1.0f or 1.0m)
+        {
+        }
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    void M(object o)
+    {
+        if (o is (sbyte)1 or (short)1 or 1 or (long)1 or
+                (byte)1 or (ushort)1 or (uint)1 or (ulong)1 or
+                1.0 or 1.0f or 1.0m)
+        {
+        }
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [WorkItem(57062, "https://github.com/dotnet/roslyn/issues/57062")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNonIdentityCastInConstantPattern4()
+        {
             var source =
             @"
 using System;
