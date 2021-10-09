@@ -18,8 +18,13 @@ namespace Microsoft.CodeAnalysis
             nameof(WorkspaceConfigurationOptions), nameof(DisableRecoverableTrees), defaultValue: false,
             new FeatureFlagStorageLocation("Roslyn.DisableRecoverableTrees"));
 
+        public static readonly Option<bool> DisableProjectCacheService = new(
+            nameof(WorkspaceConfigurationOptions), nameof(DisableProjectCacheService), defaultValue: false,
+            new FeatureFlagStorageLocation("Roslyn.DisableProjectCacheService"));
+
         ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
-            DisableRecoverableTrees);
+            DisableRecoverableTrees,
+            DisableProjectCacheService);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
