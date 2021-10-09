@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
     internal partial class SolutionState
     {
         // branch id for this solution
-        private readonly BranchId _branchId;
+        private readonly Lazy<BranchId> _branchId;
 
         // the version of the workspace this solution is from
         private readonly int _workspaceVersion;
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis
         private readonly SourceGeneratedDocumentState? _frozenSourceGeneratedDocumentState;
 
         private SolutionState(
-            BranchId branchId,
+            Lazy<BranchId> branchId,
             int workspaceVersion,
             SolutionServices solutionServices,
             SolutionInfo.SolutionAttributes solutionAttributes,
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public SolutionState(
-            BranchId primaryBranchId,
+            Lazy<BranchId> primaryBranchId,
             SolutionServices solutionServices,
             SolutionInfo.SolutionAttributes solutionAttributes,
             SerializableOptionSet options,
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis
 
             // Note: this will potentially have problems if the workspace services are different, as some services
             // get locked-in by document states and project states when first constructed.
-            return CreatePrimarySolution(branchId: workspace.PrimaryBranchId, workspaceVersion: workspaceVersion, services: services);
+            return CreatePrimarySolution(workspace.PrimaryBranchId, workspaceVersion, services);
         }
 
         public HostDiagnosticAnalyzers Analyzers => _lazyAnalyzers.Value;
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis
         ///
         /// version only has a meaning between primary solution and branched one or between solutions from same branch.
         /// </summary>
-        public BranchId BranchId => _branchId;
+        public BranchId BranchId => _branchId.Value;
 
         /// <summary>
         /// The Workspace this solution is associated with.
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private SolutionState CreatePrimarySolution(
-            BranchId branchId,
+            Lazy<BranchId> branchId,
             int workspaceVersion,
             SolutionServices services)
         {
@@ -311,13 +311,13 @@ namespace Microsoft.CodeAnalysis
                 frozenSourceGeneratedDocument: null);
         }
 
-        private BranchId GetBranchId()
+        private Lazy<BranchId> GetBranchId()
         {
             // currently we only support one level branching.
             // my reasonings are
             // 1. it seems there is no-one who needs sub branches.
             // 2. this lets us to branch without explicit branch API
-            return _branchId == Workspace.PrimaryBranchId ? BranchId.GetNextId(Workspace.DisableBranchIds) : _branchId;
+            return _branchId == Workspace.PrimaryBranchId ? new Lazy<BranchId>(() => BranchId.GetNextId(Workspace.DisableBranchIds)) : _branchId;
         }
 
         /// <summary>

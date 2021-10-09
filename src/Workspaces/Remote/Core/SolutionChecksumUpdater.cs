@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private async Task SynchronizePrimaryWorkspaceAsync(CancellationToken cancellationToken)
         {
             var solution = _workspace.CurrentSolution;
-            if (solution.BranchId != _workspace.PrimaryBranchId)
+            if (solution.BranchId != _workspace.PrimaryBranchId.Value)
             {
                 return;
             }

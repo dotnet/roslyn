@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // see whether we can use primary branch one
-            var primaryBranchId = solution.Workspace.PrimaryBranchId;
+            var primaryBranchId = solution.Workspace.PrimaryBranchId.Value;
             if (solution.BranchId != primaryBranchId &&
                 TryGetReferenceFromBranch(primaryBranchId, projectReference, finalOrDeclarationCompilation, version, out reference))
             {

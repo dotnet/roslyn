@@ -36,6 +36,6 @@ namespace Microsoft.CodeAnalysis.Storage
             => ToSolutionKey(solution.State);
 
         public static SolutionKey ToSolutionKey(SolutionState solutionState)
-            => new(solutionState.Id, solutionState.FilePath, solutionState.BranchId == solutionState.Workspace.PrimaryBranchId);
+            => new(solutionState.Id, solutionState.FilePath, solutionState.BranchId == solutionState.Workspace.PrimaryBranchId.Value);
     }
 }

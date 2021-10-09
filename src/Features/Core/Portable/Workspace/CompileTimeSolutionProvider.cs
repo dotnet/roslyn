@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
             // If the design time solution is for the primary branch, retrieve the last cached solution for it.
             // Otherwise this is a forked solution, so retrieve the last forked compile time solution we calculated.
-            var cachedCompileTimeSolution = designTimeSolution.BranchId == _workspace.PrimaryBranchId ? _primaryBranchCompileTimeCache : _forkedBranchCompileTimeCache;
+            var cachedCompileTimeSolution = designTimeSolution.BranchId == _workspace.PrimaryBranchId.Value ? _primaryBranchCompileTimeCache : _forkedBranchCompileTimeCache;
 
             // Verify that the design time solution has not changed since the last calculated compile time solution and that
             // the design time solution branch matches the branch of the design time solution we calculated the compile time solution for.
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         private void UpdateCachedCompileTimeSolution(Solution designTimeSolution, Solution compileTimeSolution)
         {
-            if (designTimeSolution.BranchId == _workspace.PrimaryBranchId)
+            if (designTimeSolution.BranchId == _workspace.PrimaryBranchId.Value)
             {
                 _primaryBranchCompileTimeCache = (designTimeSolution.WorkspaceVersion, designTimeSolution.BranchId, compileTimeSolution);
             }

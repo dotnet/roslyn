@@ -36,8 +36,6 @@ namespace Microsoft.CodeAnalysis
         private readonly string? _workspaceKind;
         private readonly HostWorkspaceServices _services;
 
-        private readonly BranchId _primaryBranchId;
-
         private readonly IOptionService _optionService;
 
         // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
@@ -50,6 +48,7 @@ namespace Microsoft.CodeAnalysis
         private Solution _latestSolution;
 
         private readonly TaskQueue _taskQueue;
+        private readonly Lazy<bool> _lazyDisableBranchIds;
 
         // test hooks.
         internal static bool TestHookStandaloneProjectsDoNotHoldReferences = false;
@@ -65,7 +64,7 @@ namespace Microsoft.CodeAnalysis
 
         private Action<string>? _testMessageLogger;
 
-        internal readonly bool DisableBranchIds;
+        internal bool DisableBranchIds => _lazyDisableBranchIds.Value;
 
         /// <summary>
         /// Constructs a new workspace instance.
@@ -81,8 +80,8 @@ namespace Microsoft.CodeAnalysis
             _optionService = _services.GetRequiredService<IOptionService>();
             _optionService.RegisterWorkspace(this);
 
-            this.DisableBranchIds = _optionService.GetOption(WorkspaceConfigurationOptions.DisableBranchIds);
-            _primaryBranchId = BranchId.GetNextId(this.DisableBranchIds);
+            _lazyDisableBranchIds = new Lazy<bool>(() => _optionService.GetOption(WorkspaceConfigurationOptions.DisableBranchIds));
+            PrimaryBranchId = new Lazy<BranchId>(() => BranchId.GetNextId(this.DisableBranchIds));
 
             // queue used for sending events
             var schedulerProvider = _services.GetRequiredService<ITaskSchedulerProvider>();
@@ -118,7 +117,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// primary branch id that current solution has
         /// </summary>
-        internal BranchId PrimaryBranchId => _primaryBranchId;
+        internal readonly Lazy<BranchId> PrimaryBranchId;
 
         /// <summary>
         /// Override this property if the workspace supports partial semantics for documents.
