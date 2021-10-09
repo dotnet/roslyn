@@ -104,9 +104,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             if (targetType.ContainsAnonymousType())
-            {
                 return expression;
-            }
+
+            if (targetType.IsSystemVoid())
+                return expression;
 
             if (targetType.Kind == SymbolKind.DynamicType)
             {
