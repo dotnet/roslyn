@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddInheritd
         EmptyDiagnosticAnalyzer,
         AddInheritdocCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritdoc)]
     public class AddInheritdocTests
     {
         private static async Task TestAsync(string initialMarkup, string expectedMarkup)
@@ -53,11 +54,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddInheritd
         }
 
         private static async Task TestMissingAsync(string initialMarkup)
-        {
-            await VerifyCS.VerifyCodeFixAsync(initialMarkup, initialMarkup);
-        }
+            => await VerifyCS.VerifyCodeFixAsync(initialMarkup, initialMarkup);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritdoc)]
+        [Fact]
         public async Task AddMissingInheritdocOnOverridenMethod()
         {
             await TestAsync(
@@ -88,7 +87,7 @@ public class Derived: BaseClass
 }");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritdoc)]
+        [Theory]
         [InlineData("public void {|CS1591:OtherMethod|}() { }")]
         [InlineData("public void {|CS1591:M|}() { }")]
         [InlineData("public new void {|CS1591:M|}() { }")]
@@ -109,7 +108,7 @@ public class Derived: BaseClass
 }}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritdoc)]
+        [Fact]
         public async Task AddMissingInheritdocOnImplicitInterfaceMethod()
         {
             await TestAsync(
@@ -140,7 +139,7 @@ public class MyClass: IInterface
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritdoc)]
+        [Fact]
         public async Task DontOfferOnExplicitInterfaceMethod()
         {
             await TestMissingAsync(
@@ -157,7 +156,7 @@ public class MyClass: IInterface
     void IInterface.M() { }
 }");
         }
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritdoc)]
+        [Fact]
         public async Task AddMissingInheritdocOnOverridenProperty()
         {
             await TestAsync(
@@ -188,7 +187,7 @@ public class Derived: BaseClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritdoc)]
+        [Fact]
         public async Task AddMissingInheritdocOnImplicitInterfaceProperty()
         {
             await TestAsync(
@@ -219,7 +218,7 @@ public class MyClass: IInterface
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritdoc)]
+        [Fact]
         public async Task AddMissingInheritdocTriviaTest_1()
         {
             await TestAsync(
@@ -252,7 +251,7 @@ public class Derived: BaseClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritdoc)]
+        [Fact]
         public async Task AddMissingInheritdocTriviaTest_2()
         {
             await TestAsync(
@@ -285,7 +284,7 @@ public class Derived: BaseClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritdoc)]
+        [Fact]
         public async Task AddMissingInheritdocMethodWithAttribute()
         {
             await TestAsync(
@@ -330,7 +329,7 @@ public class Derived: BaseClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritdoc)]
+        [Fact]
         public async Task AddMissingInheritdocFixAll()
         {
             await TestFixAllAsync(
