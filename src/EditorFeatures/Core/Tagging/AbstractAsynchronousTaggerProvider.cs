@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         private static int? GetCaretPosition(SnapshotPoint? caretPosition, SnapshotSpan snapshotSpan)
         {
             return caretPosition.HasValue && caretPosition.Value.Snapshot == snapshotSpan.Snapshot
-                ? caretPosition.Value.Position : (int?)null;
+                ? caretPosition.Value.Position : null;
         }
 
         protected virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
