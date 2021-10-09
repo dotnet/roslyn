@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         private static StackFrameTypeArgument TypeArgument(string identifier)
             => new(CreateToken(StackFrameKind.IdentifierToken, identifier));
 
-        private static StackFrameFileInformationNode FileInformation(StackFrameToken path, StackFrameToken? colon = null, StackFrameToken? line = null)
+        private static StackFrameFileInformationNode FileInformation(StackFrameToken path, StackFrameToken colon, StackFrameToken line)
             => new(path.With(leadingTrivia: CreateTriviaArray(InTrivia)), colon, line);
 
         private static StackFrameToken Path(string path)

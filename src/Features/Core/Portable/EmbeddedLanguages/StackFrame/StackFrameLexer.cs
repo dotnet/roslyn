@@ -12,6 +12,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -245,6 +246,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
         /// <summary>
         /// Attempts to parse a path following https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#file-and-directory-names
+        /// Uses <see cref="FileInfo"/> as a tool to determine if the path is correct for returning. 
         /// </summary>
         internal StackFrameToken? ScanPath()
         {
@@ -254,24 +256,25 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             }
 
             var startPosition = Position;
-            var invalidChars = Path.GetInvalidPathChars();
-            var isRooted = false;
 
-            while (!invalidChars.Contains((char)CurrentChar.Value))
+            while (Position < Text.Length)
             {
-                // If the path is rooted then we no longer accept
-                if (isRooted && IsInvalidCharForRootedPath((char)CurrentChar.Value))
+                // Path needs to do a look ahead to determine if adding the next character
+                // invalidates the path. Break if it does
+                var str = GetSubPattern(startPosition, Position + 1).CreateString();
+
+                var isValidPath = IOUtilities.PerformIO(() =>
+                {
+                    var fileInfo = new FileInfo(str);
+                    return true;
+                }, false);
+
+                if (!isValidPath)
                 {
                     break;
                 }
 
                 Position++;
-
-                if (!isRooted)
-                {
-                    var str = GetSubPatternToCurrentPos(startPosition).CreateString();
-                    isRooted = Path.IsPathRooted(str);
-                }
             }
 
             if (startPosition == Position)
@@ -280,20 +283,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             }
 
             return CreateToken(StackFrameKind.PathToken, GetSubPatternToCurrentPos(startPosition));
-
-            static bool IsInvalidCharForRootedPath(char c)
-                => c switch
-                {
-                    '<' or
-                    '>' or
-                    '"' or
-                    '|' or
-                    '?' or
-                    '*' or
-                    ':' => true,
-
-                    _ => false
-                };
         }
 
         internal StackFrameTrivia? ScanLineTrivia()

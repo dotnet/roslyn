@@ -245,10 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                     MemberAccessExpression("M.M"),
                     argumentList: ArgumentList()),
 
-                fileInformation: FileInformation(
-                    Path(@"C:\folder\m.cs").With(trailingTrivia: CreateTriviaArray(":"))),
-
-                eolTokenOpt: EOLToken.With(leadingTrivia: CreateTriviaArray("line")
+                eolTokenOpt: EOLToken.With(leadingTrivia: CreateTriviaArray(" in ", @"C:\folder\m.cs", ":", "line")
                 )
             );
 
@@ -260,9 +257,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                     MemberAccessExpression("M.M"),
                     argumentList: ArgumentList()),
 
-                fileInformation: FileInformation(
-                    Path(@"C:\folder\m.cs").With(trailingTrivia: CreateTriviaArray(":"))
+                 eolTokenOpt: EOLToken.With(leadingTrivia: CreateTriviaArray(" in ", @"C:\folder\m.cs", ":")
                 )
+            );
+
+        [Theory]
+        [InlineData(@"C:\folder\m.cs", 1)]
+        [InlineData(@"m.cs", 1)]
+        [InlineData(@"C:\folder\m.cs", 123456789)]
+        [InlineData(@"..\m.cs", 1)]
+        [InlineData(@".\m.cs", 1)]
+        public void TestFilePaths(string path, int line)
+            => Verify(
+                $"M.M() in {path}:line {line}",
+                methodDeclaration: MethodDeclaration(
+                    MemberAccessExpression("M.M"),
+                    argumentList: ArgumentList()),
+
+                fileInformation: FileInformation(
+                    Path(path),
+                    ColonToken,
+                    Line(line))
             );
 
         [Fact]
@@ -289,10 +304,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                     MemberAccessExpression("M.M"),
                     argumentList: ArgumentList()),
 
-                fileInformation: FileInformation(
-                    Path(@"C:\folder\m.cs").With(trailingTrivia: CreateTriviaArray(":"))),
-
-                eolTokenOpt: EOLToken.With(leadingTrivia: CreateTriviaArray("[trailingtrivia]"))
+                eolTokenOpt: EOLToken.With(leadingTrivia: CreateTriviaArray(" in ", @"C:\folder\m.cs", ":", "[trailingtrivia]"))
             );
 
         [Fact]
@@ -307,6 +319,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             );
 
         [Theory]
+        [InlineData("")]
+        [InlineData("lkasjdlkfjalskdfj")]
+        [InlineData("\n")]
+        [InlineData("at ")]
         [InlineData(@"at M()")] // Method with no class is invalid
         [InlineData(@"at M.1c()")] // Invalid start character for identifier
         [InlineData(@"at 1M.C()")]

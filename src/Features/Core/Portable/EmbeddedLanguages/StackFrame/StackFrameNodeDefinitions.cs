@@ -363,10 +363,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     internal sealed class StackFrameFileInformationNode : StackFrameNode
     {
         public readonly StackFrameToken Path;
-        public readonly StackFrameToken? Colon;
-        public readonly StackFrameToken? Line;
+        public readonly StackFrameToken Colon;
+        public readonly StackFrameToken Line;
 
-        public StackFrameFileInformationNode(StackFrameToken path, StackFrameToken? colon = null, StackFrameToken? line = null) : base(StackFrameKind.FileInformation)
+        public StackFrameFileInformationNode(StackFrameToken path, StackFrameToken colon, StackFrameToken line) : base(StackFrameKind.FileInformation)
         {
             Path = path;
             Colon = colon;
@@ -382,8 +382,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             => index switch
             {
                 0 => Path,
-                1 => Colon.HasValue ? Colon.Value : null,
-                2 => Line.HasValue ? Line.Value : null,
+                1 => Colon,
+                2 => Line,
                 _ => throw new InvalidOperationException()
             };
 
