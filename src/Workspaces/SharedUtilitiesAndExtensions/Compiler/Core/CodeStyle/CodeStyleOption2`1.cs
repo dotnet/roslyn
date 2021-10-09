@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>() => this;
 #else
         ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>()
-            => this is TCodeStyleOption ? this : (ICodeStyleOption)new CodeStyleOption<T>(this);
+            => this is TCodeStyleOption ? this : new CodeStyleOption<T>(this);
         ICodeStyleOption ICodeStyleOption.AsPublicCodeStyleOption() => new CodeStyleOption<T>(this);
 #endif
 
