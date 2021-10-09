@@ -55,11 +55,6 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Explizite Umwandlung hinzufügen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_inheritdoc_documentation_comment">
-        <source>Add inheritdoc documentation comment.</source>
-        <target state="new">Add inheritdoc documentation comment.</target>
-        <note>{Locked="inheritdoc"} inheritdoc is a tag within a xml documentation code comment.</note>
-      </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
         <target state="translated">Membername hinzufügen</target>
@@ -558,6 +553,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
         <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
         <target state="translated">Explizit implementierte Methoden von Datensätzen müssen Parameternamen aufweisen, die mit dem vom Compiler generierten Äquivalent "{0}" übereinstimmen.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Explicitly_inherit_documentation">
+        <source>Explicitly inherit documentation</source>
+        <target state="new">Explicitly inherit documentation</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">

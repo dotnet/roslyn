@@ -2941,8 +2941,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Miscellaneous_Files" xml:space="preserve">
     <value>Miscellaneous Files</value>
   </data>
-  <data name="Add_inheritdoc_documentation_comment" xml:space="preserve">
+  <data name="Explicitly_inherit_documentation" xml:space="preserve">
     <value>Explicitly inherit documentation</value>
-    <comment>{Locked="inheritdoc"} inheritdoc is a tag within a xml documentation code comment.</comment>
   </data>
 </root>

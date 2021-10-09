@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
                     if (symbol.IsOverride ||
                         symbol.ImplicitInterfaceImplementations().Any())
                     {
-                        context.RegisterCodeFix(new MyCodeAction(FeaturesResources.Add_inheritdoc_documentation_comment,
+                        context.RegisterCodeFix(new MyCodeAction(FeaturesResources.Explicitly_inherit_documentation,
                             c => FixAsync(context.Document, diagnostic, c)), context.Diagnostics);
                     }
                 }

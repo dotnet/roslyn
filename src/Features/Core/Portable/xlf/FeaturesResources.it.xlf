@@ -55,11 +55,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Aggiungi cast esplicito</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_inheritdoc_documentation_comment">
-        <source>Add inheritdoc documentation comment.</source>
-        <target state="new">Add inheritdoc documentation comment.</target>
-        <note>{Locked="inheritdoc"} inheritdoc is a tag within a xml documentation code comment.</note>
-      </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
         <target state="translated">Aggiungi nome del membro</target>
@@ -558,6 +553,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
         <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
         <target state="translated">I metodi dei record implementati in modo esplicito devono avere nomi di parametro corrispondenti all'equivalente generato dal compilatore '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Explicitly_inherit_documentation">
+        <source>Explicitly inherit documentation</source>
+        <target state="new">Explicitly inherit documentation</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
