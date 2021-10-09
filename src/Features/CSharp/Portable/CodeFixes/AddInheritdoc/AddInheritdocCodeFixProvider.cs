@@ -22,10 +22,10 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritDoc
+namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddInheritDoc), Shared]
-    internal sealed class AddInheritDocCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddInheritdoc), Shared]
+    internal sealed class AddInheritdocCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         /// <summary>
         /// CS1591: Missing XML comment for publicly visible type or member 'Type_or_Member'
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritDoc
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public AddInheritDocCodeFixProvider()
+        public AddInheritdocCodeFixProvider()
         {
         }
 
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritDoc
                 var slashGreaterThanToken = Token(SyntaxKind.SlashGreaterThanToken).WithoutTrivia();
                 var xmlNewLineToken = Token(leading: default, SyntaxKind.XmlTextLiteralNewLineToken, text: newLine, valueText: newLine, trailing: default);
 
-                var singleLineInheritDocComment = DocumentationCommentTrivia(
+                var singleLineInheritdocComment = DocumentationCommentTrivia(
                     kind: SyntaxKind.SingleLineDocumentationCommentTrivia,
                     content: new SyntaxList<XmlNodeSyntax>(new XmlNodeSyntax[]
                     {
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritDoc
                 var newLeadingTrivia = new SyntaxTrivia[]
                 {
                     Whitespace(new string(' ', intendation)),
-                    Trivia(singleLineInheritDocComment),
+                    Trivia(singleLineInheritdocComment),
                 };
 
                 editor.ReplaceNode(node, node.WithPrependedLeadingTrivia(newLeadingTrivia));
