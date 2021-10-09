@@ -2017,7 +2017,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 currentList = declaration.IsKind(SyntaxKind.IndexerDeclaration)
                     ? SyntaxFactory.BracketedParameterList()
-                    : (BaseParameterListSyntax)SyntaxFactory.ParameterList();
+                    : SyntaxFactory.ParameterList();
             }
 
             var newList = currentList.WithParameters(currentList.Parameters.InsertRange(index, newParameters.Parameters));
