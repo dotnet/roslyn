@@ -2,11 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Xunit;
 
@@ -22,10 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
     public class PropertyFieldKeywordTests : CompilingTestBase
     {
         [Fact]
-        public void Test()
+        public void TestSimpleCase()
         {
             var comp = CreateCompilation(@"
-System.Console.WriteLine(0);
 public class C
 {
     public string P { get; set => field = value; }
@@ -47,7 +41,7 @@ public class C
 		.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
 		)
-		// Method begins at RVA 0x2060
+		// Method begins at RVA 0x2050
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -62,7 +56,7 @@ public class C
 		.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
 		)
-		// Method begins at RVA 0x2068
+		// Method begins at RVA 0x2058
 		// Code size 8 (0x8)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -73,7 +67,7 @@ public class C
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
 	{
-		// Method begins at RVA 0x2058
+		// Method begins at RVA 0x2061
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -85,6 +79,69 @@ public class C
 	{
 		.get instance string C::get_P()
 		.set instance void C::set_P(string)
+	}
+} // end of class C
+
+");
+        }
+
+        [Fact]
+        public void TestPrefixedWithAt()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public string P { get; set => @field = value; }
+}
+");
+            comp.VerifyDiagnostics(
+                // (4,35): error CS0103: The name 'field' does not exist in the current context
+                //     public string P { get; set => @field = value; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "@field").WithArguments("field").WithLocation(4, 35));
+        }
+
+        [Fact]
+        public void TestHasFieldMemberInScope()
+        {
+            var comp = CreateCompilation(@"
+public class B
+{
+    protected string field;
+}
+public class C : B
+{
+    public string P { get => field; }
+}
+");
+            CompileAndVerify(comp).VerifyTypeIL("C", @"
+.class public auto ansi beforefieldinit C
+	extends B
+{
+	// Methods
+	.method public hidebysig specialname 
+		instance string get_P () cil managed 
+	{
+		// Method begins at RVA 0x2058
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld string B::'field'
+		IL_0006: ret
+	} // end of method C::get_P
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2060
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void B::.ctor()
+		IL_0006: ret
+	} // end of method C::.ctor
+	// Properties
+	.property instance string P()
+	{
+		.get instance string C::get_P()
 	}
 } // end of class C
 ");
