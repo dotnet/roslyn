@@ -44,11 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var diagnostic = context.Diagnostics.FirstOrDefault(d => d.Id == CS1591);
-            if (diagnostic is null)
-            {
-                return;
-            }
 
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
@@ -58,30 +53,35 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
                 return;
             }
 
-            var node = root.FindNode(diagnostic.Location.SourceSpan);
-            if (node.Kind() is not SyntaxKind.MethodDeclaration and not SyntaxKind.PropertyDeclaration)
+            SemanticModel? semanticModel = null;
+            foreach (var diagnostic in context.Diagnostics.Where(d => d.Id == CS1591))
             {
-                return;
-            }
-
-            var semanticModel = await context.Document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (semanticModel is null)
-            {
-                return;
-            }
-
-            var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-            if (symbol is null)
-            {
-                return;
-            }
-
-            if (symbol.Kind is SymbolKind.Method or SymbolKind.Property)
-            {
-                if (symbol.IsOverride ||
-                    symbol.ImplicitInterfaceImplementations().Any())
+                var node = root.FindNode(diagnostic.Location.SourceSpan);
+                if (node.Kind() is not SyntaxKind.MethodDeclaration and not SyntaxKind.PropertyDeclaration)
                 {
-                    context.RegisterCodeFix(new MyCodeAction(FeaturesResources.Add_inheritdoc_documentation_comment, c => FixAsync(context.Document, diagnostic, c)), context.Diagnostics);
+                    continue;
+                }
+
+                semanticModel ??= await context.Document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                if (semanticModel is null)
+                {
+                    continue;
+                }
+
+                var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
+                if (symbol is null)
+                {
+                    continue;
+                }
+
+                if (symbol.Kind is SymbolKind.Method or SymbolKind.Property)
+                {
+                    if (symbol.IsOverride ||
+                        symbol.ImplicitInterfaceImplementations().Any())
+                    {
+                        context.RegisterCodeFix(new MyCodeAction(FeaturesResources.Add_inheritdoc_documentation_comment,
+                            c => FixAsync(context.Document, diagnostic, c)), context.Diagnostics);
+                    }
                 }
             }
         }
