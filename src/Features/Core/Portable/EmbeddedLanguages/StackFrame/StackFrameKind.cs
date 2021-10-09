@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         OpenParenToken,
         CloseParenToken,
         DotToken,
-        TextToken,
         PlusToken,
         CommaToken,
         ColonToken,

@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => new(identifier, arrayTokens.ToImmutableArray());
 
         private static StackFrameGenericTypeIdentifier GenericType(string identifierName, int arity)
-            => new(CreateToken(StackFrameKind.IdentifierToken, identifierName), AccentGraveToken, CreateToken(StackFrameKind.TextToken, arity.ToString()));
+            => new(CreateToken(StackFrameKind.IdentifierToken, identifierName), AccentGraveToken, CreateToken(StackFrameKind.NumberToken, arity.ToString()));
 
         private static StackFrameTypeArgumentList TypeArgumentList(params StackFrameTypeArgument[] typeArguments)
             => TypeArgumentList(useBrackets: true, typeArguments);

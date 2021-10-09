@@ -3,15 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -192,7 +187,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 '`' => StackFrameKind.GraveAccentToken,
                 '\\' => StackFrameKind.BackslashToken,
                 '/' => StackFrameKind.ForwardSlashToken,
-                _ => IsBlank(ch) ? StackFrameKind.WhitespaceTrivia : StackFrameKind.TextToken,
+                _ => IsBlank(ch)
+                    ? StackFrameKind.WhitespaceTrivia
+                    : IsNumber(ch)
+                        ? StackFrameKind.NumberToken
+                        : StackFrameKind.TextTrivia
             };
 
         private static bool IsNumber(VirtualChar ch)
