@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 {
     /// <summary>
     /// Defines a default workspace for opened LSP files that are not found in any
-    /// workspace registered by the <see cref="ILspWorkspaceRegistrationService"/>.
+    /// workspace registered by the <see cref="LspWorkspaceRegistrationService"/>.
     /// If a document added here is subsequently found in a registered workspace, 
     /// the document is removed from this workspace.
     /// 
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// Calls to this method and <see cref="TryRemoveMiscellaneousDocument(Uri)"/> are made
         /// from LSP text sync request handling which do not run concurrently.
         /// </summary>
-        public Document? AddMiscellaneousDocument(Uri uri)
+        public Document? AddMiscellaneousDocument(Uri uri, SourceText documentText)
         {
             var uriAbsolutePath = uri.AbsolutePath;
             if (!s_extensionToLanguageInformation.TryGetValue(Path.GetExtension(uriAbsolutePath), out var languageInformation))
@@ -61,9 +62,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 return null;
             }
 
-            // Create an empty text loader.  The document text is tracked by LSP separately
-            // and forked with the actual LSP text before answering requests, so we can just keep it in the workspace as an empty file.
-            var sourceTextLoader = new SourceTextLoader(SourceText.From(string.Empty), uriAbsolutePath);
+            var sourceTextLoader = new SourceTextLoader(documentText, uriAbsolutePath);
 
             var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(uri.AbsolutePath, sourceTextLoader, languageInformation, Services, ImmutableArray<MetadataReference>.Empty);
             OnProjectAdded(projectInfo);
@@ -73,9 +72,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         /// <summary>
+        /// Updates the text in the workspace for a miscellaneous document, if it exists in this workspace.
+        /// Returns true if the document exists and was successfully updated.
+        /// </summary>
+        public bool TryUpdateMiscellaneousDocument(Uri uri, SourceText newSourceText)
+        {
+            var uriAbsolutePath = uri.AbsolutePath;
+            var matchingDocument = CurrentSolution.GetDocumentIdsWithFilePath(uriAbsolutePath).SingleOrDefault();
+            if (matchingDocument != null)
+            {
+                var document = CurrentSolution.GetRequiredDocument(matchingDocument);
+                var newSolution = document.WithText(newSourceText).Project.Solution;
+                return this.TryApplyChanges(newSolution);
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Removes a document with the matching file path from this workspace.
         /// 
-        /// Calls to this method and <see cref="AddMiscellaneousDocument(Uri)"/> are made
+        /// Calls to this method and <see cref="AddMiscellaneousDocument(Uri, SourceText)"/> are made
         /// from LSP text sync request handling which do not run concurrently.
         /// </summary>
         public void TryRemoveMiscellaneousDocument(Uri uri)
@@ -93,6 +110,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 var project = CurrentSolution.GetRequiredProject(matchingDocument.ProjectId);
                 OnProjectRemoved(project.Id);
             }
+        }
+
+        public override bool CanApplyChange(ApplyChangesKind feature)
+        {
+            if (feature == ApplyChangesKind.ChangeDocument)
+            {
+                return true;
+            }
+
+            return base.CanApplyChange(feature);
         }
 
         private class SourceTextLoader : TextLoader

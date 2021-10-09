@@ -333,7 +333,7 @@ namespace Roslyn.Test.Utilities
 
         private protected static void RegisterWorkspaceForLsp(TestWorkspace workspace)
         {
-            var provider = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
+            var provider = workspace.ExportProvider.GetExportedValue<LspWorkspaceRegistrationService>();
             provider.Register(workspace);
         }
 
@@ -377,7 +377,7 @@ namespace Roslyn.Test.Utilities
 
         private static RequestExecutionQueue CreateRequestQueue(TestWorkspace workspace)
         {
-            var registrationService = workspace.GetService<ILspWorkspaceRegistrationService>();
+            var registrationService = workspace.GetService<LspWorkspaceRegistrationService>();
             var globalOptions = workspace.GetService<IGlobalOptionService>();
             var lspMiscFilesWorkspace = new LspMiscellaneousFilesWorkspace(NoOpLspLogger.Instance);
             return new RequestExecutionQueue(NoOpLspLogger.Instance, registrationService, lspMiscFilesWorkspace, globalOptions, ProtocolConstants.RoslynLspLanguages, serverName: "Tests", "TestClient");

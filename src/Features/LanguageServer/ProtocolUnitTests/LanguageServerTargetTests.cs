@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 
             var (_, serverStream) = FullDuplexStream.CreatePair();
             var dispatcherFactory = workspace.GetService<RequestDispatcherFactory>();
-            var lspWorkspaceRegistrationService = workspace.GetService<ILspWorkspaceRegistrationService>();
+            var lspWorkspaceRegistrationService = workspace.GetService<LspWorkspaceRegistrationService>();
             var capabilitiesProvider = workspace.GetService<DefaultCapabilitiesProvider>();
             var globalOptions = workspace.GetService<IGlobalOptionService>();
             listenerProvider = workspace.GetService<IAsynchronousOperationListenerProvider>();

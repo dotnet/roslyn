@@ -683,10 +683,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public void ChangeDocument(DocumentId documentId, SourceText text)
         {
+            ChangeDocumentAsync(documentId, text);
+        }
+
+        public Task ChangeDocumentAsync(DocumentId documentId, SourceText text)
+        {
             var oldSolution = this.CurrentSolution;
             var newSolution = this.SetCurrentSolution(oldSolution.WithDocumentText(documentId, text));
 
-            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId.ProjectId, documentId);
+            return this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId.ProjectId, documentId);
         }
 
         public void ChangeAdditionalDocument(DocumentId documentId, SourceText text)

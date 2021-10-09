@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         private readonly IDiagnosticService? _diagnosticService;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
         private readonly AbstractRequestDispatcherFactory _requestDispatcherFactory;
-        private readonly ILspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
+        private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
 
         protected readonly IGlobalOptionService GlobalOptions;
 
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             IGlobalOptionService globalOptions,
             IDiagnosticService? diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext,
             string? diagnosticsClientName)
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             AbstractInProcLanguageClient languageClient,
             Stream inputStream,
             Stream outputStream,
-            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             ILspLoggerFactory lspLoggerFactory,
             string? clientName,
             CancellationToken cancellationToken)
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public ILanguageServerTarget Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
-            ILspWorkspaceRegistrationService workspaceRegistrationService,
+            LspWorkspaceRegistrationService workspaceRegistrationService,
             ILspLogger logger)
         {
             return new VisualStudioInProcLanguageServer(
