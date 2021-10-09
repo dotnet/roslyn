@@ -39,20 +39,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddInheritd
             await test.RunAsync();
         }
 
-        private static async Task TestFixAllAsync(string initialMarkup, string expectedMarkup, int numberOfIterations)
-        {
-            var test = new VerifyCS.Test
-            {
-                TestCode = initialMarkup,
-                FixedCode = expectedMarkup,
-                BatchFixedCode = expectedMarkup,
-                NumberOfFixAllInDocumentIterations = 1,
-                NumberOfIncrementalIterations = numberOfIterations,
-                CodeActionValidationMode = CodeActionValidationMode.Full,
-            };
-            await test.RunAsync();
-        }
-
         private static async Task TestMissingAsync(string initialMarkup)
             => await VerifyCS.VerifyCodeFixAsync(initialMarkup, initialMarkup);
 
@@ -332,7 +318,7 @@ public class Derived: BaseClass
         [Fact]
         public async Task AddMissingInheritdocFixAll()
         {
-            await TestFixAllAsync(
+            await TestAsync(
             @"
 /// Some doc.
 public class BaseClass
@@ -364,7 +350,7 @@ public class Derived: BaseClass
     public override void M() { }
     /// <inheritdoc/>
     public override string P { get; }
-}", numberOfIterations: 2);
+}");
         }
     }
 }
