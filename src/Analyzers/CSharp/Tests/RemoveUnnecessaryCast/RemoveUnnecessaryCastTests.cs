@@ -10744,5 +10744,135 @@ class Program
 }";
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
+
+        [WorkItem(57062, "https://github.com/dotnet/roslyn/issues/57062")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveIdentityCastInConstantPattern1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+using System;
+
+class C
+{
+    void M(object o)
+    {
+        if (o is [|(int)|]0)
+        {
+        }
+    }
+}",
+                @"
+using System;
+
+class C
+{
+    void M(object o)
+    {
+        if (o is 0)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(57062, "https://github.com/dotnet/roslyn/issues/57062")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveIdentityCastInConstantPattern2()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+using System;
+
+class C
+{
+    void M(object o)
+    {
+        if (o is [|(long)|]0L)
+        {
+        }
+    }
+}",
+                @"
+using System;
+
+class C
+{
+    void M(object o)
+    {
+        if (o is 0L)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(57062, "https://github.com/dotnet/roslyn/issues/57062")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNonIdentityCastInConstantPattern1()
+        {
+            var source =
+            @"
+using System;
+
+class C
+{
+    void M(object o)
+    {
+        if (o is (sbyte)0)
+        {
+        }
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57062, "https://github.com/dotnet/roslyn/issues/57062")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNonIdentityCastInConstantPattern2()
+        {
+            var source =
+            @"
+using System;
+
+class C
+{
+    void M(object o)
+    {
+        if (o is (sbyte)0 or (short)0)
+        {
+        }
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [WorkItem(57062, "https://github.com/dotnet/roslyn/issues/57062")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNonIdentityCastInConstantPattern3()
+        {
+            var source =
+            @"
+using System;
+
+class C
+{
+    void M(object o)
+    {
+        if (o is (long)0)
+        {
+        }
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
     }
 }
