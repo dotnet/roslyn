@@ -305,6 +305,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (rewrittenConvertedType is null || rewrittenConvertedType.TypeKind == TypeKind.Error || !rewrittenConversion.Exists)
                 return false;
 
+            if (CastRemovalWouldCauseUnintendedReferenceComparisonWarning(rewrittenExpression, rewrittenSemanticModel, cancellationToken))
+                return false;
+
             // The final converted type may be the same even after removing the cast.  However, the cast may 
             // have been necessary to convert the type and/or value in a way that could be observable.  For example:
             //
@@ -443,6 +446,88 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             return false;
         }
+
+        private static bool CastRemovalWouldCauseUnintendedReferenceComparisonWarning(
+            ExpressionSyntax expression,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            // Translated from DiagnosticPass.CheckRelationals
+            var parentBinary = expression.WalkUpParentheses().GetRequiredParent() as BinaryExpressionSyntax;
+            if (parentBinary != null && parentBinary.Kind() is SyntaxKind.EqualsExpression or SyntaxKind.NotEqualsExpression)
+            {
+                var operation = semanticModel.GetOperation(parentBinary, cancellationToken);
+                if (UnwrapImplicitConversion(operation) is IBinaryOperation binaryOperation)
+                {
+                    if (binaryOperation.LeftOperand.Type?.SpecialType == SpecialType.System_Object &&
+                        !IsExplicitCast(parentBinary.Left) &&
+                        !IsConstantNull(binaryOperation.LeftOperand) &&
+                        ConvertedHasUserDefinedEquals(binaryOperation.OperatorKind, binaryOperation.RightOperand))
+                    {
+                        return true;
+                    }
+                    else if (binaryOperation.RightOperand.Type?.SpecialType == SpecialType.System_Object &&
+                        !IsExplicitCast(parentBinary.Right) &&
+                        !IsConstantNull(binaryOperation.RightOperand) &&
+                        ConvertedHasUserDefinedEquals(binaryOperation.OperatorKind, binaryOperation.LeftOperand))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static bool ConvertedHasUserDefinedEquals(BinaryOperatorKind operatorKind, IOperation operation)
+        {
+            // translated from DiagnosticPass.ConvertedHasEqual
+
+            if (operation is not IConversionOperation conversionOperation)
+                return false;
+
+            if (IsExplicitCast(conversionOperation.Syntax))
+                return false;
+
+            if (conversionOperation.Operand.Type is not INamedTypeSymbol original)
+                return false;
+
+            if (!original.IsReferenceType || original.TypeKind == TypeKind.Interface)
+                return false;
+
+            var opName = operatorKind == BinaryOperatorKind.Equals
+                ? WellKnownMemberNames.EqualityOperatorName
+                : WellKnownMemberNames.InequalityOperatorName;
+            for (var type = original; type != null; type = type.BaseType)
+            {
+                foreach (var sym in type.GetMembers(opName))
+                {
+                    if (sym is IMethodSymbol { MethodKind: MethodKind.UserDefinedOperator } op)
+                    {
+                        var parameters = op.GetParameters();
+                        if (parameters.Length == 2 &&
+                            type.Equals(parameters[0].Type) &&
+                            type.Equals(parameters[1].Type))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsConstantNull(IOperation operation)
+            => operation.ConstantValue.HasValue && operation.ConstantValue.Value is null;
+
+        private static bool IsExplicitCast(SyntaxNode node)
+            => node is ExpressionSyntax expression && expression.WalkDownParentheses().Kind() is SyntaxKind.CastExpression or SyntaxKind.AsExpression;
+
+        private static IOperation? UnwrapImplicitConversion(IOperation? value)
+            => value is IConversionOperation conversion && conversion.IsImplicit
+                ? conversion.Operand
+                : value;
 
         private static bool IsExplicitCastThatMustBePreserved(ExpressionSyntax castNode, Conversion conversion)
         {

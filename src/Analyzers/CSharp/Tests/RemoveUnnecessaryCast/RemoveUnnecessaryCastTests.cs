@@ -8898,8 +8898,7 @@ public class sign
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestUnintendedReferenceComparison1()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-                @"using System;
+            var source = @"using System;
 
 public class Symbol
 {
@@ -8918,38 +8917,16 @@ class Program
         Object a1 = null;
         MethodSymbol a2 = new MethodSymbol();
 
-        Console.WriteLine(a1 == [|(object)|]a2);
+        Console.WriteLine(a1 == (object)a2);
     }
-}",
-                @"using System;
-
-public class Symbol
-{
-    public static bool operator ==(Symbol a, Symbol b) => false;
-    public static bool operator !=(Symbol a, Symbol b) => false;
-}
-
-public class MethodSymbol : Symbol
-{
-}
-
-class Program
-{
-    void Main()
-    {
-        Object a1 = null;
-        MethodSymbol a2 = new MethodSymbol();
-
-        Console.WriteLine(a1 == a2);
-    }
-}");
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestUnintendedReferenceComparison2()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-                @"using System;
+            var source = @"using System;
 
 public class Symbol
 {
@@ -8968,38 +8945,16 @@ class Program
         Object a1 = null;
         MethodSymbol a2 = new MethodSymbol();
 
-        Console.WriteLine([|(object)|]a1 == a2);
+        Console.WriteLine((object)a1 == a2);
     }
-}",
-                @"using System;
-
-public class Symbol
-{
-    public static bool operator ==(Symbol a, Symbol b) => false;
-    public static bool operator !=(Symbol a, Symbol b) => false;
-}
-
-public class MethodSymbol : Symbol
-{
-}
-
-class Program
-{
-    void Main()
-    {
-        Object a1 = null;
-        MethodSymbol a2 = new MethodSymbol();
-
-        Console.WriteLine(a1 == a2);
-    }
-}");
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestUnintendedReferenceComparison3()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-                @"using System;
+            var source = @"using System;
 
 public class Symbol
 {
@@ -9018,60 +8973,16 @@ class Program
         Object a1 = null;
         MethodSymbol a2 = new MethodSymbol();
 
-        Console.WriteLine(a1 != [|(object)|]a2);
+        Console.WriteLine(a1 != (object)a2);
     }
-}",
-                @"using System;
-
-public class Symbol
-{
-    public static bool operator ==(Symbol a, Symbol b) => false;
-    public static bool operator !=(Symbol a, Symbol b) => false;
-}
-
-public class MethodSymbol : Symbol
-{
-}
-
-class Program
-{
-    void Main()
-    {
-        Object a1 = null;
-        MethodSymbol a2 = new MethodSymbol();
-
-        Console.WriteLine(a1 != a2);
-    }
-}");
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestUnintendedReferenceComparison4()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-                @"using System;
-
-public class Symbol
-{
-    public static bool operator ==(Symbol a, Symbol b) => false;
-    public static bool operator !=(Symbol a, Symbol b) => false;
-}
-
-public class MethodSymbol : Symbol
-{
-}
-
-class Program
-{
-    void Main()
-    {
-        Object a1 = null;
-        MethodSymbol a2 = new MethodSymbol();
-
-        Console.WriteLine([|(object)|]a1 != a2);
-    }
-}",
-                @"using System;
+            var source = @"using System;
 
 public class Symbol
 {
@@ -9092,36 +9003,15 @@ class Program
 
         Console.WriteLine(a1 != a2);
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestUnintendedReferenceComparison5()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-                @"using System;
-
-public class Symbol
-{
-    public static bool operator ==(Symbol a, Symbol b) => false;
-    public static bool operator !=(Symbol a, Symbol b) => false;
-}
-
-public class MethodSymbol : Symbol
-{
-}
-
-class Program
-{
-    void Main()
-    {
-        Object a1 = null;
-        MethodSymbol a2 = new MethodSymbol();
-
-        Console.WriteLine(a2 == [|(object)|]a1);
-    }
-}",
-                @"using System;
+            var source = @"using System;
 
 public class Symbol
 {
@@ -9142,14 +9032,15 @@ class Program
 
         Console.WriteLine(a2 == a1);
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestUnintendedReferenceComparison6()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-                @"using System;
+            var source = @"using System;
 
 public class Symbol
 {
@@ -9168,38 +9059,16 @@ class Program
         Object a1 = null;
         MethodSymbol a2 = new MethodSymbol();
 
-        Console.WriteLine([|(object)|]a2 == a1);
+        Console.WriteLine((object)a2 == a1);
     }
-}",
-                @"using System;
-
-public class Symbol
-{
-    public static bool operator ==(Symbol a, Symbol b) => false;
-    public static bool operator !=(Symbol a, Symbol b) => false;
-}
-
-public class MethodSymbol : Symbol
-{
-}
-
-class Program
-{
-    void Main()
-    {
-        Object a1 = null;
-        MethodSymbol a2 = new MethodSymbol();
-
-        Console.WriteLine(a2 == a1);
-    }
-}");
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestUnintendedReferenceComparison7()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-                @"using System;
+            var source = @"using System;
 
 public class Symbol
 {
@@ -9218,38 +9087,16 @@ class Program
         Object a1 = null;
         MethodSymbol a2 = new MethodSymbol();
 
-        Console.WriteLine(a2 != [|(object)|]a1);
+        Console.WriteLine(a2 != (object)a1);
     }
-}",
-                @"using System;
-
-public class Symbol
-{
-    public static bool operator ==(Symbol a, Symbol b) => false;
-    public static bool operator !=(Symbol a, Symbol b) => false;
-}
-
-public class MethodSymbol : Symbol
-{
-}
-
-class Program
-{
-    void Main()
-    {
-        Object a1 = null;
-        MethodSymbol a2 = new MethodSymbol();
-
-        Console.WriteLine(a2 != a1);
-    }
-}");
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestUnintendedReferenceComparison8()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-                @"using System;
+            var source = @"using System;
 
 public class Symbol
 {
@@ -9268,31 +9115,10 @@ class Program
         Object a1 = null;
         MethodSymbol a2 = new MethodSymbol();
 
-        Console.WriteLine([|(object)|]a2 != a1);
+        Console.WriteLine((object)a2 != a1);
     }
-}",
-                @"using System;
-
-public class Symbol
-{
-    public static bool operator ==(Symbol a, Symbol b) => false;
-    public static bool operator !=(Symbol a, Symbol b) => false;
-}
-
-public class MethodSymbol : Symbol
-{
-}
-
-class Program
-{
-    void Main()
-    {
-        Object a1 = null;
-        MethodSymbol a2 = new MethodSymbol();
-
-        Console.WriteLine(a2 != a1);
-    }
-}");
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
@@ -10911,6 +10737,592 @@ class C
 }";
 
             await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveEqualityWarningSilencingCast1()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(Assembly a1, IAssembly a2)
+        => (object)a1 == a2;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveEqualityWarningSilencingCast2()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(Assembly a1, IAssembly a2)
+        => a1 == (object)a2;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveEqualityWarningSilencingCast3()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(IAssembly a2, Assembly a1)
+        => (object)a1 == a2;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveEqualityWarningSilencingCast4()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(IAssembly a2, Assembly a1)
+        => a1 == (object)a2;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveEqualityWarningSilencingCast5()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(IAssembly a2, Assembly a1)
+        => [|(object)|]a1 == [|(object)|]a2;
+}", @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(IAssembly a2, Assembly a1)
+        => a1 == [|(object)|]a2;
+}");
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveEqualityWarningSilencingCast6()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(Assembly a1, IAssembly a2)
+        => a1 as object == a2;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveEqualityWarningSilencingCast7()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(Assembly a1, IAssembly a2)
+        => a1 == a2 as object;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveEqualityWarningSilencingCast8()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(IAssembly a2, Assembly a1)
+        => a1 as object == a2;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveEqualityWarningSilencingCast9()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(IAssembly a2, Assembly a1)
+        => a1 == a2 as object;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveEqualityWarningSilencingCast10()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(IAssembly a2, Assembly a1)
+        => a1 [|as object|] == a2 [|as object|];
+}", @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(IAssembly a2, Assembly a1)
+        => a1 == a2 as object;
+}");
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveObjectCastToCauseReferenceEqualityWhenUserDefinedComparisonExists1()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(Assembly a2, Assembly a1)
+        => (object)a1 == a2;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveObjectCastToCauseReferenceEqualityWhenUserDefinedComparisonExists2()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(Assembly a2, Assembly a1)
+        => a1 == (object)a2;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveObjectCastToCauseReferenceEqualityWhenUserDefinedComparisonExists3()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(Assembly a2, Assembly a1)
+        => a1 as object == a2;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveObjectCastToCauseReferenceEqualityWhenUserDefinedComparisonExists4()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(Assembly a2, Assembly a1)
+        => a1 == a2 as object;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => [|(object)|]a1 == a2;
+}",
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => a1 == a2;
+}");
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface2()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => a1 == [|(object)|]a2;
+}",
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => a1 == a2;
+}");
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface3()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => [|(object)|]a1 == [|(object)|]a2;
+}",
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => a1 == a2;
+}");
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface4()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => a1 [|as object|] == a2;
+}",
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => a1 == a2;
+}");
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface5()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => a1 == a2 [|as object|];
+}",
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => a1 == a2;
+}");
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface6()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => a1 [|as object|] == a2 [|as object|];
+}",
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => a1 == a2;
+}");
         }
     }
 }
