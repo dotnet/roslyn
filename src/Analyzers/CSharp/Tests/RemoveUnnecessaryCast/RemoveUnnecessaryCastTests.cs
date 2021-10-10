@@ -11455,7 +11455,7 @@ class C
                                         @"
 class C
 {
-    void M()
+    void M(int a)
     {
         long f1 = (a == 5) ? 4 : 5;
     }
@@ -11526,7 +11526,7 @@ class C
 {
     void M(int a, int b, int c)
     {
-        int? f1 = (a == 5) ? (int?)0 : 1;
+        int? f1 = (a == 5) ? [|(int?)|]0 : 1;
     }
 }",
                                         @"
@@ -11565,7 +11565,7 @@ class C
 {
     void M(int a, int b, int c)
     {
-        int? f1 = (a == 5) ? (int?)b : c;
+        int? f1 = (a == 5) ? [|(int?)|]b : c;
     }
 }",
                                         @"
