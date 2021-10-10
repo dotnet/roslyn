@@ -3915,7 +3915,7 @@ unsafe class C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(835537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835537")>
-        Public Async Function TestCsharp_Remove_UnnecessaryExplicitCastInReferenceComparison1() As Task
+        Public Async Function TestCSharp_DoNotRemove_UnnecessaryExplicitCastInReferenceComparisonDueToWarning1() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -3940,7 +3940,7 @@ class Program
     void F()
     {
         object x = string.Intern("Hi!");
-        bool wasInterned = x == "Hi!";
+        bool wasInterned = (object)x == "Hi!";
     }
 }
 ]]>
@@ -3951,7 +3951,7 @@ class Program
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(835537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835537")>
-        Public Async Function TestCsharp_Remove_UnnecessaryExplicitCastInReferenceComparison3() As Task
+        Public Async Function TestCSharp_DoNotRemove_UnnecessaryExplicitCastInReferenceComparisonDueToWarning3() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -3976,7 +3976,7 @@ class Program
     void F()
     {
         object x = string.Intern("Hi!");
-        bool wasInterned = x == "Hi!";
+        bool wasInterned = x == (object)"Hi!";
     }
 }
 ]]>
