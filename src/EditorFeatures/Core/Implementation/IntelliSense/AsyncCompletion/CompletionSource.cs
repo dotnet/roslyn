@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var sourceText = document.GetTextSynchronously(cancellationToken);
 
-            return ShouldTriggerCompletion(trigger, triggerLocation, sourceText, document, service)
+            return ShouldTriggerCompletion(trigger, triggerLocation, sourceText, document, service, document.Project.Solution.Options)
                 ? new AsyncCompletionData.CompletionStartData(
                     participation: AsyncCompletionData.CompletionParticipation.ProvidesItems,
                     applicableToSpan: new SnapshotSpan(
@@ -153,7 +153,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             SnapshotPoint triggerLocation,
             SourceText sourceText,
             Document document,
-            CompletionService completionService)
+            CompletionService completionService,
+            OptionSet options)
         {
             // The trigger reason guarantees that user wants a completion.
             if (trigger.Reason is AsyncCompletionData.CompletionTriggerReason.Invoke or
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var roslynTrigger = Helpers.GetRoslynTrigger(trigger, triggerLocation);
 
             // The completion service decides that user may want a completion.
-            if (completionService.ShouldTriggerCompletion(document.Project, sourceText, triggerLocation.Position, roslynTrigger))
+            if (completionService.ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, sourceText, triggerLocation.Position, roslynTrigger, options))
             {
                 return true;
             }
