@@ -11370,5 +11370,75 @@ class C
 
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveNRTCastInConditional1()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+#nullable enable
+
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    string? M(bool b, string s)
+    {
+        return b ? [|(string?)|]s : null;
+    }
+}",
+                FixedCode =
+@"
+#nullable enable
+
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    string? M(bool b, string s)
+    {
+        return b ? s : null;
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveNRTCastInConditional2()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                            @"
+#nullable enable
+
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    string? M(bool b, string s)
+    {
+        return b ? s : [|(string?)|]null;
+    }
+}",
+                                        @"
+#nullable enable
+
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    string? M(bool b, string s)
+    {
+        return b ? s : null;
+    }
+}");
+        }
     }
 }
