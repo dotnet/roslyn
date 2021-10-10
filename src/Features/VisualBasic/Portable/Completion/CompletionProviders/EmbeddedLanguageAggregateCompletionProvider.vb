@@ -9,11 +9,11 @@ Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-    <ExportCompletionProvider(NameOf(EmbeddedLanguageCompletionProvider), LanguageNames.VisualBasic)>
+    <ExportCompletionProvider(NameOf(EmbeddedLanguageAggregateCompletionProvider), LanguageNames.VisualBasic)>
     <ExtensionOrder(After:=NameOf(InternalsVisibleToCompletionProvider))>
     <[Shared]>
-    Friend Class EmbeddedLanguageCompletionProvider
-        Inherits AbstractEmbeddedLanguageCompletionProvider
+    Friend Class EmbeddedLanguageAggregateCompletionProvider
+        Inherits AbstractEmbeddedLanguageAggregateCompletionProvider
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
