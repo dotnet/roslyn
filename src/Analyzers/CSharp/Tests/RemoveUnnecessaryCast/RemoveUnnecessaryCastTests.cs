@@ -11324,5 +11324,24 @@ class C
         => a1 == a2;
 }");
         }
+
+        [WorkItem(57063, "https://github.com/dotnet/roslyn/issues/57063")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNullableIntToNullableEnumCast()
+        {
+            var source =
+            @"
+enum E { }
+
+class Program
+{
+    static E? Main(object o)
+    {
+        return (E?)(int?)o;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
     }
 }

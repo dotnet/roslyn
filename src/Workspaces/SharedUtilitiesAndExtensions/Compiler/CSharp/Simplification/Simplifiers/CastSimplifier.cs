@@ -544,13 +544,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return false;
 
             // Explicit nullable casts arise with things like `(int?)0`.  These will succeed at runtime, but are potentially
-            // removable if teh language would insert such a cast anyways (for things like `x ? (int?)0 : null`).  In C# 9
+            // removable if the language would insert such a cast anyways (for things like `x ? (int?)0 : null`).  In C# 9
             // and above this will create a legal conditional conversion that implicitly adds that cast.
             //
             // Note: this does not apply for `as byte?`.  This is an explicit as-cast that can produce null values and
             // so it should be maintained.
             if (conversion.IsNullable && castNode is CastExpressionSyntax)
-                return false;
+            {
+                var parent = castNode.WalkUpParentheses();
+                if (parent.Parent is ConditionalExpressionSyntax conditionalExpression)
+                {
+                    if ((conditionalExpression.WhenTrue == parent && conditionalExpression.WhenFalse.WalkDownParentheses().Kind() == SyntaxKind.NullLiteralExpression) ||
+                        (conditionalExpression.WhenFalse == parent && conditionalExpression.WhenTrue.WalkDownParentheses().Kind() == SyntaxKind.NullLiteralExpression))
+                    {
+                        return false;
+                    }
+                }
+            }
 
             return true;
         }
