@@ -533,15 +533,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return true;
             }
 
-            //if (!originalCastExpressionTypeInfo.ConvertedType!.Equals(rewrittenConditionalTypeInfo.ConvertedType, SymbolEqualityComparer.IncludeNullability))
-            //    return false;
-
-            //var originalConditionalType = originalConditionalTypeInfo.Type.RemoveNullableIfPresent();
-            //var rewrittenConditionalType = rewrittenConditionalTypeInfo.Type.RemoveNullableIfPresent();
-
-            //if (originalConditionalType!.SpecialType.IsSignedIntegralType() != rewrittenConditionalType!.SpecialType.IsSignedIntegralType())
-            //    return false;
-
             return false;
         }
 

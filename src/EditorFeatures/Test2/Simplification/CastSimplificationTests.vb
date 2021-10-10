@@ -2368,13 +2368,12 @@ sealed class C : I
 </code>
 
             Await TestAsync(input, expected)
-
         End Function
 
         <WorkItem(529884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529884")>
         <WorkItem(1043494, "DevDiv")>
         <WpfFact(Skip:="1043494"), Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestCsharp_DoNotRemove_ParamDefaultValueNegativeZero2() As Task
+        Public Async Function TestCSharp_DoNotRemove_ParamDefaultValueNegativeZero2() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">

@@ -662,13 +662,11 @@ class Test
         }
 
         [WorkItem(545291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoNotRemoveUnneededCastInConditionalExpression3()
         {
-            // We could support removing the cast here, but it would take understanding
-            // that the end values will be the same and will be converted to the same 
-            // destination type.
-            var source = @"
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
 class Test
 {
     public static void Main()
@@ -677,9 +675,17 @@ class Test
 
         long f1 = (b == 5) ? 4 : [|(long)|]5;
     }
-}";
+}",
+                @"
+class Test
+{
+    public static void Main()
+    {
+        int b = 5;
 
-            await VerifyCS.VerifyCodeFixAsync(source, source);
+        long f1 = (b == 5) ? 4 : 5;
+    }
+}");
         }
 
         [WorkItem(545291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
@@ -8601,7 +8607,7 @@ public class sign
         }
 
         [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnecessaryCastInConditional5()
         {
             var source =
