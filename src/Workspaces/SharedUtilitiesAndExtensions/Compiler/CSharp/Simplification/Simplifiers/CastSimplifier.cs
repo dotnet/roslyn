@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -442,10 +443,83 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return true;
             }
 
+            // There are cases where a cast does have runtime meaning, but can be removed from one location because
+            // the same effective conversion would happen in the code in a different location.  For example:
+            //
+            //      int? a = b ? (int?)0 : 1
+            //
+            // remove this cast will change the meaning of that conditional.  It will now produce an int instead of
+            // an int?.  However, we know the same integral value will be produced by the conditional, but will then
+            // be wrapped with a final conversion back into an int?.
+            if (IsConditionalCastSaveToRemove(
+                    castNode, originalSemanticModel,
+                    rewrittenExpression, rewrittenSemanticModel, cancellationToken))
+            {
+                return true;
+            }
+
             #endregion allowed cases.
 
             return false;
         }
+
+        private static bool IsConditionalCastSaveToRemove(
+            ExpressionSyntax castNode, SemanticModel originalSemanticModel,
+            ExpressionSyntax rewrittenExpression, SemanticModel rewrittenSemanticModel, CancellationToken cancellationToken)
+        {
+            if (castNode is not CastExpressionSyntax castExpression)
+                return false;
+
+            var parent = castExpression.WalkUpParentheses();
+            if (parent.Parent is not ConditionalExpressionSyntax originalConditionalExpression)
+                return false;
+
+            // if we were parented by a conditional before, we must be parented by a conditional afterwards.
+            var rewrittenConditionalExpression = (ConditionalExpressionSyntax)rewrittenExpression.WalkUpParentheses().GetRequiredParent();
+
+            if (parent != originalConditionalExpression.WhenFalse && parent != originalConditionalExpression.WhenTrue)
+                return false;
+
+            if (originalSemanticModel.GetOperation(castExpression, cancellationToken) is not IConversionOperation conversionOperation)
+                return false;
+
+            var originalConversion = conversionOperation.GetConversion();
+            if (originalConversion.IsNullable)
+            {
+                // if we have `a ? (int?)b : default` then we can't remove the nullable cast as it changes the
+                // meaning of `default`.
+                if (originalConditionalExpression.WhenTrue.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression) ||
+                    originalConditionalExpression.WhenFalse.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression))
+                {
+                    return false;
+                }
+            }
+
+            var originalCastExpressionTypeInfo = originalSemanticModel.GetTypeInfo(castExpression, cancellationToken);
+            var originalConditionalTypeInfo = originalSemanticModel.GetTypeInfo(originalConditionalExpression, cancellationToken);
+            var rewrittenConditionalTypeInfo = rewrittenSemanticModel.GetTypeInfo(rewrittenConditionalExpression, cancellationToken);
+
+            if (IsNullOrErrorType(originalCastExpressionTypeInfo) ||
+                IsNullOrErrorType(originalConditionalTypeInfo) ||
+                IsNullOrErrorType(rewrittenConditionalTypeInfo))
+            {
+                return false;
+            }
+
+            if (!originalConditionalTypeInfo.ConvertedType!.Equals(rewrittenConditionalTypeInfo.ConvertedType, SymbolEqualityComparer.IncludeNullability))
+                return false;
+
+            if (!originalCastExpressionTypeInfo.ConvertedType!.Equals(rewrittenConditionalTypeInfo.ConvertedType, SymbolEqualityComparer.IncludeNullability))
+                return false;
+
+            return true;
+        }
+
+        private static bool IsNullOrErrorType(TypeInfo info)
+            => IsNullOrErrorType(info.Type) || IsNullOrErrorType(info.ConvertedType);
+
+        private static bool IsNullOrErrorType([NotNullWhen(false)] ITypeSymbol? type)
+            => type is null || type is IErrorTypeSymbol;
 
         private static bool CastRemovalWouldCauseUnintendedReferenceComparisonWarning(
             ExpressionSyntax expression,
@@ -773,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (originalMemberSymbol.ContainingType.TypeKind == TypeKind.Interface)
             {
                 var rewrittenType = rewrittenSemanticModel.GetTypeInfo(rewrittenExpression, cancellationToken).Type;
-                if (rewrittenType is null or IErrorTypeSymbol)
+                if (IsNullOrErrorType(rewrittenType))
                     return false;
 
                 // If we don't have a reference type, then it may not be safe to remove the cast.  The cast could

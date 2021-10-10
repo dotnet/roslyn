@@ -2406,15 +2406,13 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoNotRemoveCastToByteFromIntInConditionalExpression()
         {
-            var source =
-@"class C
+            var source = @"class C
 {
     object M1(bool b)
     {
         return b ? (byte)1 : (byte)0;
     }
 }";
-
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
@@ -11466,6 +11464,22 @@ class C
 
         [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNnecessaryWideningConstantCastInConditional1()
+        {
+            var source = @"
+class C
+{
+    void M(int a)
+    {
+        var f1 = (a == 5) ? 4 : (long)5;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoRemoveUnnecessaryWideningCastInConditional2()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -11485,6 +11499,21 @@ class C
         long f1 = (a == 5) ? b : c;
     }
 }");
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecessaryWideningCastInConditional2()
+        {
+            var source = @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        var f1 = (a == 5) ? b : (long)c;
+    }
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
@@ -11512,6 +11541,22 @@ class C
 
         [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecessaryWideningNullableConstantCastInConditional3()
+        {
+            var source = @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        var f1 = (a == 5) ? (int?)0 : 1;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoRemoveUnnecessaryWideningNullableCastInConditional3()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -11531,6 +11576,98 @@ class C
         int? f1 = (a == 5) ? b : c;
     }
 }");
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecessaryWideningNullableCastInConditional3()
+        {
+            var source = @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        var f1 = (a == 5) ? (int?)b : c;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveUnnecessaryWideningConstantCastInConditionalWithDefault3()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        long f1 = (a == 5) ? [|(long)|]0 : default;
+    }
+}",
+                @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        long f1 = (a == 5) ? 0 : default;
+    }
+}");
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNnecessaryWideningConstantCastInConditionalWithDefault3()
+        {
+            var source = @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        var f1 = (a == 5) ? (long)0 : default;
+    }
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveUnnecessaryWideningConstantCastInConditionalWithDefault4()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        long f1 = (a == 5) ? [|(long)|]b : default;
+    }
+}",
+                @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        long f1 = (a == 5) ? b : default;
+    }
+}");
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecessaryWideningConstantCastInConditionalWithDefault4()
+        {
+            var source = @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        var f1 = (a == 5) ? (long)b : default;
+    }
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
