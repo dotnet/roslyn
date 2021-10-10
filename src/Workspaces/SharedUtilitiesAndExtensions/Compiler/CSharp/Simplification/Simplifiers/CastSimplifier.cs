@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             }
 
             // If the types of the expressions are the same, then we can remove safely.
-            if (Equals(originalConvertedType, rewrittenConvertedType))
+            if (originalConvertedType.Equals(rewrittenConvertedType, SymbolEqualityComparer.IncludeNullability))
                 return true;
 
             // There are cases where the types change but things may still be safe to remove.

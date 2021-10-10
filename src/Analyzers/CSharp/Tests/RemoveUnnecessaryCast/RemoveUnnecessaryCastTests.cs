@@ -11343,5 +11343,32 @@ class Program
 
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNRTCast1()
+        {
+            var source =
+            @"
+#nullable enable
+
+using System.Collections.Generic;
+using System.Linq;
+
+class Node
+{
+    public readonly string Name = """";
+}
+
+class C
+{
+    void M(IList<Node> nodes)
+    {
+        Dictionary<string, Node?> map = nodes.ToDictionary(t => t.Name, t => (Node?)t);
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
     }
 }

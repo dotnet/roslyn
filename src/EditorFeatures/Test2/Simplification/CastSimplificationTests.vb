@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CSharp
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
@@ -2317,7 +2316,7 @@ class Program
         <WorkItem(529884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529884")>
         <WorkItem(1043494, "DevDiv")>
         <WpfFact(Skip:="1043494"), Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestCsharp_DoNotRemove_ParamDefaultValueNegativeZero() As Task
+        Public Async Function TestCSharp_DoNotRemove_ParamDefaultValueNegativeZero() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
