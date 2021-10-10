@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         IDocumentHighlightsService? DocumentHighlightsService { get; }
 
         /// <summary>
-        /// An optional completion provider that can provide completion items for this
+        /// Completion provider that can provide completion items for this
         /// specific embedded language.
         /// 
         /// <see cref="AbstractEmbeddedLanguageAggregateCompletionProvider"/> will aggregate all these
