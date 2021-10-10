@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
-    Partial Friend Class InlineTemporaryCodeRefactoringProvider
+    Partial Friend Class VisualBasicInlineTemporaryCodeRefactoringProvider
         Partial Private Class ReferenceRewriter
             Inherits VisualBasicSyntaxRewriter
 

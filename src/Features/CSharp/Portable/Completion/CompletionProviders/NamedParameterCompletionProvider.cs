@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -58,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var position = context.Position;
                 var cancellationToken = context.CancellationToken;
 
-                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 if (syntaxTree.IsInNonUserCode(position, cancellationToken))
                 {
                     return;
@@ -79,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 var semanticModel = await document.ReuseExistingSpeculativeModelAsync(argumentList, cancellationToken).ConfigureAwait(false);
-                var parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent, cancellationToken);
+                var parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent!, cancellationToken);
                 if (parameterLists == null)
                 {
                     return;
@@ -99,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 // Consider refining this logic to mandate completion with an argument name, if preceded by an out-of-position name
                 // See https://github.com/dotnet/roslyn/issues/20657
-                var languageVersion = ((CSharpParseOptions)document.Project.ParseOptions).LanguageVersion;
+                var languageVersion = ((CSharpParseOptions)document.Project.ParseOptions!).LanguageVersion;
                 if (languageVersion < LanguageVersion.CSharp7_2 && token.IsMandatoryNamedParameterPosition())
                 {
                     context.IsExclusive = true;
@@ -144,12 +142,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static ISet<string> GetExistingNamedParameters(BaseArgumentListSyntax argumentList, int position)
         {
             var existingArguments = argumentList.Arguments.Where(a => a.Span.End <= position && a.NameColon != null)
-                                                          .Select(a => a.NameColon.Name.Identifier.ValueText);
+                                                          .Select(a => a.NameColon!.Name.Identifier.ValueText);
 
             return existingArguments.ToSet();
         }
 
-        private static IEnumerable<ImmutableArray<IParameterSymbol>> GetParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetParameterLists(
             SemanticModel semanticModel,
             int position,
             SyntaxNode invocableNode,
@@ -166,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
-        private static IEnumerable<ImmutableArray<IParameterSymbol>> GetObjectCreationExpressionParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetObjectCreationExpressionParameterLists(
             SemanticModel semanticModel,
             int position,
             BaseObjectCreationExpressionSyntax objectCreationExpression,
@@ -182,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        private static IEnumerable<ImmutableArray<IParameterSymbol>> GetElementAccessExpressionParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetElementAccessExpressionParameterLists(
             SemanticModel semanticModel,
             int position,
             ElementAccessExpressionSyntax elementAccessExpression,
@@ -205,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        private static IEnumerable<ImmutableArray<IParameterSymbol>> GetConstructorInitializerParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetConstructorInitializerParameterLists(
             SemanticModel semanticModel,
             int position,
             ConstructorInitializerSyntax constructorInitializer,
@@ -229,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        private static IEnumerable<ImmutableArray<IParameterSymbol>> GetRecordBaseTypeParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetRecordBaseTypeParameterLists(
             SemanticModel semanticModel,
             int position,
             PrimaryConstructorBaseTypeSyntax recordBaseType,
@@ -248,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        private static IEnumerable<ImmutableArray<IParameterSymbol>> GetInvocationExpressionParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetInvocationExpressionParameterLists(
             SemanticModel semanticModel,
             int position,
             InvocationExpressionSyntax invocationExpression,
@@ -268,15 +266,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 else if (expressionType.IsDelegateType())
                 {
                     var delegateType = expressionType;
-                    return SpecializedCollections.SingletonEnumerable(delegateType.DelegateInvokeMethod.Parameters);
+                    return SpecializedCollections.SingletonEnumerable(delegateType.DelegateInvokeMethod!.Parameters);
                 }
             }
 
             return null;
         }
 
-        bool IEqualityComparer<IParameterSymbol>.Equals(IParameterSymbol x, IParameterSymbol y)
-            => x.Name.Equals(y.Name);
+        bool IEqualityComparer<IParameterSymbol>.Equals(IParameterSymbol? x, IParameterSymbol? y)
+            => x == y || x != null && y != null && x.Name.Equals(y.Name);
 
         int IEqualityComparer<IParameterSymbol>.GetHashCode(IParameterSymbol obj)
             => obj.Name.GetHashCode();

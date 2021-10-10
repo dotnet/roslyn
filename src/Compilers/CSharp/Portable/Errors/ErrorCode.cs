@@ -1998,6 +1998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_CompileTimeCheckedOverflow = 8973,
         WRN_MethGrpToNonDel = 8974,
+        ERR_LambdaExplicitReturnTypeVar = 8975,
 
         // PROTOTYPE(list-patterns)
         ERR_UnsupportedTypeForListPattern = 9200,

@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Formatting
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
     Microsoft.CodeAnalysis.VisualBasic.FileHeaders.VisualBasicFileHeaderDiagnosticAnalyzer,
     Microsoft.CodeAnalysis.VisualBasic.FileHeaders.VisualBasicFileHeaderCodeFixProvider)
@@ -47,8 +48,11 @@ End Namespace
         ''' Verifies that the analyzer will report a diagnostic when the file is completely missing a header.
         ''' </summary>
         ''' <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
-        <Fact>
-        Public Async Function TestNoFileHeaderAsync() As Task
+        <Theory>
+        <InlineData(vbLf)>
+        <InlineData(vbCrLf)>
+        <WorkItem(1414432, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1414432")>
+        Public Async Function TestNoFileHeaderAsync(lineEnding As String) As Task
             Dim testCode = "[||]Namespace N
 End Namespace
 "
@@ -59,12 +63,15 @@ Namespace N
 End Namespace
 "
 
-            Await New VerifyVB.Test With
+            Dim test As VerifyVB.Test = New VerifyVB.Test With
             {
-                .TestCode = testCode,
-                .FixedCode = fixedCode,
+                .TestCode = testCode.ReplaceLineEndings(lineEnding),
+                .FixedCode = fixedCode.ReplaceLineEndings(lineEnding),
                 .EditorConfig = TestSettings
-            }.RunAsync()
+            }
+
+            test.Options.Add(FormattingOptions2.NewLine, lineEnding)
+            Await test.RunAsync()
         End Function
 
         ''' <summary>

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
 {
     internal static class OmniSharpCompletionService
     {
-        public static Task<(CompletionList completionList, bool expandItemsAvailable)> GetCompletionsAsync(
+        public static Task<(CompletionList? completionList, bool expandItemsAvailable)> GetCompletionsAsync(
             this CompletionService completionService,
             Document document,
             int caretPosition,
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
             CancellationToken cancellationToken = default)
             => completionService.GetCompletionsInternalAsync(document, caretPosition, trigger, roles, options, cancellationToken);
 
-        public static string GetProviderName(this CompletionItem completionItem) => completionItem.ProviderName;
+        public static string? GetProviderName(this CompletionItem completionItem) => completionItem.ProviderName;
 
         public static PerLanguageOption<bool?> ShowItemsFromUnimportedNamespaces = (PerLanguageOption<bool?>)CompletionOptions.ShowItemsFromUnimportedNamespaces;
     }
