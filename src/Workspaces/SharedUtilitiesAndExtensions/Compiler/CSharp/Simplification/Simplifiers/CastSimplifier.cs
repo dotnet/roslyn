@@ -484,6 +484,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return false;
 
             var originalConversion = conversionOperation.GetConversion();
+            if (!originalConversion.IsNullable && !originalConversion.IsNumeric)
+                return false;
+
             if (originalConversion.IsNullable)
             {
                 // if we have `a ? (int?)b : default` then we can't remove the nullable cast as it changes the
@@ -506,13 +509,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return false;
             }
 
+            // when we have    a ? (T)b : c
+            // 
+            // then we want the type of the written conditional to be T as well.  And we want the final converted
+            // type of `a ? b : c` to be the same as what `a ? (T)b : c` is converted to.
+
             if (!originalConditionalTypeInfo.ConvertedType!.Equals(rewrittenConditionalTypeInfo.ConvertedType, SymbolEqualityComparer.IncludeNullability))
                 return false;
 
-            if (!originalCastExpressionTypeInfo.ConvertedType!.Equals(rewrittenConditionalTypeInfo.ConvertedType, SymbolEqualityComparer.IncludeNullability))
+            var castType = originalSemanticModel.GetTypeInfo(castExpression, cancellationToken).Type;
+            if (IsNullOrErrorType(castType))
                 return false;
 
-            return true;
+            if (rewrittenSemanticModel.GetOperation(rewrittenConditionalExpression, cancellationToken) is not IConditionalOperation rewrittenConditionalOperation)
+                return false;
+
+            if (castType.Equals(rewrittenConditionalOperation.Type, SymbolEqualityComparer.IncludeNullability))
+                return true;
+
+            if (rewrittenConditionalOperation.Parent is IConversionOperation { IsImplicit: true } implicitConversion &&
+                castType.Equals(implicitConversion.Type, SymbolEqualityComparer.IncludeNullability))
+            {
+                return true;
+            }
+
+            //if (!originalCastExpressionTypeInfo.ConvertedType!.Equals(rewrittenConditionalTypeInfo.ConvertedType, SymbolEqualityComparer.IncludeNullability))
+            //    return false;
+
+            //var originalConditionalType = originalConditionalTypeInfo.Type.RemoveNullableIfPresent();
+            //var rewrittenConditionalType = rewrittenConditionalTypeInfo.Type.RemoveNullableIfPresent();
+
+            //if (originalConditionalType!.SpecialType.IsSignedIntegralType() != rewrittenConditionalType!.SpecialType.IsSignedIntegralType())
+            //    return false;
+
+            return false;
         }
 
         private static bool IsNullOrErrorType(TypeInfo info)

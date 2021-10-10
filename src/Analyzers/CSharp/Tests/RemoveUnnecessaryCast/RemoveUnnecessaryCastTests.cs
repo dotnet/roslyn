@@ -644,7 +644,7 @@ class Test
     {
         int b = 5;
 
-        long f1 = (b == 5) ? 4 : (long)5;
+        long f1 = (b == 5) ? 4 : 5;
     }
 }";
 
@@ -658,64 +658,6 @@ class Test
                 {
                     Sources = { fixedSource },
                 },
-                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
-            }.RunAsync();
-        }
-
-        [WorkItem(545291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task RemoveUnneededCastInConditionalExpression2()
-        {
-            var source =
-            @"
-class Test
-{
-    public static void Main()
-    {
-        int b = 5;
-
-        long f1 = (b == 5) ? [|(long)|]4 : [|(long)|]5;
-    }
-}";
-            var fixedSource =
-@"
-class Test
-{
-    public static void Main()
-    {
-        int b = 5;
-
-        long f1 = (b == 5) ? (long)4 : 5;
-    }
-}";
-            var batchFixedSource =
-@"
-class Test
-{
-    public static void Main()
-    {
-        int b = 5;
-
-        long f1 = (b == 5) ? 4 : (long)5;
-    }
-}";
-
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                },
-                FixedState =
-                {
-                    Sources = { fixedSource },
-                },
-                BatchFixedState =
-                {
-                    Sources = { batchFixedSource },
-                },
-                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
-                DiagnosticSelector = diagnostics => diagnostics[1],
             }.RunAsync();
         }
 
