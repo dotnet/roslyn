@@ -11700,5 +11700,83 @@ class Program
     }
 }");
         }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveMultipleNullableCastsThroughUserDefinedConversions1()
+        {
+            var source = @"
+struct A
+{
+}
+
+struct B
+{
+    public static implicit operator A(B b) => default;
+    public static implicit operator B(int a) => default;
+}
+
+class P
+{
+    void M()
+    {
+        var v = (A?)(B?)0;
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveMultipleNullableCastsThroughUserDefinedConversions2()
+        {
+            var source = @"
+struct A
+{
+}
+
+struct B
+{
+    public static implicit operator A(B b) => default;
+    public static implicit operator B(int a) => default;
+}
+
+class P
+{
+    void M()
+    {
+        var v = (A?)(B)0;
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveMultipleCastsThroughUserDefinedConversions2()
+        {
+            var source = @"
+struct A
+{
+}
+
+struct B
+{
+    public static implicit operator A(B b) => default;
+    public static implicit operator B(int a) => default;
+}
+
+class P
+{
+    void M()
+    {
+        var v = (A)(B)0;
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
     }
 }
