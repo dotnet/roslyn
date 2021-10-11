@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -26,44 +27,38 @@ namespace IdeCoreBenchmarks
     [MemoryDiagnoser]
     public class ClassificationBenchmarks
     {
-        private readonly int _iterationCount = 10;
-
-        private Document _document;
         private Solution _solution;
-        private TextSpan _span;
 
         [GlobalSetup]
         public void GlobalSetup()
         {
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            var csFilePath = Path.Combine(roslynRoot, @"src\Compilers\CSharp\Portable\Generated\BoundNodes.xml.Generated.cs");
+            var csFilePath = Path.Combine(roslynRoot, @"src\Compilers\CSharp\Portable");
 
-            if (!File.Exists(csFilePath))
-            {
-                throw new ArgumentException();
-            }
+            var files = Directory.GetFiles(csFilePath, "*.cs", SearchOption.AllDirectories);
 
             var projectId = ProjectId.CreateNewId();
-            var documentId = DocumentId.CreateNewId(projectId);
-            var text = File.ReadAllText(csFilePath);
-
             _solution = new AdhocWorkspace().CurrentSolution
-                .AddProject(projectId, "ProjectName", "AssemblyName", LanguageNames.CSharp)
-                .AddDocument(documentId, "DocumentName", text);
+               .AddProject(projectId, "ProjectName", "AssemblyName", LanguageNames.CSharp);
+            for (var i = 0; i < files.Length; i++)
+            {
+                if (!File.Exists(files[i]))
+                {
+                    throw new ArgumentException();
+                }
 
-            var document = _solution.GetDocument(documentId);
-            var root = document.GetSyntaxRootAsync(CancellationToken.None).Result.WithAdditionalAnnotations(Formatter.Annotation);
-            _solution = _solution.WithDocumentSyntaxRoot(documentId, root);
-            _document = _solution.GetDocument(documentId);
+                var documentId = DocumentId.CreateNewId(projectId);
+                var text = File.ReadAllText(files[i]);
+                _solution = _solution.AddDocument(documentId, "File" + i, text);
+            }
+
             var project = _solution.Projects.First();
-            _span = new TextSpan(0, text.Length);
         }
 
         protected static async Task<ImmutableArray<ClassifiedSpan>> GetSemanticClassificationsAsync(Document document, TextSpan span)
         {
             var service = document.GetRequiredLanguageService<IClassificationService>();
             var options = ClassificationOptions.From(document.Project);
-
             using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var result);
             await service.AddSemanticClassificationsAsync(document, span, options, result, CancellationToken.None);
             return result.ToImmutable();
@@ -72,10 +67,16 @@ namespace IdeCoreBenchmarks
         [Benchmark]
         public void ClassifyDocument()
         {
-            for (var i = 0; i < _iterationCount; i++)
+            foreach (var project in _solution.Projects)
             {
-                _ = GetSemanticClassificationsAsync(_document, _span);
+                foreach (var document in project.Documents)
+                {
+                    var text = document.GetTextAsync().Result.ToString();
+                    var span = new TextSpan(0, text.Length);
+                    _ = GetSemanticClassificationsAsync(document, span);
+                }
             }
+
         }
     }
 }

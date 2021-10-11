@@ -9,6 +9,6 @@ Toolchain=InProcessEmitToolchain  IterationCount=1  LaunchCount=1
 RunStrategy=ColdStart  UnrollFactor=1  WarmupCount=1  
 
 ```
-|           Method |    Mean | Error |      Gen 0 |      Gen 1 |     Gen 2 | Allocated |
-|----------------- |--------:|------:|-----------:|-----------:|----------:|----------:|
-| ClassifyDocument | 4.178 s |    NA | 54000.0000 | 11000.0000 | 2000.0000 |    342 MB |
+|           Method |    Mean | Error |       Gen 0 |      Gen 1 |     Gen 2 | Allocated |
+|----------------- |--------:|------:|------------:|-----------:|----------:|----------:|
+| ClassifyDocument | 22.23 s |    NA | 261000.0000 | 74000.0000 | 1000.0000 |      2 GB |
