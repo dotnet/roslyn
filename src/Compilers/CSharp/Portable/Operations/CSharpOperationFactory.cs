@@ -1072,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             IOperation operand = Create(boundAsOperator.Operand);
             SyntaxNode syntax = boundAsOperator.Syntax;
-            Conversion conversion = boundAsOperator.Conversion;
+            Conversion conversion = BoundNode.GetConversion(boundAsOperator.OperandConversion, boundAsOperator.OperandPlaceholder);
             bool isTryCast = true;
             bool isChecked = false;
             ITypeSymbol? type = boundAsOperator.GetPublicTypeSymbol();

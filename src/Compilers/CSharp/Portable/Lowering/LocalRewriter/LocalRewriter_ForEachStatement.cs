@@ -388,7 +388,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression disposableVarInitValue = new BoundAsOperator(forEachSyntax,
                     operand: boundEnumeratorVar,
                     targetType: boundIDisposableTypeExpr,
-                    conversion: Conversion.ExplicitReference, // Explicit so the emitter won't optimize it away.
+                    operandPlaceholder: null,
+                    operandConversion: null,
                     type: idisposableTypeSymbol);
 
                 // IDisposable d = e as IDisposable;

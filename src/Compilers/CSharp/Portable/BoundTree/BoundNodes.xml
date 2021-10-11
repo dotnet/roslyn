@@ -725,7 +725,14 @@
 
     <Field Name="Operand" Type="BoundExpression"/>
     <Field Name="TargetType" Type="BoundTypeExpression"/>
-    <Field Name="Conversion" Type="Conversion"/>
+
+    <!-- Used as an operand to bind OperandConversion -->
+    <Field Name="OperandPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!--
+    Could be a BoundConversion or, in some cases of an identity conversion, the OperandPlaceholder, or null for no conversion case
+    If the node survives lowering, this property in it must be null.
+    -->
+    <Field Name="OperandConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
   </Node>
 
   <Node Name="BoundSizeOfOperator" Base="BoundExpression">
