@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         private static bool IsSignedIntegralOrIntPtrType(ITypeSymbol? type)
             => type.IsSignedIntegralType() || type?.SpecialType is SpecialType.System_IntPtr;
 
-        private static bool IsConditionalCastSaveToRemove(
+        private static bool IsConditionalCastSafeToRemove(
             ExpressionSyntax castNode, SemanticModel originalSemanticModel,
             ExpressionSyntax rewrittenExpression, SemanticModel rewrittenSemanticModel, CancellationToken cancellationToken)
         {
