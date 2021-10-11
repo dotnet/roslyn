@@ -175,9 +175,9 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilation,
                     SolutionServices services)
                 {
-                    return services.SupportsCachingRecoverableObjects && services.Workspace.Options.GetOption(WorkspaceConfigurationOptions.DisableCompilationTrackerWeakCompilationReferences)
-                        ? new ConstantValueSource<Optional<Compilation>>(compilation)
-                        : new WeakValueSource<Compilation>(compilation);
+                    return services.SupportsCachingRecoverableObjects && !services.Workspace.Options.GetOption(WorkspaceConfigurationOptions.DisableCompilationTrackerWeakCompilationReferences)
+                        ? new WeakValueSource<Compilation>(compilation)
+                        : new ConstantValueSource<Optional<Compilation>>(compilation);
                 }
             }
 
