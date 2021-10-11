@@ -354,9 +354,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _disableDiagnostics = false;
 
         /// <summary>
-        /// Whether we are going to read the currently visited expression.
+        /// Whether we are going to read or write the currently visited expression.
+        /// This affects post-condition attributes on property getters vs. setters.
         /// </summary>
-        private bool _expressionIsRead = true;
+        private AccessInfo _expressionAccess = AccessInfo.Read;
+
+        [Flags]
+        private enum AccessInfo
+        {
+            Read = 1 << 0,
+            Write = 1 << 1,
+            WriteTrue = 1 << 2,
+            WriteFalse = 1 << 3,
+        }
 
         /// <summary>
         /// Used to allow <see cref="MakeSlot(BoundExpression)"/> to substitute the correct slot for a <see cref="BoundConditionalReceiver"/> when
@@ -3037,23 +3047,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? Visit(BoundNode? node)
         {
-            return Visit(node, expressionIsRead: true);
+            return Visit(node, AccessInfo.Read);
         }
 
         private BoundNode VisitLValue(BoundNode node)
         {
-            return Visit(node, expressionIsRead: false);
+            return Visit(node, AccessInfo.Write);
         }
 
-        private BoundNode Visit(BoundNode? node, bool expressionIsRead)
+        private BoundNode Visit(BoundNode? node, AccessInfo access)
         {
-            bool originalExpressionIsRead = _expressionIsRead;
-            _expressionIsRead = expressionIsRead;
+            AccessInfo originalAccess = _expressionAccess;
+            _expressionAccess = access;
 
             TakeIncrementalSnapshot(node);
             var result = base.Visit(node);
 
-            _expressionIsRead = originalExpressionIsRead;
+            _expressionAccess = originalAccess;
             return result;
         }
 
@@ -5461,10 +5471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            int receiverSlot =
-                method.IsStatic ? 0 :
-                receiverOpt is null ? -1 :
-                MakeSlot(receiverOpt);
+            int receiverSlot = MakeReceiverSlot(receiverOpt, method);
 
             if (receiverSlot < 0)
             {
@@ -5486,37 +5493,39 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (IsConditionalState)
                 {
-                    applyMemberPostConditions(receiverSlot, type, notNullMembers, ref StateWhenTrue);
-                    applyMemberPostConditions(receiverSlot, type, notNullMembers, ref StateWhenFalse);
+                    ApplyMemberPostConditions(receiverSlot, type, notNullMembers, ref StateWhenTrue);
+                    ApplyMemberPostConditions(receiverSlot, type, notNullMembers, ref StateWhenFalse);
                 }
                 else
                 {
-                    applyMemberPostConditions(receiverSlot, type, notNullMembers, ref State);
+                    ApplyMemberPostConditions(receiverSlot, type, notNullMembers, ref State);
                 }
 
                 if (!notNullWhenTrueMembers.IsEmpty || !notNullWhenFalseMembers.IsEmpty)
                 {
                     Split();
-                    applyMemberPostConditions(receiverSlot, type, notNullWhenTrueMembers, ref StateWhenTrue);
-                    applyMemberPostConditions(receiverSlot, type, notNullWhenFalseMembers, ref StateWhenFalse);
+                    ApplyMemberPostConditions(receiverSlot, type, notNullWhenTrueMembers, ref StateWhenTrue);
+                    ApplyMemberPostConditions(receiverSlot, type, notNullWhenFalseMembers, ref StateWhenFalse);
                 }
 
                 method = method.OverriddenMethod;
             }
             while (method != null);
+        }
 
-            void applyMemberPostConditions(int receiverSlot, TypeSymbol type, ImmutableArray<string> members, ref LocalState state)
+        private void ApplyMemberPostConditions(int receiverSlot, TypeSymbol type, ImmutableArray<string> members, ref LocalState state)
+        {
+            if (members.IsEmpty)
             {
-                if (members.IsEmpty)
-                {
-                    return;
-                }
-
-                foreach (var memberName in members)
-                {
-                    markMembersAsNotNull(receiverSlot, type, memberName, ref state);
-                }
+                return;
             }
+
+            foreach (var memberName in members)
+            {
+                markMembersAsNotNull(receiverSlot, type, memberName, ref state);
+            }
+
+            return;
 
             void markMembersAsNotNull(int receiverSlot, TypeSymbol type, string memberName, ref LocalState state)
             {
@@ -5543,6 +5552,62 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+        }
+
+        private void ApplyMemberPostConditionsInAssignment(BoundExpression? receiverOpt, MethodSymbol? method, AccessInfo access)
+        {
+            Debug.Assert((access & AccessInfo.Write) != 0);
+
+            if (method is null)
+            {
+                return;
+            }
+
+            int receiverSlot = MakeReceiverSlot(receiverOpt, method);
+
+            if (receiverSlot < 0)
+            {
+                return;
+            }
+
+            do
+            {
+                var type = method.ContainingType;
+                var notNullMembers = method.NotNullMembers;
+                var notNullWhenTrueMembers = method.NotNullWhenTrueMembers;
+                var notNullWhenFalseMembers = method.NotNullWhenFalseMembers;
+
+                if (IsConditionalState)
+                {
+                    ApplyMemberPostConditions(receiverSlot, type, notNullMembers, ref StateWhenTrue);
+                    ApplyMemberPostConditions(receiverSlot, type, notNullMembers, ref StateWhenFalse);
+                }
+                else
+                {
+                    ApplyMemberPostConditions(receiverSlot, type, notNullMembers, ref State);
+                }
+
+                if ((access & AccessInfo.WriteTrue) != 0 && !notNullWhenTrueMembers.IsEmpty)
+                {
+                    Debug.Assert(!IsConditionalState);
+                    ApplyMemberPostConditions(receiverSlot, type, notNullWhenTrueMembers, ref State);
+                }
+                else if ((access & AccessInfo.WriteFalse) != 0 && !notNullWhenFalseMembers.IsEmpty)
+                {
+                    Debug.Assert(!IsConditionalState);
+                    ApplyMemberPostConditions(receiverSlot, type, notNullWhenFalseMembers, ref State);
+                }
+
+                method = method.OverriddenMethod;
+            }
+            while (method != null);
+        }
+
+        private int MakeReceiverSlot(BoundExpression? receiverOpt, MethodSymbol method)
+        {
+            return method.IsStatic ? 0 :
+                receiverOpt is null ? -1 :
+                MakeSlot(receiverOpt);
         }
 
         private ImmutableArray<VisitArgumentResult> VisitArgumentsEvaluate(
@@ -7927,7 +7992,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var right = node.Right;
-            VisitLValue(left);
+            var access = HasKnownBooleanValue(right) switch
+            {
+                null => AccessInfo.Write,
+                true => AccessInfo.Write | AccessInfo.WriteTrue,
+                false => AccessInfo.Write | AccessInfo.WriteFalse
+            };
+
+            Visit(left, access: access);
             // we may enter a conditional state for error scenarios on the LHS.
             Unsplit();
 
@@ -7972,6 +8044,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     SetResult(node, TypeWithState.Create(leftLValueType.Type, rightState.State), leftLValueType);
                 }
+            }
+
+            return null;
+        }
+
+        // Note: there are many places in NullableWalker where we check for a constant Boolean value,
+        // that potentially could benefit from being smarter about recognizing known Boolean values.
+        static bool? HasKnownBooleanValue(BoundExpression rhs)
+        {
+            if (rhs.Type is null or { SpecialType: not SpecialType.System_Boolean })
+            {
+                return null;
+            }
+
+            if (rhs.ConstantValue is { BooleanValue: var booleanConstant })
+            {
+                return booleanConstant;
+            }
+
+            if (rhs is BoundAssignmentOperator assignment)
+            {
+                return HasKnownBooleanValue(assignment.Right);
             }
 
             return null;
@@ -8485,13 +8579,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var left = node.Left;
             var right = node.Right;
-            Visit(left);
+
+            Visit(left, AccessInfo.Read | AccessInfo.Write);
+            Unsplit();
+
             TypeWithAnnotations declaredType = LvalueResultType;
             TypeWithAnnotations leftLValueType = declaredType;
             TypeWithState leftResultType = ResultType;
-
-            Debug.Assert(!IsConditionalState);
-
             TypeWithState leftOnRightType = GetAdjustedResult(leftResultType, MakeSlot(node.Left));
 
             // https://github.com/dotnet/roslyn/issues/29962 Update operator based on inferred argument types.
@@ -8655,13 +8749,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!IsAnalyzingAttribute)
             {
-                if (_expressionIsRead)
+                if ((_expressionAccess & AccessInfo.Read) != 0)
                 {
                     ApplyMemberPostConditions(node.ReceiverOpt, property.GetMethod);
                 }
-                else
+                if ((_expressionAccess & AccessInfo.Write) != 0)
                 {
-                    ApplyMemberPostConditions(node.ReceiverOpt, property.SetMethod);
+                    ApplyMemberPostConditionsInAssignment(node.ReceiverOpt, property.SetMethod, _expressionAccess);
                 }
             }
 
