@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public static class WorkspaceTestUtilities
     {
-        public static Workspace CreateWorkspaceWithPartalSemantics(Type[]? additionalParts = null)
+        public static Workspace CreateWorkspaceWithPartialSemantics(Type[]? additionalParts = null)
             => new WorkspaceWithPartialSemantics(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
 
         private class WorkspaceWithPartialSemantics : Workspace

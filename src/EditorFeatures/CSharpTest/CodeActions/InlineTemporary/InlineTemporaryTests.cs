@@ -2542,7 +2542,7 @@ class A<T>
         }
 
         [WorkItem(545170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545170")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCorrectCastForDelegateCreationExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -2628,7 +2628,7 @@ class Program
 {
     static void Main()
     {
-        foreach (var x in ""abc"")
+        foreach (var x in (IEnumerable<char>)""abc"")
             Console.WriteLine(x);
     }
 }
@@ -2876,7 +2876,7 @@ class C
 
     void M()
     {
-        Console.WriteLine(42 + (C)42);
+        Console.WriteLine((C)42 + (C)42);
     }
 
     public static int operator +(C x, C y)
@@ -3322,7 +3322,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InlineTempDoesNotInsertUnnecessaryExplicitTypeInLambdaParameter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
             @"
 using System;
 
@@ -3760,8 +3760,6 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task CastInterpolatedStringWhenInliningIntoInvalidCall()
         {
-            // Note: This is an error case.  This test just demonstrates our current behavior.  It
-            // is ok if this behavior changes in the future in response to an implementation change.
             await TestInRegularAndScriptAsync(
 @"class C
 {
@@ -3775,7 +3773,7 @@ class C
 {
     public void M()
     {
-        var s2 = string.Replace((string)$""hello"", ""world"");
+        var s2 = string.Replace($""hello"", ""world"");
     }
 }");
         }
