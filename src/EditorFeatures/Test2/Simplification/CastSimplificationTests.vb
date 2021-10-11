@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CSharp
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
@@ -1275,7 +1274,7 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(531431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531431")>
         Public Async Function TestCSharp_Remove_UnnecessaryExplicitNullableCast() As Task
             Dim input =
@@ -2317,7 +2316,7 @@ class Program
         <WorkItem(529884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529884")>
         <WorkItem(1043494, "DevDiv")>
         <WpfFact(Skip:="1043494"), Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestCsharp_DoNotRemove_ParamDefaultValueNegativeZero() As Task
+        Public Async Function TestCSharp_DoNotRemove_ParamDefaultValueNegativeZero() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -2369,13 +2368,12 @@ sealed class C : I
 </code>
 
             Await TestAsync(input, expected)
-
         End Function
 
         <WorkItem(529884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529884")>
         <WorkItem(1043494, "DevDiv")>
         <WpfFact(Skip:="1043494"), Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestCsharp_DoNotRemove_ParamDefaultValueNegativeZero2() As Task
+        Public Async Function TestCSharp_DoNotRemove_ParamDefaultValueNegativeZero2() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -3915,7 +3913,7 @@ unsafe class C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(835537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835537")>
-        Public Async Function TestCsharp_Remove_UnnecessaryExplicitCastInReferenceComparison1() As Task
+        Public Async Function TestCSharp_DoNotRemove_UnnecessaryExplicitCastInReferenceComparisonDueToWarning1() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -3940,7 +3938,7 @@ class Program
     void F()
     {
         object x = string.Intern("Hi!");
-        bool wasInterned = x == "Hi!";
+        bool wasInterned = (object)x == "Hi!";
     }
 }
 ]]>
@@ -3951,7 +3949,7 @@ class Program
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(835537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835537")>
-        Public Async Function TestCsharp_Remove_UnnecessaryExplicitCastInReferenceComparison3() As Task
+        Public Async Function TestCSharp_DoNotRemove_UnnecessaryExplicitCastInReferenceComparisonDueToWarning3() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -3976,7 +3974,7 @@ class Program
     void F()
     {
         object x = string.Intern("Hi!");
-        bool wasInterned = x == "Hi!";
+        bool wasInterned = x == (object)"Hi!";
     }
 }
 ]]>
