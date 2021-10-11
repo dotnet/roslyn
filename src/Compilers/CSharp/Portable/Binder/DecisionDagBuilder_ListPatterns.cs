@@ -53,18 +53,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (slice.Pattern is BoundPattern slicePattern)
                         {
-                            var sliceEvaluation = new BoundDagSliceEvaluation(syntax, slicePattern.InputType, lengthTemp, startIndex: startIndex, endIndex: index, slice.IndexerAccess, slice.SliceMethod, input);
+                            var sliceEvaluation = new BoundDagSliceEvaluation(slicePattern.Syntax, slicePattern.InputType, lengthTemp, startIndex: startIndex, endIndex: index, slice.IndexerAccess, slice.SliceMethod, input);
                             tests.Add(new Tests.One(sliceEvaluation));
-                            var sliceTemp = new BoundDagTemp(syntax, slicePattern.InputType, sliceEvaluation);
+                            var sliceTemp = new BoundDagTemp(slicePattern.Syntax, slicePattern.InputType, sliceEvaluation);
                             tests.Add(MakeTestsAndBindings(sliceTemp, slicePattern, bindings));
                         }
 
                         continue;
                     }
 
-                    var indexEvaluation = new BoundDagIndexerEvaluation(syntax, subpattern.InputType, lengthTemp, index++, list.IndexerAccess, list.IndexerSymbol, input);
+                    var indexEvaluation = new BoundDagIndexerEvaluation(subpattern.Syntax, subpattern.InputType, lengthTemp, index++, list.IndexerAccess, list.IndexerSymbol, input);
                     tests.Add(new Tests.One(indexEvaluation));
-                    var indexTemp = new BoundDagTemp(syntax, subpattern.InputType, indexEvaluation);
+                    var indexTemp = new BoundDagTemp(subpattern.Syntax, subpattern.InputType, indexEvaluation);
                     tests.Add(MakeTestsAndBindings(indexTemp, subpattern, bindings));
                 }
             }
