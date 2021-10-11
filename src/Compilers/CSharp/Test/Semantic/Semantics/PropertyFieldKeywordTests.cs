@@ -146,5 +146,189 @@ public class C : B
 } // end of class C
 ");
         }
+
+        [Fact]
+        public void TestIndexer_LikeAutoProperty_ErrorCase()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int this[int i]
+    {
+        get; set;
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0501: 'C.this[int].get' must declare a body because it is not marked abstract, extern, or partial
+                //         get; set;
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("C.this[int].get").WithLocation(6, 9),
+                // (6,14): error CS0501: 'C.this[int].set' must declare a body because it is not marked abstract, extern, or partial
+                //         get; set;
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("C.this[int].set").WithLocation(6, 14)
+            );
+        }
+
+        [Fact]
+        public void TestIndexer_ContainsFieldIdentifier_Error()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int this[int i]
+    {
+        get => field;
+        set => _ = field;
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (6,16): error CS0103: The name 'field' does not exist in the current context
+                //         get => field;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(6, 16),
+                // (7,20): error CS0103: The name 'field' does not exist in the current context
+                //         set => _ = field;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(7, 20)
+            );
+        }
+
+        [Fact]
+        public void TestIndexer_ContainsFieldIdentifier()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    private int field;
+
+    public int this[int i]
+    {
+        get => field;
+        set => _ = field;
+    }
+}
+");
+            CompileAndVerify(comp).VerifyTypeIL("C", @"
+.class public auto ansi beforefieldinit C
+	extends [netstandard]System.Object
+{
+	.custom instance void [netstandard]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+		01 00 04 49 74 65 6d 00 00
+	)
+	// Fields
+	.field private int32 'field'
+	// Methods
+	.method public hidebysig specialname 
+		instance int32 get_Item (
+			int32 i
+		) cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 C::'field'
+		IL_0006: ret
+	} // end of method C::get_Item
+	.method public hidebysig specialname 
+		instance void set_Item (
+			int32 i,
+			int32 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2058
+		// Code size 8 (0x8)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 C::'field'
+		IL_0006: pop
+		IL_0007: ret
+	} // end of method C::set_Item
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2061
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [netstandard]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method C::.ctor
+	// Properties
+	.property instance int32 Item(
+		int32 i
+	)
+	{
+		.get instance int32 C::get_Item(int32)
+		.set instance void C::set_Item(int32, int32)
+	}
+} // end of class C
+");
+        }
+
+        [Fact]
+        public void TestIndexer()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int this[int i]
+    {
+        get => i;
+        set => _ = i;
+    }
+}
+");
+            CompileAndVerify(comp).VerifyTypeIL("C", @"
+
+.class public auto ansi beforefieldinit C
+	extends [netstandard]System.Object
+{
+	.custom instance void [netstandard]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+		01 00 04 49 74 65 6d 00 00
+	)
+	// Methods
+	.method public hidebysig specialname 
+		instance int32 get_Item (
+			int32 i
+		) cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 2 (0x2)
+		.maxstack 8
+		IL_0000: ldarg.1
+		IL_0001: ret
+	} // end of method C::get_Item
+	.method public hidebysig specialname 
+		instance void set_Item (
+			int32 i,
+			int32 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2053
+		// Code size 1 (0x1)
+		.maxstack 8
+		IL_0000: ret
+	} // end of method C::set_Item
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2055
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [netstandard]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method C::.ctor
+	// Properties
+	.property instance int32 Item(
+		int32 i
+	)
+	{
+		.get instance int32 C::get_Item(int32)
+		.set instance void C::set_Item(int32, int32)
+	}
+} // end of class C
+");
+        }
     }
 }

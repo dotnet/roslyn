@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, IndexerDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             var location = syntax.ThisKeyword.GetLocation();
-            return Create(containingType, bodyBinder, syntax, DefaultIndexerName, location, diagnostics, ignoreFieldKeyword: false);
+            return Create(containingType, bodyBinder, syntax, DefaultIndexerName, location, diagnostics, ignoreFieldKeyword: true);
         }
 
         private static SourcePropertySymbol Create(
