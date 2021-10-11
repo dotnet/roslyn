@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         private readonly IPdbSourceDocumentLoaderService _pdbSourceDocumentLoaderService;
 
         private readonly Dictionary<string, ProjectId> _assemblyToProjectMap = new();
+        private readonly Dictionary<string, DocumentId> _fileToDocumentMap = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -102,22 +103,57 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
                 projectId = projectInfo.Id;
 
-                // TODO: Move to TryAddToWorkspace
                 workspace.OnProjectAdded(projectInfo);
-                _assemblyToProjectMap.Add(assemblyName, projectInfo.Id);
-            }
-
-            var documentInfos = CreateDocumentInfos(workspace, filesAndPaths, projectId);
-            if (documentInfos.Length > 0)
-            {
-                // TODO: Move to TryAddToWorkspace
-                workspace.OnDocumentsAdded(documentInfos);
+                _assemblyToProjectMap.Add(assemblyName, projectId);
             }
 
             var navigateProject = workspace.CurrentSolution.GetRequiredProject(projectId);
+            var documentInfos = CreateDocumentInfos(filesAndPaths, navigateProject);
+            if (documentInfos.Length > 0)
+            {
+                workspace.OnDocumentsAdded(documentInfos);
+                navigateProject = workspace.CurrentSolution.GetRequiredProject(projectId);
+            }
 
-            var firstDocument = filesAndPaths[0].FilePath;
-            var document = navigateProject.Documents.FirstOrDefault(d => d.FilePath?.Equals(firstDocument, StringComparison.OrdinalIgnoreCase) ?? false);
+            var documentPath = filesAndPaths[0].FilePath;
+            var document = navigateProject.Documents.FirstOrDefault(d => d.FilePath?.Equals(documentPath, StringComparison.OrdinalIgnoreCase) ?? false);
+
+            // TODO: Can we avoid writing a temp file, and convince Visual Studio to open a file that doesn't exist on disk? https://github.com/dotnet/roslyn/issues/55834
+            var tempFilePath = Path.Combine(tempPath, projectId.Id.ToString(), Path.GetFileName(documentPath));
+
+            // We might already know about this file, but lets make sure it still exists too
+            if (!_fileToDocumentMap.ContainsKey(tempFilePath) || !File.Exists(tempFilePath))
+            {
+                _fileToDocumentMap[tempFilePath] = document.Id;
+
+                // We have the content, so write it out to disk
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                // Create the directory. It's possible a parallel deletion is happening in another process, so we may have
+                // to retry this a few times.
+                var directoryToCreate = Path.GetDirectoryName(tempFilePath)!;
+                while (!Directory.Exists(directoryToCreate))
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(directoryToCreate);
+                    }
+                    catch (DirectoryNotFoundException)
+                    {
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                    }
+                }
+
+                using (var textWriter = new StreamWriter(tempFilePath, append: false, encoding: MetadataAsSourceGeneratedFileInfo.Encoding))
+                {
+                    text.Write(textWriter, cancellationToken);
+                }
+
+                // Mark read-only
+                new FileInfo(tempFilePath).IsReadOnly = true;
+            }
 
             var navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, document, cancellationToken).ConfigureAwait(false);
             var navigateDocument = navigateProject.GetDocument(navigateLocation.SourceTree);
@@ -153,20 +189,20 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 metadataReferences: project.MetadataReferences.ToImmutableArray());
         }
 
-        private static ImmutableArray<DocumentInfo> CreateDocumentInfos(Workspace workspace, ImmutableArray<(string FilePath, TextLoader Loader)> filePaths, ProjectId projectId)
+        private static ImmutableArray<DocumentInfo> CreateDocumentInfos(ImmutableArray<(string FilePath, TextLoader Loader)> filePaths, Project project)
         {
-            var project = workspace.CurrentSolution.GetRequiredProject(projectId);
-
             using var _ = ArrayBuilder<DocumentInfo>.GetInstance(out var documents);
 
             foreach (var sourceDocument in filePaths)
             {
                 // If a document has multiple symbols then we would already know about it
-                if (project.Documents.Contains(doc => doc.FilePath?.Equals(sourceDocument.FilePath, StringComparison.OrdinalIgnoreCase) ?? false))
+                if (project.Documents.Contains(d => d.FilePath?.Equals(sourceDocument.FilePath, StringComparison.OrdinalIgnoreCase) ?? false))
                     continue;
 
+                var documentId = DocumentId.CreateNewId(project.Id);
+
                 documents.Add(DocumentInfo.Create(
-                    DocumentId.CreateNewId(projectId),
+                    documentId,
                     Path.GetFileName(sourceDocument.FilePath),
                     filePath: sourceDocument.FilePath,
                     loader: sourceDocument.Loader));
@@ -226,22 +262,48 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         public bool TryAddDocumentToWorkspace(Workspace workspace, string filePath, SourceTextContainer sourceTextContainer)
         {
-            throw new NotImplementedException();
+            if (_fileToDocumentMap.TryGetValue(filePath, out var documentId))
+            {
+                workspace.OnDocumentOpened(documentId, sourceTextContainer);
+
+                return true;
+            }
+
+            return false;
         }
 
         public bool TryRemoveDocumentFromWorkspace(Workspace workspace, string filePath)
         {
-            throw new NotImplementedException();
+            if (_fileToDocumentMap.TryGetValue(filePath, out var documentId))
+            {
+                workspace.OnDocumentClosed(documentId, new FileTextLoader(filePath, MetadataAsSourceGeneratedFileInfo.Encoding));
+
+                return true;
+            }
+
+            return false;
         }
 
         public Project? MapDocument(Document document)
         {
-            throw new NotImplementedException();
+            return document.Project;
         }
 
         public void CleanupGeneratedFiles(Workspace? workspace)
         {
+            if (workspace is not null)
+            {
+                var projectIds = _assemblyToProjectMap.Values;
+                foreach (var projectId in projectIds)
+                {
+                    workspace.OnProjectRemoved(projectId);
+                }
+            }
+
             _assemblyToProjectMap.Clear();
+
+            // The MetadataAsSourceFileService will clean up the entire temp folder so no need to do anything here
+            _fileToDocumentMap.Clear();
         }
     }
 }
