@@ -121,8 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            // Special case for: (E)~(int)e case.  Enums don't need to be converted to ints to get bitwise negated.
-            // The above is equivalent to `~e` as that keeps the same value and the same type. 
+            // Special case for: (E)~(int)e case or (E?)~(int)e case.  Enums don't need to be converted to ints to get
+            // bitwise negated. The above is equivalent to `~e` as that keeps the same value and the same type. 
 
             if (castExpression.WalkUpParentheses().Parent is PrefixUnaryExpressionSyntax(SyntaxKind.BitwiseNotExpression) parent &&
                 parent.WalkUpParentheses().Parent is CastExpressionSyntax parentCast)
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 if (Equals(enumType?.EnumUnderlyingType, castedType))
                 {
                     var parentCastType = semanticModel.GetTypeInfo(parentCast.Type, cancellationToken).Type;
-                    if (Equals(enumType, parentCastType))
+                    if (Equals(enumType, parentCastType.RemoveNullableIfPresent()))
                         return true;
                 }
             }

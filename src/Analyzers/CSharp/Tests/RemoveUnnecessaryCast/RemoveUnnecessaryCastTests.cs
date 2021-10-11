@@ -5565,41 +5565,41 @@ enum Sign
         }
 
         [WorkItem(18510, "https://github.com/dotnet/roslyn/issues/18510")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveCastOnValidUnaryOperatorEnumValue_Nullable()
         {
             var source =
 @"
 enum Sign
-    {
-        Positive = 1,
-        Negative = -1
-    }
+{
+    Positive = 1,
+    Negative = -1
+}
 
-    class T
+class T
+{
+    void Goo()
     {
-        void Goo()
-        {
-            Sign mySign = Sign.Positive;
-            Sign? invertedSign = (Sign?)(~[|(int)|] mySign);
-        }
-    }";
+        Sign mySign = Sign.Positive;
+        Sign? invertedSign = (Sign?)(~[|(int)|] mySign);
+    }
+}";
             var fixedSource =
 @"
 enum Sign
-    {
-        Positive = 1,
-        Negative = -1
-    }
+{
+    Positive = 1,
+    Negative = -1
+}
 
-    class T
+class T
+{
+    void Goo()
     {
-        void Goo()
-        {
-            Sign mySign = Sign.Positive;
-            Sign? invertedSign = (Sign?)(~mySign);
-        }
-    }";
+        Sign mySign = Sign.Positive;
+        Sign? invertedSign = (Sign?)(~mySign);
+    }
+}";
 
             await new VerifyCS.Test
             {
