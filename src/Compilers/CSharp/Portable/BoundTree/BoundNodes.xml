@@ -824,8 +824,11 @@
     <Field Name="ElementPointerType" Type="TypeSymbol" Null="disallow"/>
     
     <!-- Conversion from ElementPointerType to the type of the corresponding local. -->
-    <Field Name="ElementPointerTypeConversion" Type="Conversion"/>
-    
+    <!-- Used as an operand to bind ElementPointerConversion -->
+    <Field Name="ElementPointerPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Could be a BoundConversion or, in some cases of an identity conversion, the ElementPointerPlaceholder, or null for no conversion case -->
+    <Field Name="ElementPointerConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+
     <!-- Wrapped expression. -->
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
 

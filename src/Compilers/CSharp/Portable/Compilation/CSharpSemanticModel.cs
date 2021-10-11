@@ -2131,7 +2131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (type, nullability) = getTypeAndNullability(initializer.Expression);
 
                     // the most pertinent conversion is the pointer conversion 
-                    conversion = initializer.ElementPointerTypeConversion;
+                    conversion = BoundNode.GetConversion(initializer.ElementPointerConversion, initializer.ElementPointerPlaceholder);
                 }
                 else if (boundExpr is BoundConvertedSwitchExpression { WasTargetTyped: true } convertedSwitch)
                 {
