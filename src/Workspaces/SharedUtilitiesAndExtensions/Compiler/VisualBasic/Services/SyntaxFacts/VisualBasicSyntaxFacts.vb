@@ -229,6 +229,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return TypeOf node Is ExecutableStatementSyntax
         End Function
 
+        Public Function IsGlobalStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsGlobalStatement
+            Return False
+        End Function
+
         Public Function IsMethodBody(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMethodBody
             Return TypeOf node Is MethodBlockBaseSyntax
         End Function

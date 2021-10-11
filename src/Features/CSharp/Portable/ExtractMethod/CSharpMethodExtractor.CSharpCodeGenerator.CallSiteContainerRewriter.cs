@@ -48,7 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     _firstStatementOrFieldToReplace = firstStatementOrFieldToReplace;
                     _lastStatementOrFieldToReplace = lastStatementOrFieldToReplace;
 
-                    Contract.ThrowIfFalse(_firstStatementOrFieldToReplace.Parent == _lastStatementOrFieldToReplace.Parent);
+                    Contract.ThrowIfFalse(_firstStatementOrFieldToReplace.Parent == _lastStatementOrFieldToReplace.Parent
+                        || (_firstStatementOrFieldToReplace.IsParentKind(SyntaxKind.GlobalStatement) && _lastStatementOrFieldToReplace.IsParentKind(SyntaxKind.GlobalStatement)));
                 }
 
                 public SyntaxNode Generate()

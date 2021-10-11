@@ -9,6 +9,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -4349,6 +4350,91 @@ interface TestInterface
         return false;
     }
 }");
+        }
+
+        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TopLevelStatement_FullStatement()
+        {
+            var code = @"
+[|System.Console.WriteLine(""string"");|]
+";
+            var expected = @"{|Rename:NewMethod|}();
+
+void NewMethod()
+{
+    System.Console.WriteLine(""string"");
+}
+";
+
+            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: 0);
+        }
+
+        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TopLevelStatement_MultipleStatements()
+        {
+            var code = @"
+System.Console.WriteLine(""string"");
+
+[|int x = int.Parse(""0"");
+System.Console.WriteLine(x);|]
+
+System.Console.WriteLine(x);
+";
+            var expected = @"
+System.Console.WriteLine(""string"");
+
+int NewMethod()
+{
+    int x = int.Parse(""0"");
+    System.Console.WriteLine(x);
+    return x;
+}
+
+int x = {|Rename:NewMethod|}();
+
+System.Console.WriteLine(x);
+";
+
+            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: 0);
+        }
+
+        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TopLevelStatement_MultipleStatementsWithUsingAndClass()
+        {
+            var code = @"
+using System;
+
+Console.WriteLine(""string"");
+
+[|int x = int.Parse(""0"");
+Console.WriteLine(x);|]
+
+Console.WriteLine(x);
+
+class Ignored { }
+";
+            var expected = @"
+using System;
+
+Console.WriteLine(""string"");
+
+int x = {|Rename:NewMethod|}();
+
+Console.WriteLine(x);
+
+class Ignored { }
+
+int NewMethod()
+{
+    int x = int.Parse(""0"");
+    Console.WriteLine(x);
+    return x;
+}";
+
+            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: 0);
         }
     }
 }

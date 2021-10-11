@@ -131,7 +131,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var firstStatementToRemove = GetFirstStatementOrInitializerSelectedAtCallSite();
                 var lastStatementToRemove = GetLastStatementOrInitializerSelectedAtCallSite();
 
-                Contract.ThrowIfFalse(firstStatementToRemove.Parent == lastStatementToRemove.Parent);
+                Contract.ThrowIfFalse(firstStatementToRemove.Parent == lastStatementToRemove.Parent
+                    || (firstStatementToRemove.IsParentKind(SyntaxKind.GlobalStatement) && lastStatementToRemove.IsParentKind(SyntaxKind.GlobalStatement)));
 
                 var statementsToInsert = await CreateStatementsOrInitializerToInsertAtCallSiteAsync(cancellationToken).ConfigureAwait(false);
 

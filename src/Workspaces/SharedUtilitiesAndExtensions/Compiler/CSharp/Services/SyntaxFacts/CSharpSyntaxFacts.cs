@@ -229,6 +229,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsExecutableStatement([NotNullWhen(true)] SyntaxNode? node)
             => node is StatementSyntax;
 
+        public bool IsGlobalStatement([NotNullWhen(true)] SyntaxNode? node)
+           => node is GlobalStatementSyntax;
+
         public bool IsMethodBody([NotNullWhen(true)] SyntaxNode? node)
         {
             if (node is BlockSyntax or

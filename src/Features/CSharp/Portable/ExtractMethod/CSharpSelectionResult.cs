@@ -125,7 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             Contract.ThrowIfNull(statement);
             var firstStatementUnderContainer = GetFirstStatementUnderContainer();
-            Contract.ThrowIfFalse(statement.Parent == firstStatementUnderContainer.Parent);
+            Contract.ThrowIfFalse(statement.Parent == firstStatementUnderContainer.Parent
+                || (statement.IsParentKind(SyntaxKind.GlobalStatement) && firstStatementUnderContainer.IsParentKind(SyntaxKind.GlobalStatement)));
 
             return statement;
         }

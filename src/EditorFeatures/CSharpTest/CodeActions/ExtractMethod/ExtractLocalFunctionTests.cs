@@ -4744,6 +4744,91 @@ class C
             await TestInRegularAndScript1Async(code, expected);
         }
 
+        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TopLevelStatement_FullStatement()
+        {
+            var code = @"
+[|System.Console.WriteLine(""string"");|]
+";
+            var expected = @"{|Rename:NewMethod|}();
+
+static void NewMethod()
+{
+    System.Console.WriteLine(""string"");
+}
+";
+
+            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: 1);
+        }
+
+        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TopLevelStatement_MultipleStatements()
+        {
+            var code = @"
+System.Console.WriteLine(""string"");
+
+[|int x = int.Parse(""0"");
+System.Console.WriteLine(x);|]
+
+System.Console.WriteLine(x);
+";
+            var expected = @"
+System.Console.WriteLine(""string"");
+
+int x = {|Rename:NewMethod|}();
+
+System.Console.WriteLine(x);
+
+static int NewMethod()
+{
+    int x = int.Parse(""0"");
+    System.Console.WriteLine(x);
+    return x;
+}";
+
+            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: 1);
+        }
+
+        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TopLevelStatement_MultipleStatementsWithUsingAndClass()
+        {
+            var code = @"
+using System;
+
+Console.WriteLine(""string"");
+
+[|int x = int.Parse(""0"");
+Console.WriteLine(x);|]
+
+Console.WriteLine(x);
+
+class Ignored { }
+";
+            var expected = @"
+using System;
+
+Console.WriteLine(""string"");
+
+int x = {|Rename:NewMethod|}();
+
+Console.WriteLine(x);
+
+static int NewMethod()
+{
+    int x = int.Parse(""0"");
+    Console.WriteLine(x);
+    return x;
+}
+
+class Ignored { }
+";
+
+            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: 1);
+        }
+
         [WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TopLevelStatement_ArgumentInInvocation()
