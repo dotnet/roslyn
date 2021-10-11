@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             return Task.FromResult(CompletionChange.Create(
                 new TextChange(new TextSpan(int.Parse(startString), int.Parse(lengthString)), newText),
-                newPositionString == null ? (int?)null : int.Parse(newPositionString)));
+                newPositionString == null ? null : int.Parse(newPositionString)));
         }
 
         public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
