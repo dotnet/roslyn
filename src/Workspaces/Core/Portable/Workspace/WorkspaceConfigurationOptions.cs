@@ -22,6 +22,10 @@ namespace Microsoft.CodeAnalysis
             nameof(WorkspaceConfigurationOptions), nameof(DisableRecoverableTrees), defaultValue: false,
             new FeatureFlagStorageLocation("Roslyn.DisableRecoverableTrees"));
 
+        public static readonly Option<bool> DisableProjectCacheService = new(
+            nameof(WorkspaceConfigurationOptions), nameof(DisableProjectCacheService), defaultValue: false,
+            new FeatureFlagStorageLocation("Roslyn.DisableProjectCacheService"));
+
         /// <summary>
         /// Disables holding onto the assembly references for runtime (not user/nuget/etc.) dlls weakly.
         /// </summary>
@@ -31,6 +35,7 @@ namespace Microsoft.CodeAnalysis
 
         ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
             DisableRecoverableTrees,
+            DisableProjectCacheService,
             DisableReferenceManagerWeakRuntimeReferences);
 
         [ImportingConstructor]

@@ -70,10 +70,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         internal class DocumentChangeTracker : IWorkspaceService, IDocumentChangeTracker
         {
             private readonly Dictionary<Uri, SourceText> _trackedDocuments = new();
-            private readonly LspMiscellaneousFilesWorkspace _lspMiscellaneousFilesWorkspace;
+            private readonly LspMiscellaneousFilesWorkspace? _lspMiscellaneousFilesWorkspace;
             private readonly ILspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
 
-            public DocumentChangeTracker(LspMiscellaneousFilesWorkspace lspMiscellaneousFilesWorkspace, ILspWorkspaceRegistrationService lspWorkspaceRegistrationService)
+            public DocumentChangeTracker(LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace, ILspWorkspaceRegistrationService lspWorkspaceRegistrationService)
             {
                 _lspMiscellaneousFilesWorkspace = lspMiscellaneousFilesWorkspace;
                 _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // If we can't find the document in any of the registered workspaces, add it to our loose files workspace.
                 if (!IsPresentInRegisteredWorkspaces(documentUri, _lspWorkspaceRegistrationService))
                 {
-                    _lspMiscellaneousFilesWorkspace.AddMiscellaneousDocument(documentUri);
+                    _lspMiscellaneousFilesWorkspace?.AddMiscellaneousDocument(documentUri);
                 }
             }
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // If we see the document has been moved to a registered workspace, remove it from our loose files workspace.
                 if (IsPresentInRegisteredWorkspaces(documentUri, _lspWorkspaceRegistrationService))
                 {
-                    _lspMiscellaneousFilesWorkspace.TryRemoveMiscellaneousDocument(documentUri);
+                    _lspMiscellaneousFilesWorkspace?.TryRemoveMiscellaneousDocument(documentUri);
                 }
             }
 
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _trackedDocuments.Remove(documentUri);
 
                 // Remove from the lsp misc files workspace if it was added there.
-                _lspMiscellaneousFilesWorkspace.TryRemoveMiscellaneousDocument(documentUri);
+                _lspMiscellaneousFilesWorkspace?.TryRemoveMiscellaneousDocument(documentUri);
             }
 
             public IEnumerable<(Uri DocumentUri, SourceText Text)> GetTrackedDocuments()
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             public List<SourceText> GetTrackedTexts()
                 => _queue._documentChangeTracker.GetTrackedDocuments().Select(i => i.Text).ToList();
 
-            public LspMiscellaneousFilesWorkspace GetLspMiscellaneousFilesWorkspace() => _queue._lspMiscellaneousFilesWorkspace;
+            public LspMiscellaneousFilesWorkspace? GetLspMiscellaneousFilesWorkspace() => _queue._lspMiscellaneousFilesWorkspace;
 
             public bool IsComplete() => _queue._queue.IsCompleted && _queue._queue.IsEmpty;
         }
