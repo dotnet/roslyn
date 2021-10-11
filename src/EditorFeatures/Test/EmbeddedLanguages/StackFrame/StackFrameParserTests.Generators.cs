@@ -98,8 +98,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         private static StackFrameTrivia SpaceTrivia(int count = 1)
             => CreateTrivia(StackFrameKind.WhitespaceTrivia, new string(' ', count));
 
-        private static StackFrameMemberAccessExpressionNode MemberAccessExpression(StackFrameExpressionNode expressionNode, StackFrameBaseIdentifierNode identifierNode)
-            => new(expressionNode, DotToken, identifierNode);
+        private static StackFrameMemberAccessExpressionNode MemberAccessExpression(StackFrameExpressionNode expressionNode, StackFrameBaseIdentifierNode identifierNode, ImmutableArray<StackFrameTrivia> leadingTrivia = default, ImmutableArray<StackFrameTrivia> trailingTrivia = default)
+        {
+            if (!leadingTrivia.IsDefaultOrEmpty)
+            {
+                expressionNode = expressionNode.WithLeadingTrivia(leadingTrivia);
+            }
+
+            if (!trailingTrivia.IsDefaultOrEmpty)
+            {
+                identifierNode = (StackFrameBaseIdentifierNode)identifierNode.WithTrailingTrivia(trailingTrivia);
+            }
+
+            return new(expressionNode, DotToken, identifierNode);
+        }
 
         private static StackFrameIdentifierNode Identifier(string identifierName, ImmutableArray<StackFrameTrivia> leadingTrivia = default, ImmutableArray<StackFrameTrivia> trailingTrivia = default)
             => new(CreateToken(StackFrameKind.IdentifierToken, identifierName, leadingTrivia: leadingTrivia, trailingTrivia: trailingTrivia));

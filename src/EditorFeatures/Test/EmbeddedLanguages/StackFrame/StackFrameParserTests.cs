@@ -17,6 +17,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                     argumentList: ArgumentList())
                 );
 
+        [Theory]
+        [InlineData("C", 1)]
+        [InlineData("C", 100)]
+        [InlineData("a‿", 5)]
+        public void TestArity(string typeName, int arity)
+            => Verify(
+                $"at ConsoleApp4.{typeName}`{arity}.M()",
+                methodDeclaration: MethodDeclaration(
+                    MemberAccessExpression(
+                        MemberAccessExpression(
+                            Identifier("ConsoleApp4"),
+                            GenericType(typeName, arity)),
+                        Identifier("M"),
+                        leadingTrivia: CreateTriviaArray(AtTrivia)),
+
+                    argumentList: ArgumentList())
+                );
+
         [Fact]
         public void TestTrailingTrivia()
             => Verify(

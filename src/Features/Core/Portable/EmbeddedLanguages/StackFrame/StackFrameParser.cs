@@ -201,14 +201,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 StackFrameToken? arity = null;
                 if (_lexer.ScanIfMatch(StackFrameKind.GraveAccentToken, out var graveAccentToken))
                 {
-                    var numbers = _lexer.ScanNumbers();
-                    if (!numbers.HasValue)
+                    arity = _lexer.ScanNumbers();
+                    if (!arity.HasValue)
                     {
                         throw new StackFrameParseException(StackFrameKind.NumberToken, CurrentToken);
                     }
-
-                    var arityChars = VirtualCharSequence.FromBounds(graveAccentToken.VirtualChars, numbers.Value.VirtualChars);
-                    arity = StackFrameLexer.CreateToken(StackFrameKind.ArrayExpression, arityChars);
                 }
 
                 if (leadingTrivia.HasValue)
@@ -218,7 +215,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 }
 
                 StackFrameBaseIdentifierNode identifierNode = arity.HasValue
-                    ? new StackFrameGenericTypeIdentifier(currentIdentifier.Value, CurrentToken, arity.Value)
+                    ? new StackFrameGenericTypeIdentifier(currentIdentifier.Value, graveAccentToken, arity.Value)
                     : new StackFrameIdentifierNode(currentIdentifier.Value);
 
                 typeIdentifierNodes.Enqueue((identifierNode, CurrentToken));
