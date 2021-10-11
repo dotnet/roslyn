@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // remove this cast will change the meaning of that conditional.  It will now produce an int instead of
             // an int?.  However, we know the same integral value will be produced by the conditional, but will then
             // be wrapped with a final conversion back into an int?.
-            if (IsConditionalCastSaveToRemove(
+            if (IsConditionalCastSafeToRemove(
                     castNode, originalSemanticModel,
                     rewrittenExpression, rewrittenSemanticModel, cancellationToken))
             {
