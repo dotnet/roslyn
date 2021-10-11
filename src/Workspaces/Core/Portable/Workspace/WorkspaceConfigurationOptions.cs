@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
@@ -14,6 +15,9 @@ namespace Microsoft.CodeAnalysis
     [ExportOptionProvider, Shared]
     internal class WorkspaceConfigurationOptions : IOptionProvider
     {
+        /// <summary>
+        /// Disables if the workspace creates recoverable trees when from its <see cref="ISyntaxTreeFactoryService"/>s.
+        /// </summary>
         public static readonly Option<bool> DisableRecoverableTrees = new(
             nameof(WorkspaceConfigurationOptions), nameof(DisableRecoverableTrees), defaultValue: false,
             new FeatureFlagStorageLocation("Roslyn.DisableRecoverableTrees"));
@@ -22,9 +26,17 @@ namespace Microsoft.CodeAnalysis
             nameof(WorkspaceConfigurationOptions), nameof(DisableProjectCacheService), defaultValue: false,
             new FeatureFlagStorageLocation("Roslyn.DisableProjectCacheService"));
 
+        /// <summary>
+        /// Disables holding onto the assembly references for runtime (not user/nuget/etc.) dlls weakly.
+        /// </summary>
+        public static readonly Option<bool> DisableReferenceManagerWeakRuntimeReferences = new(
+            nameof(WorkspaceConfigurationOptions), nameof(DisableReferenceManagerWeakRuntimeReferences), defaultValue: false,
+            new FeatureFlagStorageLocation("Roslyn.DisableReferenceManagerWeakRuntimeReferences"));
+
         ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
             DisableRecoverableTrees,
-            DisableProjectCacheService);
+            DisableProjectCacheService,
+            DisableReferenceManagerWeakRuntimeReferences);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
