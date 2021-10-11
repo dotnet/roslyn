@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly string? _workspaceKind;
         private readonly HostWorkspaceServices _services;
-
         private readonly BranchId _primaryBranchId;
 
         private readonly IOptionService _optionService;
