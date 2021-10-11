@@ -2366,6 +2366,7 @@ class C<T>
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
             var declarations = tree.GetRoot().DescendantNodes().OfType<VarPatternSyntax>().ToArray();
 
+            Assert.Equal(4, declarations.Length);
             verify(declarations[0], "item", "System.Int32");
             verify(declarations[1], "item2", "System.Int32?");
             verify(declarations[2], "item3", "System.String?");
@@ -2452,6 +2453,7 @@ class C<T>
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
             var declarations = tree.GetRoot().DescendantNodes().OfType<VarPatternSyntax>().ToArray();
 
+            Assert.Equal(4, declarations.Length);
             verify(declarations[0], "item", "System.Int32");
             verify(declarations[1], "item2", "System.Int32?");
             verify(declarations[2], "item3", "System.String?");
@@ -2528,6 +2530,7 @@ class C
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
             var declarations = tree.GetRoot().DescendantNodes().OfType<VarPatternSyntax>().ToArray();
 
+            Assert.Equal(4, declarations.Length);
             verify(declarations[0], "item", "System.Int32");
             verify(declarations[1], "item2", "System.Int32?");
             verify(declarations[2], "item3", "System.String?");
@@ -2623,6 +2626,7 @@ class C<T>
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
             var declarations = tree.GetRoot().DescendantNodes().OfType<VarPatternSyntax>().ToArray();
 
+            Assert.Equal(5, declarations.Length);
             verify(declarations[0], "rest", "System.Int32");
             verify(declarations[1], "rest2", "System.Int32?");
             verify(declarations[2], "rest3", "System.String?");
@@ -2774,6 +2778,7 @@ class C
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
             var declarations = tree.GetRoot().DescendantNodes().OfType<VarPatternSyntax>().ToArray();
 
+            Assert.Equal(4, declarations.Length);
             verify(declarations[0], "rest", "System.Int32[]?");
             verify(declarations[1], "rest2", "System.Int32?[]?");
             verify(declarations[2], "rest3", "System.String?[]?");
