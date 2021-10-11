@@ -555,31 +555,39 @@ public class C
             Text.TextSpan expectedSpan,
             bool expectNullResult)
         {
-            var workspace = (TestWorkspace)project.Solution.Workspace;
+            using var workspace = (TestWorkspace)project.Solution.Workspace;
 
             var service = workspace.GetService<IMetadataAsSourceFileService>();
-            var file = await service.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, CancellationToken.None).ConfigureAwait(false);
-
-            if (expectNullResult)
+            try
             {
-                Assert.Same(NullResultMetadataAsSourceFileProvider.NullResult, file);
-                return;
+                var file = await service.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, CancellationToken.None).ConfigureAwait(false);
+
+                if (expectNullResult)
+                {
+                    Assert.Same(NullResultMetadataAsSourceFileProvider.NullResult, file);
+                    return;
+                }
+
+                AssertEx.NotNull(file, $"No source document was found in the pdb for the symbol.");
+
+                var masWorkspace = service.TryGetWorkspace();
+
+                var document = masWorkspace!.CurrentSolution.Projects.First().Documents.First();
+
+                var actual = await document.GetTextAsync();
+                var actualSpan = file!.IdentifierLocation.SourceSpan;
+
+                // Compare exact texts and verify that the location returned is exactly that
+                // indicated by expected
+                AssertEx.EqualOrDiff(source, actual.ToString());
+                Assert.Equal(expectedSpan.Start, actualSpan.Start);
+                Assert.Equal(expectedSpan.End, actualSpan.End);
             }
-
-            AssertEx.NotNull(file, $"No source document was found in the pdb for the symbol.");
-
-            var masWorkspace = service.TryGetWorkspace();
-
-            var document = masWorkspace!.CurrentSolution.Projects.First().Documents.First();
-
-            var actual = await document.GetTextAsync();
-            var actualSpan = file!.IdentifierLocation.SourceSpan;
-
-            // Compare exact texts and verify that the location returned is exactly that
-            // indicated by expected
-            AssertEx.EqualOrDiff(source, actual.ToString());
-            Assert.Equal(expectedSpan.Start, actualSpan.Start);
-            Assert.Equal(expectedSpan.End, actualSpan.End);
+            finally
+            {
+                service.CleanupGeneratedFiles();
+                service.TryGetWorkspace()?.Dispose();
+            }
         }
 
         private static async Task<(Project, ISymbol)> CompileAndFindSymbolAsync(
@@ -607,7 +615,7 @@ public class C
                 .WithExcludedPartTypes(ImmutableHashSet.Create(typeof(IMetadataAsSourceFileProvider)))
                 .AddParts(typeof(PdbSourceDocumentMetadataAsSourceFileProvider), typeof(NullResultMetadataAsSourceFileProvider));
 
-            using var workspace = TestWorkspace.Create(@$"
+            var workspace = TestWorkspace.Create(@$"
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"" {preprocessorSymbolsAttribute}>
     </Project>
