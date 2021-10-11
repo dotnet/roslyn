@@ -70,8 +70,15 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable
         protected override SeparatedSyntaxList<SyntaxNode> GetVariables(LocalDeclarationStatementSyntax localDeclarationStatement)
             => localDeclarationStatement.Declaration.Variables;
 
-        protected override bool ShouldOfferFixForLocalDeclaration(ISyntaxFactsService syntaxFacts, LocalDeclarationStatementSyntax localDeclaration)
+        protected override bool ShouldOfferFixForLocalDeclaration(ISyntaxFactsService syntaxFacts, SyntaxNode node)
         {
+            var localDeclaration = node.Parent?.Parent as LocalDeclarationStatementSyntax;
+
+            // If the fix location is not for a local declaration then we can allow it (eg, when inside a for
+            // or catch).
+            if (localDeclaration is null)
+                return true;
+
             // Local declarations must be parented by an executable block, or global statement, otherwise
             // removing them would be invalid (and more than likely crash the fixer)
             return localDeclaration.Parent is GlobalStatementSyntax ||
