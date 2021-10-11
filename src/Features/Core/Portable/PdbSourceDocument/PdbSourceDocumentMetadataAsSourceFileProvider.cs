@@ -158,7 +158,13 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             var navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, document, cancellationToken).ConfigureAwait(false);
             var navigateDocument = navigateProject.GetDocument(navigateLocation.SourceTree);
 
-            return new MetadataAsSourceFile(navigateDocument!.FilePath, navigateLocation, navigateDocument!.Name + " [from PDB]", navigateDocument.FilePath);
+            // TODO: "from metadata" is technically correct, but could be confusing. From PDB? From Source? https://github.com/dotnet/roslyn/issues/55834
+            var documentName = string.Format(
+                "{0} [{1}]",
+                navigateDocument!.Name,
+                FeaturesResources.from_metadata);
+
+            return new MetadataAsSourceFile(tempFilePath, navigateLocation, documentName, navigateDocument.FilePath);
         }
 
         private static ProjectInfo? CreateProjectInfo(Workspace workspace, Project project, MetadataReader pdbReader, string assemblyName)
@@ -167,7 +173,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // the same compiler options for it that the DLL was created with.
             var commandLineArguments = RetreiveCompilerOptions(pdbReader, out var languageName);
 
-            // TODO: Find language another way for non portable PDBs
+            // TODO: Find language another way for non portable PDBs: https://github.com/dotnet/roslyn/issues/55834
             if (languageName is null)
                 return null;
 
@@ -181,12 +187,12 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return ProjectInfo.Create(
                 projectId,
                 VersionStamp.Default,
-                name: assemblyName + "_FromPdb", // To distinguish it from a Metadata as Source project it might get
+                name: assemblyName + ProviderName, // Distinguish this project from any decompilation projects that might be created
                 assemblyName: assemblyName,
                 language: languageName,
                 compilationOptions: compilationOptions,
                 parseOptions: parseOptions,
-                metadataReferences: project.MetadataReferences.ToImmutableArray());
+                metadataReferences: project.MetadataReferences.ToImmutableArray()); // TODO: Read references from PDB info: https://github.com/dotnet/roslyn/issues/55834
         }
 
         private static ImmutableArray<DocumentInfo> CreateDocumentInfos(ImmutableArray<(string FilePath, TextLoader Loader)> filePaths, Project project)
@@ -235,7 +241,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                         nullIndex = blobReader.IndexOf(0);
                         var value = blobReader.ReadUTF8(nullIndex);
 
-                        // key and value now have strings containing serialized compiler flag information
+                        // Key and value now have strings containing serialized compiler flag information
+                        // Not all keys match their command line equivalents though, so translate as necessary
                         options.Add($"/{TranslateKey(key)}:{value}");
 
                         if (key == "language")
@@ -251,14 +258,14 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             }
 
             return options.ToImmutable();
-        }
 
-        private static string TranslateKey(string key)
-            => key switch
-            {
-                "output-kind" => "target",
-                _ => key
-            };
+            static string TranslateKey(string key)
+                => key switch
+                {
+                    "output-kind" => "target",
+                    _ => key
+                };
+        }
 
         public bool TryAddDocumentToWorkspace(Workspace workspace, string filePath, SourceTextContainer sourceTextContainer)
         {
