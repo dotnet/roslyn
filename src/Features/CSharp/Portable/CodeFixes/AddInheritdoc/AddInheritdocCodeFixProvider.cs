@@ -54,8 +54,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
             }
 
             SemanticModel? semanticModel = null;
-            foreach (var diagnostic in context.Diagnostics.Where(d => d.Id == CS1591))
+            foreach (var diagnostic in context.Diagnostics)
             {
+                if (diagnostic.Id != CS1591)
+                {
+                    continue;
+                }
+
                 var node = root.FindNode(diagnostic.Location.SourceSpan);
                 if (node.Kind() is not SyntaxKind.MethodDeclaration and not SyntaxKind.PropertyDeclaration)
                 {
