@@ -84,7 +84,7 @@
 
   <!--
   This node will not survive the local rewriting,
-  except in some scanarios in a Linq Expression Tree when the containing node
+  except in some scenarios in a Linq Expression Tree when the containing node
   survives.
   -->
   <Node Name="BoundValuePlaceholder" Base="BoundValuePlaceholderBase">
