@@ -470,9 +470,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return true;
             }
 
+            // (float?)(int?)2147483647
+            //
+            // The inner cast is not necessary here because there is already a lifted nullable conversion
+            // of the innermost expression to the outer conversion type.
+            if (IsMultipleImplicitNullableConversion(originalConversionOperation))
+                return true;
+
             #endregion allowed cases.
 
             return false;
+        }
+
+        private static bool IsMultipleImplicitNullableConversion(IConversionOperation originalConversionOperation)
+        {
+            // (float?)(int?)2147483647
+
+            var innerOriginalConversion = originalConversionOperation.GetConversion();
+            if (!innerOriginalConversion.IsImplicit || !innerOriginalConversion.IsNullable)
+                return false;
+
+            // if the inner conversion was user defined, we need to keep it as it may have executed user code.
+            if (innerOriginalConversion.IsUserDefined)
+                return false;
+
+            if (originalConversionOperation.Parent is not IConversionOperation outerOriginalConversionOperation)
+                return false;
+
+            var outerOriginalConversion = outerOriginalConversionOperation.GetConversion();
+            if (!outerOriginalConversion.IsImplicit || !outerOriginalConversion.IsNullable)
+                return false;
+
+            return true;
         }
 
         private static bool IsRemovableWideningSignedBitwiseNegation(

@@ -7753,7 +7753,7 @@ public class sign
         sbyte? i08 = 1;
         short? i16 = -1;
 
-        object v4 = [|(ulong?)|](uint?)(ushort?)i08 | (ulong?)i32_lo;
+        object v4 = [|(ulong?)|][|(uint?)|](ushort?)i08 | (ulong?)i32_lo;
     }
 }", @"
 public class sign
@@ -11645,6 +11645,60 @@ class C
     }
 }";
             await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(56938, "https://github.com/dotnet/roslyn/issues/56938")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task CanRemoveDoubleNullableNumericCast1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine((int)(float?)[|(int?)|]2147483647); // Prints -2147483648
+    }
+}",
+                @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine((int)(float?)2147483647); // Prints -2147483648
+    }
+}");
+        }
+
+        [WorkItem(56938, "https://github.com/dotnet/roslyn/issues/56938")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task CanRemoveTripleNullableNumericCast1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine((int)(double?)[|(long?)|][|(int?)|]1);
+    }
+}",
+                @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine((int)(double?)1);
+    }
+}");
         }
     }
 }
