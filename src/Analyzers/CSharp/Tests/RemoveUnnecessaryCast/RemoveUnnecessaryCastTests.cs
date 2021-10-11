@@ -9622,10 +9622,9 @@ class C
         }
 
         [WorkItem(49140, "https://github.com/dotnet/roslyn/issues/49140")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoRemoveBitwiseNotOfSignExtendedValue1()
         {
-
             var test = new VerifyCS.Test()
             {
                 TestCode = @"
@@ -9651,7 +9650,7 @@ class C
         }
 
         [WorkItem(49140, "https://github.com/dotnet/roslyn/issues/49140")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoRemoveBitwiseNotOfSignExtendedValue2()
         {
 

@@ -200,8 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 var conversion = conversionOperation.GetConversion();
                 if (conversion.IsImplicit &&
                     (conversion.IsNumeric || conversion.IsNullable) &&
-                    conversionOperation.Type.RemoveNullableIfPresent() is { SpecialType: var type1 } &&
-                    conversionOperation.Operand.Type.RemoveNullableIfPresent() is { SpecialType: var type2 } &&
+                    conversionOperation.Type.RemoveNullableIfPresent() is var type1 &&
+                    conversionOperation.Operand.Type.RemoveNullableIfPresent() is var type2 &&
                     type1.IsIntegralType() &&
                     type2.IsSignedIntegralType())
                 {
@@ -458,10 +458,90 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return true;
             }
 
+            // Widening a value before bitwise negation produces the same value as bitwise negation
+            // followed by the same widening.  For example:
+            //
+            // public static long P(long a, int b)
+            //     => a & ~[|(long)|]b;
+            if (IsRemovableWideningSignedBitwiseNegation(
+                    castNode, originalConversionOperation,
+                    rewrittenExpression, rewrittenSemanticModel, cancellationToken))
+            {
+                return true;
+            }
+
             #endregion allowed cases.
 
             return false;
         }
+
+        private static bool IsRemovableWideningSignedBitwiseNegation(
+            ExpressionSyntax castNode, IConversionOperation originalConversionOperation,
+            ExpressionSyntax rewrittenExpression, SemanticModel rewrittenSemanticModel,
+            CancellationToken cancellationToken)
+        {
+            // Can potentially remove the cast in:
+            //
+            // public static long P(long a, int b)
+            //     => a & ~[|(long)|]b;
+            //
+            // We need to have an implicit numeric conversion.  Parented by a ~. After removing the cast, we should
+            // have the same conversion now implicitly on the outside of the `~`.
+            // 
+            // Similarly, the casted type needs to be the same type we get post rewrite outside the `~`.
+            //
+            // Note: this removal only works with signed integers.  With unsigned integers the distinction matters.
+            // Consider ~(ulong)uintVal vs (ulong)~uintVal.  the former will extend out the value with 0s, which
+            // will all be flipped to 1s.  The latter will flip any leading 0s to 1s, but will then extend out the
+            // rest with 1s.
+
+            var originalConversion = originalConversionOperation.GetConversion();
+            if (!originalConversion.IsImplicit || !originalConversion.IsNumeric)
+                return false;
+
+            if (!IsSignedIntegralOrIntPtrType(originalConversionOperation.Type) ||
+                !IsSignedIntegralOrIntPtrType(originalConversionOperation.Operand.Type))
+            {
+                return false;
+            }
+
+            var parent = castNode.WalkUpParentheses().GetRequiredParent();
+            if (parent is not PrefixUnaryExpressionSyntax(SyntaxKind.BitwiseNotExpression) originalBitwiseNotExpression)
+                return false;
+
+            // If we were parented by a bitwise negation before, we must also be afterwards.
+            var rewrittenBitwiseNotExpression = (PrefixUnaryExpressionSyntax)rewrittenExpression.WalkUpParentheses().GetRequiredParent();
+            Debug.Assert(rewrittenBitwiseNotExpression.Kind() == SyntaxKind.BitwiseNotExpression);
+
+            var rewrittenOperation = rewrittenSemanticModel.GetOperation(rewrittenBitwiseNotExpression, cancellationToken);
+            if (rewrittenOperation is not IUnaryOperation { OperatorKind: UnaryOperatorKind.BitwiseNegation } unaryOperation)
+                return false;
+
+            // Post rewrite we need to have the same conversion outside that `~` that we had inside.
+            if (rewrittenOperation.Parent is not IConversionOperation rewrittenBitwiseNotConversionOperation)
+                return false;
+
+            var rewrittenBitwiseNotConversion = rewrittenBitwiseNotConversionOperation.GetConversion();
+            if (originalConversion != rewrittenBitwiseNotConversion)
+                return false;
+
+            // Ensure the types of the cast-inside is the same as the type outside the rewritten `~`.
+            var originalConvertedType = originalConversionOperation.Type;
+            var rewrittenBitwiseNotConversionType = rewrittenBitwiseNotConversionOperation.Type;
+            if (IsNullOrErrorType(originalConvertedType) ||
+                IsNullOrErrorType(rewrittenBitwiseNotConversionType))
+            {
+                return false;
+            }
+
+            if (!originalConvertedType.Equals(rewrittenBitwiseNotConversionType, SymbolEqualityComparer.IncludeNullability))
+                return false;
+
+            return true;
+        }
+
+        private static bool IsSignedIntegralOrIntPtrType(ITypeSymbol? type)
+            => type.IsSignedIntegralType() || type?.SpecialType is SpecialType.System_IntPtr;
 
         private static bool IsConditionalCastSaveToRemove(
             ExpressionSyntax castNode, SemanticModel originalSemanticModel,
