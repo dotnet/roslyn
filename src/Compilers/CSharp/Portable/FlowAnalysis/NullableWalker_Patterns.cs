@@ -499,7 +499,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(foundTemp);
 
                             (int inputSlot, TypeSymbol inputType) = slotAndType;
-                            Debug.Assert(test is not BoundDagNonNullTest || !IsConditionalState);
                             Split();
                             switch (test)
                             {
