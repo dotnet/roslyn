@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     [ExportCompletionProvider(nameof(FunctionPointerUnmanagedCallingConventionCompletionProvider), LanguageNames.CSharp)]
-    [ExtensionOrder(After = nameof(EmbeddedLanguageAggregateCompletionProvider))]
+    [ExtensionOrder(After = nameof(AggregateEmbeddedLanguageCompletionProvider))]
     [Shared]
     internal partial class FunctionPointerUnmanagedCallingConventionCompletionProvider : LSPCompletionProvider
     {
