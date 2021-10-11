@@ -44,21 +44,6 @@ namespace Microsoft.CodeAnalysis.Completion
             new(nameof(CompletionOptions), nameof(SnippetsBehavior), defaultValue: SnippetsRule.Default,
                 storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SnippetsBehavior"));
 
-        // Dev15 options
-        public static readonly PerLanguageOption2<bool> ShowCompletionItemFilters = new(nameof(CompletionOptions), nameof(ShowCompletionItemFilters), defaultValue: true,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowCompletionItemFilters"));
-
-        public static readonly PerLanguageOption2<bool> HighlightMatchingPortionsOfCompletionListItems = new(nameof(CompletionOptions), nameof(HighlightMatchingPortionsOfCompletionListItems), defaultValue: true,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightMatchingPortionsOfCompletionListItems"));
-
-        public static readonly PerLanguageOption2<bool> BlockForCompletionItems2 = new(
-            nameof(CompletionOptions), nameof(BlockForCompletionItems), defaultValue: true,
-            storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BlockForCompletionItems"));
-
-#pragma warning disable RS0030 // Do not used banned APIs - Used by TypeScript through IVT, so we cannot change the field type.
-        public static readonly PerLanguageOption<bool> BlockForCompletionItems = (PerLanguageOption<bool>)BlockForCompletionItems2!;
-#pragma warning restore RS0030 // Do not used banned APIs
-
         public static readonly PerLanguageOption2<bool> ShowNameSuggestions =
             new(nameof(CompletionOptions), nameof(ShowNameSuggestions), defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowNameSuggestions"));
@@ -73,16 +58,19 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly PerLanguageOption2<bool> TriggerInArgumentLists =
             new(nameof(CompletionOptions), nameof(TriggerInArgumentLists), defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerInArgumentLists"));
-
-        // Use tri-value so the default state can be used to turn on the feature with experimentation service.
-        public static readonly PerLanguageOption2<bool?> EnableArgumentCompletionSnippets =
-            new(nameof(CompletionOptions), nameof(EnableArgumentCompletionSnippets), defaultValue: null,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.EnableArgumentCompletionSnippets"));
     }
 
     internal static class CompletionControllerOptions
     {
         public static readonly Option2<bool> FilterOutOfScopeLocals = new(nameof(CompletionControllerOptions), nameof(FilterOutOfScopeLocals), defaultValue: true);
         public static readonly Option2<bool> ShowXmlDocCommentCompletion = new(nameof(CompletionControllerOptions), nameof(ShowXmlDocCommentCompletion), defaultValue: true);
+    }
+
+    // TODO: move to editor features once Type Script and F# are updated to use VSTypeScriptGlobalOptions, FSharpGlobalOptions
+    internal static class CompletionGlobalOptions
+    {
+        public static readonly PerLanguageOption2<bool> BlockForCompletionItems = new(
+            nameof(CompletionOptions), nameof(BlockForCompletionItems), defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BlockForCompletionItems"));
     }
 }

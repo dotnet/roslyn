@@ -45,7 +45,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             SignatureHelpControllerProvider signatureHelpControllerProvider,
             IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-            ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders)
+            ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders,
+            IGlobalOptionService globalOptions)
             : base(
                 threadingContext,
                 languageServiceGuid,
@@ -54,7 +55,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 signatureHelpControllerProvider,
                 editorCommandHandlerServiceFactory,
                 editorAdaptersFactoryService,
-                argumentProviders)
+                argumentProviders,
+                globalOptions)
         {
         }
 
