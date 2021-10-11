@@ -1693,8 +1693,8 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                                                                             ref discardedUseSiteInfo).IsImplicit :
                                                                                      false,
                                                     enumeratorInfoOpt.PatternDisposeInfo?.Method.GetPublicSymbol(),
-                                                    enumeratorInfoOpt.CurrentConversion,
-                                                    boundForEachStatement.ElementConversion,
+                                                    BoundNode.GetConversion(enumeratorInfoOpt.CurrentConversion, enumeratorInfoOpt.CurrentPlaceholder),
+                                                    BoundNode.GetConversion(boundForEachStatement.ElementConversion, boundForEachStatement.ElementPlaceholder),
                                                     getEnumeratorArguments: enumeratorInfoOpt.GetEnumeratorInfo is { Method: { IsExtensionMethod: true } } getEnumeratorInfo
                                                         ? Operation.SetParentOperation(
                                                             DeriveArguments(

@@ -1103,7 +1103,11 @@
   <Node Name="BoundForEachStatement" Base="BoundLoopStatement">
     <!-- Extracted information -->
     <Field Name="EnumeratorInfoOpt" Type="ForEachEnumeratorInfo?"/>
-    <Field Name="ElementConversion" Type="Conversion"/>
+
+    <!-- Used as an operand to bind ElementConversion -->
+    <Field Name="ElementPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Could be a BoundConversion or, in some cases of an identity conversion, the OperandPlaceholder, or null for no conversion case -->
+    <Field Name="ElementConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
 
     <!-- Pieces corresponding to the syntax -->
     <!-- This is so the binding API can find produce semantic info if the type is "var". -->
@@ -1122,8 +1126,6 @@
     <Field Name="DeconstructionOpt" Type="BoundForEachDeconstructStep?"/>
     <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
     <Field Name="Body" Type="BoundStatement"/>
-  
-    <Field Name="Checked" Type="bool"/>
   </Node>
 
   <!-- All the information need to apply a deconstruction at each iteration of a foreach loop involving a deconstruction-declaration. -->

@@ -3663,8 +3663,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundForEachStatement : BoundLoopStatement
     {
-        public BoundForEachStatement(SyntaxNode syntax, ForEachEnumeratorInfo? enumeratorInfoOpt, Conversion elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression? iterationErrorExpressionOpt, BoundExpression expression, BoundForEachDeconstructStep? deconstructionOpt, BoundAwaitableInfo? awaitOpt, BoundStatement body, bool @checked, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel, bool hasErrors = false)
-            : base(BoundKind.ForEachStatement, syntax, breakLabel, continueLabel, hasErrors || iterationVariableType.HasErrors() || iterationErrorExpressionOpt.HasErrors() || expression.HasErrors() || deconstructionOpt.HasErrors() || awaitOpt.HasErrors() || body.HasErrors())
+        public BoundForEachStatement(SyntaxNode syntax, ForEachEnumeratorInfo? enumeratorInfoOpt, BoundValuePlaceholder? elementPlaceholder, BoundExpression? elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression? iterationErrorExpressionOpt, BoundExpression expression, BoundForEachDeconstructStep? deconstructionOpt, BoundAwaitableInfo? awaitOpt, BoundStatement body, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel, bool hasErrors = false)
+            : base(BoundKind.ForEachStatement, syntax, breakLabel, continueLabel, hasErrors || elementPlaceholder.HasErrors() || elementConversion.HasErrors() || iterationVariableType.HasErrors() || iterationErrorExpressionOpt.HasErrors() || expression.HasErrors() || deconstructionOpt.HasErrors() || awaitOpt.HasErrors() || body.HasErrors())
         {
 
             RoslynDebug.Assert(iterationVariableType is object, "Field 'iterationVariableType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -3675,6 +3675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(continueLabel is object, "Field 'continueLabel' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.EnumeratorInfoOpt = enumeratorInfoOpt;
+            this.ElementPlaceholder = elementPlaceholder;
             this.ElementConversion = elementConversion;
             this.IterationVariableType = iterationVariableType;
             this.IterationVariables = iterationVariables;
@@ -3683,13 +3684,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.DeconstructionOpt = deconstructionOpt;
             this.AwaitOpt = awaitOpt;
             this.Body = body;
-            this.Checked = @checked;
         }
 
 
         public ForEachEnumeratorInfo? EnumeratorInfoOpt { get; }
 
-        public Conversion ElementConversion { get; }
+        public BoundValuePlaceholder? ElementPlaceholder { get; }
+
+        public BoundExpression? ElementConversion { get; }
 
         public BoundTypeExpression IterationVariableType { get; }
 
@@ -3704,16 +3706,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundAwaitableInfo? AwaitOpt { get; }
 
         public BoundStatement Body { get; }
-
-        public bool Checked { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitForEachStatement(this);
 
-        public BoundForEachStatement Update(ForEachEnumeratorInfo? enumeratorInfoOpt, Conversion elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression? iterationErrorExpressionOpt, BoundExpression expression, BoundForEachDeconstructStep? deconstructionOpt, BoundAwaitableInfo? awaitOpt, BoundStatement body, bool @checked, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
+        public BoundForEachStatement Update(ForEachEnumeratorInfo? enumeratorInfoOpt, BoundValuePlaceholder? elementPlaceholder, BoundExpression? elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression? iterationErrorExpressionOpt, BoundExpression expression, BoundForEachDeconstructStep? deconstructionOpt, BoundAwaitableInfo? awaitOpt, BoundStatement body, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
         {
-            if (enumeratorInfoOpt != this.EnumeratorInfoOpt || elementConversion != this.ElementConversion || iterationVariableType != this.IterationVariableType || iterationVariables != this.IterationVariables || iterationErrorExpressionOpt != this.IterationErrorExpressionOpt || expression != this.Expression || deconstructionOpt != this.DeconstructionOpt || awaitOpt != this.AwaitOpt || body != this.Body || @checked != this.Checked || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(breakLabel, this.BreakLabel) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(continueLabel, this.ContinueLabel))
+            if (enumeratorInfoOpt != this.EnumeratorInfoOpt || elementPlaceholder != this.ElementPlaceholder || elementConversion != this.ElementConversion || iterationVariableType != this.IterationVariableType || iterationVariables != this.IterationVariables || iterationErrorExpressionOpt != this.IterationErrorExpressionOpt || expression != this.Expression || deconstructionOpt != this.DeconstructionOpt || awaitOpt != this.AwaitOpt || body != this.Body || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(breakLabel, this.BreakLabel) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(continueLabel, this.ContinueLabel))
             {
-                var result = new BoundForEachStatement(this.Syntax, enumeratorInfoOpt, elementConversion, iterationVariableType, iterationVariables, iterationErrorExpressionOpt, expression, deconstructionOpt, awaitOpt, body, @checked, breakLabel, continueLabel, this.HasErrors);
+                var result = new BoundForEachStatement(this.Syntax, enumeratorInfoOpt, elementPlaceholder, elementConversion, iterationVariableType, iterationVariables, iterationErrorExpressionOpt, expression, deconstructionOpt, awaitOpt, body, breakLabel, continueLabel, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10512,13 +10512,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitForEachStatement(BoundForEachStatement node)
         {
+            BoundValuePlaceholder? elementPlaceholder = node.ElementPlaceholder;
+            BoundExpression? elementConversion = node.ElementConversion;
             BoundTypeExpression iterationVariableType = (BoundTypeExpression)this.Visit(node.IterationVariableType);
             BoundExpression? iterationErrorExpressionOpt = (BoundExpression?)this.Visit(node.IterationErrorExpressionOpt);
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             BoundForEachDeconstructStep? deconstructionOpt = (BoundForEachDeconstructStep?)this.Visit(node.DeconstructionOpt);
             BoundAwaitableInfo? awaitOpt = (BoundAwaitableInfo?)this.Visit(node.AwaitOpt);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
-            return node.Update(node.EnumeratorInfoOpt, node.ElementConversion, iterationVariableType, node.IterationVariables, iterationErrorExpressionOpt, expression, deconstructionOpt, awaitOpt, body, node.Checked, node.BreakLabel, node.ContinueLabel);
+            return node.Update(node.EnumeratorInfoOpt, elementPlaceholder, elementConversion, iterationVariableType, node.IterationVariables, iterationErrorExpressionOpt, expression, deconstructionOpt, awaitOpt, body, node.BreakLabel, node.ContinueLabel);
         }
         public override BoundNode? VisitForEachDeconstructStep(BoundForEachDeconstructStep node)
         {
@@ -12276,13 +12278,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitForEachStatement(BoundForEachStatement node)
         {
             ImmutableArray<LocalSymbol> iterationVariables = GetUpdatedArray(node, node.IterationVariables);
+            BoundValuePlaceholder? elementPlaceholder = node.ElementPlaceholder;
+            BoundExpression? elementConversion = node.ElementConversion;
             BoundTypeExpression iterationVariableType = (BoundTypeExpression)this.Visit(node.IterationVariableType);
             BoundExpression? iterationErrorExpressionOpt = (BoundExpression?)this.Visit(node.IterationErrorExpressionOpt);
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             BoundForEachDeconstructStep? deconstructionOpt = (BoundForEachDeconstructStep?)this.Visit(node.DeconstructionOpt);
             BoundAwaitableInfo? awaitOpt = (BoundAwaitableInfo?)this.Visit(node.AwaitOpt);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
-            return node.Update(node.EnumeratorInfoOpt, node.ElementConversion, iterationVariableType, iterationVariables, iterationErrorExpressionOpt, expression, deconstructionOpt, awaitOpt, body, node.Checked, node.BreakLabel, node.ContinueLabel);
+            return node.Update(node.EnumeratorInfoOpt, elementPlaceholder, elementConversion, iterationVariableType, iterationVariables, iterationErrorExpressionOpt, expression, deconstructionOpt, awaitOpt, body, node.BreakLabel, node.ContinueLabel);
         }
 
         public override BoundNode? VisitUsingStatement(BoundUsingStatement node)
@@ -14481,7 +14485,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitForEachStatement(BoundForEachStatement node, object? arg) => new TreeDumperNode("forEachStatement", null, new TreeDumperNode[]
         {
             new TreeDumperNode("enumeratorInfoOpt", node.EnumeratorInfoOpt, null),
-            new TreeDumperNode("elementConversion", node.ElementConversion, null),
+            new TreeDumperNode("elementPlaceholder", null, new TreeDumperNode[] { Visit(node.ElementPlaceholder, null) }),
+            new TreeDumperNode("elementConversion", null, new TreeDumperNode[] { Visit(node.ElementConversion, null) }),
             new TreeDumperNode("iterationVariableType", null, new TreeDumperNode[] { Visit(node.IterationVariableType, null) }),
             new TreeDumperNode("iterationVariables", node.IterationVariables, null),
             new TreeDumperNode("iterationErrorExpressionOpt", null, new TreeDumperNode[] { Visit(node.IterationErrorExpressionOpt, null) }),
@@ -14489,7 +14494,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("deconstructionOpt", null, new TreeDumperNode[] { Visit(node.DeconstructionOpt, null) }),
             new TreeDumperNode("awaitOpt", null, new TreeDumperNode[] { Visit(node.AwaitOpt, null) }),
             new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
-            new TreeDumperNode("@checked", node.Checked, null),
             new TreeDumperNode("breakLabel", node.BreakLabel, null),
             new TreeDumperNode("continueLabel", node.ContinueLabel, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
