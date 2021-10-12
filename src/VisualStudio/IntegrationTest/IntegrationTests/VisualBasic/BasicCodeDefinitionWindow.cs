@@ -19,9 +19,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.Basic
         {
         }
 
-        [WpfFact]
-        public void CodeDefinitionWindowOpensMetadataAsSource()
+        [WpfTheory]
+        [CombinatorialData]
+        public void CodeDefinitionWindowOpensMetadataAsSource(bool enableDecompilation)
         {
+            VisualStudio.Workspace.SetEnableDecompilationOption(enableDecompilation);
             VisualStudio.CodeDefinitionWindow.Show();
 
             // Opening the code definition window sets focus to the code definition window, but we want to go back to editing
@@ -34,7 +36,11 @@ Public Class Test
 End Class
 ");
 
-            Assert.Contains("Public Structure Int32", VisualStudio.CodeDefinitionWindow.GetCurrentLineText());
+            // If we are enabling decompilation, we'll get C# code since we don't support decompiling into VB
+            if (enableDecompilation)
+                Assert.Contains("public struct Int32", VisualStudio.CodeDefinitionWindow.GetCurrentLineText());
+            else
+                Assert.Contains("Public Structure Int32", VisualStudio.CodeDefinitionWindow.GetCurrentLineText());
         }
     }
 }

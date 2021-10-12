@@ -19,9 +19,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact]
-        public void CodeDefinitionWindowOpensMetadataAsSource()
+        [WpfTheory]
+        [CombinatorialData]
+        public void CodeDefinitionWindowOpensMetadataAsSource(bool enableDecompilation)
         {
+            VisualStudio.Workspace.SetEnableDecompilationOption(enableDecompilation);
             VisualStudio.CodeDefinitionWindow.Show();
 
             // Opening the code definition window sets focus to the code definition window, but we want to go back to editing
@@ -35,7 +37,9 @@ public class Test
 }
 ");
 
+            // The structure line should be the same, and we'll check for the presence/absence of the decompilation marker
             Assert.Contains("public struct Int32", VisualStudio.CodeDefinitionWindow.GetCurrentLineText());
+            Assert.Equal(enableDecompilation, VisualStudio.CodeDefinitionWindow.GetText().Contains("Decompiled with ICSharpCode.Decompiler"));
         }
     }
 }

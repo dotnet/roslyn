@@ -75,7 +75,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// <summary>
         /// Returns the current line of text in the code definition window itself.
         /// </summary>
-        /// <returns></returns>
         public string GetCurrentLineText()
         {
             WaitUntilProcessingComplete();
@@ -88,6 +87,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var line = bufferPosition.GetContainingLine();
 
                 return line.GetText();
+            });
+        }
+
+        /// <summary>
+        /// Returns the entire text of the code definition window itself.
+        /// </summary>
+        public string GetText()
+        {
+            WaitUntilProcessingComplete();
+
+            return InvokeOnUIThread(cancellationToken =>
+            {
+                var view = GetCodeDefinitionWpfTextView();
+                return view.TextSnapshot.GetText();
             });
         }
     }
