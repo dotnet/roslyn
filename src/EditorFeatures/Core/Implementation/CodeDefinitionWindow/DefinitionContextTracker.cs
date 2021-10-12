@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -128,6 +129,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
                 {
                     return;
                 }
+
+                // Ensure we're off the UI thread for the rest of this since we don't want to be computing locations on the UI thread.
+                await TaskScheduler.Default;
 
                 var locations = await GetContextFromPointAsync(document, pointInRoslynSnapshot, cancellationToken).ConfigureAwait(true);
                 await _codeDefinitionWindowService.SetContextAsync(locations, cancellationToken).ConfigureAwait(false);
