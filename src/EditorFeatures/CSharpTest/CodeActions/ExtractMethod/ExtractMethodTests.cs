@@ -4359,13 +4359,6 @@ interface TestInterface
             var code = @"
 [|System.Console.WriteLine(""string"");|]
 ";
-            var expected = @"NewMethod();
-
-void NewMethod()
-{
-    System.Console.WriteLine(""string"");
-}
-";
 
             await new VerifyCS.Test
             {
@@ -4374,13 +4367,9 @@ void NewMethod()
                     Sources = { code },
                     OutputKind = OutputKind.ConsoleApplication,
                 },
-                FixedCode = expected,
+                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp9,
-                CodeActionIndex = 0,
                 CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
-
-                // The refactoring produces an unexpected tree currently
-                CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
 
@@ -4396,20 +4385,6 @@ System.Console.WriteLine(x);|]
 
 System.Console.WriteLine(x);
 ";
-            var expected = @"
-System.Console.WriteLine(""string"");
-
-int NewMethod()
-{
-    int x = int.Parse(""0"");
-    System.Console.WriteLine(x);
-    return x;
-}
-
-int x = NewMethod();
-
-System.Console.WriteLine(x);
-";
 
             await new VerifyCS.Test
             {
@@ -4418,13 +4393,9 @@ System.Console.WriteLine(x);
                     Sources = { code },
                     OutputKind = OutputKind.ConsoleApplication,
                 },
-                FixedCode = expected,
+                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp9,
-                CodeActionIndex = 0,
                 CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
-
-                // The refactoring produces an unexpected tree currently
-                CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
 
@@ -4444,23 +4415,6 @@ Console.WriteLine(x);
 
 class Ignored { }
 ";
-            var expected = @"
-using System;
-
-Console.WriteLine(""string"");
-
-int x = NewMethod();
-
-Console.WriteLine(x);
-
-class Ignored { }
-
-{|#0:int NewMethod()
-{
-    int x = int.Parse(""0"");
-    Console.WriteLine(x);
-    return x;
-}|}";
 
             await new VerifyCS.Test
             {
@@ -4469,21 +4423,9 @@ class Ignored { }
                     Sources = { code },
                     OutputKind = OutputKind.ConsoleApplication,
                 },
-                FixedState =
-                {
-                    Sources = { expected },
-                    ExpectedDiagnostics =
-                    {
-                        // /0/Test0.cs(12,1): error CS8803: Top-level statements must precede namespace and type declarations.
-                        DiagnosticResult.CompilerError("CS8803").WithLocation(0),
-                    },
-                },
+                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp9,
-                CodeActionIndex = 0,
                 CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
-
-                // The refactoring produces an unexpected tree currently
-                CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
     }

@@ -4768,7 +4768,7 @@ static void NewMethod()
                 },
                 FixedCode = expected,
                 LanguageVersion = LanguageVersion.CSharp9,
-                CodeActionIndex = 1,
+                CodeActionIndex = 0,
                 CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_local_function),
             }.RunAsync();
         }
@@ -4808,7 +4808,7 @@ static int NewMethod()
                 },
                 FixedCode = expected,
                 LanguageVersion = LanguageVersion.CSharp9,
-                CodeActionIndex = 1,
+                CodeActionIndex = 0,
                 CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_local_function),
             }.RunAsync();
         }
@@ -4857,7 +4857,7 @@ class Ignored { }
                 },
                 FixedCode = expected,
                 LanguageVersion = LanguageVersion.CSharp9,
-                CodeActionIndex = 1,
+                CodeActionIndex = 0,
                 CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_local_function),
             }.RunAsync();
         }
