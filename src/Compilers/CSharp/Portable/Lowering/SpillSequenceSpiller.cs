@@ -866,6 +866,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        public override BoundNode VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            var arguments = this.VisitExpressionList(ref builder, node.Arguments, node.ArgumentRefKindsOpt);
+
+            BoundExpression invokedExpression;
+            if (builder == null)
+            {
+                invokedExpression = VisitExpression(ref builder, node.InvokedExpression);
+            }
+            else
+            {
+                var invokedExpressionBuilder = new BoundSpillSequenceBuilder(builder.Syntax);
+
+                invokedExpression = Spill(invokedExpressionBuilder, VisitExpression(ref invokedExpressionBuilder, node.InvokedExpression));
+                invokedExpressionBuilder.Include(builder);
+                builder = invokedExpressionBuilder;
+            }
+
+            return UpdateExpression(builder, node.Update(invokedExpression, arguments, node.ArgumentRefKindsOpt, node.ResultKind, node.Type));
+        }
+
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
             BoundSpillSequenceBuilder conditionBuilder = null;

@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     return services.SupportsCachingRecoverableObjects
                         ? new WeakValueSource<Compilation>(compilation)
-                        : (ValueSource<Optional<Compilation>>)new ConstantValueSource<Optional<Compilation>>(compilation);
+                        : new ConstantValueSource<Optional<Compilation>>(compilation);
                 }
             }
 

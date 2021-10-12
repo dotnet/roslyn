@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 {
                     _service._reportAndSwallowException(new FormatException($"Database element invalid. Missing '{ContentAttributeName}' attribute"));
 
-                    return (succeeded: false, (byte[])null);
+                    return (succeeded: false, null);
                 }
 
                 var contentBytes = await ConvertContentAttributeAsync(contentsAttribute, cancellationToken).ConfigureAwait(false);
@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     {
                         _service._reportAndSwallowException(new FormatException($"Checksum mismatch: expected != actual. {expectedChecksum} != {actualChecksum}"));
 
-                        return (succeeded: false, (byte[])null);
+                        return (succeeded: false, null);
                     }
                 }
 

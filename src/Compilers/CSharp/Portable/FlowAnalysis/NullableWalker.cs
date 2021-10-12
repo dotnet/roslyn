@@ -8501,7 +8501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 leftOnRightType = VisitConversion(
                     conversionOpt: null,
                     node.Left,
-                    node.LeftConversion,
+                    BoundNode.GetConversion(node.LeftConversion, node.LeftPlaceholder),
                     TypeWithAnnotations.Create(node.Operator.LeftType),
                     leftOnRightType,
                     checkConversion: true,
@@ -8535,7 +8535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultType = VisitConversion(
                     conversionOpt: null,
                     node,
-                    node.FinalConversion,
+                    BoundNode.GetConversion(node.FinalConversion, node.FinalPlaceholder),
                     leftLValueType,
                     resultType,
                     checkConversion: true,

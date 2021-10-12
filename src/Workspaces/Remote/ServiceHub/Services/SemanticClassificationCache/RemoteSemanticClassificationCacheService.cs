@@ -76,9 +76,8 @@ namespace Microsoft.CodeAnalysis.Remote
         private static async Task CacheSemanticClassificationsAsync(Document document, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var services = solution.Workspace.Services;
-            var persistenceService = services.GetPersistentStorageService(solution.Options);
-            var storage = await persistenceService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), checkBranchId: true, cancellationToken).ConfigureAwait(false);
+            var persistenceService = solution.Workspace.Services.GetPersistentStorageService(solution.Options);
+            var storage = await persistenceService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
             await using var _1 = storage.ConfigureAwait(false);
             if (storage == null)
                 return;
@@ -240,9 +239,8 @@ namespace Microsoft.CodeAnalysis.Remote
             StorageDatabase database,
             CancellationToken cancellationToken)
         {
-            var services = GetWorkspaceServices();
-            var persistenceService = services.GetPersistentStorageService(database);
-            var storage = await persistenceService.GetStorageAsync(documentKey.Project.Solution, checkBranchId: false, cancellationToken).ConfigureAwait(false);
+            var persistenceService = GetWorkspaceServices().GetPersistentStorageService(database);
+            var storage = await persistenceService.GetStorageAsync(documentKey.Project.Solution, cancellationToken).ConfigureAwait(false);
             await using var _ = storage.ConfigureAwait(false);
             if (storage == null)
                 return default;
