@@ -93,13 +93,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            // Make sure we know if we can actually attempt decompilation before using that in the document key
-            var decompiledSourceService = project.GetLanguageService<IDecompiledSourceService>();
-            if (decompiledSourceService == null)
-            {
-                allowDecompilation = false;
-            }
-
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 InitializeWorkspace(project);
@@ -131,7 +124,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     {
                         try
                         {
-                            temporaryDocument = await decompiledSourceService!.AddSourceToAsync(temporaryDocument, compilation, symbol, cancellationToken).ConfigureAwait(false);
+                            // Fetch the IDecompiledSourceService from the temporary document, not the original one -- it
+                            // may be a different language because we don't have support for decompiling into VB.NET, so we just
+                            // use C#.
+                            var decompiledSourceService = temporaryDocument.GetRequiredLanguageService<IDecompiledSourceService>();
+                            temporaryDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, compilation, symbol, cancellationToken).ConfigureAwait(false);
                         }
                         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                         {
