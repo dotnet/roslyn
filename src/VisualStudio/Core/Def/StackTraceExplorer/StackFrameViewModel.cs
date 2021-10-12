@@ -19,9 +19,18 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Utilities;
 using System.Diagnostics;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
+using System.Text;
+using System.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
+    using StackFrameNodeOrToken = EmbeddedSyntaxNodeOrToken<StackFrameKind, StackFrameNode>;
+    using StackFrameToken = EmbeddedSyntaxToken<StackFrameKind>;
+    using StackFrameTrivia = EmbeddedSyntaxTrivia<StackFrameKind>;
+
     internal class StackFrameViewModel : FrameViewModel
     {
         private readonly ParsedStackFrame _frame;
@@ -167,39 +176,66 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         protected override IEnumerable<Inline> CreateInlines()
         {
-            yield return MakeClassifiedRun(ClassificationTypeNames.Text, _frame.GetTextBeforeType());
+            var methodDeclaration = _frame.Root.MethodDeclaration;
+            var tree = _frame.Tree;
+            var className = methodDeclaration.MemberAccessExpression.Left;
+            var leadingTrivia = className.GetLeadingTrivia();
+            yield return MakeClassifiedRun(ClassificationTypeNames.Text, leadingTrivia.CreateString());
+
+            //
+            // Build the link to the class
+            //
 
             var classLink = new Hyperlink();
-            classLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.ClassName, _frame.GetQualifiedTypeText()));
+            classLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.ClassName, className.CreateString(tree, skipTrivia: true)));
             classLink.Click += (s, a) => NavigateToClass();
             classLink.RequestNavigate += (s, a) => NavigateToClass();
             yield return classLink;
 
+            // Since we're only using the left side of a qualified name, we expect 
+            // there to be no trivia on the right (trailing).
+            Debug.Assert(className.GetTrailingTrivia().IsDefaultOrEmpty);
+
+            //
+            // Build the link to the method
+            //
             var methodLink = new Hyperlink();
-            methodLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.MethodName, _frame.GetMethodText()));
+            var methodTextBuilder = new StringBuilder();
+            methodTextBuilder.Append(methodDeclaration.MemberAccessExpression.DotToken.CreateString());
+            methodTextBuilder.Append(methodDeclaration.MemberAccessExpression.Right.CreateString(tree));
+
+            if (methodDeclaration.TypeArguments is not null)
+            {
+                methodTextBuilder.Append(methodDeclaration.TypeArguments.CreateString(tree));
+            }
+
+            methodTextBuilder.Append(methodDeclaration.ArgumentList.CreateString(tree));
+            methodLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.MethodName, methodTextBuilder.ToString()));
             methodLink.Click += (s, a) => NavigateToSymbol();
             methodLink.RequestNavigate += (s, a) => NavigateToSymbol();
             yield return methodLink;
 
-            if (_frame.FileSpan != default)
+            //
+            // If there is file information build a link to that
+            //
+            if (_frame.Root.FileInformationExpression is not null)
             {
-                var textBetween = _frame.GetTextBetweenTypeAndFile();
-                if (textBetween is not null)
-                {
-                    yield return MakeClassifiedRun(ClassificationTypeNames.Text, textBetween);
-                }
+                var fileInformation = _frame.Root.FileInformationExpression;
+                yield return MakeClassifiedRun(ClassificationTypeNames.Text, fileInformation.GetLeadingTrivia().CreateString());
 
-                var fileText = _frame.GetFileText();
-                RoslynDebug.AssertNotNull(fileText);
+                var fileLink = new Hyperlink();
+                fileLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.Text, fileInformation.CreateString(tree, skipTrivia: true)));
+                fileLink.Click += (s, a) => NavigateToFile();
+                fileLink.RequestNavigate += (s, a) => NavigateToFile();
+                yield return fileLink;
 
-                var fileHyperlink = new Hyperlink();
-                fileHyperlink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.Text, fileText));
-                fileHyperlink.RequestNavigate += (s, e) => NavigateToFile();
-                fileHyperlink.Click += (s, e) => NavigateToFile();
-                yield return fileHyperlink;
+                yield return MakeClassifiedRun(ClassificationTypeNames.Text, fileInformation.GetTrailingTrivia().CreateString());
             }
 
-            yield return MakeClassifiedRun(ClassificationTypeNames.Text, _frame.GetTrailingText());
+            //
+            // Don't lose the trailing trivia text
+            //
+            yield return MakeClassifiedRun(ClassificationTypeNames.Text, _frame.Root.EndOfLineToken.CreateString());
         }
 
         private (Document? document, int lineNumber) GetDocumentAndLine()
