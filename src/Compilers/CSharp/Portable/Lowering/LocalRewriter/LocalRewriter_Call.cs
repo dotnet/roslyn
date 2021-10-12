@@ -1144,7 +1144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new System.NotImplementedException();
             }
 
-            var elementType = paramArrayType.GetParamsArrayElementType();
+            var elementType = paramArrayType.GetParamsElementType();
             stackAllocate = stackAllocate.Construct(ImmutableArray.Create(elementType));
             var spanType = (NamedTypeSymbol)stackAllocate.ReturnType;
             spanGetItem = spanGetItem.AsMember(spanType);

@@ -109,15 +109,15 @@ span
         /// Prefer params Span or ReadOnlySpan over params T[].
         /// </summary>
         [Fact]
-        public void OverloadResolution()
+        public void OverloadResolution_01()
         {
             var source =
 @"using System;
 class Program
 {
     static void F1(params object[] args) { throw new Exception(); }
-    static void F2(params object[] args) { throw new Exception(); }
     static void F1(params Span<object> args) { foreach (var arg in args) Console.WriteLine(arg); }
+    static void F2(params object[] args) { throw new Exception(); }
     static void F2(params ReadOnlySpan<object> args) { foreach (var arg in args) Console.WriteLine(arg); }
     static void Main()
     {
@@ -125,15 +125,80 @@ class Program
         F2(""hello"", ""world"");
     }
 }";
-            // PROTOTYPE: Should prefer Span or ReadOnlySpan.
+            CompileAndVerify(new[] { source, SpanSource, StackAllocDefinition }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"1
+2
+3
+hello
+world
+");
+        }
+
+        [Fact]
+        public void OverloadResolution_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F1<T>(params T[] args) { Console.WriteLine(""F1<T>(params T[] args)""); }
+    static void F1(params Span<object> args) { Console.WriteLine(""F1(params Span<object> args)""); }
+    static void F2(params object[] args) { Console.WriteLine(""F2(params object[] args)""); }
+    static void F2<T>(params Span<T> args) { Console.WriteLine(""F2<T>(params Span<T> args)""); }
+    static void Main()
+    {
+        F1(1, 2, 3);
+        F2(4, 5);
+    }
+}";
+            CompileAndVerify(new[] { source, SpanSource, StackAllocDefinition }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"F1<T>(params T[] args)
+F2<T>(params Span<T> args)
+");
+        }
+
+        [Fact]
+        public void OverloadResolution_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F(params ReadOnlySpan<object> args) { }
+    static void F(params Span<object> args) { }
+    static void Main()
+    {
+        F(1, 2, 3);
+    }
+}";
             var comp = CreateCompilation(new[] { source, SpanSource, StackAllocDefinition }, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyDiagnostics(
-                // (10,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(params object[])' and 'Program.F1(params Span<object>)'
-                //         F1(1, 2, 3);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments("Program.F1(params object[])", "Program.F1(params System.Span<object>)").WithLocation(10, 9),
-                // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(params object[])' and 'Program.F2(params ReadOnlySpan<object>)'
-                //         F2("hello", "world");
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments("Program.F2(params object[])", "Program.F2(params System.ReadOnlySpan<object>)").WithLocation(11, 9));
+                // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(params ReadOnlySpan<object>)' and 'Program.F(params Span<object>)'
+                //         F(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(params System.ReadOnlySpan<object>)", "Program.F(params System.Span<object>)").WithLocation(8, 9));
+        }
+
+        [Fact]
+        public void OverloadResolution_04()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F1<T>(params ReadOnlySpan<T> args) { Console.WriteLine(""F1<T>(params ReadOnlySpan<T> args)""); }
+    static void F1(params Span<object> args) { Console.WriteLine(""F1(params Span<object> args)""); }
+    static void F2(params ReadOnlySpan<object> args) { Console.WriteLine(""F2(params ReadOnlySpan<object> args)""); }
+    static void F2<T>(params Span<T> args) { Console.WriteLine(""F2<T>(params Span<T> args)""); }
+    static void Main()
+    {
+        F1(1, 2, 3);
+        F2(""hello"", ""world"");
+    }
+}";
+            CompileAndVerify(new[] { source, SpanSource, StackAllocDefinition }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"F1<T>(params ReadOnlySpan<T> args)
+F2<T>(params Span<T> args)
+");
         }
 
         /// <summary>

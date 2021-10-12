@@ -1608,7 +1608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (name.Length == length) && (string.Compare(name, 0, namespaceName, offset, length, comparison) == 0);
         }
 
-        internal static bool IsParamsArrayType(this TypeSymbol type, CSharpCompilation compilation)
+        internal static bool IsParamsType(this TypeSymbol type, CSharpCompilation compilation)
         {
             if (type.IsSZArray())
             {
@@ -1623,7 +1623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal static TypeWithAnnotations GetParamsArrayElementType(this TypeSymbol type)
+        internal static TypeWithAnnotations GetParamsElementType(this TypeSymbol type)
         {
             if (type is ArrayTypeSymbol arrayType)
             {
