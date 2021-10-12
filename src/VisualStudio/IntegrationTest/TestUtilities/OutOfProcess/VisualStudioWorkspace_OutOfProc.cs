@@ -81,14 +81,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SetArgumentCompletionSnippetsOption(bool value)
         {
             SetPerLanguageOption(
-                optionName: CompletionOptions.EnableArgumentCompletionSnippets.Name,
-                feature: CompletionOptions.EnableArgumentCompletionSnippets.Feature,
+                optionName: CompletionViewOptions.EnableArgumentCompletionSnippets.Name,
+                feature: CompletionViewOptions.EnableArgumentCompletionSnippets.Feature,
                 language: LanguageNames.CSharp,
                 value: value);
 
             SetPerLanguageOption(
-                optionName: CompletionOptions.EnableArgumentCompletionSnippets.Name,
-                feature: CompletionOptions.EnableArgumentCompletionSnippets.Feature,
+                optionName: CompletionViewOptions.EnableArgumentCompletionSnippets.Name,
+                feature: CompletionViewOptions.EnableArgumentCompletionSnippets.Feature,
                 language: LanguageNames.VisualBasic,
                 value: value);
         }

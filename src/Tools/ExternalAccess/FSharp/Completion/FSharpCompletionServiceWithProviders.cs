@@ -12,5 +12,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion
             : base(workspace)
         {
         }
+
+        public sealed override CompletionRules GetRules()
+            => GetRulesImpl();
+
+        internal abstract CompletionRules GetRulesImpl();
     }
 }

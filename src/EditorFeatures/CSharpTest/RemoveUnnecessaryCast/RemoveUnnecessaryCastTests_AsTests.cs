@@ -1329,9 +1329,9 @@ static class C
 
         [WorkItem(545942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545942")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DoRemoveCastFromStringTypeToObjectInReferenceEquality()
+        public async Task DoNotRemoveCastFromStringTypeToObjectInReferenceEquality()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -1340,17 +1340,6 @@ class Program
     {
         object x = """";
         Console.WriteLine(x == ([|"""" as object|]));
-    }
-}",
-
-@"using System;
-
-class Program
-{
-    static void Main()
-    {
-        object x = """";
-        Console.WriteLine(x == """");
     }
 }");
         }

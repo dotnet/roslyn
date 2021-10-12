@@ -667,7 +667,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             var operand = VisitExpression(ref builder, node.Operand);
-            return UpdateExpression(builder, node.Update(operand, node.TargetType, node.Conversion, node.Type));
+            Debug.Assert(node.OperandPlaceholder is null);
+            Debug.Assert(node.OperandConversion is null);
+            return UpdateExpression(builder, node.Update(operand, node.TargetType, node.OperandPlaceholder, node.OperandConversion, node.Type));
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
@@ -864,6 +866,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
+        }
+
+        public override BoundNode VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            var arguments = this.VisitExpressionList(ref builder, node.Arguments, node.ArgumentRefKindsOpt);
+
+            BoundExpression invokedExpression;
+            if (builder == null)
+            {
+                invokedExpression = VisitExpression(ref builder, node.InvokedExpression);
+            }
+            else
+            {
+                var invokedExpressionBuilder = new BoundSpillSequenceBuilder(builder.Syntax);
+
+                invokedExpression = Spill(invokedExpressionBuilder, VisitExpression(ref invokedExpressionBuilder, node.InvokedExpression));
+                invokedExpressionBuilder.Include(builder);
+                builder = invokedExpressionBuilder;
+            }
+
+            return UpdateExpression(builder, node.Update(invokedExpression, arguments, node.ArgumentRefKindsOpt, node.ResultKind, node.Type));
         }
 
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)

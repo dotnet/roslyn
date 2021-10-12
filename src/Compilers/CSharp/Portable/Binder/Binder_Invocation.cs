@@ -1982,6 +1982,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         private BoundFunctionPointerInvocation BindFunctionPointerInvocation(SyntaxNode node, BoundExpression boundExpression, AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics)
         {
+            boundExpression = BindToNaturalType(boundExpression, diagnostics);
             RoslynDebug.Assert(boundExpression.Type is FunctionPointerTypeSymbol);
 
             var funcPtr = (FunctionPointerTypeSymbol)boundExpression.Type;

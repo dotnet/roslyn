@@ -47,6 +47,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             Dim mockSVsServiceProvider = New Mock(Of SVsServiceProvider)(MockBehavior.Strict)
             mockSVsServiceProvider.Setup(Function(s) s.GetService(GetType(SVsTextManager))).Returns(Nothing)
 
+            Dim globalOptions = Workspace.GetService(Of IGlobalOptionService)
+
             SnippetCommandHandler = If(languageName = LanguageNames.CSharp,
                 DirectCast(New CSharp.Snippets.SnippetCommandHandler(
                     Workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
@@ -54,16 +56,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                     Workspace.ExportProvider.GetExportedValue(Of IEditorCommandHandlerServiceFactory)(),
                     Workspace.ExportProvider.GetExportedValue(Of IVsEditorAdaptersFactoryService)(),
                     mockSVsServiceProvider.Object,
-                    Workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)()), AbstractSnippetCommandHandler),
+                    Workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)(),
+                    globalOptions), AbstractSnippetCommandHandler),
                 New VisualBasic.Snippets.SnippetCommandHandler(
                     Workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     Workspace.ExportProvider.GetExportedValue(Of SignatureHelpControllerProvider)(),
                     Workspace.ExportProvider.GetExportedValue(Of IEditorCommandHandlerServiceFactory)(),
                     Workspace.ExportProvider.GetExportedValue(Of IVsEditorAdaptersFactoryService)(),
                     mockSVsServiceProvider.Object,
-                    Workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)()))
+                    Workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)(),
+                    globalOptions))
 
-            SnippetExpansionClient = New MockSnippetExpansionClient(Workspace.ExportProvider.GetExportedValue(Of IThreadingContext), startActiveSession, If(languageName Is LanguageNames.CSharp, Guids.CSharpLanguageServiceId, Guids.VisualBasicLanguageServiceId), TextView, SubjectBuffer)
+            SnippetExpansionClient = New MockSnippetExpansionClient(
+                Workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
+                startActiveSession,
+                If(languageName Is LanguageNames.CSharp, Guids.CSharpLanguageServiceId, Guids.VisualBasicLanguageServiceId),
+                TextView,
+                SubjectBuffer,
+                globalOptions)
             TextView.Properties.AddProperty(GetType(AbstractSnippetExpansionClient), SnippetExpansionClient)
         End Sub
 
@@ -141,8 +151,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
         Friend Class MockSnippetExpansionClient
             Inherits AbstractSnippetExpansionClient
 
-            Public Sub New(threadingContext As IThreadingContext, startActiveSession As Boolean, languageServiceGuid As Guid, textView As ITextView, subjectBuffer As ITextBuffer)
-                MyBase.New(threadingContext, languageServiceGuid, textView, subjectBuffer, signatureHelpControllerProvider:=Nothing, editorCommandHandlerServiceFactory:=Nothing, Nothing, ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)).Empty)
+            Public Sub New(threadingContext As IThreadingContext, startActiveSession As Boolean, languageServiceGuid As Guid, textView As ITextView, subjectBuffer As ITextBuffer, globalOptions As IGlobalOptionService)
+                MyBase.New(threadingContext, languageServiceGuid, textView, subjectBuffer, signatureHelpControllerProvider:=Nothing, editorCommandHandlerServiceFactory:=Nothing, Nothing, ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)).Empty, globalOptions)
 
                 If startActiveSession Then
                     TryHandleTabReturnValue = True

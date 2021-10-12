@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundAsOperator As(BoundExpression operand, TypeSymbol type)
         {
-            return new BoundAsOperator(this.Syntax, operand, Type(type), Conversion.ExplicitReference, type) { WasCompilerGenerated = true };
+            return new BoundAsOperator(this.Syntax, operand, Type(type), operandPlaceholder: null, operandConversion: null, type) { WasCompilerGenerated = true };
         }
 
         public BoundIsOperator Is(BoundExpression operand, TypeSymbol type)

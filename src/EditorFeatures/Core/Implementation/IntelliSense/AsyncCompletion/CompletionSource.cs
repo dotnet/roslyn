@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -63,6 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
         private readonly VSUtilities.IUIThreadOperationExecutor _operationExecutor;
         private readonly IAsynchronousOperationListener _asyncListener;
+        private readonly IGlobalOptionService _globalOptions;
         private bool _snippetCompletionTriggeredIndirectly;
 
         internal CompletionSource(
@@ -70,13 +72,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
             IThreadingContext threadingContext,
             VSUtilities.IUIThreadOperationExecutor operationExecutor,
-            IAsynchronousOperationListener asyncListener)
+            IAsynchronousOperationListener asyncListener,
+            IGlobalOptionService globalOptions)
             : base(threadingContext)
         {
             _textView = textView;
             _streamingPresenter = streamingPresenter;
             _operationExecutor = operationExecutor;
             _asyncListener = asyncListener;
+            _globalOptions = globalOptions;
             _isDebuggerTextView = textView is IDebuggerTextView;
             _roles = textView.Roles.ToImmutableHashSet();
         }
@@ -112,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // There could be mixed desired behavior per textView and even per same completion session.
             // The right fix would be to send this information as a result of the method. 
             // Then, the Editor would choose the right behavior for mixed cases.
-            _textView.Options.GlobalOptions.SetOptionValue(NonBlockingCompletionEditorOption, !document.Project.Solution.Workspace.Options.GetOption(CompletionOptions.BlockForCompletionItems2, service.Language));
+            _textView.Options.GlobalOptions.SetOptionValue(NonBlockingCompletionEditorOption, !_globalOptions.GetOption(CompletionGlobalOptions.BlockForCompletionItems, service.Language));
 
             // In case of calls with multiple completion services for the same view (e.g. TypeScript and C#), those completion services must not be called simultaneously for the same session.
             // Therefore, in each completion session we use a list of commit character for a specific completion service and a specific content type.
@@ -238,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CancellationToken cancellationToken)
         {
             // We only want to provide expanded items for Roslyn's expander.
-            if ((object)expander == FilterSet.Expander && session.Properties.TryGetProperty(ExpandedItemTriggerLocation, out SnapshotPoint initialTriggerLocation))
+            if (expander == FilterSet.Expander && session.Properties.TryGetProperty(ExpandedItemTriggerLocation, out SnapshotPoint initialTriggerLocation))
             {
                 return await GetCompletionContextWorkerAsync(session, intialTrigger, initialTriggerLocation, isExpanded: true, cancellationToken).ConfigureAwait(false);
             }
