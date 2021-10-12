@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             private readonly ImmutableDictionary<string, TextSpan>.Builder _captureNameToSpan;
             private readonly ArrayBuilder<string> _captureNames;
             private int _autoNumber;
+            private int _recursionDepth;
 
             private CaptureInfoAnalyzer(VirtualCharSequence text)
             {
@@ -63,6 +64,20 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             private void CollectCaptures(RegexNode node, RegexOptions options)
+            {
+                try
+                {
+                    _recursionDepth++;
+                    StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+                    CollectCapturesWorker(node, options);
+                }
+                finally
+                {
+                    _recursionDepth--;
+                }
+            }
+
+            private void CollectCapturesWorker(RegexNode node, RegexOptions options)
             {
                 switch (node.Kind)
                 {
