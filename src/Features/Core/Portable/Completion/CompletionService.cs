@@ -68,23 +68,25 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Returns true if the character recently inserted or deleted in the text should trigger completion.
         /// </summary>
         /// <param name="project">The project containing the document and text</param>
+        /// <param name="languageServices">Language services</param>
         /// <param name="text">The document text to trigger completion within </param>
         /// <param name="caretPosition">The position of the caret after the triggering action.</param>
         /// <param name="trigger">The potential triggering action.</param>
+        /// <param name="options">Options.</param>
         /// <param name="roles">Optional set of roles associated with the editor state.</param>
-        /// <param name="options">Optional options that override the default options.</param>
         /// <remarks>
         /// We pass the project here to retrieve information about the <see cref="Project.AnalyzerReferences"/>,
         /// <see cref="WorkspaceKind"/> and <see cref="Project.Language"/> which are fast operations.
         /// It should not be used for syntactic or semantic operations.
         /// </remarks>
         internal virtual bool ShouldTriggerCompletion(
-            Project project,
+            Project? project,
+            HostLanguageServices languageServices,
             SourceText text,
             int caretPosition,
             CompletionTrigger trigger,
-            ImmutableHashSet<string>? roles = null,
-            OptionSet? options = null)
+            OptionSet options,
+            ImmutableHashSet<string>? roles = null)
         {
             return ShouldTriggerCompletion(text, caretPosition, trigger, roles, options);
         }
