@@ -1697,8 +1697,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundNullCoalescingOperator : BoundExpression
     {
-        public BoundNullCoalescingOperator(SyntaxNode syntax, BoundExpression leftOperand, BoundExpression rightOperand, Conversion leftConversion, BoundNullCoalescingOperatorResultKind operatorResultKind, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.NullCoalescingOperator, syntax, type, hasErrors || leftOperand.HasErrors() || rightOperand.HasErrors())
+        public BoundNullCoalescingOperator(SyntaxNode syntax, BoundExpression leftOperand, BoundExpression rightOperand, BoundValuePlaceholder? leftPlaceholder, BoundExpression? leftConversion, BoundNullCoalescingOperatorResultKind operatorResultKind, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.NullCoalescingOperator, syntax, type, hasErrors || leftOperand.HasErrors() || rightOperand.HasErrors() || leftPlaceholder.HasErrors() || leftConversion.HasErrors())
         {
 
             RoslynDebug.Assert(leftOperand is object, "Field 'leftOperand' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1707,6 +1707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.LeftOperand = leftOperand;
             this.RightOperand = rightOperand;
+            this.LeftPlaceholder = leftPlaceholder;
             this.LeftConversion = leftConversion;
             this.OperatorResultKind = operatorResultKind;
         }
@@ -1718,17 +1719,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression RightOperand { get; }
 
-        public Conversion LeftConversion { get; }
+        public BoundValuePlaceholder? LeftPlaceholder { get; }
+
+        public BoundExpression? LeftConversion { get; }
 
         public BoundNullCoalescingOperatorResultKind OperatorResultKind { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitNullCoalescingOperator(this);
 
-        public BoundNullCoalescingOperator Update(BoundExpression leftOperand, BoundExpression rightOperand, Conversion leftConversion, BoundNullCoalescingOperatorResultKind operatorResultKind, TypeSymbol type)
+        public BoundNullCoalescingOperator Update(BoundExpression leftOperand, BoundExpression rightOperand, BoundValuePlaceholder? leftPlaceholder, BoundExpression? leftConversion, BoundNullCoalescingOperatorResultKind operatorResultKind, TypeSymbol type)
         {
-            if (leftOperand != this.LeftOperand || rightOperand != this.RightOperand || leftConversion != this.LeftConversion || operatorResultKind != this.OperatorResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (leftOperand != this.LeftOperand || rightOperand != this.RightOperand || leftPlaceholder != this.LeftPlaceholder || leftConversion != this.LeftConversion || operatorResultKind != this.OperatorResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundNullCoalescingOperator(this.Syntax, leftOperand, rightOperand, leftConversion, operatorResultKind, type, this.HasErrors);
+                var result = new BoundNullCoalescingOperator(this.Syntax, leftOperand, rightOperand, leftPlaceholder, leftConversion, operatorResultKind, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10232,8 +10235,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression leftOperand = (BoundExpression)this.Visit(node.LeftOperand);
             BoundExpression rightOperand = (BoundExpression)this.Visit(node.RightOperand);
+            BoundValuePlaceholder? leftPlaceholder = node.LeftPlaceholder;
+            BoundExpression? leftConversion = node.LeftConversion;
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(leftOperand, rightOperand, node.LeftConversion, node.OperatorResultKind, type);
+            return node.Update(leftOperand, rightOperand, leftPlaceholder, leftConversion, node.OperatorResultKind, type);
         }
         public override BoundNode? VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node)
         {
@@ -11761,16 +11766,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression leftOperand = (BoundExpression)this.Visit(node.LeftOperand);
             BoundExpression rightOperand = (BoundExpression)this.Visit(node.RightOperand);
+            BoundValuePlaceholder? leftPlaceholder = node.LeftPlaceholder;
+            BoundExpression? leftConversion = node.LeftConversion;
             BoundNullCoalescingOperator updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(leftOperand, rightOperand, node.LeftConversion, node.OperatorResultKind, infoAndType.Type!);
+                updatedNode = node.Update(leftOperand, rightOperand, leftPlaceholder, leftConversion, node.OperatorResultKind, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(leftOperand, rightOperand, node.LeftConversion, node.OperatorResultKind, node.Type);
+                updatedNode = node.Update(leftOperand, rightOperand, leftPlaceholder, leftConversion, node.OperatorResultKind, node.Type);
             }
             return updatedNode;
         }
@@ -14047,7 +14054,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("leftOperand", null, new TreeDumperNode[] { Visit(node.LeftOperand, null) }),
             new TreeDumperNode("rightOperand", null, new TreeDumperNode[] { Visit(node.RightOperand, null) }),
-            new TreeDumperNode("leftConversion", node.LeftConversion, null),
+            new TreeDumperNode("leftPlaceholder", null, new TreeDumperNode[] { Visit(node.LeftPlaceholder, null) }),
+            new TreeDumperNode("leftConversion", null, new TreeDumperNode[] { Visit(node.LeftConversion, null) }),
             new TreeDumperNode("operatorResultKind", node.OperatorResultKind, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
