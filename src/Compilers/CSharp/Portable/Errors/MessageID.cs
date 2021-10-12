@@ -328,6 +328,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new CSDiagnosticInfo(ErrorCode.ERR_FeatureIsExperimental, feature.Localize(), requiredFeature);
             }
 
+            // Special string we give to clarify the issue when @$" is used instead of $@".
+            if (feature == MessageID.IDS_FeatureAltInterpolatedVerbatimStrings)
+            {
+                return new CSDiagnosticInfo(ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable, new CSharpRequiredLanguageVersion(feature.RequiredVersion()));
+            }
+
             LanguageVersion requiredVersion = feature.RequiredVersion();
             return requiredVersion == LanguageVersion.Preview.MapSpecifiedToEffectiveVersion()
                 ? new CSDiagnosticInfo(ErrorCode.ERR_FeatureInPreview, feature.Localize())
@@ -398,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return LanguageVersion.CSharp9;
 
                 // C# 8.0 features.
-                case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
+                case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings: // semantic check
                 case MessageID.IDS_FeatureCoalesceAssignmentExpression:
                 case MessageID.IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator:
                 case MessageID.IDS_FeatureNullableReferenceTypes: // syntax and semantic check

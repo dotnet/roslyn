@@ -18,6 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindInterpolatedString(InterpolatedStringExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
+            var startText = node.StringStartToken.Text;
+            if (startText.StartsWith("@$\""))
+                CheckFeatureAvailability(node, MessageID.IDS_FeatureAltInterpolatedVerbatimStrings, diagnostics, node.StringStartToken.GetLocation());
+
             var builder = ArrayBuilder<BoundExpression>.GetInstance();
             var stringType = GetSpecialType(SpecialType.System_String, diagnostics, node);
             ConstantValue? resultConstant = null;
