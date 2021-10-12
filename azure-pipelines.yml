@@ -153,7 +153,7 @@ jobs:
 
 - job: Correctness_Determinism
   pool:
-    name: NetCore1ESPool-Svc-Public
+    name: NetCore1ESPool-Svc-Public-Int
     demands: ImageOverride -equals Build.Windows.10.Amd64.VS2019.Open
   timeoutInMinutes: 90
   steps:
@@ -169,7 +169,7 @@ jobs:
 
 - job: Correctness_Build
   pool:
-    name: NetCore1ESPool-Svc-Public
+    name: NetCore1ESPool-Svc-Public-Int
     demands: ImageOverride -equals Build.Windows.10.Amd64.VS2019.Open
   timeoutInMinutes: 90
   steps:
@@ -201,7 +201,7 @@ jobs:
 
 - job: Correctness_Rebuild
   pool:
-    name: NetCore1ESPool-Svc-Public
+    name: NetCore1ESPool-Svc-Public-Int
     demands: ImageOverride -equals Build.Windows.10.Amd64.Open
   timeoutInMinutes: 90
   steps:

@@ -21,7 +21,7 @@ pr:
 jobs:
 - job: VS_Integration_LSP
   pool:
-    name: NetCore1ESPool-Svc-Public
+    name: NetCore1ESPool-Svc-Public-Int
     demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 135
 
