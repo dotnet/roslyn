@@ -28,6 +28,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
 {
+    /// <summary>
+    /// A type that tracks caret movements, and when you've been on an identifier for awhile, pushes the new
+    /// code definition window context to the <see cref="ICodeDefinitionWindowService"/>.
+    /// </summary>
     [Export(typeof(ITextViewConnectionListener))]
     [Export(typeof(DefinitionContextTracker))]
     [ContentType(ContentTypeNames.RoslynContentType)]
