@@ -41,7 +41,7 @@ namespace IdeCoreBenchmarks
             MSBuildLocator.RegisterInstance(msBuildInstance);
 
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            var solutionPath = Path.Combine(roslynRoot, @"C:\Users\ankitakhera\roslyn\Roslyn.sln");
+            var solutionPath = Path.Combine(roslynRoot, @"Roslyn.sln");
 
             if (!File.Exists(solutionPath))
                 throw new ArgumentException("Couldn't find Roslyn.sln");

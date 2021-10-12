@@ -26,7 +26,7 @@ namespace IdeCoreBenchmarks
         public void GlobalSetup()
         {
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            var csFilePath = Path.Combine(roslynRoot, @"C:\Users\ankitakhera\roslyn\src\Compilers\CSharp\Portable\Parser");
+            var csFilePath = Path.Combine(roslynRoot, @"src\Compilers\CSharp\Portable\Parser");
 
             var files = Directory.GetFiles(csFilePath);
             _rootList = new List<CompilationUnitSyntax>();
