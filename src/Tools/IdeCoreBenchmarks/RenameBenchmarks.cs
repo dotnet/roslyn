@@ -49,5 +49,12 @@ namespace IdeCoreBenchmarks
         {
             _ = Microsoft.CodeAnalysis.Rename.Renamer.RenameSymbolAsync(_solution, _symbol, "NewName", _options);
         }
+
+        [IterationCleanup]
+        public void Cleanup()
+        {
+            _solution = null;
+            _symbol = null;
+        }
     }
 }

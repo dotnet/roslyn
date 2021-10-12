@@ -68,7 +68,12 @@ namespace IdeCoreBenchmarks
                     _ = GetSemanticClassificationsAsync(document, span);
                 }
             }
+        }
 
+        [IterationCleanup]
+        public void Cleanup()
+        {
+            _solution = null;
         }
     }
 }
