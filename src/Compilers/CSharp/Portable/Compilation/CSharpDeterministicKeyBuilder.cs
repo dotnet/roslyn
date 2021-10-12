@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             base.WriteCompilationOptionsCore(options);
 
-            WriteBool("unsafe", csharpOptions.AllowUnsafe);
-            WriteEnum("topLevelBinderFlags", csharpOptions.TopLevelBinderFlags);
+            Writer.Write("unsafe", csharpOptions.AllowUnsafe);
+            Writer.Write("topLevelBinderFlags", csharpOptions.TopLevelBinderFlags);
 
             if (csharpOptions.Usings.Length > 0)
             {
@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new InvalidOperationException();
             }
 
-            WriteEnum("languageVersion", csharpOptions.LanguageVersion);
-            WriteEnum("specifiedLanguageVersion", csharpOptions.SpecifiedLanguageVersion);
+            Writer.Write("languageVersion", csharpOptions.LanguageVersion);
+            Writer.Write("specifiedLanguageVersion", csharpOptions.SpecifiedLanguageVersion);
 
             if (csharpOptions.PreprocessorSymbols is { Length: > 0 } symbols)
             {

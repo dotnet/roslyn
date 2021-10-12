@@ -80,8 +80,11 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
   ""options"": {
     ""outputKind"": ""ConsoleApplication"",
+    ""moduleName"": null,
     ""scriptClassName"": ""Script"",
-    ""cryptoPublicKey"": """",
+    ""mainTypeName"": null,
+    ""cryptoKeyFile"": null,
+    ""delaySign"": null,
     ""publicSign"": false,
     ""checkOverflow"": false,
     ""platform"": ""AnyCpu"",
@@ -105,8 +108,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         ""encoding"": ""Unicode (UTF-8)""
       },
       ""parseOptions"": {
-        ""languageVersion"": ""CSharp9"",
-        ""specifiedLanguageVersion"": ""Default""
+        ""languageVersion"": ""Preview"",
+        ""specifiedLanguageVersion"": ""Preview""
       }
     }
   ]
@@ -132,7 +135,12 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""highEntropyVirtualAddressSpace"": false,
   ""baseAddress"": ""0"",
   ""debugInformationFormat"": ""Pdb"",
-  ""pdbChecksumAlgorithm"": ""SHA256""
+  ""outputNameOverride"": null,
+  ""pdbFilePath"": null,
+  ""pdbChecksumAlgorithm"": ""SHA256"",
+  ""runtimeMetadataVersion"": null,
+  ""defaultSourceFileEncoding"": null,
+  ""fallbackSourceFileEncoding"": null
 }
 ", key);
         }

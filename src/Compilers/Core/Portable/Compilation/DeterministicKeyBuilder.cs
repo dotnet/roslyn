@@ -54,52 +54,6 @@ namespace Microsoft.CodeAnalysis
 
         internal void Reset() => Builder.Length = 0;
 
-        protected void WriteEnum<T>(T value) where T : struct, Enum
-        {
-            Writer.Write(value.ToString());
-        }
-
-        protected void WriteEnum<T>(string name, T value) where T : struct, Enum
-        {
-            Writer.Write(name, value.ToString());
-        }
-
-        protected void WriteInt(string name, int? value)
-        {
-            if (value is { } i)
-            {
-                WriteInt(name, i);
-            }
-        }
-
-        protected void WriteInt(string name, int value)
-        {
-            Writer.Write(name, value);
-        }
-
-        protected void WriteUlong(string name, ulong value)
-        {
-            Writer.Write(name, value.ToString());
-        }
-
-        protected void WriteBool(string name, bool? value)
-        {
-            if (value is bool b)
-            {
-                Writer.Write(name, b);
-            }
-        }
-
-        protected void WriteString(string name, string? value)
-        {
-            // Skip null values for brevity. The lack of the value is just as significant in the 
-            // key and overall makes it more readable
-            if (value is object)
-            {
-                Writer.Write(name, value);
-            }
-        }
-
         protected void WriteFileName(string name, string? filePath)
         {
             if (0 != (Options & DeterministicKeyOptions.IgnorePaths))
@@ -107,7 +61,7 @@ namespace Microsoft.CodeAnalysis
                 filePath = Path.GetFileName(filePath);
             }
 
-            WriteString(name, filePath);
+            Writer.Write(name, filePath);
         }
 
         protected void WriteByteArray(string name, ImmutableArray<byte> value)
@@ -190,10 +144,10 @@ namespace Microsoft.CodeAnalysis
             void writeType(Type type)
             {
                 Writer.WriteObjectStart();
-                WriteString("fullName", type.FullName);
+                Writer.Write("fullName", type.FullName);
                 // Note that the file path to the assembly is deliberately not included here. The file path
                 // of the assembly does not contribute to the output of the program.
-                WriteString("assemblyName", type.Assembly.FullName);
+                Writer.Write("assemblyName", type.Assembly.FullName);
                 Writer.WriteObjectEnd();
             }
         }
@@ -232,13 +186,13 @@ namespace Microsoft.CodeAnalysis
                 Writer.WriteObjectStart();
 
                 var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-                WriteString("compilerVersion", compilerVersion);
+                Writer.Write("compilerVersion", compilerVersion);
 
                 var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-                WriteString("runtimeVersion", runtimeVersion);
+                Writer.Write("runtimeVersion", runtimeVersion);
 
-                WriteString("framework", RuntimeInformation.FrameworkDescription);
-                WriteString("os", RuntimeInformation.OSDescription);
+                Writer.Write("framework", RuntimeInformation.FrameworkDescription);
+                Writer.Write("os", RuntimeInformation.OSDescription);
 
                 Writer.WriteObjectEnd();
             }
@@ -264,8 +218,8 @@ namespace Microsoft.CodeAnalysis
 
             Writer.WriteObjectStart();
             WriteByteArray("checksum", sourceText.GetChecksum());
-            WriteEnum("checksumAlgorithm", sourceText.ChecksumAlgorithm);
-            WriteString("encoding", sourceText.Encoding?.EncodingName);
+            Writer.Write("checksumAlgorithm", sourceText.ChecksumAlgorithm);
+            Writer.Write("encoding", sourceText.Encoding?.EncodingName);
             Writer.WriteObjectEnd();
         }
 
@@ -302,12 +256,12 @@ namespace Microsoft.CodeAnalysis
                 if (moduleMetadata.GetMetadataReader() is { IsAssembly: true } peReader)
                 {
                     var assemblyDef = peReader.GetAssemblyDefinition();
-                    WriteString("name", peReader.GetString(assemblyDef.Name));
-                    WriteString("version", assemblyDef.Version.ToString());
+                    Writer.Write("name", peReader.GetString(assemblyDef.Name));
+                    Writer.Write("version", assemblyDef.Version.ToString());
                     WriteByteArray("publicKey", peReader.GetBlobBytes(assemblyDef.PublicKey).AsSpan());
                 }
 
-                WriteString("mvid", moduleMetadata.GetModuleVersionId().ToString());
+                Writer.Write("mvid", moduleMetadata.GetModuleVersionId().ToString());
                 Writer.WriteKey("properties");
                 WriteMetadataReferenceProperties(reference.Properties);
             }
@@ -321,34 +275,34 @@ namespace Microsoft.CodeAnalysis
         internal void WriteEmitOptions(EmitOptions options)
         {
             Writer.WriteObjectStart();
-            WriteBool("emitMetadataOnly", options.EmitMetadataOnly);
-            WriteBool("tolerateErrors", options.TolerateErrors);
-            WriteBool("includePrivateMembers", options.IncludePrivateMembers);
+            Writer.Write("emitMetadataOnly", options.EmitMetadataOnly);
+            Writer.Write("tolerateErrors", options.TolerateErrors);
+            Writer.Write("includePrivateMembers", options.IncludePrivateMembers);
             if (options.InstrumentationKinds.Length > 0)
             {
                 Writer.WriteArrayStart();
                 foreach (var kind in options.InstrumentationKinds)
                 {
-                    WriteEnum(kind);
+                    Writer.Write(kind);
                 }
                 Writer.WriteArrayEnd();
             }
 
-            WriteSubsystemVersion(Writer, options.SubsystemVersion);
-            WriteInt("fileAlignment", options.FileAlignment);
-            WriteBool("highEntropyVirtualAddressSpace", options.HighEntropyVirtualAddressSpace);
-            WriteUlong("baseAddress", options.BaseAddress);
-            WriteEnum("debugInformationFormat", options.DebugInformationFormat);
-            WriteString("outputNameOverride", options.OutputNameOverride);
-            WriteString("pdbFilePath", options.PdbFilePath);
-            WriteString("pdbChecksumAlgorithm", options.PdbChecksumAlgorithm.Name);
-            WriteString("runtimeMetadataVersion", options.RuntimeMetadataVersion);
-            WriteInt("defaultSourceFileEncoding", options.DefaultSourceFileEncoding?.CodePage);
-            WriteInt("fallbackSourceFileEncoding", options.FallbackSourceFileEncoding?.CodePage);
+            writeSubsystemVersion(Writer, options.SubsystemVersion);
+            Writer.Write("fileAlignment", options.FileAlignment);
+            Writer.Write("highEntropyVirtualAddressSpace", options.HighEntropyVirtualAddressSpace);
+            Writer.Write("baseAddress", options.BaseAddress.ToString());
+            Writer.Write("debugInformationFormat", options.DebugInformationFormat);
+            Writer.Write("outputNameOverride", options.OutputNameOverride);
+            Writer.Write("pdbFilePath", options.PdbFilePath);
+            Writer.Write("pdbChecksumAlgorithm", options.PdbChecksumAlgorithm.Name);
+            Writer.Write("runtimeMetadataVersion", options.RuntimeMetadataVersion);
+            Writer.Write("defaultSourceFileEncoding", options.DefaultSourceFileEncoding?.CodePage);
+            Writer.Write("fallbackSourceFileEncoding", options.FallbackSourceFileEncoding?.CodePage);
 
             Writer.WriteObjectEnd();
 
-            static void WriteSubsystemVersion(JsonWriter writer, SubsystemVersion version)
+            static void writeSubsystemVersion(JsonWriter writer, SubsystemVersion version)
             {
                 writer.WriteKey("subsystemVersion");
                 writer.WriteObjectStart();
@@ -361,8 +315,8 @@ namespace Microsoft.CodeAnalysis
         internal void WriteMetadataReferenceProperties(MetadataReferenceProperties properties)
         {
             Writer.WriteObjectStart();
-            WriteEnum("kind", properties.Kind);
-            WriteBool("embedInteropTypes", properties.EmbedInteropTypes);
+            Writer.Write("kind", properties.Kind);
+            Writer.Write("embedInteropTypes", properties.EmbedInteropTypes);
             if (properties.Aliases is { Length: > 0 } aliases)
             {
                 Writer.WriteKey("aliases");
@@ -386,24 +340,24 @@ namespace Microsoft.CodeAnalysis
         protected virtual void WriteCompilationOptionsCore(CompilationOptions options)
         {
             // CompilationOption values
-            WriteEnum("outputKind", options.OutputKind);
-            WriteString("moduleName", options.ModuleName);
-            WriteString("scriptClassName", options.ScriptClassName);
-            WriteString("mainTypeName", options.MainTypeName);
+            Writer.Write("outputKind", options.OutputKind);
+            Writer.Write("moduleName", options.ModuleName);
+            Writer.Write("scriptClassName", options.ScriptClassName);
+            Writer.Write("mainTypeName", options.MainTypeName);
             WriteByteArray("cryptoPublicKey", options.CryptoPublicKey);
-            WriteString("cryptoKeyFile", options.CryptoKeyFile);
-            WriteBool("delaySign", options.DelaySign);
-            WriteBool("publicSign", options.PublicSign);
-            WriteBool("checkOverflow", options.CheckOverflow);
-            WriteEnum("platform", options.Platform);
-            WriteEnum("optimizationLevel", options.OptimizationLevel);
-            WriteEnum("generalDiagnosticOption", options.GeneralDiagnosticOption);
-            WriteInt("warningLevel", options.WarningLevel);
-            WriteBool("deterministic", options.Deterministic);
-            WriteBool("debugPlusMode", options.DebugPlusMode);
-            WriteBool("referencesSupersedeLowerVersions", options.ReferencesSupersedeLowerVersions);
-            WriteBool("reportSuppressedDiagnostics", options.ReportSuppressedDiagnostics);
-            WriteEnum("nullableContextOptions", options.NullableContextOptions);
+            Writer.Write("cryptoKeyFile", options.CryptoKeyFile);
+            Writer.Write("delaySign", options.DelaySign);
+            Writer.Write("publicSign", options.PublicSign);
+            Writer.Write("checkOverflow", options.CheckOverflow);
+            Writer.Write("platform", options.Platform);
+            Writer.Write("optimizationLevel", options.OptimizationLevel);
+            Writer.Write("generalDiagnosticOption", options.GeneralDiagnosticOption);
+            Writer.Write("warningLevel", options.WarningLevel);
+            Writer.Write("deterministic", options.Deterministic);
+            Writer.Write("debugPlusMode", options.DebugPlusMode);
+            Writer.Write("referencesSupersedeLowerVersions", options.ReferencesSupersedeLowerVersions);
+            Writer.Write("reportSuppressedDiagnostics", options.ReportSuppressedDiagnostics);
+            Writer.Write("nullableContextOptions", options.NullableContextOptions);
 
             if (options.SpecificDiagnosticOptions.Count > 0)
             {
@@ -412,7 +366,7 @@ namespace Microsoft.CodeAnalysis
                 foreach (var kvp in options.SpecificDiagnosticOptions)
                 {
                     Writer.WriteObjectStart();
-                    WriteEnum(kvp.Key, kvp.Value);
+                    Writer.Write(kvp.Key, kvp.Value);
                     Writer.WriteObjectEnd();
                 }
                 Writer.WriteArrayEnd();
@@ -445,10 +399,10 @@ namespace Microsoft.CodeAnalysis
 
         protected virtual void WriteParseOptionsCore(ParseOptions parseOptions)
         {
-            WriteEnum("kind", parseOptions.Kind);
-            WriteEnum("specifiedKind", parseOptions.SpecifiedKind);
-            WriteEnum("documentationMode", parseOptions.DocumentationMode);
-            WriteString("language", parseOptions.Language);
+            Writer.Write("kind", parseOptions.Kind);
+            Writer.Write("specifiedKind", parseOptions.SpecifiedKind);
+            Writer.Write("documentationMode", parseOptions.DocumentationMode);
+            Writer.Write("language", parseOptions.Language);
 
             var features = parseOptions.Features;
             if (features.Count > 0)
@@ -458,7 +412,7 @@ namespace Microsoft.CodeAnalysis
                 foreach (var kvp in features)
                 {
                     Writer.WriteObjectStart();
-                    WriteString(kvp.Key, kvp.Value);
+                    Writer.Write(kvp.Key, kvp.Value);
                     Writer.WriteObjectEnd();
                 }
                 Writer.WriteArrayEnd();

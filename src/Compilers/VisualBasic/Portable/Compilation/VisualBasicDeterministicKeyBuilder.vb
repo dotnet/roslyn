@@ -19,8 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             MyBase.WriteParseOptionsCore(parseOptions)
 
-            WriteEnum("languageVersion", basicOptions.LanguageVersion)
-            WriteEnum("specifiedLanguageVersion", basicOptions.SpecifiedLanguageVersion)
+            Writer.Write("languageVersion", basicOptions.LanguageVersion)
+            Writer.Write("specifiedLanguageVersion", basicOptions.SpecifiedLanguageVersion)
 
             If basicOptions.PreprocessorSymbols.Length > 0 Then
                 Writer.WriteKey("preprocessorSymbols")
@@ -41,20 +41,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New InvalidOperationException()
             End If
 
-            WriteString("rootNamespace", basicOptions.RootNamespace)
-            WriteEnum("optionStrict", basicOptions.OptionStrict)
-            WriteBool("optionInfer", basicOptions.OptionInfer)
-            WriteBool("optionExplicit", basicOptions.OptionExplicit)
-            WriteBool("optionCompareText", basicOptions.OptionCompareText)
-            WriteBool("embedVbCoreRuntime", basicOptions.EmbedVbCoreRuntime)
+            Writer.Write("rootNamespace", basicOptions.RootNamespace)
+            Writer.Write("optionStrict", basicOptions.OptionStrict)
+            Writer.Write("optionInfer", basicOptions.OptionInfer)
+            Writer.Write("optionExplicit", basicOptions.OptionExplicit)
+            Writer.Write("optionCompareText", basicOptions.OptionCompareText)
+            Writer.Write("embedVbCoreRuntime", basicOptions.EmbedVbCoreRuntime)
 
             If basicOptions.GlobalImports.Length > 0 Then
                 Writer.WriteKey("globalImports")
                 Writer.WriteArrayStart()
                 For Each import In basicOptions.GlobalImports
                     Writer.WriteObjectStart()
-                    WriteString("name", import.Name)
-                    WriteBool("isXml", import.IsXmlClause)
+                    Writer.Write("name", import.Name)
+                    Writer.Write("isXml", import.IsXmlClause)
                     Writer.WriteObjectEnd()
                 Next
             End If
