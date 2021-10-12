@@ -5,15 +5,10 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 
 namespace IdeCoreBenchmarks
@@ -21,12 +16,10 @@ namespace IdeCoreBenchmarks
     [MemoryDiagnoser]
     public class RenameBenchmarks
     {
-        private readonly int _iterationCount = 5;
 
-        private Document _document;
         private Solution _solution;
         private ISymbol _symbol;
-        private OptionSet _options;
+        private readonly OptionSet _options;
 
         [GlobalSetup]
         public void GlobalSetup()
@@ -46,10 +39,6 @@ namespace IdeCoreBenchmarks
                 .AddProject(projectId, "ProjectName", "AssemblyName", LanguageNames.CSharp)
                 .AddDocument(documentId, "DocumentName", File.ReadAllText(csFilePath));
 
-            var document = _solution.GetDocument(documentId);
-            var root = document.GetSyntaxRootAsync(CancellationToken.None).Result.WithAdditionalAnnotations(Formatter.Annotation);
-            _solution = _solution.WithDocumentSyntaxRoot(documentId, root);
-            _document = _solution.GetDocument(documentId);
             var project = _solution.Projects.First();
             var compilation = project.GetCompilationAsync().Result;
             _symbol = compilation.GetTypeByMetadataName("Microsoft.CodeAnalysis.CSharp.BoundKind");
