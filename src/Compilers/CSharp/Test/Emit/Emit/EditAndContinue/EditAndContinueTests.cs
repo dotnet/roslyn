@@ -39,6 +39,76 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
 
         [Fact]
+        public void Diagnostics_Nullable()
+        {
+            var source0 = @"
+class C
+{
+    string _str;
+    C(int x) { _str = ""a""; }
+    static string F() => ""a"";
+}
+class D
+{
+    string _str = ""a"";
+}
+[A(""a"")]
+class A : System.Attribute
+{
+    public A(string x = ""a"") {}
+}
+";
+            var source1 = @"
+class C
+{
+    string _str;
+    C(int x) { }
+    static string F() => null;
+}
+class D
+{
+    string _str;
+}
+[A(null)]
+class A : System.Attribute
+{
+    public A(string x = null) {}
+}
+";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll.WithNullableContextOptions(NullableContextOptions.Enable));
+            var compilation1 = compilation0.WithSource(source1);
+
+            var ctorC0 = compilation0.GetMember<NamedTypeSymbol>("C").InstanceConstructors[0];
+            var ctorC1 = compilation1.GetMember<NamedTypeSymbol>("C").InstanceConstructors[0];
+            var ctorD0 = compilation0.GetMember<NamedTypeSymbol>("D").InstanceConstructors[0];
+            var ctorD1 = compilation1.GetMember<NamedTypeSymbol>("D").InstanceConstructors[0];
+            var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var a0 = compilation0.GetMember<NamedTypeSymbol>("A");
+            var a1 = compilation1.GetMember<NamedTypeSymbol>("A");
+
+            using var md0 = ModuleMetadata.CreateFromImage(compilation0.EmitToArray());
+
+            var diff1 = compilation1.EmitDifference(
+                EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider),
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Update, ctorC0, ctorC1),
+                    SemanticEdit.Create(SemanticEditKind.Update, ctorD0, ctorD1),
+                    SemanticEdit.Create(SemanticEditKind.Update, method0, method1),
+                    SemanticEdit.Create(SemanticEditKind.Update, a0, a1)));
+
+            // Nullable diagnostics not reported, except for attribute and default parameter values. 
+            // The compiler doesn't have the necessary emit context when analyzing these.
+            diff1.EmitResult.Diagnostics.Verify(
+                // (12,4): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // [A(null)]
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 4),
+                // (15,25): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     public A(string x = null) {}
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 25));
+        }
+
+        [Fact]
         public void DeltaHeapsStartWithEmptyItem()
         {
             var source0 =
@@ -7620,7 +7690,7 @@ class C
 
             diff1.VerifySynthesizedMembers(
                 "C.<>o__0#1: {<>p__0}",
-                "C: {<>o__0#1, <>c}",
+                "C: {<>c, <>o__0#1}",
                 "C.<>c: {<>9__0_0, <>9__0_1, <>9__0_2, <>9__0_3#1, <>9__0_4#1, <>9__0_3, <>9__0_6#1, <>9__0_4, <>9__0_5, <>9__0_6, <>9__0_10#1, <F>b__0_0, <F>b__0_1, <F>b__0_2, <F>b__0_3#1, <F>b__0_4#1, <F>b__0_3, <F>b__0_6#1, <F>b__0_4, <F>b__0_5, <F>b__0_6, <F>b__0_10#1}",
                 "<>f__AnonymousType4<<<>h__TransparentIdentifier0>j__TPar, <length>j__TPar>: {Equals, GetHashCode, ToString}",
                 "<>f__AnonymousType2<<Value>j__TPar, <Length>j__TPar>: {Equals, GetHashCode, ToString}",
@@ -11921,7 +11991,7 @@ public class Program
                     SemanticEdit.Create(SemanticEditKind.Update, n0, n1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
             diff1.VerifySynthesizedMembers(
-                "Program: {<>c__DisplayClass2_0, <>c}",
+                "Program: {<>c, <>c__DisplayClass2_0}",
                 "Program.<>c__DisplayClass2_0: {x, <N>b__1}",
                 "Program.<>c: {<>9__2_0, <N>b__2_0}");
 
@@ -11993,7 +12063,7 @@ public class Program
 
             diff2.VerifySynthesizedMembers(
                 "Program.<>c__DisplayClass2_0: {x, <N>b__1}",
-                "Program: {<>c__DisplayClass2_0, <>c}",
+                "Program: {<>c, <>c__DisplayClass2_0}",
                 "Program.<>c: {<>9__2_0, <N>b__2_0}");
 
             diff2.VerifyIL("Program.N()", @"

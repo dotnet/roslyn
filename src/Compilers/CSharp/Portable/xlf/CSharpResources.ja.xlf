@@ -747,6 +747,11 @@
         <target state="translated">反復子ブロックを伴うメソッド '{0}' が '{1}' を返すには 'async' でなければなりません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LambdaExplicitReturnTypeVar">
+        <source>The contextual keyword 'var' cannot be used as an explicit lambda return type</source>
+        <target state="new">The contextual keyword 'var' cannot be used as an explicit lambda return type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LambdaWithAttributesToExpressionTree">
         <source>A lambda expression with attributes cannot be converted to an expression tree</source>
         <target state="new">A lambda expression with attributes cannot be converted to an expression tree</target>
@@ -1437,6 +1442,16 @@
         <target state="translated">ラムダ パラメーターに適用しても InterpolatedStringHandlerArgument は効果がありません。呼び出しサイトでは無視されます。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MethGrpToNonDel">
+        <source>Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</source>
+        <target state="new">Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MethGrpToNonDel_Title">
+        <source>Converting method group to non-delegate type</source>
+        <target state="new">Converting method group to non-delegate type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">パラメーター '{1}' が null 以外であるため、パラメーター '{0}' には、終了時に null 以外の値が含まれている必要があります。</target>
@@ -1448,8 +1463,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter">
-        <source>Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
-        <target state="translated">パラメーター リスト内の {1} の後にパラメーター {0} が発生しますが、補間された文字列ハンドラー変換の引数として使用されます。呼び出し元が呼び出しサイトで名前付き引数を使用してパラメーターを並べ替える必要があります。関係するすべての引数の後に、補間された文字列ハンドラーのパラメーターを指定することを検討してください。</target>
+        <source>Parameter '{0}' occurs after '{1}' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
+        <target state="needs-review-translation">パラメーター リスト内の {1} の後にパラメーター {0} が発生しますが、補間された文字列ハンドラー変換の引数として使用されます。呼び出し元が呼び出しサイトで名前付き引数を使用してパラメーターを並べ替える必要があります。関係するすべての引数の後に、補間された文字列ハンドラーのパラメーターを指定することを検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">

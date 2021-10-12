@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     operationContext.UserCancellationToken);
             }
 
-            public IEnumerable<SuggestedActionSet>? GetSuggestedActions(
+            private ImmutableArray<SuggestedActionSet>? GetSuggestedActions(
                 ISuggestedActionCategorySet requestedActionCategories,
                 SnapshotSpan range,
                 IUIThreadOperationContext? operationContext,
@@ -189,16 +189,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     Task.WhenAll(fixesTask, refactoringsTask).WaitAndGetResult(cancellationToken);
 
-                    return ConvertToSuggestedActionSets(state, selection,
+                    return ConvertToSuggestedActionSets(
+                        state, selection,
                         fixesTask.WaitAndGetResult(cancellationToken),
-                        refactoringsTask.WaitAndGetResult(cancellationToken));
+                        refactoringsTask.WaitAndGetResult(cancellationToken),
+                        currentActionCount: 0);
                 }
             }
 
-            protected IEnumerable<SuggestedActionSet> ConvertToSuggestedActionSets(ReferenceCountedDisposable<State> state, TextSpan? selection, ImmutableArray<UnifiedSuggestedActionSet> fixes, ImmutableArray<UnifiedSuggestedActionSet> refactorings)
+            protected ImmutableArray<SuggestedActionSet> ConvertToSuggestedActionSets(
+                ReferenceCountedDisposable<State> state,
+                TextSpan? selection,
+                ImmutableArray<UnifiedSuggestedActionSet> fixes,
+                ImmutableArray<UnifiedSuggestedActionSet> refactorings,
+                int currentActionCount)
             {
-                var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selection);
-                return filteredSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, state.Target.Owner, state.Target.SubjectBuffer)).WhereNotNull();
+                var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selection, currentActionCount);
+                return filteredSets.Select(s => ConvertToSuggestedActionSet(s, state.Target.Owner, state.Target.SubjectBuffer)).WhereNotNull().ToImmutableArray();
             }
 
             [return: NotNullIfNotNull("unifiedSuggestedActionSet")]
@@ -206,22 +213,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 // May be null in cases involving CodeFixSuggestedActions since FixAllFlavors may be null.
                 if (unifiedSuggestedActionSet == null)
-                {
                     return null;
-                }
-
-                using var _ = ArrayBuilder<ISuggestedAction>.GetInstance(out var suggestedActions);
-                foreach (var action in unifiedSuggestedActionSet.Actions)
-                {
-                    suggestedActions.Add(ConvertToSuggestedAction(action));
-                }
 
                 return new SuggestedActionSet(
-                    categoryName: unifiedSuggestedActionSet.CategoryName,
-                    actions: suggestedActions,
-                    title: unifiedSuggestedActionSet.Title,
-                    priority: ConvertToSuggestedActionSetPriority(unifiedSuggestedActionSet.Priority),
-                    applicableToSpan: unifiedSuggestedActionSet.ApplicableToSpan?.ToSpan());
+                    unifiedSuggestedActionSet.CategoryName,
+                    unifiedSuggestedActionSet.Actions.SelectAsArray(set => ConvertToSuggestedAction(set)),
+                    unifiedSuggestedActionSet.Title,
+                    ConvertToSuggestedActionSetPriority(unifiedSuggestedActionSet.Priority),
+                    unifiedSuggestedActionSet.ApplicableToSpan?.ToSpan());
 
                 // Local functions
                 ISuggestedAction ConvertToSuggestedAction(IUnifiedSuggestedAction unifiedSuggestedAction)

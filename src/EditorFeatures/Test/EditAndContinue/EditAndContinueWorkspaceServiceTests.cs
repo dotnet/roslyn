@@ -40,6 +40,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     public sealed partial class EditAndContinueWorkspaceServiceTests : TestBase
     {
         private static readonly TestComposition s_composition = FeaturesTestCompositions.Features;
+        private static readonly Guid s_solutionTelemetryId = Guid.Parse("00000000-AAAA-AAAA-AAAA-000000000000");
+        private static readonly Guid s_defaultProjectTelemetryId = Guid.Parse("00000000-AAAA-AAAA-AAAA-111111111111");
 
         private static readonly ActiveStatementSpanProvider s_noActiveSpans =
             (_, _, _) => new(ImmutableArray<ActiveStatementSpan>.Empty);
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private TestWorkspace CreateWorkspace(out Solution solution, out EditAndContinueWorkspaceService service, Type[] additionalParts = null)
         {
-            var workspace = new TestWorkspace(composition: s_composition.AddParts(additionalParts));
+            var workspace = new TestWorkspace(composition: s_composition.AddParts(additionalParts), solutionTelemetryId: s_solutionTelemetryId);
             solution = workspace.CurrentSolution;
             service = GetEditAndContinueService(workspace);
             return workspace;
@@ -92,8 +94,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             string additionalFileText = null,
             (string key, string value)[] analyzerConfig = null)
         {
+            var projectId = ProjectId.CreateNewId();
+
             var project = solution.
-                AddProject("proj", "proj", LanguageNames.CSharp).
+                AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), "proj", "proj", LanguageNames.CSharp).WithTelemetryId(s_defaultProjectTelemetryId)).GetProject(projectId).
                 WithMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework));
 
             solution = project.Solution;
@@ -619,7 +623,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             AssertEx.Equal(new[]
             {
-                "Debugging_EncSession: SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1"
+                "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1"
             }, _telemetryLog);
         }
 
@@ -689,7 +693,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             AssertEx.Equal(new[]
             {
-                "Debugging_EncSession: SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1"
+                "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1"
             }, _telemetryLog);
         }
 
@@ -859,8 +863,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             {
                 AssertEx.Equal(new[]
                 {
-                    "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31",
+                    "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
+                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31|ProjectsWithAppliedChanges=",
                     "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=ENC1001"
                 }, _telemetryLog);
             }
@@ -868,8 +872,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             {
                 AssertEx.Equal(new[]
                 {
-                    "Debugging_EncSession: SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=False|Capabilities=31",
+                    "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
+                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=False|Capabilities=31|ProjectsWithAppliedChanges=",
                     "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=ENC1001"
                 }, _telemetryLog);
             }
@@ -926,7 +930,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             AssertEx.Equal(new[]
             {
-                "Debugging_EncSession: SessionId=1|SessionCount=0|EmptySessionCount=1|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1"
+                "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=1|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1"
             }, _telemetryLog);
         }
 
@@ -985,8 +989,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             AssertEx.Equal(new[]
             {
-                "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
-                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31"
+                "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
+                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectsWithAppliedChanges="
             }, _telemetryLog);
         }
 
@@ -1046,16 +1050,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             {
                 AssertEx.Equal(new[]
                 {
-                    "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31"
+                    "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
+                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectsWithAppliedChanges="
                 }, _telemetryLog);
             }
             else
             {
                 AssertEx.Equal(new[]
                 {
-                    "Debugging_EncSession: SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31"
+                    "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
+                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectsWithAppliedChanges="
                 }, _telemetryLog);
             }
         }
@@ -1121,8 +1125,8 @@ class C1
 
             AssertEx.Equal(new[]
             {
-                "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
-                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31",
+                "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
+                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31|ProjectsWithAppliedChanges=",
                 "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=ENC2016"
             }, _telemetryLog);
         }
@@ -1221,8 +1225,8 @@ class C1
             {
                 AssertEx.Equal(new[]
                 {
-                    "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31",
+                    "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
+                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectsWithAppliedChanges=",
                     "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=20|RudeEditSyntaxKind=8875|RudeEditBlocking=True"
                 }, _telemetryLog);
             }
@@ -1230,8 +1234,8 @@ class C1
             {
                 AssertEx.Equal(new[]
                 {
-                    "Debugging_EncSession: SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31",
+                    "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
+                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectsWithAppliedChanges=",
                     "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=20|RudeEditSyntaxKind=8875|RudeEditBlocking=True"
                 }, _telemetryLog);
             }
@@ -1365,8 +1369,8 @@ class C { int Y => 2; }
             {
                 AssertEx.Equal(new[]
                 {
-                    "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31",
+                    "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
+                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectsWithAppliedChanges=",
                     "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=20|RudeEditSyntaxKind=8875|RudeEditBlocking=True"
                 }, _telemetryLog);
             }
@@ -1374,8 +1378,8 @@ class C { int Y => 2; }
             {
                 AssertEx.Equal(new[]
                 {
-                    "Debugging_EncSession: SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31",
+                    "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
+                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectsWithAppliedChanges=",
                     "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=20|RudeEditSyntaxKind=8875|RudeEditBlocking=True"
                 }, _telemetryLog);
             }
@@ -1525,8 +1529,8 @@ class C { int Y => 2; }
 
             AssertEx.Equal(new[]
             {
-                "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
-                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=True|HadRudeEdits=False|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31"
+                "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
+                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=True|HadRudeEdits=False|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectsWithAppliedChanges="
             }, _telemetryLog);
         }
 
@@ -1572,8 +1576,8 @@ class C { int Y => 2; }
 
             AssertEx.Equal(new[]
             {
-                "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
-                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31",
+                "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
+                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31|ProjectsWithAppliedChanges=",
                 "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=CS0266"
             }, _telemetryLog);
         }
@@ -1932,8 +1936,8 @@ class G
 
             AssertEx.Equal(new[]
             {
-                "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
-                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31",
+                "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
+                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31|ProjectsWithAppliedChanges=",
                 "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=CS8055"
             }, _telemetryLog);
         }
@@ -2343,16 +2347,16 @@ class G
             {
                 AssertEx.Equal(new[]
                 {
-                    $"Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount={(commitUpdate ? 3 : 2)}",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31",
+                    $"Debugging_EncSession: SolutionSessionId={{00000000-AAAA-AAAA-AAAA-000000000000}}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount={(commitUpdate ? 3 : 2)}",
+                    $"Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectsWithAppliedChanges={(commitUpdate ? "{00000000-AAAA-AAAA-AAAA-111111111111}" : "")}",
                 }, _telemetryLog);
             }
             else
             {
                 AssertEx.Equal(new[]
                 {
-                    $"Debugging_EncSession: SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount={(commitUpdate ? 1 : 0)}",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31"
+                    $"Debugging_EncSession: SolutionSessionId={{00000000-AAAA-AAAA-AAAA-000000000000}}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount={(commitUpdate ? 1 : 0)}",
+                    $"Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectsWithAppliedChanges={(commitUpdate ? "{00000000-AAAA-AAAA-AAAA-111111111111}" : "")}"
                 }, _telemetryLog);
             }
         }
@@ -3033,8 +3037,8 @@ class C { int Y => 1; }
 
             AssertEx.Equal(new[]
             {
-                "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
-                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31",
+                "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
+                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31|ProjectsWithAppliedChanges=",
                 "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=ENC1001"
             }, _telemetryLog);
         }

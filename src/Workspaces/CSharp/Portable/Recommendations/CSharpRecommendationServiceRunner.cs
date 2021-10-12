@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
         {
             if (_context.IsGlobalStatementContext)
             {
-                // Script and interactive
+                // Script, interactive, or top-level statement
                 return GetSymbolsForGlobalStatementContext();
             }
             else if (_context.IsAnyExpressionContext ||
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 position >= token.Span.End)
             {
                 var compUnit = (CompilationUnitSyntax)syntaxTree.GetRoot(_cancellationToken);
-                if (compUnit.Usings.Count > 0 && compUnit.Usings.Last().GetLastToken() == token)
+                if (compUnit.Usings.Count > 0 && compUnit.Usings.Last().SemicolonToken == token)
                 {
                     token = token.GetNextToken(includeZeroWidth: true);
                 }

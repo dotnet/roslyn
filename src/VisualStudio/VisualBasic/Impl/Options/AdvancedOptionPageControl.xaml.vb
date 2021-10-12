@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
+Imports Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 Imports Microsoft.CodeAnalysis.Editor.Options
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
@@ -45,6 +46,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Background_analysis_scope_active_file, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.ActiveFile, LanguageNames.VisualBasic)
             BindToOption(Background_analysis_scope_open_files, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.OpenFilesAndProjects, LanguageNames.VisualBasic)
             BindToOption(Background_analysis_scope_full_solution, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution, LanguageNames.VisualBasic)
+            BindToOption(DisplayDiagnosticsInline, InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.VisualBasic)
+            BindToOption(at_the_end_of_the_line_of_code, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfCode, LanguageNames.VisualBasic)
+            BindToOption(on_the_right_edge_of_the_editor_window, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfCode, LanguageNames.VisualBasic)
             BindToOption(Run_code_analysis_in_separate_process, RemoteHostOptions.OOP64Bit)
             BindToOption(Enable_file_logging_for_diagnostics, InternalDiagnosticsOptions.EnableFileLoggingForDiagnostics)
             BindToOption(Skip_analyzers_for_implicitly_triggered_builds, FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds)
@@ -65,13 +69,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                              ' Having the option still a bool? keeps us from running into storage related issues,
                              ' but if the option was stored as null we want it to respect this default
                              Return False
-                         End Function)
-
-            ' Quick Actions
-            BindToOption(ComputeQuickActionsAsynchronouslyExperimental, SuggestionsOptions.Asynchronous,
-                         Function()
-                             ' If the option has Not been set by the user, check if the option is enabled from experimentation.
-                             Return optionStore.GetOption(SuggestionsOptions.AsynchronousFeatureFlag)
                          End Function)
 
             ' Highlighting
@@ -104,7 +101,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(RenameTrackingPreview, FeatureOnOffOptions.RenameTrackingPreview, LanguageNames.VisualBasic)
             BindToOption(ShowRemarksInQuickInfo, QuickInfoOptions.ShowRemarksInQuickInfo, LanguageNames.VisualBasic)
             BindToOption(Report_invalid_placeholders_in_string_dot_format_calls, ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic)
-            BindToOption(Underline_reassigned_variables, ClassificationOptions.ClassifyReassignedVariables, LanguageNames.VisualBasic)
+            BindToOption(Underline_reassigned_variables, ClassificationOptions.Metadata.ClassifyReassignedVariables, LanguageNames.VisualBasic)
 
             ' Go To Definition
             BindToOption(NavigateToObjectBrowser, VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageNames.VisualBasic)
@@ -144,6 +141,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(ShowHintsForIndexers, InlineHintsOptions.ForIndexerParameters, LanguageNames.VisualBasic)
             BindToOption(SuppressHintsWhenParameterNameMatchesTheMethodsIntent, InlineHintsOptions.SuppressForParametersThatMatchMethodIntent, LanguageNames.VisualBasic)
             BindToOption(SuppressHintsWhenParameterNamesDifferOnlyBySuffix, InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix, LanguageNames.VisualBasic)
+            BindToOption(SuppressHintsWhenParameterNamesMatchArgumentNames, InlineHintsOptions.SuppressForParametersThatMatchArgumentName, LanguageNames.VisualBasic)
 
             BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.VisualBasic,
                          Function()
@@ -176,6 +174,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             ShowHintsForIndexers.IsEnabled = enabledForParameters
             SuppressHintsWhenParameterNameMatchesTheMethodsIntent.IsEnabled = enabledForParameters
             SuppressHintsWhenParameterNamesDifferOnlyBySuffix.IsEnabled = enabledForParameters
+            SuppressHintsWhenParameterNamesMatchArgumentNames.IsEnabled = enabledForParameters
         End Sub
 
         Private Sub DisplayInlineParameterNameHints_Checked()

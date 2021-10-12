@@ -676,7 +676,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitPointerIndirectionOperator(BoundPointerIndirectionOperator expression, bool used)
         {
             EmitExpression(expression.Operand, used: true);
-            EmitLoadIndirect(expression.Type, expression.Syntax);
+            if (!expression.RefersToLocation)
+            {
+                EmitLoadIndirect(expression.Type, expression.Syntax);
+            }
+
             EmitPopIfUnused(used);
         }
 
@@ -2909,7 +2913,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitAsExpression(BoundAsOperator asOp, bool used)
         {
-            Debug.Assert(!asOp.Conversion.Kind.IsImplicitConversion());
+            Debug.Assert(asOp.OperandPlaceholder is null);
+            Debug.Assert(asOp.OperandConversion is null);
 
             var operand = asOp.Operand;
             EmitExpression(operand, used);

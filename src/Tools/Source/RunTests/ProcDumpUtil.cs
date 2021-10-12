@@ -52,6 +52,7 @@ namespace RunTests
 
     internal static class DumpUtil
     {
+#pragma warning disable CA1416 // Validate platform compatibility
         internal static void EnableRegistryDumpCollection(string dumpDirectory)
         {
             Debug.Assert(IsAdministrator());
@@ -78,6 +79,7 @@ namespace RunTests
             WindowsPrincipal principal = new WindowsPrincipal(identity);
             return principal.IsInRole(WindowsBuiltInRole.Administrator);
         }
+#pragma warning restore CA1416 // Validate platform compatibility
     }
 
     internal static class ProcDumpUtil

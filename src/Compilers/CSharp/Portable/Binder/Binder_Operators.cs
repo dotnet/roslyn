@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 left = BindToTypeForErrorRecovery(left);
                 right = BindToTypeForErrorRecovery(right);
                 return new BoundCompoundAssignmentOperator(node, BinaryOperatorSignature.Error, left, right,
-                    Conversion.NoConversion, Conversion.NoConversion, LookupResultKind.Empty, CreateErrorType(), hasErrors: true);
+                    leftPlaceholder: null, leftConversion: null, finalPlaceholder: null, finalConversion: null, LookupResultKind.Empty, CreateErrorType(), hasErrors: true);
             }
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
@@ -59,8 +59,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     left = BindToNaturalType(left, diagnostics);
                     right = BindToNaturalType(right, diagnostics);
-                    var finalDynamicConversion = this.Compilation.Conversions.ClassifyConversionFromExpression(right, left.Type, ref useSiteInfo);
+                    var placeholder = new BoundValuePlaceholder(right.Syntax, left.HasDynamicType() ? left.Type : right.Type).MakeCompilerGenerated();
+                    var finalDynamicConversion = this.Compilation.Conversions.ClassifyConversionFromExpression(placeholder, left.Type, ref useSiteInfo);
                     diagnostics.Add(node, useSiteInfo);
+                    var conversion = (BoundConversion)CreateConversion(node, placeholder, finalDynamicConversion, isCast: true, conversionGroupOpt: null, left.Type, diagnostics);
+
+                    conversion = conversion.Update(conversion.Operand, conversion.Conversion, conversion.IsBaseConversion, conversion.Checked,
+                                                   explicitCastInCode: true, conversion.ConstantValueOpt, conversion.ConversionGroupOpt, conversion.Type);
 
                     return new BoundCompoundAssignmentOperator(
                         node,
@@ -71,8 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Compilation.DynamicType),
                         left,
                         right,
-                        Conversion.NoConversion,
-                        finalDynamicConversion,
+                        leftPlaceholder: null, leftConversion: null,
+                        finalPlaceholder: placeholder,
+                        finalConversion: conversion,
                         LookupResultKind.Viable,
                         left.Type,
                         hasErrors: false);
@@ -85,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     left = BindToTypeForErrorRecovery(left);
                     right = BindToTypeForErrorRecovery(right);
                     return new BoundCompoundAssignmentOperator(node, BinaryOperatorSignature.Error, left, right,
-                        Conversion.NoConversion, Conversion.NoConversion, LookupResultKind.Empty, CreateErrorType(), hasErrors: true);
+                        leftPlaceholder: null, leftConversion: null, finalPlaceholder: null, finalConversion: null, LookupResultKind.Empty, CreateErrorType(), hasErrors: true);
                 }
             }
 
@@ -99,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 left = BindToTypeForErrorRecovery(left);
                 right = BindToTypeForErrorRecovery(right);
                 return new BoundCompoundAssignmentOperator(node, BinaryOperatorSignature.Error, left, right,
-                    Conversion.NoConversion, Conversion.NoConversion, LookupResultKind.NotAVariable, CreateErrorType(), hasErrors: true);
+                    leftPlaceholder: null, leftConversion: null, finalPlaceholder: null, finalConversion: null, LookupResultKind.NotAVariable, CreateErrorType(), hasErrors: true);
             }
 
             // A compound operator, say, x |= y, is bound as x = (X)( ((T)x) | ((T)y) ). We must determine
@@ -120,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 left = BindToTypeForErrorRecovery(left);
                 right = BindToTypeForErrorRecovery(right);
                 return new BoundCompoundAssignmentOperator(node, BinaryOperatorSignature.Error, left, right,
-                    Conversion.NoConversion, Conversion.NoConversion, resultKind, originalUserDefinedOperators, CreateErrorType(), hasErrors: true);
+                    leftPlaceholder: null, leftConversion: null, finalPlaceholder: null, finalConversion: null, resultKind, originalUserDefinedOperators, CreateErrorType(), hasErrors: true);
             }
 
             // The rules in the spec for determining additional errors are bit confusing. In particular
@@ -184,23 +190,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression rightConverted = CreateConversion(right, best.RightConversion, bestSignature.RightType, diagnostics);
 
-            var leftType = left.Type;
-            Conversion finalConversion = Conversions.ClassifyConversionFromExpressionType(bestSignature.ReturnType, leftType, ref useSiteInfo);
-
             bool isPredefinedOperator = !bestSignature.Kind.IsUserDefined();
 
-            if (!finalConversion.IsValid || finalConversion.IsExplicit && !isPredefinedOperator)
+            var leftType = left.Type;
+
+            var finalPlaceholder = new BoundValuePlaceholder(node, bestSignature.ReturnType);
+
+            BoundExpression finalConversion = GenerateConversionForAssignment(leftType, finalPlaceholder, diagnostics,
+                            ConversionForAssignmentFlags.CompoundAssignment |
+                            (isPredefinedOperator ? ConversionForAssignmentFlags.PredefinedOperator : ConversionForAssignmentFlags.None));
+
+            if (finalConversion.HasErrors)
             {
                 hasError = true;
-                GenerateImplicitConversionError(diagnostics, this.Compilation, node, finalConversion, bestSignature.ReturnType, leftType);
-            }
-            else
-            {
-                ReportDiagnosticsIfObsolete(diagnostics, finalConversion, node, hasBaseReceiver: false);
-                CheckConstraintLanguageVersionAndRuntimeSupportForConversion(node, finalConversion, diagnostics);
             }
 
-            if (finalConversion.IsExplicit &&
+            if (finalConversion is not BoundConversion final)
+            {
+                Debug.Assert(finalConversion.HasErrors || (object)finalConversion == finalPlaceholder);
+                if ((object)finalConversion != finalPlaceholder)
+                {
+                    finalPlaceholder = null;
+                    finalConversion = null;
+                }
+            }
+            else if (final.Conversion.IsExplicit &&
                 isPredefinedOperator &&
                 !kind.IsShift())
             {
@@ -224,12 +238,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // code path for the diagnostics.  Make sure we don't report success.
             Debug.Assert(left.Kind != BoundKind.EventAccess || hasError);
 
-            Conversion leftConversion = best.LeftConversion;
-            ReportDiagnosticsIfObsolete(diagnostics, leftConversion, node, hasBaseReceiver: false);
-            CheckConstraintLanguageVersionAndRuntimeSupportForConversion(node, leftConversion, diagnostics);
+            var leftPlaceholder = new BoundValuePlaceholder(left.Syntax, leftType).MakeCompilerGenerated();
+            var leftConversion = CreateConversion(node, leftPlaceholder, best.LeftConversion, isCast: false, conversionGroupOpt: null, best.Signature.LeftType, diagnostics);
 
             return new BoundCompoundAssignmentOperator(node, bestSignature, left, rightConverted,
-                leftConversion, finalConversion, resultKind, originalUserDefinedOperators, leftType, hasError);
+                leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, resultKind, originalUserDefinedOperators, leftType, hasError);
         }
 
         /// <summary>
@@ -539,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (leaveUnconvertedIfInterpolatedString
                 && kind == BinaryOperatorKind.Addition
                 && left is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true }
-                && right is BoundUnconvertedInterpolatedString)
+                && right is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true })
             {
                 Debug.Assert(right.Type.SpecialType == SpecialType.System_String);
                 var stringConstant = FoldBinaryOperator(node, BinaryOperatorKind.StringConcatenation, left, right, right.Type, diagnostics);
@@ -712,29 +725,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return convertedBinaryOperator;
             }
 
-            var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
-            BoundBinaryOperator? current = unconvertedBinaryOperator;
+            var result = doRebind(diagnostics, unconvertedBinaryOperator);
+            return result;
 
-            while (current != null)
+            BoundExpression doRebind(BindingDiagnosticBag diagnostics, BoundBinaryOperator? current)
             {
-                Debug.Assert(current.IsUnconvertedInterpolatedStringAddition);
-                stack.Push(current);
-                current = current.Left as BoundBinaryOperator;
+                var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
+                while (current != null)
+                {
+                    Debug.Assert(current.IsUnconvertedInterpolatedStringAddition);
+                    stack.Push(current);
+                    current = current.Left as BoundBinaryOperator;
+                }
+
+                Debug.Assert(stack.Count > 0 && stack.Peek().Left is BoundUnconvertedInterpolatedString);
+
+                BoundExpression? left = null;
+                while (stack.TryPop(out current))
+                {
+                    var right = current.Right switch
+                    {
+                        BoundUnconvertedInterpolatedString s => s,
+                        BoundBinaryOperator b => doRebind(diagnostics, b),
+                        _ => throw ExceptionUtilities.UnexpectedValue(current.Right.Kind)
+                    };
+                    left = BindSimpleBinaryOperator((BinaryExpressionSyntax)current.Syntax, diagnostics, left ?? current.Left, right, leaveUnconvertedIfInterpolatedString: false);
+                }
+
+                Debug.Assert(left != null);
+                Debug.Assert(stack.Count == 0);
+                stack.Free();
+                return left;
             }
-
-            Debug.Assert(stack.Count > 0 && stack.Peek().Left is BoundUnconvertedInterpolatedString);
-
-            BoundExpression? left = null;
-            while (stack.TryPop(out current))
-            {
-                Debug.Assert(current.Right is BoundUnconvertedInterpolatedString);
-                left = BindSimpleBinaryOperator((BinaryExpressionSyntax)current.Syntax, diagnostics, left ?? current.Left, current.Right, leaveUnconvertedIfInterpolatedString: false);
-            }
-
-            Debug.Assert(left != null);
-            Debug.Assert(stack.Count == 0);
-            stack.Free();
-            return left;
         }
 #nullable disable
 
@@ -2151,8 +2173,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     operand,
                     methodOpt: null,
                     constrainedToTypeOpt: null,
-                    Conversion.NoConversion,
-                    Conversion.NoConversion,
+                    operandPlaceholder: null,
+                    operandConversion: null,
+                    resultPlaceholder: null,
+                    resultConversion: null,
                     LookupResultKind.Empty,
                     CreateErrorType(),
                     hasErrors: true);
@@ -2170,8 +2194,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     operand,
                     methodOpt: null,
                     constrainedToTypeOpt: null,
-                    operandConversion: Conversion.NoConversion,
-                    resultConversion: Conversion.NoConversion,
+                    operandPlaceholder: null,
+                    operandConversion: null,
+                    resultPlaceholder: null,
+                    resultConversion: null,
                     resultKind: LookupResultKind.Viable,
                     originalUserDefinedOperatorsOpt: default(ImmutableArray<MethodSymbol>),
                     type: operandType,
@@ -2190,8 +2216,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     operand,
                     methodOpt: null,
                     constrainedToTypeOpt: null,
-                    Conversion.NoConversion,
-                    Conversion.NoConversion,
+                    operandPlaceholder: null,
+                    operandConversion: null,
+                    resultPlaceholder: null,
+                    resultConversion: null,
                     resultKind,
                     originalUserDefinedOperators,
                     CreateErrorType(),
@@ -2203,20 +2231,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckNativeIntegerFeatureAvailability(signature.Kind, node, diagnostics);
             CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics);
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            var resultConversion = Conversions.ClassifyConversionFromType(signature.ReturnType, operandType, ref useSiteInfo);
-            diagnostics.Add(node, useSiteInfo);
+            var resultPlaceholder = new BoundValuePlaceholder(node, signature.ReturnType).MakeCompilerGenerated();
 
-            bool hasErrors = false;
-            if (!resultConversion.IsImplicit || !resultConversion.IsValid)
+            BoundExpression resultConversion = GenerateConversionForAssignment(operandType, resultPlaceholder, diagnostics, ConversionForAssignmentFlags.IncrementAssignment);
+
+            bool hasErrors = resultConversion.HasErrors;
+
+            if (resultConversion is not BoundConversion)
             {
-                GenerateImplicitConversionError(diagnostics, this.Compilation, node, resultConversion, signature.ReturnType, operandType);
-                hasErrors = true;
-            }
-            else
-            {
-                ReportDiagnosticsIfObsolete(diagnostics, resultConversion, node, hasBaseReceiver: false);
-                CheckConstraintLanguageVersionAndRuntimeSupportForConversion(node, resultConversion, diagnostics);
+                Debug.Assert(hasErrors || (object)resultConversion == resultPlaceholder);
+                if ((object)resultConversion != resultPlaceholder)
+                {
+                    resultPlaceholder = null;
+                    resultConversion = null;
+                }
             }
 
             if (!hasErrors && operandType.IsVoidPointer())
@@ -2225,10 +2253,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            Conversion operandConversion = best.Conversion;
-
-            ReportDiagnosticsIfObsolete(diagnostics, operandConversion, node, hasBaseReceiver: false);
-            CheckConstraintLanguageVersionAndRuntimeSupportForConversion(node, operandConversion, diagnostics);
+            var operandPlaceholder = new BoundValuePlaceholder(operand.Syntax, operand.Type).MakeCompilerGenerated();
+            var operandConversion = CreateConversion(node, operandPlaceholder, best.Conversion, isCast: false, conversionGroupOpt: null, best.Signature.OperandType, diagnostics);
 
             return new BoundIncrementOperator(
                 node,
@@ -2236,7 +2262,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operand,
                 signature.Method,
                 signature.ConstrainedToTypeOpt,
+                operandPlaceholder,
                 operandConversion,
+                resultPlaceholder,
                 resultConversion,
                 resultKind,
                 originalUserDefinedOperators,
@@ -2313,7 +2341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors;
             BindPointerIndirectionExpressionInternal(node, operand, diagnostics, out pointedAtType, out hasErrors);
 
-            return new BoundPointerIndirectionOperator(node, operand, pointedAtType ?? CreateErrorType(), hasErrors);
+            return new BoundPointerIndirectionOperator(node, operand, refersToLocation: false, pointedAtType ?? CreateErrorType(), hasErrors);
         }
 
         private static void BindPointerIndirectionExpressionInternal(CSharpSyntaxNode node, BoundExpression operand, BindingDiagnosticBag diagnostics, out TypeSymbol pointedAtType, out bool hasErrors)
@@ -3093,7 +3121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var targetTypeKind = targetType.TypeKind;
             if (operandHasErrors || IsOperatorErrors(node, operand.Type, typeExpression, diagnostics))
             {
-                return new BoundIsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
+                return new BoundIsOperator(node, operand, typeExpression, ConversionKind.NoConversion, resultType, hasErrors: true);
             }
 
             if (wasUnderscore && ((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeatureRecursivePatterns))
@@ -3130,7 +3158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.WRN_IsAlwaysFalse, node, targetType);
                 Conversion conv = Conversions.ClassifyConversionFromExpression(operand, targetType, ref useSiteInfo);
                 diagnostics.Add(node, useSiteInfo);
-                return new BoundIsOperator(node, operand, typeExpression, conv, resultType);
+                return new BoundIsOperator(node, operand, typeExpression, conv.Kind, resultType);
             }
 
             if (targetTypeKind == TypeKind.Dynamic)
@@ -3153,7 +3181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion = Conversions.ClassifyBuiltInConversion(operandType, targetType, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
             ReportIsOperatorConstantWarnings(node, diagnostics, operandType, targetType, conversion.Kind, operand.ConstantValue);
-            return new BoundIsOperator(node, operand, typeExpression, conversion, resultType);
+            return new BoundIsOperator(node, operand, typeExpression, conversion.Kind, resultType);
 
             bool tryBindAsType(
                 ExpressionSyntax possibleType,
@@ -3494,14 +3522,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.ERR_LambdaInIsAs, node);
                     }
 
-                    return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
+                    return new BoundAsOperator(node, operand, typeExpression, operandPlaceholder: null, operandConversion: null, resultType, hasErrors: true);
 
                 case BoundKind.TupleLiteral:
                 case BoundKind.ConvertedTupleLiteral:
                     if ((object)operand.Type == null)
                     {
                         Error(diagnostics, ErrorCode.ERR_TypelessTupleInAs, node);
-                        return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
+                        return new BoundAsOperator(node, operand, typeExpression, operandPlaceholder: null, operandConversion: null, resultType, hasErrors: true);
                     }
                     break;
             }
@@ -3509,14 +3537,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (operand.HasAnyErrors || targetTypeKind == TypeKind.Error)
             {
                 // If either operand is bad or target type has errors, bail out preventing more cascading errors.
-                return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
+                return new BoundAsOperator(node, operand, typeExpression, operandPlaceholder: null, operandConversion: null, resultType, hasErrors: true);
             }
 
             if (targetType.IsReferenceType && targetTypeWithAnnotations.NullableAnnotation.IsAnnotated())
             {
                 Error(diagnostics, ErrorCode.ERR_AsNullableType, node.Right, targetType);
 
-                return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
+                return new BoundAsOperator(node, operand, typeExpression, operandPlaceholder: null, operandConversion: null, resultType, hasErrors: true);
             }
             else if (!targetType.IsReferenceType && !targetType.IsNullableType())
             {
@@ -3535,7 +3563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_AsMustHaveReferenceType, node, targetType);
                 }
 
-                return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
+                return new BoundAsOperator(node, operand, typeExpression, operandPlaceholder: null, operandConversion: null, resultType, hasErrors: true);
             }
 
             // The C# specification states in the section called
@@ -3552,12 +3580,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.WRN_StaticInAsOrIs, node, targetType);
             }
 
+            BoundValuePlaceholder operandPlaceholder;
+            BoundExpression operandConversion;
+
             if (operand.IsLiteralNull())
             {
                 // We do not want to warn for the case "null as TYPE" where the null
                 // is a literal, because the user might be saying it to cause overload resolution
                 // to pick a particular method
-                return new BoundAsOperator(node, operand, typeExpression, Conversion.NullLiteral, resultType);
+                Debug.Assert(operand.Type is null);
+                operandPlaceholder = new BoundValuePlaceholder(operand.Syntax, operand.Type).MakeCompilerGenerated();
+                operandConversion = CreateConversion(node, operandPlaceholder,
+                                                     Conversion.NullLiteral,
+                                                     isCast: false, conversionGroupOpt: null, resultType, diagnostics);
+
+                return new BoundAsOperator(node, operand, typeExpression, operandPlaceholder, operandConversion, resultType);
             }
 
             if (operand.IsLiteralDefault())
@@ -3575,7 +3612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // operand for an is or as expression cannot be of pointer type
                 Error(diagnostics, ErrorCode.ERR_PointerInAsOrIs, node);
-                return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
+                return new BoundAsOperator(node, operand, typeExpression, operandPlaceholder: null, operandConversion: null, resultType, hasErrors: true);
             }
 
             if (operandTypeKind == TypeKind.Dynamic)
@@ -3596,7 +3633,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion = Conversions.ClassifyBuiltInConversion(operandType, targetType, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
             bool hasErrors = ReportAsOperatorConversionDiagnostics(node, diagnostics, this.Compilation, operandType, targetType, conversion.Kind, operand.ConstantValue);
-            return new BoundAsOperator(node, operand, typeExpression, conversion, resultType, hasErrors);
+
+            if (conversion.Exists)
+            {
+                operandPlaceholder = new BoundValuePlaceholder(operand.Syntax, operand.Type).MakeCompilerGenerated();
+                operandConversion = CreateConversion(node, operandPlaceholder,
+                                                     conversion,
+                                                     isCast: false, conversionGroupOpt: null, resultType, diagnostics);
+            }
+            else
+            {
+                operandPlaceholder = null;
+                operandConversion = null;
+            }
+
+            return new BoundAsOperator(node, operand, typeExpression, operandPlaceholder, operandConversion, resultType, hasErrors);
         }
 
         private static bool ReportAsOperatorConversionDiagnostics(

@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         internal readonly bool ReportDiagnostics;
 
-        private readonly DebuggingSessionTelemetry _telemetry = new();
+        private readonly DebuggingSessionTelemetry _telemetry;
         private readonly EditSessionTelemetry _editSessionTelemetry = new();
 
         private PendingSolutionUpdate? _pendingUpdate;
@@ -105,6 +105,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             _compilationOutputsProvider = compilationOutputsProvider;
             _reportTelemetry = ReportTelemetry;
+            _telemetry = new DebuggingSessionTelemetry(solution.State.SolutionAttributes.TelemetryId);
 
             Id = id;
             DebuggerService = debuggerService;
@@ -582,6 +583,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             LastCommittedSolution.CommitSolution(pendingUpdate.Solution);
 
+            _editSessionTelemetry.LogCommitted();
+
             // Restart edit session with no active statements (switching to run mode).
             RestartEditSession(newNonRemappableRegions, inBreakState: false, out documentsToReanalyze);
         }
@@ -1032,68 +1035,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private static void ReportTelemetry(DebuggingSessionTelemetry.Data data)
         {
             // report telemetry (fire and forget):
-            _ = Task.Run(() => LogTelemetry(data, Logger.Log, LogAggregator.GetNextId));
-        }
-
-        private static void LogTelemetry(DebuggingSessionTelemetry.Data debugSessionData, Action<FunctionId, LogMessage> log, Func<int> getNextId)
-        {
-            const string SessionId = nameof(SessionId);
-            const string EditSessionId = nameof(EditSessionId);
-
-            var debugSessionId = getNextId();
-
-            log(FunctionId.Debugging_EncSession, KeyValueLogMessage.Create(map =>
-            {
-                map[SessionId] = debugSessionId;
-                map["SessionCount"] = debugSessionData.EditSessionData.Count(session => session.InBreakState);
-                map["EmptySessionCount"] = debugSessionData.EmptyEditSessionCount;
-                map["HotReloadSessionCount"] = debugSessionData.EditSessionData.Count(session => !session.InBreakState);
-                map["EmptyHotReloadSessionCount"] = debugSessionData.EmptyHotReloadEditSessionCount;
-            }));
-
-            foreach (var editSessionData in debugSessionData.EditSessionData)
-            {
-                var editSessionId = getNextId();
-
-                log(FunctionId.Debugging_EncSession_EditSession, KeyValueLogMessage.Create(map =>
-                {
-                    map[SessionId] = debugSessionId;
-                    map[EditSessionId] = editSessionId;
-
-                    map["HadCompilationErrors"] = editSessionData.HadCompilationErrors;
-                    map["HadRudeEdits"] = editSessionData.HadRudeEdits;
-                    map["HadValidChanges"] = editSessionData.HadValidChanges;
-                    map["HadValidInsignificantChanges"] = editSessionData.HadValidInsignificantChanges;
-
-                    map["RudeEditsCount"] = editSessionData.RudeEdits.Length;
-                    map["EmitDeltaErrorIdCount"] = editSessionData.EmitErrorIds.Length;
-                    map["InBreakState"] = editSessionData.InBreakState;
-                    map["Capabilities"] = (int)editSessionData.Capabilities;
-                }));
-
-                foreach (var errorId in editSessionData.EmitErrorIds)
-                {
-                    log(FunctionId.Debugging_EncSession_EditSession_EmitDeltaErrorId, KeyValueLogMessage.Create(map =>
-                    {
-                        map[SessionId] = debugSessionId;
-                        map[EditSessionId] = editSessionId;
-                        map["ErrorId"] = errorId;
-                    }));
-                }
-
-                foreach (var (editKind, syntaxKind) in editSessionData.RudeEdits)
-                {
-                    log(FunctionId.Debugging_EncSession_EditSession_RudeEdit, KeyValueLogMessage.Create(map =>
-                    {
-                        map[SessionId] = debugSessionId;
-                        map[EditSessionId] = editSessionId;
-
-                        map["RudeEditKind"] = editKind;
-                        map["RudeEditSyntaxKind"] = syntaxKind;
-                        map["RudeEditBlocking"] = editSessionData.HadRudeEdits;
-                    }));
-                }
-            }
+            _ = Task.Run(() => DebuggingSessionTelemetry.Log(data, Logger.Log, LogAggregator.GetNextId));
         }
 
         internal TestAccessor GetTestAccessor()
@@ -1129,7 +1071,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 => _instance._pendingUpdate;
 
             public void SetTelemetryLogger(Action<FunctionId, LogMessage> logger, Func<int> getNextId)
-                => _instance._reportTelemetry = data => LogTelemetry(data, logger, getNextId);
+                => _instance._reportTelemetry = data => DebuggingSessionTelemetry.Log(data, logger, getNextId);
         }
     }
 }

@@ -747,6 +747,11 @@
         <target state="translated">Die Methode "{0}" mit einem Iteratorblock muss "async" lauten, um "{1}" zurückzugeben.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LambdaExplicitReturnTypeVar">
+        <source>The contextual keyword 'var' cannot be used as an explicit lambda return type</source>
+        <target state="new">The contextual keyword 'var' cannot be used as an explicit lambda return type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LambdaWithAttributesToExpressionTree">
         <source>A lambda expression with attributes cannot be converted to an expression tree</source>
         <target state="new">A lambda expression with attributes cannot be converted to an expression tree</target>
@@ -1437,6 +1442,16 @@
         <target state="translated">Das InterpolatedStringHandlerArgument hat bei Anwendung auf Lambdaparameter keine Auswirkungen und wird am Aufrufstandort ignoriert.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MethGrpToNonDel">
+        <source>Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</source>
+        <target state="new">Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MethGrpToNonDel_Title">
+        <source>Converting method group to non-delegate type</source>
+        <target state="new">Converting method group to non-delegate type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">Der Parameter "{0}" muss beim Beenden einen Wert ungleich NULL aufweisen, weil Parameter "{1}" nicht NULL ist.</target>
@@ -1448,8 +1463,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter">
-        <source>Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
-        <target state="translated">Der Parameter {0} tritt nach {1} in der Parameterliste auf, wird jedoch als Argument für die Handler-Konvertierungen einer interpolierten Zeichenfolge verwendet. Dies erfordert, dass der Aufrufer Parameter mit benannten Argumenten an der Aufrufsite neu anordnen kann. Erwägen Sie, den Handler-Parameter einer interpolierten Zeichenfolge hinter alle beteiligten Argumenten zu platzieren.</target>
+        <source>Parameter '{0}' occurs after '{1}' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
+        <target state="needs-review-translation">Der Parameter {0} tritt nach {1} in der Parameterliste auf, wird jedoch als Argument für die Handler-Konvertierungen einer interpolierten Zeichenfolge verwendet. Dies erfordert, dass der Aufrufer Parameter mit benannten Argumenten an der Aufrufsite neu anordnen kann. Erwägen Sie, den Handler-Parameter einer interpolierten Zeichenfolge hinter alle beteiligten Argumenten zu platzieren.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">

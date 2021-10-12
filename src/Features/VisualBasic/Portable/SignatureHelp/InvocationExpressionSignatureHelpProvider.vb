@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                                  FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
                                  Sort(semanticModel, invocationExpression.SpanStart))
 
-            Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
+            Dim structuralTypeDisplayService = document.GetLanguageService(Of IStructuralTypeDisplayService)()
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
 
             Dim items = New List(Of SignatureHelpItem)
@@ -123,11 +123,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             End If
 
             If expressionType.IsDelegateType() Then
-                items.AddRange(GetDelegateInvokeItems(invocationExpression, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, DirectCast(expressionType, INamedTypeSymbol), cancellationToken))
+                items.AddRange(GetDelegateInvokeItems(invocationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService, DirectCast(expressionType, INamedTypeSymbol), cancellationToken))
             End If
 
             If defaultProperties.Count > 0 Then
-                items.AddRange(GetElementAccessItems(targetExpression, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, within, defaultProperties, cancellationToken))
+                items.AddRange(GetElementAccessItems(targetExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService, within, defaultProperties, cancellationToken))
             End If
 
             Dim textSpan = GetSignatureHelpSpan(invocationExpression.ArgumentList)
