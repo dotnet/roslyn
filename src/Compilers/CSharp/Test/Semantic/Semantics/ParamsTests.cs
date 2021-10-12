@@ -125,13 +125,15 @@ class Program
         F2(""hello"", ""world"");
     }
 }";
-            CompileAndVerify(new[] { source, SpanSource, StackAllocDefinition }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
-@"1
-2
-3
-hello
-world
-");
+            // PROTOTYPE: Should prefer Span or ReadOnlySpan.
+            var comp = CreateCompilation(new[] { source, SpanSource, StackAllocDefinition }, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics(
+                // (10,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(params object[])' and 'Program.F1(params Span<object>)'
+                //         F1(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments("Program.F1(params object[])", "Program.F1(params System.Span<object>)").WithLocation(10, 9),
+                // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(params object[])' and 'Program.F2(params ReadOnlySpan<object>)'
+                //         F2("hello", "world");
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments("Program.F2(params object[])", "Program.F2(params System.ReadOnlySpan<object>)").WithLocation(11, 9));
         }
 
         /// <summary>
