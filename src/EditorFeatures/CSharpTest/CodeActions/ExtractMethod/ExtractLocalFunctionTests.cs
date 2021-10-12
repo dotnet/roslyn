@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod;
@@ -14,6 +12,8 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<
+    Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod.ExtractMethodCodeRefactoringProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.ExtractMethod
 {
@@ -4751,7 +4751,7 @@ class C
             var code = @"
 [|System.Console.WriteLine(""string"");|]
 ";
-            var expected = @"{|Rename:NewMethod|}();
+            var expected = @"NewMethod();
 
 static void NewMethod()
 {
@@ -4759,7 +4759,18 @@ static void NewMethod()
 }
 ";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: 1);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                FixedCode = expected,
+                LanguageVersion = LanguageVersion.CSharp9,
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_local_function),
+            }.RunAsync();
         }
 
         [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
@@ -4777,7 +4788,7 @@ System.Console.WriteLine(x);
             var expected = @"
 System.Console.WriteLine(""string"");
 
-int x = {|Rename:NewMethod|}();
+int x = NewMethod();
 
 System.Console.WriteLine(x);
 
@@ -4788,7 +4799,18 @@ static int NewMethod()
     return x;
 }";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: 1);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                FixedCode = expected,
+                LanguageVersion = LanguageVersion.CSharp9,
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_local_function),
+            }.RunAsync();
         }
 
         [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
@@ -4812,7 +4834,7 @@ using System;
 
 Console.WriteLine(""string"");
 
-int x = {|Rename:NewMethod|}();
+int x = NewMethod();
 
 Console.WriteLine(x);
 
@@ -4826,7 +4848,18 @@ static int NewMethod()
 class Ignored { }
 ";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: 1);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                FixedCode = expected,
+                LanguageVersion = LanguageVersion.CSharp9,
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_local_function),
+            }.RunAsync();
         }
 
         [WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]
@@ -4837,14 +4870,25 @@ class Ignored { }
 System.Console.WriteLine([|""string""|]);
 ";
             var expected = @"
-System.Console.WriteLine({|Rename:NewMethod|}());
+System.Console.WriteLine(NewMethod());
 
 static string NewMethod()
 {
     return ""string"";
 }";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: 1);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                FixedCode = expected,
+                LanguageVersion = LanguageVersion.CSharp9,
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_local_function),
+            }.RunAsync();
         }
 
         [WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]
@@ -4858,7 +4902,7 @@ static string NewMethod()
 ";
             var expected = @"
 {
-    System.Console.WriteLine({|Rename:NewMethod|}());
+    System.Console.WriteLine(NewMethod());
 
     static string NewMethod()
     {
@@ -4867,7 +4911,18 @@ static string NewMethod()
 }
 ";
 
-            await TestInRegularAndScriptAsync(code, expected, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: 1);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                FixedCode = expected,
+                LanguageVersion = LanguageVersion.CSharp9,
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_local_function),
+            }.RunAsync();
         }
 
         [WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]

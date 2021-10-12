@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -13,8 +10,11 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
+using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<
+    Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod.ExtractMethodCodeRefactoringProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.ExtractMethod
 {
@@ -4359,7 +4359,7 @@ interface TestInterface
             var code = @"
 [|System.Console.WriteLine(""string"");|]
 ";
-            var expected = @"{|Rename:NewMethod|}();
+            var expected = @"NewMethod();
 
 void NewMethod()
 {
@@ -4367,7 +4367,21 @@ void NewMethod()
 }
 ";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: 0);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                FixedCode = expected,
+                LanguageVersion = LanguageVersion.CSharp9,
+                CodeActionIndex = 0,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
+
+                // The refactoring produces an unexpected tree currently
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
         }
 
         [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
@@ -4392,12 +4406,26 @@ int NewMethod()
     return x;
 }
 
-int x = {|Rename:NewMethod|}();
+int x = NewMethod();
 
 System.Console.WriteLine(x);
 ";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: 0);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                FixedCode = expected,
+                LanguageVersion = LanguageVersion.CSharp9,
+                CodeActionIndex = 0,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
+
+                // The refactoring produces an unexpected tree currently
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
         }
 
         [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
@@ -4421,20 +4449,42 @@ using System;
 
 Console.WriteLine(""string"");
 
-int x = {|Rename:NewMethod|}();
+int x = NewMethod();
 
 Console.WriteLine(x);
 
 class Ignored { }
 
-int NewMethod()
+{|#0:int NewMethod()
 {
     int x = int.Parse(""0"");
     Console.WriteLine(x);
     return x;
-}";
+}|}";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: 0);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                FixedState =
+                {
+                    Sources = { expected },
+                    ExpectedDiagnostics =
+                    {
+                        // /0/Test0.cs(12,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                        DiagnosticResult.CompilerError("CS8803").WithLocation(0),
+                    },
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+                CodeActionIndex = 0,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
+
+                // The refactoring produces an unexpected tree currently
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
         }
     }
 }
