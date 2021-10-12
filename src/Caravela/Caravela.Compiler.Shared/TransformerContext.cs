@@ -54,6 +54,11 @@ namespace Caravela.Compiler
             {
                 throw new InvalidOperationException("The original compilation does not contain this syntax tree.");
             }
+            
+            if ( oldTree == newTree )
+            {
+                return;
+            }
 
             TrackTreeReplacement(oldTree, newTree);
 
@@ -73,6 +78,11 @@ namespace Caravela.Compiler
 #if !CARAVELA_COMPILER_INTERFACE
             foreach (var transformation in transformations)
             {
+                if (transformation.NewTree != transformation.OldTree)
+                {
+                    continue;
+                }
+                
                 if (transformation.OldTree != null)
                 {
                     TrackTreeReplacement(transformation.OldTree, transformation.NewTree);
