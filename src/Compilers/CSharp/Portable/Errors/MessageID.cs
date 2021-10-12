@@ -328,12 +328,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new CSDiagnosticInfo(ErrorCode.ERR_FeatureIsExperimental, feature.Localize(), requiredFeature);
             }
 
-            // Special string we give to clarify the issue when @$" is used instead of $@".
-            if (feature == MessageID.IDS_FeatureAltInterpolatedVerbatimStrings)
-            {
-                return new CSDiagnosticInfo(ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable, new CSharpRequiredLanguageVersion(feature.RequiredVersion()));
-            }
-
             LanguageVersion requiredVersion = feature.RequiredVersion();
             return requiredVersion == LanguageVersion.Preview.MapSpecifiedToEffectiveVersion()
                 ? new CSDiagnosticInfo(ErrorCode.ERR_FeatureInPreview, feature.Localize())
