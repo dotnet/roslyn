@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (convertedExpression.Type is null && constantValueOpt != ConstantValue.Null)
             {
                 Debug.Assert(hasErrors);
-                convertedExpression = BindToNaturalType(convertedExpression, diagnostics, reportNoTargetType: false);
+                convertedExpression = BindToTypeForErrorRecovery(convertedExpression);
             }
 
             return convertedExpression;

@@ -4727,17 +4727,25 @@ class C
         public void ConstantPattern_02()
         {
             var source = @"
+using System;
+
 class C
 {
-    void M<T>(int x)
+    static void M(int x)
     {
-        if (x is new()) { }
-        if (x is new int()) { }
+        if (x is new()) { Console.Write(1); }
+        if (x is new int()) { Console.Write(2); }
+    }
+
+    static void Main()
+    {
+        M(0);
+        M(1);
     }
 }
 ";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            verifier.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(57088, "https://github.com/dotnet/roslyn/issues/57088")]
