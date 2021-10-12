@@ -1032,7 +1032,7 @@ outerDefault:
         public static bool IsValidParamsParameter(ParameterSymbol final)
         {
             Debug.Assert((object)final == final.ContainingSymbol.GetParameters().Last());
-            return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsSZArray();
+            return final.IsParams && final.Type.IsParamsArrayType(final.DeclaringCompilation);
         }
 
         /// <summary>
@@ -3239,7 +3239,7 @@ outerDefault:
                 var parameter = parameters[parm];
                 var type = parameter.TypeWithAnnotations;
 
-                types.Add(parm == parameters.Length - 1 ? ((ArrayTypeSymbol)type.Type).ElementTypeWithAnnotations : type);
+                types.Add(parm == parameters.Length - 1 ? type.Type.GetParamsArrayElementType() : type);
 
                 var argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
                 var paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, isMethodGroupConversion, allowRefOmittedArguments, binder, ref hasAnyRefOmittedArgument);
