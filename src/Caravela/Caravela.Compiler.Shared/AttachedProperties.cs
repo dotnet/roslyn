@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 
@@ -30,6 +31,11 @@ namespace Caravela.Compiler
 
         public static void Update(SyntaxTree oldTree, SyntaxTree newTree)
         {
+            if (oldTree == newTree)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
             var previous = AttachedProperties.GetOrAdd<SyntaxTree, SyntaxTreeHistory>(oldTree);
             previous._next = newTree;
 
