@@ -92,6 +92,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
                 serverJsonRpc,
                 capabilitiesProvider,
                 lspWorkspaceRegistrationService,
+                new LspMiscellaneousFilesWorkspace(NoOpLspLogger.Instance),
                 globalOptions,
                 listenerProvider,
                 NoOpLspLogger.Instance,

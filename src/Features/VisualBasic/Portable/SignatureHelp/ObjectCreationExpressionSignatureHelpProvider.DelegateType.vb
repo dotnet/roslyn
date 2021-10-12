@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
         Private Shared Function GetDelegateTypeConstructors(objectCreationExpression As ObjectCreationExpressionSyntax,
                                                      semanticModel As SemanticModel,
-                                                     anonymousTypeDisplayService As IAnonymousTypeDisplayService,
+                                                     structuralTypeDisplayService As IStructuralTypeDisplayService,
                                                      documentationCommentFormattingService As IDocumentationCommentFormattingService,
                                                      delegateType As INamedTypeSymbol) As (items As IList(Of SignatureHelpItem), selectedItem As Integer?)
             Dim invokeMethod = delegateType.DelegateInvokeMethod
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim position = objectCreationExpression.SpanStart
             Dim item = CreateItem(
                 invokeMethod, semanticModel, position,
-                anonymousTypeDisplayService,
+                structuralTypeDisplayService,
                 isVariadic:=False,
                 documentationFactory:=invokeMethod.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 prefixParts:=GetDelegateTypePreambleParts(invokeMethod, semanticModel, position),

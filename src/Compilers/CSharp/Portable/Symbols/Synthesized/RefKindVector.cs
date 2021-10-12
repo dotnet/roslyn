@@ -85,14 +85,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             builder.Append("{");
 
             int i = 0;
-            foreach (int byRefIndex in this.Words())
+            foreach (var word in this.Words())
             {
                 if (i > 0)
                 {
                     builder.Append(",");
                 }
 
-                builder.AppendFormat("{0:x8}", byRefIndex);
+                builder.AppendFormat("{0:x8}", word);
                 i++;
             }
 

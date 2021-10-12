@@ -16,7 +16,7 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <OutputType>Library</OutputType>
-    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+    <ApplyNgenOptimization>full</ApplyNgenOptimization>
   </PropertyGroup>
 
   <ItemGroup>
@@ -105,9 +105,6 @@
       These are separate from the _Dependency list as we do not need to always add the package dependency (e.g. private dependencies)
     -->
     <ItemGroup>
-      <_AssemblyVersionVariable Include="RoslynLanguageServerProtocol" Condition="'%(_Dependency.Identity)' == 'Microsoft.VisualStudio.LanguageServer.Protocol'">
-        <Version>%(_Dependency._AssemblyVersion)</Version>
-      </_AssemblyVersionVariable>
       <_AssemblyVersionVariable  Include="Roslyn" Version="$(AssemblyVersion)"/>
     </ItemGroup>
 

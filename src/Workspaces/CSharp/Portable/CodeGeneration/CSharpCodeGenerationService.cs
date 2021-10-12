@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return destination == CodeGenerationDestination.EnumType
                 ? EnumMemberGenerator.GenerateEnumMemberDeclaration(field, null, options)
-                : (SyntaxNode)FieldGenerator.GenerateFieldDeclaration(field, options);
+                : FieldGenerator.GenerateFieldDeclaration(field, options);
         }
 
         public override SyntaxNode CreateMethodDeclaration(
@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override TDeclarationNode UpdateDeclarationType<TDeclarationNode>(TDeclarationNode declaration, ITypeSymbol newType, CodeGenerationOptions options, CancellationToken cancellationToken)
         {
-            if (!(declaration is CSharpSyntaxNode syntaxNode))
+            if (declaration is not CSharpSyntaxNode syntaxNode)
             {
                 return declaration;
             }

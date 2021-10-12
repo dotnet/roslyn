@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _ => throw ExceptionUtilities.UnexpectedValue(node.Operand.Kind)
                     };
 
-                    (ArrayBuilder<BoundExpression> handlerPatternExpressions, BoundLocal handlerLocal) = RewriteToInterpolatedStringHandlerPattern(data, parts, node.Operand.Syntax);
-                    return _factory.Sequence(ImmutableArray.Create(handlerLocal.LocalSymbol), handlerPatternExpressions.ToImmutableAndFree(), handlerLocal);
+                    InterpolationHandlerResult interpolationResult = RewriteToInterpolatedStringHandlerPattern(data, parts, node.Operand.Syntax);
+                    return interpolationResult.WithFinalResult(interpolationResult.HandlerTemp);
                 case ConversionKind.SwitchExpression or ConversionKind.ConditionalExpression:
                     // Skip through target-typed conditionals and switches
                     Debug.Assert(node.Operand is BoundConditionalOperator { WasTargetTyped: true } or BoundConvertedSwitchExpression { WasTargetTyped: true });

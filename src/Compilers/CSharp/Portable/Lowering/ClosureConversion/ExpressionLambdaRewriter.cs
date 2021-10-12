@@ -369,7 +369,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Operand.IsLiteralNull() && (object)node.Operand.Type == null)
             {
                 var operand = _bound.Null(_bound.SpecialType(SpecialType.System_Object));
-                node = node.Update(operand, node.TargetType, node.Conversion, node.Type);
+                Debug.Assert(node.OperandPlaceholder is null);
+                Debug.Assert(node.OperandConversion is null);
+                node = node.Update(operand, node.TargetType, node.OperandPlaceholder, node.OperandConversion, node.Type);
             }
 
             return ExprFactory("TypeAs", Visit(node.Operand), _bound.Typeof(node.Type));

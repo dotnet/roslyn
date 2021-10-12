@@ -589,12 +589,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         /// <summary>
         /// Check if the variable is captured and, if so, add it to this._capturedVariables.
         /// </summary>
         /// <param name="variable">The variable to be checked</param>
         /// <param name="rangeVariableUnderlyingParameter">If variable.Kind is RangeVariable, its underlying lambda parameter. Else null.</param>
-        private void CheckCaptured(Symbol variable, ParameterSymbol rangeVariableUnderlyingParameter = null)
+        private void CheckCaptured(Symbol variable, ParameterSymbol? rangeVariableUnderlyingParameter = null)
         {
             if (CurrentSymbol is SourceMethodSymbol sourceMethod &&
                 Symbol.IsCaptured(rangeVariableUnderlyingParameter ?? variable, sourceMethod))
@@ -602,6 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NoteCaptured(variable);
             }
         }
+#nullable disable
 
         /// <summary>
         /// Add the variable to the captured set. For range variables we only add it if inside the region.

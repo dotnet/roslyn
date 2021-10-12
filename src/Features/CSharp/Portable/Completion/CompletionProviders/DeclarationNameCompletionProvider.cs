@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -108,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return baseNames;
         }
 
-        private static bool IsValidType(ITypeSymbol type)
+        private static bool IsValidType([NotNullWhen(true)] ITypeSymbol? type)
         {
             if (type == null)
             {
@@ -286,9 +285,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         /// </summary>
         private static bool IsRelevantSymbolKind(ISymbol symbol)
         {
-            return symbol.Kind == SymbolKind.Local ||
-                symbol.Kind == SymbolKind.Parameter ||
-                symbol.Kind == SymbolKind.RangeVariable;
+            return symbol.Kind is SymbolKind.Local or
+                SymbolKind.Parameter or
+                SymbolKind.RangeVariable;
         }
 
         private static CompletionItem CreateCompletionItem(string name, Glyph glyph, string sortText)

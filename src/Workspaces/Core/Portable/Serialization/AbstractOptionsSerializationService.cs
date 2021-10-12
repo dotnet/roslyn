@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             cryptoPublicKey = reader.ReadArray<byte>().ToImmutableArrayOrEmpty();
 
-            delaySign = reader.ReadBoolean() ? (bool?)reader.ReadBoolean() : null;
+            delaySign = reader.ReadBoolean() ? reader.ReadBoolean() : null;
 
             platform = (Platform)reader.ReadInt32();
             generalDiagnosticOption = (ReportDiagnostic)reader.ReadInt32();

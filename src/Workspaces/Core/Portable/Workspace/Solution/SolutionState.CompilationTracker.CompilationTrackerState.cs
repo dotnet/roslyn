@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -14,6 +16,82 @@ namespace Microsoft.CodeAnalysis
     {
         private partial class CompilationTracker
         {
+            private readonly struct CompilationTrackerGeneratorInfo
+            {
+                /// <summary>
+                /// The best generated documents we have for the current state. <see cref="DocumentsAreFinal"/>
+                /// specifies whether the documents are to be considered final and can be reused, or whether they're from
+                /// a prior snapshot which needs to be recomputed.
+                /// </summary>
+                public readonly TextDocumentStates<SourceGeneratedDocumentState> Documents;
+
+                /// <summary>
+                /// The <see cref="GeneratorDriver"/> that was used for the last run, to allow for incremental reuse. May
+                /// be null if we don't have generators in the first place, haven't ran generators yet for this project,
+                /// or had to get rid of our driver for some reason.
+                /// </summary>
+                public readonly GeneratorDriver? Driver;
+
+                /// <summary>
+                /// Whether the generated documents in <see cref="Documents"/> are final and should not be regenerated. 
+                /// It's important that once we've ran generators once we don't want to run them again. Once we've ran
+                /// them the first time, those syntax trees are visible from other parts of the Workspaces model; if we
+                /// run them a second time we'd end up with new trees which would confuse our snapshot model -- once the
+                /// tree has been handed out we can't make a second tree later.
+                /// </summary>
+                public readonly bool DocumentsAreFinal;
+
+                /// <summary>
+                /// Whether the generated documents are frozen and generators should never be ran again, ever, even if a document
+                /// is later changed. This is used to ensure that when we produce a frozen solution for partial semantics,
+                /// further downstream forking of that solution won't rerun generators. This is because of two reasons:
+                /// <list type="number">
+                /// <item>Generally once we've produced a frozen solution with partial semantics, we now want speed rather
+                /// than accuracy; a generator running in a later path will still cause issues there.</item>
+                /// <item>The frozen solution with partial semantics makes no guarantee that other syntax trees exist or
+                /// whether we even have references -- it's pretty likely that running a generator might produce worse results
+                /// than what we originally had.</item>
+                /// </list>
+                /// </summary>
+                public readonly bool DocumentsAreFinalAndFrozen;
+
+                public CompilationTrackerGeneratorInfo(
+                    TextDocumentStates<SourceGeneratedDocumentState> documents,
+                    GeneratorDriver? driver,
+                    bool documentsAreFinal,
+                    bool documentsAreFinalAndFrozen = false)
+                {
+                    Documents = documents;
+                    Driver = driver;
+                    DocumentsAreFinal = documentsAreFinal;
+                    DocumentsAreFinalAndFrozen = documentsAreFinalAndFrozen;
+
+                    // If we're frozen, that implies final as well
+                    Contract.ThrowIfTrue(documentsAreFinalAndFrozen && !documentsAreFinal);
+                }
+
+                public CompilationTrackerGeneratorInfo WithDocumentsAreFinal(bool documentsAreFinal)
+                {
+                    // If we're already frozen, then we won't do anything even if somebody calls WithDocumentsAreFinal(false);
+                    // this for example would happen if we had a frozen snapshot, and then we fork it further with additional changes.
+                    // In that case we would be calling WithDocumentsAreFinal(false) to force generators to run again, but if we've
+                    // frozen in partial semantics, we're done running them period. So we'll just keep treating them as final,
+                    // no matter the wishes of the caller.
+                    if (DocumentsAreFinalAndFrozen || DocumentsAreFinal == documentsAreFinal)
+                        return this;
+                    else
+                        return new(Documents, Driver, documentsAreFinal);
+                }
+
+                public CompilationTrackerGeneratorInfo WithDocumentsAreFinalAndFrozen()
+                {
+                    return DocumentsAreFinalAndFrozen ? this : new(Documents, Driver, documentsAreFinal: true, documentsAreFinalAndFrozen: true);
+                }
+
+                public CompilationTrackerGeneratorInfo WithDriver(GeneratorDriver? driver)
+                    => Driver == driver ? this : new(Documents, driver, DocumentsAreFinal, DocumentsAreFinalAndFrozen);
+            }
+
             /// <summary>
             /// The base type of all <see cref="CompilationTracker"/> states. The state of a <see cref="CompilationTracker" />
             /// starts at <see cref="Empty"/>, and then will progress through the other states until it finally reaches
@@ -25,9 +103,10 @@ namespace Microsoft.CodeAnalysis
                 /// The base <see cref="CompilationTrackerState"/> that starts with everything empty.
                 /// </summary>
                 public static readonly CompilationTrackerState Empty = new NoCompilationState(
-                    generatedDocuments: TextDocumentStates<SourceGeneratedDocumentState>.Empty,
-                    generatedDocumentsAreFinal: false,
-                    generatorDriver: null);
+                    new CompilationTrackerGeneratorInfo(
+                        documents: TextDocumentStates<SourceGeneratedDocumentState>.Empty,
+                        driver: null,
+                        documentsAreFinal: false));
 
                 /// <summary>
                 /// The best compilation that is available that source generators have not ran on. May be an in-progress,
@@ -37,26 +116,7 @@ namespace Microsoft.CodeAnalysis
                 /// </summary>
                 public ValueSource<Optional<Compilation>>? CompilationWithoutGeneratedDocuments { get; }
 
-                /// <summary>
-                /// The best generated documents we have for the current state. <see cref="GeneratedDocumentsAreFinal"/> specifies whether the
-                /// documents are to be considered final and can be reused, or whether they're from a prior snapshot which needs to be recomputed.
-                /// </summary>
-                public TextDocumentStates<SourceGeneratedDocumentState> GeneratedDocuments { get; }
-
-                /// <summary>
-                /// The <see cref="GeneratorDriver"/> that was used for the last run, to allow for incremental reuse. May be null
-                /// if we don't have generators in the first place, haven't ran generators yet for this project, or had to get rid of our
-                /// driver for some reason.
-                /// </summary>
-                public GeneratorDriver? GeneratorDriver { get; }
-
-                /// <summary>
-                /// Whether the generated documents in <see cref="GeneratedDocuments"/> are final and should not be regenerated. It's important
-                /// that once we've ran generators once we don't want to run them again. Once we've ran them the first time, those syntax trees
-                /// are visible from other parts of the Workspaces model; if we run them a second time we'd end up with new trees which would
-                /// confuse our snapshot model -- once the tree has been handed out we can't make a second tree later.
-                /// </summary>
-                public bool GeneratedDocumentsAreFinal { get; }
+                public CompilationTrackerGeneratorInfo GeneratorInfo { get; }
 
                 /// <summary>
                 /// Specifies whether <see cref="FinalCompilationWithGeneratedDocuments"/> and all compilations it depends on contain full information or not. This can return
@@ -73,20 +133,30 @@ namespace Microsoft.CodeAnalysis
 
                 protected CompilationTrackerState(
                     ValueSource<Optional<Compilation>>? compilationWithoutGeneratedDocuments,
-                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
-                    GeneratorDriver? generatorDriver,
-                    bool generatedDocumentsAreFinal)
+                    CompilationTrackerGeneratorInfo generatorInfo)
                 {
                     CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
-                    GeneratedDocuments = generatedDocuments;
-                    GeneratorDriver = generatorDriver;
-                    GeneratedDocumentsAreFinal = generatedDocumentsAreFinal;
+                    GeneratorInfo = generatorInfo;
+
+#if DEBUG
+
+                    // As a sanity check, we should never see the generated trees inside of the compilation that should not
+                    // have generated trees.
+                    var compilation = compilationWithoutGeneratedDocuments?.GetValueOrNull();
+
+                    if (compilation != null)
+                    {
+                        foreach (var generatedDocument in generatorInfo.Documents.States.Values)
+                        {
+                            Contract.ThrowIfTrue(compilation.SyntaxTrees.Contains(generatedDocument.GetSyntaxTree(CancellationToken.None)));
+                        }
+                    }
+#endif
                 }
 
                 public static CompilationTrackerState Create(
                     Compilation compilation,
-                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
-                    GeneratorDriver? generatorDriver,
+                    CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? compilationWithGeneratedDocuments,
                     ImmutableArray<ValueTuple<ProjectState, CompilationAndGeneratorDriverTranslationAction>> intermediateProjects)
                 {
@@ -96,8 +166,8 @@ namespace Microsoft.CodeAnalysis
                     // DeclarationState now. We'll pass false for generatedDocumentsAreFinal because this is being called
                     // if our referenced projects are changing, so we'll have to rerun to consume changes.
                     return intermediateProjects.Length == 0
-                        ? new AllSyntaxTreesParsedState(compilation, generatedDocuments, generatorDriver, generatedDocumentsAreFinal: false)
-                        : new InProgressState(compilation, generatedDocuments, generatorDriver, compilationWithGeneratedDocuments, intermediateProjects);
+                        ? new AllSyntaxTreesParsedState(compilation, generatorInfo.WithDocumentsAreFinal(false))
+                        : new InProgressState(compilation, generatorInfo, compilationWithGeneratedDocuments, intermediateProjects);
                 }
 
                 public static ValueSource<Optional<Compilation>> CreateValueSource(
@@ -106,7 +176,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     return services.SupportsCachingRecoverableObjects
                         ? new WeakValueSource<Compilation>(compilation)
-                        : (ValueSource<Optional<Compilation>>)new ConstantValueSource<Optional<Compilation>>(compilation);
+                        : new ConstantValueSource<Optional<Compilation>>(compilation);
                 }
             }
 
@@ -116,11 +186,8 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private sealed class NoCompilationState : CompilationTrackerState
             {
-                public NoCompilationState(
-                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
-                    GeneratorDriver? generatorDriver,
-                    bool generatedDocumentsAreFinal)
-                    : base(compilationWithoutGeneratedDocuments: null, generatedDocuments, generatorDriver, generatedDocumentsAreFinal)
+                public NoCompilationState(CompilationTrackerGeneratorInfo generatorInfo)
+                    : base(compilationWithoutGeneratedDocuments: null, generatorInfo)
                 {
                 }
             }
@@ -147,14 +214,11 @@ namespace Microsoft.CodeAnalysis
 
                 public InProgressState(
                     Compilation inProgressCompilation,
-                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
-                    GeneratorDriver? generatorDriver,
+                    CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? compilationWithGeneratedDocuments,
                     ImmutableArray<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
                     : base(compilationWithoutGeneratedDocuments: new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
-                           generatedDocuments,
-                           generatorDriver,
-                           generatedDocumentsAreFinal: false) // since we have a set of transformations to make, we'll always have to run generators again
+                           generatorInfo.WithDocumentsAreFinal(false)) // since we have a set of transformations to make, we'll always have to run generators again
                 {
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
                     Contract.ThrowIfFalse(intermediateProjects.Length > 0);
@@ -172,13 +236,9 @@ namespace Microsoft.CodeAnalysis
             {
                 public AllSyntaxTreesParsedState(
                     Compilation declarationCompilation,
-                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
-                    GeneratorDriver? generatorDriver,
-                    bool generatedDocumentsAreFinal)
+                    CompilationTrackerGeneratorInfo generatorInfo)
                     : base(new WeakValueSource<Compilation>(declarationCompilation),
-                           generatedDocuments,
-                           generatorDriver,
-                           generatedDocumentsAreFinal)
+                           generatorInfo)
                 {
                 }
             }
@@ -219,19 +279,16 @@ namespace Microsoft.CodeAnalysis
                     ValueSource<Optional<Compilation>> compilationWithoutGeneratedFilesSource,
                     Compilation compilationWithoutGeneratedFiles,
                     bool hasSuccessfullyLoaded,
-                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
-                    GeneratorDriver? generatorDriver,
+                    CompilationTrackerGeneratorInfo generatorInfo,
                     UnrootedSymbolSet unrootedSymbolSet)
                     : base(compilationWithoutGeneratedFilesSource,
-                           generatedDocuments,
-                           generatorDriver: generatorDriver,
-                           generatedDocumentsAreFinal: true) // when we're in a final state, we've ran generators and should not run again
+                          generatorInfo.WithDocumentsAreFinal(true)) // when we're in a final state, we've ran generators and should not run again
                 {
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                     FinalCompilationWithGeneratedDocuments = finalCompilationSource;
                     UnrootedSymbolSet = unrootedSymbolSet;
 
-                    if (GeneratedDocuments.IsEmpty)
+                    if (this.GeneratorInfo.Documents.IsEmpty)
                     {
                         // In this case, the finalCompilationSource and compilationWithoutGeneratedFilesSource should point to the
                         // same Compilation, which should be compilationWithoutGeneratedFiles itself
@@ -248,8 +305,7 @@ namespace Microsoft.CodeAnalysis
                     ValueSource<Optional<Compilation>> compilationWithoutGeneratedFilesSource,
                     Compilation compilationWithoutGeneratedFiles,
                     bool hasSuccessfullyLoaded,
-                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
-                    GeneratorDriver? generatorDriver,
+                    CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation finalCompilation,
                     ProjectId projectId,
                     Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
@@ -265,8 +321,7 @@ namespace Microsoft.CodeAnalysis
                         compilationWithoutGeneratedFilesSource,
                         compilationWithoutGeneratedFiles,
                         hasSuccessfullyLoaded,
-                        generatedDocuments,
-                        generatorDriver,
+                        generatorInfo,
                         unrootedSymbolSet);
                 }
 

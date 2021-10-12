@@ -3647,6 +3647,134 @@ namespace HelloWorld
             Assert.True(firstParens.Contains(e));
         }
 
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_AnonymousMethodExpressionSyntax_AddAsync()
+        {
+            var text = "static delegate(int i) { }";
+            var expression = (AnonymousMethodExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(SyntaxFactory.Token(SyntaxKind.AsyncKeyword).WithTrailingTrivia(SyntaxFactory.Space)).ToString();
+            Assert.Equal("static async delegate(int i) { }", withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_ParenthesizedLambdaExpressionSyntax_AddAsync()
+        {
+            var text = "static (a) => { }";
+            var expression = (ParenthesizedLambdaExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(SyntaxFactory.Token(SyntaxKind.AsyncKeyword).WithTrailingTrivia(SyntaxFactory.Space)).ToString();
+            Assert.Equal("static async (a) => { }", withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_SimpleLambdaExpressionSyntax_AddAsync()
+        {
+            var text = "static a => { }";
+            var expression = (SimpleLambdaExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(SyntaxFactory.Token(SyntaxKind.AsyncKeyword).WithTrailingTrivia(SyntaxFactory.Space)).ToString();
+            Assert.Equal("static async a => { }", withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_AnonymousMethodExpressionSyntax_ReplaceAsync()
+        {
+            var text = "static async/**/delegate(int i) { }";
+            var expression = (AnonymousMethodExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(SyntaxFactory.Token(SyntaxKind.AsyncKeyword).WithTrailingTrivia(SyntaxFactory.Space)).ToString();
+            Assert.Equal("static async delegate(int i) { }", withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_ParenthesizedLambdaExpressionSyntax_ReplaceAsync()
+        {
+            var text = "static async/**/(a) => { }";
+            var expression = (ParenthesizedLambdaExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(SyntaxFactory.Token(SyntaxKind.AsyncKeyword).WithTrailingTrivia(SyntaxFactory.Space)).ToString();
+            Assert.Equal("static async (a) => { }", withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_SimpleLambdaExpressionSyntax_ReplaceAsync()
+        {
+            var text = "static async/**/a => { }";
+            var expression = (SimpleLambdaExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(SyntaxFactory.Token(SyntaxKind.AsyncKeyword).WithTrailingTrivia(SyntaxFactory.Space)).ToString();
+            Assert.Equal("static async a => { }", withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_AnonymousMethodExpressionSyntax_RemoveExistingAsync()
+        {
+            var text = "static async/**/delegate(int i) { }";
+            var expression = (AnonymousMethodExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(default).ToString();
+            Assert.Equal("static delegate(int i) { }", withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_ParenthesizedLambdaExpressionSyntax_RemoveExistingAsync()
+        {
+            var text = "static async (a) => { }";
+            var expression = (ParenthesizedLambdaExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(default).ToString();
+            Assert.Equal("static (a) => { }", withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_SimpleLambdaExpressionSyntax_RemoveExistingAsync()
+        {
+            var text = "static async/**/a => { }";
+            var expression = (SimpleLambdaExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(default).ToString();
+            Assert.Equal("static a => { }", withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_AnonymousMethodExpressionSyntax_RemoveNonExistingAsync()
+        {
+            var text = "static delegate(int i) { }";
+            var expression = (AnonymousMethodExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(default).ToString();
+            Assert.Equal(text, withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_ParenthesizedLambdaExpressionSyntax_RemoveNonExistingAsync()
+        {
+            var text = "static (a) => { }";
+            var expression = (ParenthesizedLambdaExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(default).ToString();
+            Assert.Equal(text, withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_SimpleLambdaExpressionSyntax_RemoveNonExistingAsync()
+        {
+            var text = "static a => { }";
+            var expression = (SimpleLambdaExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(default).ToString();
+            Assert.Equal(text, withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_AnonymousMethodExpressionSyntax_ReplaceAsync_ExistingTwoKeywords()
+        {
+            var text = "static async/*async1*/ async/*async2*/delegate(int i) { }";
+            var expression = (AnonymousMethodExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var newAsync = SyntaxFactory.Token(SyntaxKind.AsyncKeyword).WithTrailingTrivia(SyntaxFactory.Space);
+            var withAsync = expression.WithAsyncKeyword(newAsync).ToString();
+            Assert.Equal("static async async/*async2*/delegate(int i) { }", withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_AnonymousMethodExpressionSyntax_RemoveAllExistingAsync()
+        {
+            var text = "static async/*async1*/ async/*async2*/ delegate(int i) { }";
+            var expression = (AnonymousMethodExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(default);
+            Assert.Equal("static delegate(int i) { }", withAsync.ToString());
+            Assert.Equal(default, withAsync.AsyncKeyword);
+        }
+
         private static void TestWithWindowsAndUnixEndOfLines(string inputText, string expectedText, Action<CompilationUnitSyntax, string> action)
         {
             inputText = inputText.NormalizeLineEndings();
@@ -3662,6 +3790,17 @@ namespace HelloWorld
             {
                 action(SyntaxFactory.ParseCompilationUnit(test.Key), test.Value);
             }
+        }
+
+        [Fact]
+        [WorkItem(56740, "https://github.com/dotnet/roslyn/issues/56740")]
+        public void TestStackAllocKeywordUpdate()
+        {
+            var text = "stackalloc/**/int[50]";
+            var expression = (StackAllocArrayCreationExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var replacedKeyword = SyntaxFactory.Token(SyntaxKind.StackAllocKeyword).WithTrailingTrivia(SyntaxFactory.Space);
+            var newExpression = expression.Update(replacedKeyword, expression.Type).ToString();
+            Assert.Equal("stackalloc int[50]", newExpression);
         }
     }
 }

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>() => this;
 #else
         ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>()
-            => this is TCodeStyleOption ? this : (ICodeStyleOption)new CodeStyleOption<T>(this);
+            => this is TCodeStyleOption ? this : new CodeStyleOption<T>(this);
         ICodeStyleOption ICodeStyleOption.AsPublicCodeStyleOption() => new CodeStyleOption<T>(this);
 #endif
 
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private bool IsZeroOrOneValueOfEnum()
         {
             var intVal = EnumValueAsInt32;
-            return intVal == 0 || intVal == 1;
+            return intVal is 0 or 1;
         }
 
         public static CodeStyleOption2<T> FromXElement(XElement element)
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     // Try to map a boolean value.  Either map it to true/false if we're a 
                     // CodeStyleOption<bool> or map it to the 0 or 1 value for an enum if we're
                     // a CodeStyleOption<SomeEnumType>.
-                    (Func<string, T>)(v => Convert(bool.Parse(v))),
+                    v => Convert(bool.Parse(v)),
                 nameof(Int32) => v => Convert(int.Parse(v)),
                 nameof(String) => v => (T)(object)v,
                 _ => throw new ArgumentException(nameof(type)),

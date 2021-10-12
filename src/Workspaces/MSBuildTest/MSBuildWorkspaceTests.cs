@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             Assert.NotNull(workspace.Services.Workspace);
             Assert.Equal(workspace, workspace.Services.Workspace);
             Assert.NotNull(workspace.Services.HostServices);
-            Assert.NotNull(workspace.Services.PersistentStorage);
             Assert.NotNull(workspace.Services.TemporaryStorage);
             Assert.NotNull(workspace.Services.TextFactory);
         }
@@ -340,7 +339,7 @@ class C1
             var project2 = solution.GetProjectsByName("Project2").First();
             var compilation = await project2.GetCompilationAsync();
             var diagnostics = compilation.GetDiagnostics()
-                .Where(d => d.Severity == DiagnosticSeverity.Error || d.Severity == DiagnosticSeverity.Warning)
+                .Where(d => d.Severity is DiagnosticSeverity.Error or DiagnosticSeverity.Warning)
                 .ToArray();
 
             Assert.Empty(diagnostics);

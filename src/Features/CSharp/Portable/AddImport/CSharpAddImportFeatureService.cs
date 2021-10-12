@@ -150,10 +150,10 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 AncestorOrSelfIsAwaitExpression(syntaxFactsService, node);
 
         protected override bool CanAddImportForGetEnumerator(string diagnosticId, ISyntaxFacts syntaxFactsService, SyntaxNode node)
-            => diagnosticId == CS1579 || diagnosticId == CS8414;
+            => diagnosticId is CS1579 or CS8414;
 
         protected override bool CanAddImportForGetAsyncEnumerator(string diagnosticId, ISyntaxFacts syntaxFactsService, SyntaxNode node)
-            => diagnosticId == CS8411 || diagnosticId == CS8415;
+            => diagnosticId is CS8411 or CS8415;
 
         protected override bool CanAddImportForNamespace(string diagnosticId, SyntaxNode node, out SimpleNameSyntax nameNode)
         {
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
             var namePiece = SyntaxFactory.IdentifierName(part);
             return index == 0
-                ? (NameSyntax)namePiece
+                ? namePiece
                 : SyntaxFactory.QualifiedName(CreateNameSyntax(namespaceParts, index - 1), namePiece);
         }
 
@@ -606,9 +606,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
         protected override bool IsViableExtensionMethod(IMethodSymbol method, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
-            var leftExpression =
-                syntaxFacts.GetExpressionOfMemberAccessExpression(expression) ??
-                syntaxFacts.GetTargetOfMemberBinding(expression);
+            var leftExpression = syntaxFacts.IsMemberAccessExpression(expression)
+                ? syntaxFacts.GetExpressionOfMemberAccessExpression(expression)
+                : syntaxFacts.GetTargetOfMemberBinding(expression);
             if (leftExpression == null)
             {
                 if (expression.IsKind(SyntaxKind.CollectionInitializerExpression))

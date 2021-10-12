@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -3211,7 +3212,7 @@ class C
                 .Select(x => x.Substring(x.IndexOf("//-", StringComparison.Ordinal) + 3).Trim())
                 .ToArray());
 
-            Assert.Equal(expected, results);
+            AssertEx.Equal(expected, results);
         }
 
         private void TestOperatorKinds(string source)
@@ -3240,7 +3241,21 @@ class C
                                               child.Text == "isDynamic" ||
                                               child.Text == "leftConversion" ||
                                               child.Text == "finalConversion"
-                                        select child.Text + ": " + (child.Text == "@operator" ? ((BinaryOperatorSignature)child.Value).Kind.ToString() : child.Value.ToString())));
+                                        select child.Text + ": " +
+                                               (child.Text switch
+                                               {
+                                                   "@operator" => ((BinaryOperatorSignature)child.Value).Kind.ToString(),
+                                                   "leftConversion" or "finalConversion" => (child.Children.SingleOrDefault() is TreeDumperNode node ?
+                                                                                                (node.Text switch
+                                                                                                {
+                                                                                                    "conversion" => node.Children.ElementAt(1).Value,
+                                                                                                    "valuePlaceholder" => Conversion.Identity,
+                                                                                                    _ => throw ExceptionUtilities.UnexpectedValue(node.Text)
+                                                                                                }) :
+                                                                                                Conversion.NoConversion
+                                                                                            ).ToString(),
+                                                   _ => child.Value.ToString()
+                                               })));
         }
 
         private void TestTypes(string source)

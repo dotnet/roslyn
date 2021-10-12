@@ -211,8 +211,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
 
         private static void UpdateCodeAnalysisRuleSetPropertiesInProject(EnvDTE.Project project, string newRuleSetFilePath)
         {
-            if (project.Kind == PrjKind.prjKindCSharpProject ||
-                project.Kind == PrjKind.prjKindVBProject)
+            if (project.Kind is PrjKind.prjKindCSharpProject or
+                PrjKind.prjKindVBProject)
             {
                 var projectFullName = project.FullName;
                 if (!string.IsNullOrWhiteSpace(projectFullName))

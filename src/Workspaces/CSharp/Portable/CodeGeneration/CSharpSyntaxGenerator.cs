@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var modifierList = AsModifierList(accessibility, modifiers, SyntaxKind.OperatorDeclaration);
             var attributes = default(SyntaxList<AttributeListSyntax>);
 
-            if (kind == OperatorKind.ImplicitConversion || kind == OperatorKind.ExplicitConversion)
+            if (kind is OperatorKind.ImplicitConversion or OperatorKind.ExplicitConversion)
             {
                 return SyntaxFactory.ConversionOperatorDeclaration(
                     attributes, modifierList, SyntaxFactory.Token(GetTokenKind(kind)),
@@ -806,7 +806,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     // convert field into property
                     case SyntaxKind.FieldDeclaration:
                         var f = (FieldDeclarationSyntax)member;
-                        SyntaxFacts.GetAccessibilityAndModifiers(f.Modifiers, out acc, out modifiers, out _);
+                        GetAccessibilityAndModifiers(f.Modifiers, out acc, out modifiers, out _);
                         return this.AsInterfaceMember(
                             this.PropertyDeclaration(this.GetName(f), this.ClearTrivia(this.GetType(f)), acc, modifiers, getAccessorStatements: null, setAccessorStatements: null));
 
@@ -1333,12 +1333,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 _ => null,
             };
 
+        private static bool CanHaveAccessibility(SyntaxNode declaration)
+            => CSharpAccessibilityFacts.Instance.CanHaveAccessibility(declaration);
+
         public override Accessibility GetAccessibility(SyntaxNode declaration)
-            => SyntaxFacts.GetAccessibility(declaration);
+            => CSharpAccessibilityFacts.Instance.GetAccessibility(declaration);
+
+        private static void GetAccessibilityAndModifiers(SyntaxTokenList modifierList, out Accessibility accessibility, out DeclarationModifiers modifiers, out bool isDefault)
+            => CSharpAccessibilityFacts.GetAccessibilityAndModifiers(modifierList, out accessibility, out modifiers, out isDefault);
 
         public override SyntaxNode WithAccessibility(SyntaxNode declaration, Accessibility accessibility)
         {
-            if (!SyntaxFacts.CanHaveAccessibility(declaration) &&
+            if (!CanHaveAccessibility(declaration) &&
                 accessibility != Accessibility.NotApplicable)
             {
                 return declaration;
@@ -1346,8 +1352,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return this.Isolate(declaration, d =>
             {
-                var tokens = SyntaxFacts.GetModifierTokens(d);
-                SyntaxFacts.GetAccessibilityAndModifiers(tokens, out _, out var modifiers, out _);
+                var tokens = GetModifierTokens(d);
+                GetAccessibilityAndModifiers(tokens, out _, out var modifiers, out _);
                 var newTokens = Merge(tokens, AsModifierList(accessibility, modifiers));
                 return SetModifierTokens(d, newTokens);
             });
@@ -1524,10 +1530,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override DeclarationModifiers GetModifiers(SyntaxNode declaration)
         {
-            var modifierTokens = SyntaxFacts.GetModifierTokens(declaration);
-            SyntaxFacts.GetAccessibilityAndModifiers(modifierTokens, out _, out var modifiers, out _);
+            var modifierTokens = GetModifierTokens(declaration);
+            GetAccessibilityAndModifiers(modifierTokens, out _, out var modifiers, out _);
             return modifiers;
         }
+
+        private static SyntaxTokenList GetModifierTokens(SyntaxNode declaration)
+            => CSharpAccessibilityFacts.GetModifierTokens(declaration);
 
         public override SyntaxNode WithModifiers(SyntaxNode declaration, DeclarationModifiers modifiers)
             => this.Isolate(declaration, d => this.WithModifiersInternal(d, modifiers));
@@ -1541,8 +1550,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 return this.Isolate(declaration, d =>
                 {
-                    var tokens = SyntaxFacts.GetModifierTokens(d);
-                    SyntaxFacts.GetAccessibilityAndModifiers(tokens, out var accessibility, out var tmp, out _);
+                    var tokens = GetModifierTokens(d);
+                    GetAccessibilityAndModifiers(tokens, out var accessibility, out var tmp, out _);
                     var newTokens = Merge(tokens, AsModifierList(accessibility, modifiers));
                     return SetModifierTokens(d, newTokens);
                 });
@@ -1737,7 +1746,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override DeclarationKind GetDeclarationKind(SyntaxNode declaration)
-            => SyntaxFacts.GetDeclarationKind(declaration);
+            => CSharpAccessibilityFacts.GetDeclarationKind(declaration);
 
         public override string GetName(SyntaxNode declaration)
             => declaration switch
@@ -1940,9 +1949,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 case SyntaxKind.VariableDeclaration:
                     var vd = (VariableDeclarationSyntax)declaration;
-                    if (CSharpSyntaxFacts.ParentIsFieldDeclaration(vd)
-                        || CSharpSyntaxFacts.ParentIsEventFieldDeclaration(vd)
-                        || CSharpSyntaxFacts.ParentIsLocalDeclarationStatement(vd))
+                    if (CSharpAccessibilityFacts.ParentIsFieldDeclaration(vd)
+                        || CSharpAccessibilityFacts.ParentIsEventFieldDeclaration(vd)
+                        || CSharpAccessibilityFacts.ParentIsLocalDeclarationStatement(vd))
                     {
                         return vd.Parent;
                     }
@@ -2008,7 +2017,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 currentList = declaration.IsKind(SyntaxKind.IndexerDeclaration)
                     ? SyntaxFactory.BracketedParameterList()
-                    : (BaseParameterListSyntax)SyntaxFactory.ParameterList();
+                    : SyntaxFactory.ParameterList();
             }
 
             var newList = currentList.WithParameters(currentList.Parameters.InsertRange(index, newParameters.Parameters));
@@ -2023,7 +2032,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode InsertSwitchSections(SyntaxNode switchStatement, int index, IEnumerable<SyntaxNode> switchSections)
         {
-            if (!(switchStatement is SwitchStatementSyntax statement))
+            if (switchStatement is not SwitchStatementSyntax statement)
             {
                 return switchStatement;
             }

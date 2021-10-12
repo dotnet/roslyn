@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -179,7 +180,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// </summary>
         public void ResetOptions()
         {
-            ResetOption(CompletionOptions.EnableArgumentCompletionSnippets);
+            ResetOption(CompletionViewOptions.EnableArgumentCompletionSnippets);
             return;
 
             // Local function
@@ -225,8 +226,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public string? GetWorkingFolder()
         {
-            var service = _visualStudioWorkspace.Services.GetRequiredService<IPersistentStorageLocationService>();
-            return service.TryGetStorageLocation(_visualStudioWorkspace.CurrentSolution);
+            var service = _visualStudioWorkspace.Services.GetRequiredService<IPersistentStorageConfiguration>();
+            return service.TryGetStorageLocation(SolutionKey.ToSolutionKey(_visualStudioWorkspace.CurrentSolution));
         }
     }
 }

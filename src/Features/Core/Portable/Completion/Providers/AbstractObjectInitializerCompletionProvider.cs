@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractObjectInitializerCompletionProvider : LSPCompletionProvider
     {
-        protected abstract Tuple<ITypeSymbol, Location> GetInitializedType(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
+        protected abstract Tuple<ITypeSymbol, Location>? GetInitializedType(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         protected abstract HashSet<string> GetInitializedMembers(SyntaxTree tree, int position, CancellationToken cancellationToken);
         protected abstract string EscapeIdentifier(ISymbol symbol);
 
@@ -29,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var cancellationToken = context.CancellationToken;
 
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            if (!(GetInitializedType(document, semanticModel, position, cancellationToken) is var (type, initializerLocation)))
+            if (GetInitializedType(document, semanticModel, position, cancellationToken) is not var (type, initializerLocation))
             {
                 return;
             }
@@ -50,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var enclosing = semanticModel.GetEnclosingNamedType(position, cancellationToken);
+            Contract.ThrowIfNull(enclosing);
 
             // Find the members that can be initialized. If we have a NamedTypeSymbol, also get the overridden members.
             IEnumerable<ISymbol> members = semanticModel.LookupSymbols(position, initializedType);

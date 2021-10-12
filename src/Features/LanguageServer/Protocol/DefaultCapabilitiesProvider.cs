@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders)
         {
             _completionProviders = completionProviders
-                .Where(lz => lz.Metadata.Language == LanguageNames.CSharp || lz.Metadata.Language == LanguageNames.VisualBasic)
+                .Where(lz => lz.Metadata.Language is LanguageNames.CSharp or LanguageNames.VisualBasic)
                 .ToImmutableArray();
         }
 
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             var commitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
             var triggerCharacters = _completionProviders.SelectMany(
-                lz => CompletionHandler.GetTriggerCharacters(lz.Value)).Distinct().Select(c => c.ToString()).ToArray();
+                lz => CommonCompletionUtilities.GetTriggerCharacters(lz.Value)).Distinct().Select(c => c.ToString()).ToArray();
 
             capabilities.DefinitionProvider = true;
             capabilities.RenameProvider = true;

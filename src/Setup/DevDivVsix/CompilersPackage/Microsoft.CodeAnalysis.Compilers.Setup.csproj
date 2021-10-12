@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+    <ApplyNgenOptimization>full</ApplyNgenOptimization>
 
     <!-- VS Insertion -->
     <TargetVsixContainerName>Microsoft.CodeAnalysis.Compilers.vsix</TargetVsixContainerName>

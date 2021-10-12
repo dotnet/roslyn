@@ -194,8 +194,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
                 else
                 {
-                    if (x.MethodKind == MethodKind.AnonymousFunction ||
-                        x.MethodKind == MethodKind.LocalFunction)
+                    if (x.MethodKind is MethodKind.AnonymousFunction or
+                        MethodKind.LocalFunction)
                     {
                         // Treat local and anonymous functions just like we do ILocalSymbols.  
                         // They're only equivalent if they have the same location.
@@ -333,6 +333,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 Debug.Assert(GetTypeKind(x) == GetTypeKind(y));
 
                 if (x.IsTupleType != y.IsTupleType)
+                    return false;
+
+                if (x.IsNativeIntegerType != y.IsNativeIntegerType)
                     return false;
 
                 if (x.IsTupleType)

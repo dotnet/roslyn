@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             DebuggingSession debuggingSession,
             ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions,
             EditSessionTelemetry telemetry,
+            AsyncLazy<ActiveStatementsMap>? lazyActiveStatementMap,
             bool inBreakState)
         {
             DebuggingSession = debuggingSession;
@@ -105,9 +106,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Telemetry = telemetry;
             InBreakState = inBreakState;
 
-            BaseActiveStatements = inBreakState ?
+            BaseActiveStatements = lazyActiveStatementMap ?? (inBreakState ?
                 new AsyncLazy<ActiveStatementsMap>(GetBaseActiveStatementsAsync, cacheResult: true) :
-                new AsyncLazy<ActiveStatementsMap>(ActiveStatementsMap.Empty);
+                new AsyncLazy<ActiveStatementsMap>(ActiveStatementsMap.Empty));
 
             Capabilities = new AsyncLazy<EditAndContinueCapabilities>(GetCapabilitiesAsync, cacheResult: true);
             Analyses = new EditAndContinueDocumentAnalysesCache(BaseActiveStatements, Capabilities);
@@ -121,6 +122,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             Debug.Assert(emitResult.Success);
             Debug.Assert(emitResult.Baseline is not null);
+
+            // if there were no changed types then there is nothing to check
+            if (emitResult.ChangedTypes.Length == 0)
+            {
+                return null;
+            }
 
             var capabilities = await Capabilities.GetValueAsync(cancellationToken).ConfigureAwait(false);
             if (!capabilities.HasFlag(EditAndContinueCapabilities.NewTypeDefinition))
@@ -199,16 +206,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var oldProject = oldSolution.GetProject(newProject.Id);
 
-            // When debugging session is started some projects might not have been loaded to the workspace yet. 
-            // We capture the base solution. Edits in files that are in projects that haven't been loaded won't be applied
-            // and will result in source mismatch when the user steps into them.
-            //
-            // TODO (https://github.com/dotnet/roslyn/issues/1204):
-            // hook up the debugger reported error, check that the project has not been loaded and report a better error.
-            // Here, we assume these projects are not modified.
             if (oldProject == null)
             {
                 EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: project not loaded", newProject.Id.DebugName, newProject.Id);
+
+                // TODO (https://github.com/dotnet/roslyn/issues/1204):
+                //
+                // When debugging session is started some projects might not have been loaded to the workspace yet (may be explicitly unloaded by the user).
+                // We capture the base solution. Edits in files that are in projects that haven't been loaded won't be applied
+                // and will result in source mismatch when the user steps into them.
+                //
+                // We can allow project to be added by including all its documents here.
+                // When we analyze these documents later on we'll check if they match the PDB.
+                // If so we can add them to the committed solution and detect further changes.
+                // It might be more efficient though to track added projects separately.
+
                 return;
             }
 
@@ -293,9 +305,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        internal static async IAsyncEnumerable<DocumentId> GetChangedDocumentsAsync(CommittedSolution oldSolution, Project newProject, [EnumeratorCancellation] CancellationToken cancellationToken)
+        internal static async IAsyncEnumerable<DocumentId> GetChangedDocumentsAsync(Project oldProject, Project newProject, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            var oldProject = oldSolution.GetRequiredProject(newProject.Id);
+            Debug.Assert(oldProject.Id == newProject.Id);
 
             if (!newProject.SupportsEditAndContinue() || oldProject.State == newProject.State)
             {
@@ -708,10 +720,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 using var _4 = ArrayBuilder<(ProjectId, ImmutableArray<Diagnostic>)>.GetInstance(out var diagnostics);
                 using var _5 = ArrayBuilder<Document>.GetInstance(out var changedOrAddedDocuments);
                 using var _6 = ArrayBuilder<(DocumentId, ImmutableArray<RudeEditDiagnostic>)>.GetInstance(out var documentsWithRudeEdits);
+                Diagnostic? syntaxError = null;
 
                 var oldSolution = DebuggingSession.LastCommittedSolution;
 
                 var isBlocked = false;
+                var hasEmitErrors = false;
                 foreach (var newProject in solution.Projects)
                 {
                     await PopulateChangedAndAddedDocumentsAsync(oldSolution, newProject, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false);
@@ -728,7 +742,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // Bail before analyzing documents as the analysis needs to read the PDB which will likely fail if we can't even read the MVID.
                         diagnostics.Add((newProject.Id, ImmutableArray.Create(mvidReadError)));
 
-                        Telemetry.LogProjectAnalysisSummary(ProjectAnalysisSummary.ValidChanges, ImmutableArray.Create(mvidReadError.Descriptor.Id), InBreakState);
+                        Telemetry.LogProjectAnalysisSummary(ProjectAnalysisSummary.ValidChanges, newProject.State.ProjectInfo.Attributes.TelemetryId, ImmutableArray.Create(mvidReadError.Descriptor.Id), InBreakState);
                         isBlocked = true;
                         continue;
                     }
@@ -738,10 +752,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}' [0x{1:X8}]: project not built", newProject.Id.DebugName, newProject.Id);
                         continue;
                     }
-
-                    // PopulateChangedAndAddedDocumentsAsync returns no changes if base project does not exist
-                    var oldProject = oldSolution.GetProject(newProject.Id);
-                    Contract.ThrowIfNull(oldProject);
 
                     // Ensure that all changed documents are in-sync. Once a document is in-sync it can't get out-of-sync.
                     // Therefore, results of further computations based on base snapshots of changed documents can't be invalidated by 
@@ -783,6 +793,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var projectSummary = GetProjectAnalysisSymmary(changedDocumentAnalyses);
                     if (projectSummary == ProjectAnalysisSummary.CompilationErrors)
                     {
+                        // only remember the first syntax error we encounter:
+                        syntaxError ??= changedDocumentAnalyses.FirstOrDefault(a => a.SyntaxError != null)?.SyntaxError;
                         isBlocked = true;
                     }
                     else if (projectSummary == ProjectAnalysisSummary.RudeEdits)
@@ -801,7 +813,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (isModuleEncBlocked || projectSummary != ProjectAnalysisSummary.ValidChanges)
                     {
-                        Telemetry.LogProjectAnalysisSummary(projectSummary, moduleDiagnostics.NullToEmpty().SelectAsArray(d => d.Descriptor.Id), InBreakState);
+                        Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, moduleDiagnostics.NullToEmpty().SelectAsArray(d => d.Descriptor.Id), InBreakState);
                         continue;
                     }
 
@@ -812,12 +824,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // Report diagnosics even when the module is never going to be loaded (e.g. in multi-targeting scenario, where only one framework being debugged).
                         // This is consistent with reporting compilation errors - the IDE reports them for all TFMs regardless of what framework the app is running on.
                         diagnostics.Add((newProject.Id, createBaselineDiagnostics));
-                        Telemetry.LogProjectAnalysisSummary(projectSummary, createBaselineDiagnostics, InBreakState);
+                        Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, createBaselineDiagnostics, InBreakState);
                         isBlocked = true;
                         continue;
                     }
 
                     EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}' [0x{1:X8}]", newProject.Id.DebugName, newProject.Id);
+
+                    // PopulateChangedAndAddedDocumentsAsync returns no changes if base project does not exist
+                    var oldProject = oldSolution.GetProject(newProject.Id);
+                    Contract.ThrowIfNull(oldProject);
 
                     var oldCompilation = await oldProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -896,7 +912,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     else
                     {
                         // error
-                        isBlocked = true;
+                        isBlocked = hasEmitErrors = true;
                     }
 
                     // TODO: https://github.com/dotnet/roslyn/issues/36061
@@ -911,7 +927,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         diagnostics.Add((newProject.Id, emitResult.Diagnostics));
                     }
 
-                    Telemetry.LogProjectAnalysisSummary(projectSummary, emitResult.Diagnostics, InBreakState);
+                    Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, emitResult.Diagnostics, InBreakState);
                 }
 
                 // log capabilities for edit sessions with changes or reported errors:
@@ -921,7 +937,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 var update = isBlocked ?
-                    SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable()) :
+                    SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable(), syntaxError, hasEmitErrors) :
                     new SolutionUpdate(
                         new ManagedModuleUpdates(
                             (deltas.Count > 0) ? ManagedModuleUpdateStatus.Ready : ManagedModuleUpdateStatus.None,
@@ -929,7 +945,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         nonRemappableRegions.ToImmutable(),
                         emitBaselines.ToImmutable(),
                         diagnostics.ToImmutable(),
-                        documentsWithRudeEdits.ToImmutable());
+                        documentsWithRudeEdits.ToImmutable(),
+                        syntaxError);
 
                 return update;
             }

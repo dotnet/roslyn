@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 // If replacing the node will result in a broken assignment expression, we won't remove it.
                 return ReplacementBreaksAssignmentExpression(assignment, (AssignmentExpressionSyntax)currentReplacedNode);
             }
-            else if (currentOriginalNode is SelectOrGroupClauseSyntax || currentOriginalNode is OrderingSyntax)
+            else if (currentOriginalNode is SelectOrGroupClauseSyntax or OrderingSyntax)
             {
                 return !SymbolsAreCompatible(currentOriginalNode, currentReplacedNode);
             }
@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 SyntaxKind.InvocationExpression => ((InvocationExpressionSyntax)expression).ArgumentList,
                 SyntaxKind.ObjectCreationExpression => ((ObjectCreationExpressionSyntax)expression).ArgumentList,
                 SyntaxKind.ElementAccessExpression => ((ElementAccessExpressionSyntax)expression).ArgumentList,
-                _ => (BaseArgumentListSyntax)null,
+                _ => null,
             };
         }
 

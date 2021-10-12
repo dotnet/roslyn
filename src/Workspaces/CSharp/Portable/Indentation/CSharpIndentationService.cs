@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             Contract.ThrowIfNull(root);
 
             token = default;
-            if (!optionSet.GetOption(FormattingOptions.AutoFormattingOnReturn, LanguageNames.CSharp))
+            if (!optionSet.GetOption(FormattingBehaviorOptions.AutoFormattingOnReturn, LanguageNames.CSharp))
             {
                 return false;
             }
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
             private static void ReplaceCaseIndentationRules(List<IndentBlockOperation> list, SyntaxNode node)
             {
-                if (!(node is SwitchSectionSyntax section) || section.Statements.Count == 0)
+                if (node is not SwitchSectionSyntax section || section.Statements.Count == 0)
                 {
                     return;
                 }
