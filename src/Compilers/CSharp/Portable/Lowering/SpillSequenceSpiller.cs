@@ -667,7 +667,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             var operand = VisitExpression(ref builder, node.Operand);
-            return UpdateExpression(builder, node.Update(operand, node.TargetType, node.Conversion, node.Type));
+            Debug.Assert(node.OperandPlaceholder is null);
+            Debug.Assert(node.OperandConversion is null);
+            return UpdateExpression(builder, node.Update(operand, node.TargetType, node.OperandPlaceholder, node.OperandConversion, node.Type));
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
