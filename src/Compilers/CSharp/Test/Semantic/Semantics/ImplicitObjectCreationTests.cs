@@ -4733,8 +4733,9 @@ class C
 {
     static void M(int x)
     {
-        if (x is new()) { Console.Write(1); }
-        if (x is new int()) { Console.Write(2); }
+        Console.Write(x);
+        if (x is new()) { Console.Write(2); }
+        if (x is new int()) { Console.Write(3); }
     }
 
     static void Main()
@@ -4744,7 +4745,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            var verifier = CompileAndVerify(source, expectedOutput: "0231");
             verifier.VerifyDiagnostics();
         }
 
