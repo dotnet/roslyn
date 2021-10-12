@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 _captureNameToSpan = ImmutableDictionary.CreateBuilder<string, TextSpan>();
                 _captureNames = ArrayBuilder<string>.GetInstance();
                 _autoNumber = 1;
+                _recursionDepth = 0;
 
                 _captureNumberToSpan.Add(0, text.IsEmpty ? default : GetSpan(text));
             }
