@@ -1098,7 +1098,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return CreateParamArrayArgument(syntax, paramArrayType, arrayArgs, _compilation, this);
+            if (paramArrayType.IsSZArray())
+            {
+                return CreateParamArrayArgument(syntax, paramArrayType, arrayArgs, _compilation, this);
+            }
+
+            return CreateParamsArraySpan(syntax, paramArrayType, arrayArgs);
         }
 
         private static BoundExpression CreateParamArrayArgument(SyntaxNode syntax,
@@ -1107,7 +1112,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             LocalRewriter? localRewriter)
         {
-
             TypeSymbol int32Type = compilation.GetSpecialType(SpecialType.System_Int32);
             BoundExpression arraySize = MakeLiteral(syntax, ConstantValue.Create(arrayArgs.Length), int32Type, localRewriter);
 
@@ -1117,6 +1121,73 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new BoundArrayInitialization(syntax, arrayArgs) { WasCompilerGenerated = true },
                 paramArrayType)
             { WasCompilerGenerated = true };
+        }
+
+        private BoundExpression CreateParamsArraySpan(
+            SyntaxNode syntax,
+            TypeSymbol paramArrayType,
+            ImmutableArray<BoundExpression> arrayArgs)
+        {
+            // Rewrite as:
+            //    var temp = RuntimeHelpers.StackAlloc<T>(n);
+            //    temp[0] = arrayArgs[0];
+            //    ...
+            //    temp[n - 1] = arrayArgs[n - 1];
+            //    temp
+
+            var stackAllocate = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__StackAlloc_T) as MethodSymbol;
+            var spanGetItem = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__get_Item) as MethodSymbol;
+
+            if (stackAllocate is null || spanGetItem is null)
+            {
+                // PROTOTYPE: Report error.
+                throw new System.NotImplementedException();
+            }
+
+            var elementType = paramArrayType.GetParamsArrayElementType();
+            stackAllocate = stackAllocate.Construct(ImmutableArray.Create(elementType));
+            var spanType = (NamedTypeSymbol)stackAllocate.ReturnType;
+            spanGetItem = spanGetItem.AsMember(spanType);
+
+            var intType = _compilation.GetSpecialType(SpecialType.System_Int32);
+            var allocate = new BoundCall(
+                syntax,
+                null,
+                stackAllocate,
+                ImmutableArray.Create(MakeLiteral(syntax, ConstantValue.Create(arrayArgs.Length), intType, this)),
+                argumentNamesOpt: default,
+                argumentRefKindsOpt: default,
+                isDelegateCall: false,
+                expanded: false,
+                invokedAsExtensionMethod: false,
+                argsToParamsOpt: default,
+                defaultArguments: default,
+                resultKind: LookupResultKind.Viable,
+                type: spanType);
+
+            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
+            var temps = ArrayBuilder<LocalSymbol>.GetInstance();
+
+            var temp = _factory.StoreToTemp(allocate, out var assignment);
+            temps.Add(temp.LocalSymbol);
+            sideEffects.Add(assignment);
+
+            for (int i = 0; i < arrayArgs.Length; i++)
+            {
+                assignment = _factory.AssignmentExpression(
+                    _factory.Call(temp, spanGetItem, MakeLiteral(syntax, ConstantValue.Create(i), intType, this)),
+                    _factory.Convert(elementType.Type, arrayArgs[i]));
+                sideEffects.Add(assignment);
+            }
+
+            // PROTOTYPE: Need to convert to ReadOnlySpan<T> if that is the params array type.
+            // (Span<T> has an implicit conversion operator from Span<T> to ReadOnlySpan<T>.)
+            return new BoundSequence(
+                syntax,
+                temps.ToImmutableAndFree(),
+                sideEffects.ToImmutableAndFree(),
+                temp,
+                temp.Type);
         }
 
         /// <summary>

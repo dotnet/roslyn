@@ -3081,7 +3081,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (paramNum == parameters.Length - 1 && result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
             {
-                type = ((ArrayTypeSymbol)type.Type).ElementTypeWithAnnotations;
+                type = type.Type.GetParamsArrayElementType();
             }
 
             return type;

@@ -515,6 +515,8 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear,
 
+        System_Runtime_CompilerServices_RuntimeHelpers__StackAlloc_T,
+
         Count
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here
