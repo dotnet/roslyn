@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -53,14 +54,32 @@ namespace Microsoft.CodeAnalysis
 
         internal void Reset() => Builder.Length = 0;
 
+        protected void WriteEnum<T>(T value) where T : struct, Enum
+        {
+            Writer.Write(value.ToString());
+        }
+
         protected void WriteEnum<T>(string name, T value) where T : struct, Enum
         {
             Writer.Write(name, value.ToString());
         }
 
+        protected void WriteInt(string name, int? value)
+        {
+            if (value is { } i)
+            {
+                WriteInt(name, i);
+            }
+        }
+
         protected void WriteInt(string name, int value)
         {
             Writer.Write(name, value);
+        }
+
+        protected void WriteUlong(string name, ulong value)
+        {
+            Writer.Write(name, value.ToString());
         }
 
         protected void WriteBool(string name, bool? value)
@@ -297,6 +316,46 @@ namespace Microsoft.CodeAnalysis
                 throw new InvalidOperationException();
             }
             Writer.WriteObjectEnd();
+        }
+
+        internal void WriteEmitOptions(EmitOptions options)
+        {
+            Writer.WriteObjectStart();
+            WriteBool("emitMetadataOnly", options.EmitMetadataOnly);
+            WriteBool("tolerateErrors", options.TolerateErrors);
+            WriteBool("includePrivateMembers", options.IncludePrivateMembers);
+            if (options.InstrumentationKinds.Length > 0)
+            {
+                Writer.WriteArrayStart();
+                foreach (var kind in options.InstrumentationKinds)
+                {
+                    WriteEnum(kind);
+                }
+                Writer.WriteArrayEnd();
+            }
+
+            WriteSubsystemVersion(Writer, options.SubsystemVersion);
+            WriteInt("fileAlignment", options.FileAlignment);
+            WriteBool("highEntropyVirtualAddressSpace", options.HighEntropyVirtualAddressSpace);
+            WriteUlong("baseAddress", options.BaseAddress);
+            WriteEnum("debugInformationFormat", options.DebugInformationFormat);
+            WriteString("outputNameOverride", options.OutputNameOverride);
+            WriteString("pdbFilePath", options.PdbFilePath);
+            WriteString("pdbChecksumAlgorithm", options.PdbChecksumAlgorithm.Name);
+            WriteString("runtimeMetadataVersion", options.RuntimeMetadataVersion);
+            WriteInt("defaultSourceFileEncoding", options.DefaultSourceFileEncoding?.CodePage);
+            WriteInt("fallbackSourceFileEncoding", options.FallbackSourceFileEncoding?.CodePage);
+
+            Writer.WriteObjectEnd();
+
+            static void WriteSubsystemVersion(JsonWriter writer, SubsystemVersion version)
+            {
+                writer.WriteKey("subsystemVersion");
+                writer.WriteObjectStart();
+                writer.Write("major", version.Major);
+                writer.Write("minor", version.Minor);
+                writer.WriteObjectEnd();
+            }
         }
 
         internal void WriteMetadataReferenceProperties(MetadataReferenceProperties properties)

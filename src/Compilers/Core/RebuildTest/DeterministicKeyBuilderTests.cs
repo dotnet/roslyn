@@ -12,6 +12,7 @@ using Newtonsoft;
 using Newtonsoft.Json.Linq;
 using System.Linq;
 using Newtonsoft.Json;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
@@ -110,6 +111,30 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     }
   ]
 }", key, ignoreReferences: true);
+        }
+
+        [Fact]
+        public void EmitOptionsDefault()
+        {
+            var builder = new CSharpDeterministicKeyBuilder(DeterministicKeyOptions.IgnoreToolVersions);
+            builder.WriteEmitOptions(EmitOptions.Default);
+            var key = builder.GetKey();
+            AssertJson(@"
+{
+  ""emitMetadataOnly"": false,
+  ""tolerateErrors"": false,
+  ""includePrivateMembers"": true,
+  ""subsystemVersion"": {
+    ""major"": 0,
+    ""minor"": 0
+  },
+  ""fileAlignment"": 0,
+  ""highEntropyVirtualAddressSpace"": false,
+  ""baseAddress"": ""0"",
+  ""debugInformationFormat"": ""Pdb"",
+  ""pdbChecksumAlgorithm"": ""SHA256""
+}
+", key);
         }
     }
 }
