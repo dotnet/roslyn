@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 // adjust to actual char to read
-                var totalCharsToRead = Math.Min(count, (int)(Length - _position));
+                var totalCharsToRead = Math.Min(count, Length - _position);
                 count = totalCharsToRead;
 
                 var chunkIndex = GetIndexFromPosition(_position);

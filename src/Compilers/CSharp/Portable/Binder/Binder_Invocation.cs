@@ -1026,7 +1026,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             uint receiverValEscapeScope = method.RequiresInstanceReceiver && receiver != null
                 ? receiverRefKind?.IsWritableReference() == true ? GetRefEscape(receiver, LocalScopeDepth) : GetValEscape(receiver, LocalScopeDepth)
                 : Binder.ExternalScope;
-            this.CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics, receiver?.Type, receiverRefKind, receiverValEscapeScope);
+            this.CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics, receiver?.Type, receiverValEscapeScope);
 
             var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
             var argsToParams = methodResult.Result.ArgsToParamsOpt;
@@ -1982,6 +1982,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         private BoundFunctionPointerInvocation BindFunctionPointerInvocation(SyntaxNode node, BoundExpression boundExpression, AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics)
         {
+            boundExpression = BindToNaturalType(boundExpression, diagnostics);
             RoslynDebug.Assert(boundExpression.Type is FunctionPointerTypeSymbol);
 
             var funcPtr = (FunctionPointerTypeSymbol)boundExpression.Type;
@@ -2033,7 +2034,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedArguments.Arguments,
                 diagnostics,
                 receiverType: null,
-                receiverRefKind: null,
                 receiverEscapeScope: Binder.ExternalScope);
 
             var args = analyzedArguments.Arguments.ToImmutable();

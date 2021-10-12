@@ -98,7 +98,7 @@ namespace IdeCoreBenchmarks
             if (storageService == null)
                 throw new ArgumentException("Couldn't get storage service");
 
-            using (var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(_workspace.CurrentSolution), checkBranchId: true, CancellationToken.None))
+            using (var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(_workspace.CurrentSolution), CancellationToken.None))
             {
                 Console.WriteLine("Sucessfully got persistent storage instance");
             }

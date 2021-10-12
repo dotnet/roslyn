@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -17,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
         /// Internal and not readonly so that unit tests can provide an alternative implementation.
         /// </summary>
         internal static IComWrapperFactory s_ComWrapperFactory =
-            PackageUtilities.CreateInstance(typeof(IComWrapperFactory).GUID) as IComWrapperFactory;
+            (IComWrapperFactory)PackageUtilities.CreateInstance(typeof(IComWrapperFactory).GUID);
 
         internal static object CreateAggregatedObject(object managedObject) => s_ComWrapperFactory.CreateAggregatedObject(managedObject);
 
@@ -25,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
         /// Return the RCW for the native IComWrapperFixed instance aggregating "managedObject"
         /// if there is one. Return "null" if "managedObject" is not aggregated.
         /// </summary>
-        internal static IComWrapperFixed TryGetWrapper(object managedObject)
+        internal static IComWrapperFixed? TryGetWrapper(object managedObject)
         {
             // Note: this method should be "return managedObject" once we can get rid of this while IComWrapperFixed
             // business.

@@ -65,6 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected readonly Guid LanguageServiceGuid;
         protected readonly ITextView TextView;
         protected readonly ITextBuffer SubjectBuffer;
+        protected readonly IGlobalOptionService GlobalOptions;
 
         private readonly ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _allArgumentProviders;
         private ImmutableArray<ArgumentProvider> _argumentProviders;
@@ -93,16 +94,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             SignatureHelpControllerProvider signatureHelpControllerProvider,
             IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-            ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders)
+            ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders,
+            IGlobalOptionService globalOptions)
             : base(threadingContext)
         {
-            this.LanguageServiceGuid = languageServiceGuid;
-            this.TextView = textView;
-            this.SubjectBuffer = subjectBuffer;
+            LanguageServiceGuid = languageServiceGuid;
+            TextView = textView;
+            SubjectBuffer = subjectBuffer;
             _signatureHelpControllerProvider = signatureHelpControllerProvider;
             _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
-            this.EditorAdaptersFactoryService = editorAdaptersFactoryService;
+            EditorAdaptersFactoryService = editorAdaptersFactoryService;
             _allArgumentProviders = argumentProviders;
+            GlobalOptions = globalOptions;
         }
 
         /// <inheritdoc cref="State._expansionSession"/>
@@ -516,16 +519,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         private bool TryInsertArgumentCompletionSnippet(SnapshotSpan triggerSpan, SnapshotSpan dataBufferSpan, IVsExpansion expansion, VsTextSpan textSpan, CancellationToken cancellationToken)
         {
-            if (!(SubjectBuffer.GetFeatureOnOffOption(CompletionOptions.EnableArgumentCompletionSnippets) ?? false))
-            {
-                // Argument completion snippets are not enabled
-                return false;
-            }
-
             var document = SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document is null)
             {
                 // Couldn't identify the current document
+                return false;
+            }
+
+            if (!(GlobalOptions.GetOption(CompletionViewOptions.EnableArgumentCompletionSnippets, document.Project.Language) ?? false))
+            {
+                // Argument completion snippets are not enabled
                 return false;
             }
 

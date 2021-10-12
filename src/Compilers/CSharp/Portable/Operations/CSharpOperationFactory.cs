@@ -1072,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             IOperation operand = Create(boundAsOperator.Operand);
             SyntaxNode syntax = boundAsOperator.Syntax;
-            Conversion conversion = boundAsOperator.Conversion;
+            Conversion conversion = BoundNode.GetConversion(boundAsOperator.OperandConversion, boundAsOperator.OperandPlaceholder);
             bool isTryCast = true;
             bool isChecked = false;
             ITypeSymbol? type = boundAsOperator.GetPublicTypeSymbol();
@@ -1227,8 +1227,8 @@ namespace Microsoft.CodeAnalysis.Operations
             IOperation target = Create(boundCompoundAssignmentOperator.Left);
             IOperation value = Create(boundCompoundAssignmentOperator.Right);
             BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundCompoundAssignmentOperator.Operator.Kind);
-            Conversion inConversion = boundCompoundAssignmentOperator.LeftConversion;
-            Conversion outConversion = boundCompoundAssignmentOperator.FinalConversion;
+            Conversion inConversion = BoundNode.GetConversion(boundCompoundAssignmentOperator.LeftConversion, boundCompoundAssignmentOperator.LeftPlaceholder);
+            Conversion outConversion = BoundNode.GetConversion(boundCompoundAssignmentOperator.FinalConversion, boundCompoundAssignmentOperator.FinalPlaceholder);
             bool isLifted = boundCompoundAssignmentOperator.Operator.Kind.IsLifted();
             bool isChecked = boundCompoundAssignmentOperator.Operator.Kind.IsChecked();
             IMethodSymbol operatorMethod = boundCompoundAssignmentOperator.Operator.Method.GetPublicSymbol();
@@ -1434,7 +1434,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol? type = boundNullCoalescingOperator.GetPublicTypeSymbol();
             ConstantValue? constantValue = boundNullCoalescingOperator.ConstantValue;
             bool isImplicit = boundNullCoalescingOperator.WasCompilerGenerated;
-            Conversion valueConversion = boundNullCoalescingOperator.LeftConversion;
+            Conversion valueConversion = BoundNode.GetConversion(boundNullCoalescingOperator.LeftConversion, boundNullCoalescingOperator.LeftPlaceholder);
 
             if (valueConversion.Exists && !valueConversion.IsIdentity &&
                 boundNullCoalescingOperator.Type.Equals(boundNullCoalescingOperator.LeftOperand.Type?.StrippedType(), TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
@@ -1693,8 +1693,8 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                                                                             ref discardedUseSiteInfo).IsImplicit :
                                                                                      false,
                                                     enumeratorInfoOpt.PatternDisposeInfo?.Method.GetPublicSymbol(),
-                                                    enumeratorInfoOpt.CurrentConversion,
-                                                    boundForEachStatement.ElementConversion,
+                                                    BoundNode.GetConversion(enumeratorInfoOpt.CurrentConversion, enumeratorInfoOpt.CurrentPlaceholder),
+                                                    BoundNode.GetConversion(boundForEachStatement.ElementConversion, boundForEachStatement.ElementPlaceholder),
                                                     getEnumeratorArguments: enumeratorInfoOpt.GetEnumeratorInfo is { Method: { IsExtensionMethod: true } } getEnumeratorInfo
                                                         ? Operation.SetParentOperation(
                                                             DeriveArguments(
