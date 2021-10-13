@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -1080,7 +1081,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
                 {
-                    EmitDeterminismKey(compilation, additionalTextFiles, analyzers, generators);
+                    EmitDeterminismKey(compilation, additionalTextFiles, analyzers, generators, Arguments.EmitOptions);
                 }
 
                 AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
@@ -1661,9 +1662,10 @@ namespace Microsoft.CodeAnalysis
             Compilation compilation,
             ImmutableArray<AdditionalText> additionalTexts,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
-            ImmutableArray<ISourceGenerator> generators)
+            ImmutableArray<ISourceGenerator> generators,
+            EmitOptions? emitOptions)
         {
-            var key = compilation.GetDeterministicKey(additionalTexts, analyzers, generators);
+            var key = compilation.GetDeterministicKey(additionalTexts, analyzers, generators, emitOptions);
             var filePath = Path.Combine(Arguments.OutputDirectory, Arguments.OutputFileName + ".key");
             using (var stream = File.Create(filePath))
             {

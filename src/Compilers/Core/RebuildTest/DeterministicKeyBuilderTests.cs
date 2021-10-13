@@ -73,9 +73,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 @"System.Console.WriteLine(""Hello World"");",
                 targetFramework: TargetFramework.NetCoreApp);
 
-            var builder = new CSharpDeterministicKeyBuilder(DeterministicKeyOptions.IgnoreToolVersions);
-            builder.WriteCompilation(compilation);
-            var key = builder.GetKey();
+            var builder = new CSharpDeterministicKeyBuilder();
+            var key = builder.GetKey(compilation, options: DeterministicKeyOptions.IgnoreToolVersions);
             AssertJson(@"
 {
   ""options"": {
@@ -119,9 +118,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [Fact]
         public void EmitOptionsDefault()
         {
-            var builder = new CSharpDeterministicKeyBuilder(DeterministicKeyOptions.IgnoreToolVersions);
-            builder.WriteEmitOptions(EmitOptions.Default);
-            var key = builder.GetKey();
+            var builder = new CSharpDeterministicKeyBuilder();
+            var key = builder.GetKey(EmitOptions.Default);
             AssertJson(@"
 {
   ""emitMetadataOnly"": false,

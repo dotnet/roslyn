@@ -748,7 +748,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function CreateDetermisiticKeyBuilder() As DeterministicKeyBuilder
-            Return New VisualBasicDeterministicKeyBuilder(DeterministicKeyOptions.Default)
+            Return New VisualBasicDeterministicKeyBuilder()
         End Function
 
         Friend Overrides Sub SerializePdbEmbeddedCompilationOptions(builder As BlobBuilder)

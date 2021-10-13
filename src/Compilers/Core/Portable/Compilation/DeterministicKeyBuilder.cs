@@ -11,6 +11,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -38,41 +39,29 @@ namespace Microsoft.CodeAnalysis
     /// </remarks>
     internal abstract class DeterministicKeyBuilder
     {
-        internal StringBuilder Builder { get; } = new StringBuilder();
-        internal StringWriter StringWriter { get; }
-        internal JsonWriter Writer { get; }
-        internal DeterministicKeyOptions Options { get; }
-
-        public DeterministicKeyBuilder(DeterministicKeyOptions options)
+        protected DeterministicKeyBuilder()
         {
-            StringWriter = new StringWriter(Builder);
-            Writer = new JsonWriter(StringWriter);
-            Options = options;
         }
 
-        internal string GetKey() => Builder.ToString();
-
-        internal void Reset() => Builder.Length = 0;
-
-        protected void WriteFileName(string name, string? filePath)
+        protected void WriteFileName(JsonWriter writer, string name, string? filePath, DeterministicKeyOptions options)
         {
-            if (0 != (Options & DeterministicKeyOptions.IgnorePaths))
+            if (0 != (options & DeterministicKeyOptions.IgnorePaths))
             {
                 filePath = Path.GetFileName(filePath);
             }
 
-            Writer.Write(name, filePath);
+            writer.Write(name, filePath);
         }
 
-        protected void WriteByteArray(string name, ImmutableArray<byte> value)
+        protected void WriteByteArrayValue(JsonWriter writer, string name, ImmutableArray<byte> value)
         {
             if (!value.IsDefault)
             {
-                WriteByteArray(name, value.AsSpan());
+                WriteByteArrayValue(writer, name, value.AsSpan());
             }
         }
 
-        protected void WriteByteArray(string name, ReadOnlySpan<byte> value)
+        protected void WriteByteArrayValue(JsonWriter writer, string name, ReadOnlySpan<byte> value)
         {
             if (value.Length > 0)
             {
@@ -81,151 +70,182 @@ namespace Microsoft.CodeAnalysis
                 {
                     builder.Append(b.ToString("x"));
                 }
-                Writer.Write(name, builder.ToString());
+                writer.Write(name, builder.ToString());
             }
         }
 
-        internal void WriteCompilation(Compilation compilation)
+        private (JsonWriter, PooledStringBuilder) CreateWriter()
         {
-            WriteCompilationCore(compilation);
+            var builder = PooledStringBuilder.GetInstance();
+            var writer = new StringWriter(builder);
+            return (new JsonWriter(writer), builder);
         }
 
-        internal void WriteCompilation(
+        internal string GetKey(
             Compilation compilation,
-            ImmutableArray<AdditionalText> additionalTexts,
-            ImmutableArray<DiagnosticAnalyzer> analyzers,
-            ImmutableArray<ISourceGenerator> generators)
+            ImmutableArray<AdditionalText> additionalTexts = default,
+            ImmutableArray<DiagnosticAnalyzer> analyzers = default,
+            ImmutableArray<ISourceGenerator> generators = default,
+            EmitOptions? emitOptions = null,
+            DeterministicKeyOptions options = default)
         {
-            Writer.WriteObjectStart();
-            Writer.WriteKey("compilation");
-            WriteCompilationCore(compilation);
-            Writer.WriteKey("additionalTexts");
+            ensureNotDefault(ref additionalTexts);
+            ensureNotDefault(ref analyzers);
+            ensureNotDefault(ref generators);
+
+            var (writer, builder) = CreateWriter();
+
+            writer.WriteObjectStart();
+
+            writer.WriteKey("compilation");
+            WriteCompilation(writer, compilation, options);
+            writer.WriteKey("additionalTexts");
             writeAdditionalTexts();
-            Writer.WriteKey("analyzers");
+            writer.WriteKey("analyzers");
             writeAnalyzers();
-            Writer.WriteKey("generators");
+            writer.WriteKey("generators");
             writeGenerators();
-            Writer.WriteObjectEnd();
+            writer.WriteKey("emitOptions");
+            WriteEmitOptions(writer, emitOptions);
+
+            writer.WriteObjectEnd();
+
+            return builder.ToStringAndFree();
 
             void writeAdditionalTexts()
             {
-                Writer.WriteArrayStart();
+                writer.WriteArrayStart();
                 foreach (var additionalText in additionalTexts)
                 {
-                    Writer.WriteObjectStart();
-                    WriteFileName("fileName", additionalText.Path);
-                    Writer.WriteKey("text");
-                    WriteSourceText(additionalText.GetText());
-                    Writer.WriteObjectEnd();
+                    writer.WriteObjectStart();
+                    WriteFileName(writer, "fileName", additionalText.Path, options);
+                    writer.WriteKey("text");
+                    WriteSourceText(writer, additionalText.GetText());
+                    writer.WriteObjectEnd();
                 }
-                Writer.WriteArrayEnd();
+                writer.WriteArrayEnd();
             }
 
             void writeAnalyzers()
             {
-                Writer.WriteArrayStart();
+                writer.WriteArrayStart();
                 foreach (var analyzer in analyzers)
                 {
                     writeType(analyzer.GetType());
                 }
-                Writer.WriteArrayEnd();
+                writer.WriteArrayEnd();
             }
 
             void writeGenerators()
             {
-                Writer.WriteArrayStart();
+                writer.WriteArrayStart();
                 foreach (var generator in generators)
                 {
                     writeType(generator.GetType());
                 }
-                Writer.WriteArrayEnd();
+                writer.WriteArrayEnd();
             }
 
             void writeType(Type type)
             {
-                Writer.WriteObjectStart();
-                Writer.Write("fullName", type.FullName);
+                writer.WriteObjectStart();
+                writer.Write("fullName", type.FullName);
                 // Note that the file path to the assembly is deliberately not included here. The file path
                 // of the assembly does not contribute to the output of the program.
-                Writer.Write("assemblyName", type.Assembly.FullName);
-                Writer.WriteObjectEnd();
+                writer.Write("assemblyName", type.Assembly.FullName);
+                writer.WriteObjectEnd();
+            }
+
+            void ensureNotDefault<T>(ref ImmutableArray<T> array)
+            {
+                if (array.IsDefault)
+                {
+                    array = ImmutableArray<T>.Empty;
+                }
             }
         }
 
-        private void WriteCompilationCore(Compilation compilation)
+        internal string GetKey(EmitOptions? emitOptions)
         {
-            Writer.WriteObjectStart();
-            if (0 == (Options & DeterministicKeyOptions.IgnoreToolVersions))
+            var (writer, builder) = CreateWriter();
+            WriteEmitOptions(writer, emitOptions);
+            return builder.ToStringAndFree();
+        }
+
+        private void WriteCompilation(JsonWriter writer, Compilation compilation, DeterministicKeyOptions options)
+        {
+            writer.WriteObjectStart();
+            if (0 == (options & DeterministicKeyOptions.IgnoreToolVersions))
             {
-                Writer.WriteKey("toolsVersions");
+                writer.WriteKey("toolsVersions");
                 writeToolsVersions();
             }
 
-            Writer.WriteKey("options");
-            WriteCompilationOptions(compilation.Options);
+            writer.WriteKey("options");
+            WriteCompilationOptions(writer, compilation.Options);
 
-            Writer.WriteKey("syntaxTrees");
-            Writer.WriteArrayStart();
+            writer.WriteKey("syntaxTrees");
+            writer.WriteArrayStart();
             foreach (var syntaxTree in compilation.SyntaxTrees)
             {
-                WriteSyntaxTree(syntaxTree);
+                WriteSyntaxTree(writer, syntaxTree, options);
             }
-            Writer.WriteArrayEnd();
+            writer.WriteArrayEnd();
 
-            Writer.WriteKey("references");
-            Writer.WriteArrayStart();
+            writer.WriteKey("references");
+            writer.WriteArrayStart();
             foreach (var reference in compilation.References)
             {
-                WriteMetadataReference(reference);
+                WriteMetadataReference(writer, reference);
             }
-            Writer.WriteArrayEnd();
-            Writer.WriteObjectEnd();
+            writer.WriteArrayEnd();
+            writer.WriteObjectEnd();
 
             void writeToolsVersions()
             {
-                Writer.WriteObjectStart();
+                writer.WriteObjectStart();
 
                 var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-                Writer.Write("compilerVersion", compilerVersion);
+                writer.Write("compilerVersion", compilerVersion);
 
                 var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-                Writer.Write("runtimeVersion", runtimeVersion);
+                writer.Write("runtimeVersion", runtimeVersion);
 
-                Writer.Write("framework", RuntimeInformation.FrameworkDescription);
-                Writer.Write("os", RuntimeInformation.OSDescription);
+                writer.Write("framework", RuntimeInformation.FrameworkDescription);
+                writer.Write("os", RuntimeInformation.OSDescription);
 
-                Writer.WriteObjectEnd();
+                writer.WriteObjectEnd();
             }
         }
 
-        internal void WriteSyntaxTree(SyntaxTree syntaxTree)
+        private void WriteSyntaxTree(JsonWriter writer, SyntaxTree syntaxTree, DeterministicKeyOptions options)
         {
-            Writer.WriteObjectStart();
-            WriteFileName("fileName", syntaxTree.FilePath);
-            Writer.WriteKey("text");
-            WriteSourceText(syntaxTree.GetText());
-            Writer.WriteKey("parseOptions");
-            WriteParseOptions(syntaxTree.Options);
-            Writer.WriteObjectEnd();
+            writer.WriteObjectStart();
+            WriteFileName(writer, "fileName", syntaxTree.FilePath, options);
+            writer.WriteKey("text");
+            WriteSourceText(writer, syntaxTree.GetText());
+            writer.WriteKey("parseOptions");
+            WriteParseOptions(writer, syntaxTree.Options);
+            writer.WriteObjectEnd();
         }
 
-        internal void WriteSourceText(SourceText? sourceText)
+        private void WriteSourceText(JsonWriter writer, SourceText? sourceText)
         {
             if (sourceText is null)
             {
                 return;
             }
 
-            Writer.WriteObjectStart();
-            WriteByteArray("checksum", sourceText.GetChecksum());
-            Writer.Write("checksumAlgorithm", sourceText.ChecksumAlgorithm);
-            Writer.Write("encoding", sourceText.Encoding?.EncodingName);
-            Writer.WriteObjectEnd();
+            writer.WriteObjectStart();
+            WriteByteArrayValue(writer, "checksum", sourceText.GetChecksum());
+            writer.Write("checksumAlgorithm", sourceText.ChecksumAlgorithm);
+            writer.Write("encoding", sourceText.Encoding?.EncodingName);
+            writer.WriteObjectEnd();
         }
 
-        internal void WriteMetadataReference(MetadataReference reference)
+        internal void WriteMetadataReference(JsonWriter writer, MetadataReference reference)
         {
-            Writer.WriteObjectStart();
+            writer.WriteObjectStart();
             if (reference is PortableExecutableReference peReference)
             {
                 ModuleMetadata moduleMetadata;
@@ -256,51 +276,75 @@ namespace Microsoft.CodeAnalysis
                 if (moduleMetadata.GetMetadataReader() is { IsAssembly: true } peReader)
                 {
                     var assemblyDef = peReader.GetAssemblyDefinition();
-                    Writer.Write("name", peReader.GetString(assemblyDef.Name));
-                    Writer.Write("version", assemblyDef.Version.ToString());
-                    WriteByteArray("publicKey", peReader.GetBlobBytes(assemblyDef.PublicKey).AsSpan());
+                    writer.Write("name", peReader.GetString(assemblyDef.Name));
+                    writer.Write("version", assemblyDef.Version.ToString());
+                    WriteByteArrayValue(writer, "publicKey", peReader.GetBlobBytes(assemblyDef.PublicKey).AsSpan());
                 }
 
-                Writer.Write("mvid", moduleMetadata.GetModuleVersionId().ToString());
-                Writer.WriteKey("properties");
-                WriteMetadataReferenceProperties(reference.Properties);
+                writer.Write("mvid", moduleMetadata.GetModuleVersionId().ToString());
+                writer.WriteKey("properties");
+                writeMetadataReferenceProperties(writer, reference.Properties);
             }
             else
             {
                 throw new InvalidOperationException();
             }
-            Writer.WriteObjectEnd();
+            writer.WriteObjectEnd();
+
+            static void writeMetadataReferenceProperties(JsonWriter writer, MetadataReferenceProperties properties)
+            {
+                writer.WriteObjectStart();
+                writer.Write("kind", properties.Kind);
+                writer.Write("embedInteropTypes", properties.EmbedInteropTypes);
+                if (properties.Aliases is { Length: > 0 } aliases)
+                {
+                    writer.WriteKey("aliases");
+                    writer.WriteArrayStart();
+                    foreach (var alias in aliases)
+                    {
+                        writer.Write(alias);
+                    }
+                    writer.WriteArrayEnd();
+                }
+                writer.WriteObjectEnd();
+            }
         }
 
-        internal void WriteEmitOptions(EmitOptions options)
+        private void WriteEmitOptions(JsonWriter writer, EmitOptions? options)
         {
-            Writer.WriteObjectStart();
-            Writer.Write("emitMetadataOnly", options.EmitMetadataOnly);
-            Writer.Write("tolerateErrors", options.TolerateErrors);
-            Writer.Write("includePrivateMembers", options.IncludePrivateMembers);
-            if (options.InstrumentationKinds.Length > 0)
+            writer.WriteObjectStart();
+            if (options is null)
             {
-                Writer.WriteArrayStart();
-                foreach (var kind in options.InstrumentationKinds)
-                {
-                    Writer.Write(kind);
-                }
-                Writer.WriteArrayEnd();
+                writer.WriteObjectEnd();
+                return;
             }
 
-            writeSubsystemVersion(Writer, options.SubsystemVersion);
-            Writer.Write("fileAlignment", options.FileAlignment);
-            Writer.Write("highEntropyVirtualAddressSpace", options.HighEntropyVirtualAddressSpace);
-            Writer.Write("baseAddress", options.BaseAddress.ToString());
-            Writer.Write("debugInformationFormat", options.DebugInformationFormat);
-            Writer.Write("outputNameOverride", options.OutputNameOverride);
-            Writer.Write("pdbFilePath", options.PdbFilePath);
-            Writer.Write("pdbChecksumAlgorithm", options.PdbChecksumAlgorithm.Name);
-            Writer.Write("runtimeMetadataVersion", options.RuntimeMetadataVersion);
-            Writer.Write("defaultSourceFileEncoding", options.DefaultSourceFileEncoding?.CodePage);
-            Writer.Write("fallbackSourceFileEncoding", options.FallbackSourceFileEncoding?.CodePage);
+            writer.Write("emitMetadataOnly", options.EmitMetadataOnly);
+            writer.Write("tolerateErrors", options.TolerateErrors);
+            writer.Write("includePrivateMembers", options.IncludePrivateMembers);
+            if (options.InstrumentationKinds.Length > 0)
+            {
+                writer.WriteArrayStart();
+                foreach (var kind in options.InstrumentationKinds)
+                {
+                    writer.Write(kind);
+                }
+                writer.WriteArrayEnd();
+            }
 
-            Writer.WriteObjectEnd();
+            writeSubsystemVersion(writer, options.SubsystemVersion);
+            writer.Write("fileAlignment", options.FileAlignment);
+            writer.Write("highEntropyVirtualAddressSpace", options.HighEntropyVirtualAddressSpace);
+            writer.Write("baseAddress", options.BaseAddress.ToString());
+            writer.Write("debugInformationFormat", options.DebugInformationFormat);
+            writer.Write("outputNameOverride", options.OutputNameOverride);
+            writer.Write("pdbFilePath", options.PdbFilePath);
+            writer.Write("pdbChecksumAlgorithm", options.PdbChecksumAlgorithm.Name);
+            writer.Write("runtimeMetadataVersion", options.RuntimeMetadataVersion);
+            writer.Write("defaultSourceFileEncoding", options.DefaultSourceFileEncoding?.CodePage);
+            writer.Write("fallbackSourceFileEncoding", options.FallbackSourceFileEncoding?.CodePage);
+
+            writer.WriteObjectEnd();
 
             static void writeSubsystemVersion(JsonWriter writer, SubsystemVersion version)
             {
@@ -312,64 +356,46 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal void WriteMetadataReferenceProperties(MetadataReferenceProperties properties)
+        private void WriteCompilationOptions(JsonWriter writer, CompilationOptions options)
         {
-            Writer.WriteObjectStart();
-            Writer.Write("kind", properties.Kind);
-            Writer.Write("embedInteropTypes", properties.EmbedInteropTypes);
-            if (properties.Aliases is { Length: > 0 } aliases)
-            {
-                Writer.WriteKey("aliases");
-                Writer.WriteArrayStart();
-                foreach (var alias in aliases)
-                {
-                    Writer.Write(alias);
-                }
-                Writer.WriteArrayEnd();
-            }
-            Writer.WriteObjectEnd();
+            writer.WriteObjectStart();
+            WriteCompilationOptionsCore(writer, options);
+            writer.WriteObjectEnd();
         }
 
-        internal void WriteCompilationOptions(CompilationOptions options)
-        {
-            Writer.WriteObjectStart();
-            WriteCompilationOptionsCore(options);
-            Writer.WriteObjectEnd();
-        }
-
-        protected virtual void WriteCompilationOptionsCore(CompilationOptions options)
+        protected virtual void WriteCompilationOptionsCore(JsonWriter writer, CompilationOptions options)
         {
             // CompilationOption values
-            Writer.Write("outputKind", options.OutputKind);
-            Writer.Write("moduleName", options.ModuleName);
-            Writer.Write("scriptClassName", options.ScriptClassName);
-            Writer.Write("mainTypeName", options.MainTypeName);
-            WriteByteArray("cryptoPublicKey", options.CryptoPublicKey);
-            Writer.Write("cryptoKeyFile", options.CryptoKeyFile);
-            Writer.Write("delaySign", options.DelaySign);
-            Writer.Write("publicSign", options.PublicSign);
-            Writer.Write("checkOverflow", options.CheckOverflow);
-            Writer.Write("platform", options.Platform);
-            Writer.Write("optimizationLevel", options.OptimizationLevel);
-            Writer.Write("generalDiagnosticOption", options.GeneralDiagnosticOption);
-            Writer.Write("warningLevel", options.WarningLevel);
-            Writer.Write("deterministic", options.Deterministic);
-            Writer.Write("debugPlusMode", options.DebugPlusMode);
-            Writer.Write("referencesSupersedeLowerVersions", options.ReferencesSupersedeLowerVersions);
-            Writer.Write("reportSuppressedDiagnostics", options.ReportSuppressedDiagnostics);
-            Writer.Write("nullableContextOptions", options.NullableContextOptions);
+            writer.Write("outputKind", options.OutputKind);
+            writer.Write("moduleName", options.ModuleName);
+            writer.Write("scriptClassName", options.ScriptClassName);
+            writer.Write("mainTypeName", options.MainTypeName);
+            WriteByteArrayValue(writer, "cryptoPublicKey", options.CryptoPublicKey);
+            writer.Write("cryptoKeyFile", options.CryptoKeyFile);
+            writer.Write("delaySign", options.DelaySign);
+            writer.Write("publicSign", options.PublicSign);
+            writer.Write("checkOverflow", options.CheckOverflow);
+            writer.Write("platform", options.Platform);
+            writer.Write("optimizationLevel", options.OptimizationLevel);
+            writer.Write("generalDiagnosticOption", options.GeneralDiagnosticOption);
+            writer.Write("warningLevel", options.WarningLevel);
+            writer.Write("deterministic", options.Deterministic);
+            writer.Write("debugPlusMode", options.DebugPlusMode);
+            writer.Write("referencesSupersedeLowerVersions", options.ReferencesSupersedeLowerVersions);
+            writer.Write("reportSuppressedDiagnostics", options.ReportSuppressedDiagnostics);
+            writer.Write("nullableContextOptions", options.NullableContextOptions);
 
             if (options.SpecificDiagnosticOptions.Count > 0)
             {
-                Writer.WriteKey("specificDiagnosticOptions");
-                Writer.WriteArrayStart();
+                writer.WriteKey("specificDiagnosticOptions");
+                writer.WriteArrayStart();
                 foreach (var kvp in options.SpecificDiagnosticOptions)
                 {
-                    Writer.WriteObjectStart();
-                    Writer.Write(kvp.Key, kvp.Value);
-                    Writer.WriteObjectEnd();
+                    writer.WriteObjectStart();
+                    writer.Write(kvp.Key, kvp.Value);
+                    writer.WriteObjectEnd();
                 }
-                Writer.WriteArrayEnd();
+                writer.WriteArrayEnd();
             }
 
             // Skipped values
@@ -390,33 +416,34 @@ namespace Microsoft.CodeAnalysis
             // - AssemblyIdentityComparer
         }
 
-        internal void WriteParseOptions(ParseOptions parseOptions)
+        protected void WriteParseOptions(JsonWriter writer, ParseOptions parseOptions)
         {
-            Writer.WriteObjectStart();
-            WriteParseOptionsCore(parseOptions);
-            Writer.WriteObjectEnd();
+            writer.WriteObjectStart();
+            WriteParseOptionsCore(writer, parseOptions);
+            writer.WriteObjectEnd();
         }
 
-        protected virtual void WriteParseOptionsCore(ParseOptions parseOptions)
+        protected virtual void WriteParseOptionsCore(JsonWriter writer, ParseOptions parseOptions)
         {
-            Writer.Write("kind", parseOptions.Kind);
-            Writer.Write("specifiedKind", parseOptions.SpecifiedKind);
-            Writer.Write("documentationMode", parseOptions.DocumentationMode);
-            Writer.Write("language", parseOptions.Language);
+            writer.Write("kind", parseOptions.Kind);
+            writer.Write("specifiedKind", parseOptions.SpecifiedKind);
+            writer.Write("documentationMode", parseOptions.DocumentationMode);
+            writer.Write("language", parseOptions.Language);
 
             var features = parseOptions.Features;
             if (features.Count > 0)
             {
-                Writer.WriteKey("features");
-                Writer.WriteArrayStart();
+                writer.WriteKey("features");
+                writer.WriteArrayStart();
                 foreach (var kvp in features)
                 {
-                    Writer.WriteObjectStart();
-                    Writer.Write(kvp.Key, kvp.Value);
-                    Writer.WriteObjectEnd();
+                    writer.WriteObjectStart();
+                    writer.Write(kvp.Key, kvp.Value);
+                    writer.WriteObjectEnd();
                 }
-                Writer.WriteArrayEnd();
+                writer.WriteArrayEnd();
             }
+
             // Skipped values
             // - Errors: not sure if we need that in the key file or not
             // - PreprocessorSymbolNames: handled at the language specific level
