@@ -26,12 +26,14 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     {
         private static readonly char[] s_trimChars = { ' ', '\n', '\r' };
 
-        public static SourceHashAlgorithm HashAlgorithm => SourceHashAlgorithm.Sha256;
+        public static SourceHashAlgorithm HashAlgorithm { get; } = SourceHashAlgorithm.Sha256;
+        public static CSharpCompilationOptions CSharpOptions { get; } = new CSharpCompilationOptions(OutputKind.ConsoleApplication, deterministic: true);
+        public static VisualBasicCompilationOptions BasicOptions { get; } = new VisualBasicCompilationOptions(OutputKind.ConsoleApplication, deterministic: true);
 
         private static void AssertJson(
             string expected,
             string actual,
-            bool ignoreReferences = true) => AssertJson(expected, actual, "references");
+            bool removeStandard = true) => AssertJson(expected, actual, "references", "extensions");
 
         private static void AssertJson(
             string expected,
@@ -117,7 +119,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         {
             var compilation = CSharpTestBase.CreateCompilation(
                 @"System.Console.WriteLine(""Hello World"");",
-                targetFramework: TargetFramework.NetCoreApp);
+                targetFramework: TargetFramework.NetCoreApp,
+                options: CSharpOptions);
 
             var key = compilation.GetDeterministicKey(options: DeterministicKeyOptions.IgnoreToolVersions);
             AssertJson(@"
@@ -135,15 +138,16 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""publicSign"": false,
       ""checkOverflow"": false,
       ""platform"": ""AnyCpu"",
-      ""optimizationLevel"": ""Release"",
+      ""optimizationLevel"": ""Debug"",
       ""generalDiagnosticOption"": ""Default"",
-      ""warningLevel"": 9999,
-      ""deterministic"": false,
+      ""warningLevel"": 4,
+      ""deterministic"": true,
       ""debugPlusMode"": false,
       ""referencesSupersedeLowerVersions"": false,
       ""reportSuppressedDiagnostics"": false,
       ""nullableContextOptions"": ""Disable"",
       ""specificDiagnosticOptions"": [],
+      ""localtime"": null,
       ""unsafe"": false,
       ""topLevelBinderFlags"": ""None""
     },
@@ -167,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""generators"": [],
   ""emitOptions"": {}
 }
-", key, ignoreReferences: true);
+", key);
         }
 
         [Fact]
@@ -296,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [InlineData(@"hello world")]
         [InlineData(@"just need some text here")]
         [InlineData(@"yet another case")]
-        public void ContentInAdditionalTextVisualBasic(string content)
+        public void ContentInAdditionalTextBasic(string content)
         {
             var syntaxTree = VisualBasicSyntaxTree.ParseText(
                 "",
@@ -307,7 +311,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var compilation = VisualBasicCompilation.Create(
                 "test",
                 new[] { syntaxTree },
-                NetCoreApp.References);
+                NetCoreApp.References,
+                options: BasicOptions);
             var key = compilation.GetDeterministicKey(additionalTexts: ImmutableArray.Create<AdditionalText>(additionalText));
             var expected = @$"{{
 ""additionalTexts"": [
@@ -333,7 +338,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         {
             var compilation = CSharpTestBase.CreateCompilation(
                 @"System.Console.WriteLine(""Hello World"");",
-                targetFramework: TargetFramework.NetCoreApp);
+                targetFramework: TargetFramework.NetCoreApp,
+                options: CSharpOptions);
 
             var key = compilation.GetDeterministicKey(options: DeterministicKeyOptions.Default);
 
@@ -360,15 +366,16 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""publicSign"": false,
       ""checkOverflow"": false,
       ""platform"": ""AnyCpu"",
-      ""optimizationLevel"": ""Release"",
+      ""optimizationLevel"": ""Debug"",
       ""generalDiagnosticOption"": ""Default"",
-      ""warningLevel"": 9999,
-      ""deterministic"": false,
+      ""warningLevel"": 4,
+      ""deterministic"": true,
       ""debugPlusMode"": false,
       ""referencesSupersedeLowerVersions"": false,
       ""reportSuppressedDiagnostics"": false,
       ""nullableContextOptions"": ""Disable"",
       ""specificDiagnosticOptions"": [],
+      ""localtime"": null,
       ""unsafe"": false,
       ""topLevelBinderFlags"": ""None""
     }}
@@ -378,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""generators"": [],
   ""emitOptions"": {{}}
 }}
-", key, "references", "syntaxTrees");
+", key, "references", "syntaxTrees", "extensions");
         }
     }
 }
