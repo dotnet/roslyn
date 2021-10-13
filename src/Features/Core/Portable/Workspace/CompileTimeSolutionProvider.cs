@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.Host
 #if NETCOREAPP
         private readonly ConditionalWeakTable<Solution, Solution> _designTimeToCompileTimeSoution = new();
 #else
+        // Framework lacks both a .Clear() method.  So for Framework we simulate that by just overwriting this with a
+        // new instance.  This happens under a lock, so everyone sees a consistent dictionary.
         private ConditionalWeakTable<Solution, Solution> _designTimeToCompileTimeSoution = new();
 #endif
 
@@ -120,22 +122,14 @@ namespace Microsoft.CodeAnalysis.Host
                     .RemoveAnalyzerConfigDocuments(configIdsToRemove.ToImmutable())
                     .RemoveDocuments(documentIdsToRemove.ToImmutable());
 
-                UpdateCachedCompileTimeSolution(designTimeSolution, compileTimeSolution);
-
-                return compileTimeSolution;
-            }
-        }
-
-        private void UpdateCachedCompileTimeSolution(Solution designTimeSolution, Solution compileTimeSolution)
-        {
-            lock (_gate)
-            {
 #if NETCOREAPP
                 _designTimeToCompileTimeSoution.AddOrUpdate(designTimeSolution, compileTimeSolution);
 #else
                 _designTimeToCompileTimeSoution.Remove(designTimeSolution);
                 _designTimeToCompileTimeSoution.Add(designTimeSolution, compileTimeSolution);
 #endif
+
+                return compileTimeSolution;
             }
         }
 
