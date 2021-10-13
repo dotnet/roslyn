@@ -6876,6 +6876,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The operation may overflow at runtime (use 'unchecked' syntax to override)</value>
   </data>
   <data name="ERR_CannotUseRefInUnmanagedCallersOnly" xml:space="preserve">
-    <value>Cannot use 'ref', 'in', or 'out' in a method attributed with 'UnmanagedCallersOnly'.</value>
+    <value>Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.</value>
   </data>
 </root>
