@@ -73,31 +73,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         /// <summary>
         /// Gets the dot-like token we're after, and also the start of the expression we'd want to place any text before.
         /// </summary>
-        private static (SyntaxToken dotLikeToken, int expressionStart) GetDotAndExpressionStart(SyntaxNode root, int position)
+        private static (SyntaxToken dotLikeToken, int expressionStart) GetDotAndExpressionStart(SyntaxNode root, int position, CancellationToken cancellationToken)
         {
-            var tokenOnLeft = root.FindTokenOnLeftOfPosition(position, includeSkipped: true);
-            var dotToken = tokenOnLeft.GetPreviousTokenIfTouchingWord(position);
+            if (CompletionUtilities.GetDotTokenLeftOfPosition(root.SyntaxTree, position, cancellationToken) is SyntaxToken dotToken)
+            {
+                // if we have `.Name`, we want to get the parent member-access of that to find the starting position.
+                // Otherwise, if we have .. then we want the left side of that to find the starting position.
+                var expression = dotToken.Kind() == SyntaxKind.DotToken
+                    ? dotToken.Parent as ExpressionSyntax
+                    : (dotToken.Parent as RangeExpressionSyntax)?.LeftOperand;
 
-            // Has to be a . or a .. token
-            if (!CompletionUtilities.TreatAsDot(dotToken, position - 1))
+                if (expression == null)
+                    return default;
+
+                // If we're after a ?. find the root of that conditional to find the start position of the expression.
+                expression = expression.GetRootConditionalAccessExpression() ?? expression;
+                return (dotToken, expression.SpanStart);
+            }
+            else
+            {
                 return default;
-
-            // don't want to trigger after a number.  All other cases after dot are ok.
-            if (dotToken.GetPreviousToken().Kind() == SyntaxKind.NumericLiteralToken)
-                return default;
-
-            // if we have `.Name`, we want to get the parent member-access of that to find the starting position.
-            // Otherwise, if we have .. then we want the left side of that to find the starting position.
-            var expression = dotToken.Kind() == SyntaxKind.DotToken
-                ? dotToken.Parent as ExpressionSyntax
-                : (dotToken.Parent as RangeExpressionSyntax)?.LeftOperand;
-
-            if (expression == null)
-                return default;
-
-            // If we're after a ?. find the root of that conditional to find the start position of the expression.
-            expression = expression.GetRootConditionalAccessExpression() ?? expression;
-            return (dotToken, expression.SpanStart);
+            }
         }
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
@@ -111,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var dotAndExprStart = GetDotAndExpressionStart(root, position);
+            var dotAndExprStart = GetDotAndExpressionStart(root, position, cancellationToken);
             if (dotAndExprStart == default)
                 return;
 
@@ -190,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var position = SymbolCompletionItem.GetContextPosition(item);
 
-            var (dotToken, _) = GetDotAndExpressionStart(root, position);
+            var (dotToken, _) = GetDotAndExpressionStart(root, position, cancellationToken);
             var questionToken = dotToken.GetPreviousToken().Kind() == SyntaxKind.QuestionToken
                 ? dotToken.GetPreviousToken()
                 : (SyntaxToken?)null;

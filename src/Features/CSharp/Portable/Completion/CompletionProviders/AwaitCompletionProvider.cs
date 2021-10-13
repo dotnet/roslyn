@@ -82,20 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         protected override SyntaxToken? GetDotTokenLeftOfPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-        {
-            // TODO: Parts of this code are taken from UnnamedSymbolCompletionProvider.GetDotAndExpressionStart -> Unify
-            var tokenOnLeft = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            var dotToken = tokenOnLeft.GetPreviousTokenIfTouchingWord(position);
-            // Has to be a . or a .. token
-            if (!CompletionUtilities.TreatAsDot(dotToken, position - 1))
-                return null;
-
-            // don't want to trigger after a number. All other cases after dot are ok.
-            if (dotToken.GetPreviousToken().Kind() == SyntaxKind.NumericLiteralToken)
-                return null;
-
-            return dotToken;
-        }
+            => CompletionUtilities.GetDotTokenLeftOfPosition(syntaxTree, position, cancellationToken);
 
         protected override ITypeSymbol? GetTypeSymbolOfExpression(SemanticModel semanticModel, SyntaxNode potentialAwaitableExpression, CancellationToken cancellationToken)
         {
