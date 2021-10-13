@@ -790,5 +790,94 @@ class C
             Assert.True(lambda.ReturnsByRefReadonly);
             Assert.Equal(RefKind.In, lambda.Parameters[0].RefKind);
         }
+
+        [Fact]
+        public void DelegateRefTypeArgument_01()
+        {
+            var source = @"
+using System;
+
+C.M1(C.M0);
+
+class C
+{
+    public static void M0(int x)
+    {
+        x++;
+    }
+
+    public static void M1(Action<ref int> action)
+    {
+        int i = 0;
+        Console.Write(i);
+        action(ref i);
+        Console.Write(i);
+    }
+}";
+            // PROTOTYPE: requires updated runtime support to verify output
+            var verifier = CompileAndVerify(source/*, expectedOutput: "01"*/);
+            verifier.VerifyDiagnostics();
+            // PROTOTYPE: requires updated symbol display for meaningful-ish disassembly
+            verifier.VerifyIL("C.M1", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (int V_0) //i
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  call       ""void System.Console.Write(int)""
+  IL_0008:  ldarg.0
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  callvirt   ""void System.Action<int>.Invoke(ref int)""
+  IL_0010:  ldloc.0
+  IL_0011:  call       ""void System.Console.Write(int)""
+  IL_0016:  ret
+}");
+        }
+
+        [Fact]
+        public void DelegateRefTypeArgument_02()
+        {
+            var source = @"
+using System;
+
+C.M1(C.M0);
+
+class C
+{
+    public static void M0(int x)
+    {
+        x++;
+    }
+
+    public static void M1(Action<delegate*<int, void>> action)
+    {
+        int i = 0;
+        Console.Write(i);
+        action(ref i);
+        Console.Write(i);
+    }
+}";
+            // PROTOTYPE(delegate-type-args): provide other kinds of restricted type arguments to delegates
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugDll/*, expectedOutput: "01"*/);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M1", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (int V_0) //i
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  call       ""void System.Console.Write(int)""
+  IL_0008:  ldarg.0
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  callvirt   ""void System.Action<int>.Invoke(ref int)""
+  IL_0010:  ldloc.0
+  IL_0011:  call       ""void System.Console.Write(int)""
+  IL_0016:  ret
+}");
+        }
     }
 }

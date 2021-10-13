@@ -474,10 +474,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var refToken = refTypeSyntax.RefKeyword;
                         if (!syntax.HasErrors)
                         {
-                            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refToken.GetLocation(), refToken.ToString());
+                            // PROTOTYPE(delegate-type-args): restore this diagnostic in non-delegate call sites
+                            // diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refToken.GetLocation(), refToken.ToString());
                         }
 
-                        return BindNamespaceOrTypeOrAliasSymbol(refTypeSyntax.Type, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics);
+                        var referencedType = BindNamespaceOrTypeOrAliasSymbol(refTypeSyntax.Type, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics);
+                        if (referencedType.IsType)
+                        {
+                            return TypeWithAnnotations.Create(new RefTypeSymbol(RefKind.Ref, referencedType.TypeWithAnnotations));
+                        }
+
+                        // PROTOTYPE(delegate-type-args): handle aliases
+                        return createErrorType();
                     }
 
                 default:
@@ -1171,6 +1179,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 resultType = unconstructedType.Construct(PlaceholderTypeArgumentSymbol.CreateTypeArguments(unconstructedType.TypeParameters));
             }
+            else if (unconstructedType.IsDelegateType())
+            {
+                var types = BindDelegateTypeArguments(typeArguments, diagnostics, basesBeingResolved);
+                // PROTOTYPE(delegate-type-args): assert that if we are looking up an attribute, there must be other errors
+                // PROTOTYPE(delegate-type-args): check validity of ref kinds etc in delegate signature
+                resultType = unconstructedType.Construct(types);
+                if (ShouldCheckConstraints && ConstraintsHelper.RequiresChecking(resultType))
+                {
+                    bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
+                    resultType.CheckConstraintsForNamedType(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability, node.Location, diagnostics),
+                                                      node, typeArguments, basesBeingResolved);
+                }
+
+            }
             else
             {
                 var boundTypeArguments = BindTypeArguments(typeArguments, diagnostics, basesBeingResolved);
@@ -1282,6 +1304,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+        }
+
+        private ImmutableArray<TypeWithAnnotations> BindDelegateTypeArguments(SeparatedSyntaxList<TypeSyntax> typeArguments, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved = null)
+        {
+            Debug.Assert(typeArguments.Count > 0);
+            var types = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+            foreach (var argSyntax in typeArguments)
+            {
+                var type = BindDelegateTypeArgument(argSyntax, diagnostics, basesBeingResolved);
+                types.Add(type);
+            }
+
+            return types.ToImmutableAndFree();
+        }
+
+        private TypeWithAnnotations BindDelegateTypeArgument(TypeSyntax typeArgument, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved = null)
+        {
+            var binder = this.WithAdditionalFlags(BinderFlags.SuppressUnsafeDiagnostics);
+
+            var symbol = BindTypeOrAlias(typeArgument, diagnostics, basesBeingResolved);
+            var alias = UnwrapAlias(symbol, diagnostics, typeArgument, basesBeingResolved).TypeWithAnnotations;
+
+            // PROTOTYPE: we should allow pointers, ref etc in this code path while continuing to disallow in the regular 'BindTypeArgument'
+            return alias;
         }
 
         private ImmutableArray<TypeWithAnnotations> BindTypeArguments(SeparatedSyntaxList<TypeSyntax> typeArguments, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved = null)

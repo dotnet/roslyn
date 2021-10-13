@@ -776,6 +776,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             break;
                         }
 
+                    case TypeKind.Ref:
+                        next = ((RefTypeSymbol)current).ReferencedTypeWithAnnotations;
+                        break;
+
                     default:
                         throw ExceptionUtilities.UnexpectedValue(current.TypeKind);
                 }

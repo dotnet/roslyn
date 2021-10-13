@@ -391,6 +391,17 @@ namespace Microsoft.Cci
     }
 
     /// <summary>
+    /// This interface models the metadata representation of a ref to a location in unmanaged memory.
+    /// </summary>
+    internal interface IRefTypeReference : ITypeReference
+    {
+        /// <summary>
+        /// The type of value stored at the target memory location.
+        /// </summary>
+        ITypeReference GetReferencedType(EmitContext context);
+    }
+
+    /// <summary>
     /// This interface models the metadata representation of a pointer to a function in unmanaged memory.
     /// </summary>
     internal interface IFunctionPointerTypeReference : ITypeReference

@@ -116,6 +116,11 @@ namespace Microsoft.CodeAnalysis
         /// Symbol represents a function pointer type
         /// </summary>
         FunctionPointerType = 20,
+
+        /// <summary>
+        /// Symbol represents a ref type
+        /// </summary>
+        RefType = 21,
     }
 
     internal static class SymbolKindInternal

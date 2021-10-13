@@ -95,6 +95,11 @@ namespace Microsoft.CodeAnalysis
             DefaultVisit(symbol);
         }
 
+        public virtual void VisitRefType(ITypeSymbol symbol)
+        {
+            DefaultVisit(symbol);
+        }
+
         public virtual void VisitProperty(IPropertySymbol symbol)
         {
             DefaultVisit(symbol);
