@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     using static FeaturesResources;
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
-    internal partial class RegexEmbeddedCompletionProvider : LSPCompletionProvider
+    internal sealed partial class RegexEmbeddedCompletionProvider : EmbeddedLanguageCompletionProvider
     {
         private const string StartKey = nameof(StartKey);
         private const string LengthKey = nameof(LengthKey);
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             '(', // any group
             '{'); // \p{
 
-        public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
+        public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger)
         {
             if (trigger.Kind is CompletionTriggerKind.Invoke or
                 CompletionTriggerKind.InvokeAndCommitIfUnique)
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 properties.Add(LengthKey, textChange.Span.Length.ToString());
                 properties.Add(NewTextKey, textChange.NewText);
                 properties.Add(DescriptionKey, embeddedItem.FullDescription);
-                properties.Add(AbstractEmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name);
+                properties.Add(AbstractAggregateEmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name);
 
                 if (change.NewPosition != null)
                 {

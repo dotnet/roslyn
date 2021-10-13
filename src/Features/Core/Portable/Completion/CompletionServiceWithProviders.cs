@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -299,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 case CompletionTriggerKind.Insertion:
                 case CompletionTriggerKind.Deletion:
-                    if (ShouldTriggerCompletion(document.Project, text, caretPosition, trigger, roles, options))
+                    if (ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, text, caretPosition, trigger, options, roles))
                     {
                         triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(document.Project.LanguageServices, text, caretPosition, trigger, options)).ToImmutableArrayOrEmpty();
                         Debug.Assert(ValidatePossibleTriggerCharacterSet(trigger.Kind, triggeredProviders, document, text, caretPosition, options));
@@ -565,13 +566,13 @@ namespace Microsoft.CodeAnalysis.Completion
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, ImmutableHashSet<string>? roles = null, OptionSet? options = null)
         {
             var document = text.GetOpenDocumentInCurrentContextWithChanges();
-            return ShouldTriggerCompletion(document?.Project, text, caretPosition, trigger, roles, options);
+            var languageServices = document?.Project.LanguageServices ?? _workspace.Services.GetLanguageServices(Language);
+            return ShouldTriggerCompletion(document?.Project, languageServices, text, caretPosition, trigger, options ?? _workspace.Options, roles);
         }
 
-        internal override bool ShouldTriggerCompletion(
-            Project? project, SourceText text, int caretPosition, CompletionTrigger trigger, ImmutableHashSet<string>? roles = null, OptionSet? options = null)
+        internal sealed override bool ShouldTriggerCompletion(
+            Project? project, HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options, ImmutableHashSet<string>? roles = null)
         {
-            options ??= _workspace.Options;
             if (!options.GetOption(CompletionOptions.TriggerOnTyping, Language))
             {
                 return false;
@@ -583,7 +584,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             var providers = GetFilteredProviders(project, roles, trigger, options);
-            return providers.Any(p => p.ShouldTriggerCompletion(project?.LanguageServices, text, caretPosition, trigger, options));
+            return providers.Any(p => p.ShouldTriggerCompletion(languageServices, text, caretPosition, trigger, options));
         }
 
         internal virtual bool SupportsTriggerOnDeletion(OptionSet options)

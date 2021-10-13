@@ -44,6 +44,12 @@ efforts behind them.
 | [Parameterless struct constructors](https://github.com/dotnet/csharplang/issues/99) | [struct-ctors](https://github.com/dotnet/roslyn/tree/features/struct-ctors) | [Merged into 17.0p3](https://github.com/dotnet/roslyn/issues/51698) | [cston](https://github.com/cston) | [jcouv](https://github.com/jcouv), [333fred](https://github.com/333fred) | [jcouv](https://github.com/jouv) |
 | [Caller expression attribute](https://github.com/dotnet/csharplang/issues/287) | main | [Merged into 17.0p3](https://github.com/dotnet/roslyn/issues/52745) | [Youssef1313](https://github.com/Youssef1313) | [333fred](https://github.com/333fred),[AlekseyTs](https://github.com/AlekseyTs) | [jcouv](https://github.com/jcouv) |
 
+# VB 17.0
+
+| Feature                                                                                   | Branch | State                                                            | Developer                                 | Reviewer                          | LDM Champ |
+|-------------------------------------------------------------------------------------------|--------|------------------------------------------------------------------|-------------------------------------------|-----------------------------------|-----------|
+| [Caller expression attribute](https://github.com/dotnet/csharplang/issues/287) | main | [Merged into 17.0p3](https://github.com/dotnet/roslyn/issues/52745) | [Youssef1313](https://github.com/Youssef1313) | [333fred](https://github.com/333fred),[AlekseyTs](https://github.com/AlekseyTs) | [jcouv](https://github.com/jcouv) |
+
 # VB 16.9
 
 | Feature                                                                                   | Branch | State                                                            | Developer                                 | Reviewer                          | LDM Champ |
