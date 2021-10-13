@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -56,11 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
             SemanticModel? semanticModel = null;
             foreach (var diagnostic in context.Diagnostics)
             {
-                if (diagnostic.Id != CS1591)
-                {
-                    continue;
-                }
-
                 var node = root.FindNode(diagnostic.Location.SourceSpan);
                 if (node.Kind() is not SyntaxKind.MethodDeclaration and not SyntaxKind.PropertyDeclaration)
                 {
@@ -104,9 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
 
                 var singleLineInheritdocComment = DocumentationCommentTrivia(
                     kind: SyntaxKind.SingleLineDocumentationCommentTrivia,
-                    content: new SyntaxList<XmlNodeSyntax>(new XmlNodeSyntax[]
+                    content: List(new XmlNodeSyntax[]
                     {
-                        XmlText(xmlSpaceAfterTrippleSlash),
+                        XmlText(xmlSpaceAfterTripleSlash),
                         XmlEmptyElement(lessThanToken, inheritdocTagName, attributes: default, slashGreaterThanToken),
                         XmlText(xmlNewLineToken),
                     }),
@@ -126,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, equivalenceKey: title)
+                : base(title, createChangedDocument, equivalenceKey: nameof(FeaturesResources.Explicitly_inherit_documentation))
             {
             }
         }

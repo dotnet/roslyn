@@ -20,7 +20,6 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddInheritdoc
 {
-
     using VerifyCS = CSharpCodeFixVerifier<
         EmptyDiagnosticAnalyzer,
         AddInheritdocCodeFixProvider>;
