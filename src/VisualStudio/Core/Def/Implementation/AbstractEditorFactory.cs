@@ -46,6 +46,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         protected abstract string ContentTypeName { get; }
         protected abstract string LanguageName { get; }
 
+        protected abstract Solution GetSolutionWithCorrectParseOptionsForProject(ProjectId projectId, IVsHierarchy hierarchy, Solution solution);
+
         public void SetEncoding(bool value)
             => _encoding = value;
 
@@ -324,6 +326,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 solution = temporaryProject.Solution;
                 projectIdToAddTo = temporaryProject.Id;
             }
+
+            // We need to ensure that decisions made during new document formatting are based on the right language
+            // version from the project system, but the NotifyItemAdded event happens before a design time build,
+            // and someimes before we have even been told about the projects existence, so we have to ask the hierarchy
+            // for the language version to use.
+            solution = GetSolutionWithCorrectParseOptionsForProject(projectIdToAddTo, hierarchy, solution);
 
             var documentId = DocumentId.CreateNewId(projectIdToAddTo);
             var forkedSolution = solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
