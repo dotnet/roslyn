@@ -8,6 +8,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Globalization;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
@@ -30,11 +31,11 @@ namespace Microsoft.CodeAnalysis
     /// <remarks>
     /// Options which can cause compilation failure, but doesn't impact the result of a successful
     /// compilation should be included. That is because it is interesting to describe error states
-    /// not just success states. Think about caching build failures as well as build successes
+    /// not just success states. Think about caching build failures as well as build successes.
     ///
-    /// API considerations
-    /// - Path dependent
-    /// - throw when using a non-deterministic compilation
+    /// When an option is omitted, say if there is no value for a public crypto key, we should emit
+    /// the property with a null value vs. omitting the property. Either approach would produce 
+    /// correct results the preference is to be declarative that an option is omitted.
     /// </remarks>
     internal abstract class DeterministicKeyBuilder
     {
@@ -73,6 +74,28 @@ namespace Microsoft.CodeAnalysis
             var builder = PooledStringBuilder.GetInstance();
             EncodeByteArrayValue(value, builder.Builder);
             writer.Write(name, builder.ToStringAndFree());
+        }
+
+        protected void WriteType(JsonWriter writer, string key, Type? type)
+        {
+            writer.WriteKey(key);
+            WriteType(writer, type);
+        }
+
+        protected void WriteType(JsonWriter writer, Type? type)
+        {
+            if (type is null)
+            {
+                writer.WriteNull();
+                return;
+            }
+
+            writer.WriteObjectStart();
+            writer.Write("fullName", type.FullName);
+            // Note that the file path to the assembly is deliberately not included here. The file path
+            // of the assembly does not contribute to the output of the program.
+            writer.Write("assemblyName", type.Assembly.FullName);
+            writer.WriteObjectEnd();
         }
 
         private (JsonWriter, PooledStringBuilder) CreateWriter()
@@ -132,7 +155,7 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteArrayStart();
                 foreach (var analyzer in analyzers)
                 {
-                    writeType(analyzer.GetType());
+                    WriteType(writer, analyzer.GetType());
                 }
                 writer.WriteArrayEnd();
             }
@@ -142,19 +165,9 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteArrayStart();
                 foreach (var generator in generators)
                 {
-                    writeType(generator.GetType());
+                    WriteType(writer, generator.GetType());
                 }
                 writer.WriteArrayEnd();
-            }
-
-            void writeType(Type type)
-            {
-                writer.WriteObjectStart();
-                writer.Write("fullName", type.FullName);
-                // Note that the file path to the assembly is deliberately not included here. The file path
-                // of the assembly does not contribute to the output of the program.
-                writer.Write("assemblyName", type.Assembly.FullName);
-                writer.WriteObjectEnd();
             }
 
             void ensureNotDefault<T>(ref ImmutableArray<T> array)
@@ -398,22 +411,36 @@ namespace Microsoft.CodeAnalysis
             }
             writer.WriteArrayEnd();
 
-            // Skipped values
+            if (options.Deterministic)
+            {
+                writer.Write("deterministic", true);
+                writer.WriteNull("localtime");
+            }
+            else
+            {
+                writer.Write("deterministic", false);
+                writer.Write("localtime", options.CurrentLocalTime.ToString(CultureInfo.InvariantCulture));
+            }
+
+            // Values which do not impact build success / failure
             // - ConcurrentBuild
-            // - CurrentLocalTime: this is only valid when Determinism is false at which point the key isn't
-            //   valid
-            // - MetadataImportOptions: does not impact compilation success or failure
+            // - MetadataImportOptions:
             // - Options.Features: deprecated
             // 
-            // Not really options, implementation details that can't really be expressed in a key
-            // - SyntaxTreeOptionsProvider 
-            // - MetadataReferenceResolver 
-            // - XmlReferenceResolver
-            // - SourceReferenceResolver
-            // - StrongNameProvider
-            //
-            // Think harder about 
-            // - AssemblyIdentityComparer
+
+            // Not really options but they can impact compilation so we record the types. For the majority
+            // of compilations this is roughly the equivalent of recording the compiler version but it 
+            // could differ when customers host the compiler via the API.
+            writer.WriteKey("extensions");
+            writer.WriteObjectStart();
+
+            WriteType(writer, "syntaxTreeOptionsProvider", options.SyntaxTreeOptionsProvider?.GetType());
+            WriteType(writer, "metadataReferenceResolver", options.MetadataReferenceResolver?.GetType());
+            WriteType(writer, "xmlReferenceResolver", options.XmlReferenceResolver?.GetType());
+            WriteType(writer, "sourceReferenceResolver", options.SourceReferenceResolver?.GetType());
+            WriteType(writer, "strongNameProvider", options.StrongNameProvider?.GetType());
+            WriteType(writer, "assemblyIdentityComparer", options.AssemblyIdentityComparer?.GetType());
+            writer.WriteObjectEnd();
         }
 
         protected void WriteParseOptions(JsonWriter writer, ParseOptions parseOptions)
