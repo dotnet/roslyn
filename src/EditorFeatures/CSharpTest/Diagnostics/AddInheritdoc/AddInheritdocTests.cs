@@ -204,6 +204,41 @@ public class MyClass: IInterface
         }
 
         [Fact]
+        public async Task AddMissingInheritdocOnImplicitInterfaceEvent()
+        {
+            await TestAsync(
+            @"
+/// Some doc.
+public interface IInterface
+{
+    /// Some doc.
+    event System.Action SomeEvent;
+}
+/// Some doc.
+public class MyClass: IInterface
+{
+    public event System.Action {|CS1591:SomeEvent|};
+    
+    void OnSomething() => SomeEvent?.Invoke();
+}",
+            @"
+/// Some doc.
+public interface IInterface
+{
+    /// Some doc.
+    event System.Action SomeEvent;
+}
+/// Some doc.
+public class MyClass: IInterface
+{
+    /// <inheritdoc/>
+    public event System.Action SomeEvent;
+    
+    void OnSomething() => SomeEvent?.Invoke();
+}");
+        }
+
+        [Fact]
         public async Task AddMissingInheritdocTriviaTest_1()
         {
             await TestAsync(

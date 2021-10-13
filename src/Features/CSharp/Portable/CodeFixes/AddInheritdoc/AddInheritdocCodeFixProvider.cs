@@ -56,7 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
             foreach (var diagnostic in context.Diagnostics)
             {
                 var node = root.FindNode(diagnostic.Location.SourceSpan);
-                if (node.Kind() is not SyntaxKind.MethodDeclaration and not SyntaxKind.PropertyDeclaration)
+                if (node.Kind() is not SyntaxKind.MethodDeclaration and not SyntaxKind.PropertyDeclaration and not SyntaxKind.VariableDeclarator)
+                {
+                    continue;
+                }
+
+                if (node.IsKind(SyntaxKind.VariableDeclarator) && node.Parent?.Parent?.IsKind(SyntaxKind.EventFieldDeclaration) == false)
                 {
                     continue;
                 }
@@ -69,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
                     continue;
                 }
 
-                if (symbol.Kind is SymbolKind.Method or SymbolKind.Property)
+                if (symbol.Kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event)
                 {
                     if (symbol.IsOverride ||
                         symbol.ImplicitInterfaceImplementations().Any())
@@ -87,6 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
             foreach (var diagnostic in diagnostics)
             {
                 var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan);
+                if (node.IsKind(SyntaxKind.VariableDeclarator) && !(node = node.Parent?.Parent).IsKind(SyntaxKind.EventFieldDeclaration))
+                {
+                    continue;
+                }
+
                 newLine ??= (await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)).GetOption(FormattingOptions2.NewLine);
                 // We can safely assume, that there is no leading doc comment, because that is what CS1591 is telling us.
                 // So we create a new /// <inheritdoc/> comment.
