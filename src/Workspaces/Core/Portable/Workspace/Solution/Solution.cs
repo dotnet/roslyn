@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
 
         internal SolutionServices Services => _state.Services;
 
-        internal BranchId BranchId => _state.BranchId;
+        internal Lazy<BranchId> BranchId => _state.BranchId;
 
         internal ProjectState? GetProjectState(ProjectId projectId) => _state.GetProjectState(projectId);
 

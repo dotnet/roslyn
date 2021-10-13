@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
     internal partial class SolutionState
     {
         // branch id for this solution
-        private readonly BranchId _branchId;
+        private readonly Lazy<BranchId> _branchId;
 
         // the version of the workspace this solution is from
         private readonly int _workspaceVersion;
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis
         private readonly SourceGeneratedDocumentState? _frozenSourceGeneratedDocumentState;
 
         private SolutionState(
-            BranchId branchId,
+            Lazy<BranchId> branchId,
             int workspaceVersion,
             SolutionServices solutionServices,
             SolutionInfo.SolutionAttributes solutionAttributes,
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public SolutionState(
-            BranchId primaryBranchId,
+            Lazy<BranchId> primaryBranchId,
             SolutionServices solutionServices,
             SolutionInfo.SolutionAttributes solutionAttributes,
             SerializableOptionSet options,
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis
         ///
         /// version only has a meaning between primary solution and branched one or between solutions from same branch.
         /// </summary>
-        public BranchId BranchId => _branchId;
+        public Lazy<BranchId> BranchId => _branchId;
 
         /// <summary>
         /// The Workspace this solution is associated with.
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis
             // my reasonings are
             // 1. it seems there is no-one who needs sub branches.
             // 2. this lets us to branch without explicit branch API
-            var branchId = _branchId == Workspace.PrimaryBranchId ? BranchId.GetNextId() : _branchId;
+            var branchId = _branchId == Workspace.PrimaryBranchId ? new Lazy<BranchId>(() => CodeAnalysis.BranchId.GetNextId()) : _branchId;
 
             if (idToProjectStateMap is not null)
             {
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private SolutionState CreatePrimarySolution(
-            BranchId branchId,
+            Lazy<BranchId> branchId,
             int workspaceVersion,
             SolutionServices services)
         {

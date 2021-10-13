@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly string? _workspaceKind;
         private readonly HostWorkspaceServices _services;
-        private readonly BranchId _primaryBranchId;
+        private readonly Lazy<BranchId> _primaryBranchId;
 
         private readonly IOptionService _optionService;
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="workspaceKind">A string that can be used to identify the kind of workspace. Usually this matches the name of the class.</param>
         protected Workspace(HostServices host, string? workspaceKind)
         {
-            _primaryBranchId = BranchId.GetNextId();
+            _primaryBranchId = new Lazy<BranchId>(() => BranchId.GetNextId());
             _workspaceKind = workspaceKind;
 
             _services = host.CreateWorkspaceServices(this);
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// primary branch id that current solution has
         /// </summary>
-        internal BranchId PrimaryBranchId => _primaryBranchId;
+        internal Lazy<BranchId> PrimaryBranchId => _primaryBranchId;
 
         /// <summary>
         /// Override this property if the workspace supports partial semantics for documents.
