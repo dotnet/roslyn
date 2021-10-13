@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract DeterministicKeyBuilder CreateDetermisiticKeyBuilder();
 
-        internal string GetDeterministicKey(
+        public string GetDeterministicKey(
             ImmutableArray<AdditionalText> additionalTexts = default,
             ImmutableArray<DiagnosticAnalyzer> analyzers = default,
             ImmutableArray<ISourceGenerator> generators = default,
