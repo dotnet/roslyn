@@ -181,6 +181,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void ResetOptions()
         {
             ResetOption(CompletionViewOptions.EnableArgumentCompletionSnippets);
+            ResetOption(FeatureOnOffOptions.NavigateToDecompiledSources);
             return;
 
             // Local function
