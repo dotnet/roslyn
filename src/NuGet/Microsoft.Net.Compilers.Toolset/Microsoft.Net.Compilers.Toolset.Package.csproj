@@ -23,7 +23,7 @@
     <!-- Remove NU5128 once https://github.com/NuGet/Home/issues/8583 is fixed -->
     <NoWarn>$(NoWarn);NU5100;NU5128</NoWarn>
 
-    <_DependsOn Condition="'$(TargetFramework)' == 'net472' and '$(DotNetBuildFromSource)' != 'true'">InitializeDesktopCompilerArtifacts</_DependsOn>
+    <_DependsOn Condition="'$(TargetFramework)' == 'net472'">InitializeDesktopCompilerArtifacts</_DependsOn>
     <_DependsOn Condition="'$(TargetFramework)' == 'netcoreapp3.1'">InitializeCoreClrCompilerArtifacts</_DependsOn>
   </PropertyGroup>
 
@@ -58,6 +58,6 @@
     </ItemGroup>
   </Target>
 
-  <Import Project="DesktopCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'net472' and '$(DotNetBuildFromSource)' != 'true'" />
+  <Import Project="DesktopCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'net472'" />
   <Import Project="CoreClrCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
 </Project>
