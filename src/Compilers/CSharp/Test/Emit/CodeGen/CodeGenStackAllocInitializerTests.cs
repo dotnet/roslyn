@@ -792,7 +792,7 @@ static unsafe class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestSpanByte()
         {
             var comp = CreateCompilation(@"
@@ -987,7 +987,7 @@ static class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestArray()
         {
             var comp = CreateCompilation(new[] { @"

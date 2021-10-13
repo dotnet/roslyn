@@ -666,6 +666,7 @@ End Namespace
                          WellKnownMember.System_ReadOnlySpan_T__ctor,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
                          WellKnownMember.System_ReadOnlySpan_T__get_Length,
+                         WellKnownMember.System_ReadOnlySpan_T__GetPinnableReference,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
                          WellKnownMember.System_IAsyncDisposable__DisposeAsync,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
@@ -697,7 +698,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags,
                          WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear,
-                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__StackAlloc_T
+                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__StackAlloc_T,
+                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpan_T
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -809,6 +811,7 @@ End Namespace
                          WellKnownMember.System_ReadOnlySpan_T__ctor,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
                          WellKnownMember.System_ReadOnlySpan_T__get_Length,
+                         WellKnownMember.System_ReadOnlySpan_T__GetPinnableReference,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
                          WellKnownMember.System_IAsyncDisposable__DisposeAsync,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
@@ -840,7 +843,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags,
                          WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear,
-                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__StackAlloc_T
+                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__StackAlloc_T,
+                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpan_T
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
