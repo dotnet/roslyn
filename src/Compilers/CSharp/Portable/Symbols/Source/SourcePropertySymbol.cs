@@ -227,12 +227,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (!ignoreFieldKeyword)
                         {
                             var containsFieldKeyword = ((SyntaxNode?)accessor.Body ?? accessor.ExpressionBody!.Expression).DescendantTokens()
-                                .Any(t => t.IsKind(SyntaxKind.IdentifierToken) && t.ContextualKind() == SyntaxKind.FieldKeyword && t.Parent.IsKind(SyntaxKind.AttributeTargetSpecifier));
+                                .Any(t => t.IsKind(SyntaxKind.IdentifierToken) && t.ContextualKind() == SyntaxKind.FieldKeyword && !t.Parent.IsKind(SyntaxKind.AttributeTargetSpecifier));
 
-                            var members = containingType.GetMembers("field");
-                            if (members.Length == 0)
+                            if (containsFieldKeyword)
                             {
-                                isAutoProperty = true;
+                                var members = containingType.GetMembers("field");
+                                if (members.Length == 0)
+                                {
+                                    isAutoProperty = true;
+                                }
                             }
                         }
                     }

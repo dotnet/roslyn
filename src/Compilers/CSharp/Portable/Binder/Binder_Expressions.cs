@@ -1557,7 +1557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         expression = new BoundDiscardExpression(node, LocalScopeDepth, type: null);
                     }
                     else if (node.Identifier.ContextualKind() == SyntaxKind.FieldKeyword &&
-                        ContainingMemberOrLambda is SourcePropertyAccessorSymbol accessor &&
+                        ContainingMemberOrLambda is SourcePropertyAccessorSymbol accessor && // PROTOTYPE: We should traverse until we get a property accessor.
                         accessor.Property.BackingField is { } backingField)
                     {
                         expression = BindNonMethod(node, backingField, diagnostics, LookupResultKind.Viable, indexed: false, isError: false);

@@ -81,7 +81,19 @@ public class C
 		.set instance void C::set_P(string)
 	}
 } // end of class C
+");
+        }
 
+        [Fact]
+        public void FieldKeywordInReadOnlyProperty()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public string P { get => field; }
+}
+");
+            CompileAndVerify(comp).VerifyTypeIL("C", @"
 ");
         }
 
