@@ -1032,7 +1032,7 @@ outerDefault:
         public static bool IsValidParamsParameter(ParameterSymbol final)
         {
             Debug.Assert((object)final == final.ContainingSymbol.GetParameters().Last());
-            return final.IsParams && final.Type.IsParamsArrayType(final.DeclaringCompilation);
+            return final.IsParams && final.Type.IsParamsType(final.DeclaringCompilation);
         }
 
         /// <summary>
@@ -1641,9 +1641,9 @@ outerDefault:
         {
             var type = parameter.Type;
             if (result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
-                parameter.IsParams && type.IsSZArray())
+                parameter.IsParams && type.IsParamsType(Compilation))
             {
-                return ((ArrayTypeSymbol)type).ElementType;
+                return type.GetParamsElementType().Type;
             }
             else
             {
@@ -2039,11 +2039,29 @@ outerDefault:
 
             // NB: OriginalDefinition, not ConstructedFrom.  Substitutions into containing symbols
             // must also be ignored for this tie-breaker.
+            var m1Original = m1.LeastOverriddenMember.OriginalDefinition.GetParameters();
+            var m2Original = m2.LeastOverriddenMember.OriginalDefinition.GetParameters();
+
+            // Prefer params Span<T> or ReadOnlySpan<T> over params T[].
+            if (m1.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm && m2.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
+            {
+                var parameter1 = m1Original.Last();
+                var parameter2 = m2Original.Last();
+
+                Debug.Assert(parameter1.IsParams);
+                Debug.Assert(parameter2.IsParams);
+
+                switch (parameter1.Type.IsSZArray(), parameter2.Type.IsSZArray())
+                {
+                    case (false, true):
+                        return BetterResult.Left;
+                    case (true, false):
+                        return BetterResult.Right;
+                }
+            }
 
             var uninst1 = ArrayBuilder<TypeSymbol>.GetInstance();
             var uninst2 = ArrayBuilder<TypeSymbol>.GetInstance();
-            var m1Original = m1.LeastOverriddenMember.OriginalDefinition.GetParameters();
-            var m2Original = m2.LeastOverriddenMember.OriginalDefinition.GetParameters();
             for (i = 0; i < arguments.Count; ++i)
             {
                 // If these are both applicable varargs methods and we're looking at the __arglist argument
@@ -3239,7 +3257,7 @@ outerDefault:
                 var parameter = parameters[parm];
                 var type = parameter.TypeWithAnnotations;
 
-                types.Add(parm == parameters.Length - 1 ? type.Type.GetParamsArrayElementType() : type);
+                types.Add(parm == parameters.Length - 1 ? type.Type.GetParamsElementType() : type);
 
                 var argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
                 var paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, isMethodGroupConversion, allowRefOmittedArguments, binder, ref hasAnyRefOmittedArgument);
