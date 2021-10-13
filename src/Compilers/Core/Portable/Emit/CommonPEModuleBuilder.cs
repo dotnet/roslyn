@@ -993,6 +993,10 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public abstract Cci.IMethodReference GetInitArrayHelper();
 
+        public abstract Cci.IMethodReference GetCreateSpanHelper(ITypeSymbol elementType);
+
+        public abstract Cci.IMethodReference GetReadOnlySpanGetPinnableReference(ITypeSymbol elementType);
+
         public ArrayMethods ArrayMethods
         {
             get

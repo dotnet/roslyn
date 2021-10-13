@@ -39,6 +39,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rewrittenType = VisitType(node.Type);
 
+            // special handling for stackalloc converted to ROS<T>
+            if (node.Operand is BoundConvertedStackAllocExpression stackAllocExpression &&
+                TypeSymbol.Equals(rewrittenType.OriginalDefinition, _compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything))
+            {
+                bool hasCreateSpanHelper = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpan_T) is not null;
+                var elementType = stackAllocExpression.ElementType;
+                var initializerOpt = stackAllocExpression.InitializerOpt;
+                if (CodeGen.CodeGenerator.UseCreateSpanForReadOnlyStackAlloc(hasCreateSpanHelper, elementType, initializerOpt,
+                    /* TODO: how to find out if this is ENC? */ supportsPrivateImplClass: true))
+                {
+                    return new BoundConvertedStackAllocExpression(stackAllocExpression.Syntax, elementType, VisitExpression(stackAllocExpression.Count), initializerOpt, rewrittenType);
+                }
+            }
+
             bool wasInExpressionLambda = _inExpressionLambda;
             _inExpressionLambda = _inExpressionLambda || (node.ConversionKind == ConversionKind.AnonymousFunction && !wasInExpressionLambda && rewrittenType.IsExpressionTree());
             var rewrittenOperand = VisitExpression(node.Operand);

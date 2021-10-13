@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             EmitToken(initializeArray, syntaxNode, diagnostics);
         }
 
-        internal void EmitStackAllocBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, bool emitInitBlock, DiagnosticBag diagnostics)
+        internal void EmitStackAllocBlockSingleByteInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, bool emitInitBlock, DiagnosticBag diagnostics)
         {
             if (emitInitBlock)
             {
@@ -117,6 +117,37 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 EmitIntConstant(data.Length);
                 EmitOpCode(ILOpCode.Cpblk, -3);
             }
+        }
+
+        internal void EmitStackAllocBlockMultiByteInitializer(ImmutableArray<byte> data, ITypeSymbol elementType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            // get helpers
+            var getPinnableReference = module.GetReadOnlySpanGetPinnableReference(elementType);
+
+            // emit call to the helper
+            EmitOpCode(ILOpCode.Dup);
+            EmitCreateSpan(data, elementType, syntaxNode, diagnostics);
+            // TODO: is this safe without pinning?
+            EmitOpCode(ILOpCode.Call, 0);
+            EmitToken(getPinnableReference, syntaxNode, diagnostics);
+            EmitIntConstant(data.Length);
+            // TODO: is this correct without unaligned.?
+            EmitOpCode(ILOpCode.Cpblk, -3);
+        }
+
+        internal void EmitCreateSpan(ImmutableArray<byte> data, ITypeSymbol elementType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            // get helpers
+            var createSpan = module.GetCreateSpanHelper(elementType);
+
+            // map a field to the block (that makes it addressable via a token)
+            var field = module.GetFieldForData(data, syntaxNode, diagnostics);
+
+            // emit call to the helper
+            EmitOpCode(ILOpCode.Ldtoken);
+            EmitToken(field, syntaxNode, diagnostics);
+            EmitOpCode(ILOpCode.Call, 0);
+            EmitToken(createSpan, syntaxNode, diagnostics);
         }
 
         internal void EmitArrayBlockFieldRef(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)

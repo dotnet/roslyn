@@ -2,66 +2,108 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
     internal partial class CodeGenerator
     {
-        private void EmitStackAllocInitializers(TypeSymbol type, BoundArrayInitialization inits)
+        private void EmitStackAlloc(TypeSymbol type, BoundArrayInitialization? inits, BoundExpression count)
         {
+            if (inits is null)
+            {
+                emitLocalloc();
+                return;
+            }
+
             Debug.Assert(type is PointerTypeSymbol || type is NamedTypeSymbol);
 
             var elementType = (type.TypeKind == TypeKind.Pointer
                 ? ((PointerTypeSymbol)type).PointedAtTypeWithAnnotations
                 : ((NamedTypeSymbol)type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]).Type;
 
+            bool isReadOnlySpan = TypeSymbol.Equals(
+                (type as NamedTypeSymbol)?.OriginalDefinition, _module.Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything);
+
             var initExprs = inits.Initializers;
 
-            var initializationStyle = ShouldEmitBlockInitializerForStackAlloc(elementType, initExprs);
-            if (initializationStyle == ArrayInitializerStyle.Element)
+            bool supportsPrivateImplClass = _module.SupportsPrivateImplClass;
+            var initializationStyle = ShouldEmitBlockInitializerForStackAlloc(elementType, initExprs, supportsPrivateImplClass);
+
+            if (isReadOnlySpan)
             {
+                // ROS<T> is only used here if it has already been decided to use CreateSpan
+                Debug.Assert(UseCreateSpanForReadOnlyStackAlloc(
+                    _module.GetCreateSpanHelper(elementType.GetPublicSymbol()) is not null, elementType, inits, supportsPrivateImplClass));
+
+                EmitExpression(count, used: false);
+
+                ImmutableArray<byte> data = GetRawData(initExprs);
+                _builder.EmitCreateSpan(data, elementType.GetPublicSymbol(), inits.Syntax, _diagnostics);
+            }
+            else if (initializationStyle == ArrayInitializerStyle.Element)
+            {
+                emitLocalloc();
                 EmitElementStackAllocInitializers(elementType, initExprs, includeConstants: true);
             }
             else
             {
-                ImmutableArray<byte> data = this.GetRawData(initExprs);
+                bool mixedInitialized = false;
+
+                emitLocalloc();
+
+                ImmutableArray<byte> data = GetRawData(initExprs);
                 if (data.All(datum => datum == data[0]))
                 {
-                    _builder.EmitStackAllocBlockInitializer(data, inits.Syntax, emitInitBlock: true, _diagnostics);
-
-                    if (initializationStyle == ArrayInitializerStyle.Mixed)
-                    {
-                        EmitElementStackAllocInitializers(elementType, initExprs, includeConstants: false);
-                    }
+                    _builder.EmitStackAllocBlockSingleByteInitializer(data, inits.Syntax, emitInitBlock: true, _diagnostics);
                 }
                 else if (elementType.SpecialType.SizeInBytes() == 1)
                 {
-                    _builder.EmitStackAllocBlockInitializer(data, inits.Syntax, emitInitBlock: false, _diagnostics);
-
-                    if (initializationStyle == ArrayInitializerStyle.Mixed)
-                    {
-                        EmitElementStackAllocInitializers(elementType, initExprs, includeConstants: false);
-                    }
+                    _builder.EmitStackAllocBlockSingleByteInitializer(data, inits.Syntax, emitInitBlock: false, _diagnostics);
                 }
                 else
                 {
-                    EmitElementStackAllocInitializers(elementType, initExprs, includeConstants: true);
+                    if (_module.GetCreateSpanHelper(elementType.GetPublicSymbol()) is null)
+                    {
+                        EmitElementStackAllocInitializers(elementType, initExprs, includeConstants: true);
+                        mixedInitialized = true;
+                    }
+                    else
+                    {
+                        _builder.EmitStackAllocBlockMultiByteInitializer(data, elementType.GetPublicSymbol(), inits.Syntax, _diagnostics);
+                    }
                 }
+
+                if (initializationStyle == ArrayInitializerStyle.Mixed && !mixedInitialized)
+                {
+                    EmitElementStackAllocInitializers(elementType, initExprs, includeConstants: false);
+                }
+            }
+
+            void emitLocalloc()
+            {
+                EmitExpression(count, used: true);
+
+                _sawStackalloc = true;
+                _builder.EmitOpCode(ILOpCode.Localloc);
             }
         }
 
-        private ArrayInitializerStyle ShouldEmitBlockInitializerForStackAlloc(TypeSymbol elementType, ImmutableArray<BoundExpression> inits)
+        internal static bool UseCreateSpanForReadOnlyStackAlloc(
+            bool hasCreateSpanHelper, TypeSymbol elementType, BoundArrayInitialization? inits, bool supportsPrivateImplClass) =>
+                hasCreateSpanHelper && inits?.Initializers is { } initExprs &&
+                ShouldEmitBlockInitializerForStackAlloc(elementType, initExprs, supportsPrivateImplClass) == ArrayInitializerStyle.Block &&
+                GetRawData(initExprs) is var data && !data.All(datum => datum == data[0]) &&
+                elementType.SpecialType.SizeInBytes() > 1;
+
+        private static ArrayInitializerStyle ShouldEmitBlockInitializerForStackAlloc(TypeSymbol elementType, ImmutableArray<BoundExpression> inits, bool supportsPrivateImplClass)
         {
-            if (!_module.SupportsPrivateImplClass)
+            if (!supportsPrivateImplClass)
             {
                 return ArrayInitializerStyle.Element;
             }
@@ -93,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return ArrayInitializerStyle.Element;
         }
 
-        private void StackAllocInitializerCount(ImmutableArray<BoundExpression> inits, ref int initCount, ref int constInits)
+        private static void StackAllocInitializerCount(ImmutableArray<BoundExpression> inits, ref int initCount, ref int constInits)
         {
             if (inits.Length == 0)
             {

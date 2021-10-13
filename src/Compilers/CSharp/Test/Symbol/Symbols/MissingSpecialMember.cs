@@ -923,6 +923,7 @@ namespace System
                     case WellKnownMember.System_ReadOnlySpan_T__ctor:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Item:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Length:
+                    case WellKnownMember.System_ReadOnlySpan_T__GetPinnableReference:
                     case WellKnownMember.System_Index__ctor:
                     case WellKnownMember.System_Index__GetOffset:
                     case WellKnownMember.System_Range__ctor:
@@ -965,6 +966,7 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags:
                     case WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear:
                     case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__StackAlloc_T:
+                    case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpan_T:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
