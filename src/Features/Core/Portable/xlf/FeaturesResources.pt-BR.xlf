@@ -248,7 +248,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       <trans-unit id="Await_the_preceding_expression_and_add_ConfigureAwait_0">
         <source>Await the preceding expression and add ConfigureAwait({0}).</source>
         <target state="new">Await the preceding expression and add ConfigureAwait({0}).</target>
-        <note>{0} is a placeholder for the language specific keyword 'false'</note>
+        <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
