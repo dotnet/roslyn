@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,14 +12,14 @@ namespace Analyzer.Utilities
     /// <summary>
     /// Analyzer configuration options from an .editorconfig file that are parsed into general
     /// and specific configuration options.
-    /// 
+    ///
     /// .editorconfig format:
     ///  1) General configuration option:
     ///     (a) "dotnet_code_quality.OptionName = OptionValue"
     ///  2) Specific configuration option:
     ///     (a) "dotnet_code_quality.RuleId.OptionName = OptionValue"
     ///     (b) "dotnet_code_quality.RuleCategory.OptionName = OptionValue"
-    ///    
+    ///
     /// .editorconfig examples to configure API surface analyzed by analyzers:
     ///  1) General configuration option:
     ///     (a) "dotnet_code_quality.api_surface = all"
@@ -30,7 +30,7 @@ namespace Analyzer.Utilities
     /// </summary>
     internal sealed class CategorizedAnalyzerConfigOptions : AbstractCategorizedAnalyzerConfigOptions
     {
-        public static readonly CategorizedAnalyzerConfigOptions Empty = new CategorizedAnalyzerConfigOptions(
+        public static readonly CategorizedAnalyzerConfigOptions Empty = new(
             ImmutableDictionary<string, string>.Empty,
             ImmutableDictionary<string, ImmutableDictionary<string, string>>.Empty);
 

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 {
@@ -37,15 +37,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
     {
         public static bool IsKnown(this CopyAbstractValueKind kind)
         {
-            switch (kind)
+            return kind switch
             {
-                case CopyAbstractValueKind.KnownValueCopy:
-                case CopyAbstractValueKind.KnownReferenceCopy:
-                    return true;
-
-                default:
-                    return false;
-            }
+                CopyAbstractValueKind.KnownValueCopy
+                or CopyAbstractValueKind.KnownReferenceCopy => true,
+                _ => false,
+            };
         }
 
         public static CopyAbstractValueKind MergeIfBothKnown(this CopyAbstractValueKind kind, CopyAbstractValueKind kindToMerge)

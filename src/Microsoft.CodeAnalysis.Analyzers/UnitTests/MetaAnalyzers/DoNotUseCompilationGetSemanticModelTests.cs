@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
     public class DoNotUseCompilationGetSemanticModelTests
     {
         [Fact]
-        public async Task CallInInitialize()
+        public async Task CallInInitializeAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Immutable;
@@ -61,7 +61,7 @@ End Class",
         }
 
         [Fact]
-        public async Task CallInSeparateMethod()
+        public async Task CallInSeparateMethodAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Immutable;
@@ -117,7 +117,7 @@ End Class",
         }
 
         [Fact]
-        public async Task CastedCall()
+        public async Task CastedCallAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Immutable;
@@ -167,7 +167,7 @@ End Class",
         }
 
         [Fact]
-        public async Task CallInNonDiagnosticAnalyzerClass()
+        public async Task CallInNonDiagnosticAnalyzerClassAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Immutable;
@@ -201,9 +201,13 @@ End Class");
         }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyCS.Diagnostic().WithLocation(line, column);
+#pragma warning restore RS0030 // Do not used banned APIs
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyVB.Diagnostic().WithLocation(line, column);
+#pragma warning restore RS0030 // Do not used banned APIs
     }
 }

@@ -24,7 +24,7 @@ RS1019 |  | DiagnosticId must be unique across analyzers |
 RS1020 |  | Category for analyzers must be from the specified values |
 RS1021 |  | Invalid entry in analyzer category and diagnostic ID range specification file |
 RS1022 |  | Do not use types from Workspaces assembly in an analyzer |
-RS1024 |  | Compare symbols correctly |
+RS1024 |  | Symbols should be compared for equality |
 RS1025 |  | Configure generated code analysis |
 RS1026 |  | Enable concurrent execution |
 RS1027 |  | Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer |
@@ -34,3 +34,4 @@ RS1030 |  | Do not invoke Compilation.GetSemanticModel() method within a diagnos
 RS1031 |  | Define diagnostic title correctly |
 RS1032 |  | Define diagnostic message correctly |
 RS1033 |  | Define diagnostic description correctly |
+RS1034 |  | Prefer 'IsKind' for checking syntax kinds |

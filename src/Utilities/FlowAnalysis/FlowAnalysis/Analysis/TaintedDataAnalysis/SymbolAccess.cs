@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis;
@@ -46,11 +46,19 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public ISymbol AccessingMethod { get; }
 
-        protected override void ComputeHashCodeParts(Action<int> addPart)
+        protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
-            addPart(Location.GetHashCode());
-            addPart(Symbol.GetHashCode());
-            addPart(AccessingMethod.GetHashCode());
+            hashCode.Add(Location.GetHashCode());
+            hashCode.Add(Symbol.GetHashCode());
+            hashCode.Add(AccessingMethod.GetHashCode());
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<SymbolAccess> obj)
+        {
+            var other = (SymbolAccess)obj;
+            return Location.GetHashCode() == other.Location.GetHashCode()
+                && Symbol.GetHashCode() == other.Symbol.GetHashCode()
+                && AccessingMethod.GetHashCode() == other.AccessingMethod.GetHashCode();
         }
     }
 }

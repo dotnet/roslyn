@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using Analyzer.Utilities.PooledObjects;
@@ -13,7 +13,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// </summary>
         private class PropertySetAbstractValueDomain : AbstractValueDomain<PropertySetAbstractValue>
         {
-            public static PropertySetAbstractValueDomain Default = new PropertySetAbstractValueDomain();
+            public static PropertySetAbstractValueDomain Default = new();
 
             private PropertySetAbstractValueDomain() { }
 

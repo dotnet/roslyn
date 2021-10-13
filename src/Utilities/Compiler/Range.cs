@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 #if !NETCOREAPP
 
@@ -37,9 +37,9 @@ namespace System
         }
 
         /// <summary>Indicates whether the current Range object is equal to another object of the same type.</summary>
-        /// <param name="value">An object to compare with this object</param>
-        public override bool Equals(object? value) =>
-            value is Range r &&
+        /// <param name="obj">An object to compare with this object</param>
+        public override bool Equals(object? obj) =>
+            obj is Range r &&
             r.Start.Equals(Start) &&
             r.End.Equals(End);
 
@@ -50,7 +50,7 @@ namespace System
         /// <summary>Returns the hash code for this instance.</summary>
         public override int GetHashCode()
         {
-            return HashUtilities.Combine(Start.GetHashCode(), End.GetHashCode());
+            return RoslynHashCode.Combine(Start.GetHashCode(), End.GetHashCode());
         }
 
         /// <summary>Converts the value of the current Range object to its equivalent string representation.</summary>
@@ -60,13 +60,13 @@ namespace System
         }
 
         /// <summary>Create a Range object starting from start index to the end of the collection.</summary>
-        public static Range StartAt(Index start) => new Range(start, Index.End);
+        public static Range StartAt(Index start) => new(start, Index.End);
 
         /// <summary>Create a Range object starting from first element in the collection to the end Index.</summary>
-        public static Range EndAt(Index end) => new Range(Index.Start, end);
+        public static Range EndAt(Index end) => new(Index.Start, end);
 
         /// <summary>Create a Range object starting from first element to the end.</summary>
-        public static Range All => new Range(Index.Start, Index.End);
+        public static Range All => new(Index.Start, Index.End);
 
         /// <summary>Calculate the start offset and length of range object using a collection length.</summary>
         /// <param name="length">The length of the collection that the range will be used with. length has to be a positive value.</param>

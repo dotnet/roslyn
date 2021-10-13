@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -18,143 +18,145 @@ using static Microsoft.CodeAnalysis.ReleaseTracking.ReleaseTrackingHelper;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
+    using static CodeAnalysisDiagnosticsResources;
+
     public sealed partial class DiagnosticDescriptorCreationAnalyzer
     {
         // Property names which are keys for diagnostic property bag passed to the code fixer.
         internal const string EntryToAddPropertyName = nameof(EntryToAddPropertyName);
         internal const string EntryToUpdatePropertyName = nameof(EntryToUpdatePropertyName);
 
-        internal static readonly DiagnosticDescriptor DeclareDiagnosticIdInAnalyzerReleaseRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor DeclareDiagnosticIdInAnalyzerReleaseRule = new(
             id: DiagnosticIds.DeclareDiagnosticIdInAnalyzerReleaseRuleId,
-            title: CodeAnalysisDiagnosticsResources.DeclareDiagnosticIdInAnalyzerReleaseTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.DeclareDiagnosticIdInAnalyzerReleaseMessage,
+            title: CreateLocalizableResourceString(nameof(DeclareDiagnosticIdInAnalyzerReleaseTitle)),
+            messageFormat: CreateLocalizableResourceString(nameof(DeclareDiagnosticIdInAnalyzerReleaseMessage)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.DeclareDiagnosticIdInAnalyzerReleaseDescription,
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            description: CreateLocalizableResourceString(nameof(DeclareDiagnosticIdInAnalyzerReleaseDescription)),
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        internal static readonly DiagnosticDescriptor UpdateDiagnosticIdInAnalyzerReleaseRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor UpdateDiagnosticIdInAnalyzerReleaseRule = new(
             id: DiagnosticIds.UpdateDiagnosticIdInAnalyzerReleaseRuleId,
-            title: CodeAnalysisDiagnosticsResources.UpdateDiagnosticIdInAnalyzerReleaseTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.UpdateDiagnosticIdInAnalyzerReleaseMessage,
+            title: CreateLocalizableResourceString(nameof(UpdateDiagnosticIdInAnalyzerReleaseTitle)),
+            messageFormat: CreateLocalizableResourceString(nameof(UpdateDiagnosticIdInAnalyzerReleaseMessage)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.UpdateDiagnosticIdInAnalyzerReleaseDescription,
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            description: CreateLocalizableResourceString(nameof(UpdateDiagnosticIdInAnalyzerReleaseDescription)),
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        internal static readonly DiagnosticDescriptor RemoveUnshippedDeletedDiagnosticIdRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor RemoveUnshippedDeletedDiagnosticIdRule = new(
             id: DiagnosticIds.RemoveUnshippedDeletedDiagnosticIdRuleId,
-            title: CodeAnalysisDiagnosticsResources.RemoveUnshippedDeletedDiagnosticIdTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.RemoveUnshippedDeletedDiagnosticIdMessage,
+            title: CreateLocalizableResourceString(nameof(RemoveUnshippedDeletedDiagnosticIdTitle)),
+            messageFormat: CreateLocalizableResourceString(nameof(RemoveUnshippedDeletedDiagnosticIdMessage)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.RemoveUnshippedDeletedDiagnosticIdDescription,
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+            description: CreateLocalizableResourceString(nameof(RemoveUnshippedDeletedDiagnosticIdDescription)),
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        internal static readonly DiagnosticDescriptor RemoveShippedDeletedDiagnosticIdRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor RemoveShippedDeletedDiagnosticIdRule = new(
             id: DiagnosticIds.RemoveShippedDeletedDiagnosticIdRuleId,
-            title: CodeAnalysisDiagnosticsResources.RemoveShippedDeletedDiagnosticIdTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.RemoveShippedDeletedDiagnosticIdMessage,
+            title: CreateLocalizableResourceString(nameof(RemoveShippedDeletedDiagnosticIdTitle)),
+            messageFormat: CreateLocalizableResourceString(nameof(RemoveShippedDeletedDiagnosticIdMessage)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.RemoveShippedDeletedDiagnosticIdDescription,
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+            description: CreateLocalizableResourceString(nameof(RemoveShippedDeletedDiagnosticIdDescription)),
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        internal static readonly DiagnosticDescriptor UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdRule = new(
             id: DiagnosticIds.UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdRuleId,
-            title: CodeAnalysisDiagnosticsResources.UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdMessage,
+            title: CreateLocalizableResourceString(nameof(UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdTitle)),
+            messageFormat: CreateLocalizableResourceString(nameof(UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdMessage)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdDescription,
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            description: CreateLocalizableResourceString(nameof(UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdDescription)),
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        internal static readonly DiagnosticDescriptor RemoveDuplicateEntriesForAnalyzerReleaseRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor RemoveDuplicateEntriesForAnalyzerReleaseRule = new(
             id: DiagnosticIds.RemoveDuplicateEntriesForAnalyzerReleaseRuleId,
-            title: CodeAnalysisDiagnosticsResources.RemoveDuplicateEntriesForAnalyzerReleaseRuleTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.RemoveDuplicateEntriesForAnalyzerReleaseRuleMessage,
+            title: CreateLocalizableResourceString(nameof(RemoveDuplicateEntriesForAnalyzerReleaseRuleTitle)),
+            messageFormat: CreateLocalizableResourceString(nameof(RemoveDuplicateEntriesForAnalyzerReleaseRuleMessage)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.RemoveDuplicateEntriesForAnalyzerReleaseRuleDescription,
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+            description: CreateLocalizableResourceString(nameof(RemoveDuplicateEntriesForAnalyzerReleaseRuleDescription)),
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        internal static readonly DiagnosticDescriptor RemoveDuplicateEntriesBetweenAnalyzerReleasesRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor RemoveDuplicateEntriesBetweenAnalyzerReleasesRule = new(
             id: DiagnosticIds.RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleId,
-            title: CodeAnalysisDiagnosticsResources.RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleMessage,
+            title: CreateLocalizableResourceString(nameof(RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleTitle)),
+            messageFormat: CreateLocalizableResourceString(nameof(RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleMessage)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleDescription,
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+            description: CreateLocalizableResourceString(nameof(RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleDescription)),
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        internal static readonly DiagnosticDescriptor InvalidEntryInAnalyzerReleasesFileRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor InvalidEntryInAnalyzerReleasesFileRule = new(
             id: DiagnosticIds.InvalidEntryInAnalyzerReleasesFileRuleId,
-            title: CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleMessage,
+            title: CreateLocalizableResourceString(nameof(InvalidEntryInAnalyzerReleasesFileRuleTitle)),
+            messageFormat: CreateLocalizableResourceString(nameof(InvalidEntryInAnalyzerReleasesFileRuleMessage)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleDescription,
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+            description: CreateLocalizableResourceString(nameof(InvalidEntryInAnalyzerReleasesFileRuleDescription)),
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        internal static readonly DiagnosticDescriptor InvalidHeaderInAnalyzerReleasesFileRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor InvalidHeaderInAnalyzerReleasesFileRule = new(
             id: DiagnosticIds.InvalidEntryInAnalyzerReleasesFileRuleId,
-            title: CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.InvalidHeaderInAnalyzerReleasesFileRuleMessage,
+            title: CreateLocalizableResourceString(nameof(InvalidEntryInAnalyzerReleasesFileRuleTitle)),
+            messageFormat: CreateLocalizableResourceString(nameof(InvalidHeaderInAnalyzerReleasesFileRuleMessage)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleDescription,
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+            description: CreateLocalizableResourceString(nameof(InvalidEntryInAnalyzerReleasesFileRuleDescription)),
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        internal static readonly DiagnosticDescriptor InvalidUndetectedEntryInAnalyzerReleasesFileRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor InvalidUndetectedEntryInAnalyzerReleasesFileRule = new(
             id: DiagnosticIds.InvalidEntryInAnalyzerReleasesFileRuleId,
-            title: CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.InvalidUndetectedEntryInAnalyzerReleasesFileRuleMessage,
+            title: CreateLocalizableResourceString(nameof(InvalidEntryInAnalyzerReleasesFileRuleTitle)),
+            messageFormat: CreateLocalizableResourceString(nameof(InvalidUndetectedEntryInAnalyzerReleasesFileRuleMessage)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleDescription,
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+            description: CreateLocalizableResourceString(nameof(InvalidEntryInAnalyzerReleasesFileRuleDescription)),
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        internal static readonly DiagnosticDescriptor InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRule = new(
             id: DiagnosticIds.InvalidEntryInAnalyzerReleasesFileRuleId,
-            title: CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRuleMessageMessage,
+            title: CreateLocalizableResourceString(nameof(InvalidEntryInAnalyzerReleasesFileRuleTitle)),
+            messageFormat: CreateLocalizableResourceString(nameof(InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRuleMessageMessage)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleDescription,
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+            description: CreateLocalizableResourceString(nameof(InvalidEntryInAnalyzerReleasesFileRuleDescription)),
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        internal static readonly DiagnosticDescriptor EnableAnalyzerReleaseTrackingRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor EnableAnalyzerReleaseTrackingRule = new(
             id: DiagnosticIds.EnableAnalyzerReleaseTrackingRuleId,
-            title: CodeAnalysisDiagnosticsResources.EnableAnalyzerReleaseTrackingRuleTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.EnableAnalyzerReleaseTrackingRuleMessage,
+            title: CreateLocalizableResourceString(nameof(EnableAnalyzerReleaseTrackingRuleTitle)),
+            messageFormat: CreateLocalizableResourceString(nameof(EnableAnalyzerReleaseTrackingRuleMessage)),
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: CodeAnalysisDiagnosticsResources.EnableAnalyzerReleaseTrackingRuleDescription,
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            description: CreateLocalizableResourceString(nameof(EnableAnalyzerReleaseTrackingRuleDescription)),
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         private static bool TryGetReleaseTrackingData(
             ImmutableArray<AdditionalText> additionalTexts,
@@ -366,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     long.TryParse(ruleId[2..], out _))
                 {
 #pragma warning disable CA1308 // Normalize strings to uppercase - use lower case ID in help link
-                    return $"https://docs.microsoft.com/visualstudio/code-quality/{ruleId.ToLowerInvariant()}";
+                    return $"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/{ruleId.ToLowerInvariant()}";
 #pragma warning restore CA1308 // Normalize strings to uppercase
                 }
 

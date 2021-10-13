@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using Analyzer.Utilities.Extensions;
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 {
                     return PointsToAbstractValue.Undefined;
                 }
-                else if (!analysisEntity.Type.IsReferenceTypeOrNullableValueType())
+                else if (analysisEntity.Type.IsNonNullableValueType())
                 {
                     return PointsToAbstractValue.NoLocation;
                 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -18,15 +18,11 @@ namespace Test.Utilities
             {
             }
 
-            protected override Project ApplyCompilationOptions(Project project)
+            protected override ParseOptions CreateParseOptions()
             {
-                var newProject = base.ApplyCompilationOptions(project);
-
-                var parseOptions = newProject.ParseOptions!.WithFeatures(
-                    newProject.ParseOptions.Features.Concat(
-                        new[] { new KeyValuePair<string, string>("flow-analysis", "true") }));
-
-                return newProject.WithParseOptions(parseOptions);
+                var parseOptions = base.CreateParseOptions();
+                return parseOptions.WithFeatures(parseOptions.Features.Concat(
+                    new[] { new KeyValuePair<string, string>("flow-analysis", "true") }));
             }
         }
     }

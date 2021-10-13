@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -159,9 +159,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             protected override ValueContentAnalysisData GetClonedAnalysisData(ValueContentAnalysisData analysisData)
                 => (ValueContentAnalysisData)analysisData.Clone();
             public override ValueContentAnalysisData GetEmptyAnalysisData()
-                => new ValueContentAnalysisData();
+                => new();
             protected override ValueContentAnalysisData GetExitBlockOutputData(ValueContentAnalysisResult analysisResult)
-                => new ValueContentAnalysisData(analysisResult.ExitBlockOutput.Data);
+                => new(analysisResult.ExitBlockOutput.Data);
             protected override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(ValueContentAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
                 => ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(dataAtException.CoreAnalysisData, CurrentAnalysisData.CoreAnalysisData, throwBranchWithExceptionType);
             protected override bool Equals(ValueContentAnalysisData value1, ValueContentAnalysisData value2)
@@ -177,7 +177,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 _ = base.DefaultVisit(operation, argument);
                 if (operation.Type == null)
                 {
-                    return ValueContentAbstractValue.ContainsNullLiteralState;
+                    return operation.Kind == OperationKind.None ?
+                        ValueContentAbstractValue.MayBeContainsNonLiteralState :
+                        ValueContentAbstractValue.ContainsNullLiteralState;
                 }
 
                 if (ValueContentAbstractValue.IsSupportedType(operation.Type, out var valueTypeSymbol))
@@ -190,7 +192,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                     }
                     else
                     {
-                        return (GetNullAbstractValue(operation)) switch
+                        return GetNullAbstractValue(operation) switch
                         {
                             PointsToAnalysis.NullAbstractValue.Invalid => ValueContentAbstractValue.InvalidState,
 

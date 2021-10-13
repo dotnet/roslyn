@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -79,6 +79,15 @@ namespace Analyzer.Utilities.Extensions
             params object[] args)
         {
             return symbol.Locations.CreateDiagnostic(rule, args);
+        }
+
+        public static Diagnostic CreateDiagnostic(
+            this ISymbol symbol,
+            DiagnosticDescriptor rule,
+            ImmutableDictionary<string, string?>? properties,
+            params object[] args)
+        {
+            return symbol.Locations.CreateDiagnostic(rule, properties, args);
         }
 
         public static Diagnostic CreateDiagnostic(

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 
@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         /// </summary>
         private sealed class NullAbstractValueDomain : AbstractValueDomain<NullAbstractValue>
         {
-            public static NullAbstractValueDomain Default = new NullAbstractValueDomain();
+            public static NullAbstractValueDomain Default = new();
 
             private NullAbstractValueDomain() { }
 
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             public override NullAbstractValue UnknownOrMayBeValue => NullAbstractValue.MaybeNull;
 
-            public override int Compare(NullAbstractValue oldValue, NullAbstractValue newValue, bool assertMonotonicitye)
+            public override int Compare(NullAbstractValue oldValue, NullAbstractValue newValue, bool assertMonotonicity)
             {
                 return Comparer<NullAbstractValue>.Default.Compare(oldValue, newValue);
             }

@@ -1,6 +1,7 @@
 ## Release 3.0.0
 
 ### New Rules
+
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 RS1024 | MicrosoftCodeAnalysisCorrectness | Warning | CompareSymbolsCorrectlyAnalyzer
@@ -10,20 +11,20 @@ RS1027 | MicrosoftCodeAnalysisCorrectness | Warning | ClassIsNotDiagnosticAnalyz
 RS1028 | MicrosoftCodeAnalysisDocumentation | Disabled | DiagnosticDescriptorCreationAnalyzer
 RS1029 | MicrosoftCodeAnalysisDesign | Warning | DiagnosticDescriptorCreationAnalyzer
 RS1030 | MicrosoftCodeAnalysisCorrectness | Warning | DoNotUseCompilationGetSemanticModelAnalyzer
-RS2000 | MicrosoftCodeAnalysisReleaseTracking | Warning | DiagnosticDescriptorCreationAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md)
-RS2001 | MicrosoftCodeAnalysisReleaseTracking | Warning | DiagnosticDescriptorCreationAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md)
-RS2002 | MicrosoftCodeAnalysisReleaseTracking | Warning | DiagnosticDescriptorCreationAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md)
-RS2003 | MicrosoftCodeAnalysisReleaseTracking | Warning | DiagnosticDescriptorCreationAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md)
-RS2004 | MicrosoftCodeAnalysisReleaseTracking | Warning | DiagnosticDescriptorCreationAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md)
-RS2005 | MicrosoftCodeAnalysisReleaseTracking | Warning | DiagnosticDescriptorCreationAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md)
-RS2006 | MicrosoftCodeAnalysisReleaseTracking | Warning | DiagnosticDescriptorCreationAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md)
-RS2007 | MicrosoftCodeAnalysisReleaseTracking | Warning | DiagnosticDescriptorCreationAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md)
-RS2008 | MicrosoftCodeAnalysisReleaseTracking | Warning | DiagnosticDescriptorCreationAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md)
-
+RS2000 | MicrosoftCodeAnalysisReleaseTracking | Warning | DiagnosticDescriptorCreationAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md)
+RS2001 | MicrosoftCodeAnalysisReleaseTracking | Warning | DiagnosticDescriptorCreationAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md)
+RS2002 | MicrosoftCodeAnalysisReleaseTracking | Warning | DiagnosticDescriptorCreationAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md)
+RS2003 | MicrosoftCodeAnalysisReleaseTracking | Warning | DiagnosticDescriptorCreationAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md)
+RS2004 | MicrosoftCodeAnalysisReleaseTracking | Warning | DiagnosticDescriptorCreationAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md)
+RS2005 | MicrosoftCodeAnalysisReleaseTracking | Warning | DiagnosticDescriptorCreationAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md)
+RS2006 | MicrosoftCodeAnalysisReleaseTracking | Warning | DiagnosticDescriptorCreationAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md)
+RS2007 | MicrosoftCodeAnalysisReleaseTracking | Warning | DiagnosticDescriptorCreationAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md)
+RS2008 | MicrosoftCodeAnalysisReleaseTracking | Warning | DiagnosticDescriptorCreationAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md)
 
 ## Release 2.9.8
 
 ### New Rules
+
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 RS1001 | MicrosoftCodeAnalysisCorrectness | Warning | DiagnosticAnalyzerAttributeAnalyzer
@@ -52,6 +53,7 @@ RS1023 | Library | Warning | UpgradeMSBuildWorkspaceAnalyzer
 ## Release 3.3.0
 
 ### New Rules
+
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 RS1031 | MicrosoftCodeAnalysisDesign | Warning | DiagnosticDescriptorCreationAnalyzer

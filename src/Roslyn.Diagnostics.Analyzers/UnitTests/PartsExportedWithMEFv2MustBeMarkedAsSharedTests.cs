@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
@@ -45,7 +45,7 @@ End Namespace
         #region No Diagnostic Tests
 
         [Fact]
-        public async Task NoDiagnosticCases_ResolvedTypes()
+        public async Task NoDiagnosticCases_ResolvedTypesAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -68,7 +68,7 @@ End Class
         }
 
         [Fact]
-        public async Task NoDiagnosticCases_UnresolvedTypes()
+        public async Task NoDiagnosticCases_UnresolvedTypesAsync()
         {
             await new VerifyCS.Test
             {
@@ -115,39 +115,52 @@ End Class
         #region Diagnostic Tests
 
         [Fact]
-        public async Task DiagnosticCases_NoSharedAttribute()
+        public async Task DiagnosticCases_NoSharedAttributeAsync()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCS.VerifyCodeFixAsync(@"
+using System;
+using System.Composition;
+
+[[|Export(typeof(C))|]]
+public class C
+{
+}
+" + CSharpWellKnownAttributesDefinition, @"
 using System;
 using System.Composition;
 
 [Export(typeof(C))]
+[Shared]
 public class C
 {
 }
-" + CSharpWellKnownAttributesDefinition,
-    // Test0.cs(5,2): warning RS0023: 'C' is exported with MEFv2 and hence must be marked as Shared
-    GetCSharpResultAt(5, 2, "C"));
+" + CSharpWellKnownAttributesDefinition);
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyVB.VerifyCodeFixAsync(@"
+Imports System
+Imports System.Composition
+
+<[|Export(GetType(C))|]> _
+Public Class C
+End Class
+" + BasicWellKnownAttributesDefinition, @"
 Imports System
 Imports System.Composition
 
 <Export(GetType(C))> _
+<[Shared]>
 Public Class C
 End Class
-" + BasicWellKnownAttributesDefinition,
-    // Test0.vb(5,2): warning RS0023: 'C' is exported with MEFv2 and hence must be marked as Shared
-    GetBasicResultAt(5, 2, "C"));
+" + BasicWellKnownAttributesDefinition);
         }
 
         [Fact]
-        public async Task DiagnosticCases_DifferentSharedAttribute()
+        public async Task DiagnosticCases_DifferentSharedAttributeAsync()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCS.VerifyCodeFixAsync(@"
 using System;
 
-[System.Composition.Export(typeof(C)), Shared]
+[[|System.Composition.Export(typeof(C))|], Shared]
 public class C
 {
 }
@@ -155,35 +168,44 @@ public class C
 public class SharedAttribute: Attribute
 {
 }
-" + CSharpWellKnownAttributesDefinition,
-    // Test0.cs(4,2): warning RS0023: 'C' is exported with MEFv2 and hence must be marked as Shared
-    GetCSharpResultAt(4, 2, "C"));
+" + CSharpWellKnownAttributesDefinition, @"
+using System;
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+[System.Composition.Export(typeof(C)), Shared]
+[System.Composition.Shared]
+public class C
+{
+}
+
+public class SharedAttribute: Attribute
+{
+}
+" + CSharpWellKnownAttributesDefinition);
+
+            await VerifyVB.VerifyCodeFixAsync(@"
 Imports System
 
-<System.Composition.Export(GetType(C)), [Shared]> _
+<[|System.Composition.Export(GetType(C))|], [Shared]> _
 Public Class C
 End Class
 
 Public Class SharedAttribute
     Inherits Attribute
 End Class
-" + BasicWellKnownAttributesDefinition,
-    // Test0.vb(4,2): warning RS0023: 'C' is exported with MEFv2 and hence must be marked as Shared
-    GetBasicResultAt(4, 2, "C"));
+" + BasicWellKnownAttributesDefinition, @"
+Imports System
+
+<System.Composition.Export(GetType(C)), [Shared]> _
+<Composition.Shared>
+Public Class C
+End Class
+
+Public Class SharedAttribute
+    Inherits Attribute
+End Class
+" + BasicWellKnownAttributesDefinition);
         }
 
         #endregion
-
-        private static DiagnosticResult GetCSharpResultAt(int line, int column, string typeName) =>
-            VerifyCS.Diagnostic()
-                .WithLocation(line, column)
-                .WithArguments(typeName);
-
-        private static DiagnosticResult GetBasicResultAt(int line, int column, string typeName) =>
-            VerifyVB.Diagnostic()
-                .WithLocation(line, column)
-                .WithArguments(typeName);
     }
 }

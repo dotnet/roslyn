@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
@@ -157,7 +157,7 @@ End Class
         #region No Diagnostic Tests
 
         [Fact]
-        public async Task NoDiagnosticCases_SingleMefAttribute()
+        public async Task NoDiagnosticCases_SingleMefAttributeAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -187,7 +187,7 @@ End Class
         }
 
         [Fact]
-        public async Task NoDiagnosticCases_SingleMefAttributeAndValidMetadataAttribute()
+        public async Task NoDiagnosticCases_SingleMefAttributeAndValidMetadataAttributeAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -221,7 +221,7 @@ End Class
         }
 
         [Fact]
-        public async Task NoDiagnosticCases_SingleMefAttributeAndAnotherExportAttribute()
+        public async Task NoDiagnosticCases_SingleMefAttributeAndAnotherExportAttributeAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -267,7 +267,7 @@ End Namespace
         }
 
         [Fact]
-        public async Task NoDiagnosticCases_SingleMefAttributeOnTypeAndValidMefAttributeOnMember()
+        public async Task NoDiagnosticCases_SingleMefAttributeOnTypeAndValidMefAttributeOnMemberAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -322,7 +322,7 @@ End Class
         }
 
         [Fact]
-        public async Task NoDiagnosticCases_UnresolvedTypes()
+        public async Task NoDiagnosticCases_UnresolvedTypesAsync()
         {
             await new VerifyCS.Test
             {
@@ -370,7 +370,7 @@ End Class
         }
 
         [Fact]
-        public async Task NoDiagnosticCases_MultiMefMetadataAttribute()
+        public async Task NoDiagnosticCases_MultiMefMetadataAttributeAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -410,7 +410,7 @@ End Namespace
         #region Diagnostic Tests
 
         [Fact]
-        public async Task DiagnosticCases_BadMetadataAttribute()
+        public async Task DiagnosticCases_BadMetadataAttributeAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -452,7 +452,7 @@ End Class
         }
 
         [Fact]
-        public async Task DiagnosticCases_BadMefAttributeOnMember()
+        public async Task DiagnosticCases_BadMefAttributeOnMemberAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -525,7 +525,7 @@ End Class
         }
 
         [Fact]
-        public async Task DiagnosticCases_BadMefAttributeOnParameter()
+        public async Task DiagnosticCases_BadMefAttributeOnParameterAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -590,13 +590,17 @@ End Class
         #endregion
 
         private static DiagnosticResult GetCSharpResultAt(int line, int column, string attributeName, string typeName) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyCS.Diagnostic()
                 .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(attributeName, typeName);
 
         private static DiagnosticResult GetBasicResultAt(int line, int column, string attributeName, string typeName) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyVB.Diagnostic()
                 .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(attributeName, typeName);
     }
 }

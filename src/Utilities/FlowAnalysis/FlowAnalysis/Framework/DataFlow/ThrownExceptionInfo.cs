@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -103,10 +103,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             => Equals(obj as ThrownExceptionInfo);
 
         public override int GetHashCode()
-            => HashUtilities.Combine(InterproceduralCallStack,
-                HashUtilities.Combine(BasicBlockOrdinal.GetHashCodeOrDefault(),
-                HashUtilities.Combine(HandlingCatchRegion.GetHashCodeOrDefault(),
-                HashUtilities.Combine(ContainingFinallyRegion.GetHashCodeOrDefault(),
-                HashUtilities.Combine(ExceptionType.GetHashCode(), IsDefaultExceptionForExceptionsPathAnalysis.GetHashCode())))));
+        {
+            var hashCode = new RoslynHashCode();
+            HashUtilities.Combine(InterproceduralCallStack, ref hashCode);
+            hashCode.Add(BasicBlockOrdinal.GetHashCode());
+            hashCode.Add(HandlingCatchRegion.GetHashCodeOrDefault());
+            hashCode.Add(ContainingFinallyRegion.GetHashCodeOrDefault());
+            hashCode.Add(ExceptionType.GetHashCode());
+            hashCode.Add(IsDefaultExceptionForExceptionsPathAnalysis.GetHashCode());
+            return hashCode.ToHashCode();
+        }
     }
 }
