@@ -5,60 +5,60 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class CSharpDeterministicKeyBuilder : DeterministicKeyBuilder
     {
-        public CSharpDeterministicKeyBuilder(DeterministicKeyOptions options = DeterministicKeyOptions.Default)
-            : base(options)
+        public CSharpDeterministicKeyBuilder()
         {
 
         }
 
-        protected override void WriteCompilationOptionsCore(CompilationOptions options)
+        protected override void WriteCompilationOptionsCore(JsonWriter writer, CompilationOptions options)
         {
             if (options is not CSharpCompilationOptions csharpOptions)
             {
                 throw new InvalidOperationException();
             }
 
-            base.WriteCompilationOptionsCore(options);
+            base.WriteCompilationOptionsCore(writer, options);
 
-            Writer.Write("unsafe", csharpOptions.AllowUnsafe);
-            Writer.Write("topLevelBinderFlags", csharpOptions.TopLevelBinderFlags);
+            writer.Write("unsafe", csharpOptions.AllowUnsafe);
+            writer.Write("topLevelBinderFlags", csharpOptions.TopLevelBinderFlags);
 
             if (csharpOptions.Usings.Length > 0)
             {
-                Writer.WriteKey("globalUsings");
-                Writer.WriteArrayStart();
+                writer.WriteKey("globalUsings");
+                writer.WriteArrayStart();
                 foreach (var name in csharpOptions.Usings)
                 {
-                    Writer.Write(name);
+                    writer.Write(name);
                 }
-                Writer.WriteArrayEnd();
+                writer.WriteArrayEnd();
             }
         }
 
-        protected override void WriteParseOptionsCore(ParseOptions parseOptions)
+        protected override void WriteParseOptionsCore(JsonWriter writer, ParseOptions parseOptions)
         {
             if (parseOptions is not CSharpParseOptions csharpOptions)
             {
                 throw new InvalidOperationException();
             }
 
-            Writer.Write("languageVersion", csharpOptions.LanguageVersion);
-            Writer.Write("specifiedLanguageVersion", csharpOptions.SpecifiedLanguageVersion);
+            writer.Write("languageVersion", csharpOptions.LanguageVersion);
+            writer.Write("specifiedLanguageVersion", csharpOptions.SpecifiedLanguageVersion);
 
             if (csharpOptions.PreprocessorSymbols is { Length: > 0 } symbols)
             {
-                Writer.WriteKey("preprocessorSymbols");
-                Writer.WriteArrayStart();
+                writer.WriteKey("preprocessorSymbols");
+                writer.WriteArrayStart();
                 foreach (var symbol in symbols)
                 {
-                    Writer.Write(symbol);
+                    writer.Write(symbol);
                 }
-                Writer.WriteArrayEnd();
+                writer.WriteArrayEnd();
             }
         }
     }

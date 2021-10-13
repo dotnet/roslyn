@@ -125,21 +125,21 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract DeterministicKeyBuilder CreateDetermisiticKeyBuilder();
 
-        internal string GetDeterministicKey()
-        {
-            var builder = CreateDetermisiticKeyBuilder();
-            builder.WriteCompilation(this);
-            return builder.GetKey();
-        }
-
         internal string GetDeterministicKey(
-            ImmutableArray<AdditionalText> additionalTexts,
-            ImmutableArray<DiagnosticAnalyzer> analyzers,
-            ImmutableArray<ISourceGenerator> generators)
+            ImmutableArray<AdditionalText> additionalTexts = default,
+            ImmutableArray<DiagnosticAnalyzer> analyzers = default,
+            ImmutableArray<ISourceGenerator> generators = default,
+            EmitOptions? emitOptions = null,
+            DeterministicKeyOptions deterministicKeyOptions = DeterministicKeyOptions.Default)
         {
-            var builder = CreateDetermisiticKeyBuilder();
-            builder.WriteCompilation(this, additionalTexts, analyzers, generators);
-            return builder.GetKey();
+            var keyBuilder = CreateDetermisiticKeyBuilder();
+            return keyBuilder.GetKey(
+                this,
+                additionalTexts.NullToEmpty(),
+                analyzers.NullToEmpty(),
+                generators.NullToEmpty(),
+                emitOptions,
+                deterministicKeyOptions);
         }
 
         internal static void ValidateScriptCompilationParameters(Compilation? previousScriptCompilation, Type? returnType, ref Type? globalsType)
