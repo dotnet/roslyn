@@ -27,13 +27,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         #region CompletionItem properties keys
         private const string AwaitCompletionTargetTokenPosition = nameof(AwaitCompletionTargetTokenPosition);
 
-        private static class AwaitCompletionChange
-        {
-            public const string AddAwaitAtCursor = nameof(AwaitCompletionChange) + "." + nameof(AddAwaitAtCursor);
-            public const string AddAwaitBeforeDotExpression = nameof(AwaitCompletionChange) + "." + nameof(AddAwaitBeforeDotExpression);
-            public const string AppendConfigureAwait = nameof(AwaitCompletionChange) + "." + nameof(AppendConfigureAwait);
-            public const string MakeContainerAsync = nameof(AwaitCompletionChange) + "." + nameof(MakeContainerAsync);
-        }
+        private const string AddAwaitAtCursor = nameof(AddAwaitAtCursor);
+        private const string AddAwaitBeforeDotExpression = nameof(AddAwaitBeforeDotExpression);
+        private const string AppendConfigureAwait = nameof(AppendConfigureAwait);
+        private const string MakeContainerAsync = nameof(MakeContainerAsync);
         #endregion
 
         protected enum DotAwaitContext
@@ -107,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var syntaxKinds = syntaxFacts.SyntaxKinds;
             var properties = item.Properties;
 
-            if (properties.ContainsKey(AwaitCompletionChange.MakeContainerAsync))
+            if (properties.ContainsKey(MakeContainerAsync))
             {
                 var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                 var tokenPosition = int.Parse(properties[AwaitCompletionTargetTokenPosition]);
@@ -124,12 +121,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var awaitKeyword = syntaxFacts.GetText(syntaxKinds.AwaitKeyword);
-            if (properties.ContainsKey(AwaitCompletionChange.AddAwaitAtCursor))
+            if (properties.ContainsKey(AddAwaitAtCursor))
             {
                 builder.Add(new TextChange(item.Span, awaitKeyword));
             }
 
-            if (properties.ContainsKey(AwaitCompletionChange.AddAwaitBeforeDotExpression))
+            if (properties.ContainsKey(AddAwaitBeforeDotExpression))
             {
                 var position = item.Span.Start;
                 var dotToken = GetDotTokenLeftOfPosition(syntaxTree, position, cancellationToken);
@@ -140,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 builder.Add(new TextChange(new TextSpan(expr.SpanStart, 0), awaitKeyword + " "));
 
                 // remove any remains after dot, including the dot token and optionally append .ConfigureAwait(false)
-                var replacementText = properties.ContainsKey(AwaitCompletionChange.AppendConfigureAwait)
+                var replacementText = properties.ContainsKey(AppendConfigureAwait)
                     ? $".ConfigureAwait({syntaxFacts.GetText(syntaxKinds.FalseKeyword)})"
                     : "";
                 builder.Add(new TextChange(TextSpan.FromBounds(dotToken.Value.SpanStart, item.Span.End), replacementText));
@@ -228,9 +225,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             static CompletionItem CreateCompletionItem(string displayText, string filterText, string falseKeyword, ImmutableDictionary<string, string> completionProperties)
             {
-                var makeContainerAsync = completionProperties.ContainsKey(AwaitCompletionChange.MakeContainerAsync);
-                var addAwaitBeforeDotExpression = completionProperties.ContainsKey(AwaitCompletionChange.AddAwaitBeforeDotExpression);
-                var appendConfigureAwait = completionProperties.ContainsKey(AwaitCompletionChange.AppendConfigureAwait);
+                var makeContainerAsync = completionProperties.ContainsKey(MakeContainerAsync);
+                var addAwaitBeforeDotExpression = completionProperties.ContainsKey(AddAwaitBeforeDotExpression);
+                var appendConfigureAwait = completionProperties.ContainsKey(AppendConfigureAwait);
                 var inlineDescription = makeContainerAsync ? FeaturesResources.Make_containing_scope_async : null;
                 var isComplexTextEdit = makeContainerAsync | addAwaitBeforeDotExpression | appendConfigureAwait;
                 var tooltip =
@@ -260,13 +257,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 using var _ = PooledDictionary<string, string>.GetInstance(out var dict);
                 dict.Add(AwaitCompletionTargetTokenPosition, targetToken.SpanStart.ToString());
                 if (isAwaitKeywordContext)
-                    AddKey(AwaitCompletionChange.AddAwaitAtCursor);
+                    AddKey(AddAwaitAtCursor);
                 if (dotAwaitContext is DotAwaitContext.AwaitOnly or DotAwaitContext.AwaitAndConfigureAwait)
-                    AddKey(AwaitCompletionChange.AddAwaitBeforeDotExpression);
+                    AddKey(AddAwaitBeforeDotExpression);
                 if (dotAwaitContext is DotAwaitContext.AwaitAndConfigureAwait)
-                    AddKey(AwaitCompletionChange.AppendConfigureAwait);
+                    AddKey(AppendConfigureAwait);
                 if (shouldMakeContainerAsync)
-                    AddKey(AwaitCompletionChange.MakeContainerAsync);
+                    AddKey(MakeContainerAsync);
                 return dict.ToImmutableDictionary();
 
                 void AddKey(string key) => dict.Add(key, string.Empty);
