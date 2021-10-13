@@ -1103,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateParamArrayArgument(syntax, paramArrayType, arrayArgs, _compilation, this);
             }
 
-            return CreateParamsArraySpan(syntax, paramArrayType, arrayArgs);
+            return CreateParamsSpan(syntax, paramArrayType, arrayArgs);
         }
 
         private static BoundExpression CreateParamArrayArgument(SyntaxNode syntax,
@@ -1123,38 +1123,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
-        private BoundExpression CreateParamsArraySpan(
-            SyntaxNode syntax,
-            TypeSymbol paramArrayType,
-            ImmutableArray<BoundExpression> arrayArgs)
+        private BoundLocal GetStackAllocTemp(
+            TypeSymbol elementType,
+            int length)
         {
-            // Rewrite as:
-            //    var temp = RuntimeHelpers.StackAlloc<T>(n);
-            //    temp[0] = arrayArgs[0];
-            //    ...
-            //    temp[n - 1] = arrayArgs[n - 1];
-            //    temp
+            // var temp = RuntimeHelpers.StackAlloc<T>(n);
 
             var stackAllocate = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__StackAlloc_T) as MethodSymbol;
-            var spanGetItem = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__get_Item) as MethodSymbol;
-
-            if (stackAllocate is null || spanGetItem is null)
+            if (stackAllocate is null)
             {
                 // PROTOTYPE: Report error.
                 throw new System.NotImplementedException();
             }
 
-            var elementType = paramArrayType.GetParamsElementType();
             stackAllocate = stackAllocate.Construct(ImmutableArray.Create(elementType));
             var spanType = (NamedTypeSymbol)stackAllocate.ReturnType;
-            spanGetItem = spanGetItem.AsMember(spanType);
 
+            var syntax = _rootStatement.Syntax;
             var intType = _compilation.GetSpecialType(SpecialType.System_Int32);
             var allocate = new BoundCall(
                 syntax,
                 null,
                 stackAllocate,
-                ImmutableArray.Create(MakeLiteral(syntax, ConstantValue.Create(arrayArgs.Length), intType, this)),
+                ImmutableArray.Create(MakeLiteral(syntax, ConstantValue.Create(length), intType, this)),
                 argumentNamesOpt: default,
                 argumentRefKindsOpt: default,
                 isDelegateCall: false,
@@ -1165,18 +1156,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind: LookupResultKind.Viable,
                 type: spanType);
 
-            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
-            var temps = ArrayBuilder<LocalSymbol>.GetInstance();
+            _stackAllocTemps ??= new ArrayBuilder<BoundLocal>();
+            _stackAllocSideEffects ??= new ArrayBuilder<BoundStatement>();
 
             var temp = _factory.StoreToTemp(allocate, out var assignment);
-            temps.Add(temp.LocalSymbol);
-            sideEffects.Add(assignment);
+            _stackAllocTemps.Add(temp);
+            _stackAllocSideEffects.Add(_factory.ExpressionStatement(assignment));
 
+            return temp;
+        }
+
+        private BoundExpression CreateParamsSpan(
+            SyntaxNode syntax,
+            TypeSymbol paramArrayType,
+            ImmutableArray<BoundExpression> arrayArgs)
+        {
+            // var temp = RuntimeHelpers.StackAlloc<T>(n);
+
+            var elementType = paramArrayType.GetParamsElementType().Type;
+            int length = arrayArgs.Length;
+            var temp = GetStackAllocTemp(elementType, length);
+
+            var spanGetItem = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__get_Item) as MethodSymbol;
+            if (spanGetItem is null)
+            {
+                // PROTOTYPE: Report error.
+                throw new System.NotImplementedException();
+            }
+
+            var spanType = (NamedTypeSymbol)temp.Type;
+            spanGetItem = spanGetItem.AsMember(spanType);
+
+            var intType = _compilation.GetSpecialType(SpecialType.System_Int32);
+            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
+
+            // temp[0] = arrayArgs[0];
+            // ...
+            // temp[n - 1] = arrayArgs[n - 1];
+            // temp
             for (int i = 0; i < arrayArgs.Length; i++)
             {
-                assignment = _factory.AssignmentExpression(
+                var assignment = _factory.AssignmentExpression(
                     _factory.Call(temp, spanGetItem, MakeLiteral(syntax, ConstantValue.Create(i), intType, this)),
-                    _factory.Convert(elementType.Type, arrayArgs[i]));
+                    _factory.Convert(elementType, arrayArgs[i]));
                 sideEffects.Add(assignment);
             }
 
@@ -1184,7 +1206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (Span<T> has an implicit conversion operator from Span<T> to ReadOnlySpan<T>.)
             return new BoundSequence(
                 syntax,
-                temps.ToImmutableAndFree(),
+                locals: ImmutableArray<LocalSymbol>.Empty,
                 sideEffects.ToImmutableAndFree(),
                 temp,
                 temp.Type);
