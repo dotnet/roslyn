@@ -1191,13 +1191,8 @@ namespace Microsoft.CodeAnalysis
 
                 // make sure that newSolution is a branch of the current solution
 
-                // the given solution must be a branched one.
-                // otherwise, there should be no change to apply.
                 if (oldSolution == newSolution)
-                {
-                    CheckNoChanges(oldSolution, newSolution);
                     return true;
-                }
 
                 var solutionChanges = newSolution.GetChanges(oldSolution);
                 this.CheckAllowedSolutionChanges(solutionChanges);
@@ -1620,15 +1615,6 @@ namespace Microsoft.CodeAnalysis
                     documentId,
                     new DocumentInfo(newDoc.State.Attributes, loader: null, documentServiceProvider: newDoc.State.Services));
             }
-        }
-
-        [Conditional("DEBUG")]
-        private static void CheckNoChanges(Solution oldSolution, Solution newSolution)
-        {
-            var changes = newSolution.GetChanges(oldSolution);
-            Contract.ThrowIfTrue(changes.GetAddedProjects().Any());
-            Contract.ThrowIfTrue(changes.GetRemovedProjects().Any());
-            Contract.ThrowIfTrue(changes.GetProjectChanges().Any());
         }
 
         private static ProjectInfo CreateProjectInfo(Project project)
