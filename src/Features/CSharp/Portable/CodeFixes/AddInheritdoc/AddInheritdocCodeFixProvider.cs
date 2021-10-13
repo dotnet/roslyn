@@ -120,11 +120,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
 
                 sourceText ??= await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var indentation = sourceText.GetLeadingWhitespaceOfLineAtPosition(node.FullSpan.Start);
-                var newLeadingTrivia = new SyntaxTrivia[]
-                {
+                var newLeadingTrivia = TriviaList(
                     Whitespace(indentation),
-                    Trivia(singleLineInheritdocComment),
-                };
+                    Trivia(singleLineInheritdocComment));
 
                 editor.ReplaceNode(node, node.WithPrependedLeadingTrivia(newLeadingTrivia));
             }
