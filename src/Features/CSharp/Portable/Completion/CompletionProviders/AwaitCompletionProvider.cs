@@ -102,17 +102,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (potentialAwaitableExpression is MemberAccessExpressionSyntax memberAccess)
             {
                 var memberAccessExpression = memberAccess.Expression.WalkDownParentheses();
-                var symbol = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol;
-                if (symbol is INamedTypeSymbol) // e.g. Task.$$
+                // In cases like Task.$$ semanticModel.GetTypeInfo returns Task, but
+                // we don't want to suggest await here. We look up the symbol of the "Task" part
+                // and return null if it is a NamedType.
+                if (memberAccessExpression.IsKind(SyntaxKind.IdentifierName))
                 {
-                    return null;
+                    var symbol = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol;
+                    if (symbol is INamedTypeSymbol)
+                    {
+                        return null;
+                    }
                 }
 
-                return
-                    symbol?.GetSymbolType() ??
-                    symbol?.GetMemberType() ??
-                    // Some expressions don't have a symbol (e.g. (o as Task).$$), but GetTypeInfo finds the right type.
-                    semanticModel.GetTypeInfo(memberAccessExpression, cancellationToken).Type;
+                return semanticModel.GetTypeInfo(memberAccessExpression, cancellationToken).Type;
             }
 
             if (potentialAwaitableExpression is ExpressionSyntax expression)
