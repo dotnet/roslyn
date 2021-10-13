@@ -30,7 +30,7 @@ jobs:
   dependsOn: ${{ parameters.buildJobName }}
   pool:
     ${{ if ne(parameters.queueName, '') }}:
-      name: NetCore1ESPool-Svc-Public-Int
+      name: NetCore1ESPool-Svc-Public
       demands: ImageOverride -equals ${{ parameters.queueName }}
 
     ${{ if ne(parameters.vmImageName, '') }}:
