@@ -223,6 +223,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             yield return CreateCompletionItem(displayText, filterText, falseKeyword, completionProperties);
+            yield break;
 
             static CompletionItem CreateCompletionItem(string displayText, string filterText, string falseKeyword, ImmutableDictionary<string, string> completionProperties)
             {
