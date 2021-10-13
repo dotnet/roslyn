@@ -54,8 +54,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             using (Logger.LogBlock(FunctionId.SyntaxTreeIndex_Precalculate, cancellationToken))
             {
-                Debug.Assert(document.IsFromPrimaryBranch());
-
                 var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
 
                 // Check if we've already created and persisted the index for this document.

@@ -53,7 +53,6 @@ namespace Microsoft.CodeAnalysis.Remote
             var id = Interlocked.Increment(ref s_scopeId);
             var solutionInfo = new PinnedSolutionInfo(
                 id,
-                fromPrimaryBranch: solutionState.BranchId == solutionState.Workspace.PrimaryBranchId,
                 solutionState.WorkspaceVersion,
                 solutionChecksum,
                 projectId);

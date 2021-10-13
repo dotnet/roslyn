@@ -21,40 +21,29 @@ namespace Microsoft.CodeAnalysis.Remote
         public readonly int ScopeId;
 
         /// <summary>
-        /// This indicates whether this scope is for primary branch or not (not forked solution)
-        /// 
-        /// Features like OOP will use this flag to see whether caching information related to this solution
-        /// can benefit other requests or not
-        /// </summary>
-        [DataMember(Order = 1)]
-        public readonly bool FromPrimaryBranch;
-
-        /// <summary>
         /// This indicates a Solution.WorkspaceVersion of this solution. remote host engine uses this version
         /// to decide whether caching this solution will benefit other requests or not
         /// </summary>
-        [DataMember(Order = 2)]
+        [DataMember(Order = 1)]
         public readonly int WorkspaceVersion;
 
-        [DataMember(Order = 3)]
+        [DataMember(Order = 2)]
         public readonly Checksum SolutionChecksum;
 
         /// <summary>
         /// An optional project that we are pinning information for.  This is used for features that only need
         /// information for a project (and its dependencies) and not the entire solution.
         /// </summary>
-        [DataMember(Order = 4)]
+        [DataMember(Order = 3)]
         public readonly ProjectId? ProjectId;
 
         public PinnedSolutionInfo(
             int scopeId,
-            bool fromPrimaryBranch,
             int workspaceVersion,
             Checksum solutionChecksum,
             ProjectId? projectId)
         {
             ScopeId = scopeId;
-            FromPrimaryBranch = fromPrimaryBranch;
             WorkspaceVersion = workspaceVersion;
             SolutionChecksum = solutionChecksum;
             ProjectId = projectId;
