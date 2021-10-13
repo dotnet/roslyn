@@ -431,10 +431,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                         // error CS1995: The 'await' operator may only be used in a query expression within the first collection expression of the initial 'from' clause or within the collection expression of a 'join' clause
                         if (TargetToken.IsKind(SyntaxKind.InKeyword))
                         {
-                            return TargetToken switch
+                            return TargetToken.Parent switch
                             {
-                                { Parent: FromClauseSyntax { Parent: QueryExpressionSyntax queryExpression } fromClause } when queryExpression.FromClause == fromClause => true,
-                                { Parent: JoinClauseSyntax } => true,
+                                FromClauseSyntax { Parent: QueryExpressionSyntax queryExpression } fromClause => queryExpression.FromClause == fromClause,
+                                JoinClauseSyntax => true,
                                 _ => false,
                             };
                         }

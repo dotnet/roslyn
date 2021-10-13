@@ -976,7 +976,7 @@ This version used in: {2}</value>
   </data>
   <data name="Await_the_preceding_expression_and_add_ConfigureAwait_0" xml:space="preserve">
     <value>Await the preceding expression and add ConfigureAwait({0}).</value>
-    <comment>{0} is a placeholder for the language specific keyword 'false'</comment>
+    <comment>{0} is a placeholder for the language specific keyword 'false'. 'ConfigureAwait' is an api name and should not be localised.</comment>
   </data>
   <data name="paren_Unknown_paren" xml:space="preserve">
     <value>(Unknown)</value>
