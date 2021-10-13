@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
     public sealed class DeterministicKeyBuilderTests
     {
+        private static readonly char[] s_trimChars = { ' ', '\n', '\r' };
+
         private void AssertJson(
             string expected,
             string actual,
@@ -36,6 +38,29 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
             actual = json.ToString(Formatting.Indented);
             expected = JObject.Parse(expected).ToString(Formatting.Indented);
+            AssertJsonCore(expected, actual);
+        }
+
+        private void AssertJsonSection(
+            string expected,
+            string actual,
+            string sectionName)
+        {
+            AssertJsonCore(getSection(expected), getSection(actual));
+
+            string getSection(string json) =>
+                JObject.Parse(json)
+                    .Descendants()
+                    .OfType<JProperty>()
+                    .Where(x => x.Name == sectionName)
+                    .Single()
+                    .ToString(Formatting.Indented);
+        }
+
+        private void AssertJsonCore(string expected, string actual)
+        {
+            expected = expected.Trim(s_trimChars);
+            actual = actual.Trim(s_trimChars);
             Assert.Equal(expected, actual);
         }
 
@@ -77,42 +102,50 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var key = builder.GetKey(compilation, options: DeterministicKeyOptions.IgnoreToolVersions);
             AssertJson(@"
 {
-  ""options"": {
-    ""outputKind"": ""ConsoleApplication"",
-    ""moduleName"": null,
-    ""scriptClassName"": ""Script"",
-    ""mainTypeName"": null,
-    ""cryptoKeyFile"": null,
-    ""delaySign"": null,
-    ""publicSign"": false,
-    ""checkOverflow"": false,
-    ""platform"": ""AnyCpu"",
-    ""optimizationLevel"": ""Release"",
-    ""generalDiagnosticOption"": ""Default"",
-    ""warningLevel"": 9999,
-    ""deterministic"": false,
-    ""debugPlusMode"": false,
-    ""referencesSupersedeLowerVersions"": false,
-    ""reportSuppressedDiagnostics"": false,
-    ""nullableContextOptions"": ""Disable"",
-    ""unsafe"": false,
-    ""topLevelBinderFlags"": ""None""
-  },
-  ""syntaxTrees"": [
-    {
-      ""fileName"": """",
-      ""text"": {
-        ""checksum"": ""1b565cf6f2d814a4dc37ce578eda05fe0614f3d"",
-        ""checksumAlgorithm"": ""Sha1"",
-        ""encoding"": ""Unicode (UTF-8)""
-      },
-      ""parseOptions"": {
-        ""languageVersion"": ""Preview"",
-        ""specifiedLanguageVersion"": ""Preview""
+  ""compilation"": {
+    ""options"": {
+      ""outputKind"": ""ConsoleApplication"",
+      ""moduleName"": null,
+      ""scriptClassName"": ""Script"",
+      ""mainTypeName"": null,
+      ""cryptoKeyFile"": null,
+      ""delaySign"": null,
+      ""publicSign"": false,
+      ""checkOverflow"": false,
+      ""platform"": ""AnyCpu"",
+      ""optimizationLevel"": ""Release"",
+      ""generalDiagnosticOption"": ""Default"",
+      ""warningLevel"": 9999,
+      ""deterministic"": false,
+      ""debugPlusMode"": false,
+      ""referencesSupersedeLowerVersions"": false,
+      ""reportSuppressedDiagnostics"": false,
+      ""nullableContextOptions"": ""Disable"",
+      ""specificDiagnosticOptions"": [],
+      ""unsafe"": false,
+      ""topLevelBinderFlags"": ""None""
+    },
+    ""syntaxTrees"": [
+      {
+        ""fileName"": """",
+        ""text"": {
+          ""checksum"": ""1b565cf6f2d814a4dc37ce578eda05fe0614f3d"",
+          ""checksumAlgorithm"": ""Sha1"",
+          ""encoding"": ""Unicode (UTF-8)""
+        },
+        ""parseOptions"": {
+          ""languageVersion"": ""Preview"",
+          ""specifiedLanguageVersion"": ""Preview""
+        }
       }
-    }
-  ]
-}", key, ignoreReferences: true);
+    ]
+  },
+  ""additionalTexts"": [],
+  ""analyzers"": [],
+  ""generators"": [],
+  ""emitOptions"": {}
+}
+", key, ignoreReferences: true);
         }
 
         [Fact]
@@ -141,6 +174,38 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""fallbackSourceFileEncoding"": null
 }
 ", key);
+        }
+
+        [Theory]
+        [InlineData(@"c:\code\file.cs", @"file.cs", DeterministicKeyOptions.IgnorePaths)]
+        [InlineData(@"c:\code\file.cs", @"c:\code\file.cs", DeterministicKeyOptions.Default)]
+        [InlineData(@"/code/file.cs", @"file.cs", DeterministicKeyOptions.IgnorePaths)]
+        [InlineData(@"/code/file.cs", @"/code/file.cs", DeterministicKeyOptions.Default)]
+        public void FilePathInSyntaxTree(string path, string expectedPath, DeterministicKeyOptions options)
+        {
+            var source = CSharpTestBase.Parse(
+                @"System.Console.WriteLine(""Hello World"");",
+                filename: path);
+            var compilation = CSharpTestBase.CreateCompilation(source);
+            var builder = new CSharpDeterministicKeyBuilder();
+            var key = builder.GetKey(compilation, options: options);
+            var expected = @$"{{
+""syntaxTrees"": [
+  {{
+    ""fileName"": ""{Roslyn.Utilities.JsonWriter.EscapeString(expectedPath)}"",
+    ""text"": {{
+      ""checksum"": ""1b565cf6f2d814a4dc37ce578eda05fe0614f3d"",
+      ""checksumAlgorithm"": ""Sha1"",
+      ""encoding"": ""Unicode (UTF-8)""
+    }},
+    ""parseOptions"": {{
+      ""languageVersion"": ""Preview"",
+      ""specifiedLanguageVersion"": ""Preview""
+    }}
+  }}
+]
+}}";
+            AssertJsonSection(expected, key, "syntaxTrees");
         }
     }
 }

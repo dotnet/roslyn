@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis
     /// 
     ///     https://github.com/dotnet/roslyn/issues/8193
     /// </summary>
-    /// 
     /// <remarks>
     /// Options which can cause compilation failure, but doesn't impact the result of a successful
     /// compilation should be included. That is because it is interesting to describe error states
@@ -385,18 +384,15 @@ namespace Microsoft.CodeAnalysis
             writer.Write("reportSuppressedDiagnostics", options.ReportSuppressedDiagnostics);
             writer.Write("nullableContextOptions", options.NullableContextOptions);
 
-            if (options.SpecificDiagnosticOptions.Count > 0)
+            writer.WriteKey("specificDiagnosticOptions");
+            writer.WriteArrayStart();
+            foreach (var kvp in options.SpecificDiagnosticOptions)
             {
-                writer.WriteKey("specificDiagnosticOptions");
-                writer.WriteArrayStart();
-                foreach (var kvp in options.SpecificDiagnosticOptions)
-                {
-                    writer.WriteObjectStart();
-                    writer.Write(kvp.Key, kvp.Value);
-                    writer.WriteObjectEnd();
-                }
-                writer.WriteArrayEnd();
+                writer.WriteObjectStart();
+                writer.Write(kvp.Key, kvp.Value);
+                writer.WriteObjectEnd();
             }
+            writer.WriteArrayEnd();
 
             // Skipped values
             // - ConcurrentBuild
@@ -431,18 +427,15 @@ namespace Microsoft.CodeAnalysis
             writer.Write("language", parseOptions.Language);
 
             var features = parseOptions.Features;
-            if (features.Count > 0)
+            writer.WriteKey("features");
+            writer.WriteArrayStart();
+            foreach (var kvp in features)
             {
-                writer.WriteKey("features");
-                writer.WriteArrayStart();
-                foreach (var kvp in features)
-                {
-                    writer.WriteObjectStart();
-                    writer.Write(kvp.Key, kvp.Value);
-                    writer.WriteObjectEnd();
-                }
-                writer.WriteArrayEnd();
+                writer.WriteObjectStart();
+                writer.Write(kvp.Key, kvp.Value);
+                writer.WriteObjectEnd();
             }
+            writer.WriteArrayEnd();
 
             // Skipped values
             // - Errors: not sure if we need that in the key file or not
