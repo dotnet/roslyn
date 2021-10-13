@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.VisualBasic.UnitTests;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
@@ -118,8 +119,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 @"System.Console.WriteLine(""Hello World"");",
                 targetFramework: TargetFramework.NetCoreApp);
 
-            var builder = new CSharpDeterministicKeyBuilder();
-            var key = builder.GetKey(compilation, options: DeterministicKeyOptions.IgnoreToolVersions);
+            var key = compilation.GetDeterministicKey(options: DeterministicKeyOptions.IgnoreToolVersions);
             AssertJson(@"
 {
   ""compilation"": {
@@ -207,10 +207,10 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         {
             var source = CSharpTestBase.Parse(
                 @"System.Console.WriteLine(""Hello World"");",
-                filename: path);
+                filename: path,
+                checksumAlgorithm: SourceHashAlgorithm.Sha1);
             var compilation = CSharpTestBase.CreateCompilation(source);
-            var builder = new CSharpDeterministicKeyBuilder();
-            var key = builder.GetKey(compilation, options: options);
+            var key = compilation.GetDeterministicKey(options: options);
             var expected = @$"{{
 ""syntaxTrees"": [
   {{
@@ -242,8 +242,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 checksumAlgorithm: HashAlgorithm);
             var contentChecksum = GetChecksum(syntaxTree.GetText());
             var compilation = CSharpTestBase.CreateCompilation(syntaxTree);
-            var builder = new CSharpDeterministicKeyBuilder();
-            var key = builder.GetKey(compilation);
+            var key = compilation.GetDeterministicKey();
             var expected = @$"{{
 ""syntaxTrees"": [
   {{
@@ -267,22 +266,53 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [InlineData(@"hello world")]
         [InlineData(@"just need some text here")]
         [InlineData(@"yet another case")]
-        public void ContentInAdditionalText(string content)
+        public void ContentInAdditionalTextCSharp(string content)
         {
             var syntaxTree = CSharpTestBase.Parse(
                 "",
                 filename: "file.cs",
                 checksumAlgorithm: HashAlgorithm);
-            var additionalText = new TestAdditionalText(content, Encoding.UTF8, path: "file.cs", HashAlgorithm);
+            var additionalText = new TestAdditionalText(content, Encoding.UTF8, path: "file.txt", HashAlgorithm);
             var contentChecksum = GetChecksum(additionalText.GetText());
 
             var compilation = CSharpTestBase.CreateCompilation(syntaxTree);
-            var builder = new CSharpDeterministicKeyBuilder();
-            var key = builder.GetKey(compilation, additionalTexts: ImmutableArray.Create<AdditionalText>(additionalText));
+            var key = compilation.GetDeterministicKey(additionalTexts: ImmutableArray.Create<AdditionalText>(additionalText));
             var expected = @$"{{
 ""additionalTexts"": [
   {{
-    ""fileName"": ""file.cs"",
+    ""fileName"": ""file.txt"",
+    ""text"": {{
+      ""checksum"": ""{contentChecksum}"",
+      ""checksumAlgorithm"": ""Sha256"",
+      ""encoding"": ""Unicode (UTF-8)""
+    }},
+  }}
+]
+}}";
+            AssertJsonSection(expected, key, "additionalTexts");
+        }
+
+        [Theory]
+        [InlineData(@"hello world")]
+        [InlineData(@"just need some text here")]
+        [InlineData(@"yet another case")]
+        public void ContentInAdditionalTextVisualBasic(string content)
+        {
+            var syntaxTree = VisualBasicSyntaxTree.ParseText(
+                "",
+                path: "file.vb");
+            var additionalText = new TestAdditionalText(content, Encoding.UTF8, path: "file.txt", HashAlgorithm);
+            var contentChecksum = GetChecksum(additionalText.GetText());
+
+            var compilation = VisualBasicCompilation.Create(
+                "test",
+                new[] { syntaxTree },
+                NetCoreApp.References);
+            var key = compilation.GetDeterministicKey(additionalTexts: ImmutableArray.Create<AdditionalText>(additionalText));
+            var expected = @$"{{
+""additionalTexts"": [
+  {{
+    ""fileName"": ""file.txt"",
     ""text"": {{
       ""checksum"": ""{contentChecksum}"",
       ""checksumAlgorithm"": ""Sha256"",
@@ -305,8 +335,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 @"System.Console.WriteLine(""Hello World"");",
                 targetFramework: TargetFramework.NetCoreApp);
 
-            var builder = new CSharpDeterministicKeyBuilder();
-            var key = builder.GetKey(compilation, options: DeterministicKeyOptions.Default);
+            var key = compilation.GetDeterministicKey(options: DeterministicKeyOptions.Default);
 
             var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
             var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
