@@ -22,6 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     }
 }";
 
+        private static MetadataReference GetSpanLibrary()
+        {
+            var comp = CreateCompilation(SpanSource, options: TestOptions.UnsafeReleaseDll);
+            return comp.EmitToImageReference();
+        }
+
         [Fact]
         public void ParamsSpan()
         {
@@ -107,6 +113,138 @@ span
   IL_0076:  call       ""void Program.F2(params System.ReadOnlySpan<object>)""
   IL_007b:  ret
 }");
+        }
+
+        /// <summary>
+        /// params value cannot be returned from the method since that
+        /// would prevent sharing repeated allocations at the call-site.
+        /// </summary>
+        [Fact]
+        public void CannotReturnSpan_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static T[] F0<T>(params T[] x0)
+    {
+        return x0;
+    }
+    static Span<T> F1<T>(params Span<T> x1)
+    {
+        return x1;
+    }
+    static Span<T> F2<T>(Span<T> x2, params Span<T> y2)
+    {
+        return x2;
+    }
+}";
+            var comp = CreateCompilation(source, references: new[] { GetSpanLibrary() });
+            comp.VerifyDiagnostics(
+                // (10,16): error CS8980: Cannot use params 'x1' in this context because it may prevent reuse at the call-site
+                //         return x1;
+                Diagnostic(ErrorCode.ERR_EscapeParamsSpan, "x1").WithArguments("x1").WithLocation(10, 16));
+        }
+
+        [Fact]
+        public void CannotReturnSpan_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F0<T>(out T[] x0, params T[] y0)
+    {
+        x0 = y0;
+    }
+    static void F1<T>(out ReadOnlySpan<T> x1, params ReadOnlySpan<T> y1)
+    {
+        x1 = y1;
+    }
+    static void F2<T>(out ReadOnlySpan<T> x2, ReadOnlySpan<T> y2, params ReadOnlySpan<T> z2)
+    {
+        x2 = y2;
+    }
+}";
+            var comp = CreateCompilation(source, references: new[] { GetSpanLibrary() });
+            comp.VerifyDiagnostics(
+                // (10,14): error CS8980: Cannot use params 'y1' in this context because it may prevent reuse at the call-site
+                //         x1 = y1;
+                Diagnostic(ErrorCode.ERR_EscapeParamsSpan, "y1").WithArguments("y1").WithLocation(10, 14));
+        }
+
+        [Fact]
+        public void CannotReturnSpan_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static Span<T> F1<T>(params Span<T> x1)
+    {
+        x1 = default;
+        return x1;
+    }
+    static void F2<T>(out ReadOnlySpan<T> x2, params ReadOnlySpan<T> y2)
+    {
+        y2 = default;
+        x2 = y2;
+    }
+}";
+            var comp = CreateCompilation(source, references: new[] { GetSpanLibrary() });
+            comp.VerifyDiagnostics(
+                // (7,16): error CS8980: Cannot use params 'x1' in this context because it may prevent reuse at the call-site
+                //         return x1;
+                Diagnostic(ErrorCode.ERR_EscapeParamsSpan, "x1").WithArguments("x1").WithLocation(7, 16),
+                // (12,14): error CS8980: Cannot use params 'y2' in this context because it may prevent reuse at the call-site
+                //         x2 = y2;
+                Diagnostic(ErrorCode.ERR_EscapeParamsSpan, "y2").WithArguments("y2").WithLocation(12, 14));
+        }
+
+        [Fact]
+        public void CannotReturnSpan_04()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static Span<T> F1<T>(Span<T> x1, params Span<T> y1)
+    {
+        x1 = y1;
+        return x1;
+    }
+    static Span<T> F2<T>(Span<T> x2, params Span<T> y2)
+    {
+        x2 = y2;
+        x2 = default;
+        return x2;
+    }
+    static void F3<T>(out ReadOnlySpan<T> x3, ReadOnlySpan<T> y3, params ReadOnlySpan<T> z3)
+    {
+        y3 = z3;
+        x3 = y3;
+    }
+    static void F4<T>(out ReadOnlySpan<T> x4, ReadOnlySpan<T> y4, params ReadOnlySpan<T> z4)
+    {
+        y4 = z4;
+        y4 = default;
+        x4 = y4;
+    }
+}";
+            var comp = CreateCompilation(source, references: new[] { GetSpanLibrary() });
+            comp.VerifyDiagnostics(
+                // (6,14): error CS8980: Cannot use params 'y1' in this context because it may prevent reuse at the call-site
+                //         x1 = y1;
+                Diagnostic(ErrorCode.ERR_EscapeParamsSpan, "y1").WithArguments("y1").WithLocation(6, 14),
+                // (11,14): error CS8980: Cannot use params 'y2' in this context because it may prevent reuse at the call-site
+                //         x2 = y2;
+                Diagnostic(ErrorCode.ERR_EscapeParamsSpan, "y2").WithArguments("y2").WithLocation(11, 14),
+                // (17,14): error CS8980: Cannot use params 'z3' in this context because it may prevent reuse at the call-site
+                //         y3 = z3;
+                Diagnostic(ErrorCode.ERR_EscapeParamsSpan, "z3").WithArguments("z3").WithLocation(17, 14),
+                // (22,14): error CS8980: Cannot use params 'z4' in this context because it may prevent reuse at the call-site
+                //         y4 = z4;
+                Diagnostic(ErrorCode.ERR_EscapeParamsSpan, "z4").WithArguments("z4").WithLocation(22, 14));
         }
 
         /// <summary>
