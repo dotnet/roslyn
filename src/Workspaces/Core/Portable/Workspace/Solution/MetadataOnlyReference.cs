@@ -17,12 +17,10 @@ namespace Microsoft.CodeAnalysis
     internal class MetadataOnlyReference
     {
         // version based cache
-        private static readonly ConditionalWeakTable<SolutionState, ConditionalWeakTable<ProjectId, MetadataOnlyReferenceSet>> s_cache = new();
+        private static readonly ConditionalWeakTable<ProjectId, MetadataOnlyReferenceSet> s_projectIdToReferenceMap = new();
 
         // snapshot based cache
-        private static readonly ConditionalWeakTable<Compilation, MetadataOnlyReferenceSet> s_snapshotCache = new();
-
-        private static readonly ConditionalWeakTable<SolutionState, ConditionalWeakTable<ProjectId, MetadataOnlyReferenceSet>>.CreateValueCallback s_createReferenceSetMap = _ => new();
+        private static readonly ConditionalWeakTable<Compilation, MetadataOnlyReferenceSet> s_compilationToReferenceMap = new();
 
         internal static MetadataReference GetOrBuildReference(
             SolutionState solution,
@@ -61,12 +59,11 @@ namespace Microsoft.CodeAnalysis
             // okay, proceed with whatever image we have
 
             // now, remove existing set
-            var mapFromBranch = s_cache.GetValue(solution, s_createReferenceSetMap);
-            mapFromBranch.Remove(projectReference.ProjectId);
+            s_projectIdToReferenceMap.Remove(projectReference.ProjectId);
 
             // create new one
             var newReferenceSet = new MetadataOnlyReferenceSet(version, image);
-            var referenceSet = s_snapshotCache.GetValue(finalCompilation, _ => newReferenceSet);
+            var referenceSet = s_compilationToReferenceMap.GetValue(finalCompilation, _ => newReferenceSet);
             if (newReferenceSet != referenceSet)
             {
                 // someone else has beaten us. 
@@ -83,7 +80,15 @@ namespace Microsoft.CodeAnalysis
 
             // record it to version based cache as well. snapshot cache always has a higher priority. we don't need to check returned set here
             // since snapshot based cache will take care of same compilation for us.
-            mapFromBranch.GetValue(projectReference.ProjectId, _ => referenceSet);
+#if NETCOREAPP
+            s_projectIdToReferenceMap.AddOrUpdate(projectReference.ProjectId, referenceSet);
+#else
+            lock (s_projectIdToReferenceMap)
+            {
+                s_projectIdToReferenceMap.Remove(projectReference.ProjectId);
+                s_projectIdToReferenceMap.Add(projectReference.ProjectId, referenceSet);
+            }
+#endif
 
             // return new reference
             return referenceSet.GetMetadataReference(finalCompilation, projectReference.Aliases, projectReference.EmbedInteropTypes);
@@ -93,16 +98,15 @@ namespace Microsoft.CodeAnalysis
             SolutionState solution, ProjectReference projectReference, Compilation finalOrDeclarationCompilation, VersionStamp version, out MetadataReference reference)
         {
             // if we have one from snapshot cache, use it. it will make sure same compilation will get same metadata reference always.
-            if (s_snapshotCache.TryGetValue(finalOrDeclarationCompilation, out var referenceSet))
+            if (s_compilationToReferenceMap.TryGetValue(finalOrDeclarationCompilation, out var referenceSet))
             {
-                solution.Workspace.LogTestMessage($"Found already cached metadata in {nameof(s_snapshotCache)} for the exact compilation");
+                solution.Workspace.LogTestMessage($"Found already cached metadata in {nameof(s_compilationToReferenceMap)} for the exact compilation");
                 reference = referenceSet.GetMetadataReference(finalOrDeclarationCompilation, projectReference.Aliases, projectReference.EmbedInteropTypes);
                 return true;
             }
 
             // okay, now use version based cache that can live multiple compilation as long as there is no semantic changes.
 
-            // get one for the branch
             if (TryGetReferenceFromBranch(solution, projectReference, finalOrDeclarationCompilation, version, out reference))
             {
                 solution.Workspace.LogTestMessage($"Found already cached metadata for the branch and version {version}");
@@ -117,14 +121,11 @@ namespace Microsoft.CodeAnalysis
         private static bool TryGetReferenceFromBranch(
             SolutionState state, ProjectReference projectReference, Compilation finalOrDeclarationCompilation, VersionStamp version, out MetadataReference reference)
         {
-            // get map for the branch
-            var mapFromBranch = s_cache.GetValue(state, s_createReferenceSetMap);
-            // if we have one, return it
-            if (mapFromBranch.TryGetValue(projectReference.ProjectId, out var referenceSet) &&
+            if (s_projectIdToReferenceMap.TryGetValue(projectReference.ProjectId, out var referenceSet) &&
                (version == VersionStamp.Default || referenceSet.Version == version))
             {
                 // record it to snapshot based cache.
-                var newReferenceSet = s_snapshotCache.GetValue(finalOrDeclarationCompilation, _ => referenceSet);
+                var newReferenceSet = s_compilationToReferenceMap.GetValue(finalOrDeclarationCompilation, _ => referenceSet);
 
                 reference = newReferenceSet.GetMetadataReference(finalOrDeclarationCompilation, projectReference.Aliases, projectReference.EmbedInteropTypes);
                 return true;
