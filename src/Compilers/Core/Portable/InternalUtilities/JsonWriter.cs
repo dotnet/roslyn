@@ -112,6 +112,12 @@ namespace Roslyn.Utilities
             Write(value.ToString());
         }
 
+        public void WriteNull(string key)
+        {
+            WriteKey(key);
+            WriteNull();
+        }
+
         public void WriteNull()
         {
             WritePending();

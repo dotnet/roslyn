@@ -60,17 +60,19 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal static void EncodeByteArrayValue(ReadOnlySpan<byte> value, StringBuilder builder)
+        {
+            foreach (var b in value)
+            {
+                builder.Append(b.ToString("x"));
+            }
+        }
+
         protected void WriteByteArrayValue(JsonWriter writer, string name, ReadOnlySpan<byte> value)
         {
-            if (value.Length > 0)
-            {
-                var builder = new StringBuilder();
-                foreach (var b in value)
-                {
-                    builder.Append(b.ToString("x"));
-                }
-                writer.Write(name, builder.ToString());
-            }
+            var builder = PooledStringBuilder.GetInstance();
+            EncodeByteArrayValue(value, builder.Builder);
+            writer.Write(name, builder.ToStringAndFree());
         }
 
         private (JsonWriter, PooledStringBuilder) CreateWriter()
@@ -174,11 +176,7 @@ namespace Microsoft.CodeAnalysis
         private void WriteCompilation(JsonWriter writer, Compilation compilation, DeterministicKeyOptions options)
         {
             writer.WriteObjectStart();
-            if (0 == (options & DeterministicKeyOptions.IgnoreToolVersions))
-            {
-                writer.WriteKey("toolsVersions");
-                writeToolsVersions();
-            }
+            writeToolsVersions();
 
             writer.WriteKey("options");
             WriteCompilationOptions(writer, compilation.Options);
@@ -202,7 +200,13 @@ namespace Microsoft.CodeAnalysis
 
             void writeToolsVersions()
             {
+                writer.WriteKey("toolsVersions");
                 writer.WriteObjectStart();
+                if (0 != (options & DeterministicKeyOptions.IgnoreToolVersions))
+                {
+                    writer.WriteObjectEnd();
+                    return;
+                }
 
                 var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
                 writer.Write("compilerVersion", compilerVersion);
