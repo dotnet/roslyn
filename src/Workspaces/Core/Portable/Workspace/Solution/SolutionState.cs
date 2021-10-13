@@ -230,7 +230,11 @@ namespace Microsoft.CodeAnalysis
             ProjectDependencyGraph? dependencyGraph = null,
             Optional<SourceGeneratedDocumentState?> frozenSourceGeneratedDocument = default)
         {
-            var branchId = GetBranchId();
+            // currently we only support one level branching.
+            // my reasonings are
+            // 1. it seems there is no-one who needs sub branches.
+            // 2. this lets us to branch without explicit branch API
+            var branchId = _branchId == Workspace.PrimaryBranchId ? BranchId.GetNextId() : _branchId;
 
             if (idToProjectStateMap is not null)
             {
@@ -309,15 +313,6 @@ namespace Microsoft.CodeAnalysis
                 _dependencyGraph,
                 _lazyAnalyzers,
                 frozenSourceGeneratedDocument: null);
-        }
-
-        private BranchId GetBranchId()
-        {
-            // currently we only support one level branching.
-            // my reasonings are
-            // 1. it seems there is no-one who needs sub branches.
-            // 2. this lets us to branch without explicit branch API
-            return _branchId == Workspace.PrimaryBranchId ? BranchId.GetNextId() : _branchId;
         }
 
         /// <summary>
