@@ -24,9 +24,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     {
         internal const string ProviderName = "Decompilation";
 
-        /// <summary>
-        /// For a description of the key, see GetKeyAsync.
-        /// </summary>
         private readonly Dictionary<UniqueDocumentKey, MetadataAsSourceGeneratedFileInfo> _keyToInformation = new();
 
         private readonly Dictionary<string, MetadataAsSourceGeneratedFileInfo> _generatedFilenameToInformation = new(StringComparer.OrdinalIgnoreCase);

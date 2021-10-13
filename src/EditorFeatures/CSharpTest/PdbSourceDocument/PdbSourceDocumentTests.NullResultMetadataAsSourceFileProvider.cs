@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
         /// takes it place to ensure we always return a known null result, so we can also verify
         /// against it in tests.
         /// </summary>
-        [ExportMetadataAsSourceFileProvider("Dummy"), System.Composition.Shared]
+        [ExportMetadataAsSourceFileProvider("Dummy"), Shared]
         [ExtensionOrder(After = PdbSourceDocumentMetadataAsSourceFileProvider.ProviderName)]
         internal class NullResultMetadataAsSourceFileProvider : IMetadataAsSourceFileProvider
         {

@@ -124,16 +124,19 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // We might already know about this file, but lets make sure it still exists too
             if (!_fileToDocumentMap.ContainsKey(tempFilePath) || !File.Exists(tempFilePath))
             {
-                _fileToDocumentMap[tempFilePath] = document.Id;
-
                 // We have the content, so write it out to disk
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                 // Create the directory. It's possible a parallel deletion is happening in another process, so we may have
                 // to retry this a few times.
                 var directoryToCreate = Path.GetDirectoryName(tempFilePath)!;
+                var loopCount = 0;
                 while (!Directory.Exists(directoryToCreate))
                 {
+                    // Protect against infinite loops.
+                    if (loopCount++ > 10)
+                        return null;
+
                     try
                     {
                         Directory.CreateDirectory(directoryToCreate);
@@ -153,6 +156,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
                 // Mark read-only
                 new FileInfo(tempFilePath).IsReadOnly = true;
+
+                _fileToDocumentMap[tempFilePath] = document.Id;
             }
 
             var navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, document, cancellationToken).ConfigureAwait(false);
