@@ -259,16 +259,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 using var _ = PooledDictionary<string, string>.GetInstance(out var dict);
                 dict.Add(AwaitCompletionTargetTokenPosition, targetToken.SpanStart.ToString());
                 if (isAwaitKeywordContext)
-                    AddKey(AddAwaitAtCursor);
+                    dict.Add(AddAwaitAtCursor, string.Empty);
                 if (dotAwaitContext is DotAwaitContext.AwaitOnly or DotAwaitContext.AwaitAndConfigureAwait)
-                    AddKey(AddAwaitBeforeDotExpression);
+                    dict.Add(AddAwaitBeforeDotExpression, string.Empty);
                 if (dotAwaitContext is DotAwaitContext.AwaitAndConfigureAwait)
-                    AddKey(AppendConfigureAwait);
+                    dict.Add(AppendConfigureAwait, string.Empty);
                 if (shouldMakeContainerAsync)
-                    AddKey(MakeContainerAsync);
+                    dict.Add(MakeContainerAsync, string.Empty);
                 return dict.ToImmutableDictionary();
-
-                void AddKey(string key) => dict.Add(key, string.Empty);
             }
         }
     }
