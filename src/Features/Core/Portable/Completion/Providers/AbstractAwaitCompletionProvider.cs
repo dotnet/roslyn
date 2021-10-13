@@ -175,18 +175,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var potentialAwaitableExpression = GetExpressionToPlaceAwaitInFrontOf(syntaxTree, position, cancellationToken);
             if (potentialAwaitableExpression is not null)
             {
-                var semanticModel = syntaxContext.SemanticModel;
-                var symbol = GetTypeSymbolOfExpression(semanticModel, potentialAwaitableExpression, cancellationToken);
-                if (symbol.IsAwaitableNonDynamic(semanticModel, position))
+                var parentOfAwaitable = potentialAwaitableExpression.Parent;
+                var document = syntaxContext.Document;
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                if (!syntaxFacts.IsAwaitExpression(parentOfAwaitable))
                 {
-                    var parentOfAwaitable = potentialAwaitableExpression.Parent;
-                    var syntaxFacts = syntaxContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-                    if (!syntaxFacts.IsAwaitExpression(parentOfAwaitable))
+                    var semanticModel = syntaxContext.SemanticModel;
+                    var symbol = GetTypeSymbolOfExpression(semanticModel, potentialAwaitableExpression, cancellationToken);
+                    if (symbol.IsAwaitableNonDynamic(semanticModel, position))
                     {
                         // We have a awaitable type left of the dot, that is not yet awaited.
                         // We need to check if await is valid at the insertion position.
                         var syntaxContextAtInsertationPosition = syntaxContext.GetLanguageService<ISyntaxContextService>().CreateContext(
-                            syntaxContext.Document, syntaxContext.SemanticModel, potentialAwaitableExpression.SpanStart, cancellationToken);
+                            document, syntaxContext.SemanticModel, potentialAwaitableExpression.SpanStart, cancellationToken);
                         if (syntaxContextAtInsertationPosition.IsAwaitKeywordContext())
                         {
                             return IsConfigureAwaitable(syntaxContext.SemanticModel.Compilation, symbol)
