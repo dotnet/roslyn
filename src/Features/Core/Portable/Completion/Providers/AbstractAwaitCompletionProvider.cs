@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     // IsComplexTextEdit should only be true when GetAsyncSupportingDeclaration returns non-null.
                     // This is ensured by the ShouldMakeContainerAsync overrides.
-                    Debug.Assert(false, "Expected non-null value for declaration.");
+                    Debug.Fail("Expected non-null value for declaration.");
                     return await base.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
                 }
 
