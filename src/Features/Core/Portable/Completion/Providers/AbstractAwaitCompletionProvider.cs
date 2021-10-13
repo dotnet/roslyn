@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 var semanticModel = syntaxContext.SemanticModel;
                 var symbol = GetTypeSymbolOfExpression(semanticModel, potentialAwaitableExpression, cancellationToken);
-                if (symbol is not null && symbol.IsAwaitableNonDynamic(semanticModel, position))
+                if (symbol.IsAwaitableNonDynamic(semanticModel, position))
                 {
                     var parentOfAwaitable = potentialAwaitableExpression.Parent;
                     var syntaxFacts = syntaxContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
