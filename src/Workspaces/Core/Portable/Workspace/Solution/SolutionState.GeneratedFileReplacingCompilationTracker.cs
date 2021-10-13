@@ -136,10 +136,14 @@ namespace Microsoft.CodeAnalysis
 
                 // If it's the same language we can just make a CompilationReference
                 if (this.ProjectState.LanguageServices == fromProject.LanguageServices)
+                {
                     return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
-
-                var version = await GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
-                return MetadataOnlyReference.GetOrBuildReference(solution, projectReference, compilation, version, cancellationToken);
+                }
+                else
+                {
+                    var version = await GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
+                    return MetadataOnlyReference.GetOrBuildReference(solution, projectReference, compilation, version, cancellationToken);
+                }
             }
 
             public CompilationReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
