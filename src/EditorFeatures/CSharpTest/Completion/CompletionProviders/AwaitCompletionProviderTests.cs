@@ -33,13 +33,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             await VerifyItemIsAbsentAsync(code, CompletionDisplayTextAwaitAndConfigureAwait);
         }
 
-        private async Task VerifyAbsenceAsync(string code, LanguageVersion languageVersion)
+        private async Task VerifyAbsenceAsync(string code, LanguageVersion languageVersion = LanguageVersion.Default)
         {
             await VerifyItemIsAbsentAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwait);
             await VerifyItemIsAbsentAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwaitAndConfigureAwait);
         }
 
-        private async Task VerifyKeywordAsync(string code, LanguageVersion languageVersion, string? inlineDescription = null, bool dotAwait = false, bool dotAwaitf = false)
+        private async Task VerifyKeywordAsync(string code, LanguageVersion languageVersion = LanguageVersion.Default, string? inlineDescription = null, bool dotAwait = false, bool dotAwaitf = false)
         {
             var expectedDescription = dotAwait
                 ? GetDescription(CompletionDisplayTextAwait, FeaturesResources.Await_the_preceding_expression)
@@ -314,7 +314,7 @@ class C
     someTask.$$
   }
 }
-", LanguageVersion.CSharp9, dotAwait: true, dotAwaitf: true);
+", dotAwait: true, dotAwaitf: true);
         }
 
         [Fact]
@@ -330,7 +330,7 @@ class C
     someTask.$$
   }
 }
-", LanguageVersion.CSharp9, dotAwait: true, dotAwaitf: true);
+", dotAwait: true, dotAwaitf: true);
         }
 
         [Fact]
@@ -385,7 +385,7 @@ static class Program
         var awaitable = new CustomAwaitable();
         awaitable.$$;
     }
-}", LanguageVersion.CSharp9, dotAwait: true);
+}", dotAwait: true);
         }
 
         [Fact]
@@ -415,7 +415,7 @@ static class Program
         var awaitable = new CustomAwaitable();
         awaitable.$$;
     }
-}", LanguageVersion.CSharp9, dotAwait: true, dotAwaitf: false);
+}", dotAwait: true, dotAwaitf: false);
         }
 
         [Fact]
@@ -430,7 +430,7 @@ static class Program
     {
         someTask.$$.;
     }
-}", LanguageVersion.CSharp9, dotAwait: true, dotAwaitf: true);
+}", dotAwait: true, dotAwaitf: true);
         }
 
         [Fact]
@@ -447,7 +447,7 @@ static class Program
         someTask.$$
         Int32 i = 0;
     }
-}", LanguageVersion.CSharp9, dotAwait: true, dotAwaitf: true);
+}", dotAwait: true, dotAwaitf: true);
         }
 
         [Fact]
@@ -466,7 +466,7 @@ static class Program
     }
 
     async Task Test() { }
-}", LanguageVersion.CSharp9, dotAwait: true, dotAwaitf: true);
+}", dotAwait: true, dotAwaitf: true);
         }
 
         [Theory]
@@ -533,7 +533,7 @@ static class Program
 
         Task LocalFunction() => Task.CompletedTask;
     }}
-}}", LanguageVersion.CSharp9, dotAwait: true, dotAwaitf: true);
+}}", dotAwait: true, dotAwaitf: true);
         }
 
         [WorkItem(56245, "https://github.com/dotnet/roslyn/issues/56245")]
@@ -558,7 +558,7 @@ static class Program
 
         Task LocalFunction() => Task.CompletedTask;
     }
-}", LanguageVersion.CSharp9);
+}");
         }
 
         [Theory]
@@ -583,7 +583,7 @@ static class Program
         var someTask = Task.CompletedTask;
         {lambda}
     }}
-}}", LanguageVersion.CSharp9, inlineDescription: makeContainerAsync ? FeaturesResources.Make_containing_scope_async : null, dotAwait: true, dotAwaitf: true);
+}}", inlineDescription: makeContainerAsync ? FeaturesResources.Make_containing_scope_async : null, dotAwait: true, dotAwaitf: true);
         }
 
         [Fact]
@@ -599,7 +599,7 @@ class C
     await someTask.$$
   }
 }
-", LanguageVersion.CSharp9);
+");
         }
 
         [Fact]
@@ -615,7 +615,7 @@ class C
     Task.$$
   }
 }
-", LanguageVersion.CSharp9);
+");
         }
 
         [Fact]
@@ -631,7 +631,7 @@ class C
     lock(this) { someTask.$$ }
   }
 }
-", LanguageVersion.CSharp9);
+");
         }
 
         [Fact]
@@ -641,7 +641,7 @@ class C
 using System.Threading.Tasks;
 
 lock(this) { Task.CompletedTask.$$ }
-", LanguageVersion.CSharp9);
+");
         }
 
         [Fact]
@@ -659,7 +659,7 @@ class C
             select t.$$
   }
 }
-", LanguageVersion.CSharp9);
+");
         }
 
         [Fact]
@@ -678,7 +678,7 @@ class C
                 select t;
     }
 }
-", LanguageVersion.CSharp9, dotAwait: true, dotAwaitf: true);
+", dotAwait: true, dotAwaitf: true);
         }
 
         [Fact]
@@ -742,7 +742,7 @@ class C
                 select i1;
     }
 }
-", LanguageVersion.CSharp9, dotAwait: true, dotAwaitf: true);
+", dotAwait: true, dotAwaitf: true);
         }
 
         [Fact]
@@ -763,7 +763,7 @@ class C
                 select g;
     }
 }
-", LanguageVersion.CSharp9, dotAwait: true, dotAwaitf: true);
+", dotAwait: true, dotAwaitf: true);
         }
 
         [Fact]
@@ -787,7 +787,7 @@ class C
     someTask?.$$
   }
 }
-", LanguageVersion.CSharp9);
+");
         }
 
         [Theory]
@@ -827,7 +827,7 @@ static class Program
         {conditionalAccess}
     }}
 }}
-", LanguageVersion.CSharp9);
+");
         }
 
         [Theory]
@@ -870,7 +870,7 @@ static class Program
         {nullForgivingAccess}
     }}
 }}
-", LanguageVersion.CSharp9, dotAwait: true, dotAwaitf: true);
+", dotAwait: true, dotAwaitf: true);
         }
     }
 }
