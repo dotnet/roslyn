@@ -125,12 +125,6 @@ public class Bar
             var tags = await GetTagsFromWorkspaceAsync(workspace);
 
             Assert.Collection(tags,
-                namespaceTag =>
-                {
-                    Assert.Equal(8, GetCollapsedHintLineCount(namespaceTag));
-                    Assert.Equal(showBlockStructureGuidesForDeclarationLevelConstructs ? PredefinedStructureTagTypes.Namespace : PredefinedStructureTagTypes.Nonstructural, namespaceTag.Type);
-                    Assert.Equal("namespace Foo;", GetHeaderText(namespaceTag));
-                },
                 importsTag =>
                 {
                     Assert.Equal(2, GetCollapsedHintLineCount(importsTag));

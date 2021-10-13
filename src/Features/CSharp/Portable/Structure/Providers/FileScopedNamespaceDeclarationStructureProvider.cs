@@ -20,17 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             BlockStructureOptionProvider optionProvider,
             CancellationToken cancellationToken)
         {
-            // add leading comments
-            CSharpStructureHelpers.CollectCommentBlockSpans(fileScopedNamespaceDeclaration, ref spans, optionProvider);
-
-            spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
-                fileScopedNamespaceDeclaration,
-                fileScopedNamespaceDeclaration.SemicolonToken,
-                compressEmptyLines: false,
-                autoCollapse: false,
-                type: BlockTypes.Namespace,
-                isCollapsible: true));
-
             // extern aliases and usings are outlined in a single region
             var externsAndUsings = Enumerable.Union<SyntaxNode>(fileScopedNamespaceDeclaration.Externs, fileScopedNamespaceDeclaration.Usings).ToImmutableArray();
 
