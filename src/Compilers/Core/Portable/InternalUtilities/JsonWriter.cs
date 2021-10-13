@@ -238,7 +238,7 @@ namespace Roslyn.Utilities
         //
         // https://github.com/dotnet/corefx/blob/main/src/System.Private.DataContractSerialization/src/System/Runtime/Serialization/Json/JavaScriptString.cs
         //
-        private static string EscapeString(string value)
+        internal static string EscapeString(string value)
         {
             PooledStringBuilder? pooledBuilder = null;
             StringBuilder? b = null;
