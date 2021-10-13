@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // We skip this and look further up in the hierarchy.
             if (token.Parent is QualifiedNameSyntax { Parent: LocalFunctionStatementSyntax localFunction } qualifiedName && localFunction.ReturnType == qualifiedName)
             {
-                return localFunction.FirstAncestor<SyntaxNode>(node => node.IsAsyncSupportingFunctionSyntax());
+                return localFunction.Parent?.FirstAncestorOrSelf<SyntaxNode>(node => node.IsAsyncSupportingFunctionSyntax());
             }
 
             return token.GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             var dotToken = GetDotTokenLeftOfPosition(syntaxTree, position, cancellationToken);
-            return dotToken.Parent switch
+            return dotToken?.Parent switch
             {
                 // Don't support conditional access someTask?.$$ or c?.TaskReturning().$$ because there is no good completion until
                 // await? is supported by the language https://github.com/dotnet/csharplang/issues/35
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 var memberAccessExpression = memberAccess.Expression.WalkDownParentheses();
                 var symbol = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol;
-                if (symbol is null or INamedTypeSymbol) // e.g. Task.$$
+                if (symbol is INamedTypeSymbol) // e.g. Task.$$
                 {
                     return null;
                 }
