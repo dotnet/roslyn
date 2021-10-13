@@ -987,6 +987,36 @@ static class C
 ");
         }
 
+        [Fact]
+        public void TestArray()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System;
+static class C
+{
+    static void Main(int i)
+    {
+        ReadOnlySpan<int> p = new int[] { 1, 2, 3 };
+        Write(p);
+    }
+
+    static void Write(ReadOnlySpan<int> span) {}
+}
+", CreateSpanDefinition }, targetFramework: TargetFramework.Net50);
+            CompileAndVerify(comp, verify: Verification.Fails)
+                .VerifyIL("C.Main",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  IL_0000:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
+  IL_0005:  call       ""System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)""
+  IL_000a:  call       ""void C.Write(System.ReadOnlySpan<int>)""
+  IL_000f:  ret
+}
+");
+        }
+
         private static string GetSource(string pointerType) => $@"
 using System;
 using T = {pointerType};

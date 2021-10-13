@@ -39,17 +39,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rewrittenType = VisitType(node.Type);
 
-            // special handling for stackalloc converted to ROS<T>
-            if (node.Operand is BoundConvertedStackAllocExpression stackAllocExpression &&
-                TypeSymbol.Equals(rewrittenType.OriginalDefinition, _compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything))
+            // special handling for initializers converted to ROS<T>
+            if (TypeSymbol.Equals(rewrittenType.OriginalDefinition, _compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything))
             {
-                bool hasCreateSpanHelper = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpan_T) is not null;
-                var elementType = stackAllocExpression.ElementType;
-                var initializerOpt = stackAllocExpression.InitializerOpt;
-                if (CodeGen.CodeGenerator.UseCreateSpanForReadOnlyStackAlloc(hasCreateSpanHelper, elementType, initializerOpt,
-                    /* TODO: how to find out if this is ENC? */ supportsPrivateImplClass: true))
+                if (node.Operand is BoundConvertedStackAllocExpression or BoundArrayCreation)
                 {
-                    return new BoundConvertedStackAllocExpression(stackAllocExpression.Syntax, elementType, VisitExpression(stackAllocExpression.Count), initializerOpt, rewrittenType);
+                    bool hasCreateSpanHelper = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpan_T) is not null;
+
+                    var (elementType, initializerOpt, count) = node.Operand switch
+                    {
+                        BoundConvertedStackAllocExpression stackAlloc => (stackAlloc.ElementType, stackAlloc.InitializerOpt, VisitExpression(stackAlloc.Count)),
+                        BoundArrayCreation arrayCreation => (((ArrayTypeSymbol)arrayCreation.Type).ElementType, arrayCreation.InitializerOpt, /* need some dummy expression */ _factory.Literal(0)),
+                        _ => throw ExceptionUtilities.Unreachable
+                    };
+
+                    if (CodeGen.CodeGenerator.UseCreateSpanForReadOnlyStackAlloc(hasCreateSpanHelper, elementType, initializerOpt,
+                        /* TODO: how to find out if this is ENC? */ supportsPrivateImplClass: true))
+                    {
+                        return new BoundConvertedStackAllocExpression(node.Operand.Syntax, elementType, count, initializerOpt, rewrittenType);
+                    }
                 }
             }
 
