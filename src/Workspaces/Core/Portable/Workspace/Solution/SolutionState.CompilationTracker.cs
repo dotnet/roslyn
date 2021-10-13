@@ -403,6 +403,15 @@ namespace Microsoft.CodeAnalysis
                 return compilationInfo.Compilation;
             }
 
+            // <Caravela> This code is used by Try.Caravela.
+            public async Task<ImmutableArray<Diagnostic>> GetTransformerDiagnosticsAsync(SolutionState solution, CancellationToken cancellationToken)
+            {
+                var compilationInfo = await GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                return compilationInfo.TransformerDiagnostics;
+            }
+            // </Caravela>
+
             private async Task<Compilation> GetOrBuildDeclarationCompilationAsync(SolutionServices solutionServices, CancellationToken cancellationToken)
             {
                 try
@@ -474,7 +483,9 @@ namespace Microsoft.CodeAnalysis
                         if (finalCompilation != null)
                         {
                             RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
-                            return new CompilationInfo(finalCompilation, state.HasSuccessfullyLoaded.Value, state.GeneratedDocuments);
+                            // <Caravela> This code is used by Try.Caravela.
+                            return new CompilationInfo(finalCompilation, state.HasSuccessfullyLoaded.Value, state.GeneratedDocuments, state.TransformerDiagnostics);
+                            // </Caravela>
                         }
 
                         // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
@@ -516,7 +527,9 @@ namespace Microsoft.CodeAnalysis
                 if (compilation != null)
                 {
                     RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
-                    return Task.FromResult(new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value, state.GeneratedDocuments));
+                    // <Caravela> This code is used by Try.Caravela.
+                    return Task.FromResult(new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value, state.GeneratedDocuments, state.TransformerDiagnostics));
+                    // </Caravela>
                 }
 
                 compilation = state.CompilationWithoutGeneratedDocuments?.GetValueOrNull(cancellationToken);
@@ -706,12 +719,18 @@ namespace Microsoft.CodeAnalysis
                 public Compilation Compilation { get; }
                 public bool HasSuccessfullyLoaded { get; }
                 public TextDocumentStates<SourceGeneratedDocumentState> GeneratedDocuments { get; }
-                
-                public CompilationInfo(Compilation compilation, bool hasSuccessfullyLoaded, TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments)
+                // <Caravela> This code is used by Try.Caravela.
+                public ImmutableArray<Diagnostic> TransformerDiagnostics { get; }
+                // </Caravela>
+
+                public CompilationInfo(Compilation compilation, bool hasSuccessfullyLoaded, TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments, ImmutableArray<Diagnostic> transformerDiagnostics)
                 {
                     Compilation = compilation;
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                     GeneratedDocuments = generatedDocuments;
+                    // <Caravela> This code is used by Try.Caravela.
+                    TransformerDiagnostics = transformerDiagnostics;
+                    // </Caravela>
                 }
             }
             
@@ -915,6 +934,22 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
                     
+                    // <Caravela> This code is used by Try.Caravela.
+                    ImmutableArray<Diagnostic> transformerDiagnostics = default;
+
+                    if (!compilationWithGenerators.GetParseDiagnostics(cancellationToken).HasAnyErrors())
+                    {
+                        var transformers = this.ProjectState.AnalyzerReferences.SelectMany(a => a.GetTransformers()).ToImmutableArray();
+                        var plugins = this.ProjectState.AnalyzerReferences.SelectMany(a => a.GetPlugins()).ToImmutableArray();
+
+                        var loader = this.ProjectState.LanguageServices.WorkspaceServices.GetRequiredService<IAnalyzerService>().GetLoader();
+
+                        var runTransformers = compilationFactory.GetRunTransformersDelegate(transformers, plugins, this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider, loader);
+                        if (runTransformers != null)
+                            (compilationWithGenerators, transformerDiagnostics) = runTransformers(compilationWithGenerators);
+                    }
+                    // </Caravela>
+
                     var finalState = FinalState.Create(
                         State.CreateValueSource(compilationWithGenerators, solution.Services),
                         State.CreateValueSource(compilationWithoutGenerators, solution.Services),
@@ -923,12 +958,19 @@ namespace Microsoft.CodeAnalysis
                         generatedDocuments,
                         compilationWithGenerators,
                         this.ProjectState.Id,
-                        metadataReferenceToProjectId
+                        metadataReferenceToProjectId,
+                        // <Caravela> This code is used by Try.Caravela.
+                        transformerDiagnostics
+                        // </Caravela>
                         );
 
                     this.WriteState(finalState, solution.Services);
 
-                    return new CompilationInfo(compilationWithGenerators, hasSuccessfullyLoaded, generatedDocuments);
+                    return new CompilationInfo(compilationWithGenerators, hasSuccessfullyLoaded, generatedDocuments,
+                        // <Caravela> This code is used by Try.Caravela.
+                        transformerDiagnostics
+                        // </Caravela>
+                        );
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {

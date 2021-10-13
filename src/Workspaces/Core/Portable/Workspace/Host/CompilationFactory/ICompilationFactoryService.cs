@@ -15,5 +15,9 @@ namespace Microsoft.CodeAnalysis.Host
         Compilation CreateSubmissionCompilation(string assemblyName, CompilationOptions options, Type? hostObjectType);
         CompilationOptions GetDefaultCompilationOptions();
         GeneratorDriver? CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts);
+        
+        // <Caravela> This code is used by Try.Caravela.
+        Func<Compilation, (Compilation, ImmutableArray<Diagnostic>)>? GetRunTransformersDelegate(ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider, IAnalyzerAssemblyLoader assemblyLoader);
+        // </Caravela>
     }
 }

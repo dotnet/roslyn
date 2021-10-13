@@ -1754,6 +1754,11 @@ namespace Microsoft.CodeAnalysis
                 : SpecializedTasks.Null<Compilation>();
         }
 
+        // <Caravela> This code is used by Try.Caravela.
+        internal Task<ImmutableArray<Diagnostic>> GetTransformerDiagnosticsAsync(ProjectState projectState, CancellationToken cancellationToken)
+            => GetCompilationTracker(projectState.Id).GetTransformerDiagnosticsAsync(this, cancellationToken);
+        // </Caravela>
+
         /// <summary>
         /// Return reference completeness for the given project and all projects this references.
         /// </summary>
