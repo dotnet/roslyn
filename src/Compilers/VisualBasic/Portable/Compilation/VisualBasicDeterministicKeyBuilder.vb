@@ -12,6 +12,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Overrides Sub WriteParseOptionsCore(writer As JsonWriter, parseOptions As ParseOptions)
+            ' This can happen for SyntaxTree that are constructed via the API. 
+            If parseOptions Is Nothing Then
+                Return
+            End If
+
             Dim basicOptions = TryCast(parseOptions, VisualBasicParseOptions)
             If basicOptions Is Nothing Then
                 Throw New InvalidOperationException()
@@ -29,6 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     writer.WriteObjectStart()
                     writer.WriteKey(pair.Key)
                     writer.Write(pair.Value.ToString())
+                    writer.WriteObjectEnd()
                 Next
                 writer.WriteArrayEnd()
             End If

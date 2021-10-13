@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<DiagnosticAnalyzer> analyzers = default,
             ImmutableArray<ISourceGenerator> generators = default,
             EmitOptions? emitOptions = null,
-            DeterministicKeyOptions deterministicKeyOptions = DeterministicKeyOptions.Default)
+            DeterministicKeyOptions options = DeterministicKeyOptions.Default)
         {
             var keyBuilder = CreateDetermisiticKeyBuilder();
             return keyBuilder.GetKey(
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis
                 analyzers.NullToEmpty(),
                 generators.NullToEmpty(),
                 emitOptions,
-                deterministicKeyOptions);
+                options);
         }
 
         internal static void ValidateScriptCompilationParameters(Compilation? previousScriptCompilation, Type? returnType, ref Type? globalsType)

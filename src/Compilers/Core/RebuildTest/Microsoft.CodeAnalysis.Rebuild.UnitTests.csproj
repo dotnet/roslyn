@@ -17,8 +17,8 @@
     <ProjectReference Include="..\..\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
     <ProjectReference Include="..\..\Test\Utilities\CSharp\Microsoft.CodeAnalysis.CSharp.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\Test\Utilities\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Test.Utilities.vbproj" />
     <ProjectReference Include="..\Rebuild\Microsoft.CodeAnalysis.Rebuild.csproj" />
-
     <PackageReference Include="Microsoft.Metadata.Visualizer" Version="$(MicrosoftMetadataVisualizerVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
   </ItemGroup>
