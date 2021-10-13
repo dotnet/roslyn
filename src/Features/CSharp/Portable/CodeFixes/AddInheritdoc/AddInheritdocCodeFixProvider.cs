@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
@@ -89,6 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
         protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
             string? newLine = null;
+            SourceText? sourceText = null;
             foreach (var diagnostic in diagnostics)
             {
                 var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan);
@@ -116,10 +118,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
                     }),
                     endOfComment: Token(SyntaxKind.EndOfDocumentationCommentToken).WithoutTrivia());
 
-                var indendation = node.GetLocation().GetLineSpan().StartLinePosition.Character;
+                sourceText ??= await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var indentation = sourceText.GetLeadingWhitespaceOfLineAtPosition(node.FullSpan.Start);
                 var newLeadingTrivia = new SyntaxTrivia[]
                 {
-                    Whitespace(new string(' ', indendation)),
+                    Whitespace(indentation),
                     Trivia(singleLineInheritdocComment),
                 };
 
