@@ -141,6 +141,51 @@ public class Bar
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Outlining)]
         [CombinatorialData]
+        public async Task CSharpCommentsFileScopedNamespace(
+            bool collapseRegionsWhenCollapsingToDefinitions,
+            bool showBlockStructureGuidesForDeclarationLevelConstructs,
+            bool showBlockStructureGuidesForCodeLevelConstructs,
+            bool showBlockStructureGuidesForCommentsAndPreprocessorRegions)
+        {
+            var code =
+@"
+namespace Foo;
+/// <summary>
+/// 
+/// </summary>
+
+public class Bar
+{
+
+}
+";
+
+            using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, collapseRegionsWhenCollapsingToDefinitions)
+                .WithChangedOption(BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForDeclarationLevelConstructs)
+                .WithChangedOption(BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForCodeLevelConstructs)
+                .WithChangedOption(BlockStructureOptions.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, LanguageNames.CSharp, showBlockStructureGuidesForCommentsAndPreprocessorRegions)));
+
+            var tags = await GetTagsFromWorkspaceAsync(workspace);
+
+            Assert.Collection(tags,
+                commentsTag =>
+                {
+                    Assert.Equal(3, GetCollapsedHintLineCount(commentsTag));
+                    Assert.Equal(showBlockStructureGuidesForCommentsAndPreprocessorRegions ? PredefinedStructureTagTypes.Comment : PredefinedStructureTagTypes.Nonstructural, commentsTag.Type);
+                    Assert.Equal("/// <summary>", GetHeaderText(commentsTag));
+                },
+                classTag =>
+                {
+                    Assert.Equal(4, GetCollapsedHintLineCount(classTag));
+                    Assert.Equal(showBlockStructureGuidesForDeclarationLevelConstructs ? PredefinedStructureTagTypes.Type : PredefinedStructureTagTypes.Nonstructural, classTag.Type);
+                    Assert.Equal("public class Bar", GetHeaderText(classTag));
+                });
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [CombinatorialData]
         public async Task CSharpImportsNormalNamespaceTest(
             bool collapseRegionsWhenCollapsingToDefinitions,
             bool showBlockStructureGuidesForDeclarationLevelConstructs,
