@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis
 
             // okay, now use version based cache that can live multiple compilation as long as there is no semantic changes.
 
-            if (TryGetReferenceFromBranch(solution, projectReference, finalOrDeclarationCompilation, version, out reference))
+            if (TryGetReference(projectReference, finalOrDeclarationCompilation, version, out reference))
             {
                 solution.Workspace.LogTestMessage($"Found already cached metadata for the branch and version {version}");
                 return true;
@@ -118,8 +118,8 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        private static bool TryGetReferenceFromBranch(
-            SolutionState state, ProjectReference projectReference, Compilation finalOrDeclarationCompilation, VersionStamp version, out MetadataReference reference)
+        private static bool TryGetReference(
+            ProjectReference projectReference, Compilation finalOrDeclarationCompilation, VersionStamp version, out MetadataReference reference)
         {
             if (s_projectIdToReferenceMap.TryGetValue(projectReference.ProjectId, out var referenceSet) &&
                (version == VersionStamp.Default || referenceSet.Version == version))
