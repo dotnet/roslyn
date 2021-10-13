@@ -183,7 +183,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// </summary>
         public void ResetOptions()
         {
-            ResetOption(CompletionOptions.EnableArgumentCompletionSnippets);
+            ResetOption(CompletionViewOptions.EnableArgumentCompletionSnippets);
             return;
 
             // Local function

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             // extension from 32- to 64-bit is zero-extending rather than sign-extending. The end result
             // of this is that if either input is negative or if the input sum overflows past Int32.MaxValue,
             // that information is captured correctly in the comparison against the backing _length field.
-            if ((ulong)(uint)start + (ulong)(uint)length > (ulong)(uint)Length)
+            if ((uint)start + (ulong)(uint)length > (uint)Length)
                 ThrowHelper.ThrowArgumentOutOfRangeException();
 
             return new SegmentedArraySegment<T>(Array, Start + start, length);

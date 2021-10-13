@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var document = context.Document;
             var position = context.Position;
             var cancellationToken = context.CancellationToken;
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
             // For `is { Property.Property2.$$`, we get:
             // - the property pattern clause `{ ... }` and
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var propertyPatternType = semanticModel.GetTypeInfo((PatternSyntax)propertyPatternClause.Parent, cancellationToken).ConvertedType;
+            var propertyPatternType = semanticModel.GetTypeInfo((PatternSyntax)propertyPatternClause.Parent!, cancellationToken).ConvertedType;
             // For simple property patterns, the type we want is the "input type" of the property pattern, ie the type of `c` in `c is { $$ }`.
             // For extended property patterns, we get the type by following the chain of members that we have so far, ie
             // the type of `c.Property` for `c is { Property.$$ }` and the type of `c.Property1.Property2` for `c is { Property1.Property2.$$ }`.
@@ -74,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 // Filter out those members that have already been typed as simple (not extended) properties
                 var alreadyTestedMembers = new HashSet<string>(propertyPatternClause.Subpatterns.Select(
-                    p => p.NameColon?.Name.Identifier.ValueText).Where(s => !string.IsNullOrEmpty(s)));
+                    p => p.NameColon?.Name.Identifier.ValueText).Where(s => !string.IsNullOrEmpty(s))!);
 
                 members = members.WhereAsArray(m => !alreadyTestedMembers.Contains(m.Name));
             }
@@ -96,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // We have to figure out the type of the extended property ourselves, because
             // the semantic model could not provide the answer we want in incomplete syntax:
             // `c is { X. }`
-            static ITypeSymbol GetMemberAccessType(ITypeSymbol type, ExpressionSyntax expression, Document document, SemanticModel semanticModel, int position)
+            static ITypeSymbol? GetMemberAccessType(ITypeSymbol? type, ExpressionSyntax? expression, Document document, SemanticModel semanticModel, int position)
             {
                 if (expression is null)
                 {
@@ -115,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 throw ExceptionUtilities.Unreachable;
             }
 
-            static ITypeSymbol GetMemberType(ITypeSymbol type, string name, Document document, SemanticModel semanticModel, int position)
+            static ITypeSymbol? GetMemberType(ITypeSymbol? type, string name, Document document, SemanticModel semanticModel, int position)
             {
                 var members = GetCandidatePropertiesAndFields(document, semanticModel, position, type);
                 var matches = members.WhereAsArray(m => m.Name == name);
@@ -132,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 };
             }
 
-            static ImmutableArray<ISymbol> GetCandidatePropertiesAndFields(Document document, SemanticModel semanticModel, int position, ITypeSymbol type)
+            static ImmutableArray<ISymbol> GetCandidatePropertiesAndFields(Document document, SemanticModel semanticModel, int position, ITypeSymbol? type)
             {
                 var members = semanticModel.LookupSymbols(position, type);
                 return members.WhereAsArray(m => m.CanBeReferencedByName &&
@@ -167,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters.Add(' ');
 
-        private static (PropertyPatternClauseSyntax, ExpressionSyntax) TryGetPropertyPatternClause(SyntaxTree tree, int position, CancellationToken cancellationToken)
+        private static (PropertyPatternClauseSyntax?, ExpressionSyntax?) TryGetPropertyPatternClause(SyntaxTree tree, int position, CancellationToken cancellationToken)
         {
             if (tree.IsInNonUserCode(position, cancellationToken))
             {
@@ -195,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             return default;
 
-            bool IsExtendedPropertyPattern(MemberAccessExpressionSyntax memberAccess, out PropertyPatternClauseSyntax propertyPatternClause)
+            bool IsExtendedPropertyPattern(MemberAccessExpressionSyntax memberAccess, [NotNullWhen(true)] out PropertyPatternClauseSyntax? propertyPatternClause)
             {
                 while (memberAccess.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression))
                 {

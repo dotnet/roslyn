@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => InvokeOnUIThread(cancellationToken => GetDTE().ActiveWindow.Caption);
 
         public IntPtr GetHWnd()
-            => (IntPtr)GetDTE().MainWindow.HWnd;
+            => GetDTE().MainWindow.HWnd;
 
         public bool IsActiveTabProvisional()
             => InvokeOnUIThread(cancellationToken =>

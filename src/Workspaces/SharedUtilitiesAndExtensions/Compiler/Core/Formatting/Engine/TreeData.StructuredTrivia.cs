@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var text = GetText();
 
                 _initialColumn = initialColumn;
-                _treeData = (text == null) ? (TreeData)new Node(root) : new NodeAndText(root, text);
+                _treeData = (text == null) ? new Node(root) : new NodeAndText(root, text);
             }
 
             public override string GetTextBetween(SyntaxToken token1, SyntaxToken token2)

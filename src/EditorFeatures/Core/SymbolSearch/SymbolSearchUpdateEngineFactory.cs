@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         {
             return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                 ? new SymbolSearchUpdateEngine()
-                : (ISymbolSearchUpdateEngine)new NoOpUpdateEngine();
+                : new NoOpUpdateEngine();
         }
 
         private sealed class NoOpUpdateEngine : ISymbolSearchUpdateEngine

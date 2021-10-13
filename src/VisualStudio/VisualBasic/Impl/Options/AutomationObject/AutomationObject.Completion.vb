@@ -17,10 +17,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property Option_HighlightMatchingPortionsOfCompletionListItems As Boolean
             Get
-                Return GetBooleanOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems)
+                Return GetBooleanOption(CompletionViewOptions.HighlightMatchingPortionsOfCompletionListItems)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, value)
+                SetBooleanOption(CompletionViewOptions.HighlightMatchingPortionsOfCompletionListItems, value)
             End Set
         End Property
 
@@ -62,10 +62,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property Option_EnableArgumentCompletionSnippets As Integer
             Get
-                Return GetBooleanOption(CompletionOptions.EnableArgumentCompletionSnippets)
+                Return GetBooleanOption(CompletionViewOptions.EnableArgumentCompletionSnippets)
             End Get
             Set(value As Integer)
-                SetBooleanOption(CompletionOptions.EnableArgumentCompletionSnippets, value)
+                SetBooleanOption(CompletionViewOptions.EnableArgumentCompletionSnippets, value)
             End Set
         End Property
     End Class

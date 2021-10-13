@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
@@ -313,12 +314,19 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public sealed override ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
             {
-                lock (Gate)
+                try
                 {
-                    Definitions.Add(definition);
-                }
+                    lock (Gate)
+                    {
+                        Definitions.Add(definition);
+                    }
 
-                return OnDefinitionFoundWorkerAsync(definition, cancellationToken);
+                    return OnDefinitionFoundWorkerAsync(definition, cancellationToken);
+                }
+                catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
             }
 
             protected abstract ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition, CancellationToken cancellationToken);
