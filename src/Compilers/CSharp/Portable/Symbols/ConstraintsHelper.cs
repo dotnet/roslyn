@@ -1040,6 +1040,16 @@ hasRelatedInterfaces:
             TypeWithAnnotations constraintType,
             ref bool hasError)
         {
+            if (containingSymbol.Kind ==  SymbolKind.Method)
+            {
+                foreach (var attribute in containingSymbol.GetAttributes())
+                {
+                    if (attribute.ToString() == "System.Runtime.CompilerServices.ConvertUnconstrainedCallsToThrowVerificationExceptionAttribute")
+                    {
+                        return;
+                    }
+                }
+            }
             if (SatisfiesConstraintType(args.Conversions.WithNullability(false), typeArgument, constraintType, ref useSiteInfo))
             {
                 if (nullabilityDiagnosticsBuilderOpt != null)
