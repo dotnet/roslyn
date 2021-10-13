@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             return processedResults.ToArray();
         }
 
-        private sealed class LongestCommonSemanticTokensSubsequence : LongestCommonSubsequence<int[]>
+        internal sealed class LongestCommonSemanticTokensSubsequence : LongestCommonSubsequence<int[]>
         {
             private static readonly LongestCommonSemanticTokensSubsequence s_instance = new();
 
