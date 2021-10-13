@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>IdeCoreBenchmarks.LSPSemanticTokensBenchmarks-20211013-135132</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet=v0.13.0, OS=Windows 10.0.19043.1288 (21H1/May2021Update)
+Intel Core i7-8700 CPU 3.20GHz (Coffee Lake), 1 CPU, 12 logical and 6 physical cores
+  [Host]     : .NET Framework 4.8 (4.8.4300.0), X64 RyuJIT
+  Job-KWVDKZ : .NET Framework 4.8 (4.8.4300.0), X64 RyuJIT
+</code></pre>
+<pre><code>Runtime=.NET Framework 4.7.2  Toolchain=net472  
+</code></pre>
+
+<table>
+<thead><tr><th>                           Method</th><th>      Mean</th><th>   Error</th><th>  StdDev</th><th>Gen 0</th><th>Gen 1</th><th>Gen 2</th><th>Allocated</th>
+</tr>
+</thead><tbody><tr><td>RunLSPSemanticTokensBenchmark</td><td>18.02 ns</td><td>0.157 ns</td><td>0.131 ns</td><td>0.0191</td><td>-</td><td>-</td><td>120 B</td>
+</tr><tr><td>RunLSPSemanticTokensBenchmark_RazorImpl</td><td>12,168,209.53 ns</td><td>223,815.727 ns</td><td>553,217.024 ns</td><td>781.2500</td><td>765.6250</td><td>765.6250</td><td>43,093,728 B</td>
+</tr></tbody></table>
+</body>
+</html>
