@@ -1,6 +1,8 @@
 GetDeterministicKey
 ===
 
+**This is meant to be the text of the issue I will eventually file for the API**
+
 ## Background and Motivation
 The `Compilation` type is fully deterministic meaning that given the same inputs
 (`SyntaxTree`, `CompilationOptions`, etc ...) it will produce the same output. By 
@@ -14,7 +16,8 @@ Customers have to resort to hand written comparisons which requires a fairly
 intimate knowledge of the compiler (for example knowing what does and does not
 impact determinism). Such solutions are not version tolerant; every time the 
 compiler adds a new property that impacts determinism the solution must be 
-updated.
+updated. Even when proper equality checks are in place this does not help 
+distributed computing where equality must be decided across different processes.
 
 The motivation here is to provide an API that returns a string based key for a
 given `Compilation` such that for two equivalent `Compilation` instances the
@@ -29,7 +32,12 @@ namespace Microsoft.CodeAnalysis
 {
     public class Compilation
     {
-+       public string GetDeterministicKey(DeterministicKeyOptions options = default)
++       public string GetDeterministicKey(
++           ImmutableArray<AdditionalText> additionalTexts = default,
++           ImmutableArray<DiagnosticAnalyzer> analyzers = default,
++           ImmutableArray<ISourceGenerator> generators = default,
++           EmitOptions? emitOptions = null,
++           DeterministicKeyOptions options = DeterministicKeyOptions.Default)
     }
 
     internal enum DeterministicKeyOptions
@@ -54,19 +62,21 @@ namespace Microsoft.CodeAnalysis
 }
 ```
 
-The return of `GetDeterministicKey` is an opaque string that represents a markle 
-tree of the `Compilation` contents.  Two `Compilation` which produce different 
-output, diagnostics or binaries, will have different strings returned for this
-function. 
+The return of `GetDeterministicKey` is an opaque string that full represents 
+the content of the `Compilation` contents. Two `Compilation` which produce 
+different output, diagnostics or binaries, will have different strings returned
+for this function. 
 
 The return of `GetDeterministicKey` can, and by default will, change between versions
 of the compiler. That is true of both the content of the string as well as the 
-underlying format. Consumers should not take any dependency on the content of this string
-other than it being an effective hash of the `Compilation` it came from.
+underlying format. The content must change because part of the input to compilation
+is the version of the compiler. The format will change as desired by the 
+implementation.  Consumers should not take any dependency on the format of this 
+string other than it being an effective hash of the `Compilation` it came from.
 
-The merkle tree returned here is not a minimal tree, or specified to any depth
-(it's opaque). The content can be compressed further by running through a hashing 
-function such as SHA-256 to get a minimal hash. 
+The string returned here will be human readable and visually diffable. It will
+not be a minimal representation though. The content can, and is expected to be,
+compressed further with a hashing function such as SHA-256. 
 
 For example here is the proposed return for the following `net5.0` program:
 
@@ -115,10 +125,6 @@ System.Console.WriteLine("Hello World");
 
 The full output can be seen [here](https://gist.github.com/jaredpar/654d84f64de2d728685a7d4ccde944e7)
 
-Note: I'm unsure if "merkle tree" is the best term here. It's not a precise merkle
-tree because it does have non-hash leafs. But this term is used for other formats
-like a git tree that also don't have pure hash values in the leafs.
-
 ## Usage Examples
 
 ### Output caching
@@ -161,6 +167,5 @@ How does this compare to analogous APIs in other ecosystems and libraries?
 Determinism is hard
 
 ## Work Remaining
- - Need to consider `EmitOptions` in the output of `GetDeterministicKey`
 
 
