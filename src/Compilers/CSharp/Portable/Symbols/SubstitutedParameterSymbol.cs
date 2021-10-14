@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _containingSymbol; }
         }
 
-        public override TypeWithAnnotations TypeWithAnnotations
+        // PROTOTYPE(delegate-type-args): should any of these members move up to WrappedParameterSymbol?
+        private TypeWithAnnotations PossibleRefTypeWithAnnotations
         {
             get
             {
@@ -64,6 +65,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return substituted;
+            }
+        }
+
+        public override TypeWithAnnotations TypeWithAnnotations
+        {
+            get
+            {
+                var type = PossibleRefTypeWithAnnotations;
+                if (type.Type is RefTypeSymbol refType)
+                {
+                    return refType.ReferencedTypeWithAnnotations;
+                }
+                else
+                {
+                    return type;
+                }
+            }
+        }
+
+        public override RefKind RefKind
+        {
+            get
+            {
+                if (PossibleRefTypeWithAnnotations.Type is RefTypeSymbol refType)
+                {
+                    return refType.RefKind;
+                }
+                else
+                {
+                    return base.RefKind;
+                }
             }
         }
 

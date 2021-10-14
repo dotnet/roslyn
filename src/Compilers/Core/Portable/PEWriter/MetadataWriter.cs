@@ -3725,6 +3725,7 @@ namespace Microsoft.Cci
                 switch (primitiveType)
                 {
                     case PrimitiveTypeCode.Pointer:
+                    case PrimitiveTypeCode.Reference:
                     case PrimitiveTypeCode.FunctionPointer:
                     case PrimitiveTypeCode.NotPrimitive:
                         break;
@@ -3738,6 +3739,14 @@ namespace Microsoft.Cci
                 {
                     typeReference = pointerTypeReference.GetTargetType(Context);
                     encoder = encoder.Pointer();
+                    continue;
+                }
+
+                if (typeReference is IRefTypeReference refTypeReference)
+                {
+                    typeReference = refTypeReference.GetReferencedType(Context);
+                    // PROTOTYPE(delegate-type-args): is this right? and can it be provided by S.R.M itself?
+                    encoder.Builder.WriteByte((byte)SignatureTypeCode.ByReference);
                     continue;
                 }
 

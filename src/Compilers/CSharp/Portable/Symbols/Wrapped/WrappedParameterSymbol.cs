@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.TypeWithAnnotations; }
         }
 
-        public sealed override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return _underlyingParameter.RefKind; }
         }

@@ -14,6 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    // PROTOTYPE(delegate-type-args): symbol display
     internal partial class SymbolDisplayVisitor
     {
         public override void VisitArrayType(IArrayTypeSymbol symbol)

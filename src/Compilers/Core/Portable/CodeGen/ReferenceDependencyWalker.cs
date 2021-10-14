@@ -60,6 +60,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return;
             }
 
+            Cci.IRefTypeReference? refType = typeReference as Cci.IRefTypeReference;
+            if (refType != null)
+            {
+                VisitTypeReference(refType.GetReferencedType(context), context);
+                return;
+            }
+
             //Cci.IManagedPointerTypeReference managedPointerType = typeReference as Cci.IManagedPointerTypeReference;
             //if (managedPointerType != null)
             //{
