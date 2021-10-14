@@ -58,52 +58,54 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            var peReference = compilation.GetMetadataReference(symbol.ContainingAssembly) as PortableExecutableReference;
-            if (peReference is null)
+            if (compilation.GetMetadataReference(symbol.ContainingAssembly) is not PortableExecutableReference { FilePath: not null and var dllPath })
+            {
                 return null;
+            }
 
-            var dllPath = peReference.FilePath;
-            if (dllPath is null)
-                return null;
-
+            ProjectId projectId;
+            ImmutableArray<(string FilePath, TextLoader Loader)> filesAndPaths;
             // We know we have a DLL, call and see if we can find metadata readers for it, and for the PDB (whereever it may be)
-            using var metadataReaderProvider = await _pdbFileLocatorService.GetMetadataReadersAsync(dllPath, cancellationToken).ConfigureAwait(false);
-            if (metadataReaderProvider is null)
-                return null;
+            using (var metadataReaderProvider = await _pdbFileLocatorService.GetMetadataReadersAsync(dllPath, cancellationToken).ConfigureAwait(false))
+            {
+                if (metadataReaderProvider is null)
+                    return null;
 
-            var dllReader = metadataReaderProvider.GetDllMetadataReader();
-            var pdbReader = metadataReaderProvider.GetPdbMetadataReader();
+                var dllReader = metadataReaderProvider.GetDllMetadataReader();
+                var pdbReader = metadataReaderProvider.GetPdbMetadataReader();
 
-            // Try to find some actual document information from the PDB
-            var sourceDocuments = SymbolSourceDocumentFinder.FindSourceDocuments(symbol, dllReader, pdbReader);
-            if (sourceDocuments.Length == 0)
-                return null;
+                // Try to find some actual document information from the PDB
+                var sourceDocuments = SymbolSourceDocumentFinder.FindSourceDocuments(symbol, dllReader, pdbReader);
+                if (sourceDocuments.Length == 0)
+                    return null;
 
-            // Get text loaders for our documents. We do this here because if we can't load any of the files, then
-            // we can't provide any results.
-            var filesAndPaths = (from sd in sourceDocuments
+                // Get text loaders for our documents. We do this here because if we can't load any of the files, then
+                // we can't provide any results.
+                filesAndPaths = (from sd in sourceDocuments
                                  let loader = _pdbSourceDocumentLoaderService.LoadSourceDocument(sd, pdbReader)
                                  where loader is not null
                                  select (sd.FilePath, loader)).ToImmutableArray();
 
-            if (filesAndPaths.Length == 0)
-                return null;
-
-            var assemblyName = symbol.ContainingAssembly.Identity.Name;
-            var symbolId = SymbolKey.Create(symbol, cancellationToken);
-
-            if (!_assemblyToProjectMap.TryGetValue(assemblyName, out var projectId))
-            {
-                var projectInfo = CreateProjectInfo(workspace, project, pdbReader, assemblyName);
-
-                if (projectInfo is null)
+                if (filesAndPaths.Length == 0)
                     return null;
 
-                projectId = projectInfo.Id;
+                var assemblyName = symbol.ContainingAssembly.Identity.Name;
 
-                workspace.OnProjectAdded(projectInfo);
-                _assemblyToProjectMap.Add(assemblyName, projectId);
+                if (!_assemblyToProjectMap.TryGetValue(assemblyName, out projectId!))
+                {
+                    var projectInfo = CreateProjectInfo(workspace, project, pdbReader, assemblyName);
+
+                    if (projectInfo is null)
+                        return null;
+
+                    projectId = projectInfo.Id;
+
+                    workspace.OnProjectAdded(projectInfo);
+                    _assemblyToProjectMap.Add(assemblyName, projectId);
+                }
             }
+
+            var symbolId = SymbolKey.Create(symbol, cancellationToken);
 
             var navigateProject = workspace.CurrentSolution.GetRequiredProject(projectId);
             var documentInfos = CreateDocumentInfos(filesAndPaths, navigateProject);
