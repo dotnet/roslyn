@@ -136,14 +136,14 @@ namespace Microsoft.CodeAnalysis
 
                 // If it's the same language we can just make a CompilationReference
                 if (this.ProjectState.LanguageServices == fromProject.LanguageServices)
-                {
                     return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
-                }
-                else
-                {
-                    var version = await GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
-                    return MetadataOnlyReference.GetOrBuildReference(solution, projectReference, compilation, version, cancellationToken);
-                }
+
+                // Otherwise we need to create a skeleton for this project.  See if we can reuse an existing
+                // one, or create a new one when we can't.
+                var version = await GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
+                var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
+                return await this.ProjectState.GetOrBuildSkeletonReferenceAsync(
+                    solution.Workspace, properties, compilation, version, cancellationToken).ConfigureAwait(false);
             }
 
             public CompilationReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
