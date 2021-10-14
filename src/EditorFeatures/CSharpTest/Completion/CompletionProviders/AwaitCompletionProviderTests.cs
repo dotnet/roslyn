@@ -562,16 +562,16 @@ static class Program
         }
 
         [Theory]
-        [InlineData("await Task.Run(async () => Task.CompletedTask.$$", false)]
-        [InlineData("await Task.Run(async () => someTask.$$", false)]
-        [InlineData("await Task.Run(async () => someTask.$$);", false)]
-        [InlineData("await Task.Run(async () => { someTask.$$ }", false)]
-        [InlineData("await Task.Run(async () => { someTask.$$ });", false)]
+        [InlineData("await Task.Run(async () => Task.CompletedTask.$$")]
+        [InlineData("await Task.Run(async () => someTask.$$")]
+        [InlineData("await Task.Run(async () => someTask.$$);")]
+        [InlineData("await Task.Run(async () => { someTask.$$ }")]
+        [InlineData("await Task.Run(async () => { someTask.$$ });")]
 
-        [InlineData("Task.Run(async () => await someTask).$$", false)]
+        [InlineData("Task.Run(async () => await someTask).$$")]
 
-        [InlineData("await Task.Run(() => someTask.$$", true)]
-        public async Task TestDotAwaitSuggestInLambdas(string lambda, bool makeContainerAsync)
+        [InlineData("await Task.Run(() => someTask.$$")]
+        public async Task TestDotAwaitSuggestInLambdas(string lambda)
         {
             await VerifyKeywordAsync($@"
 using System.Threading.Tasks;
