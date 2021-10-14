@@ -230,7 +230,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var makeContainerAsync = completionProperties.ContainsKey(MakeContainerAsync);
                 var addAwaitBeforeDotExpression = completionProperties.ContainsKey(AddAwaitBeforeDotExpression);
                 var appendConfigureAwait = completionProperties.ContainsKey(AppendConfigureAwait);
-                var inlineDescription = makeContainerAsync ? FeaturesResources.Make_containing_scope_async : null;
                 var isComplexTextEdit = makeContainerAsync | addAwaitBeforeDotExpression | appendConfigureAwait;
                 var tooltip =
                     addAwaitBeforeDotExpression
@@ -249,7 +248,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     rules: CompletionItemRules.Default,
                     glyph: Glyph.Keyword,
                     description: description,
-                    inlineDescription: inlineDescription,
                     isComplexTextEdit: isComplexTextEdit,
                     properties: completionProperties);
             }

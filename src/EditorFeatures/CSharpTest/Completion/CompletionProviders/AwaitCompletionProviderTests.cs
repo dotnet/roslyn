@@ -79,7 +79,7 @@ class C
   void F()
   {
     $$  }
-}", LanguageVersion.CSharp9, FeaturesResources.Make_containing_scope_async);
+}", LanguageVersion.CSharp9);
         }
 
         [Fact]
@@ -123,7 +123,7 @@ class C
   {
     var z = $$  }
 }
-", LanguageVersion.CSharp9, FeaturesResources.Make_containing_scope_async);
+", LanguageVersion.CSharp9);
         }
 
         [Fact]
@@ -583,7 +583,7 @@ static class Program
         var someTask = Task.CompletedTask;
         {lambda}
     }}
-}}", inlineDescription: makeContainerAsync ? FeaturesResources.Make_containing_scope_async : null, dotAwait: true, dotAwaitf: true);
+}}", dotAwait: true, dotAwaitf: true);
         }
 
         [Fact]

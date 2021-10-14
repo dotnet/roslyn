@@ -965,12 +965,6 @@ This version used in: {2}</value>
   <data name="Asynchronously_waits_for_the_task_to_finish" xml:space="preserve">
     <value>Asynchronously waits for the task to finish.</value>
   </data>
-  <data name="Make_containing_scope_async" xml:space="preserve">
-    <value>Make containing scope async</value>
-  </data>
-  <data name="Make_containing_scope_async_return_Task" xml:space="preserve">
-    <value>Make containing scope async (return Task)</value>
-  </data>
   <data name="Await_the_preceding_expression" xml:space="preserve">
     <value>Await the preceding expression</value>
   </data>

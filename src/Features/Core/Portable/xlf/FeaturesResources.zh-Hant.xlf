@@ -4185,16 +4185,6 @@ This version used in: {2}</source>
         <target state="translated">新增遺失的參數節點</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_containing_scope_async">
-        <source>Make containing scope async</source>
-        <target state="translated">讓包含範圍非同步</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_containing_scope_async_return_Task">
-        <source>Make containing scope async (return Task)</source>
-        <target state="translated">讓包含範圍非同步 (傳回工作)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(未知)</target>
