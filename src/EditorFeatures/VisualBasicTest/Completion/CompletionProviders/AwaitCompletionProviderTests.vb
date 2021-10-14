@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return GetType(AwaitCompletionProvider)
         End Function
 
-        Protected Async Function VerifyAwaitKeyword(markup As String, Optional makeContainerAsync As Boolean = False, Optional dotAwait As Boolean = False, Optional dotAwaitf As Boolean = False) As Task
+        Protected Async Function VerifyAwaitKeyword(markup As String, Optional dotAwait As Boolean = False, Optional dotAwaitf As Boolean = False) As Task
             Dim expectedDescription = If(dotAwait, GetDescription("Await", FeaturesResources.Await_the_preceding_expression), GetDescription("Await", FeaturesResources.Asynchronously_waits_for_the_task_to_finish))
             Await VerifyItemExistsAsync(markup, "Await", expectedDescriptionOrNull:=expectedDescription)
             If dotAwaitf Then
@@ -35,7 +35,7 @@ Class C
         Dim z = $$
     End Sub
 End Class
-", makeContainerAsync:=True)
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -101,7 +101,7 @@ Class C
 
     End Sub
 End Class
-", makeContainerAsync:=True)
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -355,7 +355,7 @@ Module Program
         {lambda}
     End Function
 End Module
-", makeContainerAsync:=makeContainerAsync, dotAwait:=True, dotAwaitf:=True)
+", dotAwait:=True, dotAwaitf:=True)
         End Function
 
         <Fact>
