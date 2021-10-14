@@ -1844,6 +1844,21 @@ private void M()
         public async Task EnumNonDefaultUnderlyingType_OnMemberAccessOnType()
         {
             await TestInClassAsync(@"
+enum EN : byte { A, B }
+
+private void M()
+{
+    var ea = E$$N.A;
+}
+",
+                MainDescription("enum C.EN : byte"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")]
+        public async Task EnumNonDefaultUnderlyingType_OnMemberAccessOnType_OnDot()
+        {
+            await TestInClassAsync(@"
 enum E : byte { A, B }
 
 private void M()
@@ -1851,7 +1866,7 @@ private void M()
     var ea = E$$.A;
 }
 ",
-                MainDescription("enum C.E : byte"));
+                MainDescription("E.A = 0"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]

@@ -145,11 +145,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
             Return False
         End Function
 
-        Protected Overrides Function GetBindableNodeForTokenIndicatingMemberAccess(token As SyntaxToken, ByRef found As SyntaxNode) As Boolean
+        Protected Overrides Function GetBindableNodeForTokenIndicatingMemberAccess(token As SyntaxToken, ByRef found As SyntaxToken) As Boolean
             If token.IsKind(SyntaxKind.DotToken) AndAlso
                 token.Parent?.IsKind(SyntaxKind.SimpleMemberAccessExpression) = True Then
 
-                found = token.Parent
+                found = DirectCast(token.Parent, MemberAccessExpressionSyntax).Name.Identifier
                 Return True
             End If
 

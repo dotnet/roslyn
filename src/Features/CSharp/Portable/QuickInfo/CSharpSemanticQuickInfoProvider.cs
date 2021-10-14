@@ -7,6 +7,7 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.QuickInfo;
 
@@ -58,16 +59,16 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             return false;
         }
 
-        protected override bool GetBindableNodeForTokenIndicatingMemberAccess(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found)
+        protected override bool GetBindableNodeForTokenIndicatingMemberAccess(SyntaxToken token, out SyntaxToken found)
         {
             if (token.IsKind(SyntaxKind.DotToken) &&
                 token.Parent?.IsKind(SyntaxKind.SimpleMemberAccessExpression) == true)
             {
-                found = token.Parent;
+                found = ((MemberAccessExpressionSyntax)token.Parent).Name.Identifier;
                 return true;
             }
 
-            found = null;
+            found = default;
             return false;
         }
 
