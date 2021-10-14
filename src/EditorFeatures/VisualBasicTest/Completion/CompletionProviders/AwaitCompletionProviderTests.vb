@@ -333,18 +333,18 @@ End Module
         End Function
 
         <Theory>
-        <InlineData("Await Task.Run(Async Function() Task.CompletedTask.$$", False)>
-        <InlineData("Await Task.Run(Async Function() someTask.$$)", False)>
+        <InlineData("Await Task.Run(Async Function() Task.CompletedTask.$$")>
+        <InlineData("Await Task.Run(Async Function() someTask.$$)")>
         <InlineData("
 Await Task.Run(Async Function()
                    someTask.$$
-               End Function)", False)>
+               End Function)")>
         <InlineData("
 Await Task.Run(Async Function()
-                   someTask.$$", False)>
-        <InlineData("Task.Run(Async Function() Await someTask).$$", False)>
-        <InlineData("Await Task.Run(Function() someTask.$$", True)>
-        Public Async Function DotAwaitSuggestInLambdas(lambda As String, makeContainerAsync As Boolean) As Task
+                   someTask.$$")>
+        <InlineData("Task.Run(Async Function() Await someTask).$$")>
+        <InlineData("Await Task.Run(Function() someTask.$$")>
+        Public Async Function DotAwaitSuggestInLambdas(lambda As String) As Task
             Await VerifyAwaitKeyword($"
 Imports System.Threading.Tasks
 
