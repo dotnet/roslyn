@@ -607,6 +607,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return DirectCast(Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle), MethodSymbol)?.GetCciAdapter()
         End Function
 
+        Public NotOverridable Overrides Function GetCreateSpanHelper(elementType As ITypeSymbol) As Cci.IMethodReference
+            Dim vbElementType = TryCast(elementType, TypeSymbol)
+            If vbElementType Is Nothing Then
+                Return Nothing
+            End If
+
+            Return DirectCast(Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpan_T), MethodSymbol)?.Construct(vbElementType).GetCciAdapter()
+        End Function
+
         Public NotOverridable Overrides Function IsPlatformType(typeRef As Cci.ITypeReference, platformType As Cci.PlatformType) As Boolean
             Dim namedType = TryCast(typeRef.GetInternalSymbol(), NamedTypeSymbol)
 

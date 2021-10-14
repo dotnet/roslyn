@@ -151,6 +151,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_RuntimeHelpers__get_OffsetToStringData,
         System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
         System_Runtime_CompilerServices_RuntimeHelpers__EnsureSufficientExecutionStack,
+        System_Runtime_CompilerServices_RuntimeHelpers__CreateSpan_T,
 
         System_Runtime_ExceptionServices_ExceptionDispatchInfo__Capture,
         System_Runtime_ExceptionServices_ExceptionDispatchInfo__Throw,
@@ -442,6 +443,7 @@ namespace Microsoft.CodeAnalysis
         System_ReadOnlySpan_T__ctor,
         System_ReadOnlySpan_T__get_Item,
         System_ReadOnlySpan_T__get_Length,
+        System_ReadOnlySpan_T__GetPinnableReference,
 
         System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
 
