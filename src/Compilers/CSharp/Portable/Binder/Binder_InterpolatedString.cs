@@ -150,28 +150,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundUnconvertedInterpolatedString(node, builder.ToImmutableAndFree(), resultConstant, stringType);
         }
 
-        private static bool ContainsTrailingEndOflineTrivia(SyntaxNodeOrToken nodeOrToken)
-        {
-            if (nodeOrToken.IsNode)
-            {
-                foreach (var child in nodeOrToken.AsNode()!.ChildNodesAndTokens())
-                {
-                    if (ContainsTrailingEndOflineTrivia(child))
-                        return true;
-                }
-            }
-            else if (nodeOrToken.IsToken)
-            {
-                foreach (var trivia in nodeOrToken.AsToken().TrailingTrivia)
-                {
-                    if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
-                        return true;
-                }
-            }
-
-            return false;
-        }
-
         private BoundInterpolatedString BindUnconvertedInterpolatedStringToString(BoundUnconvertedInterpolatedString unconvertedInterpolatedString, BindingDiagnosticBag diagnostics)
         {
             // We have 4 possible lowering strategies, dependent on the contents of the string, in this order:
