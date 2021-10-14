@@ -109,7 +109,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     if (CreateWinFormsEditorInstance(
                         vsHierarchy,
                         itemid,
-                        _oleServiceProvider,
                         textBuffer,
                         readOnlyStatus,
                         out ppunkDocView,
@@ -248,7 +247,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private int CreateWinFormsEditorInstance(
             IVsHierarchy vsHierarchy,
             uint itemid,
-            OLE.Interop.IServiceProvider oleServiceProvider,
             IVsTextBuffer textBuffer,
             READONLYSTATUS readOnlyStatus,
             out IntPtr ppunkDocView,
@@ -259,14 +257,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             pbstrEditorCaption = string.Empty;
             pguidCmdUI = Guid.Empty;
 
-            var winFormsEditorFactory = (IWinFormsEditorFactory)PackageUtilities.QueryService<IWinFormsEditorFactory>(oleServiceProvider);
+            var winFormsEditorFactory = (IWinFormsEditorFactory)PackageUtilities.QueryService<IWinFormsEditorFactory>(_oleServiceProvider);
 
             return winFormsEditorFactory is null
                 ? VSConstants.E_FAIL
                 : winFormsEditorFactory.CreateEditorInstance(
                     vsHierarchy,
                     itemid,
-                    oleServiceProvider,
+                    _oleServiceProvider,
                     textBuffer,
                     readOnlyStatus,
                     out ppunkDocView,
