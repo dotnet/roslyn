@@ -7,8 +7,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworks>netcoreapp3.1;net472</TargetFrameworks>
     <DefineConstants>$(DefineConstants);WORKSPACE_MSBUILD</DefineConstants>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
-
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageDescription>
