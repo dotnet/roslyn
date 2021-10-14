@@ -226,6 +226,23 @@ namespace Microsoft.CodeAnalysis
 
                     this.IntermediateProjects = intermediateProjects;
                     this.CompilationWithGeneratedDocuments = compilationWithGeneratedDocuments;
+
+#if DEBUG
+
+                    // When we're creating an in-progress state, the old state should correspond to the current state of the generator driver,
+                    // if we have one. Ensure things are in sync.
+                    if (generatorInfo.Driver != null)
+                    {
+                        var matchingState = intermediateProjects[0].state;
+
+                        // Assert that each additional text is in the driver; we don't have a way via the public API to check this,
+                        // but we can indirectly check by calling Replace() which will throw if the item isn't in there.
+                        foreach (var additionalText in matchingState.AdditionalDocumentStates.SelectAsArray(static d => d.AdditionalText))
+                        {
+                            _ = generatorInfo.Driver.ReplaceAdditionalText(additionalText, additionalText);
+                        }
+                    }
+#endif
                 }
             }
 
