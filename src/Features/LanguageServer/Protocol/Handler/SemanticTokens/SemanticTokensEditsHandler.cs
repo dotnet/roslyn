@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 return updatedTokens;
             }
 
-            var editArray = ComputeSemanticTokensEdits(oldSemanticTokensData, newSemanticTokensData);
+            var editArray = await ComputeSemanticTokensEditsAsync(oldSemanticTokensData, newSemanticTokensData).ConfigureAwait(false);
             var resultId = request.PreviousResultId;
 
             // If we have edits, generate a new ResultId. Otherwise, re-use the previous one.
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// <summary>
         /// Compares two sets of SemanticTokens and returns the edits between them.
         /// </summary>
-        private static LSP.SemanticTokensEdit[] ComputeSemanticTokensEdits(
+        private static async Task<LSP.SemanticTokensEdit[]> ComputeSemanticTokensEditsAsync(
             int[] oldSemanticTokens,
             int[] newSemanticTokens)
         {
@@ -125,9 +125,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // the old and new tokens. Edits are computed on an int level, with five ints representing
             // one token. We compute on int level rather than token level to minimize the amount of
             // edits we send back to the client.
-            var edits = LongestCommonSemanticTokensSubsequence.GetEdits(oldSemanticTokens, newSemanticTokens);
+            var edits = await LongestCommonSemanticTokensSubsequence.GetEditsAsync(oldSemanticTokens, newSemanticTokens).ConfigureAwait(false);
 
-            var processedEdits = ProcessEdits(newSemanticTokens, edits.ToArray());
+            var processedEdits = ProcessEdits(newSemanticTokens, edits);
             return processedEdits;
         }
 
@@ -219,6 +219,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         internal sealed class LongestCommonSemanticTokensSubsequence : LongestCommonSubsequence<int[]>
         {
+            private const int MaxArraySize = 1000;
             private static readonly LongestCommonSemanticTokensSubsequence s_instance = new();
 
             protected override bool ItemsEqual(
@@ -226,19 +227,75 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 int[] newSemanticTokens, int newIndex)
                 => oldSemanticTokens[oldIndex] == newSemanticTokens[newIndex];
 
-            public static IEnumerable<SequenceEdit> GetEdits(int[] oldSemanticTokens, int[] newSemanticTokens)
+            public static async Task<SequenceEdit[]> GetEditsAsync(int[] oldSemanticTokens, int[] newSemanticTokens)
             {
                 try
                 {
-                    var edits = s_instance.GetEdits(
-                        oldSemanticTokens, oldSemanticTokens.Length, newSemanticTokens, newSemanticTokens.Length);
-                    return edits;
+                    using var _ = ArrayBuilder<SequenceEdit>.GetInstance(out var edits);
+                    var tasks = new List<Task<List<SequenceEdit>>>();
+                    var numSets = Math.Max(oldSemanticTokens.Length / MaxArraySize, newSemanticTokens.Length / MaxArraySize) + 1;
+                    for (var i = 0; i < numSets; i++)
+                    {
+                        var j = i;
+                        var task = Task.Run(() =>
+                        {
+                            var oldTokenSet = Array.Empty<int>();
+                            var newTokenSet = Array.Empty<int>();
+
+                            if (oldSemanticTokens.Length > j * MaxArraySize)
+                            {
+                                oldTokenSet = oldSemanticTokens.Skip(j * MaxArraySize).Take(j * MaxArraySize + MaxArraySize).ToArray();
+                            }
+
+                            if (newSemanticTokens.Length > j * MaxArraySize)
+                            {
+                                newTokenSet = newSemanticTokens.Skip(j * MaxArraySize).Take(j * MaxArraySize + MaxArraySize).ToArray();
+                            }
+
+                            var currentEditSet = s_instance.GetEdits(
+                                oldTokenSet, oldTokenSet.Length, newTokenSet, newTokenSet.Length);
+
+                            var adjustedEdits = new List<SequenceEdit>();
+                            foreach (var edit in currentEditSet)
+                            {
+                                if (edit.Kind is EditKind.Insert)
+                                {
+                                    adjustedEdits.Add(new SequenceEdit(-1, edit.NewIndex * (j + 1)));
+                                }
+                                else if (edit.Kind is EditKind.Delete)
+                                {
+                                    adjustedEdits.Add(new SequenceEdit(edit.OldIndex * (j + 1), -1));
+                                }
+                                else if (edit.Kind is EditKind.Update)
+                                {
+                                    adjustedEdits.Add(new SequenceEdit(edit.OldIndex * (j + 1), edit.NewIndex * (j + 1)));
+                                }
+                                else
+                                {
+                                    throw new ArgumentException("Unexpected EditKind.");
+                                }
+                            }
+
+                            return adjustedEdits;
+                        });
+
+                        tasks.Add(task);
+                    }
+
+                    var completedTasks = await Task.WhenAll(tasks).ConfigureAwait(false);
+                    var finalEdits = new List<SequenceEdit>();
+                    foreach (var li in completedTasks)
+                    {
+                        finalEdits.AddRange(li);
+                    }
+
+                    return finalEdits.ToArray();
                 }
                 catch (OutOfMemoryException e) when (FatalError.ReportAndCatch(e))
                 {
                     // The algorithm is superlinear in memory usage so we might potentially run out in rare cases.
                     // Report telemetry and return no edits.
-                    return SpecializedCollections.EmptyEnumerable<SequenceEdit>();
+                    return Array.Empty<SequenceEdit>();
                 }
             }
         }

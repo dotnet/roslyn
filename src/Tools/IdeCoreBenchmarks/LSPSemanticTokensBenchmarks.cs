@@ -57,11 +57,11 @@ namespace IdeCoreBenchmarks
         }
 
         [Benchmark]
-        public void RunLSPSemanticTokensBenchmark()
+        public async Task RunLSPSemanticTokensBenchmarkAsync()
         {
             try
             {
-                LongestCommonSemanticTokensSubsequence.GetEdits(new int[] { 0, 1, 2, 3, 4 }, _semanticTokens);
+                await LongestCommonSemanticTokensSubsequence.GetEditsAsync(new int[] { 0, 1, 2, 3, 4 }, _semanticTokens);
             }
             catch (OutOfMemoryException ex)
             {
@@ -69,6 +69,7 @@ namespace IdeCoreBenchmarks
             }
         }
 
+        /*
         [Benchmark]
         public void RunLSPSemanticTokensBenchmark_RazorImpl()
         {
@@ -80,6 +81,6 @@ namespace IdeCoreBenchmarks
             {
                 Console.WriteLine(ex);
             }
-        }
+        }*/
     }
 }
