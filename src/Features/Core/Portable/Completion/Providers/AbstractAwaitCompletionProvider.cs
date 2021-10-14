@@ -40,6 +40,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             AwaitAndConfigureAwait,
         }
 
+        private string? awaitDisplayText, awaitfDisplayText, awaitfFilterText, falseKeyword;
+
         /// <summary>
         /// Gets the span start where async keyword should go.
         /// </summary>
@@ -204,9 +206,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private IEnumerable<CompletionItem> GetCompletionItems(SyntaxToken token, bool isAwaitKeywordContext, DotAwaitContext dotAwaitContext, SyntaxGenerator generator, ISyntaxKindsService syntaxKinds, ISyntaxFactsService syntaxFacts)
         {
             var shouldMakeContainerAsync = ShouldMakeContainerAsync(token, generator);
-            var displayText = syntaxFacts.GetText(syntaxKinds.AwaitKeyword);
-            var falseKeyword = syntaxFacts.GetText(syntaxKinds.FalseKeyword);
-            var filterText = displayText;
+            var displayText = awaitDisplayText ??= syntaxFacts.GetText(syntaxKinds.AwaitKeyword);
+            falseKeyword ??= syntaxFacts.GetText(syntaxKinds.FalseKeyword);
+            var filterText = awaitDisplayText;
             if (dotAwaitContext is DotAwaitContext.AwaitAndConfigureAwait)
             {
                 // In the AwaitAndConfigureAwait case, we want to offer two completions: await and awaitf
@@ -218,8 +220,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var completionProperties = GetCompletionProperties(token, isAwaitKeywordContext, dotAwaitContext, shouldMakeContainerAsync);
             if (dotAwaitContext is DotAwaitContext.AwaitAndConfigureAwait)
             {
-                displayText += "f";
-                filterText += "F"; // Uppercase F to select "awaitf" if "af" is written.
+                displayText = awaitfDisplayText ??= $"{awaitDisplayText}f";
+                filterText = awaitfFilterText ??= $"{awaitDisplayText}F"; // Uppercase F to select "awaitf" if "af" is written.
             }
 
             yield return CreateCompletionItem(displayText, filterText, falseKeyword, completionProperties);
