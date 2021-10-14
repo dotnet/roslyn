@@ -2708,7 +2708,7 @@ Class Program
 End Class
 ",
                 MainDescription($"Sub C.M(a As Integer, ParamArray b As Integer()) (+ 1 {FeaturesResources.overload})"))
-                                                    End Function
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestSingleTupleType() As Task
