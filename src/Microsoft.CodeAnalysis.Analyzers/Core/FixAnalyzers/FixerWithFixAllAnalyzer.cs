@@ -289,32 +289,28 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
                 void AnalyzeFixerWithFixAll(INamedTypeSymbol fixer, CompilationAnalysisContext context)
                 {
-                    if (_codeActionCreateInvocations != null)
+                    if (_codeActionCreateInvocations != null
+                        && _codeActionCreateInvocations.TryGetValue(fixer, out HashSet<IInvocationOperation> invocations))
                     {
-                        if (_codeActionCreateInvocations.TryGetValue(fixer, out HashSet<IInvocationOperation> invocations))
+                        foreach (IInvocationOperation invocation in invocations)
                         {
-                            foreach (IInvocationOperation invocation in invocations)
+                            if (IsViolatingCodeActionCreateInvocation(invocation))
                             {
-                                if (IsViolatingCodeActionCreateInvocation(invocation))
-                                {
-                                    Diagnostic diagnostic = invocation.CreateDiagnostic(CreateCodeActionEquivalenceKeyRule, EquivalenceKeyParameterName);
-                                    context.ReportDiagnostic(diagnostic);
-                                }
+                                Diagnostic diagnostic = invocation.CreateDiagnostic(CreateCodeActionEquivalenceKeyRule, EquivalenceKeyParameterName);
+                                context.ReportDiagnostic(diagnostic);
                             }
                         }
                     }
 
-                    if (_codeActionObjectCreations != null)
+                    if (_codeActionObjectCreations != null
+                        && _codeActionObjectCreations.TryGetValue(fixer, out HashSet<IObjectCreationOperation> objectCreations))
                     {
-                        if (_codeActionObjectCreations.TryGetValue(fixer, out HashSet<IObjectCreationOperation> objectCreations))
+                        foreach (IObjectCreationOperation objectCreation in objectCreations)
                         {
-                            foreach (IObjectCreationOperation objectCreation in objectCreations)
+                            if (IsViolatingCodeActionObjectCreation(objectCreation))
                             {
-                                if (IsViolatingCodeActionObjectCreation(objectCreation))
-                                {
-                                    Diagnostic diagnostic = objectCreation.CreateDiagnostic(OverrideCodeActionEquivalenceKeyRule, objectCreation.Constructor.ContainingType, EquivalenceKeyPropertyName);
-                                    context.ReportDiagnostic(diagnostic);
-                                }
+                                Diagnostic diagnostic = objectCreation.CreateDiagnostic(OverrideCodeActionEquivalenceKeyRule, objectCreation.Constructor.ContainingType, EquivalenceKeyPropertyName);
+                                context.ReportDiagnostic(diagnostic);
                             }
                         }
                     }
