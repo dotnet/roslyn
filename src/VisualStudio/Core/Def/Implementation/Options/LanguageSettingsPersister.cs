@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             FormattingOptions.IndentationSize,
             CompletionOptions.Metadata.HideAdvancedMembers,
             CompletionOptions.Metadata.TriggerOnTyping,
-            SignatureHelpOptions.ShowSignatureHelp,
+            SignatureHelpViewOptions.ShowSignatureHelp,
             NavigationBarOptions.ShowNavigationBar,
             BraceCompletionOptions.Enable,
         };
@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 return languagePreference.fAutoListMembers != 0;
             }
-            else if (option == SignatureHelpOptions.ShowSignatureHelp)
+            else if (option == SignatureHelpViewOptions.ShowSignatureHelp)
             {
                 return languagePreference.fAutoListParams != 0;
             }
@@ -208,7 +208,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 languagePreference.fAutoListMembers = Convert.ToUInt32((bool)value ? 1 : 0);
             }
-            else if (option == SignatureHelpOptions.ShowSignatureHelp)
+            else if (option == SignatureHelpViewOptions.ShowSignatureHelp)
             {
                 languagePreference.fAutoListParams = Convert.ToUInt32((bool)value ? 1 : 0);
             }
