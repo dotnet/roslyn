@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string CallHierarchy = nameof(CallHierarchy);
         public const string Classification = nameof(Classification);
         public const string CodeModel = nameof(CodeModel);
+        public const string CodeDefinitionWindow = nameof(CodeDefinitionWindow);
         public const string CompletionSet = nameof(CompletionSet);
         public const string DesignerAttributes = nameof(DesignerAttributes);
         public const string DiagnosticService = nameof(DiagnosticService);
