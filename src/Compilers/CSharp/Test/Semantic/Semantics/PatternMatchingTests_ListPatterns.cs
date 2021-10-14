@@ -5023,6 +5023,160 @@ class C
             verifier.VerifyIL("C.Test2", expectedIl);
         }
 
+        [Fact]
+        public void LengthPattern_NegativeLengthTest()
+        {
+            var src = @"
+int[] a = null;
+_ = a is { Length: -1 }; // 1
+_ = a is { Length: -1 or 1 };
+_ = a is { Length: -1 } or { Length: 1 };
+
+_ = a switch // 2
+{
+    { Length: -1 } => 0, // 3
+};
+
+_ = a switch // 4
+{
+    { Length: -1 or 1 } => 0,
+};
+
+_ = a switch // 5
+{
+    { Length: -1 } or { Length: 1 } => 0,
+};
+
+_ = a switch // 6
+{
+    { Length: -1 } => 0, // 7
+    { Length: 1 } => 0,
+};
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,5): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+                // _ = a is { Length: -1 }; // 1
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is { Length: -1 }").WithArguments("int[]").WithLocation(3, 5),
+                // (7,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                // _ = a switch // 2
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(7, 7),
+                // (9,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     { Length: -1 } => 0, // 3
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: -1 }").WithLocation(9, 5),
+                // (12,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+                // _ = a switch // 4
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(12, 7),
+                // (17,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+                // _ = a switch // 5
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(17, 7),
+                // (22,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+                // _ = a switch // 6
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(22, 7),
+                // (24,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     { Length: -1 } => 0, // 7
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: -1 }").WithLocation(24, 5)
+                );
+        }
+
+        [Fact]
+        public void LengthPattern_NegativeNullHandling_WithNullHandling()
+        {
+            var src = @"
+int[] a = null;
+_ = a is null or { Length: -1 };
+
+_ = a switch // 1
+{
+    null => 0,
+    { Length: -1 } => 0, // 2
+};
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (5,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'not null' is not covered.
+                // _ = a switch // 1
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("not null").WithLocation(5, 7),
+                // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     { Length: -1 } => 0, // 2
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: -1 }").WithLocation(8, 5)
+                );
+        }
+
+        [Fact]
+        public void LengthPattern_NegativeNullHandling_DuplicateTest()
+        {
+            var src = @"
+int[] a = null;
+_ = a is { Length: -1 } or { Length: -1 };
+
+_ = a switch
+{
+    { Length: -1 } => 1,
+    { Length: -1 } => 2,
+    _ => 3,
+};
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,5): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+                // _ = a is { Length: -1 } or { Length: -1 };
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is { Length: -1 } or { Length: -1 }").WithArguments("int[]").WithLocation(3, 5),
+                // (7,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     { Length: -1 } => 1,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: -1 }").WithLocation(7, 5),
+                // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     { Length: -1 } => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: -1 }").WithLocation(8, 5)
+                );
+        }
+
+        [Fact]
+        public void LengthPattern_NegativeRangeTest()
+        {
+            var src = @"
+int[] a = null;
+_ = a is { Length: < 0 }; // 1
+
+_ = a switch // 2
+{
+    { Length: < 0 } => 0, // 3
+};
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,5): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+                // _ = a is { Length: < 0 }; // 1
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is { Length: < 0 }").WithArguments("int[]").WithLocation(3, 5),
+                // (5,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                // _ = a switch // 2
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(5, 7),
+                // (7,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     { Length: < 0 } => 0, // 3
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: < 0 }").WithLocation(7, 5)
+                );
+        }
+
+        [Fact]
+        public void LengthPattern_Switch_NegativeRangeTestByElimination()
+        {
+            var src = @"
+int[] a = null;
+_ = a switch
+{
+    { Length: 0 } => 1,
+    { Length: <= 0 } => 2,
+    _ => 3,
+};
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (6,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     { Length: <= 0 } => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: <= 0 }").WithLocation(6, 5)
+                );
+        }
+
         [Fact, WorkItem(51801, "https://github.com/dotnet/roslyn/issues/51801")]
         public void IndexerOverrideLacksAccessor()
         {
