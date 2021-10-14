@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="caretPosition">The position of the caret after the triggering action.</param>
         /// <param name="trigger">The triggering action.</param>
         /// <param name="options">The set of options in effect.</param>
-        internal virtual bool ShouldTriggerCompletion(HostLanguageServices? languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
+        internal virtual bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
             => ShouldTriggerCompletion(text, caretPosition, trigger, options);
 
         /// <summary>

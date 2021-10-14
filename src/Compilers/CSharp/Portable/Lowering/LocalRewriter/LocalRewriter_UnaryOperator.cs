@@ -589,11 +589,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(placeholder is not null);
 
-                AddPlaceholderReplacement(placeholder, replacement);
-                replacement = VisitExpression(conversion);
-                RemovePlaceholderReplacement(placeholder);
+                return ApplyConversion(conversion, placeholder, replacement);
             }
 
+            return replacement;
+        }
+
+        private BoundExpression ApplyConversion(BoundExpression conversion, BoundValuePlaceholder placeholder, BoundExpression replacement)
+        {
+            AddPlaceholderReplacement(placeholder, replacement);
+            replacement = VisitExpression(conversion);
+            RemovePlaceholderReplacement(placeholder);
             return replacement;
         }
 

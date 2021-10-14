@@ -1434,7 +1434,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol? type = boundNullCoalescingOperator.GetPublicTypeSymbol();
             ConstantValue? constantValue = boundNullCoalescingOperator.ConstantValue;
             bool isImplicit = boundNullCoalescingOperator.WasCompilerGenerated;
-            Conversion valueConversion = boundNullCoalescingOperator.LeftConversion;
+            Conversion valueConversion = BoundNode.GetConversion(boundNullCoalescingOperator.LeftConversion, boundNullCoalescingOperator.LeftPlaceholder);
 
             if (valueConversion.Exists && !valueConversion.IsIdentity &&
                 boundNullCoalescingOperator.Type.Equals(boundNullCoalescingOperator.LeftOperand.Type?.StrippedType(), TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
