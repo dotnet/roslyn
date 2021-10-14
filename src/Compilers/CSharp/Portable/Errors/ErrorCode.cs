@@ -2001,6 +2001,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_MethGrpToNonDel = 8974,
         ERR_LambdaExplicitReturnTypeVar = 8975,
 
+        ERR_EscapeParamsSpan = 8980,
+
         #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)

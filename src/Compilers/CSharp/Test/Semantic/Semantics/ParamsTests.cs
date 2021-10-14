@@ -22,6 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     }
 }";
 
+        private static MetadataReference GetSpanLibrary()
+        {
+            var comp = CreateCompilation(SpanSource, options: TestOptions.UnsafeReleaseDll);
+            return comp.EmitToImageReference();
+        }
+
         [Fact]
         public void ParamsSpan()
         {
@@ -54,55 +60,191 @@ span
 ");
             verifier.VerifyIL("Program.Main",
 @"{
-  // Code size      122 (0x7a)
+  // Code size      124 (0x7c)
   .maxstack  2
-  .locals init (System.Span<object> V_0)
+  .locals init (System.Span<object> V_0,
+                System.Span<object> V_1,
+                System.Span<object> V_2)
   IL_0000:  ldc.i4.0
   IL_0001:  call       ""System.Span<object> System.Runtime.CompilerServices.RuntimeHelpers.StackAlloc<object>(int)""
-  IL_0006:  call       ""void Program.F1(params System.Span<object>)""
-  IL_000b:  ldc.i4.3
-  IL_000c:  call       ""System.Span<object> System.Runtime.CompilerServices.RuntimeHelpers.StackAlloc<object>(int)""
-  IL_0011:  stloc.0
-  IL_0012:  ldloca.s   V_0
-  IL_0014:  ldc.i4.0
-  IL_0015:  call       ""ref object System.Span<object>.this[int].get""
-  IL_001a:  ldc.i4.1
-  IL_001b:  box        ""int""
-  IL_0020:  stind.ref
-  IL_0021:  ldloca.s   V_0
-  IL_0023:  ldc.i4.1
-  IL_0024:  call       ""ref object System.Span<object>.this[int].get""
-  IL_0029:  ldc.i4.2
-  IL_002a:  box        ""int""
-  IL_002f:  stind.ref
-  IL_0030:  ldloca.s   V_0
-  IL_0032:  ldc.i4.2
-  IL_0033:  call       ""ref object System.Span<object>.this[int].get""
-  IL_0038:  ldstr      ""hello""
+  IL_0006:  ldc.i4.3
+  IL_0007:  call       ""System.Span<object> System.Runtime.CompilerServices.RuntimeHelpers.StackAlloc<object>(int)""
+  IL_000c:  stloc.0
+  IL_000d:  ldc.i4.0
+  IL_000e:  call       ""System.Span<object> System.Runtime.CompilerServices.RuntimeHelpers.StackAlloc<object>(int)""
+  IL_0013:  stloc.1
+  IL_0014:  ldc.i4.2
+  IL_0015:  call       ""System.Span<object> System.Runtime.CompilerServices.RuntimeHelpers.StackAlloc<object>(int)""
+  IL_001a:  stloc.2
+  IL_001b:  call       ""void Program.F1(params System.Span<object>)""
+  IL_0020:  ldloca.s   V_0
+  IL_0022:  ldc.i4.0
+  IL_0023:  call       ""ref object System.Span<object>.this[int].get""
+  IL_0028:  ldc.i4.1
+  IL_0029:  box        ""int""
+  IL_002e:  stind.ref
+  IL_002f:  ldloca.s   V_0
+  IL_0031:  ldc.i4.1
+  IL_0032:  call       ""ref object System.Span<object>.this[int].get""
+  IL_0037:  ldc.i4.2
+  IL_0038:  box        ""int""
   IL_003d:  stind.ref
-  IL_003e:  ldloc.0
-  IL_003f:  call       ""void Program.F1(params System.Span<object>)""
-  IL_0044:  ldc.i4.0
-  IL_0045:  call       ""System.Span<object> System.Runtime.CompilerServices.RuntimeHelpers.StackAlloc<object>(int)""
-  IL_004a:  call       ""void Program.F2(params System.ReadOnlySpan<object>)""
-  IL_004f:  ldc.i4.2
-  IL_0050:  call       ""System.Span<object> System.Runtime.CompilerServices.RuntimeHelpers.StackAlloc<object>(int)""
-  IL_0055:  stloc.0
-  IL_0056:  ldloca.s   V_0
-  IL_0058:  ldc.i4.0
-  IL_0059:  call       ""ref object System.Span<object>.this[int].get""
-  IL_005e:  ldstr      ""span""
-  IL_0063:  stind.ref
-  IL_0064:  ldloca.s   V_0
-  IL_0066:  ldc.i4.1
-  IL_0067:  call       ""ref object System.Span<object>.this[int].get""
-  IL_006c:  ldc.i4.3
-  IL_006d:  box        ""int""
-  IL_0072:  stind.ref
-  IL_0073:  ldloc.0
-  IL_0074:  call       ""void Program.F2(params System.ReadOnlySpan<object>)""
-  IL_0079:  ret
+  IL_003e:  ldloca.s   V_0
+  IL_0040:  ldc.i4.2
+  IL_0041:  call       ""ref object System.Span<object>.this[int].get""
+  IL_0046:  ldstr      ""hello""
+  IL_004b:  stind.ref
+  IL_004c:  ldloc.0
+  IL_004d:  call       ""void Program.F1(params System.Span<object>)""
+  IL_0052:  ldloc.1
+  IL_0053:  call       ""void Program.F2(params System.ReadOnlySpan<object>)""
+  IL_0058:  ldloca.s   V_2
+  IL_005a:  ldc.i4.0
+  IL_005b:  call       ""ref object System.Span<object>.this[int].get""
+  IL_0060:  ldstr      ""span""
+  IL_0065:  stind.ref
+  IL_0066:  ldloca.s   V_2
+  IL_0068:  ldc.i4.1
+  IL_0069:  call       ""ref object System.Span<object>.this[int].get""
+  IL_006e:  ldc.i4.3
+  IL_006f:  box        ""int""
+  IL_0074:  stind.ref
+  IL_0075:  ldloc.2
+  IL_0076:  call       ""void Program.F2(params System.ReadOnlySpan<object>)""
+  IL_007b:  ret
 }");
+        }
+
+        /// <summary>
+        /// params value cannot be returned from the method since that
+        /// would prevent sharing repeated allocations at the call-site.
+        /// </summary>
+        [Fact]
+        public void CannotReturnSpan_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static T[] F0<T>(params T[] x0)
+    {
+        return x0;
+    }
+    static Span<T> F1<T>(params Span<T> x1)
+    {
+        return x1;
+    }
+    static Span<T> F2<T>(Span<T> x2, params Span<T> y2)
+    {
+        return x2;
+    }
+}";
+            var comp = CreateCompilation(source, references: new[] { GetSpanLibrary() });
+            comp.VerifyDiagnostics(
+                // (10,16): error CS8980: Cannot use params 'x1' in this context because it may prevent reuse at the call-site
+                //         return x1;
+                Diagnostic(ErrorCode.ERR_EscapeParamsSpan, "x1").WithArguments("x1").WithLocation(10, 16));
+        }
+
+        [Fact]
+        public void CannotReturnSpan_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F0<T>(out T[] x0, params T[] y0)
+    {
+        x0 = y0;
+    }
+    static void F1<T>(out ReadOnlySpan<T> x1, params ReadOnlySpan<T> y1)
+    {
+        x1 = y1;
+    }
+    static void F2<T>(out ReadOnlySpan<T> x2, ReadOnlySpan<T> y2, params ReadOnlySpan<T> z2)
+    {
+        x2 = y2;
+    }
+}";
+            var comp = CreateCompilation(source, references: new[] { GetSpanLibrary() });
+            comp.VerifyDiagnostics(
+                // (10,14): error CS8980: Cannot use params 'y1' in this context because it may prevent reuse at the call-site
+                //         x1 = y1;
+                Diagnostic(ErrorCode.ERR_EscapeParamsSpan, "y1").WithArguments("y1").WithLocation(10, 14));
+        }
+
+        [Fact]
+        public void CannotReturnSpan_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static Span<T> F1<T>(params Span<T> x1)
+    {
+        x1 = default;
+        return x1;
+    }
+    static void F2<T>(out ReadOnlySpan<T> x2, params ReadOnlySpan<T> y2)
+    {
+        y2 = default;
+        x2 = y2;
+    }
+}";
+            var comp = CreateCompilation(source, references: new[] { GetSpanLibrary() });
+            comp.VerifyDiagnostics(
+                // (7,16): error CS8980: Cannot use params 'x1' in this context because it may prevent reuse at the call-site
+                //         return x1;
+                Diagnostic(ErrorCode.ERR_EscapeParamsSpan, "x1").WithArguments("x1").WithLocation(7, 16),
+                // (12,14): error CS8980: Cannot use params 'y2' in this context because it may prevent reuse at the call-site
+                //         x2 = y2;
+                Diagnostic(ErrorCode.ERR_EscapeParamsSpan, "y2").WithArguments("y2").WithLocation(12, 14));
+        }
+
+        [Fact]
+        public void CannotReturnSpan_04()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static Span<T> F1<T>(Span<T> x1, params Span<T> y1)
+    {
+        x1 = y1;
+        return x1;
+    }
+    static Span<T> F2<T>(Span<T> x2, params Span<T> y2)
+    {
+        x2 = y2;
+        x2 = default;
+        return x2;
+    }
+    static void F3<T>(out ReadOnlySpan<T> x3, ReadOnlySpan<T> y3, params ReadOnlySpan<T> z3)
+    {
+        y3 = z3;
+        x3 = y3;
+    }
+    static void F4<T>(out ReadOnlySpan<T> x4, ReadOnlySpan<T> y4, params ReadOnlySpan<T> z4)
+    {
+        y4 = z4;
+        y4 = default;
+        x4 = y4;
+    }
+}";
+            var comp = CreateCompilation(source, references: new[] { GetSpanLibrary() });
+            comp.VerifyDiagnostics(
+                // (6,14): error CS8980: Cannot use params 'y1' in this context because it may prevent reuse at the call-site
+                //         x1 = y1;
+                Diagnostic(ErrorCode.ERR_EscapeParamsSpan, "y1").WithArguments("y1").WithLocation(6, 14),
+                // (11,14): error CS8980: Cannot use params 'y2' in this context because it may prevent reuse at the call-site
+                //         x2 = y2;
+                Diagnostic(ErrorCode.ERR_EscapeParamsSpan, "y2").WithArguments("y2").WithLocation(11, 14),
+                // (17,14): error CS8980: Cannot use params 'z3' in this context because it may prevent reuse at the call-site
+                //         y3 = z3;
+                Diagnostic(ErrorCode.ERR_EscapeParamsSpan, "z3").WithArguments("z3").WithLocation(17, 14),
+                // (22,14): error CS8980: Cannot use params 'z4' in this context because it may prevent reuse at the call-site
+                //         y4 = z4;
+                Diagnostic(ErrorCode.ERR_EscapeParamsSpan, "z4").WithArguments("z4").WithLocation(22, 14));
         }
 
         /// <summary>
@@ -240,140 +382,138 @@ class Program
         F(offset + 1, offset + 2, offset + 3);
     }
 }";
-            // PROTOTYPE: Should re-use buffers.
             var verifier = CompileAndVerify(new[] { source1, source2, SpanSource }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
 @"StackAlloc<System.Int32>(2)
+StackAlloc<System.Int32>(2)
+StackAlloc<System.Int32>(3)
+StackAlloc<System.Int32>(3)
 1
 2
-StackAlloc<System.Int32>(2)
 3
 4
-StackAlloc<System.Int32>(3)
 5
 6
 7
-StackAlloc<System.Int32>(2)
 8
 9
-StackAlloc<System.Int32>(3)
 10
 11
 12
-StackAlloc<System.Int32>(2)
 13
 14
-StackAlloc<System.Int32>(3)
 15
 16
 17
-StackAlloc<System.Int32>(3)
 18
 19
 20
 ");
             verifier.VerifyIL("Program.Main",
 @"{
-  // Code size      182 (0xb6)
+  // Code size      194 (0xc2)
   .maxstack  3
-  .locals init (int V_0, //offset
-                System.Span<int> V_1)
+  .locals init (System.Span<int> V_0,
+                System.Span<int> V_1,
+                System.Span<int> V_2,
+                System.Span<int> V_3,
+                int V_4) //offset
   IL_0000:  ldc.i4.2
   IL_0001:  call       ""System.Span<int> System.Runtime.CompilerServices.RuntimeHelpers.StackAlloc<int>(int)""
-  IL_0006:  stloc.1
-  IL_0007:  ldloca.s   V_1
-  IL_0009:  ldc.i4.0
-  IL_000a:  call       ""ref int System.Span<int>.this[int].get""
-  IL_000f:  ldc.i4.1
-  IL_0010:  stind.i4
-  IL_0011:  ldloca.s   V_1
-  IL_0013:  ldc.i4.1
-  IL_0014:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0019:  ldc.i4.2
-  IL_001a:  stind.i4
-  IL_001b:  ldloc.1
-  IL_001c:  call       ""void Program.F<int>(params System.Span<int>)""
-  IL_0021:  ldc.i4.2
-  IL_0022:  stloc.0
-  IL_0023:  br.s       IL_007f
-  IL_0025:  ldc.i4.2
-  IL_0026:  call       ""System.Span<int> System.Runtime.CompilerServices.RuntimeHelpers.StackAlloc<int>(int)""
-  IL_002b:  stloc.1
-  IL_002c:  ldloca.s   V_1
-  IL_002e:  ldc.i4.0
-  IL_002f:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0034:  ldloc.0
-  IL_0035:  ldc.i4.1
-  IL_0036:  add
-  IL_0037:  stind.i4
-  IL_0038:  ldloca.s   V_1
-  IL_003a:  ldc.i4.1
-  IL_003b:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0040:  ldloc.0
-  IL_0041:  ldc.i4.2
-  IL_0042:  add
-  IL_0043:  stind.i4
-  IL_0044:  ldloc.1
-  IL_0045:  call       ""void Program.F<int>(params System.Span<int>)""
-  IL_004a:  ldc.i4.3
-  IL_004b:  call       ""System.Span<int> System.Runtime.CompilerServices.RuntimeHelpers.StackAlloc<int>(int)""
-  IL_0050:  stloc.1
-  IL_0051:  ldloca.s   V_1
-  IL_0053:  ldc.i4.0
-  IL_0054:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0059:  ldloc.0
-  IL_005a:  ldc.i4.3
-  IL_005b:  add
-  IL_005c:  stind.i4
-  IL_005d:  ldloca.s   V_1
-  IL_005f:  ldc.i4.1
-  IL_0060:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0065:  ldloc.0
-  IL_0066:  ldc.i4.4
-  IL_0067:  add
-  IL_0068:  stind.i4
-  IL_0069:  ldloca.s   V_1
-  IL_006b:  ldc.i4.2
-  IL_006c:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0071:  ldloc.0
-  IL_0072:  ldc.i4.5
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.2
+  IL_0008:  call       ""System.Span<int> System.Runtime.CompilerServices.RuntimeHelpers.StackAlloc<int>(int)""
+  IL_000d:  stloc.1
+  IL_000e:  ldc.i4.3
+  IL_000f:  call       ""System.Span<int> System.Runtime.CompilerServices.RuntimeHelpers.StackAlloc<int>(int)""
+  IL_0014:  stloc.2
+  IL_0015:  ldc.i4.3
+  IL_0016:  call       ""System.Span<int> System.Runtime.CompilerServices.RuntimeHelpers.StackAlloc<int>(int)""
+  IL_001b:  stloc.3
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  ldc.i4.0
+  IL_001f:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0024:  ldc.i4.1
+  IL_0025:  stind.i4
+  IL_0026:  ldloca.s   V_0
+  IL_0028:  ldc.i4.1
+  IL_0029:  call       ""ref int System.Span<int>.this[int].get""
+  IL_002e:  ldc.i4.2
+  IL_002f:  stind.i4
+  IL_0030:  ldloc.0
+  IL_0031:  call       ""void Program.F<int>(params System.Span<int>)""
+  IL_0036:  ldc.i4.2
+  IL_0037:  stloc.s    V_4
+  IL_0039:  br.s       IL_008e
+  IL_003b:  ldloca.s   V_1
+  IL_003d:  ldc.i4.0
+  IL_003e:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0043:  ldloc.s    V_4
+  IL_0045:  ldc.i4.1
+  IL_0046:  add
+  IL_0047:  stind.i4
+  IL_0048:  ldloca.s   V_1
+  IL_004a:  ldc.i4.1
+  IL_004b:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0050:  ldloc.s    V_4
+  IL_0052:  ldc.i4.2
+  IL_0053:  add
+  IL_0054:  stind.i4
+  IL_0055:  ldloc.1
+  IL_0056:  call       ""void Program.F<int>(params System.Span<int>)""
+  IL_005b:  ldloca.s   V_2
+  IL_005d:  ldc.i4.0
+  IL_005e:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0063:  ldloc.s    V_4
+  IL_0065:  ldc.i4.3
+  IL_0066:  add
+  IL_0067:  stind.i4
+  IL_0068:  ldloca.s   V_2
+  IL_006a:  ldc.i4.1
+  IL_006b:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0070:  ldloc.s    V_4
+  IL_0072:  ldc.i4.4
   IL_0073:  add
   IL_0074:  stind.i4
-  IL_0075:  ldloc.1
-  IL_0076:  call       ""void Program.F<int>(params System.Span<int>)""
-  IL_007b:  ldloc.0
-  IL_007c:  ldc.i4.5
-  IL_007d:  add
-  IL_007e:  stloc.0
-  IL_007f:  ldloc.0
-  IL_0080:  ldc.i4.s   15
-  IL_0082:  blt.s      IL_0025
-  IL_0084:  ldc.i4.3
-  IL_0085:  call       ""System.Span<int> System.Runtime.CompilerServices.RuntimeHelpers.StackAlloc<int>(int)""
-  IL_008a:  stloc.1
-  IL_008b:  ldloca.s   V_1
-  IL_008d:  ldc.i4.0
-  IL_008e:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0093:  ldloc.0
-  IL_0094:  ldc.i4.1
-  IL_0095:  add
-  IL_0096:  stind.i4
-  IL_0097:  ldloca.s   V_1
-  IL_0099:  ldc.i4.1
-  IL_009a:  call       ""ref int System.Span<int>.this[int].get""
-  IL_009f:  ldloc.0
-  IL_00a0:  ldc.i4.2
-  IL_00a1:  add
-  IL_00a2:  stind.i4
-  IL_00a3:  ldloca.s   V_1
-  IL_00a5:  ldc.i4.2
-  IL_00a6:  call       ""ref int System.Span<int>.this[int].get""
-  IL_00ab:  ldloc.0
-  IL_00ac:  ldc.i4.3
-  IL_00ad:  add
-  IL_00ae:  stind.i4
-  IL_00af:  ldloc.1
-  IL_00b0:  call       ""void Program.F<int>(params System.Span<int>)""
-  IL_00b5:  ret
+  IL_0075:  ldloca.s   V_2
+  IL_0077:  ldc.i4.2
+  IL_0078:  call       ""ref int System.Span<int>.this[int].get""
+  IL_007d:  ldloc.s    V_4
+  IL_007f:  ldc.i4.5
+  IL_0080:  add
+  IL_0081:  stind.i4
+  IL_0082:  ldloc.2
+  IL_0083:  call       ""void Program.F<int>(params System.Span<int>)""
+  IL_0088:  ldloc.s    V_4
+  IL_008a:  ldc.i4.5
+  IL_008b:  add
+  IL_008c:  stloc.s    V_4
+  IL_008e:  ldloc.s    V_4
+  IL_0090:  ldc.i4.s   15
+  IL_0092:  blt.s      IL_003b
+  IL_0094:  ldloca.s   V_3
+  IL_0096:  ldc.i4.0
+  IL_0097:  call       ""ref int System.Span<int>.this[int].get""
+  IL_009c:  ldloc.s    V_4
+  IL_009e:  ldc.i4.1
+  IL_009f:  add
+  IL_00a0:  stind.i4
+  IL_00a1:  ldloca.s   V_3
+  IL_00a3:  ldc.i4.1
+  IL_00a4:  call       ""ref int System.Span<int>.this[int].get""
+  IL_00a9:  ldloc.s    V_4
+  IL_00ab:  ldc.i4.2
+  IL_00ac:  add
+  IL_00ad:  stind.i4
+  IL_00ae:  ldloca.s   V_3
+  IL_00b0:  ldc.i4.2
+  IL_00b1:  call       ""ref int System.Span<int>.this[int].get""
+  IL_00b6:  ldloc.s    V_4
+  IL_00b8:  ldc.i4.3
+  IL_00b9:  add
+  IL_00ba:  stind.i4
+  IL_00bb:  ldloc.3
+  IL_00bc:  call       ""void Program.F<int>(params System.Span<int>)""
+  IL_00c1:  ret
 }");
         }
 
@@ -396,65 +536,75 @@ StackAlloc<System.Int32>(3)
 @"using System;
 class Program
 {
-    static T ElementAt<T>(int index, params Span<T> args) => args[index];
+    static T ElementAt<T>(int index, params Span<T> args)
+    {
+        var value = args[index];
+        Console.WriteLine(""ElementAt<{0}>({1}): {2}"", typeof(T), index, value);
+        return value;
+    }
     static void Main()
     {
         var value = ElementAt(
             0,
             ElementAt(1, 'a', 'b', 'c'),
-            ElementAt(2, 'e', 'f', 'g'));
+            ElementAt(2, 'e', 'f', 'g'),
+            'h');
         Console.WriteLine(value);
     }
 }";
-            // PROTOTYPE: Should re-use buffers.
+            // No buffer re-use.
             var verifier = CompileAndVerify(new[] { source1, source2, SpanSource }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
-@"StackAlloc<System.Char>(2)
+@"StackAlloc<System.Char>(3)
 StackAlloc<System.Char>(3)
 StackAlloc<System.Char>(3)
+ElementAt<System.Char>(1): b
+ElementAt<System.Char>(2): g
+ElementAt<System.Char>(0): b
 b
 ");
             verifier.VerifyIL("Program.Main",
 @"{
-  // Code size      132 (0x84)
+  // Code size      143 (0x8f)
   .maxstack  5
   .locals init (System.Span<char> V_0,
-                System.Span<char> V_1)
-  IL_0000:  ldc.i4.0
-  IL_0001:  ldc.i4.2
-  IL_0002:  call       ""System.Span<char> System.Runtime.CompilerServices.RuntimeHelpers.StackAlloc<char>(int)""
-  IL_0007:  stloc.0
-  IL_0008:  ldloca.s   V_0
-  IL_000a:  ldc.i4.0
-  IL_000b:  call       ""ref char System.Span<char>.this[int].get""
-  IL_0010:  ldc.i4.1
-  IL_0011:  ldc.i4.3
-  IL_0012:  call       ""System.Span<char> System.Runtime.CompilerServices.RuntimeHelpers.StackAlloc<char>(int)""
-  IL_0017:  stloc.1
-  IL_0018:  ldloca.s   V_1
-  IL_001a:  ldc.i4.0
-  IL_001b:  call       ""ref char System.Span<char>.this[int].get""
-  IL_0020:  ldc.i4.s   97
-  IL_0022:  stind.i2
-  IL_0023:  ldloca.s   V_1
-  IL_0025:  ldc.i4.1
-  IL_0026:  call       ""ref char System.Span<char>.this[int].get""
-  IL_002b:  ldc.i4.s   98
-  IL_002d:  stind.i2
-  IL_002e:  ldloca.s   V_1
-  IL_0030:  ldc.i4.2
-  IL_0031:  call       ""ref char System.Span<char>.this[int].get""
-  IL_0036:  ldc.i4.s   99
-  IL_0038:  stind.i2
-  IL_0039:  ldloc.1
-  IL_003a:  call       ""char Program.ElementAt<char>(int, params System.Span<char>)""
+                System.Span<char> V_1,
+                System.Span<char> V_2)
+  IL_0000:  ldc.i4.3
+  IL_0001:  call       ""System.Span<char> System.Runtime.CompilerServices.RuntimeHelpers.StackAlloc<char>(int)""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.3
+  IL_0008:  call       ""System.Span<char> System.Runtime.CompilerServices.RuntimeHelpers.StackAlloc<char>(int)""
+  IL_000d:  stloc.1
+  IL_000e:  ldc.i4.3
+  IL_000f:  call       ""System.Span<char> System.Runtime.CompilerServices.RuntimeHelpers.StackAlloc<char>(int)""
+  IL_0014:  stloc.2
+  IL_0015:  ldc.i4.0
+  IL_0016:  ldloca.s   V_2
+  IL_0018:  ldc.i4.0
+  IL_0019:  call       ""ref char System.Span<char>.this[int].get""
+  IL_001e:  ldc.i4.1
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  ldc.i4.0
+  IL_0022:  call       ""ref char System.Span<char>.this[int].get""
+  IL_0027:  ldc.i4.s   97
+  IL_0029:  stind.i2
+  IL_002a:  ldloca.s   V_0
+  IL_002c:  ldc.i4.1
+  IL_002d:  call       ""ref char System.Span<char>.this[int].get""
+  IL_0032:  ldc.i4.s   98
+  IL_0034:  stind.i2
+  IL_0035:  ldloca.s   V_0
+  IL_0037:  ldc.i4.2
+  IL_0038:  call       ""ref char System.Span<char>.this[int].get""
+  IL_003d:  ldc.i4.s   99
   IL_003f:  stind.i2
-  IL_0040:  ldloca.s   V_0
-  IL_0042:  ldc.i4.1
-  IL_0043:  call       ""ref char System.Span<char>.this[int].get""
-  IL_0048:  ldc.i4.2
-  IL_0049:  ldc.i4.3
-  IL_004a:  call       ""System.Span<char> System.Runtime.CompilerServices.RuntimeHelpers.StackAlloc<char>(int)""
-  IL_004f:  stloc.1
+  IL_0040:  ldloc.0
+  IL_0041:  call       ""char Program.ElementAt<char>(int, params System.Span<char>)""
+  IL_0046:  stind.i2
+  IL_0047:  ldloca.s   V_2
+  IL_0049:  ldc.i4.1
+  IL_004a:  call       ""ref char System.Span<char>.this[int].get""
+  IL_004f:  ldc.i4.2
   IL_0050:  ldloca.s   V_1
   IL_0052:  ldc.i4.0
   IL_0053:  call       ""ref char System.Span<char>.this[int].get""
@@ -473,10 +623,15 @@ b
   IL_0071:  ldloc.1
   IL_0072:  call       ""char Program.ElementAt<char>(int, params System.Span<char>)""
   IL_0077:  stind.i2
-  IL_0078:  ldloc.0
-  IL_0079:  call       ""char Program.ElementAt<char>(int, params System.Span<char>)""
-  IL_007e:  call       ""void System.Console.WriteLine(char)""
-  IL_0083:  ret
+  IL_0078:  ldloca.s   V_2
+  IL_007a:  ldc.i4.2
+  IL_007b:  call       ""ref char System.Span<char>.this[int].get""
+  IL_0080:  ldc.i4.s   104
+  IL_0082:  stind.i2
+  IL_0083:  ldloc.2
+  IL_0084:  call       ""char Program.ElementAt<char>(int, params System.Span<char>)""
+  IL_0089:  call       ""void System.Console.WriteLine(char)""
+  IL_008e:  ret
 }");
         }
     }

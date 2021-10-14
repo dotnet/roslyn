@@ -38,6 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Dictionary<BoundValuePlaceholderBase, BoundExpression>? _placeholderReplacementMapDoNotUseDirectly;
 
+        private ArrayBuilder<BoundLocal>? _stackAllocTemps;
+        private ArrayBuilder<BoundStatement>? _stackAllocSideEffects;
+
         private LocalRewriter(
             CSharpCompilation compilation,
             MethodSymbol containingMethod,

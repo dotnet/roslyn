@@ -41,9 +41,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(epilogue);
             }
 
-            return new BoundBlock(node.Syntax, synthesizedLocal == null ? node.Locals : node.Locals.Add(synthesizedLocal), node.LocalFunctions, builder.ToImmutableAndFree(), node.HasErrors);
-        }
+            var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
 
+            if (node == _rootStatement)
+            {
+                if (_stackAllocTemps is { })
+                {
+                    foreach (var temp in _stackAllocTemps)
+                    {
+                        localsBuilder.Add(temp.LocalSymbol);
+                    }
+                }
+                if (_stackAllocSideEffects is { })
+                {
+                    for (int i = _stackAllocSideEffects.Count - 1; i >= 0; i--)
+                    {
+                        builder.Insert(0, _stackAllocSideEffects[i]);
+                    }
+                    builder.Insert(0, _factory.HiddenSequencePoint());
+                }
+            }
+
+            localsBuilder.AddRange(node.Locals);
+            if (synthesizedLocal is { })
+            {
+                localsBuilder.Add(synthesizedLocal);
+            }
+
+            return new BoundBlock(node.Syntax, localsBuilder.ToImmutableAndFree(), node.LocalFunctions, builder.ToImmutableAndFree(), node.HasErrors);
+        }
 
         /// <summary>
         /// Visit a partial list of statements that possibly contain using declarations
