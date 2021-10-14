@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public static CompletionOptions From(Project project)
             => From(project.Solution.Options, project.Language);
 
-        public static CompletionOptions From(OptionSet options, string? language)
+        public static CompletionOptions From(OptionSet options, string language)
           => new(
               TriggerOnTyping: options.GetOption(Metadata.TriggerOnTyping, language),
               TriggerOnTypingLetters: options.GetOption(Metadata.TriggerOnTypingLetters, language),
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Completion
               ProvideRegexCompletions: options.GetOption(Metadata.ProvideRegexCompletions, language),
               TimeoutInMillisecondsForExtensionMethodImportCompletion: options.GetOption(Metadata.TimeoutInMillisecondsForExtensionMethodImportCompletion));
 
-        public OptionSet WithChangedOptions(OptionSet set, string? language)
+        public OptionSet WithChangedOptions(OptionSet set, string language)
             => set.
                 WithChangedOption(Metadata.TriggerOnTyping, language, TriggerOnTyping).
                 WithChangedOption(Metadata.TriggerOnTypingLetters, language, TriggerOnTypingLetters).
