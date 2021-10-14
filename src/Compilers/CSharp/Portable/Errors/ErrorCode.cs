@@ -1308,7 +1308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DictionaryInitializerInExpressionTree = 8074,
         ERR_ExtensionCollectionElementInitializerInExpressionTree = 8075,
         ERR_UnclosedExpressionHole = 8076,
-        // It is now legal to have single line comments in expression holes.
+        // This is now handled by the single ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString error.
         // ERR_SingleLineCommentInExpressionHole = 8077,
         ERR_InsufficientStack = 8078,
         ERR_UseDefViolationProperty = 8079,
