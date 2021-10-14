@@ -1517,7 +1517,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     break;
 
                 case CompilationUnitCompletedEvent compilationUnitCompletedEvent when !compilationUnitCompletedEvent.FilterSpan.HasValue:
-                    // Clear the semantic model cache for a non-synthesized compilation unit completed event without a filter span.
+                    // Clear the semantic model cache only if we have completed analysis for the entire compilation unit,
+                    // i.e. the event has a null filter span. Compilation unit completed event with a non-null filter span
+                    // indicates a synthesized event for partial analysis of the tree and we avoid clearing the semantic model cache for that case. 
                     SemanticModelProvider.ClearCache(compilationUnitCompletedEvent.CompilationUnit, compilationUnitCompletedEvent.Compilation);
                     break;
 
