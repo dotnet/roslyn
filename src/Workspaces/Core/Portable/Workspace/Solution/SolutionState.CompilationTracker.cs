@@ -1014,7 +1014,7 @@ namespace Microsoft.CodeAnalysis
                         workspace.LogTestMessage($"Looking for a cached skeleton assembly for {projectReference.ProjectId} before taking the lock...");
 
                         var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
-                        var reference = await this.ProjectState.TryGetSkeletonReferenceAsync(
+                        var reference = await this.ProjectState.CachedSkeletonReferences.TryGetReferenceAsync(
                             workspace, properties, declarationCompilation, version, cancellationToken).ConfigureAwait(false);
                         if (reference != null)
                         {
@@ -1029,7 +1029,7 @@ namespace Microsoft.CodeAnalysis
 
                                 // okay, we still don't have one. bring the compilation to final state since we are going to use it to create skeleton assembly
                                 var compilationInfo = await this.GetOrBuildCompilationInfoAsync(solution, lockGate: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                                reference = await this.ProjectState.GetOrBuildSkeletonReferenceAsync(
+                                reference = await this.ProjectState.CachedSkeletonReferences.GetOrBuildReferenceAsync(
                                     workspace, properties, compilationInfo.Compilation, version, cancellationToken).ConfigureAwait(false);
                             }
                         }

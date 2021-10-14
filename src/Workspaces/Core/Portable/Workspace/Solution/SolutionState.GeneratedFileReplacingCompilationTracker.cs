@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis
                 // one, or create a new one when we can't.
                 var version = await GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
                 var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
-                return await this.ProjectState.GetOrBuildSkeletonReferenceAsync(
+                return await this.ProjectState.CachedSkeletonReferences.GetOrBuildReferenceAsync(
                     solution.Workspace, properties, compilation, version, cancellationToken).ConfigureAwait(false);
             }
 
