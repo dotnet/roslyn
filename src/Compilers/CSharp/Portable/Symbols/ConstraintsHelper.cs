@@ -1040,8 +1040,9 @@ hasRelatedInterfaces:
             TypeWithAnnotations constraintType,
             ref bool hasError)
         {
-            if (containingSymbol.Kind ==  SymbolKind.Method)
+            if (containingSymbol.Kind == SymbolKind.Method)
             {
+                // PROTOTYPE: use WellKnownMember based approach to identify well known attribute
                 foreach (var attribute in containingSymbol.GetAttributes())
                 {
                     if (attribute.ToString() == "System.Runtime.CompilerServices.ConvertUnconstrainedCallsToThrowVerificationExceptionAttribute")
