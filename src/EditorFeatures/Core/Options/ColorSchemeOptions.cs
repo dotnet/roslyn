@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
         public static readonly Option2<SchemeName> ColorScheme = new(nameof(ColorSchemeOptions),
             nameof(ColorScheme),
-            defaultValue: SchemeName.VisualStudio2019,
+            defaultValue: SchemeName.VisualStudio2022,
             storageLocation: new RoamingProfileStorageLocation(ColorSchemeSettingKey));
 
         public static readonly Option2<UseEnhancedColors> LegacyUseEnhancedColors = new(nameof(ColorSchemeOptions),

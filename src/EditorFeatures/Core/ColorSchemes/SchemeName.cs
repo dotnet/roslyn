@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.ColorSchemes
     {
         None = 0,
         VisualStudio2017 = 1,
-        VisualStudio2019 = 2
+        VisualStudio2019 = 2,
+        VisualStudio2022 = 3,
     }
 }

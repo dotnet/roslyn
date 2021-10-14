@@ -1396,6 +1396,9 @@ Additional information: {1}</value>
   <data name="Editor_Color_Scheme" xml:space="preserve">
     <value>Editor Color Scheme</value>
   </data>
+  <data name="Visual_Studio_2022" xml:space="preserve">
+    <value>Visual Studio 2022</value>
+  </data>
   <data name="Visual_Studio_2019" xml:space="preserve">
     <value>Visual Studio 2019</value>
   </data>

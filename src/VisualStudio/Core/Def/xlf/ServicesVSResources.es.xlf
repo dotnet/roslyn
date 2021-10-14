@@ -1417,6 +1417,11 @@
         <target state="translated">Visual Studio 2019</target>
         <note />
       </trans-unit>
+      <trans-unit id="Visual_Studio_2022">
+        <source>Visual Studio 2022</source>
+        <target state="new">Visual Studio 2022</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Visual_Studio_Settings">
         <source>Visual Studio Settings</source>
         <target state="translated">Configuración de Visual Studio</target>

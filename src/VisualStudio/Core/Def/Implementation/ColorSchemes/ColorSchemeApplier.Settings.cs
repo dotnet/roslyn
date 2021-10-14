@@ -36,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             {
                 return new[]
                 {
+                    SchemeName.VisualStudio2022,
                     SchemeName.VisualStudio2019,
                     SchemeName.VisualStudio2017
                 }.ToImmutableDictionary(name => name, name => GetColorScheme(name));
@@ -119,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
                 var colorScheme = useEnhancedColorsSetting == ColorSchemeOptions.UseEnhancedColors.DoNotUse
                     ? SchemeName.VisualStudio2017
-                    : SchemeName.VisualStudio2019;
+                    : SchemeName.VisualStudio2022;
 
                 _globalOptions.SetGlobalOption(new OptionKey(ColorSchemeOptions.ColorScheme), colorScheme);
                 _globalOptions.SetGlobalOption(new OptionKey(ColorSchemeOptions.LegacyUseEnhancedColors), ColorSchemeOptions.UseEnhancedColors.Migrated);
