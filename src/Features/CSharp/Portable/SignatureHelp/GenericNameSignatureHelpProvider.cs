@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 token != node.TypeArgumentList.GreaterThanToken;
         }
 
-        protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (!TryGetGenericIdentifier(root, position, document.GetRequiredLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken,
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var accessibleSymbols =
                 symbols.WhereAsArray(s => s.GetArity() > 0)
                        .WhereAsArray(s => s is INamedTypeSymbol or IMethodSymbol)
-                       .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
+                       .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation)
                        .Sort(semanticModel, genericIdentifier.SpanStart);
 
             if (!accessibleSymbols.Any())

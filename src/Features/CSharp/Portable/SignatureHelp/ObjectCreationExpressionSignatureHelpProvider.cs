@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 token != expression.ArgumentList.CloseParenToken;
         }
 
-        protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (!TryGetObjectCreationExpression(root, position, document.GetRequiredLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken, out var objectCreationExpression))
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var (items, selectedItem) = type.TypeKind == TypeKind.Delegate
                 ? GetDelegateTypeConstructors(objectCreationExpression, semanticModel, structuralTypeDisplayService, type)
-                : GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService, type, within, cancellationToken);
+                : GetNormalTypeConstructors(objectCreationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService, type, within, options, cancellationToken);
 
             return CreateSignatureHelpItems(items, textSpan,
                 GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);

@@ -48,10 +48,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var providers = _allProviders.Where(p => p.Metadata.Language == document.Project.Language);
             var triggerInfo = new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.InvokeSignatureHelpCommand);
+            var options = SignatureHelpOptions.From(document.Project);
 
             foreach (var provider in providers)
             {
-                var items = await provider.Value.GetItemsAsync(document, position, triggerInfo, cancellationToken).ConfigureAwait(false);
+                var items = await provider.Value.GetItemsAsync(document, position, triggerInfo, options, cancellationToken).ConfigureAwait(false);
 
                 if (items != null)
                 {

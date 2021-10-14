@@ -64,6 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             document As Document,
             position As Integer,
             triggerInfo As SignatureHelpTriggerInfo,
+            options As SignatureHelpOptions,
             cancellationToken As CancellationToken
         ) As Task(Of SignatureHelpItems)
 
@@ -86,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim allowedEvents = events.WhereAsArray(Function(s) s.Kind = SymbolKind.Event AndAlso Equals(s.ContainingType, containingType)).
                                        OfType(Of IEventSymbol)().
                                        ToImmutableArrayOrEmpty().
-                                       FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
+                                       FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(options.HideAdvancedMembers, semanticModel.Compilation).
                                        Sort(semanticModel, raiseEventStatement.SpanStart)
 
             Dim structuralTypeDisplayService = document.GetLanguageService(Of IStructuralTypeDisplayService)()

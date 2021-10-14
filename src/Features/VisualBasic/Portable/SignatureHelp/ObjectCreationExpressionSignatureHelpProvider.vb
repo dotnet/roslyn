@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 token <> node.ArgumentList.CloseParenToken
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
+        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, options As SignatureHelpOptions, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim objectCreationExpression As ObjectCreationExpressionSyntax = Nothing
@@ -87,12 +87,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Dim itemsAndSelected = If(type.TypeKind = TypeKind.Delegate,
                 GetDelegateTypeConstructors(objectCreationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService, type),
-                GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, structuralTypeDisplayService, type, within, cancellationToken))
+                GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, structuralTypeDisplayService, type, within, options, cancellationToken))
 
-            Return CreateSignatureHelpItems(itemsAndSelected.Items,
+            Return CreateSignatureHelpItems(itemsAndSelected.items,
                                             textSpan,
                                             GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken),
-                                            itemsAndSelected.SelectedItem)
+                                            itemsAndSelected.selectedItem)
         End Function
     End Class
 End Namespace

@@ -76,6 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             bool usePreviousCharAsTrigger = false)
         {
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
+            var options = new SignatureHelpOptions();
 
             markupWithPositionAndOptSpan = markupWithPositionAndOptSpan.NormalizeLineEndings();
 
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
                 document1 = document1.Project.WithParseOptions(parseOptions).GetDocument(document1.Id);
             }
 
-            await TestSignatureHelpWorkerSharedAsync(workspaceFixture.Target.GetWorkspace(), code, cursorPosition, document1, textSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger);
+            await TestSignatureHelpWorkerSharedAsync(workspaceFixture.Target.GetWorkspace(), code, cursorPosition, document1, options, textSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger);
 
             // speculative semantic model
             if (await CanUseSpeculativeSemanticModelAsync(document1, cursorPosition))
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
                     document2 = document2.Project.WithParseOptions(parseOptions).GetDocument(document2.Id);
                 }
 
-                await TestSignatureHelpWorkerSharedAsync(workspaceFixture.Target.GetWorkspace(), code, cursorPosition, document2, textSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger);
+                await TestSignatureHelpWorkerSharedAsync(workspaceFixture.Target.GetWorkspace(), code, cursorPosition, document2, options, textSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger);
             }
         }
 
@@ -158,9 +159,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             }
         }
 
-        private static async Task<SignatureHelpState> GetArgumentStateAsync(int cursorPosition, Document document, ISignatureHelpProvider signatureHelpProvider, SignatureHelpTriggerInfo triggerInfo)
+        private static async Task<SignatureHelpState> GetArgumentStateAsync(int cursorPosition, Document document, ISignatureHelpProvider signatureHelpProvider, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options)
         {
-            var items = await signatureHelpProvider.GetItemsAsync(document, cursorPosition, triggerInfo, CancellationToken.None);
+            var items = await signatureHelpProvider.GetItemsAsync(document, cursorPosition, triggerInfo, options, CancellationToken.None);
             return items == null ? null : new SignatureHelpState(items.ArgumentIndex, items.ArgumentCount, items.ArgumentName, null);
         }
 
@@ -175,8 +176,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             var signatureHelpProviderType = GetSignatureHelpProviderType();
             var signatureHelpProvider = workspaceFixture.Target.GetWorkspace().ExportProvider.GetExportedValues<ISignatureHelpProvider>().Single(provider => provider.GetType() == signatureHelpProviderType);
             var triggerInfo = new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.InvokeSignatureHelpCommand);
-            _ = await signatureHelpProvider.GetItemsAsync(document, cursorPosition, triggerInfo, CancellationToken.None);
-            Assert.Equal(expectedParameterName, (await GetArgumentStateAsync(cursorPosition, document, signatureHelpProvider, triggerInfo)).ArgumentName);
+            var options = new SignatureHelpOptions();
+
+            _ = await signatureHelpProvider.GetItemsAsync(document, cursorPosition, triggerInfo, options, CancellationToken.None);
+            Assert.Equal(expectedParameterName, (await GetArgumentStateAsync(cursorPosition, document, signatureHelpProvider, triggerInfo, options)).ArgumentName);
         }
 
         private static void CompareAndAssertCollectionsAndCurrentParameter(
@@ -349,9 +352,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             var documentId = testWorkspace.Documents.First(d => d.Name == "SourceDocument").Id;
             var document = testWorkspace.CurrentSolution.GetDocument(documentId);
 
-            testWorkspace.TryApplyChanges(testWorkspace.CurrentSolution.WithOptions(testWorkspace.Options
-                .WithChangedOption(CompletionOptions.HideAdvancedMembers, document.Project.Language, hideAdvancedMembers)));
-
+            var options = new SignatureHelpOptions() with { HideAdvancedMembers = hideAdvancedMembers };
             document = testWorkspace.CurrentSolution.GetDocument(documentId);
             var code = (await document.GetTextAsync()).ToString();
 
@@ -369,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
                 textSpan = textSpans.First();
             }
 
-            await TestSignatureHelpWorkerSharedAsync(testWorkspace, code, cursorPosition, document, textSpan, expectedOrderedItems);
+            await TestSignatureHelpWorkerSharedAsync(testWorkspace, code, cursorPosition, document, options, textSpan, expectedOrderedItems);
         }
 
         private async Task TestSignatureHelpWorkerSharedAsync(
@@ -377,6 +378,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             string code,
             int cursorPosition,
             Document document,
+            SignatureHelpOptions options,
             TextSpan? textSpan,
             IEnumerable<SignatureHelpTestItem> expectedOrderedItemsOrNull = null,
             bool usePreviousCharAsTrigger = false)
@@ -397,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
                 }
             }
 
-            var items = await signatureHelpProvider.GetItemsAsync(document, cursorPosition, triggerInfo, CancellationToken.None);
+            var items = await signatureHelpProvider.GetItemsAsync(document, cursorPosition, triggerInfo, options, CancellationToken.None);
 
             // If we're expecting 0 items, then there's no need to compare them
             if ((expectedOrderedItemsOrNull == null || !expectedOrderedItemsOrNull.Any()) && items == null)
@@ -469,6 +471,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             var documentId = testWorkspace.Documents.Where(d => d.Name == "SourceDocument").Single().Id;
             var document = testWorkspace.CurrentSolution.GetDocument(documentId);
             var code = (await document.GetTextAsync()).ToString();
+            var options = new SignatureHelpOptions();
 
             IList<TextSpan> textSpans = null;
 
@@ -484,7 +487,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
                 textSpan = textSpans.First();
             }
 
-            await TestSignatureHelpWorkerSharedAsync(testWorkspace, code, cursorPosition, document, textSpan, expectedOrderedItems);
+            await TestSignatureHelpWorkerSharedAsync(testWorkspace, code, cursorPosition, document, options, textSpan, expectedOrderedItems);
         }
     }
 }

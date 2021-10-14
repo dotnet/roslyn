@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         public abstract bool IsRetriggerCharacter(char ch);
         public abstract SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken);
 
-        protected abstract Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken);
+        protected abstract Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken);
 
         /// <remarks>
         /// This overload is required for compatibility with existing extensions.
@@ -255,9 +255,9 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         }
 
         public async Task<SignatureHelpItems?> GetItemsAsync(
-            Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
+            Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
         {
-            var itemsForCurrentDocument = await GetItemsWorkerAsync(document, position, triggerInfo, cancellationToken).ConfigureAwait(false);
+            var itemsForCurrentDocument = await GetItemsWorkerAsync(document, position, triggerInfo, options, cancellationToken).ConfigureAwait(false);
             if (itemsForCurrentDocument == null)
             {
                 return itemsForCurrentDocument;
