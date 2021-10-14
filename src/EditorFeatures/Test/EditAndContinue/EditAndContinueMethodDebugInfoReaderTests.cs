@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public void Create_Errors()
         {
             Assert.Throws<ArgumentNullException>(() => EditAndContinueMethodDebugInfoReader.Create((ISymUnmanagedReader5)null));
-            Assert.Throws<ArgumentNullException>(() => EditAndContinueMethodDebugInfoReader.Create(null));
+            Assert.Throws<ArgumentNullException>(() => EditAndContinueMethodDebugInfoReader.Create((MetadataReader)null));
             Assert.Throws<ArgumentNullException>(() => EditAndContinueMethodDebugInfoReader.Create(null, 1));
 
             var mockSymReader = new Mock<ISymUnmanagedReader5>(MockBehavior.Strict).Object;

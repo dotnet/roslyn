@@ -565,16 +565,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression binary = MakeBinaryOperator(_factory.Syntax, single.Kind, left, right, single.MethodSymbolOpt?.ReturnType ?? boolType, single.MethodSymbolOpt, single.ConstrainedToTypeOpt);
             UnaryOperatorSignature boolOperator = single.BoolOperator;
-            Conversion boolConversion = single.ConversionForBool;
 
             BoundExpression result;
+            BoundExpression convertedBinary = ApplyConversionIfNotIdentity(single.ConversionForBool, single.ConversionForBoolPlaceholder, binary);
+
             if (boolOperator.Kind != UnaryOperatorKind.Error)
             {
                 // Produce
                 // !((left == right).op_false)
                 // (left != right).op_true
-                BoundExpression convertedBinary = MakeConversionNode(_factory.Syntax, binary, boolConversion, boolOperator.OperandType, @checked: false);
-
                 Debug.Assert(boolOperator.ReturnType.SpecialType == SpecialType.System_Boolean);
                 result = MakeUnaryOperator(boolOperator.Kind, binary.Syntax, boolOperator.Method, boolOperator.ConstrainedToTypeOpt, convertedBinary, boolType);
 
@@ -583,16 +582,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = _factory.Not(result);
                 }
             }
-            else if (!boolConversion.IsIdentity)
+            else
             {
                 // Produce
                 // (bool)(left == right)
                 // (bool)(left != right)
-                result = MakeConversionNode(_factory.Syntax, binary, boolConversion, boolType, @checked: false);
-            }
-            else
-            {
-                result = binary;
+                result = convertedBinary;
             }
 
             return result;

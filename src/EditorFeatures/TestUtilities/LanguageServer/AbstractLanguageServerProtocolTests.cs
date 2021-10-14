@@ -282,6 +282,9 @@ namespace Roslyn.Test.Utilities
         protected TestLspServer CreateVisualBasicTestLspServer(string markup, out Dictionary<string, IList<LSP.Location>> locations)
             => CreateTestLspServer(new string[] { markup }, out locations, LanguageNames.VisualBasic);
 
+        protected TestLspServer CreateMultiProjectLspServer(string xmlMarkup, out Dictionary<string, IList<LSP.Location>> locations)
+            => CreateTestLspServer(TestWorkspace.Create(xmlMarkup, composition: Composition), out locations);
+
         /// <summary>
         /// Creates an LSP server backed by a workspace instance with a solution containing the specified documents.
         /// </summary>
@@ -296,7 +299,11 @@ namespace Roslyn.Test.Utilities
                 LanguageNames.VisualBasic => TestWorkspace.CreateVisualBasic(markups, composition: Composition),
                 _ => throw new ArgumentException($"language name {languageName} is not valid for a test workspace"),
             };
+            return CreateTestLspServer(workspace, out locations);
+        }
 
+        private static TestLspServer CreateTestLspServer(TestWorkspace workspace, out Dictionary<string, IList<LSP.Location>> locations)
+        {
             RegisterWorkspaceForLsp(workspace);
             var solution = workspace.CurrentSolution;
 

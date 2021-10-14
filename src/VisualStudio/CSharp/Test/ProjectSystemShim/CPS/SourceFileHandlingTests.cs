@@ -144,7 +144,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
             project.ReorderSourceFiles(new[] { sourceFileFullPath5, sourceFileFullPath3, sourceFileFullPath1 });
 
-            project.EndBatch();
+            await project.EndBatchAsync();
 
             var documents = GetCurrentDocuments().ToArray();
 
@@ -196,7 +196,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
             project.ReorderSourceFiles(new[] { sourceFileFullPath5, sourceFileFullPath4, sourceFileFullPath3, sourceFileFullPath2, sourceFileFullPath1 });
 
-            project.EndBatch();
+            await project.EndBatchAsync();
 
             var documents = GetCurrentDocuments().ToArray();
 
@@ -234,7 +234,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             project.AddSourceFile(sourceFileFullPath4);
             project.AddSourceFile(sourceFileFullPath5);
 
-            project.EndBatch();
+            await project.EndBatchAsync();
 
             project.ReorderSourceFiles(new[] { sourceFileFullPath5, sourceFileFullPath4, sourceFileFullPath3, sourceFileFullPath2, sourceFileFullPath1 });
 
@@ -277,7 +277,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             project.RemoveSourceFile(sourceFileFullPath4);
             project.RemoveSourceFile(sourceFileFullPath5);
 
-            project.EndBatch();
+            await project.EndBatchAsync();
 
             project.ReorderSourceFiles(new[] { sourceFileFullPath2, sourceFileFullPath1 });
 
@@ -371,7 +371,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             Assert.Throws<ArgumentOutOfRangeException>(() => project.ReorderSourceFiles(new List<string>()));
             Assert.Throws<ArgumentOutOfRangeException>(() => project.ReorderSourceFiles(null));
 
-            project.EndBatch();
+            await project.EndBatchAsync();
         }
 
         [WpfFact]
@@ -395,7 +395,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             project.RemoveSourceFile(sourceFileFullPath2);
             Assert.Throws<InvalidOperationException>(() => project.ReorderSourceFiles(new[] { sourceFileFullPath2 }));
 
-            project.EndBatch();
+            await project.EndBatchAsync();
 
             var documents = GetCurrentDocuments().ToArray();
 

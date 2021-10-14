@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var newSwitchArms = builder.ToImmutableAndFree();
             return new BoundConvertedSwitchExpression(
-                source.Syntax, source.Type, targetTyped, conversion, source.Expression, newSwitchArms, source.DecisionDag,
+                source.Syntax, source.Type, targetTyped, source.Expression, newSwitchArms, source.DecisionDag,
                 source.DefaultLabel, source.ReportedNotExhaustive, destination, hasErrors || source.HasErrors);
         }
 
