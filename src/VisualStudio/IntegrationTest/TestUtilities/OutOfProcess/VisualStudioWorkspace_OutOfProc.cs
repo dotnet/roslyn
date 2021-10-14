@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using ICSharpCode.Decompiler.CSharp.Syntax;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
