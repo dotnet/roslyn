@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (isReadOnlySpan)
             {
                 // ROS<T> is only used here if it has already been decided to use CreateSpan
-                Debug.Assert(UseCreateSpanForReadOnlyStackAlloc(
-                    _module.GetCreateSpanHelper(elementType.GetPublicSymbol()) is not null, elementType, inits, supportsPrivateImplClass));
+                Debug.Assert(UseCreateSpanForReadOnlySpanInitialization(
+                    _module.GetCreateSpanHelper(elementType.GetPublicSymbol()) is not null, false, elementType, inits, supportsPrivateImplClass));
 
                 EmitExpression(count, used: false);
 
@@ -94,11 +94,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        internal static bool UseCreateSpanForReadOnlyStackAlloc(
-            bool hasCreateSpanHelper, TypeSymbol elementType, BoundArrayInitialization? inits, bool supportsPrivateImplClass) =>
+        internal static bool UseCreateSpanForReadOnlySpanInitialization(
+            bool hasCreateSpanHelper, bool considerInitblk, TypeSymbol elementType, BoundArrayInitialization? inits, bool supportsPrivateImplClass) =>
                 hasCreateSpanHelper && inits?.Initializers is { } initExprs &&
                 ShouldEmitBlockInitializerForStackAlloc(elementType, initExprs, supportsPrivateImplClass) == ArrayInitializerStyle.Block &&
-                GetRawData(initExprs) is var data && !data.All(datum => datum == data[0]) &&
+                // if all bytes are the same, use initblk if able, instead of CreateSpan
+                (!considerInitblk || (GetRawData(initExprs) is var data && !data.All(datum => datum == data[0]))) &&
                 elementType.SpecialType.SizeInBytes() > 1;
 
         private static ArrayInitializerStyle ShouldEmitBlockInitializerForStackAlloc(TypeSymbol elementType, ImmutableArray<BoundExpression> inits, bool supportsPrivateImplClass)

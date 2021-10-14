@@ -46,14 +46,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     bool hasCreateSpanHelper = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpan_T) is not null;
 
-                    var (elementType, initializerOpt, count) = node.Operand switch
+                    var (isArrayCreation, elementType, initializerOpt, count) = node.Operand switch
                     {
-                        BoundConvertedStackAllocExpression stackAlloc => (stackAlloc.ElementType, stackAlloc.InitializerOpt, VisitExpression(stackAlloc.Count)),
-                        BoundArrayCreation arrayCreation => (((ArrayTypeSymbol)arrayCreation.Type).ElementType, arrayCreation.InitializerOpt, /* need some dummy expression */ _factory.Literal(0)),
+                        BoundConvertedStackAllocExpression stackAlloc => (false, stackAlloc.ElementType, stackAlloc.InitializerOpt, VisitExpression(stackAlloc.Count)),
+                        BoundArrayCreation arrayCreation =>
+                            (true, ((ArrayTypeSymbol)arrayCreation.Type).ElementType, arrayCreation.InitializerOpt, /* need some dummy expression */ _factory.Literal(0)),
                         _ => throw ExceptionUtilities.Unreachable
                     };
 
-                    if (CodeGen.CodeGenerator.UseCreateSpanForReadOnlyStackAlloc(hasCreateSpanHelper, elementType, initializerOpt,
+                    if (CodeGen.CodeGenerator.UseCreateSpanForReadOnlySpanInitialization(hasCreateSpanHelper, considerInitblk: !isArrayCreation, elementType, initializerOpt,
                         /* TODO: how to find out if this is ENC? */ supportsPrivateImplClass: true))
                     {
                         return new BoundConvertedStackAllocExpression(node.Operand.Syntax, elementType, count, initializerOpt, rewrittenType);
