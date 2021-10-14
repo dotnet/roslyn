@@ -2627,5 +2627,71 @@ End Class",
                 Documentation("Summary text"),
                 Value($"{vbCrLf}{FeaturesResources.Value_colon}{vbCrLf}  Value text"))
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(57031, "https://github.com/dotnet/roslyn/issues/57031")>
+        Public Async Function QuickInfo_DotInInvocation() As Task
+            Await TestAsync("
+Public Class C
+    Public Sub M(ByVal a As Integer)
+    End Sub
+
+    Public Sub M(ByVal a As Integer, ParamArray b As Integer())
+    End Sub
+End Class
+
+Class Program
+    Private Shared Sub Main()
+        Dim c = New C()
+        c$$.M(1, 2)
+    End Sub
+End Class
+",
+                MainDescription($"Sub C.M(a As Integer, ParamArray b As Integer()) (+ 1 {FeaturesResources.overload})"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(57031, "https://github.com/dotnet/roslyn/issues/57031")>
+        Public Async Function QuickInfo_BeforeMemberNameInInvocation() As Task
+            Await TestAsync("
+Public Class C
+    Public Sub M(ByVal a As Integer)
+    End Sub
+
+    Public Sub M(ByVal a As Integer, ParamArray b As Integer())
+    End Sub
+End Class
+
+Class Program
+    Private Shared Sub Main()
+        Dim c = New C()
+        c.$$M(1, 2)
+    End Sub
+End Class
+",
+                MainDescription($"Sub C.M(a As Integer, ParamArray b As Integer()) (+ 1 {FeaturesResources.overload})"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(57031, "https://github.com/dotnet/roslyn/issues/57031")>
+        Public Async Function QuickInfo_AfterMemberNameInInvocation() As Task
+            Await TestAsync("
+Public Class C
+    Public Sub M(ByVal a As Integer)
+    End Sub
+
+    Public Sub M(ByVal a As Integer, ParamArray b As Integer())
+    End Sub
+End Class
+
+Class Program
+    Private Shared Sub Main()
+        Dim c = New C()
+        c.M$$(1, 2)
+    End Sub
+End Class
+",
+                MainDescription($"Sub C.M(a As Integer, ParamArray b As Integer()) (+ 1 {FeaturesResources.overload})"))
+        End Function
     End Class
 End Namespace

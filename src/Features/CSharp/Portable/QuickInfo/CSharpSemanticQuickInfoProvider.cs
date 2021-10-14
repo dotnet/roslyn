@@ -50,8 +50,20 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             if (token.IsKind(SyntaxKind.CloseBracketToken, SyntaxKind.OpenBracketToken) &&
                 token.Parent?.Parent.IsKind(SyntaxKind.ElementAccessExpression) == true)
             {
-                // Suppression is due to issue https://github.com/dotnet/roslyn/issues/41107
-                found = token.Parent.Parent!;
+                found = token.Parent.Parent;
+                return true;
+            }
+
+            found = null;
+            return false;
+        }
+
+        protected override bool GetBindableNodeForTokenIndicatingMemberAccess(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found)
+        {
+            if (token.IsKind(SyntaxKind.DotToken) &&
+                token.Parent?.IsKind(SyntaxKind.SimpleMemberAccessExpression) == true)
+            {
+                found = token.Parent;
                 return true;
             }
 

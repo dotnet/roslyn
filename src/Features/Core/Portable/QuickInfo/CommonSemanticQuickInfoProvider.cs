@@ -421,6 +421,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
         protected abstract bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found);
         protected abstract bool GetBindableNodeForTokenIndicatingPossibleIndexerAccess(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found);
+        protected abstract bool GetBindableNodeForTokenIndicatingMemberAccess(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found);
 
         protected virtual NullableFlowState GetNullabilityAnalysis(Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => NullableFlowState.None;
 
@@ -486,6 +487,13 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 {
                     return ImmutableArray.Create(symbol);
                 }
+            }
+
+            if (GetBindableNodeForTokenIndicatingMemberAccess(token, out var accessedMember))
+            {
+                // If the cursor is on the dot in an invocation `x.M()`, then we'll consider the cursor was placed on `M`
+                var symbol = semanticModel.GetSymbolInfo(accessedMember, cancellationToken).Symbol;
+                return symbol != null ? ImmutableArray.Create(symbol) : ImmutableArray<ISymbol>.Empty;
             }
 
             return semanticModel.GetSemanticInfo(token, workspace, cancellationToken)
