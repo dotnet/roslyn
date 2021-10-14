@@ -853,21 +853,24 @@ static class C
                 .VerifyIL("C.Main",
 @"
 {
-  // Code size       37 (0x25)
+  // Code size       40 (0x28)
   .maxstack  4
+  .locals init (System.ReadOnlySpan<int> V_0)
   IL_0000:  ldc.i4.s   12
   IL_0002:  conv.u
   IL_0003:  localloc
   IL_0005:  dup
   IL_0006:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_000b:  call       ""System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)""
-  IL_0010:  call       ""ref readonly int System.ReadOnlySpan<int>.GetPinnableReference()""
-  IL_0015:  ldc.i4.s   12
-  IL_0017:  cpblk
-  IL_0019:  ldc.i4.3
-  IL_001a:  newobj     ""System.Span<int>..ctor(void*, int)""
-  IL_001f:  call       ""void C.Write(System.Span<int>)""
-  IL_0024:  ret
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""ref readonly int System.ReadOnlySpan<int>.GetPinnableReference()""
+  IL_0018:  ldc.i4.s   12
+  IL_001a:  cpblk
+  IL_001c:  ldc.i4.3
+  IL_001d:  newobj     ""System.Span<int>..ctor(void*, int)""
+  IL_0022:  call       ""void C.Write(System.Span<int>)""
+  IL_0027:  ret
 }
 ");
         }
@@ -922,19 +925,22 @@ unsafe static class C
                 .VerifyIL("C.Main",
 @"
 {
-  // Code size       31 (0x1f)
+  // Code size       34 (0x22)
   .maxstack  4
+  .locals init (System.ReadOnlySpan<int> V_0)
   IL_0000:  ldc.i4.s   12
   IL_0002:  conv.u
   IL_0003:  localloc
   IL_0005:  dup
   IL_0006:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_000b:  call       ""System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)""
-  IL_0010:  call       ""ref readonly int System.ReadOnlySpan<int>.GetPinnableReference()""
-  IL_0015:  ldc.i4.s   12
-  IL_0017:  cpblk
-  IL_0019:  call       ""void C.Write(int*)""
-  IL_001e:  ret
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""ref readonly int System.ReadOnlySpan<int>.GetPinnableReference()""
+  IL_0018:  ldc.i4.s   12
+  IL_001a:  cpblk
+  IL_001c:  call       ""void C.Write(int*)""
+  IL_0021:  ret
 }
 ");
         }
@@ -959,30 +965,33 @@ static class C
                 .VerifyIL("C.Main",
 @"
 {
-  // Code size       50 (0x32)
+  // Code size       53 (0x35)
   .maxstack  4
+  .locals init (System.ReadOnlySpan<int> V_0)
   IL_0000:  ldc.i4.s   16
   IL_0002:  conv.u
   IL_0003:  localloc
   IL_0005:  dup
   IL_0006:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.81C1A5A2F482E82CA2C66653482AB24E6D90944BF183C8164E8F8F8D72DB60DB""
   IL_000b:  call       ""System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)""
-  IL_0010:  call       ""ref readonly int System.ReadOnlySpan<int>.GetPinnableReference()""
-  IL_0015:  ldc.i4.s   16
-  IL_0017:  cpblk
-  IL_0019:  dup
-  IL_001a:  ldc.i4.3
-  IL_001b:  conv.i
-  IL_001c:  ldc.i4.4
-  IL_001d:  mul
-  IL_001e:  add
-  IL_001f:  ldarg.0
-  IL_0020:  stind.i4
-  IL_0021:  ldc.i4.4
-  IL_0022:  newobj     ""System.Span<int>..ctor(void*, int)""
-  IL_0027:  call       ""System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)""
-  IL_002c:  call       ""void C.Write(System.ReadOnlySpan<int>)""
-  IL_0031:  ret
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""ref readonly int System.ReadOnlySpan<int>.GetPinnableReference()""
+  IL_0018:  ldc.i4.s   16
+  IL_001a:  cpblk
+  IL_001c:  dup
+  IL_001d:  ldc.i4.3
+  IL_001e:  conv.i
+  IL_001f:  ldc.i4.4
+  IL_0020:  mul
+  IL_0021:  add
+  IL_0022:  ldarg.0
+  IL_0023:  stind.i4
+  IL_0024:  ldc.i4.4
+  IL_0025:  newobj     ""System.Span<int>..ctor(void*, int)""
+  IL_002a:  call       ""System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)""
+  IL_002f:  call       ""void C.Write(System.ReadOnlySpan<int>)""
+  IL_0034:  ret
 }
 ");
         }

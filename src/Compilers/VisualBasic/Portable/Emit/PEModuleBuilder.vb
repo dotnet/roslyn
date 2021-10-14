@@ -616,17 +616,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return DirectCast(Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpan_T), MethodSymbol)?.Construct(vbElementType).GetCciAdapter()
         End Function
 
-        Public NotOverridable Overrides Function GetReadOnlySpanGetPinnableReference(elementType As ITypeSymbol) As Cci.IMethodReference
-            Dim vbElementType = TryCast(elementType, TypeSymbol)
-            If vbElementType Is Nothing Then
-                Return Nothing
-            End If
-
-            Dim definition = DirectCast(Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__GetPinnableReference), MethodSymbol)
-
-            Return definition?.AsMember(definition.ContainingType.Construct(vbElementType)).GetCciAdapter()
-        End Function
-
         Public NotOverridable Overrides Function IsPlatformType(typeRef As Cci.ITypeReference, platformType As Cci.PlatformType) As Boolean
             Dim namedType = TryCast(typeRef.GetInternalSymbol(), NamedTypeSymbol)
 

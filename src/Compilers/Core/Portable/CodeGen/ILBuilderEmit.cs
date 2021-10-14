@@ -119,22 +119,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        internal void EmitStackAllocBlockMultiByteInitializer(ImmutableArray<byte> data, ITypeSymbol elementType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
-        {
-            // get helpers
-            var getPinnableReference = module.GetReadOnlySpanGetPinnableReference(elementType);
-
-            // emit call to the helper
-            EmitOpCode(ILOpCode.Dup);
-            EmitCreateSpan(data, elementType, syntaxNode, diagnostics);
-            // TODO: is this safe without pinning?
-            EmitOpCode(ILOpCode.Call, 0);
-            EmitToken(getPinnableReference, syntaxNode, diagnostics);
-            EmitIntConstant(data.Length);
-            // TODO: is this correct without unaligned.?
-            EmitOpCode(ILOpCode.Cpblk, -3);
-        }
-
         internal void EmitCreateSpan(ImmutableArray<byte> data, ITypeSymbol elementType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             // get helpers

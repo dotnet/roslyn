@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                     else
                     {
-                        _builder.EmitStackAllocBlockMultiByteInitializer(data, elementType.GetPublicSymbol(), inits.Syntax, _diagnostics);
+                        EmitStackAllocBlockMultiByteInitializer(data, elementType, inits.Syntax, _diagnostics);
                     }
                 }
 
@@ -92,6 +92,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _sawStackalloc = true;
                 _builder.EmitOpCode(ILOpCode.Localloc);
             }
+        }
+
+        private void EmitStackAllocBlockMultiByteInitializer(ImmutableArray<byte> data, TypeSymbol elementType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            // get helpers
+            var definition = (MethodSymbol)_module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__GetPinnableReference)!;
+            var getPinnableReference = definition.AsMember(definition.ContainingType.Construct(elementType)).GetCciAdapter();
+            var readOnlySpan = ((NamedTypeSymbol)_module.Compilation.CommonGetWellKnownType(WellKnownType.System_ReadOnlySpan_T)).Construct(elementType).GetCciAdapter();
+
+            // emit call to the helper
+            _builder.EmitOpCode(ILOpCode.Dup);
+            _builder.EmitCreateSpan(data, elementType.GetPublicSymbol(), syntaxNode, diagnostics);
+
+            var temp = _builder.LocalSlotManager.AllocateSlot(readOnlySpan, LocalSlotConstraints.None);
+            _builder.EmitLocalStore(temp);
+            _builder.EmitLocalAddress(temp);
+            _builder.LocalSlotManager.FreeSlot(temp);
+
+            // TODO: is this safe without pinning?
+            _builder.EmitOpCode(ILOpCode.Call, 0);
+            _builder.EmitToken(getPinnableReference, syntaxNode, diagnostics);
+            _builder.EmitIntConstant(data.Length);
+            // TODO: is this correct without unaligned.?
+            _builder.EmitOpCode(ILOpCode.Cpblk, -3);
         }
 
         internal static bool UseCreateSpanForReadOnlySpanInitialization(

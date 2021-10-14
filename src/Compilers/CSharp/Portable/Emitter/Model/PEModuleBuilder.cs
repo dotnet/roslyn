@@ -827,18 +827,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 ?.Construct(csharpElementType).GetCciAdapter();
         }
 
-        public sealed override Cci.IMethodReference GetReadOnlySpanGetPinnableReference(ITypeSymbol elementType)
-        {
-            if ((elementType as Symbols.PublicModel.TypeSymbol)?.UnderlyingTypeSymbol is not { } csharpElementType)
-            {
-                return null;
-            }
-
-            var definition = (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__GetPinnableReference);
-
-            return definition?.AsMember(definition.ContainingType.Construct(csharpElementType)).GetCciAdapter();
-        }
-
         public sealed override bool IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType)
         {
             var namedType = typeRef.GetInternalSymbol() as NamedTypeSymbol;
