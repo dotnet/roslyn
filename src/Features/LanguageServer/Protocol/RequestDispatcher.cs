@@ -17,16 +17,16 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
     /// <summary>
-    /// Aggregates handlers for the specified language and dispatches LSP requests
+    /// Aggregates handlers for the specified languages and dispatches LSP requests
     /// to the appropriate handler for the request.
     /// </summary>
     internal class RequestDispatcher
     {
         private readonly ImmutableDictionary<string, Lazy<IRequestHandler>> _requestHandlers;
 
-        public RequestDispatcher(ImmutableArray<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders, string? languageName = null)
+        public RequestDispatcher(ImmutableArray<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders, ImmutableArray<string> languageNames)
         {
-            _requestHandlers = CreateMethodToHandlerMap(requestHandlerProviders.Where(rh => rh.Metadata.LanguageName == languageName));
+            _requestHandlers = CreateMethodToHandlerMap(requestHandlerProviders.Where(rh => languageNames.All(languageName => rh.Metadata.LanguageNames.Contains(languageName))));
         }
 
         private static ImmutableDictionary<string, Lazy<IRequestHandler>> CreateMethodToHandlerMap(IEnumerable<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders)
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return requestHandlerDictionary.ToImmutable();
         }
 
-        public Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(
+        public Task<ResponseType?> ExecuteRequestAsync<RequestType, ResponseType>(
             RequestExecutionQueue queue,
             string methodName,
             RequestType request,
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return ExecuteRequestAsync(queue, request, clientCapabilities, clientName, methodName, mutatesSolutionState, requiresLSPSolution, handler, cancellationToken);
         }
 
-        protected virtual Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(RequestExecutionQueue queue, RequestType request, ClientCapabilities clientCapabilities, string? clientName, string methodName, bool mutatesSolutionState, bool requiresLSPSolution, IRequestHandler<RequestType, ResponseType> handler, CancellationToken cancellationToken) where RequestType : class
+        protected virtual Task<ResponseType?> ExecuteRequestAsync<RequestType, ResponseType>(RequestExecutionQueue queue, RequestType request, ClientCapabilities clientCapabilities, string? clientName, string methodName, bool mutatesSolutionState, bool requiresLSPSolution, IRequestHandler<RequestType, ResponseType> handler, CancellationToken cancellationToken) where RequestType : class
         {
             return queue.ExecuteAsync(mutatesSolutionState, requiresLSPSolution, handler, request, clientCapabilities, clientName, methodName, cancellationToken);
         }

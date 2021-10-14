@@ -257,13 +257,12 @@ namespace Roslyn.Test.Utilities
                     pdbStream: pdbStream,
                     xmlDocumentationStream: null,
                     win32Resources: null,
-                    useRawWin32Resources: false,
                     manifestResources: manifestResources,
                     options: emitOptions,
                     debugEntryPoint: null,
                     sourceLinkStream: null,
                     embeddedTexts,
-                    pdbOptionsBlobReader: null,
+                    rebuildData: null,
                     testData: testData,
                     cancellationToken: default);
             }

@@ -16,7 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
     <ExportCompletionProvider(NameOf(TypeImportCompletionProvider), LanguageNames.VisualBasic)>
-    <ExtensionOrder(After:=NameOf(EmbeddedLanguageCompletionProvider))>
+    <ExtensionOrder(After:=NameOf(AggregateEmbeddedLanguageCompletionProvider))>
     <[Shared]>
     Friend NotInheritable Class TypeImportCompletionProvider
         Inherits AbstractTypeImportCompletionProvider(Of SimpleImportsClauseSyntax)
@@ -32,8 +32,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerCharsAndParen
 
-        Protected Overrides Function CreateContextAsync(document As Document, position As Integer, usePartialSemantic As Boolean, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
-            Return ImportCompletionProviderHelper.CreateContextAsync(document, position, usePartialSemantic, cancellationToken)
+        Protected Overrides Function CreateContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
+            Return ImportCompletionProviderHelper.CreateContextAsync(document, position, cancellationToken)
         End Function
 
         Protected Overrides Function GetImportedNamespaces(location As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ImmutableArray(Of String)

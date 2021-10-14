@@ -5,14 +5,15 @@
 #nullable disable
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -21,8 +22,6 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands.Navigation;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
-using Microsoft.CodeAnalysis.Host.Mef;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 {
@@ -53,8 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             var streamingPresenter = base.GetStreamingPresenter();
             if (streamingPresenter != null)
             {
-                // Fire and forget.  So no need for cancellation.
-                _ = FindExtensionMethodsAsync(document, caretPosition, streamingPresenter, CancellationToken.None);
+                _ = FindExtensionMethodsAsync(document, caretPosition, streamingPresenter);
                 return true;
             }
 
@@ -62,74 +60,67 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         }
 
         private async Task FindExtensionMethodsAsync(
-            Document document, int caretPosition, IStreamingFindUsagesPresenter presenter, CancellationToken cancellationToken)
+            Document document, int caretPosition, IStreamingFindUsagesPresenter presenter)
         {
+            var solution = document.Project.Solution;
             try
             {
                 using var token = _asyncListener.BeginAsyncOperation(nameof(FindExtensionMethodsAsync));
 
-                var context = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true, cancellationToken);
+                var (context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true);
 
-                using (Logger.LogBlock(
-                    FunctionId.CommandHandler_FindAllReference,
-                    KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
-                    context.CancellationToken))
+                try
                 {
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                    var candidateSymbolProjectPair = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, context.CancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
-
-                    var symbol = candidateSymbolProjectPair?.symbol as INamedTypeSymbol;
-
-                    // if we didn't get the right symbol, just abort
-                    if (symbol == null)
+                    using (Logger.LogBlock(
+                        FunctionId.CommandHandler_FindAllReference,
+                        KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
+                        cancellationToken))
                     {
-                        await context.OnCompletedAsync().ConfigureAwait(false);
-                        return;
-                    }
+                        var candidateSymbolProjectPair = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
 
-                    Compilation compilation;
-                    if (!document.Project.TryGetCompilation(out compilation))
-                    {
-                        await context.OnCompletedAsync().ConfigureAwait(false);
-                        return;
-                    }
+                        var symbol = candidateSymbolProjectPair?.symbol as INamedTypeSymbol;
 
-                    var solution = document.Project.Solution;
+                        // if we didn't get the right symbol, just abort
+                        if (symbol == null)
+                            return;
 
-                    foreach (var type in compilation.Assembly.GlobalNamespace.GetAllTypes(context.CancellationToken))
-                    {
-                        if (!type.MightContainExtensionMethods)
-                            continue;
+                        if (!document.Project.TryGetCompilation(out var compilation))
+                            return;
 
-                        foreach (var extMethod in type.GetMembers().OfType<IMethodSymbol>().Where(method => method.IsExtensionMethod))
+                        foreach (var type in compilation.Assembly.GlobalNamespace.GetAllTypes(cancellationToken))
                         {
-                            if (context.CancellationToken.IsCancellationRequested)
-                                break;
+                            if (!type.MightContainExtensionMethods)
+                                continue;
 
-                            var reducedMethod = extMethod.ReduceExtensionMethod(symbol);
-                            if (reducedMethod != null)
+                            foreach (var extMethod in type.GetMembers().OfType<IMethodSymbol>().Where(method => method.IsExtensionMethod))
                             {
-                                var loc = extMethod.Locations.First();
+                                if (cancellationToken.IsCancellationRequested)
+                                    break;
 
-                                var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(reducedMethod, solution, context.CancellationToken).ConfigureAwait(false);
-
-                                // And if our definition actually is from source, then let's re-figure out what project it came from
-                                if (sourceDefinition != null)
+                                var reducedMethod = extMethod.ReduceExtensionMethod(symbol);
+                                if (reducedMethod != null)
                                 {
-                                    var originatingProject = solution.GetProject(sourceDefinition.ContainingAssembly, context.CancellationToken);
+                                    var loc = extMethod.Locations.First();
 
-                                    var definitionItem = reducedMethod.ToNonClassifiedDefinitionItem(solution, true);
+                                    var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(reducedMethod, solution, cancellationToken).ConfigureAwait(false);
 
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                                    await context.OnDefinitionFoundAsync(definitionItem);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                                    // And if our definition actually is from source, then let's re-figure out what project it came from
+                                    if (sourceDefinition != null)
+                                    {
+                                        var originatingProject = solution.GetProject(sourceDefinition.ContainingAssembly, cancellationToken);
+
+                                        var definitionItem = reducedMethod.ToNonClassifiedDefinitionItem(solution, true);
+
+                                        await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
+                                    }
                                 }
                             }
                         }
                     }
-
-                    await context.OnCompletedAsync().ConfigureAwait(false);
+                }
+                finally
+                {
+                    await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)

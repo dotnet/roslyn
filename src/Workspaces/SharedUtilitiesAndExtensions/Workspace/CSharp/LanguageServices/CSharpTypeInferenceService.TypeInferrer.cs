@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -159,6 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ConstantPatternSyntax constantPattern => InferTypeInConstantPattern(constantPattern),
                     DoStatementSyntax doStatement => InferTypeInDoStatement(doStatement),
                     EqualsValueClauseSyntax equalsValue => InferTypeInEqualsValueClause(equalsValue),
+                    ExpressionColonSyntax expressionColon => InferTypeInExpressionColon(expressionColon),
                     ExpressionStatementSyntax _ => InferTypeInExpressionStatement(),
                     ForEachStatementSyntax forEachStatement => InferTypeInForEachStatement(forEachStatement, expression),
                     ForStatementSyntax forStatement => InferTypeInForStatement(forStatement, expression),
@@ -224,6 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     DefaultExpressionSyntax defaultExpression => InferTypeInDefaultExpression(defaultExpression),
                     DoStatementSyntax doStatement => InferTypeInDoStatement(doStatement, token),
                     EqualsValueClauseSyntax equalsValue => InferTypeInEqualsValueClause(equalsValue, token),
+                    ExpressionColonSyntax expressionColon => InferTypeInExpressionColon(expressionColon, token),
                     ExpressionStatementSyntax _ => InferTypeInExpressionStatement(token),
                     ForEachStatementSyntax forEachStatement => InferTypeInForEachStatement(forEachStatement, previousToken: token),
                     ForStatementSyntax forStatement => InferTypeInForStatement(forStatement, previousToken: token),
@@ -436,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var info = SemanticModel.GetTypeInfo(creation, CancellationToken);
 
-                if (!(info.Type is INamedTypeSymbol type))
+                if (info.Type is not INamedTypeSymbol type)
                 {
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
@@ -675,6 +678,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             result[returnTypeParameter] = inferredType;
                         }
+
                         return;
                     }
                 }
@@ -702,6 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 DetermineTypeParameterMapping(inferredNamedType.TypeArguments[i], returnNamedType.TypeArguments[i], result);
                             }
                         }
+
                         return;
                 }
             }
@@ -828,6 +833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     currentTypes = currentTypes.Select(t => t.InferredType).OfType<IArrayTypeSymbol>()
                                                .SelectAsArray(a => new TypeInferenceInfo(a.ElementType));
                 }
+
                 return currentTypes;
             }
 
@@ -943,8 +949,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Infer operands of && and || as bool regardless of the other operand.
-                if (operatorToken.Kind() == SyntaxKind.AmpersandAmpersandToken ||
-                    operatorToken.Kind() == SyntaxKind.BarBarToken)
+                if (operatorToken.Kind() is SyntaxKind.AmpersandAmpersandToken or
+                    SyntaxKind.BarBarToken)
                 {
                     return CreateResult(SpecialType.System_Boolean);
                 }
@@ -969,7 +975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // user needs and can cause lambda suggestion mode while
                     // typing type arguments:
                     // https://github.com/dotnet/roslyn/issues/14492
-                    if (!(binop is AssignmentExpressionSyntax))
+                    if (binop is not AssignmentExpressionSyntax)
                     {
                         otherSideTypes = otherSideTypes.Where(t => !t.InferredType.IsDelegateType());
                     }
@@ -979,12 +985,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // For &, &=, |, |=, ^, and ^=, since we couldn't infer the type of either side, 
                 // try to infer the type of the entire binary expression.
-                if (operatorToken.Kind() == SyntaxKind.AmpersandToken ||
-                    operatorToken.Kind() == SyntaxKind.AmpersandEqualsToken ||
-                    operatorToken.Kind() == SyntaxKind.BarToken ||
-                    operatorToken.Kind() == SyntaxKind.BarEqualsToken ||
-                    operatorToken.Kind() == SyntaxKind.CaretToken ||
-                    operatorToken.Kind() == SyntaxKind.CaretEqualsToken)
+                if (operatorToken.Kind() is SyntaxKind.AmpersandToken or
+                    SyntaxKind.AmpersandEqualsToken or
+                    SyntaxKind.BarToken or
+                    SyntaxKind.BarEqualsToken or
+                    SyntaxKind.CaretToken or
+                    SyntaxKind.CaretEqualsToken)
                 {
                     var parentTypes = InferTypes(binop);
                     if (parentTypes.Any())
@@ -1458,11 +1464,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // parent type.  So look up the parent type first, then find the X member in it
                 // and use that type.
                 if (child == subpattern.Pattern &&
-                    subpattern.NameColon != null)
+                    subpattern.ExpressionColon != null)
                 {
-                    var result = ArrayBuilder<TypeInferenceInfo>.GetInstance();
+                    using var result = TemporaryArray<TypeInferenceInfo>.Empty;
 
-                    foreach (var symbol in this.SemanticModel.GetSymbolInfo(subpattern.NameColon.Name).GetAllSymbols())
+                    foreach (var symbol in this.SemanticModel.GetSymbolInfo(subpattern.ExpressionColon.Expression).GetAllSymbols())
                     {
                         switch (symbol)
                         {
@@ -1475,7 +1481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    return result.ToImmutableAndFree();
+                    return result.ToImmutableAndClear();
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
@@ -1663,6 +1669,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
             }
 
+            private IEnumerable<TypeInferenceInfo> InferTypeInExpressionColon(ExpressionColonSyntax expressionColon, SyntaxToken previousToken)
+            {
+                if (previousToken != expressionColon.ColonToken)
+                {
+                    // Must follow the colon token.
+                    return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                }
+
+                return expressionColon.Parent switch
+                {
+                    SubpatternSyntax subPattern => InferTypeInSubpattern(subPattern, subPattern.Pattern),
+                    _ => SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>()
+                };
+            }
+
             private IEnumerable<TypeInferenceInfo> InferTypeInMemberAccessExpression(
                 MemberAccessExpressionSyntax memberAccessExpression,
                 ExpressionSyntax expressionOpt = null,
@@ -1834,6 +1855,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             private IEnumerable<TypeInferenceInfo> InferTypeInNameColon(NameColonSyntax nameColon)
             {
                 if (nameColon.Parent is SubpatternSyntax subpattern)
+                {
+                    return GetPatternTypes(subpattern.Pattern);
+                }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInExpressionColon(ExpressionColonSyntax expressionColon)
+            {
+                if (expressionColon.Parent is SubpatternSyntax subpattern)
                 {
                     return GetPatternTypes(subpattern.Pattern);
                 }

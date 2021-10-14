@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Common;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
@@ -26,16 +27,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal class VisualStudioBaseTodoListTable : AbstractTable
     {
-        private static readonly string[] s_columns = new string[]
-        {
-            StandardTableColumnDefinitions.Priority,
-            StandardTableColumnDefinitions.Text,
-            StandardTableColumnDefinitions.ProjectName,
-            StandardTableColumnDefinitions.DocumentName,
-            StandardTableColumnDefinitions.Line,
-            StandardTableColumnDefinitions.Column
-        };
-
         private readonly TableDataSource _source;
 
         protected VisualStudioBaseTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, string identifier, ITableManagerProvider provider)
@@ -45,7 +36,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             AddInitialTableSource(workspace.CurrentSolution, _source);
         }
 
-        internal override IReadOnlyCollection<string> Columns => s_columns;
+        internal override ImmutableArray<string> Columns { get; } = ImmutableArray.Create(
+            StandardTableColumnDefinitions.Priority,
+            StandardTableColumnDefinitions.Text,
+            StandardTableColumnDefinitions.ProjectName,
+            StandardTableColumnDefinitions.DocumentName,
+            StandardTableColumnDefinitions.Line,
+            StandardTableColumnDefinitions.Column);
 
         protected override void AddTableSourceIfNecessary(Solution solution)
         {
@@ -101,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return key;
                 }
 
-                if (!(key is ImmutableArray<DocumentId>))
+                if (key is not ImmutableArray<DocumentId>)
                 {
                     return key;
                 }
@@ -225,7 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = data.Value.Message;
                             return content != null;
                         case StandardTableKeyNames.DocumentName:
-                            content = GetFileName(data.Value.OriginalFilePath, data.Value.MappedFilePath);
+                            content = DiagnosticDataLocation.GetFilePath(data.Value.OriginalFilePath, data.Value.MappedFilePath);
                             return content != null;
                         case StandardTableKeyNames.Line:
                             content = GetLineColumn(item).Line;

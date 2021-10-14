@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
     ' Note: by default, TestWorkspace produces a composition from all assemblies except EditorServicesTest2.
@@ -40,8 +41,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Public TrySymbolNavigationNotifyReturnValue As Boolean
 
             Public WouldNavigateToSymbolProvidedDefinitionItem As DefinitionItem
-            Public WouldNavigateToSymbolProvidedSolution As Solution
-            Public WouldNavigateToSymbolReturnValue As Boolean
             Public NavigationFilePathReturnValue As String = String.Empty
             Public NavigationLineNumberReturnValue As Integer
             Public NavigationCharOffsetReturnValue As Integer
@@ -53,27 +52,22 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                 Return True
             End Function
 
-            Public Function TrySymbolNavigationNotify(symbol As ISymbol,
-                                                      project As Project,
-                                                      cancellationToken As CancellationToken) As Boolean Implements ISymbolNavigationService.TrySymbolNavigationNotify
+            Public Function TrySymbolNavigationNotifyAsync(
+                    symbol As ISymbol,
+                    project As Project,
+                    cancellationToken As CancellationToken) As Task(Of Boolean) Implements ISymbolNavigationService.TrySymbolNavigationNotifyAsync
                 Me.TrySymbolNavigationNotifyProvidedSymbol = symbol
                 Me.TrySymbolNavigationNotifyProvidedProject = project
 
-                Return TrySymbolNavigationNotifyReturnValue
+                Return Task.FromResult(TrySymbolNavigationNotifyReturnValue)
             End Function
 
-            Public Function WouldNavigateToSymbol(definitionItem As DefinitionItem,
-                                                  solution As Solution,
-                                                  cancellationToken As CancellationToken,
-                                                  ByRef filePath As String, ByRef lineNumber As Integer, ByRef charOffset As Integer) As Boolean Implements ISymbolNavigationService.WouldNavigateToSymbol
+            Public Function GetExternalNavigationSymbolLocationAsync(
+                    definitionItem As DefinitionItem,
+                    cancellationToken As CancellationToken) As Task(Of (filePath As String, LinePosition As LinePosition)?) Implements ISymbolNavigationService.GetExternalNavigationSymbolLocationAsync
                 Me.WouldNavigateToSymbolProvidedDefinitionItem = definitionItem
-                Me.WouldNavigateToSymbolProvidedSolution = solution
 
-                filePath = Me.NavigationFilePathReturnValue
-                lineNumber = Me.NavigationLineNumberReturnValue
-                charOffset = Me.NavigationCharOffsetReturnValue
-
-                Return WouldNavigateToSymbolReturnValue
+                Return Task.FromResult(Of (filePath As String, linePosition As LinePosition)?)((Me.NavigationFilePathReturnValue, New LinePosition(Me.NavigationLineNumberReturnValue, Me.NavigationCharOffsetReturnValue)))
             End Function
         End Class
     End Class

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
@@ -31,22 +29,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
         }
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.SwitchStatement);
+            => context.RegisterCompilationStartAction(context =>
+            {
+                if (((CSharpCompilation)context.Compilation).LanguageVersion < LanguageVersion.CSharp8)
+                {
+                    return;
+                }
+
+                context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.SwitchStatement);
+            });
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var switchStatement = context.Node;
-            if (switchStatement.ContainsDirectives)
-            {
-                return;
-            }
-
             var syntaxTree = switchStatement.SyntaxTree;
-
-            if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp8)
-            {
-                return;
-            }
 
             var options = context.Options;
             var cancellationToken = context.CancellationToken;
@@ -82,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 location: switchStatement.GetFirstToken().GetLocation(),
                 effectiveSeverity: styleOption.Notification.Severity,
                 additionalLocations: additionalLocations.ToArrayAndFree(),
-                properties: ImmutableDictionary<string, string>.Empty
+                properties: ImmutableDictionary<string, string?>.Empty
                     .Add(Constants.NodeToGenerateKey, ((int)nodeToGenerate).ToString(CultureInfo.InvariantCulture))
                     .Add(Constants.ShouldRemoveNextStatementKey, shouldRemoveNextStatement.ToString(CultureInfo.InvariantCulture))));
         }

@@ -147,6 +147,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private static void EnsureDirectory(string databaseFilePath)
         {
             var directory = Path.GetDirectoryName(databaseFilePath);
+            Contract.ThrowIfNull(directory);
+
             if (Directory.Exists(directory))
             {
                 return;

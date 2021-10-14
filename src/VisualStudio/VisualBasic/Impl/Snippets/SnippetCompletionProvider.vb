@@ -4,10 +4,11 @@
 
 Imports System.Collections.Immutable
 Imports System.ComponentModel.Composition
-Imports System.Threading.Tasks
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -20,6 +21,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.VisualStudio.Editor
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.Editor.Commanding
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
     <ExportCompletionProviderMef1("SnippetCompletionProvider", LanguageNames.VisualBasic)>
@@ -28,13 +30,28 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         Implements ICustomCommitCompletionProvider
 
         Private ReadOnly _threadingContext As IThreadingContext
+        Private ReadOnly _signatureHelpControllerProvider As SignatureHelpControllerProvider
+        Private ReadOnly _editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory
         Private ReadOnly _editorAdaptersFactoryService As IVsEditorAdaptersFactoryService
+        Private ReadOnly _argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata))
+        Private ReadOnly _globalOptions As IGlobalOptionService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(threadingContext As IThreadingContext, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService)
+        Public Sub New(
+            threadingContext As IThreadingContext,
+            signatureHelpControllerProvider As SignatureHelpControllerProvider,
+            editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
+            editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
+            <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
+            globalOptions As IGlobalOptionService)
+
             _threadingContext = threadingContext
-            Me._editorAdaptersFactoryService = editorAdaptersFactoryService
+            _signatureHelpControllerProvider = signatureHelpControllerProvider
+            _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory
+            _editorAdaptersFactoryService = editorAdaptersFactoryService
+            _argumentProviders = argumentProviders.ToImmutableArray()
+            _globalOptions = globalOptions
         End Sub
 
         Friend Overrides ReadOnly Property IsSnippetProvider As Boolean
@@ -101,7 +118,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                           subjectBuffer As ITextBuffer,
                           triggerSnapshot As ITextSnapshot,
                           commitChar As Char?) Implements ICustomCommitCompletionProvider.Commit
-            Dim snippetClient = SnippetExpansionClient.GetSnippetExpansionClient(_threadingContext, textView, subjectBuffer, _editorAdaptersFactoryService)
+            Dim snippetClient = SnippetExpansionClient.GetSnippetExpansionClient(
+                _threadingContext,
+                textView,
+                subjectBuffer,
+                _signatureHelpControllerProvider,
+                _editorCommandHandlerServiceFactory,
+                _editorAdaptersFactoryService,
+                _argumentProviders,
+                _globalOptions)
 
             Dim trackingSpan = triggerSnapshot.CreateTrackingSpan(completionItem.Span.ToSpan(), SpanTrackingMode.EdgeInclusive)
             Dim currentSpan = trackingSpan.GetSpan(subjectBuffer.CurrentSnapshot)
@@ -109,7 +134,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             subjectBuffer.Replace(currentSpan, completionItem.DisplayText)
 
             Dim updatedSpan = trackingSpan.GetSpan(subjectBuffer.CurrentSnapshot)
-            snippetClient.TryInsertExpansion(updatedSpan.Start, updatedSpan.Start + completionItem.DisplayText.Length)
+            snippetClient.TryInsertExpansion(updatedSpan.Start, updatedSpan.Start + completionItem.DisplayText.Length, CancellationToken.None)
         End Sub
     End Class
 End Namespace

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -16,9 +15,26 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitConversion(BoundConversion node)
         {
-            if (node.ConversionKind == ConversionKind.InterpolatedString)
+            switch (node.ConversionKind)
             {
-                return RewriteInterpolatedStringConversion(node);
+                case ConversionKind.InterpolatedString:
+                    return RewriteInterpolatedStringConversion(node);
+                case ConversionKind.InterpolatedStringHandler:
+                    Debug.Assert(node.Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true });
+
+                    var (data, parts) = node.Operand switch
+                    {
+                        BoundInterpolatedString { InterpolationData: { } d, Parts: { } p } => (d, p),
+                        BoundBinaryOperator { InterpolatedStringHandlerData: { } d } binary => (d, CollectBinaryOperatorInterpolatedStringParts(binary)),
+                        _ => throw ExceptionUtilities.UnexpectedValue(node.Operand.Kind)
+                    };
+
+                    InterpolationHandlerResult interpolationResult = RewriteToInterpolatedStringHandlerPattern(data, parts, node.Operand.Syntax);
+                    return interpolationResult.WithFinalResult(interpolationResult.HandlerTemp);
+                case ConversionKind.SwitchExpression or ConversionKind.ConditionalExpression:
+                    // Skip through target-typed conditionals and switches
+                    Debug.Assert(node.Operand is BoundConditionalOperator { WasTargetTyped: true } or BoundConvertedSwitchExpression { WasTargetTyped: true });
+                    return Visit(node.Operand)!;
             }
 
             var rewrittenType = VisitType(node.Type);
@@ -372,7 +388,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var mg = (BoundMethodGroup)rewrittenOperand;
                         Debug.Assert(oldNodeOpt.SymbolOpt is { });
-                        return new BoundFunctionPointerLoad(oldNodeOpt.Syntax, oldNodeOpt.SymbolOpt, type: funcPtrType, hasErrors: false);
+                        return new BoundFunctionPointerLoad(oldNodeOpt.Syntax, oldNodeOpt.SymbolOpt,
+                                                            constrainedToTypeOpt: oldNodeOpt.SymbolOpt.IsStatic && oldNodeOpt.SymbolOpt.IsAbstract ? mg.ReceiverOpt?.Type : null,
+                                                            type: funcPtrType, hasErrors: false);
                     }
 
                 case ConversionKind.MethodGroup:
@@ -384,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(method is { });
                         var oldSyntax = _factory.Syntax;
                         _factory.Syntax = (mg.ReceiverOpt ?? mg).Syntax;
-                        var receiver = (!method.RequiresInstanceReceiver && !oldNodeOpt.IsExtensionMethod) ? _factory.Type(method.ContainingType) : mg.ReceiverOpt;
+                        var receiver = (!method.RequiresInstanceReceiver && !oldNodeOpt.IsExtensionMethod && !method.IsAbstract) ? _factory.Type(method.ContainingType) : mg.ReceiverOpt;
                         Debug.Assert(receiver is { });
                         _factory.Syntax = oldSyntax;
                         return new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method,
@@ -835,7 +853,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typeToUnderlying = typeTo.GetEnumUnderlyingType()!;
                 }
 
-                var method = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(DecimalConversionMethod(typeFromUnderlying, typeToUnderlying));
+                if (!TryGetSpecialTypeMethod(syntax, DecimalConversionMethod(typeFromUnderlying, typeToUnderlying), out MethodSymbol method))
+                {
+                    return BadExpression(syntax, rewrittenType, rewrittenOperand);
+                }
+
                 var conversionKind = conversion.Kind.IsImplicitConversion() ? ConversionKind.ImplicitUserDefined : ConversionKind.ExplicitUserDefined;
                 var result = new BoundConversion(syntax, rewrittenOperand, new Conversion(conversionKind, method, false), @checked, explicitCastInCode: explicitCastInCode, conversionGroup, constantValueOpt: null, rewrittenType);
                 return result;
@@ -927,7 +949,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (nonNullValue != null)
             {
                 Debug.Assert(conversion.Method is { });
-                return MakeLiftedUserDefinedConversionConsequence(BoundCall.Synthesized(syntax, receiverOpt: null, conversion.Method, nonNullValue), type);
+                var constrainedToTypeOpt = conversion.ConstrainedToTypeOpt;
+                return MakeLiftedUserDefinedConversionConsequence(BoundCall.Synthesized(syntax, receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, aliasOpt: null, constrainedToTypeOpt), conversion.Method, nonNullValue), type);
             }
 
             return DistributeLiftedConversionIntoLiftedOperand(syntax, operand, conversion, false, type);
@@ -1064,7 +1087,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundReadOnlySpanFromArray(syntax, rewrittenOperand, conversion.Method, rewrittenType) { WasCompilerGenerated = true };
             }
 
-            BoundExpression result = BoundCall.Synthesized(syntax, receiverOpt: null, conversion.Method, rewrittenOperand);
+            var constrainedToTypeOpt = conversion.ConstrainedToTypeOpt;
+            BoundExpression result = BoundCall.Synthesized(syntax, receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, aliasOpt: null, constrainedToTypeOpt), conversion.Method, rewrittenOperand);
             Debug.Assert(TypeSymbol.Equals(result.Type, rewrittenType, TypeCompareKind.ConsiderEverything2));
             return result;
         }
@@ -1134,7 +1158,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // op_Whatever(temp.GetValueOrDefault())
             Debug.Assert(conversion.Method is { });
-            BoundCall userDefinedCall = BoundCall.Synthesized(syntax, receiverOpt: null, conversion.Method, callGetValueOrDefault);
+            var constrainedToTypeOpt = conversion.ConstrainedToTypeOpt;
+            BoundCall userDefinedCall = BoundCall.Synthesized(syntax, receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, aliasOpt: null, constrainedToTypeOpt), conversion.Method, callGetValueOrDefault);
 
             // new R?(op_Whatever(temp.GetValueOrDefault())
             BoundExpression consequence = MakeLiftedUserDefinedConversionConsequence(userDefinedCall, rewrittenType);
@@ -1417,8 +1442,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // call the method
             SpecialMember member = DecimalConversionMethod(fromType, toType);
-            var method = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(member);
-            Debug.Assert((object)method != null); // Should have been checked during Warnings pass
+            if (!TryGetSpecialTypeMethod(syntax, member, out MethodSymbol method))
+            {
+                return BadExpression(syntax, toType, operand);
+            }
 
             if (_inExpressionLambda)
             {
@@ -1465,7 +1492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             // TODO: how do we distinguish from normal and lifted conversions here?
-                            var analysis = UserDefinedConversionAnalysis.Normal(meth, fromConversion, toConversion, fromType, toType);
+                            var analysis = UserDefinedConversionAnalysis.Normal(conversion.ConstrainedToTypeOpt, meth, fromConversion, toConversion, fromType, toType);
                             var result = UserDefinedConversionResult.Valid(ImmutableArray.Create<UserDefinedConversionAnalysis>(analysis), 0);
                             return new Conversion(result, conversion.IsImplicit);
                         }
@@ -1547,6 +1574,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private Conversion TryMakeUserDefinedConversion(SyntaxNode syntax, MethodSymbol meth, TypeSymbol fromType, TypeSymbol toType, bool isImplicit = true)
         {
+            Debug.Assert(!meth.ContainingType.IsInterface);
+
             Conversion fromConversion = TryMakeConversion(syntax, fromType, meth.Parameters[0].Type);
             if (!fromConversion.Exists)
             {
@@ -1560,7 +1589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // TODO: distinguish between normal and lifted conversions here
-            var analysis = UserDefinedConversionAnalysis.Normal(meth, fromConversion, toConversion, fromType, toType);
+            var analysis = UserDefinedConversionAnalysis.Normal(constrainedToTypeOpt: null, meth, fromConversion, toConversion, fromType, toType);
             var result = UserDefinedConversionResult.Valid(ImmutableArray.Create<UserDefinedConversionAnalysis>(analysis), 0);
             return new Conversion(result, isImplicit);
         }

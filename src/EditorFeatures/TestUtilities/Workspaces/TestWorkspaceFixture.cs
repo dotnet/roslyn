@@ -56,10 +56,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        public TestWorkspaceFixture()
-        {
-        }
-
         protected abstract TestWorkspace CreateWorkspace(ExportProvider exportProvider);
 
         public void Dispose()

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -28,7 +26,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => InvokeOnUIThread(cancellationToken => GetDTE().ActiveWindow.Caption);
 
         public IntPtr GetHWnd()
-            => (IntPtr)GetDTE().MainWindow.HWnd;
+            => GetDTE().MainWindow.HWnd;
 
         public bool IsActiveTabProvisional()
             => InvokeOnUIThread(cancellationToken =>

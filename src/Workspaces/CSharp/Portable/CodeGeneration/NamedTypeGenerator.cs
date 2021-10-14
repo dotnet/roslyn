@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return AddMembersTo(destination, members);
         }
 
-        public static NamespaceDeclarationSyntax AddNamedTypeTo(
+        public static BaseNamespaceDeclarationSyntax AddNamedTypeTo(
             ICodeGenerationService service,
-            NamespaceDeclarationSyntax destination,
+            BaseNamespaceDeclarationSyntax destination,
             INamedTypeSymbol namedType,
             CodeGenerationOptions options,
             IList<bool> availableIndices,
@@ -104,6 +104,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             ImmutableArray<ISymbol> members,
             CancellationToken cancellationToken)
         {
+            if (!options.GenerateMembers)
+                members = ImmutableArray<ISymbol>.Empty;
+
             // For a record, add record parameters if we have a primary constructor.
             var primaryConstructor = members.OfType<IMethodSymbol>().FirstOrDefault(m => CodeGenerationConstructorInfo.GetIsPrimaryConstructor(m));
             if (primaryConstructor != null)
@@ -114,8 +117,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 // remove the primary constructor from the list of members to generate.
                 members = members.Remove(primaryConstructor);
 
-                // remove any properties that were created by the primary constructor
-                members = members.WhereAsArray(m => m is not IPropertySymbol property || !primaryConstructor.Parameters.Any(p => p.Name == property.Name));
+                // remove any fields/properties that were created by the primary constructor
+                members = members.WhereAsArray(m => m is not IPropertySymbol and not IFieldSymbol || !primaryConstructor.Parameters.Any(p => p.Name == m.Name));
             }
 
             // remove any implicit overrides to generate.
@@ -123,20 +126,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             // If there are no members, just make a simple record with no body
             if (members.Length == 0)
-            {
-                recordDeclaration = recordDeclaration.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-            }
-            else
-            {
-                // Otherwise, give the record a body.
-                recordDeclaration = recordDeclaration.WithOpenBraceToken(SyntaxFactory.Token(SyntaxKind.OpenBraceToken))
-                                                     .WithCloseBraceToken(SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
-            }
+                return recordDeclaration.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
-            if (options.GenerateMembers)
-                recordDeclaration = service.AddMembers(recordDeclaration, members, options, cancellationToken);
-
-            return recordDeclaration;
+            // Otherwise, give the record a body and add the members to it.
+            recordDeclaration = recordDeclaration.WithOpenBraceToken(SyntaxFactory.Token(SyntaxKind.OpenBraceToken))
+                                                 .WithCloseBraceToken(SyntaxFactory.Token(SyntaxKind.CloseBraceToken))
+                                                 .WithSemicolonToken(default);
+            return service.AddMembers(recordDeclaration, members, options, cancellationToken);
         }
 
         public static MemberDeclarationSyntax UpdateNamedTypeDeclaration(
@@ -170,8 +166,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return ((EnumDeclarationSyntax)declaration).WithMembers(default);
 
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.RecordDeclaration:
                     return ((TypeDeclarationSyntax)declaration).WithMembers(default);
 
                 default:
@@ -196,7 +194,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             TypeDeclarationSyntax typeDeclaration;
             if (namedType.IsRecord)
             {
-                typeDeclaration = SyntaxFactory.RecordDeclaration(SyntaxFactory.Token(SyntaxKind.RecordKeyword), namedType.Name.ToIdentifierToken());
+                var isRecordClass = namedType.TypeKind is TypeKind.Class;
+                var declarationKind = isRecordClass ? SyntaxKind.RecordDeclaration : SyntaxKind.RecordStructDeclaration;
+                var classOrStructKeyword = SyntaxFactory.Token(isRecordClass ? default : SyntaxKind.StructKeyword);
+
+                typeDeclaration = SyntaxFactory.RecordDeclaration(kind: declarationKind, attributeLists: default, modifiers: default,
+                    SyntaxFactory.Token(SyntaxKind.RecordKeyword), classOrStructKeyword, namedType.Name.ToIdentifierToken(),
+                    typeParameterList: null, parameterList: null, baseList: null, constraintClauses: default, openBraceToken: default, members: default, closeBraceToken: default,
+                    SyntaxFactory.Token(SyntaxKind.SemicolonToken));
             }
             else
             {
@@ -264,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
-            var defaultAccessibility = destination == CodeGenerationDestination.CompilationUnit || destination == CodeGenerationDestination.Namespace
+            var defaultAccessibility = destination is CodeGenerationDestination.CompilationUnit or CodeGenerationDestination.Namespace
                 ? Accessibility.Internal
                 : Accessibility.Private;
 

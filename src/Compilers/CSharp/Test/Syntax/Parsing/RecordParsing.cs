@@ -2222,18 +2222,7 @@ class C(int X, int Y)
 : B" + (withBaseArguments ? "(X, Y)" : "") + @"
 " + (withBody ? "{ }" : ";");
 
-            if (!withParameters && withBaseArguments)
-            {
-                UsingTree(text,
-                    // (2,4): error CS8861: Unexpected argument list.
-                    // : B(X, Y)
-                    Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(2, 4)
-                    );
-            }
-            else
-            {
-                UsingTree(text);
-            }
+            UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2550,9 +2539,6 @@ class C(int X, int Y)
         {
             var text = "interface C : B(X, Y);";
             UsingTree(text,
-                // (1,16): error CS8861: Unexpected argument list.
-                // interface C : B(X, Y);
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(1, 16),
                 // (1,22): error CS1003: Syntax error, ',' expected
                 // interface C : B(X, Y);
                 Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";").WithLocation(1, 22),
@@ -2607,6 +2593,1401 @@ class C(int X, int Y)
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_RecordNamedStruct()
+        {
+            var text = "record struct(int X, int Y);";
+            UsingTree(text, options: TestOptions.Regular9,
+                // (1,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // record struct(int X, int Y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(1, 8),
+                // (1,14): error CS1001: Identifier expected
+                // record struct(int X, int Y);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14)
+                );
+            verify();
+
+            UsingTree(text, options: TestOptions.Regular10,
+                // (1,14): error CS1001: Identifier expected
+                // record struct(int X, int Y);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14)
+                );
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.CompilationUnit);
+                {
+                    N(SyntaxKind.RecordStructDeclaration);
+                    {
+                        N(SyntaxKind.RecordKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "X");
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "Y");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.EndOfFileToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing()
+        {
+            var text = "record struct C(int X, int Y);";
+            UsingTree(text, options: TestOptions.Regular10);
+
+            verifyParsedAsRecord();
+
+            UsingTree(text, options: TestOptions.Regular9,
+                // (1,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(1, 8)
+                 );
+
+            verifyParsedAsRecord();
+
+            UsingTree(text, options: TestOptions.Regular8,
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(1, 1),
+                // (1,16): error CS1514: { expected
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 16),
+                // (1,16): error CS1513: } expected
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 16),
+                // (1,16): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int X, int Y);").WithArguments("top-level statements", "9.0").WithLocation(1, 16),
+                // (1,16): error CS8803: Top-level statements must precede namespace and type declarations.
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 16)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "record");
+                    }
+                }
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.TupleExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.DeclarationExpression);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "X");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.DeclarationExpression);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Y");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            void verifyParsedAsRecord()
+            {
+                N(SyntaxKind.CompilationUnit);
+                {
+                    N(SyntaxKind.RecordStructDeclaration);
+                    {
+                        N(SyntaxKind.RecordKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "X");
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "Y");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.EndOfFileToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_WithBody()
+        {
+            var text = "record struct C(int X, int Y) { }";
+            UsingTree(text, options: TestOptions.Regular10);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordStructDeclaration);
+                {
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordClassParsing()
+        {
+            var text = "record class C(int X, int Y);";
+            UsingTree(text, options: TestOptions.Regular10);
+
+            verifyParsedAsRecord();
+
+            UsingTree(text, options: TestOptions.Regular9,
+                // (1,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "class").WithArguments("record structs", "10.0").WithLocation(1, 8)
+                );
+
+            verifyParsedAsRecord();
+
+            UsingTree(text, options: TestOptions.Regular8,
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(1, 1),
+                // (1,15): error CS1514: { expected
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 15),
+                // (1,15): error CS1513: } expected
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 15),
+                // (1,15): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int X, int Y);").WithArguments("top-level statements", "9.0").WithLocation(1, 15),
+                // (1,15): error CS8803: Top-level statements must precede namespace and type declarations.
+                // record class C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 15)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "record");
+                    }
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.TupleExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.DeclarationExpression);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "X");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.DeclarationExpression);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Y");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            void verifyParsedAsRecord()
+            {
+                N(SyntaxKind.CompilationUnit);
+                {
+                    N(SyntaxKind.RecordDeclaration);
+                    {
+                        N(SyntaxKind.RecordKeyword);
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "X");
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "Y");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.EndOfFileToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordInterfaceParsing()
+        {
+            var text = "record interface C(int X, int Y);";
+            UsingTree(text, options: TestOptions.RegularPreview,
+                // (1,8): error CS1001: Identifier expected
+                // record interface C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "interface").WithLocation(1, 8),
+                // (1,8): error CS1514: { expected
+                // record interface C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "interface").WithLocation(1, 8),
+                // (1,8): error CS1513: } expected
+                // record interface C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "interface").WithLocation(1, 8),
+                // (1,19): error CS1514: { expected
+                // record interface C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 19),
+                // (1,19): error CS1513: } expected
+                // record interface C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 19),
+                // (1,19): error CS8803: Top-level statements must precede namespace and type declarations.
+                // record interface C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 19)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordDeclaration);
+                {
+                    N(SyntaxKind.RecordKeyword);
+                    M(SyntaxKind.IdentifierToken);
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.TupleExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.DeclarationExpression);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "X");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.DeclarationExpression);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Y");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordRecordParsing()
+        {
+            var text = "record record C(int X, int Y);";
+            UsingTree(text, options: TestOptions.RegularPreview,
+                // (1,15): error CS1514: { expected
+                // record record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "C").WithLocation(1, 15),
+                // (1,15): error CS1513: } expected
+                // record record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "C").WithLocation(1, 15),
+                // (1,15): error CS8803: Top-level statements must precede namespace and type declarations.
+                // record record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "C(int X, int Y);").WithLocation(1, 15),
+                // (1,17): error CS1525: Invalid expression term 'int'
+                // record record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 17),
+                // (1,21): error CS1003: Syntax error, ',' expected
+                // record record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "X").WithArguments(",", "").WithLocation(1, 21),
+                // (1,24): error CS1525: Invalid expression term 'int'
+                // record record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 24),
+                // (1,28): error CS1003: Syntax error, ',' expected
+                // record record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Y").WithArguments(",", "").WithLocation(1, 28)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordDeclaration);
+                {
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.IdentifierToken, "record");
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "X");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Y");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_WrongOrder()
+        {
+            var text = "struct record C(int X, int Y);";
+            UsingTree(text, options: TestOptions.RegularPreview,
+                // (1,15): error CS1514: { expected
+                // struct record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "C").WithLocation(1, 15),
+                // (1,15): error CS1513: } expected
+                // struct record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "C").WithLocation(1, 15),
+                // (1,15): error CS8803: Top-level statements must precede namespace and type declarations.
+                // struct record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "C(int X, int Y);").WithLocation(1, 15),
+                // (1,17): error CS1525: Invalid expression term 'int'
+                // struct record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 17),
+                // (1,21): error CS1003: Syntax error, ',' expected
+                // struct record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "X").WithArguments(",", "").WithLocation(1, 21),
+                // (1,24): error CS1525: Invalid expression term 'int'
+                // struct record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 24),
+                // (1,28): error CS1003: Syntax error, ',' expected
+                // struct record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Y").WithArguments(",", "").WithLocation(1, 28)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "record");
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "X");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Y");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordClassParsing_WrongOrder()
+        {
+            var text = "class record C(int X, int Y);";
+            UsingTree(text, options: TestOptions.RegularPreview,
+                // (1,14): error CS1514: { expected
+                // class record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "C").WithLocation(1, 14),
+                // (1,14): error CS1513: } expected
+                // class record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "C").WithLocation(1, 14),
+                // (1,14): error CS8803: Top-level statements must precede namespace and type declarations.
+                // class record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "C(int X, int Y);").WithLocation(1, 14),
+                // (1,16): error CS1525: Invalid expression term 'int'
+                // class record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 16),
+                // (1,20): error CS1003: Syntax error, ',' expected
+                // class record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "X").WithArguments(",", "").WithLocation(1, 20),
+                // (1,23): error CS1525: Invalid expression term 'int'
+                // class record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 23),
+                // (1,27): error CS1003: Syntax error, ',' expected
+                // class record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Y").WithArguments(",", "").WithLocation(1, 27)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "record");
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "X");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Y");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordInterfaceParsing_WrongOrder()
+        {
+            var text = "interface record C(int X, int Y);";
+            UsingTree(text, options: TestOptions.RegularPreview,
+                // (1,18): error CS1514: { expected
+                // interface record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "C").WithLocation(1, 18),
+                // (1,18): error CS1513: } expected
+                // interface record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "C").WithLocation(1, 18),
+                // (1,18): error CS8803: Top-level statements must precede namespace and type declarations.
+                // interface record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "C(int X, int Y);").WithLocation(1, 18),
+                // (1,20): error CS1525: Invalid expression term 'int'
+                // interface record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 20),
+                // (1,24): error CS1003: Syntax error, ',' expected
+                // interface record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "X").WithArguments(",", "").WithLocation(1, 24),
+                // (1,27): error CS1525: Invalid expression term 'int'
+                // interface record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 27),
+                // (1,31): error CS1003: Syntax error, ',' expected
+                // interface record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Y").WithArguments(",", "").WithLocation(1, 31)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "record");
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "X");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Y");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_Partial()
+        {
+            var text = "partial record struct S;";
+            UsingTree(text, options: TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordStructDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordClassParsing_Partial()
+        {
+            var text = "partial record class S;";
+            UsingTree(text, options: TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordParsing_Partial()
+        {
+            var text = "partial record S;";
+            UsingTree(text, options: TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_Partial_WithParameterList()
+        {
+            var text = "partial record struct S(int X);";
+            UsingTree(text, options: TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordStructDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_Partial_WithParameterList_AndMembers()
+        {
+            var text = "partial record struct S(int X) { }";
+            UsingTree(text, options: TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordStructDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_Readonly()
+        {
+            var text = "readonly record struct S;";
+            UsingTree(text, options: TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordStructDeclaration);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_ReadonlyPartial()
+        {
+            var text = "readonly partial record struct S;";
+            UsingTree(text, options: TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordStructDeclaration);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_PartialReadonly()
+        {
+            var text = "partial readonly record struct S;";
+            UsingTree(text, options: TestOptions.RegularPreview,
+                // (1,9): error CS1585: Member modifier 'readonly' must precede the member type and name
+                // partial readonly record struct S;
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(1, 9)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "partial");
+                    }
+                }
+                N(SyntaxKind.RecordStructDeclaration);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_New()
+        {
+            var text = "new record struct S;";
+            UsingTree(text, options: TestOptions.RegularPreview,
+                // (1,12): error CS1526: A new expression requires an argument list or (), [], or {} after type
+                // new record struct S;
+                Diagnostic(ErrorCode.ERR_BadNewExpr, "struct").WithLocation(1, 12),
+                // (1,12): error CS1002: ; expected
+                // new record struct S;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 12),
+                // (1,20): error CS1514: { expected
+                // new record struct S;
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 20),
+                // (1,20): error CS1513: } expected
+                // new record struct S;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 20)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "record");
+                            }
+                            M(SyntaxKind.ArgumentList);
+                            {
+                                M(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_Ref()
+        {
+            var text = "ref record struct S;";
+            UsingTree(text, options: TestOptions.RegularPreview);
+
+            verifyParsedAsRecord();
+
+            UsingTree(text, options: TestOptions.Regular8,
+                // (1,5): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // ref record struct S;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(1, 5),
+                // (1,20): error CS1514: { expected
+                // ref record struct S;
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 20),
+                // (1,20): error CS1513: } expected
+                // ref record struct S;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 20)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "record");
+                        }
+                    }
+                }
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            UsingTree(text, options: TestOptions.Regular9,
+                // (1,12): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // ref record struct S;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(1, 12)
+                );
+
+            verifyParsedAsRecord();
+
+            void verifyParsedAsRecord()
+            {
+                N(SyntaxKind.CompilationUnit);
+                {
+                    N(SyntaxKind.RecordStructDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.RecordKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.EndOfFileToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_Const()
+        {
+            var text = "const record struct S;";
+            UsingTree(text, options: TestOptions.RegularPreview,
+                // (1,14): error CS1001: Identifier expected
+                // const record struct S;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(1, 14),
+                // (1,14): error CS0145: A const field requires a value to be provided
+                // const record struct S;
+                Diagnostic(ErrorCode.ERR_ConstValueRequired, "struct").WithLocation(1, 14),
+                // (1,14): error CS1002: ; expected
+                // const record struct S;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 14),
+                // (1,22): error CS1514: { expected
+                // const record struct S;
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 22),
+                // (1,22): error CS1513: } expected
+                // const record struct S;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 22)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.ConstKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "record");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_Fixed()
+        {
+            var text = "fixed record struct S;";
+            UsingTree(text, options: TestOptions.RegularPreview,
+                // (1,14): error CS1001: Identifier expected
+                // fixed record struct S;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(1, 14),
+                // (1,14): error CS1003: Syntax error, '[' expected
+                // fixed record struct S;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "struct").WithArguments("[", "struct").WithLocation(1, 14),
+                // (1,14): error CS1003: Syntax error, ']' expected
+                // fixed record struct S;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "struct").WithArguments("]", "struct").WithLocation(1, 14),
+                // (1,14): error CS0443: Syntax error; value expected
+                // fixed record struct S;
+                Diagnostic(ErrorCode.ERR_ValueExpected, "struct").WithLocation(1, 14),
+                // (1,14): error CS1002: ; expected
+                // fixed record struct S;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 14),
+                // (1,22): error CS1514: { expected
+                // fixed record struct S;
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 22),
+                // (1,22): error CS1513: } expected
+                // fixed record struct S;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 22)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.FixedKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "record");
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.BracketedArgumentList);
+                            {
+                                M(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                }
+                                M(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_BaseListWithParens()
+        {
+            var text = "record struct S : Base(1);";
+            UsingTree(text, options: TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordStructDeclaration);
+                {
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.PrimaryConstructorBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Base");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_BaseListWithParens_WithPositionalParameterList()
+        {
+            var text = "record struct S(int X) : Base(1);";
+            UsingTree(text, options: TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordStructDeclaration);
+                {
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.PrimaryConstructorBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Base");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(51590, "https://github.com/dotnet/roslyn/issues/51590")]
+        public void ParseIncompleteRecordSyntax()
+        {
+            ParseIncompleteSyntax("public sealed record C() { }");
+        }
+
+        [Fact]
+        public void ParseIncompleteRecordStructSyntax()
+        {
+            ParseIncompleteSyntax("public sealed record struct C() { }");
         }
     }
 }

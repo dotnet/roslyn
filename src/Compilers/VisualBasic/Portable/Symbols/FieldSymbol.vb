@@ -428,6 +428,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IFieldSymbol_FixedSize As Integer Implements IFieldSymbol.FixedSize
+            Get
+                Return 0
+            End Get
+        End Property
+
         Private ReadOnly Property IFieldSymbol_Type As ITypeSymbol Implements IFieldSymbol.Type
             Get
                 Return Me.Type
@@ -467,6 +473,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IFieldSymbol_CorrespondingTupleField As IFieldSymbol Implements IFieldSymbol.CorrespondingTupleField
             Get
                 Return Me.CorrespondingTupleField
+            End Get
+        End Property
+
+        Private ReadOnly Property IFieldSymbol_HasExplicitTupleElementName As Boolean Implements IFieldSymbol.IsExplicitlyNamedTupleElement
+            Get
+                Return Not Me.IsImplicitlyDeclared
             End Get
         End Property
 

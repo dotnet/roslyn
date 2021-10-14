@@ -927,7 +927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' True iff this type or some containing type has type parameters.
+        ''' True if and only if this type or some containing type has type parameters.
         ''' </summary>
         Public ReadOnly Property IsGenericType As Boolean Implements INamedTypeSymbol.IsGenericType
             Get

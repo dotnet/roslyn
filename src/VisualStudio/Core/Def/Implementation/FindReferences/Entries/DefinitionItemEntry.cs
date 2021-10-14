@@ -20,16 +20,22 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// </summary>
         private class DefinitionItemEntry : AbstractDocumentSpanEntry
         {
+            private readonly string _projectName;
+
             public DefinitionItemEntry(
                 AbstractTableDataSourceFindUsagesContext context,
                 RoslynDefinitionBucket definitionBucket,
-                string documentName,
+                string projectName,
                 Guid projectGuid,
                 SourceText lineText,
                 MappedSpanResult mappedSpanResult)
-                : base(context, definitionBucket, documentName, projectGuid, lineText, mappedSpanResult)
+                : base(context, definitionBucket, projectGuid, lineText, mappedSpanResult)
             {
+                _projectName = projectName;
             }
+
+            protected override string GetProjectName()
+                => _projectName;
 
             protected override IList<Inline> CreateLineTextInlines()
                 => DefinitionBucket.DefinitionItem.DisplayParts.ToInlines(Presenter.ClassificationFormatMap, Presenter.TypeMap);

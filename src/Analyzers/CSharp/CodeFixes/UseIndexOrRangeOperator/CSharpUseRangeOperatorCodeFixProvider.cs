@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -29,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     using static Helpers;
     using static SyntaxFactory;
 
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseRangeOperator), Shared]
     internal class CSharpUseRangeOperatorCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -75,21 +73,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             SyntaxGenerator generator,
             CancellationToken cancellationToken)
         {
-            if (semanticModel.GetOperation(currentInvocation, cancellationToken) is IInvocationOperation invocation)
+            if (semanticModel.GetOperation(currentInvocation, cancellationToken) is IInvocationOperation invocation &&
+                InfoCache.TryCreate(semanticModel.Compilation, out var infoCache) &&
+                AnalyzeInvocation(invocation, infoCache) is { } result)
             {
-                var infoCache = new InfoCache(semanticModel.Compilation);
-                var resultOpt = AnalyzeInvocation(
-                    invocation, infoCache, analyzerOptionsOpt: null, cancellationToken);
-
-                if (resultOpt != null)
-                {
-                    var result = resultOpt.Value;
-                    var updatedNode = FixOne(result, generator);
-                    if (updatedNode != null)
-                    {
-                        return currentRoot.ReplaceNode(result.Invocation, updatedNode);
-                    }
-                }
+                var updatedNode = FixOne(result, generator);
+                if (updatedNode != null)
+                    return currentRoot.ReplaceNode(result.Invocation, updatedNode);
             }
 
             return currentRoot;
@@ -158,6 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
             var lengthLikeProperty = result.MemberInfo.LengthLikeProperty;
             var instance = result.InvocationOperation.Instance;
+            Contract.ThrowIfNull(instance);
 
             // If our start-op is actually equivalent to `expr.Length - val`, then just change our
             // start-op to be `val` and record that we should emit it as `^val`.
@@ -165,9 +156,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             var startExpr = (ExpressionSyntax)startOperation.Syntax;
 
             var endFromEnd = false;
-            ExpressionSyntax endExpr = null;
+            ExpressionSyntax? endExpr = null;
 
-            if (!(endOperation is null))
+            if (endOperation is not null)
             {
                 // We need to do the same for the second argument, since it's present.
                 // Similarly, if our end-op is actually equivalent to `expr.Length - val`, then just
@@ -177,9 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 // Check if the range goes to 'expr.Length'; if it does, we leave off
                 // the end part of the range, i.e. `start..`.
                 if (!IsInstanceLengthCheck(lengthLikeProperty, instance, endOperation))
-                {
                     endExpr = (ExpressionSyntax)endOperation.Syntax;
-                }
             }
 
             // If we're starting the range operation from 0, then we can just leave off the start of
@@ -202,6 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             // the form is s.Slice(constant1, s.Length - constant2).  Want to generate
             // s[constant1..(constant2-constant1)]
             var constant1 = GetInt32Value(result.Op1);
+
+            Contract.ThrowIfNull(result.Op2);
             var constant2 = GetInt32Value(result.Op2);
 
             var endExpr = (ExpressionSyntax)generator.LiteralExpression(constant2 - constant1);
@@ -211,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         }
 
         private static int GetInt32Value(IOperation operation)
-            => (int)operation.ConstantValue.Value;
+            => (int)operation.ConstantValue.Value!; // Safe as we already confirmed this was an int when making the result.
 
         /// <summary>
         /// check if its the form: `expr.Length - value`.  If so, update rangeOperation to then

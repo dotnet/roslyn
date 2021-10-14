@@ -51,6 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         public override async Task<BraceCompletionResult?> GetTextChangesAfterCompletionAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken)
         {
+            var documentOptions = await braceCompletionContext.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
             // After the closing brace is completed we need to format the span from the opening point to the closing point.
             // E.g. when the user triggers completion for an if statement ($$ is the caret location) we insert braces to get
             // if (true){$$}
@@ -63,6 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 shouldHonorAutoFormattingOnCloseBraceOption: true,
                 // We're not trying to format the indented block here, so no need to pass in additional rules.
                 braceFormattingIndentationRules: ImmutableArray<AbstractFormattingRule>.Empty,
+                documentOptions,
                 cancellationToken).ConfigureAwait(false);
 
             if (formattingChanges.IsEmpty)
@@ -78,13 +81,15 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             return new BraceCompletionResult(formattingChanges, caretLocation);
         }
 
-        public override async Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(BraceCompletionContext context, CancellationToken cancellationToken)
+        public override async Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(
+            BraceCompletionContext context,
+            DocumentOptionSet documentOptions,
+            CancellationToken cancellationToken)
         {
             var document = context.Document;
             var closingPoint = context.ClosingPoint;
             var openingPoint = context.OpeningPoint;
             var originalDocumentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             // check whether shape of the braces are what we support
             // shape must be either "{|}" or "{ }". | is where caret is. otherwise, we don't do any special behavior
@@ -123,6 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 closingPoint,
                 shouldHonorAutoFormattingOnCloseBraceOption: false,
                 braceFormattingIndentationRules: GetBraceIndentationFormattingRules(documentOptions),
+                documentOptions,
                 cancellationToken).ConfigureAwait(false);
             closingPoint = newClosingPoint;
             var formattedText = textToFormat.WithChanges(formattingChanges);
@@ -233,6 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             int closingPoint,
             bool shouldHonorAutoFormattingOnCloseBraceOption,
             ImmutableArray<AbstractFormattingRule> braceFormattingIndentationRules,
+            DocumentOptionSet documentOptions,
             CancellationToken cancellationToken)
         {
             var option = document.Project.Solution.Options.GetOption(BraceCompletionOptions.AutoFormattingOnCloseBrace, document.Project.Language);
@@ -268,7 +275,6 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 }
             }
 
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var style = documentOptions.GetOption(FormattingOptions.SmartIndent);
             if (style == FormattingOptions.IndentStyle.Smart)
             {
@@ -290,7 +296,8 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
             var spanToFormat = TextSpan.FromBounds(Math.Max(startPoint, 0), endPoint);
             var rules = document.GetFormattingRules(spanToFormat, braceFormattingIndentationRules);
-            var result = Formatter.GetFormattingResult(root, SpecializedCollections.SingletonEnumerable(spanToFormat), document.Project.Solution.Workspace, documentOptions, rules, cancellationToken);
+            var result = Formatter.GetFormattingResult(
+                root, SpecializedCollections.SingletonEnumerable(spanToFormat), document.Project.Solution.Workspace, documentOptions, rules, cancellationToken);
             if (result == null)
             {
                 return (ImmutableArray<TextChange>.Empty, closingPoint);

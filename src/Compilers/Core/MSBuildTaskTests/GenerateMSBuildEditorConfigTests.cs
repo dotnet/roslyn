@@ -7,10 +7,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -94,6 +96,35 @@ build_metadata.Compile.ToRetrieve = def456
 
 [c:/file3.cs]
 build_metadata.AdditionalFiles.ToRetrieve = ghi789
+", result);
+        }
+
+        [Fact]
+        [WorkItem(52469, "https://github.com/dotnet/roslyn/issues/52469")]
+        public void MultipleSpecialCharacterItemMetaDataCreatesSections()
+        {
+            ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:/{f*i?le1}.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
+            ITaskItem item2 = MSBuildUtil.CreateTaskItem("c:/f,ile#2.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "def456" } });
+            ITaskItem item3 = MSBuildUtil.CreateTaskItem("c:/f;i!le[3].cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "ghi789" } });
+
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
+            {
+                MetadataItems = new[] { item1, item2, item3 }
+            };
+            configTask.Execute();
+
+            var result = configTask.ConfigFileContents;
+
+            Assert.Equal(@"is_global = true
+
+[c:/\{f\*i\?le1\}.cs]
+build_metadata.Compile.ToRetrieve = abc123
+
+[c:/f\,ile\#2.cs]
+build_metadata.Compile.ToRetrieve = def456
+
+[c:/f\;i\!le\[3\].cs]
+build_metadata.Compile.ToRetrieve = ghi789
 ", result);
         }
 
@@ -321,6 +352,31 @@ build_property.Property2 = def456
 [c:/file1.cs]
 build_metadata.Compile.ToRetrieve = abc123
 ", result);
+        }
+
+        [Fact]
+        public void ConfigFileCanBeWrittenToDisk()
+        {
+            ITaskItem property1 = MSBuildUtil.CreateTaskItem("Property1", new Dictionary<string, string> { { "Value", "abc123" } });
+            ITaskItem property2 = MSBuildUtil.CreateTaskItem("Property2", new Dictionary<string, string> { { "Value", "def456" } });
+
+            var fileName = Path.Combine(TempRoot.Root, "ConfigFileCanBeWrittenToDisk.GenerateMSBuildEditorConfig.editorconfig");
+
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
+            {
+                PropertyItems = new[] { property1, property2 },
+                FileName = new TaskItem(fileName)
+            };
+            configTask.Execute();
+
+            var expectedContents = @"is_global = true
+build_property.Property1 = abc123
+build_property.Property2 = def456
+";
+
+            Assert.True(File.Exists(fileName));
+            Assert.True(configTask.WriteMSBuildEditorConfig());
+            Assert.Equal(expectedContents, File.ReadAllText(fileName));
         }
     }
 }

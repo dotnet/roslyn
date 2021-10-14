@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -16,6 +17,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
 {
     public class WorkspaceSymbolsTests : AbstractLanguageServerProtocolTests
     {
+        private static void AssertSetEquals(LSP.SymbolInformation[] expected, LSP.SymbolInformation[]? results)
+            => Assert.True(expected.ToHashSet().SetEquals(results));
+
         [Fact]
         public async Task TestGetWorkspaceSymbolsAsync_Class()
         {
@@ -33,7 +37,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             };
 
             var results = await RunGetWorkspaceSymbolsAsync(testLspServer, "A").ConfigureAwait(false);
-            AssertJsonEquals(expected, results);
+            AssertSetEquals(expected, results);
         }
 
         [Fact]
@@ -59,8 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             Assert.Null(results);
 
             results = progress.GetValues().ToArray();
-
-            AssertJsonEquals(expected, results);
+            AssertSetEquals(expected, results);
         }
 
         [Fact]
@@ -80,7 +83,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             };
 
             var results = await RunGetWorkspaceSymbolsAsync(testLspServer, "M").ConfigureAwait(false);
-            AssertJsonEquals(expected, results);
+            AssertSetEquals(expected, results);
         }
 
         [Fact(Skip = "GetWorkspaceSymbolsAsync does not yet support locals.")]
@@ -103,7 +106,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             };
 
             var results = await RunGetWorkspaceSymbolsAsync(testLspServer, "i").ConfigureAwait(false);
-            AssertJsonEquals(expected, results);
+            AssertSetEquals(expected, results);
         }
 
         [Fact]
@@ -131,7 +134,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             };
 
             var results = await RunGetWorkspaceSymbolsAsync(testLspServer, "F").ConfigureAwait(false);
-            AssertJsonEquals(expected, results);
+            AssertSetEquals(expected, results);
         }
 
         [Fact]
@@ -161,7 +164,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             };
 
             var results = await RunGetWorkspaceSymbolsAsync(testLspServer, "M").ConfigureAwait(false);
-            AssertJsonEquals(expected, results);
+            AssertSetEquals(expected, results);
         }
 
         [Fact]
@@ -195,10 +198,10 @@ End Class";
             };
 
             var results = await RunGetWorkspaceSymbolsAsync(testLspServer, "A").ConfigureAwait(false);
-            AssertJsonEquals(expected, results);
+            AssertSetEquals(expected, results);
         }
 
-        private static async Task<LSP.SymbolInformation[]> RunGetWorkspaceSymbolsAsync(TestLspServer testLspServer, string query, IProgress<LSP.SymbolInformation[]>? progress = null)
+        private static Task<LSP.SymbolInformation[]?> RunGetWorkspaceSymbolsAsync(TestLspServer testLspServer, string query, IProgress<LSP.SymbolInformation[]>? progress = null)
         {
             var request = new LSP.WorkspaceSymbolParams
             {
@@ -206,7 +209,7 @@ End Class";
                 PartialResultToken = progress
             };
 
-            return await testLspServer.ExecuteRequestAsync<LSP.WorkspaceSymbolParams, LSP.SymbolInformation[]>(LSP.Methods.WorkspaceSymbolName,
+            return testLspServer.ExecuteRequestAsync<LSP.WorkspaceSymbolParams, LSP.SymbolInformation[]>(LSP.Methods.WorkspaceSymbolName,
                 request, new LSP.ClientCapabilities(), null, CancellationToken.None);
         }
 

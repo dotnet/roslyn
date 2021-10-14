@@ -29,6 +29,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         public static bool IsCompletionItemStartCharacter(char ch)
             => ch == '@' || IsWordCharacter(ch);
 
+        public static bool TreatAsDot(SyntaxToken token, int characterPosition)
+        {
+            if (token.Kind() == SyntaxKind.DotToken)
+                return true;
+
+            // if we're right after the first dot in .. then that's considered completion on dot.
+            if (token.Kind() == SyntaxKind.DotDotToken && token.SpanStart == characterPosition)
+                return true;
+
+            return false;
+        }
+
         internal static bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
             var ch = text[characterPosition];
@@ -74,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             => IsArgumentListCharacter(text[characterPosition]);
 
         internal static bool IsArgumentListCharacter(char ch)
-            => ch == '(' || ch == '[' || ch == ' ';
+            => ch is '(' or '[' or ' ';
 
         internal static bool IsTriggerAfterSpaceOrStartOfWordCharacter(SourceText text, int characterPosition, OptionSet options)
         {

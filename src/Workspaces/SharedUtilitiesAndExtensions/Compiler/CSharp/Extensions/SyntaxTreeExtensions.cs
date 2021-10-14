@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -15,22 +14,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class SyntaxTreeExtensions
     {
-        public static ISet<SyntaxKind> GetPrecedingModifiers(
-            this SyntaxTree syntaxTree,
-            int position,
-            SyntaxToken tokenOnLeftOfPosition)
-            => syntaxTree.GetPrecedingModifiers(position, tokenOnLeftOfPosition, out var _);
+        public static ISet<SyntaxKind> GetPrecedingModifiers(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+            => syntaxTree.GetPrecedingModifiers(position, cancellationToken, out _);
 
         public static ISet<SyntaxKind> GetPrecedingModifiers(
 #pragma warning disable IDE0060 // Remove unused parameter - Unused this parameter for consistency with other extension methods.
             this SyntaxTree syntaxTree,
 #pragma warning restore IDE0060 // Remove unused parameter
             int position,
-            SyntaxToken tokenOnLeftOfPosition,
+            CancellationToken cancellationToken,
             out int positionBeforeModifiers)
         {
-            var token = tokenOnLeftOfPosition;
-            token = token.GetPreviousTokenIfTouchingWord(position);
+            positionBeforeModifiers = position;
+            var tokenOnLeftOfPosition = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
             var result = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer);
             while (true)
@@ -56,19 +53,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.OutKeyword:
                     case SyntaxKind.InKeyword:
                         result.Add(token.Kind());
+                        positionBeforeModifiers = token.FullSpan.Start;
                         token = token.GetPreviousToken(includeSkipped: true);
                         continue;
                     case SyntaxKind.IdentifierToken:
                         if (token.HasMatchingText(SyntaxKind.AsyncKeyword))
                         {
                             result.Add(SyntaxKind.AsyncKeyword);
-                            token = token.GetPreviousToken(includeSkipped: true);
-                            continue;
-                        }
-
-                        if (token.HasMatchingText(SyntaxKind.DataKeyword))
-                        {
-                            result.Add(SyntaxKind.DataKeyword);
+                            positionBeforeModifiers = token.FullSpan.Start;
                             token = token.GetPreviousToken(includeSkipped: true);
                             continue;
                         }
@@ -79,17 +71,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 break;
             }
 
-            positionBeforeModifiers = token.FullSpan.End;
             return result;
         }
 
-        public static TypeDeclarationSyntax GetContainingTypeDeclaration(
+        public static TypeDeclarationSyntax? GetContainingTypeDeclaration(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             return syntaxTree.GetContainingTypeDeclarations(position, cancellationToken).FirstOrDefault();
         }
 
-        public static BaseTypeDeclarationSyntax GetContainingTypeOrEnumDeclaration(
+        public static BaseTypeDeclarationSyntax? GetContainingTypeOrEnumDeclaration(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             return syntaxTree.GetContainingTypeOrEnumDeclarations(position, cancellationToken).FirstOrDefault();
@@ -129,9 +120,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return token.GetAncestors<BaseTypeDeclarationSyntax>().Where(t => BaseTypeDeclarationContainsPosition(t, position));
         }
 
-        private static readonly Func<SyntaxKind, bool> s_isDotOrArrow = k => k == SyntaxKind.DotToken || k == SyntaxKind.MinusGreaterThanToken;
+        private static readonly Func<SyntaxKind, bool> s_isDotOrArrow = k => k is SyntaxKind.DotToken or SyntaxKind.MinusGreaterThanToken;
         private static readonly Func<SyntaxKind, bool> s_isDotOrArrowOrColonColon =
-            k => k == SyntaxKind.DotToken || k == SyntaxKind.MinusGreaterThanToken || k == SyntaxKind.ColonColonToken;
+            k => k is SyntaxKind.DotToken or SyntaxKind.MinusGreaterThanToken or SyntaxKind.ColonColonToken;
 
         public static bool IsRightOfDotOrArrowOrColonColon(this SyntaxTree syntaxTree, int position, SyntaxToken targetToken, CancellationToken cancellationToken)
         {

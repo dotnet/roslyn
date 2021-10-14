@@ -255,15 +255,15 @@ class D
             var comp = CreateCompilationWithFunctionPointersAndIl(source, il);
 
             comp.VerifyDiagnostics(
-                // (6,26): error CS0570: 'delegate*<int>' is not supported by the language
+                // (6,26): error CS0570: 'delegate*<ref int>' is not supported by the language
                 //         ref int i1 = ref c.Field1();
-                Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field1()").WithArguments("delegate*<int>").WithLocation(6, 26),
+                Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field1()").WithArguments("delegate*<ref int>").WithLocation(6, 26),
                 // (6,28): error CS0570: 'C.Field1' is not supported by the language
                 //         ref int i1 = ref c.Field1();
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(6, 28),
-                // (7,26): error CS0570: 'delegate*<int>' is not supported by the language
+                // (7,26): error CS0570: 'delegate*<ref int>' is not supported by the language
                 //         ref int i2 = ref c.Field2();
-                Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field2()").WithArguments("delegate*<int>").WithLocation(7, 26),
+                Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field2()").WithArguments("delegate*<ref int>").WithLocation(7, 26),
                 // (7,28): error CS0570: 'C.Field2' is not supported by the language
                 //         ref int i2 = ref c.Field2();
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field2").WithArguments("C.Field2").WithLocation(7, 28),
@@ -1276,7 +1276,7 @@ unsafe
 {{
   // Code size       12 (0xc)
   .maxstack  1
-  IL_0000:  ldftn      ""void <Program>$.<<Main>$>g__M|0_0()""
+  IL_0000:  ldftn      ""void Program.<<Main>$>g__M|0_0()""
   IL_0006:  calli      ""delegate* unmanaged{delegateConventionString}<void>""
   IL_000b:  ret
 }}
@@ -1511,7 +1511,7 @@ unsafe struct S
 }
 ", UnmanagedCallersOnlyAttribute }, expectedOutput: "15", targetFramework: TargetFramework.NetCoreApp);
 
-            verifier.VerifyIL(@"<Program>$.<<Main>$>g__TestSingle|0_0()", @"
+            verifier.VerifyIL(@"Program.<<Main>$>g__TestSingle|0_0()", @"
 {
   // Code size       38 (0x26)
   .maxstack  2
@@ -1533,7 +1533,7 @@ unsafe struct S
 }
 ");
 
-            verifier.VerifyIL(@"<Program>$.<<Main>$>g__TestMultiple|0_1()", @"
+            verifier.VerifyIL(@"Program.<<Main>$>g__TestMultiple|0_1()", @"
 {
   // Code size       39 (0x27)
   .maxstack  3
@@ -3223,18 +3223,18 @@ unsafe class C
                 // (26,36): error CS8758: Ref mismatch between 'C.M6()' and function pointer 'delegate*<object>'
                 //         delegate*<object> ptr14 = &M6;
                 Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M6").WithArguments("C.M6()", "delegate*<object>").WithLocation(26, 36),
-                // (27,40): error CS8758: Ref mismatch between 'C.M6()' and function pointer 'delegate*<object>'
+                // (27,40): error CS8758: Ref mismatch between 'C.M6()' and function pointer 'delegate*<ref object>'
                 //         delegate*<ref object> ptr15 = &M6;
-                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M6").WithArguments("C.M6()", "delegate*<object>").WithLocation(27, 40),
-                // (28,40): error CS8758: Ref mismatch between 'C.M7()' and function pointer 'delegate*<object>'
+                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M6").WithArguments("C.M6()", "delegate*<ref object>").WithLocation(27, 40),
+                // (28,40): error CS8758: Ref mismatch between 'C.M7()' and function pointer 'delegate*<ref object>'
                 //         delegate*<ref object> ptr16 = &M7;
-                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M7").WithArguments("C.M7()", "delegate*<object>").WithLocation(28, 40),
-                // (29,49): error CS8758: Ref mismatch between 'C.M5()' and function pointer 'delegate*<object>'
+                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M7").WithArguments("C.M7()", "delegate*<ref object>").WithLocation(28, 40),
+                // (29,49): error CS8758: Ref mismatch between 'C.M5()' and function pointer 'delegate*<ref readonly object>'
                 //         delegate*<ref readonly object> ptr17 = &M5;
-                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M5").WithArguments("C.M5()", "delegate*<object>").WithLocation(29, 49),
-                // (30,49): error CS8758: Ref mismatch between 'C.M7()' and function pointer 'delegate*<object>'
+                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M5").WithArguments("C.M5()", "delegate*<ref readonly object>").WithLocation(29, 49),
+                // (30,49): error CS8758: Ref mismatch between 'C.M7()' and function pointer 'delegate*<ref readonly object>'
                 //         delegate*<ref readonly object> ptr18 = &M7;
-                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M7").WithArguments("C.M7()", "delegate*<object>").WithLocation(30, 49)
+                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M7").WithArguments("C.M7()", "delegate*<ref readonly object>").WithLocation(30, 49)
             );
         }
 
@@ -5314,7 +5314,7 @@ unsafe class C
     }
 }");
 
-            verifier.VerifyIL(@"C.M<T>(delegate*<T>, delegate*<T>)", @"
+            verifier.VerifyIL(@"C.M<T>(delegate*<ref T>, delegate*<T>)", @"
 {
   // Code size       34 (0x22)
   .maxstack  1
@@ -6321,10 +6321,10 @@ unsafe class Derived : Base
             comp.VerifyDiagnostics(
                 // (9,29): error CS0115: 'Derived.M1(delegate*<{refKind2} string>)': no suitable method found to override
                 //     protected override void M1(delegate*<{refKind2} string> ptr) {}
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments($"Derived.M1(delegate*<string>)").WithLocation(9, 29),
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments($"Derived.M1(delegate*<{(string.IsNullOrWhiteSpace(refKind2) ? "" : refKind2)}string>)").WithLocation(9, 29),
                 // (10,49): error CS0508: 'Derived.M2()': return type must be 'delegate*<{refKind1} string>' to match overridden member 'Base.M2()'
                 //     protected override delegate*<{refKind2} string> M2() => throw null;
-                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()", $"delegate*<string>").WithLocation(10, 42 + refKind2.Length)
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()", $"delegate*<{(string.IsNullOrWhiteSpace(refKind1) ? "" : refKind1)}string>").WithLocation(10, 42 + refKind2.Length)
             );
         }
 
@@ -7078,12 +7078,12 @@ unsafe public class C
                 // (18,32): warning CS8619: Nullability of reference types in value of type 'string' doesn't match target type 'string?'.
                 //         ref string? str3 = ref ptr1(ref str2);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1(ref str2)").WithArguments("string", "string?").WithLocation(18, 32),
-                // (19,51): warning CS8619: Nullability of reference types in value of type 'delegate*<ref string, string>' doesn't match target type 'delegate*<ref string?, string>'.
+                // (19,51): warning CS8619: Nullability of reference types in value of type 'delegate*<ref string, ref string>' doesn't match target type 'delegate*<ref string?, ref string>'.
                 //         delegate*<ref string?, ref string> ptr2 = ptr1;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1").WithArguments("delegate*<ref string, string>", "delegate*<ref string?, string>").WithLocation(19, 51),
-                // (20,51): warning CS8619: Nullability of reference types in value of type 'delegate*<ref string, string>' doesn't match target type 'delegate*<ref string, string?>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1").WithArguments("delegate*<ref string, ref string>", "delegate*<ref string?, ref string>").WithLocation(19, 51),
+                // (20,51): warning CS8619: Nullability of reference types in value of type 'delegate*<ref string, ref string>' doesn't match target type 'delegate*<ref string, ref string?>'.
                 //         delegate*<ref string, ref string?> ptr3 = ptr1;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1").WithArguments("delegate*<ref string, string>", "delegate*<ref string, string?>").WithLocation(20, 51)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1").WithArguments("delegate*<ref string, ref string>", "delegate*<ref string, ref string?>").WithLocation(20, 51)
             );
         }
 
@@ -7787,10 +7787,10 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (6,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (6,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(6, 6),
-                // (11,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (11,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //         [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(11, 10)
             );
@@ -8688,6 +8688,91 @@ class D
         }
 
         [Fact]
+        [WorkItem(54113, "https://github.com/dotnet/roslyn/issues/54113")]
+        public void UnmanagedCallersOnlyDefinedOnConversion()
+        {
+            var il = UnmanagedCallersOnlyAttributeIl + @"
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname static 
+        int32 op_Implicit (
+            class C i
+        ) cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+
+        IL_0000: ldc.i4.0
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+";
+            var comp = CreateCompilationWithIL(@"
+class Test
+{
+    void M(C x)
+    {
+        _ = (int)x;
+    }
+}
+", il);
+
+            comp.VerifyDiagnostics(
+                    // (6,13): error CS0570: 'C.implicit operator int(C)' is not supported by the language
+                    //         _ = (int)x;
+                    Diagnostic(ErrorCode.ERR_BindToBogus, "(int)x").WithArguments("C.implicit operator int(C)").WithLocation(6, 13)
+            );
+        }
+
+        [Fact]
+        [WorkItem(54113, "https://github.com/dotnet/roslyn/issues/54113")]
+        public void UnmanagedCallersOnlyDefinedOnConversion_InSource()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C1
+{
+    [UnmanagedCallersOnly]
+    public static implicit operator int(C1 c) => throw null;
+}
+class C2
+{
+    [UnmanagedCallersOnly]
+    public static explicit operator int(C2 c) => throw null;
+}
+class Test
+{
+    void M(C1 x, C2 y)
+    {
+        _ = (int)x;
+        _ = (int)y;
+    }
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(5, 6),
+                // (10,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(10, 6)
+            );
+        }
+
+        [Fact]
         public void UnmanagedCallersOnlyDefinedOnProperty_InSource()
         {
             var comp = CreateCompilation(new[] { @"
@@ -8708,10 +8793,10 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //         [UnmanagedCallersOnly] get => throw null;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 10),
-                // (8,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (8,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //         [UnmanagedCallersOnly] set => throw null;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(8, 10)
             );
@@ -8793,7 +8878,7 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (5,28): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (5,28): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     static int Prop { [UnmanagedCallersOnly] get {} }
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(5, 28)
             );
@@ -8933,10 +9018,10 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //         [UnmanagedCallersOnly] set => throw null;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 10),
-                // (8,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (8,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //         [UnmanagedCallersOnly] get => throw null;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(8, 10)
             );
@@ -9014,7 +9099,7 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(5, 6)
             );
@@ -9076,7 +9161,7 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(5, 6)
             );
@@ -9214,7 +9299,7 @@ public static class CExt
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (12,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (12,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(12, 6)
             );
@@ -9246,7 +9331,7 @@ public static class CExt
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (14,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (14,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(14, 6)
             );
@@ -9745,7 +9830,7 @@ namespace System.Runtime.InteropServices
                 // (7,10): error CS8893: 'UnmanagedCallersOnlyAttribute' is not a valid calling convention type for 'UnmanagedCallersOnly'.
                 //         [UnmanagedCallersOnly(CallConvs = new[] { typeof(UnmanagedCallersOnlyAttribute) })]
                 Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new[] { typeof(UnmanagedCallersOnlyAttribute) })").WithArguments("System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute").WithLocation(7, 10),
-                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //         [UnmanagedCallersOnly(CallConvs = new[] { typeof(UnmanagedCallersOnlyAttribute) })]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 10)
             );
@@ -9790,55 +9875,28 @@ class A
             );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/47125")]
+        [Fact]
+        [WorkItem(47125, "https://github.com/dotnet/roslyn/issues/47125")]
         public void UnmanagedCallersOnlyWithLoopInUsage_3()
         {
-            // Remove UnmanagedCallersOnlyWithLoopInUsage_3_Release when
-            // this is unskipped.
-
             var comp = CreateCompilation(new[] { @"
 #nullable enable
-using System.Runtime.InteropServices;
-class C
-{
-    [UnmanagedCallersOnly(CallConvs = F())]
-    static Type[] F() { }
-}
-", UnmanagedCallersOnlyAttribute });
-
-            comp.VerifyDiagnostics(
-            );
-        }
-
-        [ConditionalFact(typeof(IsRelease))]
-        public void UnmanagedCallersOnlyWithLoopInUsage_3_Release()
-        {
-            // The bug in UnmanagedCallersOnlyWithLoopInUsage_3 is only
-            // triggered by the nullablewalker, which is unconditionally
-            // run in debug mode. We also want to verify the use-site
-            // diagnostic for unmanagedcallersonly does not cause a loop,
-            // so we have a separate version that does not have nullable
-            // enabled and only runs in release to verify. When
-            // https://github.com/dotnet/roslyn/issues/47125 is fixed, this
-            // test can be removed
-
-            var comp = CreateCompilation(new[] { @"
 using System;
 using System.Runtime.InteropServices;
 class C
 {
     [UnmanagedCallersOnly(CallConvs = F())]
-    static Type[] F() => null;
+    static Type[] F() { throw null!; }
 }
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (6,39): error CS8901: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                // (7,39): error CS8901: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //     [UnmanagedCallersOnly(CallConvs = F())]
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "F()").WithArguments("C.F()").WithLocation(6, 39),
-                // (6,39): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "F()").WithArguments("C.F()").WithLocation(7, 39),
+                // (7,39): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [UnmanagedCallersOnly(CallConvs = F())]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F()").WithLocation(6, 39)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F()").WithLocation(7, 39)
             );
         }
 
@@ -9870,50 +9928,10 @@ unsafe class C
             );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/47125")]
+        [Fact]
+        [WorkItem(47125, "https://github.com/dotnet/roslyn/issues/47125")]
         public void UnmanagedCallersOnlyWithLoopInUsage_5()
         {
-            var comp = CreateCompilationWithFunctionPointers(new[] { @"
-using System;
-using System.Runtime.InteropServices;
-[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-class Attr : Attribute
-{
-    public Attr(int i) {}
-}
-unsafe class C
-{
-    [UnmanagedCallersOnly]
-    [Attr(F())]
-    static int F()
-    {
-        return 0;
-    }
-}
-", UnmanagedCallersOnlyAttribute });
-
-            comp.VerifyDiagnostics(
-                // (12,11): error CS8901: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
-                //     [Attr(F())]
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "F()", isSuppressed: false).WithArguments("C.F()").WithLocation(12, 11),
-                // (12,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                //     [Attr(F())]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F()", isSuppressed: false).WithLocation(12, 11)
-            );
-        }
-
-        [ConditionalFact(typeof(IsRelease))]
-        public void UnmanagedCallersOnlyWithLoopInUsage_5_Release()
-        {
-            // The bug in UnmanagedCallersOnlyWithLoopInUsage_5 is only
-            // triggered by the nullablewalker, which is unconditionally
-            // run in debug mode. We also want to verify the use-site
-            // diagnostic for unmanagedcallersonly does not cause a loop,
-            // so we have a separate version that does not have nullable
-            // enabled and only runs in release to verify. When
-            // https://github.com/dotnet/roslyn/issues/47125 is fixed, this
-            // test can be removed
-
             var comp = CreateCompilationWithFunctionPointers(new[] { @"
 using System;
 using System.Runtime.InteropServices;
@@ -10575,7 +10593,7 @@ static void M()
 {
   // Code size       12 (0xc)
   .maxstack  1
-  IL_0000:  ldftn      ""void <Program>$.<<Main>$>g__M|0_0()""
+  IL_0000:  ldftn      ""void Program.<<Main>$>g__M|0_0()""
   IL_0006:  calli      ""delegate* unmanaged<void>""
   IL_000b:  ret
 }
@@ -10693,7 +10711,7 @@ static void Test(in int b, ref char c)
   .locals init (char V_0, //c
                 delegate*<in int, ref char, void> V_1,
                 int V_2)
-  IL_0000:  ldftn      ""void <Program>$.<<Main>$>g__Test|0_0(in int, ref char)""
+  IL_0000:  ldftn      ""void Program.<<Main>$>g__Test|0_0(in int, ref char)""
   IL_0006:  ldc.i4.s   97
   IL_0008:  stloc.0
   IL_0009:  stloc.1
@@ -10737,7 +10755,7 @@ static void Test(out int i1, out int i2)
                 int V_1, //i2
                 int V_2,
                 delegate*<out int, out int, void> V_3)
-  IL_0000:  ldftn      ""void <Program>$.<<Main>$>g__Test|0_0(out int, out int)""
+  IL_0000:  ldftn      ""void Program.<<Main>$>g__Test|0_0(out int, out int)""
   IL_0006:  dup
   IL_0007:  stloc.3
   IL_0008:  ldloca.s   V_0
@@ -10775,7 +10793,7 @@ unsafe
     static ref int ReturnByRef(ref int i) => ref i;
 }", expectedOutput: "2");
 
-            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, int>, ref int)", @"
+            verifier.VerifyIL("Program.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, ref int>, ref int)", @"
 {
   // Code size       10 (0xa)
   .maxstack  2
@@ -10831,9 +10849,9 @@ unsafe
 }", options: TestOptions.UnsafeReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (10,20): error CS8347: Cannot use a result of 'delegate*<ref Span<int>, Span<int>>' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
+                // (10,20): error CS8347: Cannot use a result of 'delegate*<ref Span<int>, ref Span<int>>' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
                 //         return ref ptr(ref span);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "ptr(ref span)").WithArguments("delegate*<ref System.Span<int>, System.Span<int>>", "0").WithLocation(10, 20),
+                Diagnostic(ErrorCode.ERR_EscapeCall, "ptr(ref span)").WithArguments("delegate*<ref System.Span<int>, ref System.Span<int>>", "0").WithLocation(10, 20),
                 // (10,28): error CS8168: Cannot return local 'span' by reference because it is not a ref local
                 //         return ref ptr(ref span);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "span").WithArguments("span").WithLocation(10, 28)
@@ -10861,7 +10879,7 @@ unsafe
 
             var verifier = CompileAndVerify(comp, expectedOutput: "2", verify: Verification.Skipped);
 
-            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref System.Span<int>, System.Span<int>>, ref System.Span<int>)", @"
+            verifier.VerifyIL("Program.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref System.Span<int>, ref System.Span<int>>, ref System.Span<int>)", @"
 {
   // Code size       10 (0xa)
   .maxstack  2
@@ -10892,9 +10910,9 @@ unsafe
 }", options: TestOptions.UnsafeReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (8,16): error CS8333: Cannot return method 'delegate*<ref int, int>' by writable reference because it is a readonly variable
+                // (8,16): error CS8333: Cannot return method 'delegate*<ref int, ref readonly int>' by writable reference because it is a readonly variable
                 //         => ref ptr(ref i);
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "ptr(ref i)").WithArguments("method", "delegate*<ref int, int>").WithLocation(8, 16)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "ptr(ref i)").WithArguments("method", "delegate*<ref int, ref readonly int>").WithLocation(8, 16)
             );
         }
 
@@ -10915,7 +10933,7 @@ unsafe
     static ref int ReturnByRef(ref int i) => ref i;
 }", expectedOutput: "2");
 
-            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, int>, ref int)", @"
+            verifier.VerifyIL("Program.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, ref int>, ref int)", @"
 {
   // Code size       10 (0xa)
   .maxstack  2
@@ -10953,7 +10971,7 @@ unsafe
                 delegate*<ref int, ref int> V_1)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
-  IL_0002:  ldftn      ""ref int <Program>$.<<Main>$>g__ReturnByRef|0_0(ref int)""
+  IL_0002:  ldftn      ""ref int Program.<<Main>$>g__ReturnByRef|0_0(ref int)""
   IL_0008:  stloc.1
   IL_0009:  ldloca.s   V_0
   IL_000b:  ldloc.1
@@ -10991,7 +11009,7 @@ unsafe
                 delegate*<ref int, ref int> V_1)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
-  IL_0002:  ldftn      ""ref int <Program>$.<<Main>$>g__ReturnByRef|0_0(ref int)""
+  IL_0002:  ldftn      ""ref int Program.<<Main>$>g__ReturnByRef|0_0(ref int)""
   IL_0008:  stloc.1
   IL_0009:  ldloca.s   V_0
   IL_000b:  ldloc.1
@@ -11023,7 +11041,7 @@ unsafe
     static ref int ReturnByRef(ref int i) => ref i;
 }", expectedOutput: "2");
 
-            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, int>, ref int, ref int)", @"
+            verifier.VerifyIL("Program.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, ref int>, ref int, ref int)", @"
 {
   // Code size       10 (0xa)
   .maxstack  2
@@ -11062,7 +11080,7 @@ unsafe
                 delegate*<ref int, ref int> V_2)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
-  IL_0002:  ldftn      ""ref int <Program>$.<<Main>$>g__ReturnByRef|0_0(ref int)""
+  IL_0002:  ldftn      ""ref int Program.<<Main>$>g__ReturnByRef|0_0(ref int)""
   IL_0008:  dup
   IL_0009:  stloc.1
   IL_000a:  stloc.2
@@ -11104,11 +11122,11 @@ ref struct BorrowedReference {
 }
 ", expectedOutput: "1");
 
-            verifier.VerifyIL("<Program>$.<<Main>$>g__ptrTest|0_0()", @"
+            verifier.VerifyIL("Program.<<Main>$>g__ptrTest|0_0()", @"
 {
   // Code size       12 (0xc)
   .maxstack  1
-  IL_0000:  ldftn      ""BorrowedReference <Program>$.<<Main>$>g__test|0_1()""
+  IL_0000:  ldftn      ""BorrowedReference Program.<<Main>$>g__test|0_1()""
   IL_0006:  calli      ""delegate*<BorrowedReference>""
   IL_000b:  ret
 }
@@ -11174,15 +11192,15 @@ static ref int M()
 }
 ", expectedOutput: "42");
 
-            verifier.VerifyIL("<Program>$.<<Main>$>g__N|0_1(ref <Program>$.<>c__DisplayClass0_0)", @"
+            verifier.VerifyIL("Program.<<Main>$>g__N|0_1(ref Program.<>c__DisplayClass0_0)", @"
 {
   // Code size       32 (0x20)
   .maxstack  4
   .locals init (delegate*<ref int, ref int> V_0)
-  IL_0000:  ldftn      ""ref int <Program>$.<<Main>$>g__NN|0_2(ref int)""
+  IL_0000:  ldftn      ""ref int Program.<<Main>$>g__NN|0_2(ref int)""
   IL_0006:  stloc.0
   IL_0007:  ldarg.0
-  IL_0008:  ldfld      ""int[] <Program>$.<>c__DisplayClass0_0.arr""
+  IL_0008:  ldfld      ""int[] Program.<>c__DisplayClass0_0.arr""
   IL_000d:  ldc.i4.0
   IL_000e:  ldelema    ""int""
   IL_0013:  ldloc.0
@@ -11218,7 +11236,7 @@ unsafe
   .maxstack  3
   .locals init (int V_0, //i
                 delegate*<ref int, ref int> V_1)
-  IL_0000:  ldftn      ""ref int <Program>$.<<Main>$>g__RefReturn|0_0(ref int)""
+  IL_0000:  ldftn      ""ref int Program.<<Main>$>g__RefReturn|0_0(ref int)""
   IL_0006:  ldc.i4.0
   IL_0007:  stloc.0
   IL_0008:  stloc.1
@@ -11281,7 +11299,7 @@ True
 False
 False");
 
-            verifier.VerifyIL("<Program>$.<<Main>$>g__test|0_0<T>(delegate*<T, void>)", @"
+            verifier.VerifyIL("Program.<<Main>$>g__test|0_0<T>(delegate*<T, void>)", @"
 {
   // Code size       21 (0x15)
   .maxstack  2
@@ -11330,6 +11348,199 @@ class C<T> {}
                 // [Attr(typeof(C<delegate*<void>[]>))]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "typeof(C<delegate*<void>[]>)").WithLocation(6, 7)
             );
+        }
+
+        [Fact, WorkItem(55394, "https://github.com/dotnet/roslyn/issues/55394")]
+        public void SwitchExpression_01()
+        {
+            var code = @"
+unsafe
+{
+    delegate*<string, void> ptr = &M;
+    bool b = true;
+    ptr(b switch { true => ""true"", false => ""false"" });
+}
+
+static void M(string s) => System.Console.WriteLine(s);
+";
+
+            var verifier = CompileAndVerifyFunctionPointers(code, expectedOutput: "true");
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       36 (0x24)
+  .maxstack  2
+  .locals init (delegate*<string, void> V_0, //ptr
+                delegate*<string, void> V_1,
+                string V_2,
+                delegate*<string, void> V_3)
+  IL_0000:  ldftn      ""void Program.<<Main>$>g__M|0_0(string)""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.1
+  IL_0008:  ldloc.0
+  IL_0009:  stloc.1
+  IL_000a:  brfalse.s  IL_0014
+  IL_000c:  ldstr      ""true""
+  IL_0011:  stloc.2
+  IL_0012:  br.s       IL_001a
+  IL_0014:  ldstr      ""false""
+  IL_0019:  stloc.2
+  IL_001a:  ldloc.1
+  IL_001b:  stloc.3
+  IL_001c:  ldloc.2
+  IL_001d:  ldloc.3
+  IL_001e:  calli      ""delegate*<string, void>""
+  IL_0023:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(55394, "https://github.com/dotnet/roslyn/issues/55394")]
+        public void SwitchExpression_02()
+        {
+            var code = @"
+unsafe
+{
+    delegate*<string, void> ptr1 = &M1;
+    delegate*<string, void> ptr2 = &M2;
+    bool b = true;
+    (b switch { true => ptr1, false => ptr2 })(""true"");
+}
+
+static void M1(string s) => System.Console.WriteLine(s);
+static void M2(string s) => throw null;
+";
+
+            var verifier = CompileAndVerifyFunctionPointers(code, expectedOutput: "true");
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       37 (0x25)
+  .maxstack  2
+  .locals init (delegate*<string, void> V_0, //ptr1
+                delegate*<string, void> V_1, //ptr2
+                delegate*<string, void> V_2,
+                delegate*<string, void> V_3)
+  IL_0000:  ldftn      ""void Program.<<Main>$>g__M1|0_0(string)""
+  IL_0006:  stloc.0
+  IL_0007:  ldftn      ""void Program.<<Main>$>g__M2|0_1(string)""
+  IL_000d:  stloc.1
+  IL_000e:  ldc.i4.1
+  IL_000f:  brfalse.s  IL_0015
+  IL_0011:  ldloc.0
+  IL_0012:  stloc.2
+  IL_0013:  br.s       IL_0017
+  IL_0015:  ldloc.1
+  IL_0016:  stloc.2
+  IL_0017:  ldloc.2
+  IL_0018:  stloc.3
+  IL_0019:  ldstr      ""true""
+  IL_001e:  ldloc.3
+  IL_001f:  calli      ""delegate*<string, void>""
+  IL_0024:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(55394, "https://github.com/dotnet/roslyn/issues/55394")]
+        public void SwitchExpression_03()
+        {
+            var code = @"
+unsafe
+{
+    delegate*<string, void> ptr1 = &M1;
+    delegate*<object, void> ptr2 = &M2;
+    bool b = true;
+    (b switch { true => ptr1, false => ptr2 })(""true"");
+}
+
+static void M1(string s) => System.Console.WriteLine(s);
+static void M2(object s) => throw null;
+";
+
+            var verifier = CompileAndVerifyFunctionPointers(code, expectedOutput: "true");
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       37 (0x25)
+  .maxstack  2
+  .locals init (delegate*<string, void> V_0, //ptr1
+                delegate*<object, void> V_1, //ptr2
+                delegate*<string, void> V_2,
+                delegate*<string, void> V_3)
+  IL_0000:  ldftn      ""void Program.<<Main>$>g__M1|0_0(string)""
+  IL_0006:  stloc.0
+  IL_0007:  ldftn      ""void Program.<<Main>$>g__M2|0_1(object)""
+  IL_000d:  stloc.1
+  IL_000e:  ldc.i4.1
+  IL_000f:  brfalse.s  IL_0015
+  IL_0011:  ldloc.0
+  IL_0012:  stloc.2
+  IL_0013:  br.s       IL_0017
+  IL_0015:  ldloc.1
+  IL_0016:  stloc.2
+  IL_0017:  ldloc.2
+  IL_0018:  stloc.3
+  IL_0019:  ldstr      ""true""
+  IL_001e:  ldloc.3
+  IL_001f:  calli      ""delegate*<string, void>""
+  IL_0024:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(55394, "https://github.com/dotnet/roslyn/issues/55394")]
+        public void SwitchExpression_04()
+        {
+            var code = @"
+unsafe
+{
+    delegate*<string, void> ptr1 = &M1;
+    delegate*<string, void> ptr2 = &M2;
+    bool b = true;
+    (b switch { true => ptr1, false => ptr2 })(b switch { true => ""true"", false => ""false"" });
+}
+
+static void M1(string s) => System.Console.WriteLine(s);
+static void M2(string s) => throw null;
+";
+
+            var verifier = CompileAndVerifyFunctionPointers(code, expectedOutput: "true");
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       57 (0x39)
+  .maxstack  2
+  .locals init (delegate*<string, void> V_0, //ptr1
+                delegate*<string, void> V_1, //ptr2
+                bool V_2, //b
+                delegate*<string, void> V_3,
+                string V_4,
+                delegate*<string, void> V_5)
+  IL_0000:  ldftn      ""void Program.<<Main>$>g__M1|0_0(string)""
+  IL_0006:  stloc.0
+  IL_0007:  ldftn      ""void Program.<<Main>$>g__M2|0_1(string)""
+  IL_000d:  stloc.1
+  IL_000e:  ldc.i4.1
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.2
+  IL_0011:  brfalse.s  IL_0017
+  IL_0013:  ldloc.0
+  IL_0014:  stloc.3
+  IL_0015:  br.s       IL_0019
+  IL_0017:  ldloc.1
+  IL_0018:  stloc.3
+  IL_0019:  ldloc.3
+  IL_001a:  ldloc.2
+  IL_001b:  brfalse.s  IL_0026
+  IL_001d:  ldstr      ""true""
+  IL_0022:  stloc.s    V_4
+  IL_0024:  br.s       IL_002d
+  IL_0026:  ldstr      ""false""
+  IL_002b:  stloc.s    V_4
+  IL_002d:  stloc.s    V_5
+  IL_002f:  ldloc.s    V_4
+  IL_0031:  ldloc.s    V_5
+  IL_0033:  calli      ""delegate*<string, void>""
+  IL_0038:  ret
+}
+");
         }
 
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");

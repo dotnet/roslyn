@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
                 case SyntaxKind.SingleVariableDesignation:
                     return newName.ValueText == AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName
                         ? SyntaxFactory.DiscardDesignation().WithTriviaFrom(node)
-                        : (SyntaxNode)SyntaxFactory.SingleVariableDesignation(newName).WithTriviaFrom(node);
+                        : SyntaxFactory.SingleVariableDesignation(newName).WithTriviaFrom(node);
 
                 case SyntaxKind.CatchDeclaration:
                     var catchDeclaration = (CatchDeclarationSyntax)node;
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             // For example, "return x += MethodCall();" is replaced with "return x + MethodCall();"
             // and "return x ??= MethodCall();" is replaced with "return x ?? MethodCall();"
 
-            if (!(originalCompoundAssignment is AssignmentExpressionSyntax assignmentExpression))
+            if (originalCompoundAssignment is not AssignmentExpressionSyntax assignmentExpression)
             {
                 Debug.Fail($"Unexpected kind for originalCompoundAssignment: {originalCompoundAssignment.Kind()}");
                 return originalCompoundAssignment;

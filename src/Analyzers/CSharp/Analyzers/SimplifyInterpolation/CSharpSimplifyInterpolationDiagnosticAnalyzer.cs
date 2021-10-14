@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using Microsoft.CodeAnalysis.CSharp.Analyzers.SimplifyInterpolation;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16,12 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpSimplifyInterpolationDiagnosticAnalyzer : AbstractSimplifyInterpolationDiagnosticAnalyzer<
-        InterpolationSyntax, ExpressionSyntax, ConditionalExpressionSyntax, ParenthesizedExpressionSyntax>
+        InterpolationSyntax, ExpressionSyntax>
     {
         protected override IVirtualCharService GetVirtualCharService()
             => CSharpVirtualCharService.Instance;
 
         protected override ISyntaxFacts GetSyntaxFacts()
             => CSharpSyntaxFacts.Instance;
+
+        protected override AbstractSimplifyInterpolationHelpers GetHelpers() => CSharpSimplifyInterpolationHelpers.Instance;
     }
 }

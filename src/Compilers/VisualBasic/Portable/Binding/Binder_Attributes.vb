@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Else
                 Dim namedType = DirectCast(symbol, NamedTypeSymbol)
-                Dim localUseSiteInfo = If(useSiteInfo.AccumulatesDependencies, New CompoundUseSiteInfo(Of AssemblySymbol)(Compilation.Assembly), CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependecies)
+                Dim localUseSiteInfo = If(useSiteInfo.AccumulatesDependencies, New CompoundUseSiteInfo(Of AssemblySymbol)(Compilation.Assembly), CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependencies)
 
                 ' type cannot be generic
                 If namedType.IsGenericType Then
@@ -318,7 +318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         methodSym = DirectCast(methodResult.Candidate.UnderlyingSymbol, MethodSymbol)
                         Dim errorsReported As Boolean = False
 
-                        ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, methodSym, node)
+                        ReportDiagnosticsIfObsoleteOrNotSupported(diagnostics, methodSym, node)
 
                         ' Check that all formal parameters have attribute-compatible types and are public
                         For Each param In methodSym.Parameters
@@ -455,7 +455,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim isReadOnly As Boolean = False
                 Dim hasErrors As Boolean = False
 
-                ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, sym, namedArg)
+                ReportDiagnosticsIfObsoleteOrNotSupported(diagnostics, sym, namedArg)
 
                 Select Case sym.Kind
                     Case SymbolKind.Field

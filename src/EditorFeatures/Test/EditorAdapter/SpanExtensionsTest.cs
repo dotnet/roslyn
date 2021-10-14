@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
                 Assert.Equal(start, textSpan.Start);
                 Assert.Equal(length, textSpan.Length);
             }
+
             del(0, 5);
             del(10, 15);
         }

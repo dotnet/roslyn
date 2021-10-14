@@ -42,11 +42,6 @@
         <target state="translated">Sangría inteligente</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Document">
-        <source>Format Document</source>
-        <target state="translated">Dar formato al documento</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Formatting_Document">
         <source>Formatting Document...</source>
         <target state="translated">Dando formato al documento...</target>

@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             VerifyValues(
                 customProps: $@"
 <ItemGroup>
-<ProjectReference Include=""Project2.csproj"" Targets=""InitializeSourceRootMappedPaths"" OutputItemType=""ReferencedProjectSourceRoots"" ReferenceOutputAssembly=""false"" />
+  <ProjectReference Include=""Project2.csproj"" Targets=""InitializeSourceRootMappedPaths"" OutputItemType=""ReferencedProjectSourceRoots"" ReferenceOutputAssembly=""false"" />
 </ItemGroup>
 ",
                 customTargets: null,
@@ -407,7 +407,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var editorConfigFile2 = subdir.CreateFile(".editorconfig").WriteAllText(@"[*.cs]
 some_prop = some_val");
             VerifyValues(
-                customProps: null,
+                customProps: @"
+<PropertyGroup>
+  <!-- Disable automatic global .editorconfig generation by the SDK --> 
+  <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
+</PropertyGroup>",
                 customTargets: null,
                 targets: new[]
                 {
@@ -436,7 +440,9 @@ some_prop = some_val");
             VerifyValues(
                 customProps: @"
 <PropertyGroup>
-    <DiscoverEditorConfigFiles>false</DiscoverEditorConfigFiles>
+  <DiscoverEditorConfigFiles>false</DiscoverEditorConfigFiles>
+  <!-- Disable automatic global .editorconfig generation by the SDK -->
+  <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
 </PropertyGroup>",
                 customTargets: null,
                 targets: new[]
@@ -462,7 +468,11 @@ some_prop = some_val");
 some_prop = some_val");
 
             VerifyValues(
-                customProps: null,
+                customProps: @"
+<PropertyGroup>
+  <!-- Disable automatic global .editorconfig generation by the SDK --> 
+  <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
+</PropertyGroup>",
                 customTargets: null,
                 targets: new[]
                 {
@@ -494,7 +504,9 @@ some_prop = some_val");
             VerifyValues(
                 customProps: @"
 <PropertyGroup>
-    <DiscoverGlobalAnalyzerConfigFiles>false</DiscoverGlobalAnalyzerConfigFiles>
+  <DiscoverGlobalAnalyzerConfigFiles>false</DiscoverGlobalAnalyzerConfigFiles>
+  <!-- Disable automatic global .editorconfig generation by the SDK --> 
+  <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
 </PropertyGroup>",
                 customTargets: null,
                 targets: new[]
@@ -525,7 +537,9 @@ some_prop = some_val");
             VerifyValues(
                 customProps: @"
 <PropertyGroup>
-    <DiscoverEditorConfigFiles>false</DiscoverEditorConfigFiles>
+  <DiscoverEditorConfigFiles>false</DiscoverEditorConfigFiles>
+  <!-- Disable automatic global .editorconfig generation by the SDK --> 
+  <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
 </PropertyGroup>",
                 customTargets: null,
                 targets: new[]
@@ -585,10 +599,12 @@ some_prop = some_val");
 
             VerifyValues(
                 customProps: @"
-<PropertyGroup>
+  <PropertyGroup>
     <DiscoverEditorConfigFiles>false</DiscoverEditorConfigFiles>
     <DiscoverGlobalAnalyzerConfigFiles>false</DiscoverGlobalAnalyzerConfigFiles>
-</PropertyGroup>",
+    <!-- Disable automatic global .editorconfig generation by the SDK --> 
+    <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
+  </PropertyGroup>",
                 customTargets: null,
                 targets: new[]
                 {
@@ -610,9 +626,13 @@ some_prop = some_val");
 
             VerifyValues(
                 customProps: @"
-<ItemGroup>
+  <PropertyGroup>
+    <!-- Disable automatic global .editorconfig generation by the SDK --> 
+    <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
+  </PropertyGroup>
+  <ItemGroup>
     <GlobalAnalyzerConfigFiles Include=""mycustom.config"" />
-</ItemGroup>",
+  </ItemGroup>",
                 customTargets: null,
                 targets: new[]
                 {

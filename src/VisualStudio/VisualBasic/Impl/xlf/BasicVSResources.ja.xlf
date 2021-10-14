@@ -52,6 +52,16 @@
         <target state="translated">参照の等値性のチェックには 'Is Nothing' を優先する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_simplified_object_creation">
+        <source>Prefer simplified object creation</source>
+        <target state="translated">簡素化されたオブジェクト作成を優先</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_Imports">
+        <source>Remove unnecessary Imports</source>
+        <target state="translated">不要な Import を削除する</target>
+        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
         <source>Show hints for 'New' expressions</source>
         <target state="translated">'New' 式のヒントを表示する</target>
@@ -166,6 +176,11 @@
         <source>Import Directives</source>
         <target state="translated">ディレクティブをインポートする</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Sort_imports">
+        <source>Sort imports</source>
+        <target state="translated">import を並べ替える</target>
+        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in _NuGet packages</source>

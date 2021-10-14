@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -87,51 +85,37 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             }
         }
 
-        private void AnalyzeOperation(OperationAnalysisContext context, IOperation operation, IOperation instanceOperation)
+        private void AnalyzeOperation(OperationAnalysisContext context, IOperation operation, IOperation? instanceOperation)
         {
             // this is a static reference so we don't care if it's qualified
             if (instanceOperation == null)
-            {
                 return;
-            }
 
             // if we're not referencing `this.` or `Me.` (e.g., a parameter, local, etc.)
             if (instanceOperation.Kind != OperationKind.InstanceReference)
-            {
                 return;
-            }
 
             // We shouldn't qualify if it is inside a property pattern
-            if (context.Operation.Parent.Kind == OperationKind.PropertySubpattern)
-            {
+            if (context.Operation.Parent?.Kind == OperationKind.PropertySubpattern)
                 return;
-            }
 
             // Initializer lists are IInvocationOperation which if passed to GetApplicableOptionFromSymbolKind
             // will incorrectly fetch the options for method call.
             // We still want to handle InstanceReferenceKind.ContainingTypeInstance
             if ((instanceOperation as IInstanceReferenceOperation)?.ReferenceKind == InstanceReferenceKind.ImplicitReceiver)
-            {
                 return;
-            }
 
             // If we can't be qualified (e.g., because we're already qualified with `base.`), we're done.
             if (!CanMemberAccessBeQualified(context.ContainingSymbol, instanceOperation.Syntax))
-            {
                 return;
-            }
 
             // if we can't find a member then we can't do anything.  Also, we shouldn't qualify
             // accesses to static members.  
             if (IsStaticMemberOrIsLocalFunction(operation))
-            {
                 return;
-            }
 
-            if (!(instanceOperation.Syntax is TSimpleNameSyntax simpleName))
-            {
+            if (instanceOperation.Syntax is not TSimpleNameSyntax simpleName)
                 return;
-            }
 
             var applicableOption = QualifyMembersHelpers.GetApplicableOptionFromSymbolKind(operation);
             var optionValue = context.GetOption(applicableOption, context.Operation.Syntax.Language);

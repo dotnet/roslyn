@@ -73,5 +73,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 "op_Subtraction" or "op_UnaryNegation" => PredefinedOperator.Subtraction,
                 _ => PredefinedOperator.None,
             };
+
+        public static bool IsEntryPoint(this IMethodSymbol methodSymbol, INamedTypeSymbol? taskType, INamedTypeSymbol? genericTaskType)
+            => methodSymbol.Name is WellKnownMemberNames.EntryPointMethodName or WellKnownMemberNames.TopLevelStatementsEntryPointMethodName &&
+               methodSymbol.IsStatic &&
+               (methodSymbol.ReturnsVoid ||
+                methodSymbol.ReturnType.SpecialType == SpecialType.System_Int32 ||
+                methodSymbol.ReturnType.OriginalDefinition.Equals(taskType) ||
+                methodSymbol.ReturnType.OriginalDefinition.Equals(genericTaskType));
     }
 }

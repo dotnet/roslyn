@@ -4,9 +4,9 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification
@@ -26,9 +26,10 @@ namespace Microsoft.CodeAnalysis.Classification
         /// <param name="checksum">Pass in <see cref="DocumentStateChecksums.Text"/>.  This will ensure that the cached
         /// classifications are only returned if they match the content the file currently has.</param>
         ValueTask<SerializableClassifiedSpans?> GetCachedSemanticClassificationsAsync(
-            SerializableDocumentKey documentKey,
+            DocumentKey documentKey,
             TextSpan textSpan,
             Checksum checksum,
+            StorageDatabase database,
             CancellationToken cancellationToken);
     }
 }

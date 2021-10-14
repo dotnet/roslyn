@@ -2,16 +2,18 @@
 
 # Branches that trigger a build on commit
 trigger:
-- master
-- master-vs-deps
+- main
+- main-vs-deps
 - release/*
 - features/*
 - demos/*
 
-# Branches that trigger builds on PR
+# Branches that are allowed to trigger a build via /azp run.
+# Automatic building of all PRs is disabled in the pipeline's trigger page.
+# See https://docs.microsoft.com/en-us/azure/devops/pipelines/repos/github?view=azure-devops&tabs=yaml#comment-triggers
 pr:
-- master
-- master-vs-deps
+- main
+- main-vs-deps
 - release/*
 - features/*
 - demos/*

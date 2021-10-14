@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location getLocation() => this.GetNonNullSyntaxNode().Location;
         }
 
-        // See https://github.com/dotnet/roslyn/blob/master/docs/features/nullable-metadata.md
+        // See https://github.com/dotnet/roslyn/blob/main/docs/features/nullable-metadata.md
         internal bool ConstraintsNeedNullableAttribute()
         {
             if (!DeclaringCompilation.ShouldEmitNullableAttributes(this))

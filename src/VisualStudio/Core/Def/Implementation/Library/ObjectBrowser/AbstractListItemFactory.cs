@@ -232,7 +232,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             Debug.Assert(parentListItem is TypeListItem);
             Debug.Assert(compilation != null);
 
-            if (!(parentListItem is TypeListItem parentTypeItem))
+            if (parentListItem is not TypeListItem parentTypeItem)
             {
                 return ImmutableArray<ObjectListItem>.Empty;
             }
@@ -245,8 +245,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         public ImmutableArray<ObjectListItem> GetFolderListItems(ObjectListItem parentListItem, Compilation compilation)
         {
             Debug.Assert(parentListItem != null);
-            Debug.Assert(parentListItem is TypeListItem ||
-                         parentListItem is ProjectListItem);
+            Debug.Assert(parentListItem is TypeListItem or
+                         ProjectListItem);
             Debug.Assert(compilation != null);
 
             // Hierarchies are parented by either a project or a type. In the case that it's a project, we show a folder
@@ -394,7 +394,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             Debug.Assert(parentListItem is TypeListItem);
             Debug.Assert(compilation != null);
 
-            if (!(parentListItem is TypeListItem parentTypeItem))
+            if (parentListItem is not TypeListItem parentTypeItem)
             {
                 return ImmutableArray<ObjectListItem>.Empty;
             }
@@ -442,8 +442,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         public ImmutableArray<ObjectListItem> GetNamespaceListItems(ObjectListItem parentListItem, Compilation compilation)
         {
             Debug.Assert(parentListItem != null);
-            Debug.Assert(parentListItem is ProjectListItem ||
-                         parentListItem is ReferenceListItem);
+            Debug.Assert(parentListItem is ProjectListItem or
+                         ReferenceListItem);
             Debug.Assert(compilation != null);
 
             var assemblySymbol = parentListItem is ReferenceListItem
@@ -730,9 +730,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         public ImmutableArray<ObjectListItem> GetTypeListItems(ObjectListItem parentListItem, Compilation compilation)
         {
             Debug.Assert(parentListItem != null);
-            Debug.Assert(parentListItem is NamespaceListItem ||
-                         parentListItem is ProjectListItem ||
-                         parentListItem is ReferenceListItem);
+            Debug.Assert(parentListItem is NamespaceListItem or
+                         ProjectListItem or
+                         ReferenceListItem);
             Debug.Assert(compilation != null);
 
             INamespaceSymbol namespaceSymbol;

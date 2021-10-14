@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             foreach (var (filePath, fileContent) in fileNamesAndContent)
             {
-                Debug.Assert(fileContent is string || fileContent is byte[]);
+                Debug.Assert(fileContent is string or byte[]);
 
                 var subdirectory = Path.GetDirectoryName(filePath);
                 var fileName = Path.GetFileName(filePath);
@@ -102,6 +102,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.CSharpProject),
                 (@"CSharpProject\CSharpClass.cs", Resources.SourceFiles.CSharp.CSharpClass),
                 (@"CSharpProject\Properties\AssemblyInfo.cs", Resources.SourceFiles.CSharp.AssemblyInfo));
+        }
+
+        protected static FileSet GetSimpleCSharpSolutionWithAdditionaFile()
+        {
+            return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
+                (@"Directory.Build.props", Resources.Directory_Build_props),
+                (@"Directory.Build.targets", Resources.Directory_Build_targets),
+                (@"TestSolution.sln", Resources.SolutionFiles.CSharp),
+                (@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.AdditionalFile),
+                (@"CSharpProject\CSharpClass.cs", Resources.SourceFiles.CSharp.CSharpClass),
+                (@"CSharpProject\Properties\AssemblyInfo.cs", Resources.SourceFiles.CSharp.AssemblyInfo),
+                (@"CSharpProject\ValidAdditionalFile.txt", Resources.SourceFiles.Text.ValidAdditionalFile));
         }
 
         protected static FileSet GetNetCoreApp2Files()

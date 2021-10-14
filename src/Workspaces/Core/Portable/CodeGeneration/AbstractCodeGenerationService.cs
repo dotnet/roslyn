@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 throw new ArgumentNullException(nameof(destination));
             }
 
-            if (!(destination is TDeclarationNode))
+            if (destination is not TDeclarationNode)
             {
                 throw new ArgumentException(
                     string.Format(WorkspacesResources.Destination_type_must_be_a_0_but_given_one_is_1, typeof(TDeclarationNode).Name, destination.GetType().Name),
@@ -115,8 +115,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 throw new ArgumentNullException(nameof(destination));
             }
 
-            if (!(destination is TDeclarationNode1) &&
-                !(destination is TDeclarationNode2))
+            if (destination is not TDeclarationNode1 and
+                not TDeclarationNode2)
             {
                 throw new ArgumentException(
                     string.Format(WorkspacesResources.Destination_type_must_be_a_0_or_a_1_but_given_one_is_2,
@@ -135,9 +135,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 throw new ArgumentNullException(nameof(destination));
             }
 
-            if (!(destination is TDeclarationNode1) &&
-                !(destination is TDeclarationNode2) &&
-                !(destination is TDeclarationNode3))
+            if (destination is not TDeclarationNode1 and
+                not TDeclarationNode2 and
+                not TDeclarationNode3)
             {
                 throw new ArgumentException(
                     string.Format(WorkspacesResources.Destination_type_must_be_a_0_1_or_2_but_given_one_is_3,
@@ -152,10 +152,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             where TDeclarationNode3 : SyntaxNode
             where TDeclarationNode4 : SyntaxNode
         {
-            if (!(destination is TDeclarationNode1) &&
-                !(destination is TDeclarationNode2) &&
-                !(destination is TDeclarationNode3) &&
-                !(destination is TDeclarationNode4))
+            if (destination is not TDeclarationNode1 and
+                not TDeclarationNode2 and
+                not TDeclarationNode3 and
+                not TDeclarationNode4)
             {
                 throw new ArgumentException(
                     string.Format(WorkspacesResources.Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4,
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var filteredMembers = membersList.Where(m => !m.IsImplicitlyDeclared || m.IsTupleField());
 
             return options.AutoInsertionLocation
-                ? AddMembersToAppropiateLocationInDestination(destination, filteredMembers, availableIndices, options, cancellationToken)
+                ? AddMembersToAppropriateLocationInDestination(destination, filteredMembers, availableIndices, options, cancellationToken)
                 : AddMembersToEndOfDestination(destination, filteredMembers, options, cancellationToken);
         }
 
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return this.AddMembers(destination, newMembers);
         }
 
-        private TDeclarationSyntax AddMembersToAppropiateLocationInDestination<TDeclarationSyntax>(
+        private TDeclarationSyntax AddMembersToAppropriateLocationInDestination<TDeclarationSyntax>(
             TDeclarationSyntax destination,
             IEnumerable<ISymbol> members,
             IList<bool>? availableIndices,

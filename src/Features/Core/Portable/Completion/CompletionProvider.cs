@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Completion
         internal string Name { get; }
 
         protected CompletionProvider()
-            => Name = GetType().FullName;
+            => Name = GetType().FullName!;
 
         /// <summary>
         /// Implement to contribute <see cref="CompletionItem"/>'s and other details to a <see cref="CompletionList"/>
@@ -59,8 +57,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Gets the description of the specified item.
         /// </summary>
-        public virtual Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => Task.FromResult(CompletionDescription.Empty);
+        public virtual Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            => Task.FromResult<CompletionDescription?>(CompletionDescription.Empty);
 
         /// <summary>
         /// Gets the change to be applied when the specified item is committed.
@@ -69,14 +67,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="item">The item to be committed.</param>
         /// <param name="commitKey">The optional key character that caused the commit.</param>
         /// <param name="cancellationToken"></param>
-        public virtual Task<CompletionChange> GetChangeAsync(
-            Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(CompletionChange.Create(new TextChange(item.Span, item.DisplayText)));
-        }
-
-        internal virtual Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
-            => GetChangeAsync(document, item, commitKey, cancellationToken);
+        public virtual Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+            => Task.FromResult(CompletionChange.Create(new TextChange(item.Span, item.DisplayText)));
 
         /// <summary>
         /// True if the provider produces snippet items.

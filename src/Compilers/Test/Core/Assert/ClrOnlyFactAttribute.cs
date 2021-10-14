@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -76,17 +74,6 @@ namespace Roslyn.Test.Utilities
                     return "Fusion not available on Mono";
                 default:
                     return "Test supported only on CLR";
-            }
-        }
-    }
-
-    public sealed class MonoOnlyFactAttribute : FactAttribute
-    {
-        public MonoOnlyFactAttribute(string reason)
-        {
-            if (!MonoHelpers.IsRunningOnMono())
-            {
-                Skip = reason;
             }
         }
     }

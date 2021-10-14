@@ -106,7 +106,7 @@ We do want to make it super easy for customers who have given us feedback to log
 The main solution, Roslyn.sln, contains the entire codebase consisting of the compilers, workspaces, and Visual Studio layers. Building Roslyn.sln requires Visual Studio and a compatible version of the VS SDK. The Compilers.sln solution contains only the compiler layer and can therefore be built without Visual Studio or the VS SDK, but only on Windows. The CrossPlatform.sln solution contains the projects that currently support building on Linux. 
 
 ### What components can I run locally in Visual Studio?
-Starting with Visual Studio 2015 Update 1, all parts of Roslyn can be ran inside Visual Studio. Read our instructions for [Building on Windows](https://github.com/dotnet/roslyn/blob/master/docs/contributing/Building%2C%20Debugging%2C%20and%20Testing%20on%20Windows.md) for more information.
+Starting with Visual Studio 2015 Update 1, all parts of Roslyn can be ran inside Visual Studio. Read our instructions for [Building on Windows](https://github.com/dotnet/roslyn/blob/main/docs/contributing/Building%2C%20Debugging%2C%20and%20Testing%20on%20Windows.md) for more information.
 
 ## Getting Information Questions
 

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
                 composition = composition.AddParts(typeof(TestOptionsServiceWithSharedGlobalOptionsServiceFactory));
             }
 
-            return new TestWorkspace(exportProvider: null, composition, workspaceKind, disablePartialSolutions);
+            return new TestWorkspace(exportProvider: null, composition, workspaceKind, disablePartialSolutions: disablePartialSolutions);
         }
 
         private static async Task WaitForWorkspaceOperationsToComplete(TestWorkspace workspace)

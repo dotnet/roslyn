@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
@@ -38,19 +37,26 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        public bool TryGetLoaderFromProjectPath(string projectFilePath, out IProjectFileLoader loader)
+        public bool TryGetLoaderFromProjectPath(string? projectFilePath, [NotNullWhen(true)] out IProjectFileLoader? loader)
         {
             return TryGetLoaderFromProjectPath(projectFilePath, DiagnosticReportingMode.Ignore, out loader);
         }
 
-        public bool TryGetLoaderFromProjectPath(string projectFilePath, DiagnosticReportingMode mode, out IProjectFileLoader loader)
+        public bool TryGetLoaderFromProjectPath(string? projectFilePath, DiagnosticReportingMode mode, [NotNullWhen(true)] out IProjectFileLoader? loader)
         {
             using (_dataGuard.DisposableWait())
             {
                 var extension = Path.GetExtension(projectFilePath);
+                if (extension is null)
+                {
+                    loader = null;
+                    _diagnosticReporter.Report(mode, $"Project file path was 'null'");
+                    return false;
+                }
+
                 if (extension.Length > 0 && extension[0] == '.')
                 {
-                    extension = extension.Substring(1);
+                    extension = extension[1..];
                 }
 
                 if (_extensionToLanguageMap.TryGetValue(extension, out var language))

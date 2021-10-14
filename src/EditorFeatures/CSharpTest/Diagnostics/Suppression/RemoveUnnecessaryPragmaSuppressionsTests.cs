@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -22,6 +23,7 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UseAutoProperty;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
     [WorkItem(44177, "https://github.com/dotnet/roslyn/issues/44177")]
     public abstract class RemoveUnnecessaryInlineSuppressionsTests : AbstractUnncessarySuppressionDiagnosticTest
     {
-        public RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper logger)
+        protected RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper logger)
             : base(logger)
         {
         }
@@ -124,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
 
         public abstract class CompilerOrAnalyzerTests : RemoveUnnecessaryInlineSuppressionsTests
         {
-            public CompilerOrAnalyzerTests(ITestOutputHelper logger)
+            protected CompilerOrAnalyzerTests(ITestOutputHelper logger)
                 : base(logger)
             {
             }
@@ -302,10 +304,10 @@ class Class
                 var suppressMessageAttribtes = new StringBuilder();
                 foreach (var id in UnsupportedDiagnosticIds)
                 {
-                    if (testKind == TestKind.Pragmas || testKind == TestKind.PragmasAndSuppressMessageAttributes)
+                    if (testKind is TestKind.Pragmas or TestKind.PragmasAndSuppressMessageAttributes)
                         pragmas.AppendLine($@"#pragma warning {disableOrRestore} {id}");
 
-                    if (testKind == TestKind.SuppressMessageAttributes || testKind == TestKind.PragmasAndSuppressMessageAttributes)
+                    if (testKind is TestKind.SuppressMessageAttributes or TestKind.PragmasAndSuppressMessageAttributes)
                         suppressMessageAttribtes.AppendLine($@"[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{id}"")]");
                 }
 
@@ -1330,6 +1332,33 @@ namespace N
 }}");
             }
         }
+
+        public sealed class UseAutoPropertyAnalyzerTests : RemoveUnnecessaryInlineSuppressionsTests
+        {
+            public UseAutoPropertyAnalyzerTests(ITestOutputHelper logger)
+                : base(logger)
+            {
+            }
+
+            internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers =>
+                ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpUseAutoPropertyAnalyzer());
+
+            [Fact, WorkItem(55529, "https://github.com/dotnet/roslyn/issues/55529")]
+            public async Task TestDoNotRemoveAutoPropertySuppression()
+            {
+                await TestMissingInRegularAndScriptAsync(
+        $@"
+public class Test2
+{{
+        // Message IDE0079 Remove unnecessary suppression
+        [|[System.Diagnostics.CodeAnalysis.SuppressMessage(""Style"", ""IDE0032: Use auto property"", Justification = ""<Pending >"")]|]
+        private readonly int i;
+            public int I => i;
+}}
+", new TestParameters(options: Option(CodeStyleOptions2.PreferAutoProperties, true, NotificationOption2.Warning)));
+            }
+        }
+
         #endregion
     }
 }

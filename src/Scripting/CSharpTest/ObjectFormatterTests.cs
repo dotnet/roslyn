@@ -5,8 +5,10 @@
 #nullable disable
 
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -437,23 +439,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         }
 
         [Fact]
-        public void DebuggerProxy_FrameworkTypes_IEnumerable()
+        public void DebuggerProxy_FrameworkTypes_IEnumerable_Core()
         {
             string str;
             object obj;
 
-            obj = Enumerable.Range(0, 10);
+            obj = Range_Core(0, 10);
             str = s_formatter.FormatObject(obj, SingleLineOptions);
 
-            // the implementation differs between .NET Core and .NET FX
-            if (str.StartsWith("Enumerable"))
-            {
-                Assert.Equal("Enumerable.RangeIterator(Count = 10)", str);
-            }
-            else
-            {
-                Assert.Equal("RangeIterator { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }", str);
-            }
+            Assert.Equal("ObjectFormatterTests.CoreRangeIterator(Count = 10)", str);
+        }
+
+        // This method and the class below emulate the behaviour of Enumerable.Range
+        // in .NET Core. We use a custom type since not all runtime implementations
+        // (e.g. Mono) apply precisely the same attributes, but we want to test behavior
+        // under a specific set of attributes.
+        private static IEnumerable<int> Range_Core(int start, int count)
+            => new CoreRangeIterator(start, count);
+
+        [DebuggerDisplay("Count = {CountForDebugger}")]
+        private class CoreRangeIterator : IEnumerable<int>
+        {
+            private readonly int _start;
+            private readonly int _end;
+
+            private int CountForDebugger => _end - _start;
+
+            public CoreRangeIterator(int start, int count)
+                => (_start, _end) = (start, start + count);
+
+            public IEnumerator<int> GetEnumerator() => null;
+            IEnumerator IEnumerable.GetEnumerator() => null;
+        }
+
+        [Fact]
+        public void DebuggerProxy_FrameworkTypes_IEnumerable_Framework()
+        {
+            string str;
+            object obj;
+
+            obj = Range_Framework(0, 10);
+            str = s_formatter.FormatObject(obj, SingleLineOptions);
+
+            Assert.Equal("RangeIterator { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }", str);
+        }
+
+        // These methods emulate the .NET Framework Enumerable.Range method
+        private static IEnumerable<int> Range_Framework(int start, int count)
+            => RangeIterator(start, count);
+
+        private static IEnumerable<int> RangeIterator(int start, int count)
+        {
+            for (var i = 0; i < count; i++)
+                yield return start + i;
         }
 
         [Fact]

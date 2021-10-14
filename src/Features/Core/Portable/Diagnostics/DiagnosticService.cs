@@ -33,15 +33,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>> _map;
 
         private readonly EventListenerTracker<IDiagnosticService> _eventListenerTracker;
+        private readonly IGlobalOptionService _globalOptions;
 
         private ImmutableHashSet<IDiagnosticUpdateSource> _updateSources;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticService(
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
             [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
         {
+            _globalOptions = globalOptions;
+
             // we use registry service rather than doing MEF import since MEF import method can have race issue where
             // update source gets created before aggregator - diagnostic service - is created and we will lose events fired before
             // the aggregator is created.
@@ -233,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // If this is a pull client, but pull diagnostics is not on, then they get nothing.  Similarly, if this is a
             // push client and pull diagnostics are on, they get nothing.
-            var isPull = workspace.IsPullDiagnostics(diagnosticMode);
+            var isPull = _globalOptions.IsPullDiagnostics(diagnosticMode);
             if (forPullDiagnostics != isPull)
                 return new ValueTask<ImmutableArray<DiagnosticData>>(ImmutableArray<DiagnosticData>.Empty);
 
@@ -265,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 else
                 {
                     AppendMatchingData(source, workspace, projectId, documentId, id, buffer);
-                    Debug.Assert(buffer.Count == 0 || buffer.Count == 1);
+                    Debug.Assert(buffer.Count is 0 or 1);
 
                     if (buffer.Count == 1)
                     {
@@ -329,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // If this is a pull client, but pull diagnostics is not on, then they get nothing.  Similarly, if this is a
             // push client and pull diagnostics are on, they get nothing.
-            var isPull = workspace.IsPullDiagnostics(diagnosticMode);
+            var isPull = _globalOptions.IsPullDiagnostics(diagnosticMode);
             if (forPullDiagnostics != isPull)
                 return ImmutableArray<DiagnosticBucket>.Empty;
 

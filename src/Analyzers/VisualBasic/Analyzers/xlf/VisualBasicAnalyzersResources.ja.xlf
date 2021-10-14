@@ -17,6 +17,11 @@
         <target state="translated">Imports ステートメントは不要です。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Object_creation_can_be_simplified">
+        <source>Object creation can be simplified</source>
+        <target state="translated">オブジェクト作成を簡素化できます</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_ByVal">
         <source>'ByVal' keyword is unnecessary and can be removed.</source>
         <target state="translated">'ByVal' キーワードは必要ありません。削除することができます。</target>

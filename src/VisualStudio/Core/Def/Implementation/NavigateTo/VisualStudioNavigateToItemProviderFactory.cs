@@ -17,13 +17,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigateTo
     {
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly VisualStudioWorkspace _workspace;
+        private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioNavigateToItemProviderFactory(VisualStudioWorkspace workspace, IAsynchronousOperationListenerProvider listenerProvider)
+        public VisualStudioNavigateToItemProviderFactory(
+            VisualStudioWorkspace workspace,
+            IAsynchronousOperationListenerProvider listenerProvider,
+            IThreadingContext threadingContext)
         {
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.NavigateTo);
             _workspace = workspace;
+            _threadingContext = threadingContext;
         }
 
         public bool TryCreateNavigateToItemProvider(IServiceProvider serviceProvider, out INavigateToItemProvider? provider)
@@ -35,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigateTo
                 return false;
             }
 
-            provider = new NavigateToItemProvider(_workspace, _asyncListener);
+            provider = new NavigateToItemProvider(_workspace, _asyncListener, _threadingContext);
             return true;
         }
     }

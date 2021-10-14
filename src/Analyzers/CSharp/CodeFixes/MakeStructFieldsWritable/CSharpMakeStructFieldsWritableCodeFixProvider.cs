@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             {
                 var diagnosticNode = diagnostic.Location.FindNode(cancellationToken);
 
-                if (!(diagnosticNode is StructDeclarationSyntax structDeclaration))
+                if (diagnosticNode is not StructDeclarationSyntax structDeclaration)
                 {
                     continue;
                 }
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Make_readonly_fields_writable, createChangedDocument)
+                : base(CSharpAnalyzersResources.Make_readonly_fields_writable, createChangedDocument, nameof(CSharpAnalyzersResources.Make_readonly_fields_writable))
             {
             }
         }

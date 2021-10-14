@@ -112,6 +112,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (ImmutableArray<BoundStatement> loweredDag, ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections) =
                     LowerDecisionDag(decisionDag);
 
+                if (_whenNodeIdentifierLocal is not null)
+                {
+                    outerVariables.Add(_whenNodeIdentifierLocal);
+                }
+
                 // then add the rest of the lowered dag that references that input
                 result.Add(_factory.Block(loweredDag));
 

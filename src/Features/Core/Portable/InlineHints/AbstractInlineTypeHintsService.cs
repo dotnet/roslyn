@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             if (!forImplicitVariableTypes && !forLambdaParameterTypes && !forImplicitObjectCreation && !displayAllOverride)
                 return ImmutableArray<InlineHint>.Empty;
 
-            var anonymousTypeService = document.GetRequiredLanguageService<IAnonymousTypeDisplayService>();
+            var anonymousTypeService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -79,14 +79,14 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
                 result.Add(new InlineHint(
                     span, finalParts.ToTaggedText(),
-                    InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey())));
+                    InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey(cancellationToken: cancellationToken))));
             }
 
             return result.ToImmutable();
         }
 
         private void AddParts(
-            IAnonymousTypeDisplayService anonymousTypeService,
+            IStructuralTypeDisplayService anonymousTypeService,
             ArrayBuilder<SymbolDisplayPart> finalParts,
             ImmutableArray<SymbolDisplayPart> parts,
             SemanticModel semanticModel,

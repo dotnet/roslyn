@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
 {
@@ -31,8 +32,8 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             HighlightSpans = highlightSpans;
         }
 
-        public DocumentHighlights Rehydrate(Solution solution)
-            => new(solution.GetDocument(DocumentId), HighlightSpans);
+        public async ValueTask<DocumentHighlights> RehydrateAsync(Solution solution)
+            => new(await solution.GetRequiredDocumentAsync(DocumentId, includeSourceGenerated: true).ConfigureAwait(false), HighlightSpans);
 
         public static SerializableDocumentHighlights Dehydrate(DocumentHighlights highlights)
             => new(highlights.Document.Id, highlights.HighlightSpans);

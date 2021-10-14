@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         {
             // Check if there is await expression. It is used later if the caller should be changed to async
             var awaitExpressions = inlineExpression
-                .DescendantNodesAndSelf(node => !_syntaxFacts.IsAnonymousFunction(node))
+                .DescendantNodesAndSelf(node => !_syntaxFacts.IsAnonymousFunctionExpression(node))
                 .Where(_syntaxFacts.IsAwaitExpression)
                 .ToImmutableArray();
             return !awaitExpressions.IsEmpty;
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 }
 
                 // Stop when meet lambda or local function
-                if (operation.Kind == OperationKind.AnonymousFunction || operation.Kind == OperationKind.LocalFunction)
+                if (operation.Kind is OperationKind.AnonymousFunction or OperationKind.LocalFunction)
                 {
                     return;
                 }

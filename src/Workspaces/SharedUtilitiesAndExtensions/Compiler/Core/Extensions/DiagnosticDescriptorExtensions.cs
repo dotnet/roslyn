@@ -2,20 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class DiagnosticDescriptorExtensions
     {
         private const string DotnetAnalyzerDiagnosticPrefix = "dotnet_analyzer_diagnostic";
+        private const string DotnetDiagnosticPrefix = "dotnet_diagnostic";
         private const string CategoryPrefix = "category";
         private const string SeveritySuffix = "severity";
 
         private const string DotnetAnalyzerDiagnosticSeverityKey = DotnetAnalyzerDiagnosticPrefix + "." + SeveritySuffix;
+
+        public static ImmutableArray<string> ImmutableCustomTags(this DiagnosticDescriptor descriptor)
+        {
+            Debug.Assert(descriptor.CustomTags is ImmutableArray<string>);
+            return (ImmutableArray<string>)descriptor.CustomTags;
+        }
 
         /// <summary>
         /// Gets project-level effective severity of the given <paramref name="descriptor"/> accounting for severity configurations from both the following sources:
@@ -43,6 +50,90 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return effectiveSeverity;
         }
 
+        public static bool IsDefinedInEditorConfig(this DiagnosticDescriptor descriptor, AnalyzerConfigOptions analyzerConfigOptions)
+        {
+            // Check if the option is defined explicitly in the editorconfig
+            var diagnosticKey = $"{DotnetDiagnosticPrefix}.{descriptor.Id}.{SeveritySuffix}";
+            if (analyzerConfigOptions.TryGetValue(diagnosticKey, out var value) &&
+                EditorConfigSeverityStrings.TryParse(value, out var severity))
+            {
+                return true;
+            }
+
+            // Check if the option is defined as part of a bulk configuration
+            // Analyzer bulk configuration does not apply to:
+            //  1. Disabled by default diagnostics
+            //  2. Compiler diagnostics
+            //  3. Non-configurable diagnostics
+            if (!descriptor.IsEnabledByDefault ||
+                descriptor.ImmutableCustomTags().Any(tag => tag is WellKnownDiagnosticTags.Compiler or WellKnownDiagnosticTags.NotConfigurable))
+            {
+                return false;
+            }
+
+            // If user has explicitly configured default severity for the diagnostic category, that should be respected.
+            // For example, 'dotnet_analyzer_diagnostic.category-security.severity = error'
+            var categoryBasedKey = $"{DotnetAnalyzerDiagnosticPrefix}.{CategoryPrefix}-{descriptor.Category}.{SeveritySuffix}";
+            if (analyzerConfigOptions.TryGetValue(categoryBasedKey, out value) &&
+                EditorConfigSeverityStrings.TryParse(value, out severity))
+            {
+                return true;
+            }
+
+            // Otherwise, if user has explicitly configured default severity for all analyzer diagnostics, that should be respected.
+            // For example, 'dotnet_analyzer_diagnostic.severity = error'
+            if (analyzerConfigOptions.TryGetValue(DotnetAnalyzerDiagnosticSeverityKey, out value) &&
+                EditorConfigSeverityStrings.TryParse(value, out severity))
+            {
+                return true;
+            }
+
+            // option not defined in editorconfig, assumed to be the default
+            return false;
+        }
+
+        public static ReportDiagnostic GetEffectiveSeverity(this DiagnosticDescriptor descriptor, AnalyzerConfigOptions analyzerConfigOptions)
+        {
+            // Check if the option is defined explicitly in the editorconfig
+            var diagnosticKey = $"{DotnetDiagnosticPrefix}.{descriptor.Id}.{SeveritySuffix}";
+            if (analyzerConfigOptions.TryGetValue(diagnosticKey, out var value) &&
+                EditorConfigSeverityStrings.TryParse(value, out var severity))
+            {
+                return severity;
+            }
+
+            // Check if the option is defined as part of a bulk configuration
+            // Analyzer bulk configuration does not apply to:
+            //  1. Disabled by default diagnostics
+            //  2. Compiler diagnostics
+            //  3. Non-configurable diagnostics
+            if (!descriptor.IsEnabledByDefault ||
+                descriptor.ImmutableCustomTags().Any(tag => tag is WellKnownDiagnosticTags.Compiler or WellKnownDiagnosticTags.NotConfigurable))
+            {
+                return ReportDiagnostic.Default;
+            }
+
+            // If user has explicitly configured default severity for the diagnostic category, that should be respected.
+            // For example, 'dotnet_analyzer_diagnostic.category-security.severity = error'
+            var categoryBasedKey = $"{DotnetAnalyzerDiagnosticPrefix}.{CategoryPrefix}-{descriptor.Category}.{SeveritySuffix}";
+            if (analyzerConfigOptions.TryGetValue(categoryBasedKey, out value) &&
+                EditorConfigSeverityStrings.TryParse(value, out severity))
+            {
+                return severity;
+            }
+
+            // Otherwise, if user has explicitly configured default severity for all analyzer diagnostics, that should be respected.
+            // For example, 'dotnet_analyzer_diagnostic.severity = error'
+            if (analyzerConfigOptions.TryGetValue(DotnetAnalyzerDiagnosticSeverityKey, out value) &&
+                EditorConfigSeverityStrings.TryParse(value, out severity))
+            {
+                return severity;
+            }
+
+            // option not defined in editorconfig, assumed to be the default
+            return ReportDiagnostic.Default;
+        }
+
         /// <summary>
         /// Tries to get configured severity for the given <paramref name="descriptor"/>
         /// from bulk configuration analyzer config options, i.e.
@@ -63,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             //  2. Compiler diagnostics
             //  3. Non-configurable diagnostics
             if (!descriptor.IsEnabledByDefault ||
-                descriptor.CustomTags.Any(tag => tag == WellKnownDiagnosticTags.Compiler || tag == WellKnownDiagnosticTags.NotConfigurable))
+                descriptor.ImmutableCustomTags().Any(tag => tag is WellKnownDiagnosticTags.Compiler or WellKnownDiagnosticTags.NotConfigurable))
             {
                 severity = default;
                 return false;
@@ -91,6 +182,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsCompilationEnd(this DiagnosticDescriptor descriptor)
-            => descriptor.CustomTags.Contains(WellKnownDiagnosticTags.CompilationEnd);
+            => descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.CompilationEnd);
     }
 }

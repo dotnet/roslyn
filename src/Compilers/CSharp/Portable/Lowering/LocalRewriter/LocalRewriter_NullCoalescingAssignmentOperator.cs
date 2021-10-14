@@ -41,7 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, loweredRight, node.LeftOperand.Type, used: true, isChecked: false, isCompoundAssignment: false);
 
                 // lhsRead ?? (transformedLHS = loweredRight)
-                BoundExpression conditionalExpression = MakeNullCoalescingOperator(syntax, lhsRead, assignment, Conversion.Identity, BoundNullCoalescingOperatorResultKind.LeftType, node.LeftOperand.Type);
+                var leftPlaceholder = new BoundValuePlaceholder(lhsRead.Syntax, lhsRead.Type);
+                BoundExpression conditionalExpression = MakeNullCoalescingOperator(syntax, lhsRead, assignment, leftPlaceholder: leftPlaceholder, leftConversion: leftPlaceholder, BoundNullCoalescingOperatorResultKind.LeftType, node.LeftOperand.Type);
                 Debug.Assert(conditionalExpression.Type is { });
 
                 return (temps.Count == 0 && stores.Count == 0) ?

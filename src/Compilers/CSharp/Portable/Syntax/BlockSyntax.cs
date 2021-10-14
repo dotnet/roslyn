@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public partial class BlockSyntax
     {
         public BlockSyntax Update(SyntaxToken openBraceToken, SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
-            => Update(attributeLists: default, openBraceToken, statements, closeBraceToken);
+            => Update(AttributeLists, openBraceToken, statements, closeBraceToken);
     }
 }
 

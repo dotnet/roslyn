@@ -40,14 +40,14 @@
         <note>{0}: Comma-separated list of diagnostic IDs</note>
       </trans-unit>
       <trans-unit id="HintNameInvalidChar">
-        <source>The hintName contains an invalid character '{0}' at position {1}.</source>
-        <target state="translated">Der hintName enthält ein ungültiges Zeichen "{0}" an Position {1}.</target>
-        <note>{0}: the invalid character, {1} the position it occurred at</note>
+        <source>The hintName '{0}' contains an invalid character '{1}' at position {2}.</source>
+        <target state="translated">Der hintName "{0}" enthält ein ungültiges Zeichen "{1}" an Position {2}.</target>
+        <note>{0}: the provided hintname. {1}: the invalid character, {2} the position it occurred at</note>
       </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
-        <source>The hintName of the added source file must be unique within a generator.</source>
-        <target state="translated">Der hintName der hinzugefügten Quelldatei muss innerhalb eines Generators eindeutig sein.</target>
-        <note />
+        <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
+        <target state="translated">Der hintName "{0}" der hinzugefügten Quelldatei muss innerhalb eines Generators eindeutig sein.</target>
+        <note>{0}: the provided hintname</note>
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
         <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
@@ -125,9 +125,9 @@
         <note>{0}: type name</note>
       </trans-unit>
       <trans-unit id="SourceTextRequiresEncoding">
-        <source>The provided SourceText must have an explicit encoding set.</source>
-        <target state="translated">Der angegebene SourceText muss über einen expliziten Codierungssatz verfügen.</target>
-        <note>'SourceText' is not localizable.</note>
+        <source>The SourceText with hintName '{0}' must have an explicit encoding set.</source>
+        <target state="translated">Für "SourceText" mit "hintName" "{0}" muss ein expliziter Codierungssatz festgelegt sein.</target>
+        <note>'SourceText' is not localizable. {0}: the provided hintname</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
@@ -709,11 +709,6 @@
       <trans-unit id="ArgumentElementCannotBeNull">
         <source>Argument cannot have a null element.</source>
         <target state="translated">Argument darf kein Nullelement enthalten.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AsyncAnalyzerActionCannotBeRegistered">
-        <source>Analyzer attempted to register an 'async' action, which is not supported.</source>
-        <target state="translated">Das Analysetool hat versucht, eine Aktion "async" zu registrieren. Dies wird nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedDiagnosticReported">

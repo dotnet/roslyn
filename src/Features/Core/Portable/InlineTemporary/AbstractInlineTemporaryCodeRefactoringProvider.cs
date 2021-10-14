@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -11,18 +9,22 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InlineTemporary
 {
-    internal abstract class AbstractInlineTemporaryCodeRefactoringProvider<TVariableDeclaratorSyntax> : CodeRefactoringProvider
+    internal abstract class AbstractInlineTemporaryCodeRefactoringProvider<
+        TIdentifierNameSyntax,
+        TVariableDeclaratorSyntax> : CodeRefactoringProvider
+        where TIdentifierNameSyntax : SyntaxNode
         where TVariableDeclaratorSyntax : SyntaxNode
     {
-        protected static async Task<ImmutableArray<ReferenceLocation>> GetReferenceLocationsAsync(
+        protected static async Task<ImmutableArray<TIdentifierNameSyntax>> GetReferenceLocationsAsync(
             Document document,
             TVariableDeclaratorSyntax variableDeclarator,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var local = semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
 
             if (local != null)
@@ -37,12 +39,16 @@ namespace Microsoft.CodeAnalysis.InlineTemporary
                 var referencedSymbol = findReferencesResult.SingleOrDefault(r => Equals(r.Definition, local));
                 if (referencedSymbol != null)
                 {
-                    return referencedSymbol.LocationsArray.WhereAsArray(
-                        loc => !semanticModel.SyntaxTree.OverlapsHiddenPosition(loc.Location.SourceSpan, cancellationToken));
+                    var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    return referencedSymbol.Locations
+                        .Where(loc => !semanticModel.SyntaxTree.OverlapsHiddenPosition(loc.Location.SourceSpan, cancellationToken))
+                        .Select(loc => root.FindToken(loc.Location.SourceSpan.Start).Parent as TIdentifierNameSyntax)
+                        .WhereNotNull()
+                        .ToImmutableArray();
                 }
             }
 
-            return ImmutableArray<ReferenceLocation>.Empty;
+            return ImmutableArray<TIdentifierNameSyntax>.Empty;
         }
     }
 }

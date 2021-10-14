@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         private readonly Func<OptionKey, object?> _getOptionCore;
 
-        public OptionSet()
+        protected OptionSet()
         {
             _getOptionCore = GetOptionCore;
         }

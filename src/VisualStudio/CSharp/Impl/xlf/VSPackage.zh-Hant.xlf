@@ -33,7 +33,8 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Display inline hints;
+        <source>Underline reassigned variables;
+Display inline hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
@@ -80,17 +81,19 @@ prefer auto properties;
 regex;
 regular expression;
 Use enhanced colors;
-Editor Color Scheme;</source>
-        <target state="translated">顯示內嵌提示;
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="translated">為重新指派的變數加上底線;
+顯示內嵌提示;
 顯示已關閉檔案的診斷;
-為規則運算式著色; 
+為規則運算式添加色彩; 
 醒目提示游標下的相關元件; 
 回報無效的規則運算式;
 啟用完整解決方案分析;
 在外部處理序中執行編輯器功能分析;
 啟用瀏覽至反向組譯的來源;
 using 指示詞;
-排序 using 時先放置系統指示詞;
+排序使 using 先放置系統指示詞;
 分隔 using 指示詞群組;
 為參考組件中的類型建議 using;
 為 NuGet 套件中的類型建議 using;
@@ -128,7 +131,8 @@ using 指示詞;
 regex;
 規則運算式;
 使用進階色彩;
-編輯器色彩配置;</target>
+編輯器色彩配置;
+繼承頁面邊界</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -279,6 +283,7 @@ Show completion list after a character is deleted;
 Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;
@@ -295,14 +300,15 @@ Show items from unimported namespaces (experimental);</source>
 自動在引數清單中顯示自動完成清單 (實驗性);
 醒目提示自動完成清單項目的相符部分;
 顯示完成項目篩選;
+在遇到分號時自動完成陳述式;
 程式碼片段行為;
-永不包含程式碼片段;
-永遠包含程式碼片段;
+一律不包含程式碼片段;
+一律包含程式碼片段;
 在識別碼後鍵入 ?-Tab 時包含程式碼片段;
 Enter 鍵行為;
-永不在按下 enter 鍵時新增一行程式碼;
-只在按下 enter 鍵時，於完整鍵入的文字結尾後新增一行程式碼;
-永遠在按下 enter 鍵時新增一行程式碼;
+一律不在按下 Enter 鍵時新增一行程式碼;
+只在按下 Enter 鍵時，於完整鍵入的文字結尾後新增一行程式碼;
+一律在按下 Enter 鍵時新增一行程式碼;
 顯示名稱建議;
 顯示未匯入命名空間中的項目 (實驗性);</target>
         <note>C# IntelliSense options page keywords</note>

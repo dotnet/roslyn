@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return -1;
             }
 
-            if (!(newerSnapshot is AbstractTableEntriesSnapshot<TItem> ourSnapshot) || ourSnapshot.Count == 0)
+            if (newerSnapshot is not AbstractTableEntriesSnapshot<TItem> ourSnapshot || ourSnapshot.Count == 0)
             {
                 // not ours, we don't know how to track index
                 return -1;
@@ -156,8 +156,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return false;
             }
 
-            var options = workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, previewTab)
-                                           .WithChangedOption(NavigationOptions.ActivateTab, activate);
+            var solution = workspace.CurrentSolution;
+            var options = solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, previewTab)
+                                          .WithChangedOption(NavigationOptions.ActivateTab, activate);
             return navigationService.TryNavigateToLineAndOffset(workspace, documentId, position.Line, position.Character, options, cancellationToken);
         }
 
@@ -192,34 +193,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             return TryNavigateTo(workspace, documentId, position, previewTab, activate, cancellationToken);
-        }
-
-        protected static string GetFileName(string original, string mapped)
-            => mapped == null ? original : original == null ? mapped : Combine(original, mapped);
-
-        private static string Combine(string path1, string path2)
-        {
-            if (TryCombine(path1, path2, out var result))
-            {
-                return result;
-            }
-
-            return string.Empty;
-        }
-
-        public static bool TryCombine(string path1, string path2, out string result)
-        {
-            try
-            {
-                // don't throw exception when either path1 or path2 contains illegal path char
-                result = System.IO.Path.Combine(path1, path2);
-                return true;
-            }
-            catch
-            {
-                result = null;
-                return false;
-            }
         }
 
         // we don't use these

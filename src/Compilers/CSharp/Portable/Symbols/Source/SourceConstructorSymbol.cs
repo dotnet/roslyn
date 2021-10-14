@@ -116,7 +116,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (methodKind == MethodKind.StaticConstructor)
             {
-                if ((mods & DeclarationModifiers.AccessibilityMask) != 0)
+                // Don't report ERR_StaticConstructorWithAccessModifiers if the ctor symbol name doesn't match the containing type name.
+                // This avoids extra unnecessary errors.
+                // There will already be a diagnostic saying Method must have a return type.
+                if ((mods & DeclarationModifiers.AccessibilityMask) != 0 &&
+                    ContainingType.Name == ((ConstructorDeclarationSyntax)this.SyntaxNode).Identifier.ValueText)
                 {
                     diagnostics.Add(ErrorCode.ERR_StaticConstructorWithAccessModifiers, location, this);
                     mods = mods & ~DeclarationModifiers.AccessibilityMask;

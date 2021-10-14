@@ -2,18 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private IOption GetOption(string optionName, string feature)
         {
-            var optionService = _visualStudioWorkspace.Services.GetService<IOptionService>();
+            var optionService = _visualStudioWorkspace.Services.GetRequiredService<IOptionService>();
             var option = optionService.GetRegisteredOptions().FirstOrDefault(o => o.Feature == feature && o.Name == optionName);
             if (option == null)
             {
@@ -110,11 +110,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return option;
         }
 
-        private void SetOption(OptionKey optionKey, object result)
+        private void SetOption(OptionKey optionKey, object? result)
             => _visualStudioWorkspace.SetOptions(_visualStudioWorkspace.Options.WithChangedOption(optionKey, result));
-
-        private static TestingOnly_WaitingService GetWaitingService()
-            => GetComponentModel().DefaultExportProvider.GetExport<TestingOnly_WaitingService>().Value;
 
         public void WaitForAsyncOperations(TimeSpan timeout, string featuresToWaitFor, bool waitForWorkspaceFirst = true)
         {
@@ -178,6 +175,30 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 _visualStudioWorkspace.TestHookPartialSolutionsDisabled = true;
             });
 
+        /// <summary>
+        /// Reset options that are manipulated by integration tests back to their default values.
+        /// </summary>
+        public void ResetOptions()
+        {
+            ResetOption(CompletionViewOptions.EnableArgumentCompletionSnippets);
+            ResetOption(FeatureOnOffOptions.NavigateToDecompiledSources);
+            return;
+
+            // Local function
+            void ResetOption(IOption option)
+            {
+                if (option is IPerLanguageOption)
+                {
+                    SetOption(new OptionKey(option, LanguageNames.CSharp), option.DefaultValue);
+                    SetOption(new OptionKey(option, LanguageNames.VisualBasic), option.DefaultValue);
+                }
+                else
+                {
+                    SetOption(new OptionKey(option), option.DefaultValue);
+                }
+            }
+        }
+
         public void CleanUpWaitingService()
             => InvokeOnUIThread(cancellationToken =>
             {
@@ -191,7 +212,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 GetWaitingService().EnableActiveTokenTracking(true);
             });
 
-        public void SetFeatureOption(string feature, string optionName, string language, string valueString)
+        public void SetFeatureOption(string feature, string optionName, string language, string? valueString)
             => InvokeOnUIThread(cancellationToken =>
             {
                 var option = GetOption(optionName, feature);
@@ -204,10 +225,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 SetOption(optionKey, value);
             });
 
-        public string GetWorkingFolder()
+        public string? GetWorkingFolder()
         {
-            var service = _visualStudioWorkspace.Services.GetRequiredService<IPersistentStorageLocationService>();
-            return service.TryGetStorageLocation(_visualStudioWorkspace.CurrentSolution);
+            var service = _visualStudioWorkspace.Services.GetRequiredService<IPersistentStorageConfiguration>();
+            return service.TryGetStorageLocation(SolutionKey.ToSolutionKey(_visualStudioWorkspace.CurrentSolution));
         }
     }
 }

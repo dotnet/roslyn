@@ -72,6 +72,11 @@
         <target state="translated">找不到模块!</target>
         <note />
       </trans-unit>
+      <trans-unit id="Outside_namespace">
+        <source>Outside namespace</source>
+        <target state="translated">命名空间外</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Press_TAB_to_insert">
         <source>     (Press TAB to insert)</source>
         <target state="translated">(按 Tab 插入)</target>

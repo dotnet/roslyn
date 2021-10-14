@@ -21,7 +21,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseDeconstruction), Shared]
     internal class CSharpUseDeconstructionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             //
             // If we had the "var t" form we'll convert that to the declaration expression "var (x, y)"
             return typeNode.IsKind(SyntaxKind.TupleType, out TupleTypeSyntax tupleTypeSyntax)
-                ? (ExpressionSyntax)CreateTupleExpression(tupleTypeSyntax)
+                ? CreateTupleExpression(tupleTypeSyntax)
                 : CreateDeclarationExpression(tupleType, typeNode);
         }
 

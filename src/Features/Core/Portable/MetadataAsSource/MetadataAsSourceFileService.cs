@@ -124,7 +124,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     {
                         try
                         {
+                            // Fetch the IDecompiledSourceService from the temporary document, not the original one -- it
+                            // may be a different language because we don't have support for decompiling into VB.NET, so we just
+                            // use C#.
                             var decompiledSourceService = temporaryDocument.GetLanguageService<IDecompiledSourceService>();
+
                             if (decompiledSourceService != null)
                             {
                                 temporaryDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, compilation, symbol, cancellationToken).ConfigureAwait(false);
@@ -134,7 +138,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                                 useDecompiler = false;
                             }
                         }
-                        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                         {
                             useDecompiler = false;
                         }
@@ -151,7 +155,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                     // Create the directory. It's possible a parallel deletion is happening in another process, so we may have
                     // to retry this a few times.
-                    var directoryToCreate = Path.GetDirectoryName(fileInfo.TemporaryFilePath);
+                    var directoryToCreate = Path.GetDirectoryName(fileInfo.TemporaryFilePath)!;
                     while (!Directory.Exists(directoryToCreate))
                     {
                         try
@@ -297,7 +301,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             }
         }
 
-        internal async Task<SymbolMappingResult?> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken)
+        private async Task<Project?> MapDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             MetadataAsSourceGeneratedFileInfo? fileInfo;
 
@@ -309,20 +313,22 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
             }
 
-            // WARANING: do not touch any state fields outside the lock.
+            // WARNING: do not touch any state fields outside the lock.
             var solution = fileInfo.Workspace.CurrentSolution;
             var project = solution.GetProject(fileInfo.SourceProjectId);
+            return project;
+        }
+
+        internal async Task<SymbolMappingResult?> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken)
+        {
+            var project = await MapDocumentAsync(document, cancellationToken).ConfigureAwait(false);
             if (project == null)
-            {
                 return null;
-            }
 
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var resolutionResult = symbolId.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken);
             if (resolutionResult.Symbol == null)
-            {
                 return null;
-            }
 
             return new SymbolMappingResult(project, resolutionResult.Symbol);
         }
@@ -405,6 +411,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         public bool IsNavigableMetadataSymbol(ISymbol symbol)
         {
+            if (!symbol.Locations.Any(l => l.IsInMetadata))
+            {
+                return false;
+            }
+
             switch (symbol.Kind)
             {
                 case SymbolKind.Event:

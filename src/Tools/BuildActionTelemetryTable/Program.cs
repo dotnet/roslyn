@@ -84,8 +84,20 @@ namespace BuildActionTelemetryTable
 
             static TelemetryInfo GetTelemetryInfo(Type type)
             {
+                // Generate dev16 telemetry hash - Requires running on 32-bit Full Framework
+                type = GetTypeForTelemetry(type);
+                var stringHash = type.FullName.GetHashCode().ToString("X");
+
+                // Generate dev17 telemetry hash
                 var telemetryId = type.GetTelemetryId().ToString();
-                return Tuple.Create(type.FullName, telemetryId.Substring(0, 8), telemetryId.Substring(19));
+                var fnvHash = telemetryId.Substring(19);
+
+                return Tuple.Create(type.FullName, stringHash, fnvHash);
+            }
+
+            static Type GetTypeForTelemetry(Type type)
+            {
+                return type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
             }
         }
 
@@ -93,12 +105,12 @@ namespace BuildActionTelemetryTable
         {
             var table = new StringBuilder();
 
-            table.AppendLine("let actions = datatable(ActionName: string, Prefix: string, Suffix: string)");
+            table.AppendLine("let actions = datatable(ActionName: string, StringHash: string, FnvHash: string)");
             table.AppendLine("[");
 
-            foreach (var (actionTypeName, prefix, suffix) in telemetryInfos)
+            foreach (var (actionTypeName, stringHash, fnvHash) in telemetryInfos)
             {
-                table.AppendLine(@$"  ""{actionTypeName}"", ""{prefix}"", ""{suffix}"",");
+                table.AppendLine(@$"  ""{actionTypeName}"", ""{stringHash}"", ""{fnvHash}"",");
             }
 
             table.Append("];");

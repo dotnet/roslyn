@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.SimplifyLinqExpression;
 
 namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.SimplifyLinqExpression), Shared]
     internal sealed class CSharpSimplifyLinqExpressionCodeFixProvider : AbstractSimplifyLinqExpressionCodeFixProvider<InvocationExpressionSyntax, SimpleNameSyntax, ExpressionSyntax>
     {
         [ImportingConstructor]

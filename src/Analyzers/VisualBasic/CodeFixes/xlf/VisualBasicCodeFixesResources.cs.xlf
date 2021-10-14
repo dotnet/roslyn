@@ -17,6 +17,11 @@
         <target state="translated">Odebrat nepotřebné importy</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_object_creation">
+        <source>Simplify object creation</source>
+        <target state="translated">Zjednodušit vytváření objektů</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

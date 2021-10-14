@@ -2,7 +2,7 @@
 
 ## Overview
 
-1. Official documentation for all [IDE analyzer diagnostic IDs](../../src/Analyzers/Core/Analyzers/IDEDiagnosticIds.cs) is added to `dotnet/docs` repo at <https://github.com/dotnet/docs/tree/master/docs/fundamentals/code-analysis/style-rules>.
+1. Official documentation for all [IDE analyzer diagnostic IDs](../../src/Analyzers/Core/Analyzers/IDEDiagnosticIds.cs) is added to `dotnet/docs` repo at <https://github.com/dotnet/docs/tree/main/docs/fundamentals/code-analysis/style-rules>.
 
 2. Each IDE diagnostic ID has a dedicated documentation page. For example:
    1. Diagnostic with code style option: <https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0011>

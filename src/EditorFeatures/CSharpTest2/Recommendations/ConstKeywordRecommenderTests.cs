@@ -50,6 +50,13 @@ $$");
 @"using Goo = $$");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
         public async Task TestInEmptyStatement(bool topLevelStatement)
@@ -69,6 +76,13 @@ $$");
         public async Task TestAfterUsing()
         {
             await VerifyKeywordAsync(@"using Goo;
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterGlobalUsing()
+        {
+            await VerifyKeywordAsync(@"global using Goo;
 $$");
         }
 
@@ -123,6 +137,16 @@ $$");
 using Goo;");
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData(SourceCodeKind.Regular)]
+        [InlineData(SourceCodeKind.Script, Skip = "https://github.com/dotnet/roslyn/issues/9880")]
+        public async Task TestNotBeforeGlobalUsing(SourceCodeKind sourceCodeKind)
+        {
+            await VerifyAbsenceAsync(sourceCodeKind,
+@"$$
+global using Goo;");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAssemblyAttribute()
         {
@@ -131,9 +155,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterRootAttribute()
+        public async Task TestAfterRootAttribute()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"[goo]
+            await VerifyKeywordAsync(SourceCodeKind.Regular, @"[goo]
 $$");
         }
 

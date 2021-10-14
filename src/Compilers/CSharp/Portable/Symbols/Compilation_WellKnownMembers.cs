@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This method handles duplicate types in a few different ways:
         /// - for types before C# 7, the first candidate is returned with a warning
         /// - for types after C# 7, the type is considered missing
-        /// - in both cases, when BinderFlags.IgnoreCorLibraryDuplicatedTypes is set, any duplicate coming from corlib will be ignored (ie not count as a duplicate)
+        /// - in both cases, when BinderFlags.IgnoreCorLibraryDuplicatedTypes is set, type from corlib will not count as a duplicate
         /// </summary>
         internal NamedTypeSymbol GetWellKnownType(WellKnownType type)
         {
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetWellKnownType(wellknownType);
         }
 
-        internal static Symbol? GetRuntimeMember(NamedTypeSymbol declaringType, in MemberDescriptor descriptor, SignatureComparer<MethodSymbol, FieldSymbol, PropertySymbol, TypeSymbol, ParameterSymbol> comparer, AssemblySymbol accessWithinOpt)
+        internal static Symbol? GetRuntimeMember(NamedTypeSymbol declaringType, in MemberDescriptor descriptor, SignatureComparer<MethodSymbol, FieldSymbol, PropertySymbol, TypeSymbol, ParameterSymbol> comparer, AssemblySymbol? accessWithinOpt)
         {
             var members = declaringType.GetMembers(descriptor.Name);
             return GetRuntimeMember(members, descriptor, comparer, accessWithinOpt);

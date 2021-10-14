@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         public override bool IsTriggerCharacter(char ch)
-            => ch == '<' || ch == ',';
+            => ch is '<' or ',';
 
         public override bool IsRetriggerCharacter(char ch)
             => ch == '>';
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            if (!(genericIdentifier.Parent is SimpleNameSyntax simpleName))
+            if (genericIdentifier.Parent is not SimpleNameSyntax simpleName)
             {
                 return null;
             }
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var accessibleSymbols =
                 symbols.WhereAsArray(s => s.GetArity() > 0)
-                       .WhereAsArray(s => s is INamedTypeSymbol || s is IMethodSymbol)
+                       .WhereAsArray(s => s is INamedTypeSymbol or IMethodSymbol)
                        .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
                        .Sort(semanticModel, genericIdentifier.SpanStart);
 
@@ -126,13 +126,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var anonymousTypeDisplayService = document.GetRequiredLanguageService<IAnonymousTypeDisplayService>();
+            var structuralTypeDisplayService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
             var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
             var textSpan = GetTextSpan(genericIdentifier, lessThanToken);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             return CreateSignatureHelpItems(accessibleSymbols.Select(s =>
-                Convert(s, lessThanToken, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService)).ToList(),
+                Convert(s, lessThanToken, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem: null);
         }
 
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             ISymbol symbol,
             SyntaxToken lessThanToken,
             SemanticModel semanticModel,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
+            IStructuralTypeDisplayService structuralTypeDisplayService,
             IDocumentationCommentFormattingService documentationCommentFormattingService)
         {
             var position = lessThanToken.SpanStart;
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             {
                 item = CreateItem(
                     symbol, semanticModel, position,
-                    anonymousTypeDisplayService,
+                    structuralTypeDisplayService,
                     false,
                     symbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                     GetPreambleParts(namedType, semanticModel, position),
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 var method = (IMethodSymbol)symbol;
                 item = CreateItem(
                     symbol, semanticModel, position,
-                    anonymousTypeDisplayService,
+                    structuralTypeDisplayService,
                     false,
                     c => symbol.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c),
                     GetPreambleParts(method, semanticModel, position),

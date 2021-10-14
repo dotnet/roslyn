@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -46,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var position = context.Position;
             var cancellationToken = context.CancellationToken;
 
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (!IsPartialMethodCompletionContext(tree, position, cancellationToken, out var modifiers, out var token))
             {
                 return;
@@ -65,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override async Task<ISymbol> GenerateMemberAsync(ISymbol member, INamedTypeSymbol containingType, Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             var syntaxFactory = document.GetLanguageService<SyntaxGenerator>();
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var method = (IMethodSymbol)member;
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
@@ -81,16 +79,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 statements: syntaxFactory.CreateThrowNotImplementedStatementBlock(semanticModel.Compilation));
         }
 
-        protected async Task<IEnumerable<CompletionItem>> CreatePartialItemsAsync(
+        protected async Task<IEnumerable<CompletionItem>?> CreatePartialItemsAsync(
             Document document, int position, TextSpan span, DeclarationModifiers modifiers, SyntaxToken token, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Only inside classes and structs
             if (semanticModel.GetEnclosingSymbol(position, cancellationToken) is not INamedTypeSymbol enclosingSymbol)
                 return null;
 
-            if (!(enclosingSymbol.TypeKind == TypeKind.Struct || enclosingSymbol.TypeKind == TypeKind.Class))
+            if (enclosingSymbol.TypeKind is not (TypeKind.Struct or TypeKind.Class))
                 return null;
 
             var symbols = semanticModel.LookupSymbols(position, container: enclosingSymbol)

@@ -214,4 +214,7 @@
   <data name="General_UnableToReadFile" xml:space="preserve">
     <value>File "{0}" could not be read: {1}</value>
   </data>
+  <data name="ImplicitlySkipAnalyzersMessage" xml:space="preserve">
+    <value>Skipping analyzers to speed up the build. You can execute 'Build' or 'Rebuild' command to run analyzers.</value>
+  </data>
 </root>

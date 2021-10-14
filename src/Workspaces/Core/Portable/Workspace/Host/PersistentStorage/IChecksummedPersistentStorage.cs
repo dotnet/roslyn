@@ -8,7 +8,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PersistentStorage;
+using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -60,27 +60,48 @@ namespace Microsoft.CodeAnalysis.Host
         Task<Stream> ReadStreamAsync(DocumentKey document, string name, Checksum checksum = null, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Reads the stream for the solution with the given <paramref name="name"/>.  An optional <paramref name="checksum"/>
-        /// can be provided to store along with the data.  This can be used along with ReadStreamAsync with future 
-        /// reads to ensure the data is only read back if it matches that checksum.
+        /// Reads the stream for the solution with the given <paramref name="name"/>.  An optional <paramref
+        /// name="checksum"/> can be provided to store along with the data.  This can be used along with ReadStreamAsync
+        /// with future reads to ensure the data is only read back if it matches that checksum.
+        /// <para>
+        /// Returns <see langword="true"/> if the data was successfully persisted to the storage subsystem.  Subsequent
+        /// calls to read the same keys should succeed if called within the same session.
+        /// </para>
         /// </summary>
         Task<bool> WriteStreamAsync(string name, Stream stream, Checksum checksum = null, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Reads the stream for the <paramref name="project"/> with the given <paramref name="name"/>.  An optional <paramref name="checksum"/>
-        /// can be provided to store along with the data.  This can be used along with ReadStreamAsync with future 
-        /// reads to ensure the data is only read back if it matches that checksum.
+        /// Reads the stream for the <paramref name="project"/> with the given <paramref name="name"/>.  An optional
+        /// <paramref name="checksum"/> can be provided to store along with the data.  This can be used along with
+        /// ReadStreamAsync with future reads to ensure the data is only read back if it matches that checksum.
+        /// <para>
+        /// Returns <see langword="true"/> if the data was successfully persisted to the storage subsystem.  Subsequent
+        /// calls to read the same keys should succeed if called within the same session.
+        /// </para>
         /// </summary>
         Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum checksum = null, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Reads the stream for the <paramref name="document"/> with the given <paramref name="name"/>.  An optional <paramref name="checksum"/>
-        /// can be provided to store along with the data.  This can be used along with ReadStreamAsync with future 
-        /// reads to ensure the data is only read back if it matches that checksum.
+        /// Reads the stream for the <paramref name="document"/> with the given <paramref name="name"/>.  An optional
+        /// <paramref name="checksum"/> can be provided to store along with the data.  This can be used along with
+        /// ReadStreamAsync with future reads to ensure the data is only read back if it matches that checksum.
+        /// <para>
+        /// Returns <see langword="true"/> if the data was successfully persisted to the storage subsystem.  Subsequent
+        /// calls to read the same keys should succeed if called within the same session.
+        /// </para>
         /// </summary>
         Task<bool> WriteStreamAsync(Document document, string name, Stream stream, Checksum checksum = null, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Returns <see langword="true"/> if the data was successfully persisted to the storage subsystem.  Subsequent
+        /// calls to read the same keys should succeed if called within the same session.
+        /// </summary>
         Task<bool> WriteStreamAsync(ProjectKey projectKey, string name, Stream stream, Checksum checksum = null, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Returns <see langword="true"/> if the data was successfully persisted to the storage subsystem.  Subsequent
+        /// calls to read the same keys should succeed if called within the same session.
+        /// </summary>
         Task<bool> WriteStreamAsync(DocumentKey documentKey, string name, Stream stream, Checksum checksum = null, CancellationToken cancellationToken = default);
     }
 }

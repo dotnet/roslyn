@@ -37,7 +37,7 @@ Those are scenarios where you need to compile the same code with different versi
 
 The latest native compiler (pre-Roslyn) is part of the .NET Framework, so you can run it from `c:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe`.
 
-For trying various Roslyn versions, you can create a new project with your code, and add a reference to [`Microsoft.Net.Compilers.Toolset`](../compilers/Compiler%20Toolset%20NuPkgs.md). By choosing the source (nuget.org or Azure DevOps) and the package version (see [versioning help](https://github.com/dotnet/roslyn/blob/master/docs/wiki/NuGet-packages.md#versioning)), you will be able to control what version of the compiler is used. Note that you need to _Build_ your project to compile the code with the desired compiler version (the IDE may show squiggles and use a different version).
+For trying various Roslyn versions, you can create a new project with your code, and add a reference to [`Microsoft.Net.Compilers.Toolset`](../compilers/Compiler%20Toolset%20NuPkgs.md). By choosing the source (nuget.org or Azure DevOps) and the package version (see [versioning help](https://github.com/dotnet/roslyn/blob/main/docs/wiki/NuGet-packages.md#versioning)), you will be able to control what version of the compiler is used. Note that you need to _Build_ your project to compile the code with the desired compiler version (the IDE may show squiggles and use a different version).
 
 # Running and debugging a test on Core on Windows
 To run all Core tests on Windows, you can use `Build.cmd -testCoreClr`.
