@@ -72,7 +72,8 @@ namespace Microsoft.CodeAnalysis
             TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates,
             AsyncLazy<VersionStamp> lazyLatestDocumentVersion,
             AsyncLazy<VersionStamp> lazyLatestDocumentTopLevelChangeVersion,
-            ValueSource<CachingAnalyzerConfigSet> lazyAnalyzerConfigSet)
+            ValueSource<CachingAnalyzerConfigSet> lazyAnalyzerConfigSet,
+            CachedSkeletonReferences cachedSkeletonReferences)
         {
             _solutionServices = solutionServices;
             _languageServices = languageServices;
@@ -82,6 +83,7 @@ namespace Microsoft.CodeAnalysis
             _lazyLatestDocumentVersion = lazyLatestDocumentVersion;
             _lazyLatestDocumentTopLevelChangeVersion = lazyLatestDocumentTopLevelChangeVersion;
             _lazyAnalyzerConfigSet = lazyAnalyzerConfigSet;
+            _cachedSkeletonReferences = cachedSkeletonReferences;
 
             // ownership of information on document has moved to project state. clear out documentInfo the state is
             // holding on. otherwise, these information will be held onto unnecessarily by projectInfo even after
@@ -102,6 +104,7 @@ namespace Microsoft.CodeAnalysis
 
             _languageServices = languageServices;
             _solutionServices = solutionServices;
+            _cachedSkeletonReferences = new CachedSkeletonReferences(this.Id);
 
             var projectInfoFixed = FixProjectInfo(projectInfo);
 
@@ -481,7 +484,11 @@ namespace Microsoft.CodeAnalysis
                 analyzerConfigDocumentStates ?? AnalyzerConfigDocumentStates,
                 latestDocumentVersion ?? _lazyLatestDocumentVersion,
                 latestDocumentTopLevelChangeVersion ?? _lazyLatestDocumentTopLevelChangeVersion,
-                analyzerConfigSet ?? _lazyAnalyzerConfigSet);
+                analyzerConfigSet ?? _lazyAnalyzerConfigSet,
+                // Ensure this fork get's a clone of whatever cached skeletons we point at.  It can reuse them if its
+                // top level semantic version is the same, or if it fails to produce its own skeletons due to errors.
+                // if it produces new skeletons, it won't affect us though as it will only work on its own copy.
+                _cachedSkeletonReferences.Clone());
         }
 
         private ProjectInfo.ProjectAttributes Attributes
@@ -787,25 +794,24 @@ namespace Microsoft.CodeAnalysis
                     _lazyLatestDocumentTopLevelChangeVersion;
         }
 
-        public MetadataReference GetOrBuildSkeletonReference(
-            SolutionState solution,
-            ProjectReference projectReference,
+        public Task<MetadataReference> GetOrBuildSkeletonReferenceAsync(
+            Workspace workspace,
+            MetadataReferenceProperties properties,
             Compilation finalCompilation,
             VersionStamp version,
             CancellationToken cancellationToken)
         {
-
+            return _cachedSkeletonReferences.GetOrBuildReferenceAsync(workspace, properties, finalCompilation, version, cancellationToken);
         }
 
-        public bool TryGetSkeletonReference(
-            SolutionState solution,
-            ProjectReference projectReference,
+        public Task<MetadataReference?> TryGetSkeletonReferenceAsync(
+            Workspace workspace,
+            MetadataReferenceProperties properties,
             Compilation finalOrDeclarationCompilation,
             VersionStamp version,
-            CancellationToken cancellationToken,
-            out MetadataReference reference)
+            CancellationToken cancellationToken)
         {
-
+            return _cachedSkeletonReferences.TryGetReferenceAsync(workspace, properties, finalOrDeclarationCompilation, version, cancellationToken);
         }
     }
 }

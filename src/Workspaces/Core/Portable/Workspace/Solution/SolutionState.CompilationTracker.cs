@@ -1006,29 +1006,32 @@ namespace Microsoft.CodeAnalysis
                 {
                     using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_GetMetadataOnlyImage, cancellationToken))
                     {
+                        var workspace = solution.Workspace;
                         var version = await this.GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
 
                         // get or build compilation up to declaration state. this compilation will be used to provide live xml doc comment
                         var declarationCompilation = await this.GetOrBuildDeclarationCompilationAsync(solution.Services, cancellationToken: cancellationToken).ConfigureAwait(false);
-                        solution.Workspace.LogTestMessage($"Looking for a cached skeleton assembly for {projectReference.ProjectId} before taking the lock...");
+                        workspace.LogTestMessage($"Looking for a cached skeleton assembly for {projectReference.ProjectId} before taking the lock...");
 
-                        if (!this.ProjectState.TryGetSkeletonReference(
-                                solution, projectReference, declarationCompilation, version, cancellationToken, out var reference))
+                        var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
+                        var reference = await this.ProjectState.TryGetSkeletonReferenceAsync(
+                            workspace, properties, declarationCompilation, version, cancellationToken).ConfigureAwait(false);
+                        if (reference != null)
+                        {
+                            workspace.LogTestMessage($"Reusing the already cached skeleton assembly for {projectReference.ProjectId}");
+                        }
+                        else
                         {
                             // using async build lock so we don't get multiple consumers attempting to build metadata-only images for the same compilation.
                             using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                             {
-                                solution.Workspace.LogTestMessage($"Build lock taken for {ProjectState.Id}...");
+                                workspace.LogTestMessage($"Build lock taken for {ProjectState.Id}...");
 
                                 // okay, we still don't have one. bring the compilation to final state since we are going to use it to create skeleton assembly
                                 var compilationInfo = await this.GetOrBuildCompilationInfoAsync(solution, lockGate: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                                reference = this.ProjectState.GetOrBuildSkeletonReference(
-                                    solution, projectReference, compilationInfo.Compilation, version, cancellationToken);
+                                reference = await this.ProjectState.GetOrBuildSkeletonReferenceAsync(
+                                    workspace, properties, compilationInfo.Compilation, version, cancellationToken).ConfigureAwait(false);
                             }
-                        }
-                        else
-                        {
-                            solution.Workspace.LogTestMessage($"Reusing the already cached skeleton assembly for {projectReference.ProjectId}");
                         }
 
                         return reference;
