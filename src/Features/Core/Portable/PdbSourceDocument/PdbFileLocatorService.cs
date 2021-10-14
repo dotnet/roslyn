@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         {
         }
 
-        public Task<MultiMetadataReaderProvider?> GetMetadataReadersAsync(string dllPath, CancellationToken cancellationToken)
+        public Task<DocumentDebugInfoReader?> GetMetadataReadersAsync(string dllPath, CancellationToken cancellationToken)
         {
             var dllStream = IOUtilities.PerformIO(() => File.OpenRead(dllPath));
             if (dllStream is null)
-                return Task.FromResult<MultiMetadataReaderProvider?>(null);
+                return Task.FromResult<DocumentDebugInfoReader?>(null);
 
             var peReader = new PEReader(dllStream);
 
@@ -44,13 +44,13 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     dllStream.Dispose();
                     pdbStream?.Dispose();
                     peReader.Dispose();
-                    return Task.FromResult<MultiMetadataReaderProvider?>(null);
+                    return Task.FromResult<DocumentDebugInfoReader?>(null);
                 }
 
                 var pdbReaderProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
 
-                var result = new MultiMetadataReaderProvider(dllStream, peReader, pdbStream, pdbReaderProvider);
-                return Task.FromResult<MultiMetadataReaderProvider?>(result);
+                var result = new DocumentDebugInfoReader(dllStream, peReader, pdbStream, pdbReaderProvider);
+                return Task.FromResult<DocumentDebugInfoReader?>(result);
             }
 
             // Otherwise lets see if its an embedded PDB
@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             {
                 var pdbReaderProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry);
 
-                var result = new MultiMetadataReaderProvider(dllStream, peReader, pdbStream: null, pdbReaderProvider);
-                return Task.FromResult<MultiMetadataReaderProvider?>(result);
+                var result = new DocumentDebugInfoReader(dllStream, peReader, pdbStream: null, pdbReaderProvider);
+                return Task.FromResult<DocumentDebugInfoReader?>(result);
             }
 
             // TODO: Call the debugger to get this
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             dllStream.Dispose();
             peReader.Dispose();
-            return Task.FromResult<MultiMetadataReaderProvider?>(null);
+            return Task.FromResult<DocumentDebugInfoReader?>(null);
         }
 
         private static bool IsPortable(Stream pdbStream)

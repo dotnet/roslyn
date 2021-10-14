@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
     internal interface IPdbSourceDocumentLoaderService
     {
-        TextLoader? LoadSourceDocument(SourceDocument sourceDocument, MetadataReader pdbReader);
+        TextLoader? LoadSourceDocument(SourceDocument sourceDocument, DocumentDebugInfoReader documentDebugInfoReader);
     }
 }

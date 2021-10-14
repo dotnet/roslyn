@@ -66,23 +66,20 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             ProjectId projectId;
             ImmutableArray<(string FilePath, TextLoader Loader)> filesAndPaths;
             // We know we have a DLL, call and see if we can find metadata readers for it, and for the PDB (whereever it may be)
-            using (var metadataReaderProvider = await _pdbFileLocatorService.GetMetadataReadersAsync(dllPath, cancellationToken).ConfigureAwait(false))
+            using (var documentDebugInfoReader = await _pdbFileLocatorService.GetMetadataReadersAsync(dllPath, cancellationToken).ConfigureAwait(false))
             {
-                if (metadataReaderProvider is null)
+                if (documentDebugInfoReader is null)
                     return null;
 
-                var dllReader = metadataReaderProvider.GetDllMetadataReader();
-                var pdbReader = metadataReaderProvider.GetPdbMetadataReader();
-
                 // Try to find some actual document information from the PDB
-                var sourceDocuments = SymbolSourceDocumentFinder.FindSourceDocuments(symbol, dllReader, pdbReader);
+                var sourceDocuments = documentDebugInfoReader.FindSourceDocuments(symbol);
                 if (sourceDocuments.Length == 0)
                     return null;
 
                 // Get text loaders for our documents. We do this here because if we can't load any of the files, then
                 // we can't provide any results.
                 filesAndPaths = (from sd in sourceDocuments
-                                 let loader = _pdbSourceDocumentLoaderService.LoadSourceDocument(sd, pdbReader)
+                                 let loader = _pdbSourceDocumentLoaderService.LoadSourceDocument(sd, documentDebugInfoReader)
                                  where loader is not null
                                  select (sd.FilePath, loader)).ToImmutableArray();
 
@@ -93,7 +90,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
                 if (!_assemblyToProjectMap.TryGetValue(assemblyName, out projectId!))
                 {
-                    var projectInfo = CreateProjectInfo(workspace, project, pdbReader, assemblyName);
+                    var projectInfo = CreateProjectInfo(workspace, project, documentDebugInfoReader, assemblyName);
 
                     if (projectInfo is null)
                         return null;
@@ -172,11 +169,11 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return new MetadataAsSourceFile(tempFilePath, navigateLocation, documentName, navigateDocument.FilePath);
         }
 
-        private static ProjectInfo? CreateProjectInfo(Workspace workspace, Project project, MetadataReader pdbReader, string assemblyName)
+        private static ProjectInfo? CreateProjectInfo(Workspace workspace, Project project, DocumentDebugInfoReader documentDebugInfoReader, string assemblyName)
         {
             // If we don't already have a project for this assembly, we need to create one, and we want to use
             // the same compiler options for it that the DLL was created with.
-            var commandLineArguments = RetreiveCompilerOptions(pdbReader, out var languageName);
+            var commandLineArguments = RetreiveCompilerOptions(documentDebugInfoReader, out var languageName);
 
             // TODO: Find language another way for non portable PDBs: https://github.com/dotnet/roslyn/issues/55834
             if (languageName is null)
@@ -222,43 +219,21 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return documents.ToImmutable();
         }
 
-        private static IEnumerable<string> RetreiveCompilerOptions(MetadataReader pdbReader, out string? languageName)
+        private static IEnumerable<string> RetreiveCompilerOptions(DocumentDebugInfoReader documentDebugInfoReader, out string? languageName)
         {
             languageName = null;
 
             using var _ = ArrayBuilder<string>.GetInstance(out var options);
-            foreach (var handle in pdbReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition))
+
+            foreach (var (key, value) in documentDebugInfoReader.GetCompilationOptions())
             {
-                var customDebugInformation = pdbReader.GetCustomDebugInformation(handle);
-                if (pdbReader.GetGuid(customDebugInformation.Kind) == PortableCustomDebugInfoKinds.CompilationOptions)
+                // Key and value now have strings containing serialized compiler flag information
+                // Not all keys match their command line equivalents though, so translate as necessary
+                options.Add($"/{TranslateKey(key)}:{value}");
+
+                if (key == "language")
                 {
-                    var blobReader = pdbReader.GetBlobReader(customDebugInformation.Value);
-
-                    // Compiler flag bytes are UTF-8 null-terminated key-value pairs
-                    var nullIndex = blobReader.IndexOf(0);
-                    while (nullIndex >= 0)
-                    {
-                        var key = blobReader.ReadUTF8(nullIndex);
-
-                        // Skip the null terminator
-                        blobReader.ReadByte();
-
-                        nullIndex = blobReader.IndexOf(0);
-                        var value = blobReader.ReadUTF8(nullIndex);
-
-                        // Key and value now have strings containing serialized compiler flag information
-                        // Not all keys match their command line equivalents though, so translate as necessary
-                        options.Add($"/{TranslateKey(key)}:{value}");
-
-                        if (key == "language")
-                        {
-                            languageName = value;
-                        }
-
-                        // Skip the null terminator
-                        blobReader.ReadByte();
-                        nullIndex = blobReader.IndexOf(0);
-                    }
+                    languageName = value;
                 }
             }
 

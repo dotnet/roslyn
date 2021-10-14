@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         {
         }
 
-        public TextLoader? LoadSourceDocument(SourceDocument sourceDocument, MetadataReader pdbReader)
+        public TextLoader? LoadSourceDocument(SourceDocument sourceDocument, DocumentDebugInfoReader documentDebugInfoReader)
         {
             // First, check the easiest case which is the document exists on the disk
             if (File.Exists(sourceDocument.FilePath))
@@ -33,44 +33,12 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             }
 
             // Otherwise it might be embedded source
-            var handles = pdbReader.GetCustomDebugInformation(sourceDocument.Handle);
-            foreach (var cdiHandle in handles)
+            var text = documentDebugInfoReader.TryGetEmbeddedSourceText(sourceDocument);
+
+            if (text is not null)
             {
-                var cdi = pdbReader.GetCustomDebugInformation(cdiHandle);
-                var guid = pdbReader.GetGuid(cdi.Kind);
-                if (guid == PortableCustomDebugInfoKinds.EmbeddedSource)
-                {
-                    var blob = pdbReader.GetBlobBytes(cdi.Value);
-                    if (blob is not null)
-                    {
-                        var uncompressedSize = BitConverter.ToInt32(blob, 0);
-                        var stream = new MemoryStream(blob, sizeof(int), blob.Length - sizeof(int));
-
-                        if (uncompressedSize != 0)
-                        {
-                            var decompressed = new MemoryStream(uncompressedSize);
-
-                            using (var deflater = new DeflateStream(stream, CompressionMode.Decompress))
-                            {
-                                deflater.CopyTo(decompressed);
-                            }
-
-                            if (decompressed.Length != uncompressedSize)
-                            {
-                                throw new InvalidDataException();
-                            }
-
-                            stream = decompressed;
-                        }
-
-                        using (stream)
-                        {
-                            var text = EncodedStringText.Create(stream);
-                            var textAndVersion = TextAndVersion.Create(text, VersionStamp.Default, sourceDocument.FilePath);
-                            return TextLoader.From(textAndVersion);
-                        }
-                    }
-                }
+                var textAndVersion = TextAndVersion.Create(text, VersionStamp.Default, sourceDocument.FilePath);
+                return TextLoader.From(textAndVersion);
             }
 
             // TODO: Call the debugger to download the file
