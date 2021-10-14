@@ -11,6 +11,7 @@ using System.Reflection.PortableExecutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
@@ -25,22 +26,23 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         public Task<MultiMetadataReaderProvider?> GetMetadataReadersAsync(string dllPath, CancellationToken cancellationToken)
         {
-            if (!File.Exists(dllPath))
+            var dllStream = IOUtilities.PerformIO(() => File.OpenRead(dllPath));
+            if (dllStream is null)
                 return Task.FromResult<MultiMetadataReaderProvider?>(null);
 
-            var dllStream = File.OpenRead(dllPath);
             var peReader = new PEReader(dllStream);
 
-            // The simplest possible thing is that the PDB happens to be right next to the DLL. You know, we might get lucky.
+            // The simplest possible thing is that the PDB happens to be right next to the DLL. You never know, we might get lucky.
             var pdbPath = Path.ChangeExtension(dllPath, ".pdb");
             if (File.Exists(pdbPath))
             {
-                var pdbStream = File.OpenRead(pdbPath);
-                if (!IsPortable(pdbStream))
+                var pdbStream = IOUtilities.PerformIO(() => File.OpenRead(pdbPath));
+
+                if (pdbStream is null || !IsPortable(pdbStream))
                 {
                     // TODO: Support non portable PDBs: https://github.com/dotnet/roslyn/issues/55834
                     dllStream.Dispose();
-                    pdbStream.Dispose();
+                    pdbStream?.Dispose();
                     peReader.Dispose();
                     return Task.FromResult<MultiMetadataReaderProvider?>(null);
                 }
@@ -51,8 +53,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 return Task.FromResult<MultiMetadataReaderProvider?>(result);
             }
 
-            // Otherwise lets see if its an embedded PDB. We'll need to read the DLL to get info
-            // for the debugger anyway
+            // Otherwise lets see if its an embedded PDB
             var entry = peReader.ReadDebugDirectory().SingleOrDefault(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
             if (entry.Type != DebugDirectoryEntryType.Unknown)
             {
