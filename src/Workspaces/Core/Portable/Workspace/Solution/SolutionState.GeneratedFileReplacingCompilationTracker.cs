@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             public ProjectState ProjectState => _underlyingTracker.ProjectState;
-            public CachedSkeletonReferences CachedSkeletonReferences => _underlyingTracker.CachedSkeletonReferences;
 
             public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary)
             {
@@ -145,7 +144,7 @@ namespace Microsoft.CodeAnalysis
                     // Otherwise we need to create a skeleton for this project.  See if we can reuse an existing
                     // one, or create a new one when we can't.
                     var version = await GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
-                    return _underlyingTracker.CachedSkeletonReferences.GetOrBuildReference(solution, projectReference, compilation, version, cancellationToken);
+                    return this.ProjectState.GetOrBuildSkeletonReference(solution, projectReference, compilation, version, cancellationToken);
                 }
             }
 

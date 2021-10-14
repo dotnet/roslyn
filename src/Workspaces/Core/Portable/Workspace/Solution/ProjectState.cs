@@ -61,6 +61,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private ImmutableArray<ISourceGenerator> _lazySourceGenerators;
 
+        private readonly CachedSkeletonReferences _cachedSkeletonReferences;
+
         private ProjectState(
             ProjectInfo projectInfo,
             HostLanguageServices languageServices,
@@ -89,7 +91,10 @@ namespace Microsoft.CodeAnalysis
             _lazyChecksums = new AsyncLazy<ProjectStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
         }
 
-        public ProjectState(ProjectInfo projectInfo, HostLanguageServices languageServices, SolutionServices solutionServices)
+        public ProjectState(
+            ProjectInfo projectInfo,
+            HostLanguageServices languageServices,
+            SolutionServices solutionServices)
         {
             Contract.ThrowIfNull(projectInfo);
             Contract.ThrowIfNull(languageServices);
@@ -780,6 +785,27 @@ namespace Microsoft.CodeAnalysis
                 textChanged ?
                     CreateLazyLatestDocumentTopLevelChangeVersion(newDocument, newDocumentStates, newAdditionalDocumentStates) :
                     _lazyLatestDocumentTopLevelChangeVersion;
+        }
+
+        public MetadataReference GetOrBuildSkeletonReference(
+            SolutionState solution,
+            ProjectReference projectReference,
+            Compilation finalCompilation,
+            VersionStamp version,
+            CancellationToken cancellationToken)
+        {
+
+        }
+
+        public bool TryGetSkeletonReference(
+            SolutionState solution,
+            ProjectReference projectReference,
+            Compilation finalOrDeclarationCompilation,
+            VersionStamp version,
+            CancellationToken cancellationToken,
+            out MetadataReference reference)
+        {
+
         }
     }
 }
