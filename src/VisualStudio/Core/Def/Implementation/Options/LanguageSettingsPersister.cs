@@ -87,8 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             CompletionOptions.Metadata.HideAdvancedMembers,
             CompletionOptions.Metadata.TriggerOnTyping,
             SignatureHelpViewOptions.ShowSignatureHelp,
-            NavigationBarOptions.ShowNavigationBar,
-            BraceCompletionOptions.Enable,
+            NavigationBarOptions.ShowNavigationBar
         };
 
         int IVsTextManagerEvents4.OnUserPreferencesChanged4(
@@ -161,10 +160,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 return languagePreference.fDropdownBar != 0;
             }
-            else if (option == BraceCompletionOptions.Enable)
-            {
-                return languagePreference.fBraceCompletion != 0;
-            }
             else
             {
                 throw new ArgumentException("Unexpected option.", nameof(option));
@@ -215,10 +210,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             else if (option == NavigationBarOptions.ShowNavigationBar)
             {
                 languagePreference.fDropdownBar = Convert.ToUInt32((bool)value ? 1 : 0);
-            }
-            else if (option == BraceCompletionOptions.Enable)
-            {
-                languagePreference.fBraceCompletion = Convert.ToUInt32((bool)value ? 1 : 0);
             }
             else
             {
