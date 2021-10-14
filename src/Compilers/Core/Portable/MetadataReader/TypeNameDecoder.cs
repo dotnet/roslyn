@@ -77,6 +77,11 @@ namespace Microsoft.CodeAnalysis
             return _factory.MakePointerTypeSymbol(this.moduleSymbol, type, customModifiers);
         }
 
+        protected TypeSymbol MakeRefTypeSymbol(TypeSymbol type, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
+        {
+            return _factory.MakeRefTypeSymbol(this.moduleSymbol, type, customModifiers);
+        }
+
         protected TypeSymbol MakeFunctionPointerTypeSymbol(Cci.CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamInfos)
         {
             return _factory.MakeFunctionPointerTypeSymbol(callingConvention, retAndParamInfos);

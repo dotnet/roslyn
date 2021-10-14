@@ -19,10 +19,5 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     public partial class SyntaxFactory
     {
-        /// <summary>Creates a new RefTypeSyntax instance.</summary>
-        public static RefTypeSyntax RefType(SyntaxToken refKeyword, TypeSyntax type)
-        {
-            return RefType(refKeyword, readOnlyKeyword: default, type);
-        }
     }
 }

@@ -481,7 +481,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var referencedType = BindNamespaceOrTypeOrAliasSymbol(refTypeSyntax.Type, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics);
                         if (referencedType.IsType)
                         {
-                            return TypeWithAnnotations.Create(new RefTypeSymbol(RefKind.Ref, referencedType.TypeWithAnnotations));
+                            // PROTOTYPE(delegate-type-args): would be nice if there were a helper for this.
+                            var refKind = refToken.Kind() switch { SyntaxKind.RefKeyword => RefKind.Ref, SyntaxKind.InKeyword => RefKind.In, SyntaxKind.OutKeyword => RefKind.Out, _ => throw ExceptionUtilities.Unreachable };
+                            var typeWithAnnotations = TypeWithAnnotations.Create(new RefTypeSymbol(refKind, referencedType.TypeWithAnnotations));
+                            if (refKind == RefKind.Out)
+                            {
+                                var outAttribute = Compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_OutAttribute);
+                                var modifier = CSharpCustomModifier.CreateRequired(outAttribute);
+                                typeWithAnnotations = typeWithAnnotations.WithModifiers(ImmutableArray.Create<CustomModifier>(modifier));
+                            }
+                            // PROTOTYPE(delegate-type-args): I think we would attach the 'in' attribute similarly.
+                            return typeWithAnnotations;
                         }
 
                         // PROTOTYPE(delegate-type-args): handle aliases

@@ -6060,11 +6060,12 @@ tryAgain:
             SyntaxToken varianceToken = null;
             if (this.CurrentToken.Kind == SyntaxKind.InKeyword || this.CurrentToken.Kind == SyntaxKind.OutKeyword)
             {
+                // PROTOTYPE(delegate-type-args): give a more accurate LangVersion error?
                 // Recognize the variance syntax, but give an error as it's
                 // only appropriate in a type parameter list.
-                varianceToken = this.EatToken();
-                varianceToken = CheckFeatureAvailability(varianceToken, MessageID.IDS_FeatureTypeVariance);
-                varianceToken = this.AddError(varianceToken, ErrorCode.ERR_IllegalVarianceSyntax);
+                // varianceToken = this.EatToken();
+                // varianceToken = CheckFeatureAvailability(varianceToken, MessageID.IDS_FeatureTypeVariance);
+                // varianceToken = this.AddError(varianceToken, ErrorCode.ERR_IllegalVarianceSyntax);
             }
 
             var result = this.ParseType();
@@ -6640,7 +6641,7 @@ tryAgain:
             ScanTypeFlags result;
             bool isFunctionPointer = false;
 
-            if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+            if (this.CurrentToken.Kind is SyntaxKind.RefKeyword or SyntaxKind.InKeyword or SyntaxKind.OutKeyword)
             {
                 // in a ref local or ref return, we treat "ref" and "ref readonly" as part of the type
                 this.EatToken();
@@ -7011,11 +7012,13 @@ done:
 
         private TypeSyntax ParseType(ParseTypeMode mode = ParseTypeMode.Normal)
         {
-            if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+            if (this.CurrentToken.Kind is SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword)
             {
                 var refKeyword = this.EatToken();
                 refKeyword = this.CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefLocalsReturns);
 
+                // PROTOTYPE(delegate-type-args): prevent combining 'in' with 'readonly'?
+                // should 'out'/'in' be stored in a different syntax node than 'readonly'?
                 SyntaxToken readonlyKeyword = null;
                 if (this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword)
                 {

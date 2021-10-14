@@ -170,6 +170,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 case SymbolKind.PointerType:
                     return DecodePointerType((PointerTypeSymbol)type);
 
+                case SymbolKind.RefType:
+                    return DecodeRefType((RefTypeSymbol)type);
+
                 case SymbolKind.NamedType:
                     // We may have a tuple type from a substituted type symbol,
                     // but it will be missing names from metadata, so we'll
@@ -204,6 +207,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private PointerTypeSymbol DecodePointerType(PointerTypeSymbol type)
         {
             return type.WithPointedAtType(DecodeTypeInternal(type.PointedAtTypeWithAnnotations));
+        }
+
+        private RefTypeSymbol DecodeRefType(RefTypeSymbol type)
+        {
+            return type.WithReferencedType(DecodeTypeInternal(type.ReferencedTypeWithAnnotations));
         }
 
         private FunctionPointerTypeSymbol DecodeFunctionPointerType(FunctionPointerTypeSymbol type)

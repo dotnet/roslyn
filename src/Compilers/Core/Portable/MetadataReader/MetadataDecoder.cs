@@ -319,6 +319,12 @@ namespace Microsoft.CodeAnalysis
                     typeSymbol = MakePointerTypeSymbol(typeSymbol, modifiers);
                     break;
 
+                case SignatureTypeCode.ByReference:
+                    modifiers = DecodeModifiersOrThrow(ref ppSig, out typeCode);
+                    typeSymbol = DecodeTypeOrThrow(ref ppSig, typeCode, out refersToNoPiaLocalType);
+                    typeSymbol = MakeRefTypeSymbol(typeSymbol, modifiers);
+                    break;
+
                 case SignatureTypeCode.GenericTypeParameter:
                     if (!ppSig.TryReadCompressedInteger(out paramPosition))
                     {
