@@ -138,31 +138,54 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact]
-        public async Task SourceGeneratorContentChangesAfterAdditionalFileChanges()
+        // This will make a series of changes to additional files and assert that we correctly update generated output at various times.
+        // By making this a theory with a bunch of booleans, it tests that we are correctly handling the situation where we queue up multiple changes
+        // to the Compilation at once.
+        [Theory]
+        [CombinatorialData]
+        public async Task SourceGeneratorContentChangesAfterAdditionalFileChanges(
+            bool assertRightAway,
+            bool assertAfterAdd,
+            bool assertAfterFirstChange,
+            bool assertAfterSecondChange)
         {
             using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
-                .AddAnalyzerReference(analyzerReference)
-                .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
+                .AddAnalyzerReference(analyzerReference);
 
+            if (assertRightAway)
+                await AssertCompilationContainsGeneratedFilesAsync(project, expectedGeneratedContents: new string[] { });
+
+            project = project.AddAdditionalDocument("Test.txt", "Hello, world!").Project;
             var additionalDocumentId = project.AdditionalDocumentIds.Single();
 
-            await AssertCompilationContainsGeneratedFile(project, "// Hello, world!");
+            if (assertAfterAdd)
+                await AssertCompilationContainsGeneratedFilesAsync(project, "// Hello, world!");
 
             project = project.Solution.WithAdditionalDocumentText(additionalDocumentId, SourceText.From("Hello, everyone!")).Projects.Single();
 
-            await AssertCompilationContainsGeneratedFile(project, "// Hello, everyone!");
+            if (assertAfterFirstChange)
+                await AssertCompilationContainsGeneratedFilesAsync(project, "// Hello, everyone!");
 
-            static async Task AssertCompilationContainsGeneratedFile(Project project, string expectedGeneratedContents)
+            project = project.Solution.WithAdditionalDocumentText(additionalDocumentId, SourceText.From("Good evening, everyone!")).Projects.Single();
+
+            if (assertAfterSecondChange)
+                await AssertCompilationContainsGeneratedFilesAsync(project, "// Good evening, everyone!");
+
+            project = project.RemoveAdditionalDocument(additionalDocumentId);
+
+            await AssertCompilationContainsGeneratedFilesAsync(project, expectedGeneratedContents: new string[] { });
+
+            static async Task AssertCompilationContainsGeneratedFilesAsync(Project project, params string[] expectedGeneratedContents)
             {
                 var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
 
-                var generatedSyntaxTree = Assert.Single(compilation.SyntaxTrees);
-                Assert.IsType<SourceGeneratedDocument>(project.GetDocument(generatedSyntaxTree));
+                foreach (var tree in compilation.SyntaxTrees)
+                    Assert.IsType<SourceGeneratedDocument>(project.GetDocument(tree));
 
-                Assert.Equal(expectedGeneratedContents, generatedSyntaxTree.GetText().ToString());
+                var texts = compilation.SyntaxTrees.Select(t => t.GetText().ToString());
+                AssertEx.SetEqual(expectedGeneratedContents, texts);
             }
         }
 
