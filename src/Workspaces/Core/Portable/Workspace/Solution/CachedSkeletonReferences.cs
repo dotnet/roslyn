@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis
         private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
         /// <summary>
-        /// The version of the project that these <see cref="_skeletonReferenceSet"/> correspond to.
+        /// The <see cref="Project.GetDependentSemanticVersionAsync"/> version of the project that the
+        /// <see cref="_skeletonReferenceSet"/> corresponds to.
         /// </summary>
         private VersionStamp? _version;
 
@@ -75,6 +76,12 @@ namespace Microsoft.CodeAnalysis
             _skeletonReferenceSet = skeletonReferenceSet;
         }
 
+        /// <summary>
+        /// Produces a copy of the <see cref="CachedSkeletonReferences"/>, allowing forks of <see cref="ProjectState"/> to
+        /// reuse <see cref="MetadataReference"/>s when their dependent semantic version matches ours.  In the case where
+        /// the version is different, then the clone will attempt to make a new skeleton reference for that version.  If it
+        /// succeeds, it will use that.  If it fails however, it can still use our skeletons.
+        /// </summary>
         public CachedSkeletonReferences Clone()
         {
             lock (_gate)
