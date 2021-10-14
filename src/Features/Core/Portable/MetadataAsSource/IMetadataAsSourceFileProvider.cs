@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
@@ -33,6 +34,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// Called to clean up any state. Will be called under a lock to prevent concurrent access.
         /// </summary>
         void CleanupGeneratedFiles(Workspace? workspace);
+
+        /// <summary>
+        /// Maps from a document to its project for the purposes of symbol mapping via <see cref="ISymbolMappingService"/>
+        /// </summary>
         Project? MapDocument(Document document);
     }
 }
