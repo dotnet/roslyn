@@ -470,6 +470,31 @@ static class Program
         }
 
         [Theory]
+        [InlineData("")]
+        [InlineData("X.Y Test();")]
+        [InlineData("var x;")]
+        [InlineData("int x;")]
+        [InlineData("System.Int32 x;")]
+        [InlineData("if (true) { }")]
+        [InlineData("System.Int32 Test() => 0;")]
+        [InlineData("async Task<System.Int32> Test() => await Task.FromResult(1);")]
+        public async Task TestDotAwaitSuggestAfterDotBeforeDifferentStatements(string statement)
+        {
+            await VerifyKeywordAsync($@"
+using System;
+using System.Threading.Tasks;
+
+static class Program
+{{
+    static async Task Main(Task someTask)
+    {{
+        someTask.$$
+        {statement}
+    }}
+}}", dotAwait: true, dotAwaitf: true);
+        }
+
+        [Theory]
         // static
         [InlineData("StaticField.$$")]
         [InlineData("StaticProperty.$$")]
