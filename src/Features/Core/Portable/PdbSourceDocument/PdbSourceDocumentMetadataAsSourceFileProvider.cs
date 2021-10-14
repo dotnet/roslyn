@@ -43,8 +43,6 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             _pdbSourceDocumentLoaderService = pdbSourceDocumentLoaderService;
         }
 
-        public string Name => ProviderName;
-
         public async Task<MetadataAsSourceFile?> GetGeneratedFileAsync(Workspace workspace, Project project, ISymbol symbol, bool signaturesOnly, string tempPath, CancellationToken cancellationToken)
         {
             // we don't support signatures only mode

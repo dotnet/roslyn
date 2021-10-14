@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal interface IMetadataAsSourceFileProvider
     {
-        string Name { get; }
-
         /// <summary>
         /// Generates a file from metadata. Will be called under a lock to prevent concurrent access.
         /// </summary>

@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                 foreach (var provider in _providers)
                 {
-                    var providerTempPath = Path.Combine(tempPath, provider.Name);
+                    var providerTempPath = Path.Combine(tempPath, provider.GetType().Name);
                     var result = await provider.GetGeneratedFileAsync(_workspace, project, symbol, signaturesOnly, providerTempPath, cancellationToken).ConfigureAwait(false);
                     if (result is not null)
                     {

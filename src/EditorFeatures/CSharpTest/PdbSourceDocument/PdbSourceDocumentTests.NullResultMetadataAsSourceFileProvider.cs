@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             // Represents a null result
             public static MetadataAsSourceFile NullResult = new("", null, null, null);
 
-            public string Name => "Dummy";
-
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public NullResultMetadataAsSourceFileProvider()
