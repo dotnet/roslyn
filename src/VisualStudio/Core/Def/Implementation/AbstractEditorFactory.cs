@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         protected abstract string ContentTypeName { get; }
         protected abstract string LanguageName { get; }
 
-        protected abstract Solution GetSolutionWithCorrectParseOptionsForProject(ProjectId projectId, IVsHierarchy hierarchy, Solution solution);
+        protected abstract Project GetProjectWithCorrectParseOptionsForProject(Project project, IVsHierarchy hierarchy);
 
         public void SetEncoding(bool value)
             => _encoding = value;
@@ -304,37 +304,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var workspace = _componentModel.GetService<VisualStudioWorkspace>();
             var solution = workspace.CurrentSolution;
 
-            ProjectId? projectIdToAddTo = null;
+            Project? projectToAddTo = null;
 
             foreach (var projectId in solution.ProjectIds)
             {
                 if (workspace.GetHierarchy(projectId) == hierarchy)
                 {
-                    projectIdToAddTo = projectId;
+                    projectToAddTo = solution.GetRequiredProject(projectId);
                     break;
                 }
             }
 
-            if (projectIdToAddTo == null)
+            if (projectToAddTo == null)
             {
                 // We don't have a project for this, so we'll just make up a fake project altogether
-                var temporaryProject = solution.AddProject(
+                projectToAddTo = solution.AddProject(
                     name: nameof(FormatDocumentCreatedFromTemplate),
                     assemblyName: nameof(FormatDocumentCreatedFromTemplate),
                     language: LanguageName);
-
-                solution = temporaryProject.Solution;
-                projectIdToAddTo = temporaryProject.Id;
             }
 
             // We need to ensure that decisions made during new document formatting are based on the right language
             // version from the project system, but the NotifyItemAdded event happens before a design time build,
-            // and someimes before we have even been told about the projects existence, so we have to ask the hierarchy
+            // and sometimes before we have even been told about the projects existence, so we have to ask the hierarchy
             // for the language version to use.
-            solution = GetSolutionWithCorrectParseOptionsForProject(projectIdToAddTo, hierarchy, solution);
+            projectToAddTo = GetProjectWithCorrectParseOptionsForProject(projectToAddTo, hierarchy);
 
-            var documentId = DocumentId.CreateNewId(projectIdToAddTo);
-            var forkedSolution = solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
+            var documentId = DocumentId.CreateNewId(projectToAddTo.Id);
+
+            var forkedSolution = projectToAddTo.Solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
             var addedDocument = forkedSolution.GetDocument(documentId)!;
 
             // Call out to various new document formatters to tweak what they want
