@@ -2625,7 +2625,7 @@ class B { public static implicit operator C(B b) => new C(); }
         [Fact, WorkItem(51904, "https://github.com/dotnet/roslyn/issues/51904")]
         public void TupleSwitchWithSuppression()
         {
-            // When an input value is suppressed, it will get it's dedicated
+            // When an input value is suppressed, it will get a dedicated
             // slot during DAG analysis, instead of re-using the slot we might
             // get from the expression
 
