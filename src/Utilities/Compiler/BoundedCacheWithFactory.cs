@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -15,14 +15,14 @@ namespace Analyzer.Utilities
     {
         // Bounded weak reference cache.
         // Size 5 is an arbitrarily chosen bound, which can be tuned in future as required.
-        private readonly List<WeakReference<Entry?>> _weakReferencedEntries
-            = new List<WeakReference<Entry?>> {
-                new WeakReference<Entry?>(null),
-                new WeakReference<Entry?>(null),
-                new WeakReference<Entry?>(null),
-                new WeakReference<Entry?>(null),
-                new WeakReference<Entry?>(null),
-            };
+        private readonly List<WeakReference<Entry?>> _weakReferencedEntries = new()
+        {
+            new WeakReference<Entry?>(null),
+            new WeakReference<Entry?>(null),
+            new WeakReference<Entry?>(null),
+            new WeakReference<Entry?>(null),
+            new WeakReference<Entry?>(null),
+        };
 
         public TValue GetOrCreateValue(TKey key, Func<TKey, TValue> valueFactory)
         {

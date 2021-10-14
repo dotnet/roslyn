@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     internal static class LValueFlowCapturesProvider
     {
         private static readonly ConditionalWeakTable<ControlFlowGraph, ImmutableHashSet<CaptureId>> s_lValueFlowCapturesCache =
-            new ConditionalWeakTable<ControlFlowGraph, ImmutableHashSet<CaptureId>>();
+            new();
 
         public static ImmutableHashSet<CaptureId> GetOrCreateLValueFlowCaptures(ControlFlowGraph cfg)
             => s_lValueFlowCapturesCache.GetValue(cfg, CreateLValueFlowCaptures);

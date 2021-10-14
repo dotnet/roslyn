@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Analyzer.Utilities.Extensions
@@ -7,33 +7,32 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Diagnostics.Analyzers
+Imports Roslyn.Diagnostics.Analyzers.RoslynDiagnosticsAnalyzersResources
 
 Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicInvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsAnalyzer
         Inherits DiagnosticAnalyzer
 
-        Private Shared ReadOnly s_localizableTitle As LocalizableString = New LocalizableResourceString(NameOf(RoslynDiagnosticsAnalyzersResources.InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, GetType(RoslynDiagnosticsAnalyzersResources))
-        Private Shared ReadOnly s_localizableMessage As LocalizableString = New LocalizableResourceString(NameOf(RoslynDiagnosticsAnalyzersResources.InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, GetType(RoslynDiagnosticsAnalyzersResources))
-
-        Private Shared ReadOnly s_descriptor As DiagnosticDescriptor = New DiagnosticDescriptor(RoslynDiagnosticIds.UseSiteDiagnosticsCheckerRuleId,
-                                                                             s_localizableTitle,
-                                                                             s_localizableMessage,
-                                                                             "Usage",
-                                                                             DiagnosticSeverity.Error,
-                                                                             False,
-                                                                             Nothing,
-                                                                             Nothing,
-                                                                             WellKnownDiagnosticTags.Telemetry)
+        Private Shared ReadOnly s_descriptor As New DiagnosticDescriptor(
+            RoslynDiagnosticIds.UseSiteDiagnosticsCheckerRuleId,
+            CreateLocalizableResourceString(NameOf(InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTitle)),
+            CreateLocalizableResourceString(NameOf(InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsMessage)),
+            "Usage",
+            DiagnosticSeverity.Error,
+            False,
+            Nothing,
+            Nothing,
+            WellKnownDiagnosticTagsExtensions.Telemetry)
 
         Private Shared ReadOnly s_propertiesToValidateMap As ImmutableDictionary(Of String, String) = New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase) From
-                {
-                    {s_baseTypeString, s_typeSymbolFullyQualifiedName},
-                    {s_interfacesString, s_typeSymbolFullyQualifiedName},
-                    {s_allInterfacesString, s_typeSymbolFullyQualifiedName},
-                    {s_typeArgumentsString, s_namedTypeSymbolFullyQualifiedName},
-                    {s_constraintTypesString, s_typeParameterSymbolFullyQualifiedName}
-                }.ToImmutableDictionary()
+        {
+            {s_baseTypeString, s_typeSymbolFullyQualifiedName},
+            {s_interfacesString, s_typeSymbolFullyQualifiedName},
+            {s_allInterfacesString, s_typeSymbolFullyQualifiedName},
+            {s_typeArgumentsString, s_namedTypeSymbolFullyQualifiedName},
+            {s_constraintTypesString, s_typeParameterSymbolFullyQualifiedName}
+        }.ToImmutableDictionary()
 
         Private Const s_baseTypeString = "BaseType"
         Private Const s_interfacesString = "Interfaces"

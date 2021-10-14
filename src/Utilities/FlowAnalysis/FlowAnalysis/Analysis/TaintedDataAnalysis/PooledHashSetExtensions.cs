@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -74,7 +74,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)>.Empty,
                 transferMethods:
                     ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty,
-                taintConstantArray: false);
+                taintConstantArray: false,
+                constantArrayLengthMatcher: null);
             builder.Add(metadata);
         }
 
@@ -100,7 +101,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)>.Empty,
                 transferMethods:
                     ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty,
-                taintConstantArray: false);
+                taintConstantArray: false,
+                constantArrayLengthMatcher: null);
             builder.Add(metadata);
         }
 
@@ -135,7 +137,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)>.Empty,
                 transferMethods:
                     ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty,
-                taintConstantArray: false);
+                taintConstantArray: false,
+                constantArrayLengthMatcher: null);
             builder.Add(metadata);
         }
 
@@ -158,7 +161,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             IEnumerable<(MethodMatcher methodMatcher, (ValueContentCheck valueContentCheck, string taintedTarget)[] valueContentChecksAndTargets)>? taintedMethodsNeedsValueContentAnalysis,
             IEnumerable<(MethodMatcher methodMatcher, (string str, string taintedTargets)[] valueContentChecksAndTargets)>? transferMethods,
             IEnumerable<string>? transferProperties = null,
-            bool taintConstantArray = false)
+            bool taintConstantArray = false,
+            ArrayLengthMatcher? constantArrayLengthMatcher = null)
         {
             SourceInfo metadata = new SourceInfo(
                 fullTypeName,
@@ -199,7 +203,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                                 ?? ImmutableHashSet<(string, string)>.Empty))
                         ?.ToImmutableHashSet()
                     ?? ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty,
-                taintConstantArray: taintConstantArray);
+                taintConstantArray: taintConstantArray,
+                constantArrayLengthMatcher: constantArrayLengthMatcher);
             builder.Add(metadata);
         }
 
@@ -213,7 +218,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             IEnumerable<string>? taintedProperties,
             IEnumerable<(MethodMatcher methodMatcher, PointsToCheck[] pointsToChecks)>? taintedMethodsNeedsPointsToAnalysis,
             IEnumerable<(MethodMatcher methodMatcher, ValueContentCheck[] valueContentChecks)>? taintedMethodsNeedsValueContentAnalysis,
-            bool taintConstantArray = false)
+            bool taintConstantArray = false,
+            ArrayLengthMatcher? constantArrayLengthMatcher = null)
         {
             SourceInfo metadata = new SourceInfo(
                 fullTypeName,
@@ -249,7 +255,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ?? ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)>.Empty,
                 transferMethods:
                     ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty,
-                taintConstantArray: taintConstantArray);
+                taintConstantArray: taintConstantArray,
+                constantArrayLengthMatcher: constantArrayLengthMatcher);
             builder.Add(metadata);
         }
 

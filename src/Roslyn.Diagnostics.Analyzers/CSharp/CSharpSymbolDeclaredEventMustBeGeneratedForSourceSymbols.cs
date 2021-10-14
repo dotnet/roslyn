@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+#nullable disable warnings
 
 using System.Collections.Immutable;
 using Analyzer.Utilities;
@@ -43,12 +45,12 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 
             protected override ImmutableHashSet<string> SymbolTypesWithExpectedSymbolDeclaredEvent => s_symbolTypesWithExpectedSymbolDeclaredEvent;
 
-            protected override SyntaxNode? GetFirstArgumentOfInvocation(SyntaxNode node)
+            protected override SyntaxNode? GetFirstArgumentOfInvocation(SyntaxNode invocation)
             {
-                var invocation = (InvocationExpressionSyntax)node;
-                if (invocation.ArgumentList != null)
+                var invocationExpression = (InvocationExpressionSyntax)invocation;
+                if (invocationExpression.ArgumentList != null)
                 {
-                    ArgumentSyntax argument = invocation.ArgumentList.Arguments.FirstOrDefault();
+                    ArgumentSyntax argument = invocationExpression.ArgumentList.Arguments.FirstOrDefault();
                     if (argument != null)
                     {
                         return argument.Expression;

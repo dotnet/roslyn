@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+#nullable disable warnings
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,6 +13,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
+    using static RoslynDiagnosticsAnalyzersResources;
+
     /// <summary>
     /// MEF-exported types defined in test assemblies should be marked with <see cref="PartNotDiscoverableAttribute"/>
     /// to avoid polluting the container(s) created for testing. These parts should be explicitly added to the container
@@ -19,23 +23,18 @@ namespace Roslyn.Diagnostics.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class TestExportsShouldNotBeDiscoverable : DiagnosticAnalyzer
     {
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.TestExportsShouldNotBeDiscoverableTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.TestExportsShouldNotBeDiscoverableMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.TestExportsShouldNotBeDiscoverableDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-
-        internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor Rule = new(
             RoslynDiagnosticIds.TestExportsShouldNotBeDiscoverableRuleId,
-            s_localizableTitle,
-            s_localizableMessage,
+            CreateLocalizableResourceString(nameof(TestExportsShouldNotBeDiscoverableTitle)),
+            CreateLocalizableResourceString(nameof(TestExportsShouldNotBeDiscoverableMessage)),
             DiagnosticCategory.RoslynDiagnosticsReliability,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
-            description: s_localizableDescription,
+            description: CreateLocalizableResourceString(nameof(TestExportsShouldNotBeDiscoverableDescription)),
             helpLinkUri: null,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -84,8 +83,15 @@ namespace Roslyn.Diagnostics.Analyzers
                 ad.AttributeClass.Name == nameof(PartNotDiscoverableAttribute)
                 && Equals(ad.AttributeClass.ContainingNamespace, exportAttribute.ContainingNamespace)))
             {
-                // '{0}' is exported for test purposes and should be marked PartNotDiscoverable
-                context.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax(context.CancellationToken).GetLocation(), namedType.Name));
+                if (exportAttributeApplication.ApplicationSyntaxReference == null)
+                {
+                    context.ReportDiagnostic(context.Symbol.CreateDiagnostic(Rule, namedType.Name));
+                }
+                else
+                {
+                    // '{0}' is exported for test purposes and should be marked PartNotDiscoverable
+                    context.ReportDiagnostic(exportAttributeApplication.ApplicationSyntaxReference.CreateDiagnostic(Rule, context.CancellationToken, namedType.Name));
+                }
             }
         }
     }

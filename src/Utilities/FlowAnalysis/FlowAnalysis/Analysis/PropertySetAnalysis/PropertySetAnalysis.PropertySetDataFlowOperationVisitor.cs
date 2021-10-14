@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -79,29 +79,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
             }
 
-            public ImmutableDictionary<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult> HazardousUsages
-            {
-                get
-                {
-                    return this._hazardousUsageBuilder.ToImmutable();
-                }
-            }
+            public ImmutableDictionary<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult> HazardousUsages => this._hazardousUsageBuilder.ToImmutable();
 
-            public ImmutableHashSet<IMethodSymbol> VisitedLocalFunctions
-            {
-                get
-                {
-                    return this._visitedLocalFunctions.ToImmutable();
-                }
-            }
+            public ImmutableHashSet<IMethodSymbol> VisitedLocalFunctions => this._visitedLocalFunctions.ToImmutable();
 
-            public ImmutableHashSet<IFlowAnonymousFunctionOperation> VisitedLambdas
-            {
-                get
-                {
-                    return this._visitedLambdas.ToImmutable();
-                }
-            }
+            public ImmutableHashSet<IFlowAnonymousFunctionOperation> VisitedLambdas => this._visitedLambdas.ToImmutable();
 
             protected override PropertySetAbstractValue GetAbstractDefaultValue(ITypeSymbol type) => ValueDomain.Bottom;
 
@@ -570,11 +552,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         (containingType, false),
                         out string containingTypeName))
                 {
-                    if (hazardousUsageTypeNames == null)
-                    {
-                        hazardousUsageTypeNames = PooledHashSet<string>.GetInstance();
-                    }
-
+                    hazardousUsageTypeNames = PooledHashSet<string>.GetInstance();
                     hazardousUsageTypeNames.Add(containingTypeName);
                 }
 

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -46,8 +46,7 @@ namespace Analyzer.Utilities.PooledObjects
 
         // global pool
         private static readonly ObjectPool<PooledConcurrentDictionary<K, V>> s_poolInstance = CreatePool();
-        private static readonly ConcurrentDictionary<IEqualityComparer<K>, ObjectPool<PooledConcurrentDictionary<K, V>>> s_poolInstancesByComparer
-            = new ConcurrentDictionary<IEqualityComparer<K>, ObjectPool<PooledConcurrentDictionary<K, V>>>();
+        private static readonly ConcurrentDictionary<IEqualityComparer<K>, ObjectPool<PooledConcurrentDictionary<K, V>>> s_poolInstancesByComparer = new();
 
         // if someone needs to create a pool;
         public static ObjectPool<PooledConcurrentDictionary<K, V>> CreatePool(IEqualityComparer<K>? keyComparer = null)

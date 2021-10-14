@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -11,6 +11,7 @@ using System.Threading;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Roslyn.Utilities;
 
 namespace Analyzer.Utilities
 {
@@ -19,8 +20,7 @@ namespace Analyzer.Utilities
     /// </summary>
     public class WellKnownTypeProvider
     {
-        private static readonly BoundedCacheWithFactory<Compilation, WellKnownTypeProvider> s_providerCache =
-            new BoundedCacheWithFactory<Compilation, WellKnownTypeProvider>();
+        private static readonly BoundedCacheWithFactory<Compilation, WellKnownTypeProvider> s_providerCache = new();
 
         private WellKnownTypeProvider(Compilation compilation)
         {
@@ -42,8 +42,7 @@ namespace Analyzer.Utilities
             return s_providerCache.GetOrCreateValue(compilation, CreateWellKnownTypeProvider);
 
             // Local functions
-            static WellKnownTypeProvider CreateWellKnownTypeProvider(Compilation compilation)
-                => new WellKnownTypeProvider(compilation);
+            static WellKnownTypeProvider CreateWellKnownTypeProvider(Compilation compilation) => new(compilation);
         }
 
         public Compilation Compilation { get; }
@@ -70,13 +69,13 @@ namespace Analyzer.Utilities
         /// </summary>
         /// <remarks>
         /// Example: "System.Collections.Generic.List`1" => [ "System", "Collections", "Generic" ]
-        /// 
+        ///
         /// https://github.com/dotnet/roslyn/blob/9e786147b8cb884af454db081bb747a5bd36a086/src/Compilers/CSharp/Portable/Symbols/AssemblySymbol.cs#L455
         /// suggests the TypeNames collection can be checked to avoid expensive operations. But realizing TypeNames seems to be
         /// as memory intensive as unnecessary calls GetTypeByMetadataName() in some cases. So we'll go with namespace names.
         /// </remarks>
         private static readonly ConcurrentDictionary<string, ImmutableArray<string>> _fullTypeNameToNamespaceNames =
-            new ConcurrentDictionary<string, ImmutableArray<string>>(StringComparer.Ordinal);
+            new(StringComparer.Ordinal);
 #endif
 
         /// <summary>
@@ -85,7 +84,20 @@ namespace Analyzer.Utilities
         /// <param name="fullTypeName">Namespace + type name, e.g. "System.Exception".</param>
         /// <param name="namedTypeSymbol">Named type symbol, if any.</param>
         /// <returns>True if found in the compilation, false otherwise.</returns>
+        [PerformanceSensitive("https://github.com/dotnet/roslyn-analyzers/issues/4893", AllowCaptures = false)]
         public bool TryGetOrCreateTypeByMetadataName(
+            string fullTypeName,
+            [NotNullWhen(returnValue: true)] out INamedTypeSymbol? namedTypeSymbol)
+        {
+            if (_fullNameToTypeMap.TryGetValue(fullTypeName, out namedTypeSymbol))
+            {
+                return namedTypeSymbol is not null;
+            }
+
+            return TryGetOrCreateTypeByMetadataNameSlow(fullTypeName, out namedTypeSymbol);
+        }
+
+        private bool TryGetOrCreateTypeByMetadataNameSlow(
             string fullTypeName,
             [NotNullWhen(returnValue: true)] out INamedTypeSymbol? namedTypeSymbol)
         {
@@ -96,7 +108,7 @@ namespace Analyzer.Utilities
                     // Caching null results is intended.
 
                     // sharwell says: Suppose you reference assembly A with public API X.Y, and you reference assembly B with
-                    // internal API X.Y. Even though you can use X.Y from assembly A, compilation.GetTypeByMetadataName will 
+                    // internal API X.Y. Even though you can use X.Y from assembly A, compilation.GetTypeByMetadataName will
                     // fail outright because it finds two types with the same name.
 
                     INamedTypeSymbol? type = null;
@@ -259,33 +271,22 @@ namespace Analyzer.Utilities
             ////    || IsCombiningChar(cat)
             ////    || IsFormattingChar(cat);
 
-            switch (cat)
+            return cat switch
             {
                 // Letter
-                case UnicodeCategory.UppercaseLetter:
-                case UnicodeCategory.LowercaseLetter:
-                case UnicodeCategory.TitlecaseLetter:
-                case UnicodeCategory.ModifierLetter:
-                case UnicodeCategory.OtherLetter:
-                case UnicodeCategory.LetterNumber:
-
-                // DecimalDigit
-                case UnicodeCategory.DecimalDigitNumber:
-
-                // ConnectingChar
-                case UnicodeCategory.ConnectorPunctuation:
-
-                // CombiningChar
-                case UnicodeCategory.NonSpacingMark:
-                case UnicodeCategory.SpacingCombiningMark:
-
-                // FormattingChar
-                case UnicodeCategory.Format:
-                    return true;
-
-                default:
-                    return false;
-            }
+                UnicodeCategory.UppercaseLetter
+                or UnicodeCategory.LowercaseLetter
+                or UnicodeCategory.TitlecaseLetter
+                or UnicodeCategory.ModifierLetter
+                or UnicodeCategory.OtherLetter
+                or UnicodeCategory.LetterNumber
+                or UnicodeCategory.DecimalDigitNumber
+                or UnicodeCategory.ConnectorPunctuation
+                or UnicodeCategory.NonSpacingMark
+                or UnicodeCategory.SpacingCombiningMark
+                or UnicodeCategory.Format => true,
+                _ => false,
+            };
         }
 
         private static bool IsSubsetOfCollection<T>(ImmutableArray<T> set1, ICollection<T> set2)

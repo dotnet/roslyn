@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+#nullable disable warnings
 
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
@@ -11,25 +13,25 @@ using NullableAnnotation = Analyzer.Utilities.Lightup.NullableAnnotation;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
+    using static RoslynDiagnosticsAnalyzersResources;
+
+#pragma warning disable RS1004 // Recommend adding language support to diagnostic analyzer
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
+#pragma warning restore RS1004 // Recommend adding language support to diagnostic analyzer
     public class DefaultableTypeShouldHaveDefaultableFieldsAnalyzer : DiagnosticAnalyzer
     {
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DefaultableTypeShouldHaveDefaultableFieldsTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DefaultableTypeShouldHaveDefaultableFieldsMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DefaultableTypeShouldHaveDefaultableFieldsDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-
-        internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor Rule = new(
             RoslynDiagnosticIds.DefaultableTypeShouldHaveDefaultableFieldsRuleId,
-            s_localizableTitle,
-            s_localizableMessage,
+            CreateLocalizableResourceString(nameof(DefaultableTypeShouldHaveDefaultableFieldsTitle)),
+            CreateLocalizableResourceString(nameof(DefaultableTypeShouldHaveDefaultableFieldsMessage)),
             DiagnosticCategory.RoslynDiagnosticsReliability,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: s_localizableDescription,
+            description: CreateLocalizableResourceString(nameof(DefaultableTypeShouldHaveDefaultableFieldsDescription)),
             helpLinkUri: null,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -99,7 +101,7 @@ namespace Roslyn.Diagnostics.Analyzers
             }
 
             var sourceSymbol = (field.IsImplicitlyDeclared ? field.AssociatedSymbol : null) ?? field;
-            originalContext.ReportDiagnostic(Diagnostic.Create(Rule, field.Locations[0], field.ContainingType, sourceSymbol.Name));
+            originalContext.ReportDiagnostic(field.CreateDiagnostic(Rule, field.ContainingType, sourceSymbol.Name));
         }
 
         private static bool IsDefaultable(ITypeSymbol type, INamedTypeSymbol nonDefaultableAttribute, ConcurrentDictionary<ITypeSymbol, bool> knownNonDefaultableTypes)

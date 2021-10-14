@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using Analyzer.Utilities;
@@ -7,22 +7,21 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
+    using static CodeAnalysisDiagnosticsResources;
+
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class ClassIsNotDiagnosticAnalyzer : DiagnosticAnalyzer
     {
-        private static readonly LocalizableString s_localizableTitleNotDiagnosticAnalyzer = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.ClassIsNotDiagnosticAnalyzerTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableMessageNotDiagnosticAnalyzer = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.ClassIsNotDiagnosticAnalyzerMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-
-        public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor Rule = new(
             DiagnosticIds.TypeIsNotDiagnosticAnalyzerRuleId,
-            s_localizableTitleNotDiagnosticAnalyzer,
-            s_localizableMessageNotDiagnosticAnalyzer,
+            CreateLocalizableResourceString(nameof(ClassIsNotDiagnosticAnalyzerTitle)),
+            CreateLocalizableResourceString(nameof(ClassIsNotDiagnosticAnalyzerMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
         public override void Initialize(AnalysisContext context)
         {

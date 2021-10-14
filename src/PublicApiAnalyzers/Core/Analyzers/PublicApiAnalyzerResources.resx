@@ -121,22 +121,20 @@
     <value>Add public types and members to the declared API</value>
   </data>
   <data name="DeclarePublicApiMessage" xml:space="preserve">
-    <value>Symbol '{0}' is not part of the declared API.</value>
+    <value>Symbol '{0}' is not part of the declared API</value>
   </data>
   <data name="DeclarePublicApiDescription" xml:space="preserve">
     <value>All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</value>
   </data>
-
   <data name="AnnotatePublicApiTitle" xml:space="preserve">
     <value>Annotate nullability of public types and members in the declared API</value>
   </data>
   <data name="AnnotatePublicApiMessage" xml:space="preserve">
-    <value>Symbol '{0}' is missing nullability annotations in the declared API.</value>
+    <value>Symbol '{0}' is missing nullability annotations in the declared API</value>
   </data>
   <data name="AnnotatePublicApiDescription" xml:space="preserve">
     <value>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</value>
   </data>
-
   <data name="ShouldAnnotateApiFilesTitle" xml:space="preserve">
     <value>Enable tracking of nullability of reference types in the declared API</value>
   </data>
@@ -146,17 +144,15 @@
   <data name="ShouldAnnotateApiFilesDescription" xml:space="preserve">
     <value>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</value>
   </data>
-
   <data name="ObliviousPublicApiTitle" xml:space="preserve">
     <value>Public members should not use oblivious types</value>
   </data>
   <data name="ObliviousPublicApiMessage" xml:space="preserve">
-    <value>Symbol '{0}' uses some oblivious reference types.</value>
+    <value>Symbol '{0}' uses some oblivious reference types</value>
   </data>
   <data name="ObliviousPublicApiDescription" xml:space="preserve">
     <value>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</value>
   </data>
-  
   <data name="RemoveDeletedApiTitle" xml:space="preserve">
     <value>Remove deleted types and members from the declared API</value>
   </data>
@@ -164,10 +160,11 @@
     <value>Symbol '{0}' is part of the declared API, but is either not public or could not be found</value>
   </data>
   <data name="RemoveDeletedApiDescription" xml:space="preserve">
-    <value>When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</value>
+    <value>When removing a public type or member, put that entry in PublicAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</value>
+    <comment>{Locked="*REMOVED*"}</comment>
   </data>
   <data name="ExposedNoninstantiableTypeMessage" xml:space="preserve">
-    <value>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.</value>
+    <value>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members</value>
   </data>
   <data name="ExposedNoninstantiableTypeTitle" xml:space="preserve">
     <value>Constructor make noninheritable base class inheritable</value>
@@ -188,7 +185,7 @@
     <value>Do not duplicate symbols in public API files</value>
   </data>
   <data name="DuplicateSymbolsInPublicApiFilesMessage" xml:space="preserve">
-    <value>The symbol '{0}' appears more than once in the public API files.</value>
+    <value>The symbol '{0}' appears more than once in the public API files</value>
   </data>
   <data name="PublicImplicitConstructorErrorMessageName" xml:space="preserve">
     <value>implicit constructor for '{0}'</value>
@@ -200,7 +197,7 @@
     <value>Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</value>
   </data>
   <data name="OverloadWithOptionalParametersShouldHaveMostParametersTitle" xml:space="preserve">
-    <value>Public API with optional parameter(s) should have the most parameters amongst its public overloads.</value>
+    <value>Public API with optional parameter(s) should have the most parameters amongst its public overloads</value>
   </data>
   <data name="OverloadWithOptionalParametersShouldHaveMostParametersMessage" xml:space="preserve">
     <value>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</value>
@@ -240,5 +237,11 @@
   </data>
   <data name="EnableNullableInTheSolutionToThePublicApiTitle" xml:space="preserve">
     <value>Enable nullability annotations in the public API for the solution</value>
+  </data>
+  <data name="RemovedApiIsNotActuallyRemovedMessage" xml:space="preserve">
+    <value>Symbol '{0}' is marked as removed but it isn't deleted in source code</value>
+  </data>
+  <data name="RemovedApiIsNotActuallyRemovedTitle" xml:space="preserve">
+    <value>Public API is marked as removed but it exists in source code</value>
   </data>
 </root>

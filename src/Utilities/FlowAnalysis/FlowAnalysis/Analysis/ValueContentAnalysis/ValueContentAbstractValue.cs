@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -145,10 +145,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         /// </summary>
         public ImmutableHashSet<object?> LiteralValues { get; }
 
-        protected override void ComputeHashCodeParts(Action<int> addPart)
+        protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
-            addPart(HashUtilities.Combine(LiteralValues));
-            addPart(NonLiteralState.GetHashCode());
+            hashCode.Add(HashUtilities.Combine(LiteralValues));
+            hashCode.Add(NonLiteralState.GetHashCode());
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<ValueContentAbstractValue> obj)
+        {
+            var other = (ValueContentAbstractValue)obj;
+            return HashUtilities.Combine(LiteralValues) == HashUtilities.Combine(other.LiteralValues)
+                && NonLiteralState.GetHashCode() == other.NonLiteralState.GetHashCode();
         }
 
         /// <summary>

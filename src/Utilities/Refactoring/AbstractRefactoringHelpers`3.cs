@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+#nullable disable warnings
 
 using System;
 using System.Collections.Generic;
@@ -24,7 +26,7 @@ namespace Analyzer.Utilities
 
         public async Task<ImmutableArray<TSyntaxNode>> GetRelevantNodesAsync<TSyntaxNode>(
             Document document,
-            TextSpan selectionRaw,
+            TextSpan selection,
             CancellationToken cancellationToken)
             where TSyntaxNode : SyntaxNode
         {
@@ -40,14 +42,14 @@ namespace Analyzer.Utilities
             }
 
             var syntaxFacts = SyntaxFacts;
-            var selectionTrimmed = await CodeRefactoringHelpers.GetTrimmedTextSpanAsync(document, selectionRaw, cancellationToken).ConfigureAwait(false);
+            var selectionTrimmed = await CodeRefactoringHelpers.GetTrimmedTextSpanAsync(document, selection, cancellationToken).ConfigureAwait(false);
 
             // If user selected only whitespace we don't want to return anything. We could do following:
             //  1) Consider token that owns (as its trivia) the whitespace.
             //  2) Consider start/beginning of whitespace as location (empty selection)
             // Option 1) can't be used all the time and 2) can be confusing for users. Therefore bailing out is the
             // most consistent option.
-            if (selectionTrimmed.IsEmpty && !selectionRaw.IsEmpty)
+            if (selectionTrimmed.IsEmpty && !selection.IsEmpty)
             {
                 return ImmutableArray<TSyntaxNode>.Empty;
             }

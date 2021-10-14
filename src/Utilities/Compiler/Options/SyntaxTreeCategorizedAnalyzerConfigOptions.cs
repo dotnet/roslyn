@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 #if CODEANALYSIS_V3_OR_BETTER
 
@@ -16,10 +16,9 @@ namespace Analyzer.Utilities
     internal sealed class SyntaxTreeCategorizedAnalyzerConfigOptions : AbstractCategorizedAnalyzerConfigOptions
     {
         private readonly AnalyzerConfigOptions? _analyzerConfigOptions;
-        private static readonly ConditionalWeakTable<ImmutableDictionary<string, string>, SyntaxTreeCategorizedAnalyzerConfigOptions> s_perTreeOptionsCache =
-            new ConditionalWeakTable<ImmutableDictionary<string, string>, SyntaxTreeCategorizedAnalyzerConfigOptions>();
+        private static readonly ConditionalWeakTable<ImmutableDictionary<string, string>, SyntaxTreeCategorizedAnalyzerConfigOptions> s_perTreeOptionsCache = new();
 
-        public static readonly SyntaxTreeCategorizedAnalyzerConfigOptions Empty = new SyntaxTreeCategorizedAnalyzerConfigOptions(analyzerConfigOptions: null);
+        public static readonly SyntaxTreeCategorizedAnalyzerConfigOptions Empty = new(analyzerConfigOptions: null);
 
         private SyntaxTreeCategorizedAnalyzerConfigOptions(AnalyzerConfigOptions? analyzerConfigOptions)
         {

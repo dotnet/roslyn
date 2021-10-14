@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
@@ -29,7 +29,7 @@ namespace Analyzer.Utilities
                 "System.Resources.IResourceReader",
             };
         private static readonly BoundedCacheWithFactory<Compilation, DisposeAnalysisHelper> s_DisposeHelperCache =
-            new BoundedCacheWithFactory<Compilation, DisposeAnalysisHelper>();
+            new();
 
         private static readonly ImmutableHashSet<OperationKind> s_DisposableCreationKinds = ImmutableHashSet.Create(
             OperationKind.ObjectCreation,
@@ -95,7 +95,7 @@ namespace Analyzer.Utilities
 
             // Local functions
             static DisposeAnalysisHelper CreateDisposeAnalysisHelper(Compilation compilation)
-                => new DisposeAnalysisHelper(compilation);
+                => new(compilation);
         }
 
         public bool TryGetOrComputeResult(
@@ -106,7 +106,6 @@ namespace Analyzer.Utilities
             PointsToAnalysisKind defaultPointsToAnalysisKind,
             bool trackInstanceFields,
             bool trackExceptionPaths,
-            CancellationToken cancellationToken,
             [NotNullWhen(returnValue: true)] out DisposeAnalysisResult? disposeAnalysisResult,
             [NotNullWhen(returnValue: true)] out PointsToAnalysisResult? pointsToAnalysisResult,
             InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate = null,
@@ -117,8 +116,7 @@ namespace Analyzer.Utilities
             {
                 disposeAnalysisResult = DisposeAnalysis.TryGetOrComputeResult(cfg, containingMethod, _wellKnownTypeProvider,
                     analyzerOptions, rule, _disposeOwnershipTransferLikelyTypes, defaultPointsToAnalysisKind, trackInstanceFields,
-                    trackExceptionPaths, cancellationToken, out pointsToAnalysisResult,
-                    interproceduralAnalysisPredicate: interproceduralAnalysisPredicate,
+                    trackExceptionPaths, out pointsToAnalysisResult, interproceduralAnalysisPredicate: interproceduralAnalysisPredicate,
                     defaultDisposeOwnershipTransferAtConstructor: defaultDisposeOwnershipTransferAtConstructor);
                 if (disposeAnalysisResult != null)
                 {

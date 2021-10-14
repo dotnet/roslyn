@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -70,12 +70,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         public override int GetHashCode()
         {
-            return HashUtilities.Combine(this.SinkProperties,
-                HashUtilities.Combine(this.SinkMethodParameters,
-                HashUtilities.Combine(StringComparer.Ordinal.GetHashCode(this.FullTypeName),
-                HashUtilities.Combine(this.SinkKinds,
-                HashUtilities.Combine(this.IsInterface.GetHashCode(),
-                this.IsAnyStringParameterInConstructorASink.GetHashCode())))));
+            var hashCode = new RoslynHashCode();
+            HashUtilities.Combine(this.SinkProperties, ref hashCode);
+            HashUtilities.Combine(this.SinkMethodParameters, ref hashCode);
+            hashCode.Add(StringComparer.Ordinal.GetHashCode(this.FullTypeName));
+            HashUtilities.Combine(this.SinkKinds, ref hashCode);
+            hashCode.Add(this.IsInterface.GetHashCode());
+            hashCode.Add(this.IsAnyStringParameterInConstructorASink.GetHashCode());
+            return hashCode.ToHashCode();
         }
 
         public override bool Equals(object obj)

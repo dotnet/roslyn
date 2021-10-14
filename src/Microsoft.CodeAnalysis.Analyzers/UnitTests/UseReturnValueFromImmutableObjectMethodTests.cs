@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
     public class UseReturnValueFromImmutableObjectMethodTests
     {
         [Fact]
-        public async Task CSharpVerifyDiagnostics()
+        public async Task CSharpVerifyDiagnosticsAsync()
         {
             var source = @"
 using Microsoft.CodeAnalysis;
@@ -45,7 +45,7 @@ class TestSimple
         }
 
         [Fact]
-        public async Task CSharp_VerifyDiagnosticOnExtensionMethod()
+        public async Task CSharp_VerifyDiagnosticOnExtensionMethodAsync()
         {
             var source = @"
 using Microsoft.CodeAnalysis;
@@ -64,7 +64,7 @@ class TestExtensionMethodTrivia
         }
 
         [Fact]
-        public async Task CSharp_VerifyNoDiagnostic()
+        public async Task CSharp_VerifyNoDiagnosticAsync()
         {
             var source = @"
 using Microsoft.CodeAnalysis;
@@ -93,8 +93,10 @@ namespace ConsoleApplication1
         }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string objectName, string methodName) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyCS.Diagnostic()
                 .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(objectName, methodName);
     }
 }

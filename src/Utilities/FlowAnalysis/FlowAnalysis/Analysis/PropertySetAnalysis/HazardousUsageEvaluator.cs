@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis;
@@ -116,12 +116,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
         public override int GetHashCode()
         {
-            return HashUtilities.Combine(
+            return RoslynHashCode.Combine(
                 this.ContainingTypeName.GetHashCodeOrDefault(),
-                HashUtilities.Combine(this.MethodName.GetHashCodeOrDefault(),
-                HashUtilities.Combine(this.ParameterNameOfPropertySetObject.GetHashCodeOrDefault(),
-                 HashUtilities.Combine(this.DerivedClass.GetHashCodeOrDefault(),
-                this.InvocationEvaluator.GetHashCodeOrDefault()))));
+                this.MethodName.GetHashCodeOrDefault(),
+                this.ParameterNameOfPropertySetObject.GetHashCodeOrDefault(),
+                this.DerivedClass.GetHashCode(),
+                this.InvocationEvaluator.GetHashCodeOrDefault());
         }
 
         public override bool Equals(object obj)
