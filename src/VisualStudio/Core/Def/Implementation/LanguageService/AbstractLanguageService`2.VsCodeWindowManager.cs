@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             private void GlobalOptionChanged(object sender, OptionChangedEventArgs e)
             {
                 if (e.Language != _languageService.RoslynLanguageName ||
-                    e.Option != NavigationBarOptions.ShowNavigationBar)
+                    e.Option != NavigationBarViewOptions.ShowNavigationBar)
                 {
                     return;
                 }
@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     return;
                 }
 
-                var enabled = _globalOptions.GetOption(NavigationBarOptions.ShowNavigationBar, _languageService.RoslynLanguageName);
+                var enabled = _globalOptions.GetOption(NavigationBarViewOptions.ShowNavigationBar, _languageService.RoslynLanguageName);
                 if (enabled)
                 {
                     if (IsOurDropdownBar(dropdownManager, out var existingDropdownBar))

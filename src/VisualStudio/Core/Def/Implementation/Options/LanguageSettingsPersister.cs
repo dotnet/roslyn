@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             CompletionOptions.Metadata.HideAdvancedMembers,
             CompletionOptions.Metadata.TriggerOnTyping,
             SignatureHelpViewOptions.ShowSignatureHelp,
-            NavigationBarOptions.ShowNavigationBar
+            NavigationBarViewOptions.ShowNavigationBar
         };
 
         int IVsTextManagerEvents4.OnUserPreferencesChanged4(
@@ -156,7 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 return languagePreference.fAutoListParams != 0;
             }
-            else if (option == NavigationBarOptions.ShowNavigationBar)
+            else if (option == NavigationBarViewOptions.ShowNavigationBar)
             {
                 return languagePreference.fDropdownBar != 0;
             }
@@ -207,7 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 languagePreference.fAutoListParams = Convert.ToUInt32((bool)value ? 1 : 0);
             }
-            else if (option == NavigationBarOptions.ShowNavigationBar)
+            else if (option == NavigationBarViewOptions.ShowNavigationBar)
             {
                 languagePreference.fDropdownBar = Convert.ToUInt32((bool)value ? 1 : 0);
             }
