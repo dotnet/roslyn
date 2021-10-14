@@ -41,10 +41,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case SyntaxKind.Interpolation:
                             {
                                 var interpolation = (InterpolationSyntax)content;
-                                if (isNonVerbatimInterpolatedString && newLinesInInterpolationsDiagnosticInfo != null)
+                                if (isNonVerbatimInterpolatedString &&
+                                    !interpolation.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error) &&
+                                    newLinesInInterpolationsDiagnosticInfo != null &&
+                                    !interpolation.OpenBraceToken.IsMissing &&
+                                    !interpolation.CloseBraceToken.IsMissing)
                                 {
-                                    if (ContainsTrailingEndOflineTrivia(interpolation.OpenBraceToken) ||
-                                        ContainsTrailingEndOflineTrivia(interpolation.Expression))
+                                    var text = node.SyntaxTree.GetText();
+                                    if (text.Lines.GetLineFromPosition(interpolation.OpenBraceToken.SpanStart).LineNumber !=
+                                        text.Lines.GetLineFromPosition(interpolation.CloseBraceToken.SpanStart).LineNumber)
                                     {
                                         diagnostics.Add(
                                             ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString,
