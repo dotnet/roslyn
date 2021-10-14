@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     };
 
                     if (CodeGen.CodeGenerator.UseCreateSpanForReadOnlySpanInitialization(hasCreateSpanHelper, considerInitblk: !isArrayCreation, elementType, initializerOpt,
-                        /* TODO: how to find out if this is ENC? */ supportsPrivateImplClass: true))
+                        /* PROTOTYPE: how to find out if this is ENC? */ supportsPrivateImplClass: true))
                     {
                         return new BoundConvertedStackAllocExpression(node.Operand.Syntax, elementType, count, initializerOpt, rewrittenType);
                     }

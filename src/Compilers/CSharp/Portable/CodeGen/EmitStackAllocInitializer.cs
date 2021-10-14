@@ -98,33 +98,33 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             // get helpers
             var definition = (MethodSymbol)_module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__GetPinnableReference)!;
-            var getPinnableReference = definition.AsMember(definition.ContainingType.Construct(elementType)).GetCciAdapter();
-            var readOnlySpan = ((NamedTypeSymbol)_module.Compilation.CommonGetWellKnownType(WellKnownType.System_ReadOnlySpan_T)).Construct(elementType).GetCciAdapter();
+            var getPinnableReference = definition.AsMember(definition.ContainingType.Construct(elementType));
+            var readOnlySpan = ((NamedTypeSymbol)_module.Compilation.CommonGetWellKnownType(WellKnownType.System_ReadOnlySpan_T)).Construct(elementType);
 
             // emit call to the helper
             _builder.EmitOpCode(ILOpCode.Dup);
             _builder.EmitCreateSpan(data, elementType.GetPublicSymbol(), syntaxNode, diagnostics);
 
-            var temp = _builder.LocalSlotManager.AllocateSlot(readOnlySpan, LocalSlotConstraints.None);
+            var temp = AllocateTemp(readOnlySpan, syntaxNode);
             _builder.EmitLocalStore(temp);
             _builder.EmitLocalAddress(temp);
-            _builder.LocalSlotManager.FreeSlot(temp);
+            FreeTemp(temp);
 
-            // TODO: is this safe without pinning?
+            // PROTOTYPE: is this safe without pinning?
             _builder.EmitOpCode(ILOpCode.Call, 0);
-            _builder.EmitToken(getPinnableReference, syntaxNode, diagnostics);
+            EmitSymbolToken(getPinnableReference, syntaxNode, optArgList: null);
             _builder.EmitIntConstant(data.Length);
-            // TODO: is this correct without unaligned.?
+            // PROTOTYPE: is this correct without unaligned.?
             _builder.EmitOpCode(ILOpCode.Cpblk, -3);
         }
 
         internal static bool UseCreateSpanForReadOnlySpanInitialization(
             bool hasCreateSpanHelper, bool considerInitblk, TypeSymbol elementType, BoundArrayInitialization? inits, bool supportsPrivateImplClass) =>
                 hasCreateSpanHelper && inits?.Initializers is { } initExprs &&
+                elementType.SpecialType.SizeInBytes() > 1 &&
                 ShouldEmitBlockInitializerForStackAlloc(elementType, initExprs, supportsPrivateImplClass) == ArrayInitializerStyle.Block &&
                 // if all bytes are the same, use initblk if able, instead of CreateSpan
-                (!considerInitblk || (GetRawData(initExprs) is var data && !data.All(datum => datum == data[0]))) &&
-                elementType.SpecialType.SizeInBytes() > 1;
+                (!considerInitblk || (GetRawData(initExprs) is var data && !data.All(datum => datum == data[0])));
 
         private static ArrayInitializerStyle ShouldEmitBlockInitializerForStackAlloc(TypeSymbol elementType, ImmutableArray<BoundExpression> inits, bool supportsPrivateImplClass)
         {
