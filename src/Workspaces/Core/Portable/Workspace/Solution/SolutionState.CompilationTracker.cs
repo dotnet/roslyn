@@ -44,14 +44,18 @@ namespace Microsoft.CodeAnalysis
             // guarantees only one thread is building at a time
             private readonly SemaphoreSlim _buildLock = new(initialCount: 1);
 
+            public CachedSkeletonReferences CachedSkeletonReferences { get; }
+
             private CompilationTracker(
                 ProjectState project,
-                CompilationTrackerState state)
+                CompilationTrackerState state,
+                CachedSkeletonReferences cachedSkeletonReferences)
             {
                 Contract.ThrowIfNull(project);
 
                 this.ProjectState = project;
                 _stateDoNotAccessDirectly = state;
+                CachedSkeletonReferences = cachedSkeletonReferences;
             }
 
             /// <summary>
@@ -59,7 +63,7 @@ namespace Microsoft.CodeAnalysis
             /// and will have no extra information beyond the project itself.
             /// </summary>
             public CompilationTracker(ProjectState project)
-                : this(project, CompilationTrackerState.Empty)
+                : this(project, CompilationTrackerState.Empty, CachedSkeletonReferences.Empty)
             {
             }
 
@@ -143,13 +147,13 @@ namespace Microsoft.CodeAnalysis
                     var newState = CompilationTrackerState.Create(
                         solutionServices, baseCompilation, state.GeneratorInfo, state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken), intermediateProjects);
 
-                    return new CompilationTracker(newProject, newState);
+                    return new CompilationTracker(newProject, newState, this.CachedSkeletonReferences.Clone());
                 }
                 else
                 {
                     // We have no compilation, but we might have information about generated docs.
                     var newState = new NoCompilationState(state.GeneratorInfo.WithDocumentsAreFinal(false));
-                    return new CompilationTracker(newProject, newState);
+                    return new CompilationTracker(newProject, newState, this.CachedSkeletonReferences.Clone());
                 }
             }
 
@@ -193,7 +197,7 @@ namespace Microsoft.CodeAnalysis
                     this.ProjectState.Id,
                     metadataReferenceToProjectId);
 
-                return new CompilationTracker(inProgressProject, finalState);
+                return new CompilationTracker(inProgressProject, finalState, this.CachedSkeletonReferences.Clone());
             }
 
             /// <summary>
@@ -1012,7 +1016,8 @@ namespace Microsoft.CodeAnalysis
                         var declarationCompilation = await this.GetOrBuildDeclarationCompilationAsync(solution.Services, cancellationToken: cancellationToken).ConfigureAwait(false);
                         solution.Workspace.LogTestMessage($"Looking for a cached skeleton assembly for {projectReference.ProjectId} before taking the lock...");
 
-                        if (!MetadataOnlyReference.TryGetReference(solution, projectReference, declarationCompilation, version, out var reference))
+                        if (!this.CachedSkeletonReferences.TryGetReference(
+                                solution, projectReference, declarationCompilation, version, cancellationToken, out var reference))
                         {
                             // using async build lock so we don't get multiple consumers attempting to build metadata-only images for the same compilation.
                             using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
@@ -1021,7 +1026,8 @@ namespace Microsoft.CodeAnalysis
 
                                 // okay, we still don't have one. bring the compilation to final state since we are going to use it to create skeleton assembly
                                 var compilationInfo = await this.GetOrBuildCompilationInfoAsync(solution, lockGate: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                                reference = MetadataOnlyReference.GetOrBuildReference(solution, projectReference, compilationInfo.Compilation, version, cancellationToken);
+                                reference = this.CachedSkeletonReferences.GetOrBuildReference(
+                                    solution, projectReference, compilationInfo.Compilation, version, cancellationToken);
                             }
                         }
                         else
