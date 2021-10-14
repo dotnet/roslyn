@@ -156,25 +156,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Tries to get the <see cref="MetadataReference"/> with the given <paramref name="properties"/>
         /// for the <see cref="Compilation"/> <paramref name="finalOrDeclarationCompilation"/>.
-        /// </summary>
-        public Task<MetadataReference?> TryGetReferenceAsync(
-            Workspace workspace,
-            MetadataReferenceProperties properties,
-            Compilation finalOrDeclarationCompilation,
-            VersionStamp version,
-            CancellationToken cancellationToken)
-        {
-            return TryGetReferenceAsync(workspace, properties, finalOrDeclarationCompilation, (VersionStamp?)version, cancellationToken);
-        }
-
-        /// <remarks>
-        /// <inheritdoc cref="TryGetReferenceAsync(Workspace, MetadataReferenceProperties, Compilation, VersionStamp, CancellationToken)"/>.
         /// If <paramref name="version"/> is <see langword="null"/>, any <see cref="MetadataReference"/> for that
         /// project may be returned, even if it doesn't correspond to that compilation.  This is useful in error tolerance
         /// cases as building a skeleton assembly may easily fail.  In that case it's better to use the last successfully
         /// built skeleton than just have no semantic information for that project at all.
-        /// </remarks> 
-        private async Task<MetadataReference?> TryGetReferenceAsync(
+        /// </summary>
+        public async Task<MetadataReference?> TryGetReferenceAsync(
             Workspace workspace,
             MetadataReferenceProperties properties,
             Compilation finalOrDeclarationCompilation,
