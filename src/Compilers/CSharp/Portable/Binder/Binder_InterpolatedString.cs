@@ -29,6 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                var isNonVerbatimInterpolatedString = node.StringStartToken.Kind() != SyntaxKind.InterpolatedVerbatimStringStartToken;
+                var newLinesInInterpolationsDiagnosticInfo =
+                    MessageID.IDS_FeatureNewLinesInInterpolations.GetFeatureAvailabilityDiagnosticInfo((CSharpParseOptions)node.SyntaxTree.Options);
+
                 var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
                 foreach (var content in node.Contents)
                 {
@@ -37,6 +41,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case SyntaxKind.Interpolation:
                             {
                                 var interpolation = (InterpolationSyntax)content;
+                                if (isNonVerbatimInterpolatedString && newLinesInInterpolationsDiagnosticInfo != null)
+                                {
+                                    if (ContainsTrailingEndOflineTrivia(interpolation.OpenBraceToken) ||
+                                        ContainsTrailingEndOflineTrivia(interpolation.Expression))
+                                    {
+                                        diagnostics.Add(
+                                            ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString,
+                                            interpolation.CloseBraceToken.GetLocation(),
+                                            new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNewLinesInInterpolations.RequiredVersion()));
+                                    }
+                                }
+
                                 var value = BindValue(interpolation.Expression, diagnostics, BindValueKind.RValue);
 
                                 // We need to ensure the argument is not a lambda, method group, etc. It isn't nice to wait until lowering,
@@ -127,6 +143,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(isResultConstant == (resultConstant != null));
             return new BoundUnconvertedInterpolatedString(node, builder.ToImmutableAndFree(), resultConstant, stringType);
+        }
+
+        private static bool ContainsTrailingEndOflineTrivia(SyntaxNodeOrToken nodeOrToken)
+        {
+            if (nodeOrToken.IsNode)
+            {
+                foreach (var child in nodeOrToken.AsNode()!.ChildNodesAndTokens())
+                {
+                    if (ContainsTrailingEndOflineTrivia(child))
+                        return true;
+                }
+            }
+            else if (nodeOrToken.IsToken)
+            {
+                foreach (var trivia in nodeOrToken.AsToken().TrailingTrivia)
+                {
+                    if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         private BoundInterpolatedString BindUnconvertedInterpolatedStringToString(BoundUnconvertedInterpolatedString unconvertedInterpolatedString, BindingDiagnosticBag diagnostics)

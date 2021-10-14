@@ -458,6 +458,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -475,6 +477,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -492,6 +496,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -510,6 +516,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -527,6 +535,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -545,6 +555,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -564,6 +576,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -582,6 +596,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -600,6 +616,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -618,6 +636,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -637,6 +657,8 @@ public class Test
                 // (6,38): error CS1733: Expected expression
                 //       string s = $"x { /* comment */ } y";
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 38));
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -671,6 +693,8 @@ public class Test
                 // (9,1): error CS1513: } expected
                 // 
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(9, 1));
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -706,6 +730,8 @@ public class Test
                 // (10,1): error CS1513: } expected
                 // 
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(10, 1));
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -722,6 +748,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -739,6 +767,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -760,6 +790,8 @@ public class Test
                 // (8,29): error CS1733: Expected expression
                 //                          */ } y";
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(8, 29));
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -776,6 +808,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -793,6 +827,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -813,6 +849,8 @@ public class Test
                 // (6,23): error CS1733: Expected expression
                 //       string s = $"x { /* comment */
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 23));
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -830,6 +868,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -847,6 +887,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -869,6 +911,8 @@ public class Test
                 // (6,23): error CS1733: Expected expression
                 //       string s = $"x { /*
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 23));
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -888,6 +932,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -907,6 +953,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -927,6 +975,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -947,6 +997,8 @@ public class Test
                 // (6,23): error CS1733: Expected expression
                 //       string s = $"x {
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 23));
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -964,6 +1016,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -986,6 +1040,8 @@ public class Test
                 // (6,23): error CS1733: Expected expression
                 //       string s = $"x {
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 23));
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1005,6 +1061,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1025,6 +1083,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1048,6 +1108,8 @@ public class Test
                 // (6,23): error CS1733: Expected expression
                 //       string s = $"x {
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 23));
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1068,6 +1130,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1089,6 +1153,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1109,6 +1175,8 @@ public class Test
                 // (6,23): error CS1733: Expected expression
                 //       string s = $"x { // comment
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 23));
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1129,6 +1197,8 @@ public class Test
                 // (6,24): error CS1733: Expected expression
                 //       string s = $@"x { // comment
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 24));
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1149,6 +1219,8 @@ public class Test
                 // (6,29): error CS1733: Expected expression
                 //       string s = $"x { $@" { // comment
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 29));
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1167,6 +1239,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1185,6 +1259,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1203,6 +1279,8 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test);
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10)).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
         }
 
         #endregion

@@ -1991,8 +1991,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadCallerArgumentExpressionParamWithoutDefaultValue = 8964,
         WRN_CallerArgumentExpressionAttributeSelfReferential = 8965,
         WRN_CallerArgumentExpressionParamForUnconsumedLocation = 8966,
-        // It is now legal to have newlines in expression holes.
-        // ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString = 8967,
+        ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString = 8967,
         ERR_AttrTypeArgCannotBeTypeVar = 8968,
         // WRN_AttrDependentTypeNotAllowed = 8969, // Backed out of of warning wave 6, may be reintroduced later
         ERR_AttrDependentTypeNotAllowed = 8970,
