@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         {
         }
 
-        public Task<DocumentDebugInfoReader?> GetMetadataReadersAsync(string dllPath, CancellationToken cancellationToken)
+        public Task<DocumentDebugInfoReader?> GetDocumentDebugInfoReaderAsync(string dllPath, CancellationToken cancellationToken)
         {
             var dllStream = IOUtilities.PerformIO(() => File.OpenRead(dllPath));
             if (dllStream is null)
@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 if (pdbStream is null || !IsPortable(pdbStream))
                 {
                     // TODO: Support non portable PDBs: https://github.com/dotnet/roslyn/issues/55834
-                    dllStream.Dispose();
                     pdbStream?.Dispose();
                     peReader.Dispose();
                     return Task.FromResult<DocumentDebugInfoReader?>(null);
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
                 var pdbReaderProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
 
-                var result = new DocumentDebugInfoReader(dllStream, peReader, pdbStream, pdbReaderProvider);
+                var result = new DocumentDebugInfoReader(peReader, pdbReaderProvider);
                 return Task.FromResult<DocumentDebugInfoReader?>(result);
             }
 
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             {
                 var pdbReaderProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry);
 
-                var result = new DocumentDebugInfoReader(dllStream, peReader, pdbStream: null, pdbReaderProvider);
+                var result = new DocumentDebugInfoReader(peReader, pdbReaderProvider);
                 return Task.FromResult<DocumentDebugInfoReader?>(result);
             }
 
@@ -74,7 +73,6 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // 
             // Most of this info comes from the CodeView Debug Directory from the dll
 
-            dllStream.Dispose();
             peReader.Dispose();
             return Task.FromResult<DocumentDebugInfoReader?>(null);
         }

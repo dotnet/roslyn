@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
     internal interface IPdbFileLocatorService
     {
-        Task<DocumentDebugInfoReader?> GetMetadataReadersAsync(string dllPath, CancellationToken cancellationToken);
+        Task<DocumentDebugInfoReader?> GetDocumentDebugInfoReaderAsync(string dllPath, CancellationToken cancellationToken);
     }
 }

@@ -8,11 +8,9 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
@@ -63,10 +61,12 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 return null;
             }
 
-            ProjectId projectId;
-            ImmutableArray<(string FilePath, TextLoader Loader)> filesAndPaths;
+            var assemblyName = symbol.ContainingAssembly.Identity.Name;
+
+            ProjectInfo? projectInfo;
+            ImmutableArray<(string FilePath, TextLoader Loader)> filePathsAndTextLoaders;
             // We know we have a DLL, call and see if we can find metadata readers for it, and for the PDB (whereever it may be)
-            using (var documentDebugInfoReader = await _pdbFileLocatorService.GetMetadataReadersAsync(dllPath, cancellationToken).ConfigureAwait(false))
+            using (var documentDebugInfoReader = await _pdbFileLocatorService.GetDocumentDebugInfoReaderAsync(dllPath, cancellationToken).ConfigureAwait(false))
             {
                 if (documentDebugInfoReader is null)
                     return null;
@@ -78,41 +78,42 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
                 // Get text loaders for our documents. We do this here because if we can't load any of the files, then
                 // we can't provide any results.
-                filesAndPaths = (from sd in sourceDocuments
-                                 let loader = _pdbSourceDocumentLoaderService.LoadSourceDocument(sd, documentDebugInfoReader)
-                                 where loader is not null
-                                 select (sd.FilePath, loader)).ToImmutableArray();
-
-                if (filesAndPaths.Length == 0)
+                var textLoaderTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(sd, documentDebugInfoReader)).ToArray();
+                var textLoaders = await Task.WhenAll(textLoaderTasks).ConfigureAwait(false);
+                if (textLoaders.Where(t => t is null).Any())
                     return null;
 
-                var assemblyName = symbol.ContainingAssembly.Identity.Name;
+                Contract.ThrowIfFalse(sourceDocuments.Length == textLoaders.Length);
 
-                if (!_assemblyToProjectMap.TryGetValue(assemblyName, out projectId!))
-                {
-                    var projectInfo = CreateProjectInfo(workspace, project, documentDebugInfoReader, assemblyName);
+                // Combine text loaders and file paths. Task.WhenAll ensures order is preserved.
+                filePathsAndTextLoaders = sourceDocuments.Select((sd, i) => (sd.FilePath, textLoaders[i]!)).ToImmutableArray();
 
-                    if (projectInfo is null)
-                        return null;
+                // Get the project info now, so we can dispose the documentDebugInfoReader sooner
+                projectInfo = CreateProjectInfo(workspace, project, documentDebugInfoReader, assemblyName);
+            }
 
-                    projectId = projectInfo.Id;
+            if (!_assemblyToProjectMap.TryGetValue(assemblyName, out var projectId))
+            {
+                if (projectInfo is null)
+                    return null;
 
-                    workspace.OnProjectAdded(projectInfo);
-                    _assemblyToProjectMap.Add(assemblyName, projectId);
-                }
+                projectId = projectInfo.Id;
+
+                workspace.OnProjectAdded(projectInfo);
+                _assemblyToProjectMap.Add(assemblyName, projectId);
             }
 
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
 
             var navigateProject = workspace.CurrentSolution.GetRequiredProject(projectId);
-            var documentInfos = CreateDocumentInfos(filesAndPaths, navigateProject);
+            var documentInfos = CreateDocumentInfos(filePathsAndTextLoaders, navigateProject);
             if (documentInfos.Length > 0)
             {
                 workspace.OnDocumentsAdded(documentInfos);
                 navigateProject = workspace.CurrentSolution.GetRequiredProject(projectId);
             }
 
-            var documentPath = filesAndPaths[0].FilePath;
+            var documentPath = filePathsAndTextLoaders[0].FilePath;
             var document = navigateProject.Documents.FirstOrDefault(d => d.FilePath?.Equals(documentPath, StringComparison.OrdinalIgnoreCase) ?? false);
 
             // TODO: Can we avoid writing a temp file, and convince Visual Studio to open a file that doesn't exist on disk? https://github.com/dotnet/roslyn/issues/55834

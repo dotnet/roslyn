@@ -3,11 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Reflection.Metadata;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
     internal interface IPdbSourceDocumentLoaderService
     {
-        TextLoader? LoadSourceDocument(SourceDocument sourceDocument, DocumentDebugInfoReader documentDebugInfoReader);
+        Task<TextLoader?> LoadSourceDocumentAsync(SourceDocument sourceDocument, DocumentDebugInfoReader documentDebugInfoReader);
     }
 }

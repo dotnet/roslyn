@@ -19,19 +19,14 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
     /// </summary>
     internal sealed class DocumentDebugInfoReader : IDisposable
     {
-        private readonly Stream _dllStream;
-        private readonly Stream? _pdbStream;
         private readonly MetadataReaderProvider _pdbReaderProvider;
         private readonly PEReader _peReader;
 
         private readonly MetadataReader _dllReader;
         private readonly MetadataReader _pdbReader;
 
-        public DocumentDebugInfoReader(Stream dllStream, PEReader peReader, Stream? pdbStream, MetadataReaderProvider pdbReaderProvider)
+        public DocumentDebugInfoReader(PEReader peReader, MetadataReaderProvider pdbReaderProvider)
         {
-            _dllStream = dllStream;
-            _pdbStream = pdbStream;
-
             _peReader = peReader;
             _pdbReaderProvider = pdbReaderProvider;
 
@@ -120,8 +115,6 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         public void Dispose()
         {
-            _dllStream.Dispose();
-            _pdbStream?.Dispose();
             _pdbReaderProvider.Dispose();
             _peReader.Dispose();
         }
