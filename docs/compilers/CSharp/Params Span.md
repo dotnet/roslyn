@@ -10,7 +10,7 @@ Console.WriteLine(fmt, new object[4] { x, y, z, w });
 ```
 However, the implicit array is a heap allocation.
 
-To avoid the array allocation overhead, some common methods such as `Console.WriteLine()` include overloads with fixed numbers of arguments in addition to the `params` array overload.
+To avoid the array allocation overhead, some commonly used methods such as `Console.WriteLine()` include overloads with fixed numbers of arguments in addition to the `params` array overload.
 ```csharp
 public static void WriteLine(string format, object? arg0);
 public static void WriteLine(string format, object? arg0, object? arg1);
@@ -66,4 +66,9 @@ The C# compiler may need heuristics to decide when to allocate the array from th
 
 The compiler should reuse spans aggressively within a method. Ideally a single span should be reused across calls that do not overlap if the types are the same size and the span is large enough, so the compiler should allocate the minimum number of spans to satisfy all calls within the method.
 
-There should be a mechanism for the caller to opt-out of implicit stack allocation of `params` spans. Perhaps a `[MethodImpl(MethodImplOptions.NoStackAlloc)]` attribute applied to the calling method, or perhaps a similar attribute applied to the containing type or assembly.
+There should be a mechanism for the caller to opt-out of implicit stack allocation of `params` spans.
+The caller can opt-out for a particular call by explicitly allocating the `params` argument:
+```csharp
+Console.WriteLine(fmt, new object[] { x, y, z, w }); // WriteLine(string, params object?[]?)
+```
+To opt-out for multiple calls, we could support a `[MethodImpl(MethodImplOptions.NoStackAlloc)]` attribute applied to the calling method, or perhaps a similar attribute applied to the containing type or assembly.
