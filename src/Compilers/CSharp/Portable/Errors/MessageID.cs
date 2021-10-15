@@ -237,7 +237,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureStructFieldInitializers = MessageBase + 12811,
         IDS_FeatureGenericAttributes = MessageBase + 12812,
 
-        // PROTOTYPE: Update this number
         IDS_FeatureNewLinesInInterpolations = MessageBase + 12813,
     }
 
