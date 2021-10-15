@@ -30,8 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var isNonVerbatimInterpolatedString = node.StringStartToken.Kind() != SyntaxKind.InterpolatedVerbatimStringStartToken;
-                var newLinesInInterpolationsDiagnosticInfo =
-                    MessageID.IDS_FeatureNewLinesInInterpolations.GetFeatureAvailabilityDiagnosticInfo((CSharpParseOptions)node.SyntaxTree.Options);
+                var newLinesInInterpolationsAllowed = this.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNewLinesInInterpolations);
 
                 var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
                 foreach (var content in node.Contents)
@@ -41,9 +40,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case SyntaxKind.Interpolation:
                             {
                                 var interpolation = (InterpolationSyntax)content;
+
+                                // If we're prior to C# 11 then we don't allow newlines in the interpolations of
+                                // non-verbatim interpolated strings.  Check for that here and report an error
+                                // if the interpolation spans multiple lines (and thus must have a newline).
+                                //
+                                // Note: don't bother doing this if the interpolation is otherwise malformed or
+                                // we've already reported some other error within it.  No need to spam the user
+                                // with multiple errors (esp as a malformed interpolation may commonly span multiple
+                                // lines due to error recovery).
                                 if (isNonVerbatimInterpolatedString &&
                                     !interpolation.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error) &&
-                                    newLinesInInterpolationsDiagnosticInfo != null &&
+                                    !newLinesInInterpolationsAllowed &&
                                     !interpolation.OpenBraceToken.IsMissing &&
                                     !interpolation.CloseBraceToken.IsMissing)
                                 {
