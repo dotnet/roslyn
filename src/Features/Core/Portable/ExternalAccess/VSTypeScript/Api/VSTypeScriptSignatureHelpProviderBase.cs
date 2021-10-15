@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
     /// </summary>
     internal abstract class VSTypeScriptSignatureHelpProviderBase : ISignatureHelpProvider
     {
-        Task<SignatureHelpItems?> ISignatureHelpProvider.GetItemsAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        Task<SignatureHelpItems?> ISignatureHelpProvider.GetItemsAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
             => GetItemsAsync(document, position, triggerInfo, cancellationToken);
 
         public abstract bool IsTriggerCharacter(char ch);

@@ -26,10 +26,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             => _language = language;
 
         public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
+            Document document, int position, IImmutableSet<Document> documentsToSearch, DocumentHighlightingOptions options, CancellationToken cancellationToken)
         {
-            var option = document.Project.Solution.Workspace.Options.GetOption(RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, document.Project.Language);
-            if (!option)
+            if (!options.HighlightRelatedRegexComponentsUnderCursor)
             {
                 return default;
             }
