@@ -20,18 +20,20 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly Func<DriverStateTable.Builder, ImmutableArray<T>> _getInput;
         private readonly Action<IIncrementalGeneratorOutputNode> _registerOutput;
+        private readonly IEqualityComparer<T> _inputComparer;
         private readonly IEqualityComparer<T> _comparer;
         private readonly string? _name;
 
-        public InputNode(Func<DriverStateTable.Builder, ImmutableArray<T>> getInput)
-            : this(getInput, registerOutput: null, comparer: null)
+        public InputNode(Func<DriverStateTable.Builder, ImmutableArray<T>> getInput, IEqualityComparer<T>? inputComparer = null)
+            : this(getInput, registerOutput: null, inputComparer: inputComparer, comparer: null)
         {
         }
 
-        private InputNode(Func<DriverStateTable.Builder, ImmutableArray<T>> getInput, Action<IIncrementalGeneratorOutputNode>? registerOutput, IEqualityComparer<T>? comparer = null, string? name = null)
+        private InputNode(Func<DriverStateTable.Builder, ImmutableArray<T>> getInput, Action<IIncrementalGeneratorOutputNode>? registerOutput, IEqualityComparer<T>? inputComparer = null, IEqualityComparer<T>? comparer = null, string? name = null)
         {
             _getInput = getInput;
             _comparer = comparer ?? EqualityComparer<T>.Default;
+            _inputComparer = inputComparer ?? EqualityComparer<T>.Default;
             _registerOutput = registerOutput ?? (o => throw ExceptionUtilities.Unreachable);
             _name = name;
         }
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis
             TimeSpan elapsedTime = stopwatch.Elapsed;
 
             // create a mutable hashset of the new items we can check against
-            HashSet<T> itemsSet = new HashSet<T>();
+            HashSet<T> itemsSet = new HashSet<T>(_inputComparer);
             foreach (var item in inputItems)
             {
                 var added = itemsSet.Add(item);
@@ -93,9 +95,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new InputNode<T>(_getInput, _registerOutput, comparer, _name);
+
         public IIncrementalGeneratorNode<T> WithTrackingName(string name) => new InputNode<T>(_getInput, _registerOutput, _comparer, name);
 
-        public InputNode<T> WithRegisterOutput(Action<IIncrementalGeneratorOutputNode> registerOutput) => new InputNode<T>(_getInput, registerOutput, _comparer);
+        public InputNode<T> WithRegisterOutput(Action<IIncrementalGeneratorOutputNode> registerOutput) => new InputNode<T>(_getInput, registerOutput, _inputComparer, _comparer);
 
         public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _registerOutput(output);
     }

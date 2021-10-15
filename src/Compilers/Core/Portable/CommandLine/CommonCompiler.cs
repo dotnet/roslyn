@@ -744,7 +744,10 @@ namespace Microsoft.CodeAnalysis
             if (this.GeneratorDriverCache is object && !disableCache)
             {
                 cacheKey = deriveCacheKey();
-                driver = this.GeneratorDriverCache.TryGetDriver(cacheKey);
+                driver = this.GeneratorDriverCache.TryGetDriver(cacheKey)?
+                                                  .WithUpdatedParseOptions(parseOptions)
+                                                  .WithUpdatedAnalyzerConfigOptions(analyzerConfigOptionsProvider)
+                                                  .ReplaceAdditionalTexts(additionalTexts);
             }
 
             driver ??= CreateGeneratorDriver(parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts);
