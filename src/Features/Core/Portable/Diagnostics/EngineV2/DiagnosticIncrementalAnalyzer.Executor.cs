@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,6 +33,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             bool isOpenDocument, bool isGeneratedRazorDocument,
             CancellationToken cancellationToken)
         {
+            Debug.Assert(isActiveDocument || isOpenDocument || isGeneratedRazorDocument);
+
             try
             {
                 var state = stateSet.GetOrCreateActiveFileState(document.Id);

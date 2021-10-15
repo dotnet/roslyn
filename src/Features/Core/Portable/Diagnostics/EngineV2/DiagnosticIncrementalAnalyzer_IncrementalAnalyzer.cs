@@ -40,13 +40,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return;
                 }
 
+                var isActiveDocument = _documentTrackingService.TryGetActiveDocument() == document.Id;
+                var isOpenDocument = document.IsOpen();
+                var isGeneratedRazorDocument = document.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName != null;
+
+                // Only analyze open/active documents, unless it is a generated Razor document.
+                if (!isActiveDocument && !isOpenDocument && !isGeneratedRazorDocument)
+                {
+                    return;
+                }
+
                 var stateSets = _stateManager.GetOrUpdateStateSets(document.Project);
                 var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
                 var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
                 var backgroundAnalysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(document.Project);
-                var isActiveDocument = _documentTrackingService.TryGetActiveDocument() == document.Id;
-                var isOpenDocument = document.IsOpen();
-                var isGeneratedRazorDocument = document.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName != null;
 
                 // We split the diagnostic computation for document into following steps:
                 //  1. Try to get cached diagnostics for each analyzer, while computing the set of analyzers that do not have cached diagnostics.
