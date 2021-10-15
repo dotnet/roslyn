@@ -62,9 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         protected override bool GetBindableNodeForTokenIndicatingMemberAccess(SyntaxToken token, out SyntaxToken found)
         {
             if (token.IsKind(SyntaxKind.DotToken) &&
-                token.Parent?.IsKind(SyntaxKind.SimpleMemberAccessExpression) == true)
+                token.Parent is MemberAccessExpressionSyntax memberAccess)
             {
-                found = ((MemberAccessExpressionSyntax)token.Parent).Name.Identifier;
+                found = memberAccess.Name.Identifier;
                 return true;
             }
 
