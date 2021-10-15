@@ -31,8 +31,8 @@
 
   <Target Name="_GetFilesToPackage" DependsOnTargets="InitializeDesktopCompilerArtifacts">
     <ItemGroup>
-      <_File Include="@(DesktopCompilerArtifact)" TargetDir="tools" />
-      <_File Include="@(DesktopCompilerResourceArtifact)" TargetDir="tools" />
+      <_File Include="@(DesktopCompilerArtifact)" TargetDir="tools"/>
+      <_File Include="@(DesktopCompilerResourceArtifact)" TargetDir="tools"/>
       <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" TargetDir="build" />
 
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
