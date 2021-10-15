@@ -1323,7 +1323,7 @@ symIsHidden:;
                 : symbol;
 
             // Check for symbols marked with 'Microsoft.CodeAnalysis.Embedded' attribute
-            if (!this.Compilation.SourceModule.Equals(unwrappedSymbol.ContainingModule) && unwrappedSymbol.IsHiddenByCodeAnalysisEmbeddedAttribute())
+            if (!this.Compilation.SourceModule.Equals(unwrappedSymbol.ContainingModule, SymbolEqualityComparer.Default.CompareKind) && unwrappedSymbol.IsHiddenByCodeAnalysisEmbeddedAttribute())
             {
                 return LookupResult.Empty();
             }
