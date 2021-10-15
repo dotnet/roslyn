@@ -4,8 +4,6 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -19,7 +17,6 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -486,7 +483,7 @@ public class P2 { }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void GFUFuzzyMatchAfterRenameTracking()
+        public void GFUFuzzyMatchAfterRenameTrackingAndAfterGenerateType()
         {
             SetUpEditor(@"
 namespace N
@@ -511,12 +508,12 @@ namespace NS
             var expectedItems = new[]
             {
                 "Rename 'P2' to 'Foober'",
-                "Goober - using N;",
                 "Generate type 'Foober'",
                 "Generate class 'Foober' in new file",
                 "Generate class 'Foober'",
                 "Generate nested class 'Foober'",
                 "Generate new type...",
+                "Goober - using N;",
                 "Suppress or Configure issues",
                 "Suppress CS0168",
                 "in Source",
