@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -27,7 +27,7 @@ namespace Analyzer.Utilities
         /// <summary>
         /// Holds entries, which contain the actual values.
         /// </summary>
-        private readonly ConcurrentDictionary<TKey, Entry> BackingDictionary = new ConcurrentDictionary<TKey, Entry>();
+        private readonly ConcurrentDictionary<TKey, Entry> BackingDictionary = new();
 
         /// <summary>
         /// Adds a key/value pair using the specified function if the key does not already exist.  Returns the new value, or the existing value if the key exists.

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using Analyzer.Utilities;
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             => obj is InterproceduralCaptureId id && Equals(id);
 
         public override int GetHashCode()
-            => HashUtilities.Combine(Id.GetHashCode(), ControlFlowGraph.GetHashCode());
+            => RoslynHashCode.Combine(Id.GetHashCode(), ControlFlowGraph.GetHashCode());
 
         public static bool operator ==(InterproceduralCaptureId left, InterproceduralCaptureId right)
         {

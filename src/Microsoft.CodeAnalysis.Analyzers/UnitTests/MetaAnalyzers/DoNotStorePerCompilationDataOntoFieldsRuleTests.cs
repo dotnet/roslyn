@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic;
+using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpDiagnosticAnalyzerFieldsAnalyzer,
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
     public class DoNotStorePerCompilationDataOntoFieldsRuleTests
     {
         [Fact]
-        public async Task CSharp_VerifyDiagnostic()
+        public async Task CSharp_VerifyDiagnosticAsync()
         {
             var source = @"
 using System;
@@ -69,7 +70,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task VisualBasic_VerifyDiagnostic()
+        public async Task VisualBasic_VerifyDiagnosticAsync()
         {
             var source = @"
 Imports System
@@ -118,7 +119,7 @@ End Class
         }
 
         [Fact]
-        public async Task CSharp_NoDiagnosticCases()
+        public async Task CSharp_NoDiagnosticCasesAsync()
         {
             var source = @"
 using System;
@@ -163,6 +164,16 @@ class MyAnalyzer : DiagnosticAnalyzer
         {
         }
     }
+
+    private struct NestedStructCompilationAnalyzer
+    {
+        // Ok to store per-compilation data here.
+        private readonly Dictionary<MyCompilation, MyNamedType> y;
+
+        internal void StartCompilation(CompilationStartAnalysisContext context)
+        {
+        }
+    }
 }
 
 class MyAnalyzerWithoutAttribute : DiagnosticAnalyzer
@@ -188,7 +199,7 @@ class MyAnalyzerWithoutAttribute : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task VisualBasic_NoDiagnosticCases()
+        public async Task VisualBasic_NoDiagnosticCasesAsync()
         {
             var source = @"
 Imports System
@@ -228,6 +239,14 @@ Class MyAnalyzer
         Friend Sub StartCompilation(context As CompilationStartAnalysisContext)
         End Sub
     End Class
+
+    Structure NestedStructCompilationAnalyzer
+        ' Ok to store per-compilation data here.
+        Private ReadOnly y As Dictionary(Of MyCompilation, MyNamedType)
+
+        Friend Sub StartCompilation(context As CompilationStartAnalysisContext)
+        End Sub
+    End Structure
 End Class
 
 Class MyAnalyzerWithoutAttribute
@@ -251,14 +270,82 @@ End Class
             await VerifyVB.VerifyAnalyzerAsync(source);
         }
 
+        [Fact, WorkItem(4308, "https://github.com/dotnet/roslyn-analyzers/issues/4308")]
+        public async Task CSharp_NestedStruct_NoDiagnosticAsync()
+        {
+            await VerifyCS.VerifyAnalyzerAsync(@"
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
+
+namespace MyNamespace
+{
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public class AnyInstanceInjectionAnalyzer : DiagnosticAnalyzer
+    {
+        public struct DependencyAccess
+        {
+            public IMethodSymbol method;
+            public string expectedName;
+        }
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw new NotImplementedException();
+
+        public override void Initialize(AnalysisContext context)
+        {
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
+            context.RegisterCompilationStartAction(OnCompilationStart);
+        }
+
+        public void OnCompilationStart(CompilationStartAnalysisContext context)
+        {
+            var accessors = new ConcurrentBag<DependencyAccess>();
+
+            context.RegisterSymbolAction(
+                symbolContext => AnalyzeSymbol(symbolContext, accessors),
+                SymbolKind.Property,
+                SymbolKind.Field
+            );
+
+            context.RegisterSemanticModelAction(
+                semanticModelContext => AnalyzeSemanticModel(semanticModelContext, accessors)
+            );
+        }
+
+        public void AnalyzeSymbol(SymbolAnalysisContext context, ConcurrentBag<DependencyAccess> accessors)
+        {
+            // collect symbols for analysis
+        }
+
+        public void AnalyzeSemanticModel(SemanticModelAnalysisContext context, ConcurrentBag<DependencyAccess> accessors)
+        {
+            foreach (var access in accessors)
+            {
+                // analyze
+            }
+        }
+    }
+}");
+        }
+
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string violatingTypeName) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyCS.Diagnostic()
                 .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(violatingTypeName);
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string violatingTypeName) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyVB.Diagnostic()
                 .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(violatingTypeName);
     }
 }

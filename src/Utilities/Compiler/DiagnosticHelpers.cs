@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
 
@@ -6,7 +6,7 @@ namespace Analyzer.Utilities
 {
     internal static partial class DiagnosticHelpers
     {
-        public static bool TryConvertToUInt64(object value, SpecialType specialType, out ulong convertedValue)
+        public static bool TryConvertToUInt64(object? value, SpecialType specialType, out ulong convertedValue)
         {
             bool success = false;
             convertedValue = 0;
@@ -51,7 +51,7 @@ namespace Analyzer.Utilities
                         success = true;
                         break;
                     case SpecialType.System_Boolean:
-                        convertedValue = (ulong)((bool)value == true ? 1 : 0);
+                        convertedValue = (ulong)((bool)value ? 1 : 0);
                         success = true;
                         break;
                 }

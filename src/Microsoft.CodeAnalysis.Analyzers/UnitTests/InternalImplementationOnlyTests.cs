@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
@@ -18,7 +18,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
         [Fact]
-        public async Task CSharp_VerifySameAssembly()
+        public async Task CSharp_VerifySameAssemblyAsync()
         {
             string source = AttributeStringCSharp + @"
 
@@ -37,7 +37,7 @@ class SomeClass : IMyInterface { }
         }
 
         [Fact]
-        public async Task CSharp_VerifyDifferentAssembly()
+        public async Task CSharp_VerifyDifferentAssemblyAsync()
         {
             string source1 = AttributeStringCSharp + @"
 
@@ -59,6 +59,14 @@ class SomeOtherClass : IMyOtherInterface { }";
                 TestState =
                 {
                     Sources = { source2 },
+                    AdditionalProjects =
+                    {
+                        ["DependencyProject"] =
+                        {
+                            Sources = { source1 },
+                        },
+                    },
+                    AdditionalProjectReferences = { "DependencyProject" },
                     ExpectedDiagnostics =
                     {
                         // Test0.cs(2,7): error RS1009: Type SomeClass cannot implement interface IMyInterface because IMyInterface is not available for public implementation.
@@ -67,24 +75,11 @@ class SomeOtherClass : IMyOtherInterface { }";
                         VerifyCS.Diagnostic().WithSpan(4, 7, 4, 21).WithArguments("SomeOtherClass", "IMyInterface"),
                     },
                 },
-                SolutionTransforms =
-                {
-                    (solution, projectId) =>
-                    {
-                        var dependencyProject = solution.AddProject("DependencyProject", "DependencyProject", LanguageNames.CSharp)
-                            .WithCompilationOptions(solution.GetProject(projectId).CompilationOptions)
-                            .WithParseOptions(solution.GetProject(projectId).ParseOptions)
-                            .WithMetadataReferences(solution.GetProject(projectId).MetadataReferences)
-                            .AddDocument("Test0.cs", source1, filePath: "Test0.cs").Project;
-
-                        return dependencyProject.Solution.AddProjectReference(projectId, new ProjectReference(dependencyProject.Id));
-                    },
-                },
             }.RunAsync();
         }
 
         [Fact]
-        public async Task CSharp_VerifyDifferentFriendAssembly()
+        public async Task CSharp_VerifyDifferentFriendAssemblyAsync()
         {
             string source1 = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""TestProject"")]
@@ -105,25 +100,23 @@ class SomeOtherClass : IMyOtherInterface { }";
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithoutRoslynSymbols,
-                TestState = { Sources = { source2 } },
-                SolutionTransforms =
+                TestState =
                 {
-                    (solution, projectId) =>
+                    Sources = { source2 },
+                    AdditionalProjects =
                     {
-                        var dependencyProject = solution.AddProject("DependencyProject", "DependencyProject", LanguageNames.CSharp)
-                            .WithCompilationOptions(solution.GetProject(projectId).CompilationOptions)
-                            .WithParseOptions(solution.GetProject(projectId).ParseOptions)
-                            .WithMetadataReferences(solution.GetProject(projectId).MetadataReferences)
-                            .AddDocument("Test0.cs", source1, filePath: "Test0.cs").Project;
-
-                        return dependencyProject.Solution.AddProjectReference(projectId, new ProjectReference(dependencyProject.Id));
+                        ["DependencyProject"] =
+                        {
+                            Sources = { source1 },
+                        },
                     },
+                    AdditionalProjectReferences = { "DependencyProject" },
                 },
             }.RunAsync();
         }
 
         [Fact]
-        public async Task CSharp_VerifyISymbol()
+        public async Task CSharp_VerifyISymbolAsync()
         {
             var source = @"
 // Causes many compile errors, because not all members are implemented.
@@ -303,7 +296,7 @@ class SomeOtherClass : Microsoft.CodeAnalysis.IAssemblySymbol { }
         }
 
         [Fact]
-        public async Task CSharp_VerifyIOperation()
+        public async Task CSharp_VerifyIOperationAsync()
         {
             var source = @"
 // Causes many compile errors, because not all members are implemented.
@@ -389,7 +382,7 @@ End Namespace
 ";
 
         [Fact]
-        public async Task Basic_VerifySameAssembly()
+        public async Task Basic_VerifySameAssemblyAsync()
         {
             string source = AttributeStringBasic + @"
 
@@ -411,7 +404,7 @@ End Class
         }
 
         [Fact]
-        public async Task Basic_VerifyDifferentAssembly()
+        public async Task Basic_VerifyDifferentAssemblyAsync()
         {
             string source1 = AttributeStringBasic + @"
 
@@ -441,6 +434,14 @@ End Class
                 TestState =
                 {
                     Sources = { source2 },
+                    AdditionalProjects =
+                    {
+                        ["DependencyProject"] =
+                        {
+                            Sources = { source1 },
+                        },
+                    },
+                    AdditionalProjectReferences = { "DependencyProject" },
                     ExpectedDiagnostics =
                     {
                         // Test0.vb(2,7): error RS1009: Type SomeClass cannot implement interface IMyInterface because IMyInterface is not available for public implementation.
@@ -449,24 +450,11 @@ End Class
                         VerifyVB.Diagnostic().WithSpan(6, 7, 6, 21).WithArguments("SomeOtherClass", "IMyInterface"),
                     },
                 },
-                SolutionTransforms =
-                {
-                    (solution, projectId) =>
-                    {
-                        var dependencyProject = solution.AddProject("DependencyProject", "DependencyProject", LanguageNames.VisualBasic)
-                            .WithCompilationOptions(solution.GetProject(projectId).CompilationOptions)
-                            .WithParseOptions(solution.GetProject(projectId).ParseOptions)
-                            .WithMetadataReferences(solution.GetProject(projectId).MetadataReferences)
-                            .AddDocument("Test0.vb", source1, filePath: "Test0.vb").Project;
-
-                        return dependencyProject.Solution.AddProjectReference(projectId, new ProjectReference(dependencyProject.Id));
-                    },
-                },
             }.RunAsync();
         }
 
         [Fact]
-        public async Task Basic_VerifyDifferentFriendAssembly()
+        public async Task Basic_VerifyDifferentFriendAssemblyAsync()
         {
             string source1 = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""TestProject"")>
@@ -495,25 +483,23 @@ End Class
             await new VerifyVB.Test
             {
                 ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithoutRoslynSymbols,
-                TestState = { Sources = { source2 } },
-                SolutionTransforms =
+                TestState =
                 {
-                    (solution, projectId) =>
+                    Sources = { source2 },
+                    AdditionalProjects =
                     {
-                        var dependencyProject = solution.AddProject("DependencyProject", "DependencyProject", LanguageNames.VisualBasic)
-                            .WithCompilationOptions(solution.GetProject(projectId).CompilationOptions)
-                            .WithParseOptions(solution.GetProject(projectId).ParseOptions)
-                            .WithMetadataReferences(solution.GetProject(projectId).MetadataReferences)
-                            .AddDocument("Test0.vb", source1, filePath: "Test0.vb").Project;
-
-                        return dependencyProject.Solution.AddProjectReference(projectId, new ProjectReference(dependencyProject.Id));
+                        ["DependencyProject"] =
+                        {
+                            Sources = { source1 },
+                        },
                     },
+                    AdditionalProjectReferences = { "DependencyProject" },
                 },
             }.RunAsync();
         }
 
         [Fact]
-        public async Task Basic_VerifyISymbol()
+        public async Task Basic_VerifyISymbolAsync()
         {
             var source = @"
 ' Causes many compile errors, because not all members are implemented.
@@ -689,7 +675,7 @@ End Class
         }
 
         [Fact]
-        public async Task Basic_VerifyIOperation()
+        public async Task Basic_VerifyIOperationAsync()
         {
             var source = @"
 ' Causes many compile errors, because not all members are implemented.

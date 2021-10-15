@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -331,11 +331,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ResetInstanceAnalysisDataCore(dependantAnalysisEntities.Concat(analysisEntity));
         }
 
-        protected override void ResetReferenceTypeInstanceAnalysisData(PointsToAbstractValue pointsToValue)
+        protected override void ResetReferenceTypeInstanceAnalysisData(PointsToAbstractValue pointsToAbstractValue)
         {
             Debug.Assert(HasPointsToAnalysisResult);
 
-            IEnumerable<AnalysisEntity> dependantAnalysisEntities = GetChildAnalysisEntities(pointsToValue);
+            IEnumerable<AnalysisEntity> dependantAnalysisEntities = GetChildAnalysisEntities(pointsToAbstractValue);
             ResetInstanceAnalysisDataCore(dependantAnalysisEntities);
         }
 
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             foreach (AnalysisEntity dependentInstance in dependentAnalysisEntities)
             {
-                // Clone the dependent instance but with with target as the root.
+                // Clone the dependent instance but with target as the root.
                 AnalysisEntity newAnalysisEntity = AnalysisEntityFactory.CreateWithNewInstanceRoot(dependentInstance, targetAnalysisEntity);
                 var dependentValue = GetAbstractValue(dependentInstance);
                 SetAbstractValue(newAnalysisEntity, dependentValue);
@@ -659,12 +659,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected sealed override void ApplyInterproceduralAnalysisResult(
             TAnalysisData resultData,
             bool isLambdaOrLocalFunction,
-            bool hasParameterWithDelegateType,
-            TAnalysisResult interproceduralResult)
+            bool hasDelegateTypeArgument,
+            TAnalysisResult analysisResult)
         {
-            if (isLambdaOrLocalFunction || hasParameterWithDelegateType)
+            if (isLambdaOrLocalFunction || hasDelegateTypeArgument)
             {
-                base.ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, hasParameterWithDelegateType, interproceduralResult);
+                base.ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, hasDelegateTypeArgument, analysisResult);
                 return;
             }
 
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         #endregion
 
         protected DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> GetClonedAnalysisDataHelper(IDictionary<AnalysisEntity, TAbstractAnalysisValue> analysisData)
-            => new DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue>(analysisData);
+            => new(analysisData);
 
         protected void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(
             DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> coreDataAtException,

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
 {
     internal sealed class GlobalFlowStateAnalysisValueSet : CacheBasedEquatable<GlobalFlowStateAnalysisValueSet>
     {
-        public static readonly GlobalFlowStateAnalysisValueSet Unset = new GlobalFlowStateAnalysisValueSet(
+        public static readonly GlobalFlowStateAnalysisValueSet Unset = new(
             ImmutableHashSet<IAbstractAnalysisValue>.Empty, ImmutableHashSet<GlobalFlowStateAnalysisValueSet>.Empty, 0, GlobalFlowStateAnalysisValueSetKind.Unset);
-        public static readonly GlobalFlowStateAnalysisValueSet Empty = new GlobalFlowStateAnalysisValueSet(
+        public static readonly GlobalFlowStateAnalysisValueSet Empty = new(
             ImmutableHashSet<IAbstractAnalysisValue>.Empty, ImmutableHashSet<GlobalFlowStateAnalysisValueSet>.Empty, 0, GlobalFlowStateAnalysisValueSetKind.Empty);
-        public static readonly GlobalFlowStateAnalysisValueSet Unknown = new GlobalFlowStateAnalysisValueSet(
+        public static readonly GlobalFlowStateAnalysisValueSet Unknown = new(
             ImmutableHashSet<IAbstractAnalysisValue>.Empty, ImmutableHashSet<GlobalFlowStateAnalysisValueSet>.Empty, 0, GlobalFlowStateAnalysisValueSetKind.Unknown);
 
         private GlobalFlowStateAnalysisValueSet(
@@ -162,12 +162,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             }
         }
 
-        protected override void ComputeHashCodeParts(Action<int> addPart)
+        protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
-            addPart(HashUtilities.Combine(AnalysisValues));
-            addPart(HashUtilities.Combine(Parents));
-            addPart(Height.GetHashCode());
-            addPart(Kind.GetHashCode());
+            hashCode.Add(HashUtilities.Combine(AnalysisValues));
+            hashCode.Add(HashUtilities.Combine(Parents));
+            hashCode.Add(Height.GetHashCode());
+            hashCode.Add(Kind.GetHashCode());
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<GlobalFlowStateAnalysisValueSet> obj)
+        {
+            var other = (GlobalFlowStateAnalysisValueSet)obj;
+            return HashUtilities.Combine(AnalysisValues) == HashUtilities.Combine(other.AnalysisValues)
+                && HashUtilities.Combine(Parents) == HashUtilities.Combine(other.Parents)
+                && Height.GetHashCode() == other.Height.GetHashCode()
+                && Kind.GetHashCode() == other.Kind.GetHashCode();
         }
 
         public override string ToString()

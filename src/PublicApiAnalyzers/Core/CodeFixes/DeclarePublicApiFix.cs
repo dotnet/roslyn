@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = "DeclarePublicApiFix"), Shared]
     public sealed class DeclarePublicApiFix : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIds.DeclarePublicApiRuleId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(DiagnosticIds.DeclarePublicApiRuleId);
 
         public sealed override FixAllProvider GetFixAllProvider()
         {
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var project = context.Document.Project;
-            var publicSurfaceAreaDocument = GetUnshippedDocument(project);
+            var publicSurfaceAreaDocument = PublicApiFixHelpers.GetUnshippedDocument(project);
 
             foreach (Diagnostic diagnostic in context.Diagnostics)
             {
@@ -49,16 +49,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             }
 
             return Task.CompletedTask;
-        }
-
-        internal static TextDocument? GetUnshippedDocument(Project project)
-        {
-            return project.AdditionalDocuments.FirstOrDefault(doc => doc.Name.Equals(DeclarePublicApiAnalyzer.UnshippedFileName, StringComparison.Ordinal));
-        }
-
-        internal static TextDocument? GetShippedDocument(Project project)
-        {
-            return project.AdditionalDocuments.FirstOrDefault(doc => doc.Name.Equals(DeclarePublicApiAnalyzer.ShippedFileName, StringComparison.Ordinal));
         }
 
         private static async Task<Solution> GetFixAsync(TextDocument? publicSurfaceAreaDocument, Project project, string newSymbolName, ImmutableHashSet<string> siblingSymbolNamesToRemove, CancellationToken cancellationToken)
@@ -107,7 +97,9 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 insertInList(lines, name);
             }
 
-            var newText = string.Join(Environment.NewLine, lines) + GetEndOfFileText(sourceText);
+            var endOfLine = PublicApiFixHelpers.GetEndOfLine(sourceText);
+
+            var newText = string.Join(endOfLine, lines) + PublicApiFixHelpers.GetEndOfFileText(sourceText, endOfLine);
             return sourceText?.Replace(new TextSpan(0, sourceText.Length), newText) ?? SourceText.From(newText);
 
             // Insert name at the first suitable position
@@ -115,7 +107,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             {
                 for (int i = 0; i < list.Count; i++)
                 {
-                    if (string.Compare(name, list[i], StringComparison.Ordinal) < 0)
+                    if (IgnoreCaseWhenPossibleComparer.Instance.Compare(name, list[i]) < 0)
                     {
                         list.Insert(i, name);
                         return;
@@ -136,7 +128,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             List<string> lines = GetLinesFromSourceText(sourceText);
             IEnumerable<string> newLines = lines.Where(line => !linesToRemove.Contains(line));
 
-            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(Environment.NewLine, newLines) + GetEndOfFileText(sourceText));
+            var endOfLine = PublicApiFixHelpers.GetEndOfLine(sourceText);
+            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(endOfLine, newLines) + PublicApiFixHelpers.GetEndOfFileText(sourceText, endOfLine));
             return newSourceText;
         }
 
@@ -159,21 +152,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             }
 
             return lines;
-        }
-
-        /// <summary>
-        /// Returns the trailing newline from the end of <paramref name="sourceText"/>, if one exists.
-        /// </summary>
-        /// <param name="sourceText">The source text.</param>
-        /// <returns><see cref="Environment.NewLine"/> if <paramref name="sourceText"/> ends with a trailing newline;
-        /// otherwise, <see cref="string.Empty"/>.</returns>
-        public static string GetEndOfFileText(SourceText? sourceText)
-        {
-            if (sourceText == null || sourceText.Length == 0)
-                return string.Empty;
-
-            var lastLine = sourceText.Lines[^1];
-            return lastLine.Span.IsEmpty ? Environment.NewLine : string.Empty;
         }
 
         internal class AdditionalDocumentChangeAction : CodeAction
@@ -220,7 +198,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     Project project = pair.Key;
                     ImmutableArray<Diagnostic> diagnostics = pair.Value;
 
-                    var publicSurfaceAreaAdditionalDocument = GetUnshippedDocument(project);
+                    var publicSurfaceAreaAdditionalDocument = PublicApiFixHelpers.GetUnshippedDocument(project);
 
                     var sourceText = publicSurfaceAreaAdditionalDocument != null ?
                         await publicSurfaceAreaAdditionalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false) :
@@ -231,7 +209,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                             .Where(d => d.Location.IsInSource)
                             .GroupBy(d => d.Location.SourceTree);
 
-                    var newSymbolNames = new SortedSet<string>();
+                    var newSymbolNames = new SortedSet<string>(IgnoreCaseWhenPossibleComparer.Instance);
                     var symbolNamesToRemoveBuilder = PooledHashSet<string>.GetInstance();
 
                     foreach (IGrouping<SyntaxTree, Diagnostic> grouping in groupedDiagnostics)
@@ -356,6 +334,24 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 }
 
                 return new FixAllAdditionalDocumentChangeAction(title, fixAllContext.Solution, diagnosticsToFix);
+            }
+        }
+
+        private sealed class IgnoreCaseWhenPossibleComparer : IComparer<string>
+        {
+            public static readonly IgnoreCaseWhenPossibleComparer Instance = new();
+
+            private IgnoreCaseWhenPossibleComparer()
+            {
+            }
+
+            public int Compare(string x, string y)
+            {
+                var result = StringComparer.OrdinalIgnoreCase.Compare(x, y);
+                if (result == 0)
+                    result = StringComparer.Ordinal.Compare(x, y);
+
+                return result;
             }
         }
     }

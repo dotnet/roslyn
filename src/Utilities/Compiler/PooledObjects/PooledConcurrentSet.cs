@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections;
@@ -82,9 +82,9 @@ namespace Analyzer.Utilities.PooledObjects
         /// <summary>
         /// Attempts to remove a value from the set.
         /// </summary>
-        /// <param name="value">The value to remove.</param>
+        /// <param name="item">The value to remove.</param>
         /// <returns>true if the value was removed successfully; otherwise false.</returns>
-        public bool Remove(T value) => _dictionary.TryRemove(value, out _);
+        public bool Remove(T item) => _dictionary.TryRemove(item, out _);
 
         /// <summary>
         /// Clears all the elements from the set.
@@ -110,7 +110,7 @@ namespace Analyzer.Utilities.PooledObjects
             return new KeyEnumerator(_dictionary);
         }
 
-        private IEnumerator<T> GetEnumeratorImpl()
+        private IEnumerator<T> GetEnumeratorCore()
         {
             // PERF: Do not use dictionary.Keys here because that creates a snapshot
             // of the collection resulting in a List<T> allocation. Instead, use the
@@ -123,12 +123,12 @@ namespace Analyzer.Utilities.PooledObjects
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
-            return GetEnumeratorImpl();
+            return GetEnumeratorCore();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return GetEnumeratorImpl();
+            return GetEnumeratorCore();
         }
 
         void ICollection<T>.Add(T item)

@@ -1,32 +1,32 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Analyzers
 {
+    using static CodeAnalysisDiagnosticsResources;
+
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class InternalImplementationOnlyAnalyzer : DiagnosticAnalyzer
     {
         private const string InternalImplementationOnlyAttributeName = "InternalImplementationOnlyAttribute";
         private const string InternalImplementationOnlyAttributeFullName = "System.Runtime.CompilerServices.InternalImplementationOnlyAttribute";
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableMessageFormat = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
-        public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
-                                                        DiagnosticIds.InternalImplementationOnlyRuleId,
-                                                        s_localizableTitle,
-                                                        s_localizableMessageFormat,
-                                                        DiagnosticCategory.MicrosoftCodeAnalysisCompatibility,
-                                                        DiagnosticSeverity.Error,
-                                                        isEnabledByDefault: true,
-                                                        description: s_localizableDescription);
+        public static readonly DiagnosticDescriptor Rule = new(
+            DiagnosticIds.InternalImplementationOnlyRuleId,
+            CreateLocalizableResourceString(nameof(InternalImplementationOnlyTitle)),
+            CreateLocalizableResourceString(nameof(InternalImplementationOnlyMessage)),
+            DiagnosticCategory.MicrosoftCodeAnalysisCompatibility,
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true,
+            description: CreateLocalizableResourceString(nameof(InternalImplementationOnlyDescription)));
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Analyzers
                 {
                     if (!iface.ContainingAssembly.GivesAccessTo(namedTypeSymbol.ContainingAssembly))
                     {
-                        context.ReportDiagnostic(Diagnostic.Create(Rule, namedTypeSymbol.Locations.First(), namedTypeSymbol.Name, iface.Name));
+                        context.ReportDiagnostic(namedTypeSymbol.CreateDiagnostic(Rule, namedTypeSymbol.Name, iface.Name));
                         break;
                     }
                 }

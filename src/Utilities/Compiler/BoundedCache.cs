@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#pragma warning disable CA1000 // Do not declare static members on generic types
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Analyzer.Utilities
 {
@@ -18,8 +16,7 @@ namespace Analyzer.Utilities
             return GetOrCreateValue(key, CreateDefaultValue);
 
             // Local functions.
-            static TValue CreateDefaultValue(TKey _)
-                => new TValue();
+            static TValue CreateDefaultValue(TKey _) => new();
         }
     }
 }
