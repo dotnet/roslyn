@@ -80,7 +80,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     BackgroundAnalysisScope.None => isOpenDocument && analyzer.IsCompilerAnalyzer(),
 
                     // All analyzers, including compiler analyzer, are enabled for all open documents.
-                    _ => isOpenDocument,
+                    BackgroundAnalysisScope.OpenFilesAndProjects => isOpenDocument,
+
+                    // All analyzers, including compiler analyzer, are enabled for all documents.
+                    BackgroundAnalysisScope.FullSolution => true,
+
+                    _ => throw ExceptionUtilities.UnexpectedValue(analysisScope)
                 };
 
                 return !analyzerEnabled;
