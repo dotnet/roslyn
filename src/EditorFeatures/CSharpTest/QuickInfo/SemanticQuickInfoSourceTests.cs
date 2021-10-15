@@ -1844,6 +1844,21 @@ private void M()
         public async Task EnumNonDefaultUnderlyingType_OnMemberAccessOnType()
         {
             await TestInClassAsync(@"
+enum EN : byte { A, B }
+
+private void M()
+{
+    var ea = E$$N.A;
+}
+",
+                MainDescription("enum C.EN : byte"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")]
+        public async Task EnumNonDefaultUnderlyingType_OnMemberAccessOnType_OnDot()
+        {
+            await TestInClassAsync(@"
 enum E : byte { A, B }
 
 private void M()
@@ -1851,7 +1866,7 @@ private void M()
     var ea = E$$.A;
 }
 ",
-                MainDescription("enum C.E : byte"));
+                MainDescription("E.A = 0"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -7414,6 +7429,72 @@ record Student(int Id) : $$Person(null, null);
 public class Person { public Person(int id) { } }
 public class Student : Person { public Student() : $$base(0) { } }
 ", MainDescription("Person.Person(int id)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(57031, "https://github.com/dotnet/roslyn/issues/57031")]
+        public async Task QuickInfo_DotInInvocation()
+        {
+            await TestAsync(@"
+public class C
+{
+    public void M(int a) { }
+    public void M(int a, params int[] b) { }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        c$$.M(1, 2);
+    }
+}",
+                MainDescription($"void C.M(int a, params int[] b) (+ 1 {FeaturesResources.overload})"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(57031, "https://github.com/dotnet/roslyn/issues/57031")]
+        public async Task QuickInfo_BeforeMemberNameInInvocation()
+        {
+            await TestAsync(@"
+public class C
+{
+    public void M(int a) { }
+    public void M(int a, params int[] b) { }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        c.$$M(1, 2);
+    }
+}",
+                MainDescription($"void C.M(int a, params int[] b) (+ 1 {FeaturesResources.overload})"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(57031, "https://github.com/dotnet/roslyn/issues/57031")]
+        public async Task QuickInfo_AfterMemberNameInInvocation()
+        {
+            await TestAsync(@"
+public class C
+{
+    public void M(int a) { }
+    public void M(int a, params int[] b) { }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        c.M$$(1, 2);
+    }
+}",
+                MainDescription($"void C.M(int a, params int[] b) (+ 1 {FeaturesResources.overload})"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
