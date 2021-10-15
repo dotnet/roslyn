@@ -6537,11 +6537,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_NoSuchMemberOrExtensionNeedUsing, name, boundLeft.Type, plainName, "System");
                 }
+                else if (ShouldBeUsingAwaitForeach(boundLeft.Type, plainName))
+                {
+                    Error(diagnostics, ErrorCode.ERR_NoAwaitOnAsyncEnumerable, name, boundLeft.Type, plainName);
+                }
                 else
                 {
                     Error(diagnostics, ErrorCode.ERR_NoSuchMemberOrExtension, name, boundLeft.Type, plainName);
                 }
             }
+        }
+
+        private bool ShouldBeUsingAwaitForeach(TypeSymbol receiver, string methodName)
+        {
+            // As per issue #53426: "Improve error message for awaiting an IAsyncEnumerable value".
+            return methodName == WellKnownMemberNames.GetAwaiter && receiver.IsIAsyncEnumerableType(Compilation);
+
         }
 
         private bool WouldUsingSystemFindExtension(TypeSymbol receiver, string methodName)

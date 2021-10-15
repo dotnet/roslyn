@@ -6875,4 +6875,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_CompileTimeCheckedOverflow_Title" xml:space="preserve">
     <value>The operation may overflow at runtime (use 'unchecked' syntax to override)</value>
   </data>
+  <data name="ERR_NoAwaitOnAsyncEnumerable" xml:space="preserve">
+    <value>If you intend to iterate over an IAsyncEnumerable, then put the await statement before the loop statement. i.e. await foreach.</value>
+  </data>
 </root>
