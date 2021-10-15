@@ -69,7 +69,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 {
                     try
                     {
+                        // Fetch the IDecompiledSourceService from the temporary document, not the original one -- it
+                        // may be a different language because we don't have support for decompiling into VB.NET, so we just
+                        // use C#.
                         var decompiledSourceService = temporaryDocument.GetLanguageService<IDecompiledSourceService>();
+
                         if (decompiledSourceService != null)
                         {
                             temporaryDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, compilation, symbol, cancellationToken).ConfigureAwait(false);

@@ -78,6 +78,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 value: value);
         }
 
+        public void SetEnableDecompilationOption(bool value)
+        {
+            SetOption("NavigateToDecompiledSources", "FeatureOnOffOptions", value);
+        }
+
         public void SetArgumentCompletionSnippetsOption(bool value)
         {
             SetPerLanguageOption(
