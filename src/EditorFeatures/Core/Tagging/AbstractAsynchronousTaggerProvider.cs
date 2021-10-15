@@ -210,12 +210,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         protected virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)
         {
-#pragma warning disable 0618
             // Keep legacy shape for TypeScript.  Once they adapt to the obsoletes and move to overriding this method
-            // we can remove the method below and this code.
+            // we can remove once TypeScript finishes https://github.com/dotnet/roslyn/issues/57180.
             context.CancellationToken = cancellationToken;
             return ProduceTagsAsync(context, spanToTag, caretPosition);
-#pragma warning restore
         }
 
         /// <summary>
