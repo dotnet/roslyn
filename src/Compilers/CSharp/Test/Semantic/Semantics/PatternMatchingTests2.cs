@@ -3566,48 +3566,65 @@ public class Wrap
             CompileAndVerify(source, expectedOutput: "128");
         }
 
-        [Fact, WorkItem(57148, "https://github.com/dotnet/roslyn/issues/57148")]
-        public void ObviousTestAfterTypeTest()
+        [Theory, WorkItem(57148, "https://github.com/dotnet/roslyn/issues/57148")]
+        [InlineData("(short)0", "True")]
+        [InlineData("short.MinValue", "True")]
+        [InlineData("short.MaxValue", "True")]
+        [InlineData("-1", "False")]
+        [InlineData("(object)null", "False")]
+        [InlineData("string.Empty", "False")]
+        public void ObviousTestAfterTypeTest(string value, string expected)
         {
-            var source = @"
+            var source = $@"
+System.Console.Write(Extenders.F({value}));
+
 static class Extenders
-{
+{{
     public const short MaxValue = 0x7FFF;
 
     public static bool F<T>(T value)
         => value switch
-        {
+        {{
             <= MaxValue => true,
             _ => false
-        };
-}";
-            CreateCompilation(source).VerifyDiagnostics(
-                );
+        }};
+}}";
+            CompileAndVerify(source, expectedOutput: expected).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(57148, "https://github.com/dotnet/roslyn/issues/57148")]
-        public void ObviousTestAfterTypeTest2()
+        [Theory, WorkItem(57148, "https://github.com/dotnet/roslyn/issues/57148")]
+        [InlineData("(int)0", "1")]
+        [InlineData("(int)255", "1")]
+        [InlineData("int.MinValue", "1")]
+        [InlineData("int.MaxValue", "4")]
+        [InlineData("(short)0", "2")]
+        [InlineData("(short)255", "2")]
+        [InlineData("short.MinValue", "2")]
+        [InlineData("short.MaxValue", "2")]
+        [InlineData("(uint)0", "8")]
+        public void ObviousTestAfterTypeTest2(string value, string expected)
         {
-            var source = @"
-using System;
-static class Extenders
-{
-    static int DetectElementSize<T>(this Span<T> values) where T : struct
-    {
-        if (values.Length == 0) return 0;
+            var source = $@"
+System.Console.Write(Extenders.F({value}));
 
-        int elementSize = values[0] switch
-        {
+public static class Extenders
+{{
+    public static int F<T>(this T value) where T : struct
+    {{
+        int elementSize = value switch
+        {{
             <= 255 => 1,
             <= short.MaxValue => 2,
             <= int.MaxValue => 4,
             _ => 8
-        };
+        }};
 
         return elementSize;
-    }
-}";
-            CreateCompilationWithSpan(source).VerifyDiagnostics();
+    }}
+}}";
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expected);
         }
 
         [Theory, WorkItem(57148, "https://github.com/dotnet/roslyn/issues/57148")]
