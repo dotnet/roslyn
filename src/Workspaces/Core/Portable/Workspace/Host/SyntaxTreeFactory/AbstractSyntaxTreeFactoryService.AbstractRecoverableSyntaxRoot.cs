@@ -20,14 +20,14 @@ namespace Microsoft.CodeAnalysis.Host
             public readonly string FilePath;
             public readonly ParseOptions Options;
             public readonly ValueSource<TextAndVersion> TextSource;
-            public readonly Encoding Encoding;
+            public readonly Encoding? Encoding;
             public readonly int Length;
 
             public SyntaxTreeInfo(
-                string filePath,
+                string? filePath,
                 ParseOptions options,
                 ValueSource<TextAndVersion> textSource,
-                Encoding encoding,
+                Encoding? encoding,
                 int length)
             {
                 FilePath = filePath ?? string.Empty;
