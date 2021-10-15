@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         public object State { get; set; }
 
+        [Obsolete("This will be removed.  Override ProduceTags that takes a CancellationToken and use that", error: false)]
+        public CancellationToken CancellationToken { get; internal set; }
+
         // For testing only.
         internal TaggerContext(
             Document document, ITextSnapshot snapshot,

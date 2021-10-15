@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 #if DEBUG
 using System.Diagnostics;
@@ -208,6 +209,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         }
 
         protected virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)
+        {
+#pragma warning disable 0618
+            // Keep legacy shape for TypeScript.  Once they adapt to the obsoletes and move to overriding this method
+            // we can remove the method below and this code.
+            context.CancellationToken = cancellationToken;
+            return ProduceTagsAsync(context, spanToTag, caretPosition);
+#pragma warning restore
+        }
+
+        [Obsolete("Legacy API for TypeScript.  Override ProduceTagsAsync that takes CancellationToken.", error: false)]
+        protected virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition)
             => Task.CompletedTask;
 
         internal TestAccessor GetTestAccessor()
