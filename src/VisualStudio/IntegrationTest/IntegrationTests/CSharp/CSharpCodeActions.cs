@@ -485,6 +485,42 @@ public class P2 { }");
             VisualStudio.Editor.Verify.TextContains("using System.IO;");
         }
 
+        [WorkItem(57157, "https://github.com/dotnet/roslyn/issues/57157")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public void AddFuzzyUsingAfterGenerateVariable()
+        {
+            SetUpEditor(@"
+namespace X
+{
+    class Formatter
+    {
+
+    }
+}
+
+class Program
+{
+    void Main()
+    {
+        $$formatter = new GooFormatter();
+    }
+}
+
+class GooFormatter
+{
+
+}");
+
+            VisualStudio.Editor.InvokeCodeActionList();
+            var expectedItems = new[]
+            {
+                "Generate variable 'formatter'",
+                "Formatter - using X;",
+            };
+
+            VisualStudio.Editor.Verify.CodeActions(expectedItems, ensureExpectedItemsAreOrdered: true);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GFUFuzzyMatchAfterRenameTracking()
         {

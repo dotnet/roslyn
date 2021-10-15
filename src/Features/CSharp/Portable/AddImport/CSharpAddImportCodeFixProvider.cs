@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddImportNormalPriority), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImportHighPriority)]
-    internal class CSharpAddImportNormalPriorityCodeFixProvider : AbstractAddImportHighPriorityCodeFixProvider
+    internal class CSharpAddImportNormalPriorityCodeFixProvider : AbstractAddImportNormalPriorityCodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds => AddImportDiagnosticIds.FixableDiagnosticIds;
 

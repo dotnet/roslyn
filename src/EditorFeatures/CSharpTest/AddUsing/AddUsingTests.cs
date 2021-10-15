@@ -5,9 +5,12 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.AddImport;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Tags;
@@ -20,12 +23,48 @@ using static Roslyn.Test.Utilities.TestMetadata;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-    public partial class AddUsingTests : AbstractAddUsingHighPriorityTests
+    public partial class AddUsingNormalPriorityTests : AbstractAddUsingTests
+    {
+        public AddUsingNormalPriorityTests(ITestOutputHelper logger)
+            : base(logger)
+        {
+        }
+
+        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (null, new CSharpAddImportNormalPriorityCodeFixProvider());
+
+        [Fact]
+        public async Task TestFuzzyMatchGlyph()
+        {
+            await TestSmartTagGlyphTagsAsync(
+    @"namespace VS
+{
+    interface Other
+    {
+    }
+}
+
+class C
+{
+    void M()
+    {
+        [|Otter|] b;
+    }
+}
+", WellKnownTagArrays.Namespace);
+        }
+    }
+
+    [Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+    public partial class AddUsingTests : AbstractAddUsingTests
     {
         public AddUsingTests(ITestOutputHelper logger)
             : base(logger)
         {
         }
+
+        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (null, new CSharpAddImportHighPriorityCodeFixProvider());
 
         [Theory]
         [CombinatorialData]
@@ -5063,27 +5102,6 @@ class C
     }
 }
 ", ImmutableArray<string>.Empty);
-        }
-
-        [Fact]
-        public async Task TestFuzzyMatchGlyph()
-        {
-            await TestSmartTagGlyphTagsAsync(
-@"namespace VS
-{
-    interface Other
-    {
-    }
-}
-
-class C
-{
-    void M()
-    {
-        [|Otter|] b;
-    }
-}
-", WellKnownTagArrays.Namespace);
         }
 
         [Theory]

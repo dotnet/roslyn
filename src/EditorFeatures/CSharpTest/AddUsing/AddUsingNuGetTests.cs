@@ -28,8 +28,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
     using FixProviderData = Tuple<IPackageInstallerService, ISymbolSearchService>;
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-    public class AddUsingNuGetTests : AbstractAddUsingHighPriorityTests
+    public class AddUsingNuGetTests : AbstractAddUsingTests
     {
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (null, new CSharpAddImportHighPriorityCodeFixProvider());
+
         private static readonly ImmutableArray<PackageSource> NugetPackageSources =
             ImmutableArray.Create(new PackageSource(PackageSourceHelper.NugetOrgSourceName, "http://nuget.org/"));
 

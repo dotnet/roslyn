@@ -3,6 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.AddImport;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -11,8 +14,11 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-    public partial class AddUsingTests_Razor : AbstractAddUsingHighPriorityTests
+    public partial class AddUsingTests_Razor : AbstractAddUsingTests
     {
+        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (null, new CSharpAddImportHighPriorityCodeFixProvider());
+
         [Theory, CombinatorialData]
         public async Task TestAddIntoHiddenRegionWithModernSpanMapper(TestHost host)
         {
