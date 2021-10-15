@@ -1288,8 +1288,8 @@
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">
-        <source>new-lines in interpolations</source>
-        <target state="new">new-lines in interpolations</target>
+        <source>newlines in interpolations</source>
+        <target state="new">newlines in interpolations</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
