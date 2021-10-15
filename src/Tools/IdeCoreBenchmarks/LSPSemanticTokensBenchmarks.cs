@@ -81,6 +81,7 @@ namespace IdeCoreBenchmarks
             Console.WriteLine("Completed setup.");
         }
 
+        /*
         [Benchmark]
         public async Task RunLSPSemanticTokensBenchmarkAsync_10()
         {
@@ -144,7 +145,7 @@ namespace IdeCoreBenchmarks
             {
                 Console.WriteLine(ex);
             }
-        }
+        }*/
 
         [Benchmark]
         public async Task RunLSPSemanticTokensBenchmark_RazorImpl_10()
