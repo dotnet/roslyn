@@ -309,6 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             rewrittenType.GetNullableUnderlyingType());
 
                         var outerConversion = new Conversion(ConversionKind.ImplicitNullable, Conversion.IdentityUnderlying);
+                        outerConversion.MarkUnderlyingConversionsChecked();
                         return MakeConversionNode(
                             oldNodeOpt,
                             syntax,
@@ -469,13 +470,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Set acceptFailingConversion if you want to see default(rewrittenType) in such cases.
         /// The error will be suppressed only for conversions from <see cref="decimal"/> or <see cref="DateTime"/>.
         /// </remarks>
-        private BoundExpression MakeConversionNode(BoundExpression rewrittenOperand, TypeSymbol rewrittenType, bool @checked, bool acceptFailingConversion = false)
+        private BoundExpression MakeConversionNode(BoundExpression rewrittenOperand, TypeSymbol rewrittenType, bool @checked, bool acceptFailingConversion = false, bool markAsChecked = false)
         {
             Conversion conversion = MakeConversion(rewrittenOperand, rewrittenType, _compilation, _diagnostics, acceptFailingConversion);
             if (!conversion.IsValid)
             {
                 return _factory.NullOrDefault(rewrittenType);
             }
+
+#if DEBUG
+            if (markAsChecked)
+            {
+                conversion.MarkUnderlyingConversionsCheckedRecursive();
+            }
+#endif
 
             return MakeConversionNode(rewrittenOperand.Syntax, rewrittenOperand, conversion, rewrittenType, @checked);
         }
@@ -510,37 +518,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversion;
         }
 
-        private static BoundExpression MakeConversionForIOperation(
-            BoundExpression operand,
-            TypeSymbol type,
-            SyntaxNode syntax,
-            CSharpCompilation compilation,
-            BindingDiagnosticBag diagnostics,
-            bool @checked,
-            bool acceptFailingConversion = false)
-        {
-            Conversion conversion = MakeConversion(operand, type, compilation, diagnostics, acceptFailingConversion);
-
-            if (conversion.IsIdentity)
-            {
-                return operand;
-            }
-
-            // TODO: Consider doing constant folding for default parameter value conversion.
-            //       https://github.com/dotnet/roslyn/issues/19591
-            return new BoundConversion(
-                            syntax,
-                            operand,
-                            conversion,
-                            @checked: @checked,
-                            explicitCastInCode: false,
-                            conversionGroupOpt: null,
-                            constantValueOpt: null,
-                            type: type,
-                            hasErrors: !conversion.IsValid)
-            { WasCompilerGenerated = true };
-        }
-
         /// <summary>
         /// Helper method to generate a lowered conversion from the given <paramref name="rewrittenOperand"/> to the given <paramref name="rewrittenType"/>.
         /// </summary>
@@ -568,6 +545,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return _factory.NullOrDefault(rewrittenType);
             }
+
+            conversion.MarkUnderlyingConversionsCheckedRecursive(); // PROTOTYPE: This is a temporary stub
 
             return MakeConversionNode(rewrittenOperand.Syntax, rewrittenOperand, conversion, rewrittenType, @checked: false);
         }
@@ -608,6 +587,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(conversion.Method is { });
                 Debug.Assert(conversion.BestUserDefinedConversionAnalysis is { });
+                conversion.AssertUnderlyingConversionsCheckedRecursive();
+
                 if (!TypeSymbol.Equals(rewrittenOperand.Type, conversion.BestUserDefinedConversionAnalysis.FromType, TypeCompareKind.ConsiderEverything2))
                 {
                     rewrittenOperand = MakeConversionNode(
@@ -623,7 +604,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenOperand = MakeConversionNode(
                         rewrittenOperand,
                         conversion.BestUserDefinedConversionAnalysis.FromType,
-                        @checked);
+                        @checked,
+                        markAsChecked: true);
                 }
 
                 TypeSymbol userDefinedConversionRewrittenType = conversion.Method.ReturnType;
@@ -650,7 +632,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     userDefined = MakeConversionNode(
                         userDefined,
                         conversion.BestUserDefinedConversionAnalysis.ToType,
-                        @checked);
+                        @checked,
+                        markAsChecked: true);
                 }
 
                 if (!TypeSymbol.Equals(userDefined.Type, rewrittenType, TypeCompareKind.ConsiderEverything2))
@@ -696,6 +679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundAssignmentOperator assignmentToTemp;
             var savedTuple = _factory.StoreToTemp(rewrittenOperand, out assignmentToTemp);
             var elementConversions = conversion.UnderlyingConversions;
+            conversion.AssertUnderlyingConversionsChecked();
 
             for (int i = 0; i < numElements; i++)
             {
@@ -744,6 +728,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Detect the unlowered nullable conversion from a tuple type T1 to Nullable<T2> for a tuple type T2.
                 case BoundConversion { Conversion: { Kind: ConversionKind.ImplicitNullable, UnderlyingConversions: var underlying }, Operand: var convertedArgument } conversion
                         when underlying.Length == 1 && underlying[0].Kind == ConversionKind.ImplicitTuple && !convertedArgument.Type!.IsNullableType():
+
+                    conversion.Conversion.AssertUnderlyingConversionsChecked();
                     return new BoundConversion(
                         syntax: expression.Syntax,
                         operand: convertedArgument,
@@ -790,6 +776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // SPEC: evaluated as the underlying conversion from S to T followed
                 // SPEC: by a wrapping from T to T?.
 
+                conversion.AssertUnderlyingConversionsChecked();
                 BoundExpression rewrittenConversion = MakeConversionNode(syntax, rewrittenOperand, conversion.UnderlyingConversions[0], rewrittenType.GetNullableUnderlyingType(), @checked);
                 MethodSymbol ctor = UnsafeGetNullableMethod(syntax, rewrittenType, SpecialMember.System_Nullable_T__ctor);
                 return new BoundObjectCreationExpression(syntax, ctor, rewrittenConversion);
@@ -812,6 +799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     value = BoundCall.Synthesized(syntax, rewrittenOperand, get_Value);
                 }
 
+                conversion.AssertUnderlyingConversionsChecked();
                 return MakeConversionNode(syntax, value, conversion.UnderlyingConversions[0], rewrittenType, @checked);
             }
         }
@@ -902,6 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression condition = MakeNullableHasValue(syntax, boundTemp);
+            conversion.AssertUnderlyingConversionsChecked();
             BoundExpression consequence = new BoundObjectCreationExpression(
                 syntax,
                 UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor),
@@ -980,6 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? nonNullValue = NullableAlwaysHasValue(operand);
             if (nonNullValue != null)
             {
+                conversion.AssertUnderlyingConversionsChecked();
                 return new BoundObjectCreationExpression(
                     syntax,
                     UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor),
@@ -1224,7 +1214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (source.IsNullableType())
             {
-                rewrittenOperand = MakeConversionNode(rewrittenOperand, source.StrippedType(), @checked);
+                rewrittenOperand = MakeConversionNode(rewrittenOperand, source.StrippedType(), @checked, markAsChecked: true);
             }
 
             rewrittenOperand = MakeConversionNode(rewrittenOperand, method.GetParameterType(0), @checked);
@@ -1244,7 +1234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenArguments: ImmutableArray.Create(rewrittenOperand),
                     type: returnType);
 
-            return MakeConversionNode(rewrittenCall, rewrittenType, @checked);
+            return MakeConversionNode(rewrittenCall, rewrittenType, @checked, markAsChecked: true);
         }
 
         public static SpecialMember GetIntPtrConversionMethod(TypeSymbol source, TypeSymbol target)
@@ -1471,6 +1461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.ImplicitUserDefined:
                     {
+                        conversion.AssertUnderlyingConversionsChecked();
                         var meth = conversion.Method;
                         Debug.Assert(meth is { });
                         Conversion fromConversion = TryMakeConversion(syntax, conversion.UserDefinedFromConversion, fromType, meth.Parameters[0].Type);
@@ -1494,7 +1485,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // TODO: how do we distinguish from normal and lifted conversions here?
                             var analysis = UserDefinedConversionAnalysis.Normal(conversion.ConstrainedToTypeOpt, meth, fromConversion, toConversion, fromType, toType);
                             var result = UserDefinedConversionResult.Valid(ImmutableArray.Create<UserDefinedConversionAnalysis>(analysis), 0);
-                            return new Conversion(result, conversion.IsImplicit);
+                            var resultConversion = new Conversion(result, conversion.IsImplicit);
+                            resultConversion.MarkUnderlyingConversionsChecked();
+                            return resultConversion;
                         }
                     }
                 case ConversionKind.IntPtr:

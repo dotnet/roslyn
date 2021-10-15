@@ -2558,32 +2558,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 var underlyingExpr = BindCastCore(node, operand, underlyingTargetTypeWithAnnotations, wasCompilerGenerated: false, diagnostics: bag);
-                if (underlyingExpr.HasErrors || bag.HasAnyErrors())
-                {
-                    Error(diagnostics, ErrorCode.ERR_NoExplicitConv, node, operand.Type, targetTypeWithAnnotations.Type);
-
-                    return new BoundConversion(
-                        node,
-                        operand,
-                        Conversion.NoConversion,
-                        @checked: CheckOverflowAtRuntime,
-                        explicitCastInCode: true,
-                        conversionGroupOpt: new ConversionGroup(Conversion.NoConversion, explicitType: targetTypeWithAnnotations),
-                        constantValueOpt: ConstantValue.NotAvailable,
-                        type: targetTypeWithAnnotations.Type,
-                        hasErrors: true);
-                }
 
                 // It's possible for the S -> T conversion to produce a 'better' constant value.  If this 
                 // constant value is produced place it in the tree so that it gets emitted.  This maintains 
                 // parity with the native compiler which also evaluated the conversion at compile time. 
-                if (underlyingExpr.ConstantValue != null)
+                if (underlyingExpr.ConstantValue != null &&
+                    !underlyingExpr.HasErrors && !bag.HasAnyErrors())
                 {
                     underlyingExpr.WasCompilerGenerated = true;
+                    diagnostics.AddRange(bag.DiagnosticBag);
                     return BindCastCore(node, underlyingExpr, targetTypeWithAnnotations, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
                 }
 
-                return BindCastCore(node, operand, targetTypeWithAnnotations, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
+                var bag2 = BindingDiagnosticBag.GetInstance(diagnostics);
+
+                var result = BindCastCore(node, operand, targetTypeWithAnnotations, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: bag2);
+
+                if (bag2.AccumulatesDiagnostics && bag.HasAnyErrors() && !bag2.HasAnyErrors())
+                {
+                    diagnostics.AddRange(bag.DiagnosticBag);
+                }
+
+                diagnostics.AddRange(bag2);
+                bag2.Free();
+                return result;
             }
             finally
             {

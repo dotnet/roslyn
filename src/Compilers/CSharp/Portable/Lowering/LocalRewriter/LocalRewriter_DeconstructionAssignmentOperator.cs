@@ -127,7 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<Conversion> underlyingConversions = conversion.UnderlyingConversions;
             Debug.Assert(!underlyingConversions.IsDefault);
-            Debug.Assert(leftTargets.Count == rightParts.Length && leftTargets.Count == conversion.UnderlyingConversions.Length);
+            conversion.AssertUnderlyingConversionsChecked();
+            Debug.Assert(leftTargets.Count == rightParts.Length && leftTargets.Count == underlyingConversions.Length);
 
             var builder = isUsed ? ArrayBuilder<BoundExpression>.GetInstance(leftTargets.Count) : null;
             for (int i = 0; i < leftTargets.Count; i++)

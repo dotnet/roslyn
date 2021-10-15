@@ -695,6 +695,20 @@ class C
         i = (int?)float.NegativeInfinity;
         i = (int?)float.PositiveInfinity;
 
+        // double checks
+        _ = (int)3.5d;
+        _ = (int)double.MaxValue;
+        _ = (int)double.NaN;
+        _ = (int)double.NegativeInfinity;
+        _ = (int)double.PositiveInfinity;
+
+        // float checks
+        _ = (int)3.5d;
+        _ = (int)float.MaxValue;
+        _ = (int)float.NaN;
+        _ = (int)float.NegativeInfinity;
+        _ = (int)float.PositiveInfinity;
+
         Use(i);
 
         unchecked {
@@ -711,37 +725,80 @@ class C
             i = (int?)float.NaN;
             i = (int?)float.NegativeInfinity;
             i = (int?)float.PositiveInfinity;
+
+            // double checks
+            _ = (int)3.5d;
+            _ = (int)double.MaxValue;
+            _ = (int)double.NaN;
+            _ = (int)double.NegativeInfinity;
+            _ = (int)double.PositiveInfinity;
+
+            // float checks
+            _ = (int)3.5d;
+            _ = (int)float.MaxValue;
+            _ = (int)float.NaN;
+            _ = (int)float.NegativeInfinity;
+            _ = (int)float.PositiveInfinity;
         }
     }
 }
 ";
 
             var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics(
-                // (15,13): error CS0030: Cannot convert type 'double' to 'int?'
-                //         i = (int?)double.MaxValue;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int?)double.MaxValue").WithArguments("double", "int?").WithLocation(15, 13),
-                // (16,13): error CS0030: Cannot convert type 'double' to 'int?'
-                //         i = (int?)double.NaN;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int?)double.NaN").WithArguments("double", "int?").WithLocation(16, 13),
-                // (17,13): error CS0030: Cannot convert type 'double' to 'int?'
-                //         i = (int?)double.NegativeInfinity;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int?)double.NegativeInfinity").WithArguments("double", "int?").WithLocation(17, 13),
-                // (18,13): error CS0030: Cannot convert type 'double' to 'int?'
-                //         i = (int?)double.PositiveInfinity;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int?)double.PositiveInfinity").WithArguments("double", "int?").WithLocation(18, 13),
-                // (22,13): error CS0030: Cannot convert type 'float' to 'int?'
-                //         i = (int?)float.MaxValue;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int?)float.MaxValue").WithArguments("float", "int?").WithLocation(22, 13),
-                // (23,13): error CS0030: Cannot convert type 'float' to 'int?'
-                //         i = (int?)float.NaN;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int?)float.NaN").WithArguments("float", "int?").WithLocation(23, 13),
-                // (24,13): error CS0030: Cannot convert type 'float' to 'int?'
-                //         i = (int?)float.NegativeInfinity;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int?)float.NegativeInfinity").WithArguments("float", "int?").WithLocation(24, 13),
-                // (25,13): error CS0030: Cannot convert type 'float' to 'int?'
-                //         i = (int?)float.PositiveInfinity;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int?)float.PositiveInfinity").WithArguments("float", "int?").WithLocation(25, 13));
+
+            using (new EnsureEnglishUICulture())
+            {
+                compilation.VerifyDiagnostics(
+                    // (15,13): error CS0221: Constant value '1.7976931348623157E+308' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                    //         i = (int?)double.MaxValue;
+                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)double.MaxValue").WithArguments(double.MaxValue.ToString(), "int").WithLocation(15, 13),
+                    // (16,13): error CS0221: Constant value 'NaN' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                    //         i = (int?)double.NaN;
+                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)double.NaN").WithArguments(double.NaN.ToString(), "int").WithLocation(16, 13),
+                    // (17,13): error CS0221: Constant value '-∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                    //         i = (int?)double.NegativeInfinity;
+                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)double.NegativeInfinity").WithArguments(double.NegativeInfinity.ToString(), "int").WithLocation(17, 13),
+                    // (18,13): error CS0221: Constant value '∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                    //         i = (int?)double.PositiveInfinity;
+                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)double.PositiveInfinity").WithArguments(double.PositiveInfinity.ToString(), "int").WithLocation(18, 13),
+                    // (22,13): error CS0221: Constant value '3.4028235E+38' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                    //         i = (int?)float.MaxValue;
+                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)float.MaxValue").WithArguments(float.MaxValue.ToString(), "int").WithLocation(22, 13),
+                    // (23,13): error CS0221: Constant value 'NaN' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                    //         i = (int?)float.NaN;
+                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)float.NaN").WithArguments(float.NaN.ToString(), "int").WithLocation(23, 13),
+                    // (24,13): error CS0221: Constant value '-∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                    //         i = (int?)float.NegativeInfinity;
+                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)float.NegativeInfinity").WithArguments(float.NegativeInfinity.ToString(), "int").WithLocation(24, 13),
+                    // (25,13): error CS0221: Constant value '∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                    //         i = (int?)float.PositiveInfinity;
+                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)float.PositiveInfinity").WithArguments(float.PositiveInfinity.ToString(), "int").WithLocation(25, 13),
+                    // (29,13): error CS0221: Constant value '1.7976931348623157E+308' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                    //         _ = (int)double.MaxValue;
+                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)double.MaxValue").WithArguments(double.MaxValue.ToString(), "int").WithLocation(29, 13),
+                    // (30,13): error CS0221: Constant value 'NaN' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                    //         _ = (int)double.NaN;
+                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)double.NaN").WithArguments(double.NaN.ToString(), "int").WithLocation(30, 13),
+                    // (31,13): error CS0221: Constant value '-∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                    //         _ = (int)double.NegativeInfinity;
+                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)double.NegativeInfinity").WithArguments(double.NegativeInfinity.ToString(), "int").WithLocation(31, 13),
+                    // (32,13): error CS0221: Constant value '∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                    //         _ = (int)double.PositiveInfinity;
+                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)double.PositiveInfinity").WithArguments(double.PositiveInfinity.ToString(), "int").WithLocation(32, 13),
+                    // (36,13): error CS0221: Constant value '3.4028235E+38' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                    //         _ = (int)float.MaxValue;
+                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)float.MaxValue").WithArguments(float.MaxValue.ToString(), "int").WithLocation(36, 13),
+                    // (37,13): error CS0221: Constant value 'NaN' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                    //         _ = (int)float.NaN;
+                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)float.NaN").WithArguments(float.NaN.ToString(), "int").WithLocation(37, 13),
+                    // (38,13): error CS0221: Constant value '-∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                    //         _ = (int)float.NegativeInfinity;
+                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)float.NegativeInfinity").WithArguments(float.NegativeInfinity.ToString(), "int").WithLocation(38, 13),
+                    // (39,13): error CS0221: Constant value '∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                    //         _ = (int)float.PositiveInfinity;
+                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)float.PositiveInfinity").WithArguments(float.PositiveInfinity.ToString(), "int").WithLocation(39, 13)
+                    );
+            }
 
             var syntaxTree = compilation.SyntaxTrees.First();
             var target = syntaxTree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().ToList()[2];

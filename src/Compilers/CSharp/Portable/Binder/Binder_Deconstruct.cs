@@ -326,6 +326,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             conversion = new Conversion(ConversionKind.Deconstruction, deconstructMethod, nestedConversions.ToImmutableAndFree());
 
+            // PROTOTYPE: A temporary stub to revisit
+            conversion.MarkUnderlyingConversionsCheckedRecursive();
+
             return !hasErrors;
         }
 

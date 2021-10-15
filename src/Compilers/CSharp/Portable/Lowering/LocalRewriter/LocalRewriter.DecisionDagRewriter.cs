@@ -222,6 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             default:
                                 if (!conversion.UnderlyingConversions.IsDefault)
                                 {
+                                    conversion.AssertUnderlyingConversionsChecked();
                                     foreach (var underlying in conversion.UnderlyingConversions)
                                     {
                                         visitConversion(underlying);
