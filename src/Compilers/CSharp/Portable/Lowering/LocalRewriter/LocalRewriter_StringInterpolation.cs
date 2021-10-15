@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!result.HasAnyErrors)
             {
                 result = VisitExpression(result); // lower the arguments AND handle expanded form, argument conversions, etc.
-                result = MakeImplicitConversion(result, conversion.Type);
+                result = MakeImplicitConversionForInterpolatedString(result, conversion.Type);
             }
 
             return result;
@@ -41,13 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Helper method to generate a lowered conversion from the given <paramref name="rewrittenOperand"/> to the given <paramref name="rewrittenType"/>.
         /// </summary>
-        /// <remarks>
-        /// If we're converting a default parameter value to the parameter type, then the conversion can actually fail
-        /// (e.g. if the default value was specified by an attribute and was, therefore, not checked by the compiler).
-        /// Set acceptFailingConversion if you want to see default(rewrittenType) in such cases.
-        /// The error will be suppressed only for conversions from <see cref="decimal"/> or <see cref="DateTime"/>.
-        /// </remarks>
-        private BoundExpression MakeImplicitConversion(BoundExpression rewrittenOperand, TypeSymbol rewrittenType)
+        private BoundExpression MakeImplicitConversionForInterpolatedString(BoundExpression rewrittenOperand, TypeSymbol rewrittenType)
         {
             Debug.Assert(rewrittenOperand.Type is object);
 
@@ -66,7 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _factory.NullOrDefault(rewrittenType);
             }
 
-            conversion.MarkUnderlyingConversionsCheckedRecursive(); // PROTOTYPE: This is a temporary stub
+            // The lack of checks is unlikely to create problems because we are operating on types coming from well-known APIs.
+            // It is not worth adding complexity of performing them.
+            conversion.MarkUnderlyingConversionsCheckedRecursive();
 
             return MakeConversionNode(rewrittenOperand.Syntax, rewrittenOperand, conversion, rewrittenType, @checked: false);
         }
@@ -341,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!result.HasAnyErrors)
             {
                 result = VisitExpression(result); // lower the arguments AND handle expanded form, argument conversions, etc.
-                result = MakeImplicitConversion(result, node.Type);
+                result = MakeImplicitConversionForInterpolatedString(result, node.Type);
             }
             return result;
         }
