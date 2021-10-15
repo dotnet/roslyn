@@ -218,7 +218,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 #pragma warning restore
         }
 
-        [Obsolete("Legacy API for TypeScript.  Override ProduceTagsAsync that takes CancellationToken.", error: false)]
+        /// <summary>
+        /// Remove once TypeScript finishes https://github.com/dotnet/roslyn/issues/57180.
+        /// </summary>
         protected virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition)
             => Task.CompletedTask;
 
