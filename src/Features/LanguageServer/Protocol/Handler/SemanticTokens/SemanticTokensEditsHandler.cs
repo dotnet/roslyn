@@ -217,66 +217,70 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             return processedResults.ToArray();
         }
 
-        internal sealed class LongestCommonSemanticTokensSubsequence : LongestCommonSubsequence<int[]>
+        internal sealed class LongestCommonSemanticTokensSubsequence : LongestCommonSubsequence<ArraySegment<int>>
         {
-            private const int MaxArraySize = 1000;
+            private const int MaxArraySize = 100;
             private static readonly LongestCommonSemanticTokensSubsequence s_instance = new();
 
             protected override bool ItemsEqual(
-                int[] oldSemanticTokens, int oldIndex,
-                int[] newSemanticTokens, int newIndex)
-                => oldSemanticTokens[oldIndex] == newSemanticTokens[newIndex];
+                ArraySegment<int> oldSemanticTokens, int oldIndex,
+                ArraySegment<int> newSemanticTokens, int newIndex)
+                => ((IList<int>)oldSemanticTokens)[oldIndex] == ((IList<int>)newSemanticTokens)[newIndex];
 
             public static async Task<SequenceEdit[]> GetEditsAsync(int[] oldSemanticTokens, int[] newSemanticTokens)
             {
                 try
                 {
-                    using var _ = ArrayBuilder<SequenceEdit>.GetInstance(out var edits);
-                    var tasks = new List<Task<List<SequenceEdit>>>();
+                    using var _1 = ArrayBuilder<SequenceEdit>.GetInstance(out var edits);
+                    using var _2 = ArrayBuilder<Task<SequenceEdit[]>>.GetInstance(out var tasks);
                     var numSets = Math.Max(oldSemanticTokens.Length / MaxArraySize, newSemanticTokens.Length / MaxArraySize) + 1;
                     for (var i = 0; i < numSets; i++)
                     {
                         var j = i;
                         var task = Task.Run(() =>
                         {
-                            var oldTokenSet = Array.Empty<int>();
-                            var newTokenSet = Array.Empty<int>();
+                            var oldTokenSet = new ArraySegment<int>();
+                            var newTokenSet = new ArraySegment<int>();
 
                             if (oldSemanticTokens.Length > j * MaxArraySize)
                             {
-                                oldTokenSet = oldSemanticTokens.Skip(j * MaxArraySize).Take(j * MaxArraySize + MaxArraySize).ToArray();
+                                var offset = j * MaxArraySize;
+                                var count = Math.Min(MaxArraySize, oldSemanticTokens.Length - offset);
+                                oldTokenSet = new ArraySegment<int>(oldSemanticTokens, offset, count);
                             }
 
                             if (newSemanticTokens.Length > j * MaxArraySize)
                             {
-                                newTokenSet = newSemanticTokens.Skip(j * MaxArraySize).Take(j * MaxArraySize + MaxArraySize).ToArray();
+                                var offset = j * MaxArraySize;
+                                var count = Math.Min(MaxArraySize, newSemanticTokens.Length - offset);
+                                newTokenSet = new ArraySegment<int>(newSemanticTokens, offset, count);
                             }
 
                             var currentEditSet = s_instance.GetEdits(
-                                oldTokenSet, oldTokenSet.Length, newTokenSet, newTokenSet.Length);
+                                oldTokenSet, oldTokenSet.Count, newTokenSet, newTokenSet.Count);
 
-                            var adjustedEdits = new List<SequenceEdit>();
-                            foreach (var edit in currentEditSet)
+                            using var _ = ArrayBuilder<SequenceEdit>.GetInstance(out var adjustedEdits);
+                            adjustedEdits.AddRange(currentEditSet.SelectAsArray(edit =>
                             {
                                 if (edit.Kind is EditKind.Insert)
                                 {
-                                    adjustedEdits.Add(new SequenceEdit(-1, edit.NewIndex * (j + 1)));
+                                    return new SequenceEdit(-1, edit.NewIndex * (j + 1));
                                 }
                                 else if (edit.Kind is EditKind.Delete)
                                 {
-                                    adjustedEdits.Add(new SequenceEdit(edit.OldIndex * (j + 1), -1));
+                                    return new SequenceEdit(edit.OldIndex * (j + 1), -1);
                                 }
                                 else if (edit.Kind is EditKind.Update)
                                 {
-                                    adjustedEdits.Add(new SequenceEdit(edit.OldIndex * (j + 1), edit.NewIndex * (j + 1)));
+                                    return new SequenceEdit(edit.OldIndex * (j + 1), edit.NewIndex * (j + 1));
                                 }
                                 else
                                 {
                                     throw new ArgumentException("Unexpected EditKind.");
                                 }
-                            }
+                            }));
 
-                            return adjustedEdits;
+                            return adjustedEdits.ToArray();
                         });
 
                         tasks.Add(task);

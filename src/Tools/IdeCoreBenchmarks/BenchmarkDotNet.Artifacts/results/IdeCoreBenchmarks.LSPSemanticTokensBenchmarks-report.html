@@ -2,7 +2,7 @@
 <html lang='en'>
 <head>
 <meta charset='utf-8' />
-<title>IdeCoreBenchmarks.LSPSemanticTokensBenchmarks-20211013-135132</title>
+<title>IdeCoreBenchmarks.LSPSemanticTokensBenchmarks-20211015-141058</title>
 
 <style type="text/css">
 	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
@@ -22,10 +22,18 @@ Intel Core i7-8700 CPU 3.20GHz (Coffee Lake), 1 CPU, 12 logical and 6 physical c
 </code></pre>
 
 <table>
-<thead><tr><th>                           Method</th><th>      Mean</th><th>   Error</th><th>  StdDev</th><th>Gen 0</th><th>Gen 1</th><th>Gen 2</th><th>Allocated</th>
+<thead><tr><th>                               Method</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Median</th><th>Gen 0</th><th>Gen 1</th><th>Gen 2</th><th>Allocated</th>
 </tr>
-</thead><tbody><tr><td>RunLSPSemanticTokensBenchmark</td><td>18.02 ns</td><td>0.157 ns</td><td>0.131 ns</td><td>0.0191</td><td>-</td><td>-</td><td>120 B</td>
-</tr><tr><td>RunLSPSemanticTokensBenchmark_RazorImpl</td><td>12,168,209.53 ns</td><td>223,815.727 ns</td><td>553,217.024 ns</td><td>781.2500</td><td>765.6250</td><td>765.6250</td><td>43,093,728 B</td>
+</thead><tbody><tr><td>RunLSPSemanticTokensBenchmarkAsync_10</td><td>7.985 ms</td><td>0.1555 ms</td><td>0.1454 ms</td><td>8.005 ms</td><td>5210.9375</td><td>1914.0625</td><td>164.0625</td><td>32 MB</td>
+</tr><tr><td>RunLSPSemanticTokensBenchmarkAsync_20</td><td>13.878 ms</td><td>0.2695 ms</td><td>0.4427 ms</td><td>13.974 ms</td><td>10093.7500</td><td>3859.3750</td><td>250.0000</td><td>62 MB</td>
+</tr><tr><td>RunLSPSemanticTokensBenchmarkAsync_100</td><td>63.833 ms</td><td>1.2761 ms</td><td>2.5778 ms</td><td>63.223 ms</td><td>49888.8889</td><td>22000.0000</td><td>1111.1111</td><td>310 MB</td>
+</tr><tr><td>RunLSPSemanticTokensBenchmarkAsync_250</td><td>128.247 ms</td><td>2.5580 ms</td><td>7.2148 ms</td><td>126.326 ms</td><td>122500.0000</td><td>53750.0000</td><td>2000.0000</td><td>759 MB</td>
+</tr><tr><td>RunLSPSemanticTokensBenchmarkAsync_500</td><td>297.534 ms</td><td>5.8520 ms</td><td>13.0889 ms</td><td>292.530 ms</td><td>292000.0000</td><td>131500.0000</td><td>2500.0000</td><td>1,785 MB</td>
+</tr><tr><td>RunLSPSemanticTokensBenchmark_RazorImpl_10</td><td>2.225 ms</td><td>0.0441 ms</td><td>0.0471 ms</td><td>2.201 ms</td><td>351.5625</td><td>136.7188</td><td>35.1563</td><td>2 MB</td>
+</tr><tr><td>RunLSPSemanticTokensBenchmark_RazorImpl_20</td><td>4.429 ms</td><td>0.0852 ms</td><td>0.1046 ms</td><td>4.421 ms</td><td>687.5000</td><td>375.0000</td><td>109.3750</td><td>5 MB</td>
+</tr><tr><td>RunLSPSemanticTokensBenchmark_RazorImpl_100</td><td>19.487 ms</td><td>0.3163 ms</td><td>0.2804 ms</td><td>19.504 ms</td><td>2968.7500</td><td>1093.7500</td><td>437.5000</td><td>22 MB</td>
+</tr><tr><td>RunLSPSemanticTokensBenchmark_RazorImpl_250</td><td>44.846 ms</td><td>0.8845 ms</td><td>1.1186 ms</td><td>44.922 ms</td><td>6727.2727</td><td>1636.3636</td><td>545.4545</td><td>58 MB</td>
+</tr><tr><td>RunLSPSemanticTokensBenchmark_RazorImpl_500</td><td>113.969 ms</td><td>2.2534 ms</td><td>2.9301 ms</td><td>114.253 ms</td><td>19200.0000</td><td>5600.0000</td><td>1600.0000</td><td>139 MB</td>
 </tr></tbody></table>
 </body>
 </html>
