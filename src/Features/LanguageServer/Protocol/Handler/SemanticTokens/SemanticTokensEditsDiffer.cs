@@ -4,12 +4,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     internal class SemanticTokensEditsDiffer : TextDiffer
     {
-        private SemanticTokensEditsDiffer(IReadOnlyList<int> oldArray, int[] newArray)
+        private SemanticTokensEditsDiffer(IReadOnlyList<int> oldArray, IReadOnlyList<int> newArray)
         {
             if (oldArray is null)
             {
@@ -21,24 +24,81 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         }
 
         private IReadOnlyList<int> OldArray { get; }
-        private int[] NewArray { get; }
+        private IReadOnlyList<int> NewArray { get; }
 
         protected override int OldTextLength => OldArray.Count;
-        protected override int NewTextLength => NewArray.Length;
+        protected override int NewTextLength => NewArray.Count;
+
+        private const int MaxArraySize = 100;
 
         protected override bool ContentEquals(int oldTextIndex, int newTextIndex)
         {
             return OldArray[oldTextIndex] == NewArray[newTextIndex];
         }
 
-        public static IReadOnlyList<DiffEdit> ComputeSemanticTokensEdits(
+        public static async Task<IReadOnlyList<DiffEdit>> ComputeSemanticTokensEditsAsync(
             int[] oldTokens,
             int[] newTokens)
         {
-            var differ = new SemanticTokensEditsDiffer(oldTokens, newTokens);
-            var diffs = differ.ComputeDiff();
+            using var _1 = ArrayBuilder<DiffEdit>.GetInstance(out var edits);
+            using var _2 = ArrayBuilder<Task<DiffEdit[]>>.GetInstance(out var tasks);
+            var numSets = Math.Max(oldTokens.Length / MaxArraySize, newTokens.Length / MaxArraySize) + 1;
+            for (var i = 0; i < numSets; i++)
+            {
+                var j = i;
+                var task = Task.Run(() =>
+                {
+                    var oldTokenSet = new ArraySegment<int>();
+                    var newTokenSet = new ArraySegment<int>();
 
-            return diffs;
+                    if (oldTokens.Length > j * MaxArraySize)
+                    {
+                        var offset = j * MaxArraySize;
+                        var count = Math.Min(MaxArraySize, oldTokens.Length - offset);
+                        oldTokenSet = new ArraySegment<int>(oldTokens, offset, count);
+                    }
+
+                    if (newTokens.Length > j * MaxArraySize)
+                    {
+                        var offset = j * MaxArraySize;
+                        var count = Math.Min(MaxArraySize, newTokens.Length - offset);
+                        newTokenSet = new ArraySegment<int>(newTokens, offset, count);
+                    }
+
+                    var differ = new SemanticTokensEditsDiffer(oldTokenSet, newTokenSet);
+                    var currentEditSet = differ.ComputeDiff();
+
+                    using var _ = ArrayBuilder<DiffEdit>.GetInstance(out var adjustedEdits);
+                    adjustedEdits.AddRange(currentEditSet.SelectAsArray(edit =>
+                    {
+                        if (edit.Operation is DiffEdit.Type.Insert)
+                        {
+                            return new DiffEdit(DiffEdit.Type.Insert, edit.Position * (j + 1), edit.NewTextPosition * (j + 1));
+                        }
+                        else if (edit.Operation is DiffEdit.Type.Delete)
+                        {
+                            return new DiffEdit(DiffEdit.Type.Delete, edit.Position * (j + 1), null);
+                        }
+                        else
+                        {
+                            throw new ArgumentException("Unexpected EditKind.");
+                        }
+                    }));
+
+                    return adjustedEdits.ToArray();
+                });
+
+                tasks.Add(task);
+            }
+
+            var completedTasks = await Task.WhenAll(tasks).ConfigureAwait(false);
+            var finalEdits = new List<DiffEdit>();
+            foreach (var li in completedTasks)
+            {
+                finalEdits.AddRange(li);
+            }
+
+            return finalEdits.ToArray();
         }
     }
 }
