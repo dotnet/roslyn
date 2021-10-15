@@ -17,15 +17,15 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 {
-    public abstract class AbstractAddUsingTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public abstract class AbstractAddUsingHighPriorityTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        protected AbstractAddUsingTests(ITestOutputHelper logger = null)
+        protected AbstractAddUsingHighPriorityTests(ITestOutputHelper logger = null)
             : base(logger)
         {
         }
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new CSharpAddImportCodeFixProvider());
+            => (null, new CSharpAddImportHighPriorityCodeFixProvider());
 
         private protected OptionsCollection SeparateGroups => Option(GenerationOptions.SeparateImportDirectiveGroups, true);
 

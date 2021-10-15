@@ -48,7 +48,8 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         }
 
         /// <inheritdoc/>
-        public async Task<AddMissingImportsAnalysisResult> AnalyzeAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public async Task<AddMissingImportsAnalysisResult> AnalyzeAsync(
+            Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             // Get the diagnostics that indicate a missing import.
             var addImportFeatureService = document.GetRequiredLanguageService<IAddImportFeatureService>();
@@ -59,8 +60,11 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             // Since we are not currently considering NuGet packages, pass an empty array
             var packageSources = ImmutableArray<PackageSource>.Empty;
 
+            // Do a high priority search for fixes.  This will only find exact matches, and not fuzzy matches
+            // (which wouldn't make sense for 'add missing imports').
             var unambiguousFixes = await addImportFeatureService.GetUniqueFixesAsync(
-                document, textSpan, FixableDiagnosticIds, symbolSearchService,
+                document, textSpan, FixableDiagnosticIds,
+                priority: CodeActionRequestPriority.High, symbolSearchService,
                 searchReferenceAssemblies: true, packageSources, cancellationToken).ConfigureAwait(false);
 
             // We do not want to add project or framework references without the user's input, so filter those out.

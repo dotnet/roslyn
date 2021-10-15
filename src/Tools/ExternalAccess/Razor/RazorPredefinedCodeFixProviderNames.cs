@@ -14,7 +14,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public static string AddBraces => PredefinedCodeFixProviderNames.AddBraces;
         public static string AddDocCommentNodes => PredefinedCodeFixProviderNames.AddDocCommentNodes;
         public static string AddExplicitCast => PredefinedCodeFixProviderNames.AddExplicitCast;
-        public static string AddImport => PredefinedCodeFixProviderNames.AddImport;
+        public static string AddImportHighPriority => PredefinedCodeFixProviderNames.AddImportHighPriority;
+        public static string AddImportNormalPriority => PredefinedCodeFixProviderNames.AddImportNormalPriority;
         public static string AddMissingReference => PredefinedCodeFixProviderNames.AddMissingReference;
         public static string AddNew => PredefinedCodeFixProviderNames.AddNew;
         public static string AddObsoleteAttribute => PredefinedCodeFixProviderNames.AddObsoleteAttribute;

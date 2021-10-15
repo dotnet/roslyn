@@ -12,7 +12,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string AddBraces = nameof(AddBraces);
         public const string AddDocCommentNodes = nameof(AddDocCommentNodes);
         public const string AddExplicitCast = nameof(AddExplicitCast);
-        public const string AddImport = nameof(AddImport);
+        public const string AddImportHighPriority = nameof(AddImportHighPriority);
+        public const string AddImportNormalPriority = nameof(AddImportNormalPriority);
         public const string AddMissingReference = nameof(AddMissingReference);
         public const string AddNew = nameof(AddNew);
         public const string AddObsoleteAttribute = nameof(AddObsoleteAttribute);

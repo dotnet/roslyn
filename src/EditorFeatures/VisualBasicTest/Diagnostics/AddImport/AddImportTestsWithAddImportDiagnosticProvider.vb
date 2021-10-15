@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
-                        New VisualBasicAddImportCodeFixProvider())
+                        New VisualBasicAddImportHighPriorityCodeFixProvider())
         End Function
 
         <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>

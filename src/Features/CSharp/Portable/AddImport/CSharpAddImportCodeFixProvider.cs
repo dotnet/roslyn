@@ -182,20 +182,44 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                     CS8415));
     }
 
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddImport), Shared]
-    internal class CSharpAddImportCodeFixProvider : AbstractAddImportCodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddImportHighPriority), Shared]
+    internal class CSharpAddImportHighPriorityCodeFixProvider : AbstractAddImportHighPriorityCodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds => AddImportDiagnosticIds.FixableDiagnosticIds;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpAddImportCodeFixProvider()
+        public CSharpAddImportHighPriorityCodeFixProvider()
+            : base(packageInstallerService: null, symbolSearchService: null)
         {
         }
 
         /// <summary>For testing purposes only (so that tests can pass in mock values)</summary> 
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-        internal CSharpAddImportCodeFixProvider(
+        internal CSharpAddImportHighPriorityCodeFixProvider(
+            IPackageInstallerService installerService,
+            ISymbolSearchService symbolSearchService)
+            : base(installerService, symbolSearchService)
+        {
+        }
+    }
+
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddImportNormalPriority), Shared]
+    [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImportHighPriority)]
+    internal class CSharpAddImportNormalPriorityCodeFixProvider : AbstractAddImportHighPriorityCodeFixProvider
+    {
+        public override ImmutableArray<string> FixableDiagnosticIds => AddImportDiagnosticIds.FixableDiagnosticIds;
+
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public CSharpAddImportNormalPriorityCodeFixProvider()
+            : base(packageInstallerService: null, symbolSearchService: null)
+        {
+        }
+
+        /// <summary>For testing purposes only (so that tests can pass in mock values)</summary> 
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
+        internal CSharpAddImportNormalPriorityCodeFixProvider(
             IPackageInstallerService installerService,
             ISymbolSearchService symbolSearchService)
             : base(installerService, symbolSearchService)

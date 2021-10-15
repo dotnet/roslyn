@@ -11,11 +11,11 @@ Imports Microsoft.CodeAnalysis.VisualBasic.AddImport
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImport
 
     <Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
-    Public Class AddImportTests
+    Public Class AddImportHighPriorityTests
         Inherits AbstractAddImportTests
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (Nothing, New VisualBasicAddImportCodeFixProvider())
+            Return (Nothing, New VisualBasicAddImportHighPriorityCodeFixProvider())
         End Function
 
         <Theory>

@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.RemoveUnusedVariable;
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnusedVariable), Shared]
-    [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImport)]
+    [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImportNormalPriority)]
     internal partial class CSharpRemoveUnusedVariableCodeFixProvider : AbstractRemoveUnusedVariableCodeFixProvider<LocalDeclarationStatementSyntax, VariableDeclaratorSyntax, VariableDeclarationSyntax>
     {
         public const string CS0168 = nameof(CS0168);

@@ -22,9 +22,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
             Dim fixer As CodeFixProvider
             If language = LanguageNames.CSharp Then
-                fixer = New CSharpAddImportCodeFixProvider()
+                fixer = New CSharpAddImportHighPriorityCodeFixProvider()
             Else
-                fixer = New VisualBasicAddImportCodeFixProvider()
+                fixer = New VisualBasicAddImportHighPriorityCodeFixProvider()
             End If
 
             Return (Nothing, fixer)

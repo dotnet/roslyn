@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
     using FixProviderData = Tuple<IPackageInstallerService, ISymbolSearchService>;
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-    public class AddUsingNuGetTests : AbstractAddUsingTests
+    public class AddUsingNuGetTests : AbstractAddUsingHighPriorityTests
     {
         private static readonly ImmutableArray<PackageSource> NugetPackageSources =
             ImmutableArray.Create(new PackageSource(PackageSourceHelper.NugetOrgSourceName, "http://nuget.org/"));
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             Workspace workspace, TestParameters parameters)
         {
             var data = (FixProviderData)parameters.fixProviderData;
-            return (null, new CSharpAddImportCodeFixProvider(data.Item1, data.Item2));
+            return (null, new CSharpAddImportHighPriorityCodeFixProvider(data.Item1, data.Item2));
         }
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)

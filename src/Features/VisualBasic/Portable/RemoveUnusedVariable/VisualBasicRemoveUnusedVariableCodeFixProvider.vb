@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedVariable
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveUnusedVariable), [Shared]>
-    <ExtensionOrder(After:=PredefinedCodeFixProviderNames.AddImport)>
+    <ExtensionOrder(After:=PredefinedCodeFixProviderNames.AddImportNormalPriority)>
     Friend Class VisualBasicRemoveUnusedVariableCodeFixProvider
         Inherits AbstractRemoveUnusedVariableCodeFixProvider(Of
             LocalDeclarationStatementSyntax, ModifiedIdentifierSyntax, VariableDeclaratorSyntax)

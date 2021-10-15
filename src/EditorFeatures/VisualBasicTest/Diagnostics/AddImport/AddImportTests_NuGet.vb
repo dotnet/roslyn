@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, parameters As TestParameters) As (DiagnosticAnalyzer, CodeFixProvider)
             Dim data = DirectCast(parameters.fixProviderData, ProviderData)
-            Return (Nothing, New VisualBasicAddImportCodeFixProvider(data.Item1, data.Item2))
+            Return (Nothing, New VisualBasicAddImportHighPriorityCodeFixProvider(data.Item1, data.Item2))
         End Function
 
         Protected Overrides Function MassageActions(actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)

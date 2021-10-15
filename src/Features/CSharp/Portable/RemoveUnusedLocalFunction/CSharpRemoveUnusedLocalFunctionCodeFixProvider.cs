@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedLocalFunction
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnusedLocalFunction), Shared]
-    [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImport)]
+    [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImportNormalPriority)]
     internal class CSharpRemoveUnusedLocalFunctionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         private const string CS8321 = nameof(CS8321); // The local function 'X' is declared but never used

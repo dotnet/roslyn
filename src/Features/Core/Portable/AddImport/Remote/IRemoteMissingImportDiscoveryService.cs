@@ -7,6 +7,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -24,10 +25,16 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         ValueTask<ImmutableArray<AddImportFixData>> GetFixesAsync(
-            PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, DocumentId documentId, TextSpan span, string diagnosticId, int maxResults,
-            bool allowInHiddenRegions, bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken);
+            PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId,
+            DocumentId documentId, TextSpan span, string diagnosticId,
+            int maxResults, CodeActionRequestPriority priority,
+            bool allowInHiddenRegions, bool searchReferenceAssemblies,
+            ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken);
+
         ValueTask<ImmutableArray<AddImportFixData>> GetUniqueFixesAsync(
-            PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, DocumentId id, TextSpan span, ImmutableArray<string> diagnosticIds,
-            bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken);
+            PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId,
+            DocumentId id, TextSpan span, ImmutableArray<string> diagnosticIds,
+            CodeActionRequestPriority priority, bool searchReferenceAssemblies,
+            ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken);
     }
 }

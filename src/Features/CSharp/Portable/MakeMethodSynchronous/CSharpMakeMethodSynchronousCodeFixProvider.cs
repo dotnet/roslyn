@@ -17,7 +17,7 @@ using static Microsoft.CodeAnalysis.MakeMethodAsynchronous.AbstractMakeMethodAsy
 namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeMethodSynchronous), Shared]
-    [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImport)]
+    [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImportNormalPriority)]
     internal class CSharpMakeMethodSynchronousCodeFixProvider : AbstractMakeMethodSynchronousCodeFixProvider
     {
         private const string CS1998 = nameof(CS1998); // This async method lacks 'await' operators and will run synchronously.

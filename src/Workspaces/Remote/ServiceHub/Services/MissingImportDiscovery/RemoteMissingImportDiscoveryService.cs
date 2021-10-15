@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -38,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Remote
             TextSpan span,
             string diagnosticId,
             int maxResults,
+            CodeActionRequestPriority priority,
             bool allowInHiddenRegions,
             bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources,
@@ -53,8 +55,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 var symbolSearchService = new SymbolSearchService(_callback, callbackId);
 
                 var result = await service.GetFixesAsync(
-                    document, span, diagnosticId, maxResults,
-                    allowInHiddenRegions,
+                    document, span, diagnosticId,
+                    maxResults, priority, allowInHiddenRegions,
                     symbolSearchService, searchReferenceAssemblies,
                     packageSources, cancellationToken).ConfigureAwait(false);
 
@@ -68,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Remote
             DocumentId documentId,
             TextSpan span,
             ImmutableArray<string> diagnosticIds,
+            CodeActionRequestPriority priority,
             bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources,
             CancellationToken cancellationToken)
@@ -82,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var symbolSearchService = new SymbolSearchService(_callback, callbackId);
 
                 var result = await service.GetUniqueFixesAsync(
-                    document, span, diagnosticIds,
+                    document, span, diagnosticIds, priority,
                     symbolSearchService, searchReferenceAssemblies,
                     packageSources, cancellationToken).ConfigureAwait(false);
 

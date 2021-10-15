@@ -101,13 +101,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         End Property
     End Module
 
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddImport), [Shared]>
-    Friend Class VisualBasicAddImportCodeFixProvider
-        Inherits AbstractAddImportCodeFixProvider
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddImportHighPriority), [Shared]>
+    Friend Class VisualBasicAddImportHighPriorityCodeFixProvider
+        Inherits AbstractAddImportHighPriorityCodeFixProvider
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
+            MyBase.New(packageInstallerService:=Nothing, symbolSearchService:=Nothing)
+        End Sub
+
+        ''' <summary>	
+        ''' For testing purposes so that tests can pass in mocks for these values.	
+        ''' </summary>	
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification:="Used incorrectly by tests")>
+        Friend Sub New(installerService As IPackageInstallerService,
+                       searchService As ISymbolSearchService)
+            MyBase.New(installerService, searchService)
+        End Sub
+
+        Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = AddImportDiagnosticIds.FixableDiagnosticIds
+    End Class
+
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddImportNormalPriority), [Shared]>
+    Friend Class VisualBasicAddImportNormalPriorityCodeFixProvider
+        Inherits AbstractAddImportNormalPriorityCodeFixProvider
+
+        <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        Public Sub New()
+            MyBase.New(packageInstallerService:=Nothing, symbolSearchService:=Nothing)
         End Sub
 
         ''' <summary>	

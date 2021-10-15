@@ -20,7 +20,7 @@ using static Roslyn.Test.Utilities.TestMetadata;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-    public partial class AddUsingTests : AbstractAddUsingTests
+    public partial class AddUsingTests : AbstractAddUsingHighPriorityTests
     {
         public AddUsingTests(ITestOutputHelper logger)
             : base(logger)
