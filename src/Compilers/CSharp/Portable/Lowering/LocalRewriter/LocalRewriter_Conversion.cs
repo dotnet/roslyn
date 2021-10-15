@@ -1091,7 +1091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeLiftedUserDefinedConversionConsequence(BoundCall call, TypeSymbol resultType)
         {
-            if (call.Method.ReturnType.IsNonNullableValueType())
+            if (call.Method.ReturnType.IsNonNullableValueType() && !call.Method.ReturnType.IsPointerOrFunctionPointer())
             {
                 Debug.Assert(resultType.IsNullableType() && TypeSymbol.Equals(resultType.GetNullableUnderlyingType(), call.Method.ReturnType, TypeCompareKind.ConsiderEverything2));
                 MethodSymbol ctor = UnsafeGetNullableMethod(call.Syntax, resultType, SpecialMember.System_Nullable_T__ctor);

@@ -132,6 +132,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
         }
 
+        public static bool IsValidNullableTypeArgument(this TypeSymbol type)
+        {
+            return type is { IsValueType: true }
+                   && !type.IsNullableType()
+                   && !type.IsPointerOrFunctionPointer()
+                   && !type.IsRestrictedType();
+        }
+
         public static TypeSymbol GetNullableUnderlyingType(this TypeSymbol type)
         {
             return type.GetNullableUnderlyingTypeWithAnnotations().Type;

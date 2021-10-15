@@ -1262,25 +1262,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind = possiblyBest.HasValue ? LookupResultKind.Viable : LookupResultKind.Empty;
             }
 
-            if (possiblyBest is { HasValue: true, Signature: { Method: { } bestMethod, Kind: var bestKind } signature })
+            if (possiblyBest is { HasValue: true, Signature: { Method: { } bestMethod } })
             {
                 ReportObsoleteAndFeatureAvailabilityDiagnostics(bestMethod, node, diagnostics);
                 ReportUseSite(bestMethod, diagnostics, node);
-
-                if ((bestKind & BinaryOperatorKind.Lifted) == BinaryOperatorKind.Lifted)
-                {
-                    // The operand types and possibly the return type could be invalid in various ways, such being a restricted type or a pointer
-                    Debug.Assert(signature.LeftType.IsNullableType());
-                    Debug.Assert(signature.RightType.IsNullableType());
-
-                    ((NamedTypeSymbol)signature.LeftType).CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(Compilation, this.Conversions, left.Syntax.Location, diagnostics));
-                    ((NamedTypeSymbol)signature.RightType).CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(Compilation, this.Conversions, right.Syntax.Location, diagnostics));
-
-                    if (signature.ReturnType.IsNullableType())
-                    {
-                        ((NamedTypeSymbol)signature.ReturnType).CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(Compilation, this.Conversions, node.Location, diagnostics));
-                    }
-                }
             }
 
             result.Free();
@@ -1386,19 +1371,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind = possiblyBest.HasValue ? LookupResultKind.Viable : LookupResultKind.Empty;
             }
 
-            if (possiblyBest is { HasValue: true, Signature: { Method: { } bestMethod, Kind: var signatureKind } signature })
+            if (possiblyBest is { HasValue: true, Signature: { Method: { } bestMethod } })
             {
                 ReportObsoleteAndFeatureAvailabilityDiagnostics(bestMethod, node, diagnostics);
                 ReportUseSite(bestMethod, diagnostics, node);
-
-                if ((signatureKind & UnaryOperatorKind.Lifted) == UnaryOperatorKind.Lifted)
-                {
-                    // The operand and result types could be invalid in various ways, such being a restricted type or a pointer
-                    Debug.Assert(signature.OperandType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T);
-                    Debug.Assert(signature.ReturnType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T);
-                    ((NamedTypeSymbol)signature.OperandType).CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(Compilation, this.Conversions, node.Location, diagnostics));
-                    ((NamedTypeSymbol)signature.ReturnType).CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(Compilation, this.Conversions, node.Location, diagnostics));
-                }
             }
 
             result.Free();

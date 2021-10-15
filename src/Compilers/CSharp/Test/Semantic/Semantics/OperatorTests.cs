@@ -11217,9 +11217,9 @@ ref struct S2 {}
 
             var comp = CreateCompilation(code);
             comp.VerifyDiagnostics(
-                // (3,10): error CS0306: The type 'S2' may not be used as a type argument
+                // (3,10): error CS0023: Operator '+' cannot be applied to operand of type 'S1?'
                 // var s2 = +s1;
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "+s1").WithArguments("S2").WithLocation(3, 10)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+s1").WithArguments("+", "S1?").WithLocation(3, 10)
             );
         }
 
@@ -11238,9 +11238,9 @@ unsafe struct S1
 
             var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyDiagnostics(
-                // (3,10): error CS0306: The type 'int*' may not be used as a type argument
+                // (3,10): error CS0023: Operator '+' cannot be applied to operand of type 'S1?'
                 // var s2 = +s1;
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "+s1").WithArguments("int*").WithLocation(3, 10)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+s1").WithArguments("+", "S1?").WithLocation(3, 10)
             );
         }
 
@@ -11261,12 +11261,9 @@ public readonly ref struct S1
 
             var comp = CreateCompilation(code);
             comp.VerifyDiagnostics(
-                // (4,2): error CS0306: The type 'S1' may not be used as a type argument
+                // (4,2): error CS0019: Operator '+' cannot be applied to operands of type 'S1' and 'int?'
                 // (x + y)?.M();
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x").WithArguments("S1").WithLocation(4, 2),
-                // (4,2): error CS0306: The type 'S1' may not be used as a type argument
-                // (x + y)?.M();
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x + y").WithArguments("S1").WithLocation(4, 2)
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments("+", "S1", "int?").WithLocation(4, 2)
             );
         }
 
@@ -11287,13 +11284,9 @@ public readonly ref struct S1
 
             var comp = CreateCompilation(code);
             comp.VerifyDiagnostics(
-                // (4,2): error CS0306: The type 'S1' may not be used as a type argument
+                // (4,2): error CS0019: Operator '+' cannot be applied to operands of type 'int?' and 'S1'
                 // (y + x)?.M();
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "y + x").WithArguments("S1").WithLocation(4, 2),
-                // (4,6): error CS0306: The type 'S1' may not be used as a type argument
-                // (y + x)?.M();
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x").WithArguments("S1").WithLocation(4, 6)
-
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "y + x").WithArguments("+", "int?", "S1").WithLocation(4, 2)
             );
         }
 
@@ -11315,10 +11308,9 @@ public readonly ref struct S1
 
             var comp = CreateCompilation(code);
             comp.VerifyDiagnostics(
-                // (4,6): error CS0306: The type 'S1' may not be used as a type argument
-                // (y > x)?.M();
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x").WithArguments("S1").WithLocation(4, 6)
-
+                // (4,2): error CS0019: Operator '>' cannot be applied to operands of type 'int?' and 'S1'
+                // (y > x).ToString();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "y > x").WithArguments(">", "int?", "S1").WithLocation(4, 2)
             );
         }
     }

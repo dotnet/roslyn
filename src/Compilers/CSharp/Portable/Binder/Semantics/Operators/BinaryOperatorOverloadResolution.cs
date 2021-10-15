@@ -929,10 +929,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: types and if the result type is bool. The lifted form is 
             // SPEC: constructed by adding a single ? modifier to each operand type.
 
-            if (!left.IsValueType ||
-                left.IsNullableType() ||
-                !right.IsValueType ||
-                right.IsNullableType())
+            if (!left.IsValidNullableTypeArgument() ||
+                !right.IsValidNullableTypeArgument())
             {
                 return LiftingResult.NotLifted;
             }
@@ -953,7 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         LiftingResult.LiftOperandsButNotResult :
                         LiftingResult.NotLifted;
                 default:
-                    return result.IsValueType && !result.IsNullableType() ?
+                    return result.IsValidNullableTypeArgument() ?
                         LiftingResult.LiftOperandsAndResult :
                         LiftingResult.NotLifted;
             }

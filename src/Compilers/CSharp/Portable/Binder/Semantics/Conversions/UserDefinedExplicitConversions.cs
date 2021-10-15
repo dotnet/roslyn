@@ -265,10 +265,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (fromConversion.Exists && toConversion.Exists)
                 {
-                    if ((object)source != null && source.IsNullableType() && convertsFrom.IsNonNullableValueType() && target.CanBeAssignedNull())
+                    if ((object)source != null && source.IsNullableType() && convertsFrom.IsValidNullableTypeArgument() && target.CanBeAssignedNull())
                     {
                         TypeSymbol nullableFrom = MakeNullableType(convertsFrom);
-                        TypeSymbol nullableTo = convertsTo.IsNonNullableValueType() ? MakeNullableType(convertsTo) : convertsTo;
+                        TypeSymbol nullableTo = convertsTo.IsValidNullableTypeArgument() ? MakeNullableType(convertsTo) : convertsTo;
                         Conversion liftedFromConversion = EncompassingExplicitConversion(sourceExpression, source, nullableFrom, ref useSiteInfo);
                         Conversion liftedToConversion = EncompassingExplicitConversion(null, nullableTo, target, ref useSiteInfo);
                         Debug.Assert(liftedFromConversion.Exists);
@@ -290,9 +290,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // though it really were X?-->Y for the purposes of determining the best
                         // source type of a set of operators.
                         //
-                        // We perpetuate these fictions here.
+                        // We perpetuate these fictions here, except when X or Y is not a valid
+                        // type argument to `Nullable<T>`. 
 
-                        if (target.IsNullableType() && convertsTo.IsNonNullableValueType())
+                        if (target.IsNullableType() && convertsTo.IsValidNullableTypeArgument())
                         {
                             convertsTo = MakeNullableType(convertsTo);
                             toConversion = EncompassingExplicitConversion(null, convertsTo, target, ref useSiteInfo);
@@ -300,6 +301,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if ((object)source != null && source.IsNullableType() && convertsFrom.IsNonNullableValueType())
                         {
+                            if (!convertsFrom.IsValidNullableTypeArgument())
+                            {
+                                // We want to construct an operator that short-circuits directly from X?->Y? when X? is null
+                                // instead of attempting to get the value from X and do X->Y. However, if X? is illegal to
+                                // construct, we cannot create this operator at all.
+                                continue;
+                            }
+
                             convertsFrom = MakeNullableType(convertsFrom);
                             fromConversion = EncompassingExplicitConversion(null, convertsFrom, source, ref useSiteInfo);
                         }
