@@ -67,6 +67,21 @@
         <target state="translated">Solução Inteira</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|ButtonText">
+        <source>&amp;None</source>
+        <target state="new">&amp;None</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|CommandName">
+        <source>AnalysisScopeNone</source>
+        <target state="new">AnalysisScopeNone</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|LocCanonicalName">
+        <source>None</source>
+        <target state="new">None</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidAnalysisScopeOpenFiles|ButtonText">
         <source>&amp;Open Documents</source>
         <target state="translated">&amp;Abrir Documentos</target>

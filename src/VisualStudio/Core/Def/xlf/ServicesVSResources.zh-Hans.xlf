@@ -282,6 +282,11 @@
         <target state="translated">默认(整个解决方案)</target>
         <note>This text is a menu command</note>
       </trans-unit>
+      <trans-unit id="Default_None">
+        <source>Default (None)</source>
+        <target state="new">Default (None)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
       <trans-unit id="Default_Open_Documents">
         <source>Default (Open Documents)</source>
         <target state="translated">默认(打开文档)</target>

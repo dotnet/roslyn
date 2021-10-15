@@ -6,11 +6,32 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal enum BackgroundAnalysisScope
     {
+        // NOTE: Do not change existing field ordering/values as this scope is saved as a user option,
+        //       and that would break users who have saved a non-default scope for the option.
+
+        /// <summary>
+        /// Analyzers are executed only for currently active document.
+        /// Compiler analyzer is treated specially and executed for all open documents.
+        /// </summary>
         ActiveFile,
+
+        /// <summary>
+        /// All analyzers, including compiler analyzer, are executed for all open documents.
+        /// </summary>
         OpenFilesAndProjects,
+
+        /// <summary>
+        /// All analyzers, including compiler analyzer, are executed for all documents in the current solution.
+        /// </summary>
         FullSolution,
 
-        Minimal = ActiveFile,
+        /// <summary>
+        /// Analyzers are disabled for all documents.
+        /// Compiler analyzer is treated specially and executed for all open documents.
+        /// </summary>
+        None,
+
+        Minimal = None,
         Default = OpenFilesAndProjects,
     }
 }

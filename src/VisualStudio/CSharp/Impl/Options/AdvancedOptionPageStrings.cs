@@ -16,6 +16,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Background_analysis_scope
             => ServicesVSResources.Background_analysis_scope_colon;
 
+        public static string Option_Background_Analysis_Scope_None
+            => ServicesVSResources.None;
+
         public static string Option_Background_Analysis_Scope_Active_File
             => ServicesVSResources.Current_document;
 

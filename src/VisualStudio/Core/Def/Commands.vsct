@@ -322,6 +322,16 @@
           <CommandName>AnalysisScopeEntireSolution</CommandName>
         </Strings>
       </Button>
+      <Button guid="guidRoslynGrpId" id="cmdidAnalysisScopeNone" priority="500" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpAnalysisScopeItems" />
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>&amp;None</ButtonText>
+          <CanonicalName>None</CanonicalName>
+          <LocCanonicalName>None</LocCanonicalName>
+          <CommandName>AnalysisScopeNone</CommandName>
+        </Strings>
+      </Button>
       <!-- Button to open the diagnostic help link -->
       <Button guid="guidRoslynGrpId" id="cmdidOpenDiagnosticHelpLink" priority="100" type="Button">
         <Parent guid="guidRoslynGrpId" id="grpDiagnosticProperties" />
@@ -710,6 +720,7 @@
       <IDSymbol name="cmdidAnalysisScopeEntireSolution" value="0x0134" />
       <IDSymbol name="grpAnalysisScope" value="0x0135" />
       <IDSymbol name="grpAnalysisScopeItems" value="0x0136" />
+      <IDSymbol name="cmdidAnalysisScopeNone" value="0x0137" />
 
       <IDSymbol name="cmdidGoToImplementation"        value="0x0200" />
 

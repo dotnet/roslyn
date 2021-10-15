@@ -75,6 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.AnalysisScopeCurrentDocument, Guids.RoslynGroupId, OnSetAnalysisScopeCurrentDocument, OnSetAnalysisScopeCurrentDocumentStatus);
                 VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.AnalysisScopeOpenDocuments, Guids.RoslynGroupId, OnSetAnalysisScopeOpenDocuments, OnSetAnalysisScopeOpenDocumentsStatus);
                 VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.AnalysisScopeEntireSolution, Guids.RoslynGroupId, OnSetAnalysisScopeEntireSolution, OnSetAnalysisScopeEntireSolutionStatus);
+                VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.AnalysisScopeNone, Guids.RoslynGroupId, OnSetAnalysisScopeNone, OnSetAnalysisScopeNoneStatus);
             }
         }
 
@@ -150,6 +151,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private void OnSetAnalysisScopeEntireSolutionStatus(object sender, EventArgs e)
             => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.FullSolution);
 
+        private void OnSetAnalysisScopeNoneStatus(object sender, EventArgs e)
+            => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.None);
+
         private void OnSetAnalysisScopeStatus(OleMenuCommand command, BackgroundAnalysisScope? scope)
         {
             // The command is enabled as long as we have a service provider
@@ -183,6 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     BackgroundAnalysisScope.ActiveFile => ServicesVSResources.Default_Current_Document,
                     BackgroundAnalysisScope.OpenFilesAndProjects => ServicesVSResources.Default_Open_Documents,
                     BackgroundAnalysisScope.FullSolution => ServicesVSResources.Default_Entire_Solution,
+                    BackgroundAnalysisScope.None => ServicesVSResources.Default_None,
                     _ => ServicesVSResources.Default_,
                 };
             }
@@ -226,6 +231,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         private void OnSetAnalysisScopeEntireSolution(object sender, EventArgs args)
             => OnSetAnalysisScope(BackgroundAnalysisScope.FullSolution);
+
+        private void OnSetAnalysisScopeNone(object sender, EventArgs args)
+            => OnSetAnalysisScope(BackgroundAnalysisScope.None);
 
         private void OnSetAnalysisScope(BackgroundAnalysisScope? scope)
         {
@@ -292,6 +300,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             var project = GetProject(hierarchy);
             var solution = _workspace.CurrentSolution;
             var projectOrSolutionName = project?.Name ?? PathUtilities.GetFileName(solution.FilePath);
+            var analysisScope = project != null ? SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) : SolutionCrawlerOptions.BackgroundAnalysisScopeOption.DefaultValue;
 
             // Add a message to VS status bar that we are running code analysis.
             var statusBar = _serviceProvider?.GetService(typeof(SVsStatusbar)) as IVsStatusbar;
@@ -334,7 +343,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 }
 
                 // Now compute the new host diagostics for all projects with disabled analysis.
-                var projectsWithDisabledAnalysis = projects.Where(p => !p.State.RunAnalyzers).ToImmutableArrayOrEmpty();
+                var projectsWithDisabledAnalysis = analysisScope == BackgroundAnalysisScope.None
+                    ? projects.ToImmutableArray()
+                    : projects.Where(p => !p.State.RunAnalyzers).ToImmutableArrayOrEmpty();
                 if (!projectsWithDisabledAnalysis.IsEmpty)
                 {
                     // Compute diagnostics by overidding project's RunCodeAnalysis flag to true.

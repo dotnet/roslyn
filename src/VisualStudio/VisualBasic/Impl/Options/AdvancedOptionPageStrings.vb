@@ -18,6 +18,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Background_analysis_scope As String =
             ServicesVSResources.Background_analysis_scope_colon
 
+        Public ReadOnly Property Option_Background_Analysis_Scope_None As String =
+            ServicesVSResources.None
+
         Public ReadOnly Property Option_Background_Analysis_Scope_Active_File As String =
             ServicesVSResources.Current_document
 

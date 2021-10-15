@@ -652,6 +652,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
 
             switch (analysisScope)
             {
+                case BackgroundAnalysisScope.None:
                 case BackgroundAnalysisScope.ActiveFile:
                 case BackgroundAnalysisScope.OpenFilesAndProjects:
                     workspace.OpenAdditionalDocument(firstAdditionalDocument.Id);
@@ -670,7 +671,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
 
             var expectedCount = (analysisScope, testMultiple) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, _) => 0,
+                (BackgroundAnalysisScope.ActiveFile or BackgroundAnalysisScope.None, _) => 0,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, false) => 1,
                 (BackgroundAnalysisScope.OpenFilesAndProjects, true) => 2,
                 (BackgroundAnalysisScope.FullSolution, true) => 4,
@@ -687,7 +688,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     var applicableDiagnostics = diagnostics.Where(
                         d => d.Id == analyzer.Descriptor.Id && d.DataLocation.OriginalFilePath == additionalDoc.FilePath);
 
-                    if (analysisScope == BackgroundAnalysisScope.ActiveFile)
+                    if (analysisScope is BackgroundAnalysisScope.ActiveFile or BackgroundAnalysisScope.None)
                     {
                         Assert.Empty(applicableDiagnostics);
                     }
@@ -761,6 +762,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
 
             switch (analysisScope)
             {
+                case BackgroundAnalysisScope.None:
                 case BackgroundAnalysisScope.ActiveFile:
                     workspace.OpenDocument(document.Id);
                     var documentTrackingService = (TestDocumentTrackingService)workspace.Services.GetService<IDocumentTrackingService>();
@@ -776,11 +778,14 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                 case BackgroundAnalysisScope.FullSolution:
                     await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
                     break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(analysisScope);
             }
 
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
-            if (includeAnalyzer)
+            if (includeAnalyzer && analysisScope != BackgroundAnalysisScope.None)
             {
                 Assert.True(diagnostic != null);
                 Assert.Equal(NamedTypeAnalyzer.DiagnosticId, diagnostic.Id);
@@ -863,6 +868,7 @@ class A
 
             switch (analysisScope)
             {
+                case BackgroundAnalysisScope.None:
                 case BackgroundAnalysisScope.ActiveFile:
                     workspace.OpenDocument(document.Id);
                     var documentTrackingService = (TestDocumentTrackingService)workspace.Services.GetRequiredService<IDocumentTrackingService>();
@@ -882,21 +888,29 @@ class A
 
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
-            Assert.Equal(2, diagnostics.Count);
             var root = await document.GetSyntaxRootAsync();
-            if (testPragma)
+            if (analysisScope == BackgroundAnalysisScope.None)
             {
-                var pragma1 = root.FindTrivia(diagnostics[0].GetTextSpan().Start).ToString();
-                Assert.Equal($"#pragma warning disable {NamedTypeAnalyzer.DiagnosticId} // Unnecessary", pragma1);
-                var pragma2 = root.FindTrivia(diagnostics[1].GetTextSpan().Start).ToString();
-                Assert.Equal($"#pragma warning disable CS0168 // Variable is declared but never used - Unnecessary", pragma2);
+                // Anayzers are disabled for BackgroundAnalysisScope.None.
+                Assert.Empty(diagnostics);
             }
             else
             {
-                var attribute1 = root.FindNode(diagnostics[0].GetTextSpan()).ToString();
-                Assert.Equal($@"System.Diagnostics.CodeAnalysis.SuppressMessage(""Category2"", ""{NamedTypeAnalyzer.DiagnosticId}"")", attribute1);
-                var attribute2 = root.FindNode(diagnostics[1].GetTextSpan()).ToString();
-                Assert.Equal($@"System.Diagnostics.CodeAnalysis.SuppressMessage(""Category3"", ""CS0168"")", attribute2);
+                Assert.Equal(2, diagnostics.Count);
+                if (testPragma)
+                {
+                    var pragma1 = root.FindTrivia(diagnostics[0].GetTextSpan().Start).ToString();
+                    Assert.Equal($"#pragma warning disable {NamedTypeAnalyzer.DiagnosticId} // Unnecessary", pragma1);
+                    var pragma2 = root.FindTrivia(diagnostics[1].GetTextSpan().Start).ToString();
+                    Assert.Equal($"#pragma warning disable CS0168 // Variable is declared but never used - Unnecessary", pragma2);
+                }
+                else
+                {
+                    var attribute1 = root.FindNode(diagnostics[0].GetTextSpan()).ToString();
+                    Assert.Equal($@"System.Diagnostics.CodeAnalysis.SuppressMessage(""Category2"", ""{NamedTypeAnalyzer.DiagnosticId}"")", attribute1);
+                    var attribute2 = root.FindNode(diagnostics[1].GetTextSpan()).ToString();
+                    Assert.Equal($@"System.Diagnostics.CodeAnalysis.SuppressMessage(""Category3"", ""CS0168"")", attribute2);
+                }
             }
         }
 

@@ -43,6 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             ' Keep this code in sync with the actual order options appear in Tools | Options
 
             ' Analysis
+            BindToOption(Background_analysis_scope_none, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.None, LanguageNames.VisualBasic)
             BindToOption(Background_analysis_scope_active_file, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.ActiveFile, LanguageNames.VisualBasic)
             BindToOption(Background_analysis_scope_open_files, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.OpenFilesAndProjects, LanguageNames.VisualBasic)
             BindToOption(Background_analysis_scope_full_solution, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution, LanguageNames.VisualBasic)

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Return true if the given <paramref name="analyzer"/> is suppressed for the given project.
         /// NOTE: This API is intended to be used only for performance optimization.
         /// </summary>
-        public bool IsAnalyzerSuppressed(DiagnosticAnalyzer analyzer, Project project)
+        public static bool IsAnalyzerSuppressedForProject(DiagnosticAnalyzer analyzer, Project project)
         {
             var options = project.CompilationOptions;
             if (options == null || analyzer == FileContentLoadAnalyzer.Instance || analyzer.IsCompilerAnalyzer())
@@ -121,10 +122,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            // If user has disabled analyzer execution for this project, we only want to execute required analyzers
-            // that report diagnostics with category "Compiler".
-            if (!project.State.RunAnalyzers &&
-                GetDiagnosticDescriptors(analyzer).All(d => d.Category != DiagnosticCategory.Compiler))
+            // Check if user has disabled analyzer execution for this project or via options.
+            if (!project.State.RunAnalyzers || SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) == BackgroundAnalysisScope.None)
             {
                 return true;
             }

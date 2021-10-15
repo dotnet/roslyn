@@ -78,6 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(10, worker.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None)]
         [InlineData(BackgroundAnalysisScope.ActiveFile)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
@@ -105,6 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentEvents, worker.SyntaxDocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None)]
         [InlineData(BackgroundAnalysisScope.ActiveFile)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
@@ -120,6 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentEvents, worker.SyntaxDocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None)]
         [InlineData(BackgroundAnalysisScope.ActiveFile)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
@@ -135,6 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(10, worker.InvalidateDocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None)]
         [InlineData(BackgroundAnalysisScope.ActiveFile)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
@@ -150,6 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(10, worker.InvalidateDocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None)]
         [InlineData(BackgroundAnalysisScope.ActiveFile)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
@@ -169,6 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedProjectEvents, worker.ProjectIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None)]
         [InlineData(BackgroundAnalysisScope.ActiveFile)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
@@ -192,6 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentEvents, worker.SyntaxDocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None)]
         [InlineData(BackgroundAnalysisScope.ActiveFile)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
@@ -218,6 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentEvents, worker.SyntaxDocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None)]
         [InlineData(BackgroundAnalysisScope.ActiveFile)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
@@ -236,6 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(5, worker.InvalidateDocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None)]
         [InlineData(BackgroundAnalysisScope.ActiveFile)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
@@ -256,6 +265,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(1, worker.InvalidateDocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
@@ -283,6 +293,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentEvents, worker.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
@@ -310,6 +321,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentEvents, worker.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
@@ -337,6 +349,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentEvents, worker.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
@@ -364,6 +377,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentEvents, worker.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
@@ -391,6 +405,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentEvents, worker.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
@@ -418,6 +433,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentEvents, worker.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
@@ -504,6 +520,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(2, worker.ProjectIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None)]
         [InlineData(BackgroundAnalysisScope.ActiveFile)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
@@ -524,6 +541,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedProjectEvents, worker.ProjectIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
@@ -557,6 +575,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentSemanticEvents, worker.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
@@ -586,6 +605,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentInvalidatedEvents, worker.InvalidateDocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
@@ -611,6 +631,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(0, worker.InvalidateDocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
@@ -656,6 +677,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedReanalyzeDocumentCount, worker.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
@@ -681,6 +703,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentEvents, worker.SyntaxDocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
@@ -719,6 +742,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentSemanticEvents, worker.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
@@ -758,6 +782,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentSemanticEvents, worker.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
@@ -812,6 +837,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentSemanticEvents, analyzer.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
@@ -919,6 +945,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(5, analyzer.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
@@ -943,14 +970,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             var expectedSyntaxDocumentEvents = (analysisScope, hasActiveDocumentBefore) switch
             {
                 (BackgroundAnalysisScope.ActiveFile, _) => 1,
-                (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 0,
+                (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution or BackgroundAnalysisScope.None, _) => 0,
                 _ => throw ExceptionUtilities.Unreachable,
             };
 
             var expectedDocumentEvents = (analysisScope, hasActiveDocumentBefore) switch
             {
                 (BackgroundAnalysisScope.ActiveFile, _) => 5,
-                (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 0,
+                (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution or BackgroundAnalysisScope.None, _) => 0,
                 _ => throw ExceptionUtilities.Unreachable,
             };
 

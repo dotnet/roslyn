@@ -208,10 +208,10 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     try
                     {
-                        if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(document.Project) == BackgroundAnalysisScope.ActiveFile
+                        if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(document.Project) is BackgroundAnalysisScope.ActiveFile or BackgroundAnalysisScope.None
                             && _documentTrackingService?.TryGetActiveDocument() != document.Id)
                         {
-                            // Active file analysis is enabled, but the document for parsing is not the current
+                            // Active file or None analysis scope is enabled, but the document for parsing is not the current
                             // document. Return immediately without parsing.
                             return;
                         }

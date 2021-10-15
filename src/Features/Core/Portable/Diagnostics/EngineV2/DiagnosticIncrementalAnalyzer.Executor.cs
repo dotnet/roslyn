@@ -25,12 +25,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// Also returns empty diagnostics for suppressed analyzer.
         /// Returns null if the diagnostics need to be computed.
         /// </summary>
-        private async Task<DocumentAnalysisData?> TryGetCachedDocumentAnalysisDataAsync(
-            TextDocument document, StateSet stateSet, AnalysisKind kind, CancellationToken cancellationToken)
+        private static DocumentAnalysisData? TryGetCachedDocumentAnalysisData(
+            TextDocument document, StateSet stateSet,
+            AnalysisKind kind, VersionStamp version,
+            BackgroundAnalysisScope analysisScope, bool isActiveDocument,
+            bool isOpenDocument, bool isGeneratedRazorDocument,
+            CancellationToken cancellationToken)
         {
             try
             {
-                var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
                 var state = stateSet.GetOrCreateActiveFileState(document.Id);
                 var existingData = state.GetAnalysisData(kind);
 
@@ -39,8 +42,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return existingData;
                 }
 
-                // Perf optimization: Check whether analyzer is suppressed and avoid getting diagnostics if suppressed.
-                if (DiagnosticAnalyzerInfoCache.IsAnalyzerSuppressed(stateSet.Analyzer, document.Project))
+                // Perf optimization: Check whether analyzer is suppressed for project or document and avoid getting diagnostics if suppressed.
+                if (DiagnosticAnalyzerInfoCache.IsAnalyzerSuppressedForProject(stateSet.Analyzer, document.Project) ||
+                    IsAnalyzerSuppressedForDocument(stateSet.Analyzer, analysisScope, isActiveDocument, isOpenDocument, isGeneratedRazorDocument))
                 {
                     return new DocumentAnalysisData(version, existingData.Items, ImmutableArray<DiagnosticData>.Empty);
                 }
@@ -50,6 +54,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+
+            static bool IsAnalyzerSuppressedForDocument(
+                DiagnosticAnalyzer analyzer,
+                BackgroundAnalysisScope analysisScope,
+                bool isActiveDocument,
+                bool isOpenDocument,
+                bool isGeneratedRazorDocument)
+            {
+                if (isGeneratedRazorDocument)
+                {
+                    // This is a generated Razor document, and they always want all analyzer diagnostics.
+                    return false;
+                }
+
+                var analyzerEnabled = analysisScope switch
+                {
+                    // Analyzers are only enabled for active document.
+                    // Compiler analyzer is special and enabled for all open documents.
+                    BackgroundAnalysisScope.ActiveFile => analyzer.IsCompilerAnalyzer() ? isOpenDocument : isActiveDocument,
+
+                    // Analyzers are disabled for all documents.
+                    // Compiler analyzer is special and enabled for all open documents.
+                    BackgroundAnalysisScope.None => isOpenDocument && analyzer.IsCompilerAnalyzer(),
+
+                    // All analyzers, including compiler analyzer, are enabled for all open documents.
+                    _ => isOpenDocument,
+                };
+
+                return !analyzerEnabled;
             }
         }
 
