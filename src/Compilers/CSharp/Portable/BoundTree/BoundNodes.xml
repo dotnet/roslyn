@@ -83,7 +83,9 @@
   </AbstractNode>
 
   <!--
-  This node will not survive the local rewriting.
+  This node will not survive the local rewriting,
+  except in some scenarios in a Linq Expression Tree when the containing node
+  survives.
   -->
   <Node Name="BoundValuePlaceholder" Base="BoundValuePlaceholderBase">
   </Node>
@@ -549,7 +551,15 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="LeftOperand" Type="BoundExpression"/>
     <Field Name="RightOperand" Type="BoundExpression"/>
-    <Field Name="LeftConversion" Type="Conversion"/>
+
+    <!-- Used as an operand to bind LeftConversion -->
+    <Field Name="LeftPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!--
+    Could be a BoundConversion or, in some cases of an identity conversion, the LeftPlaceholder, or null for no conversion case.
+    If the node survives lowering, this property in it must be null, unless it is part of a Linq Expression Tree.
+    -->
+    <Field Name="LeftConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+
     <Field Name="OperatorResultKind" Type="BoundNullCoalescingOperatorResultKind" Null="NotApplicable"/>
   </Node>
 

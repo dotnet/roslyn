@@ -791,10 +791,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var left = Visit(node.LeftOperand);
             var right = Visit(node.RightOperand);
-            if (node.LeftConversion.IsUserDefined)
+            if (BoundNode.GetConversion(node.LeftConversion, node.LeftPlaceholder) is { IsUserDefined: true } leftConversion)
             {
-                TypeSymbol lambdaParamType = node.LeftOperand.Type.StrippedType();
-                return ExprFactory("Coalesce", left, right, MakeConversionLambda(node.LeftConversion, lambdaParamType, node.Type));
+                Debug.Assert(node.LeftPlaceholder is not null);
+                TypeSymbol lambdaParamType = node.LeftPlaceholder.Type;
+                return ExprFactory("Coalesce", left, right, MakeConversionLambda(leftConversion, lambdaParamType, node.LeftConversion.Type));
             }
             else
             {

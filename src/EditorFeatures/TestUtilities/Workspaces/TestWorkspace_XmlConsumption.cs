@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 => string.Format("<member name='{0}'><summary>{0}</summary></member>", documentationMemberID);
 
             public override bool Equals(object obj)
-                => this == obj;
+                => ReferenceEquals(this, obj);
 
             public override int GetHashCode()
                 => RuntimeHelpers.GetHashCode(this);
