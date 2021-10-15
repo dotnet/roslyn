@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         protected override int OldTextLength => OldArray.Count;
         protected override int NewTextLength => NewArray.Count;
 
-        private const int MaxArraySize = 100;
+        private const int MaxArraySize = 50;
 
         protected override bool ContentEquals(int oldTextIndex, int newTextIndex)
         {
