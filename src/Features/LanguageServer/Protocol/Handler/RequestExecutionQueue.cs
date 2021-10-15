@@ -116,6 +116,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _cancelSource.Cancel();
             DrainQueue();
             _requestTelemetryLogger.Dispose();
+            _lspWorkspaceManager.Dispose();
         }
 
         /// <summary>

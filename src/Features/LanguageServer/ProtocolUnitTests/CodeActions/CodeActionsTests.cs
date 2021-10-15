@@ -112,8 +112,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             var caretLocation = locations["caret"].Single();
             var document = GetDocument(testLspServer.TestWorkspace, CreateTextDocumentIdentifier(caretLocation.Uri));
 
-            //await testLspServer.OpenDocumentAsync(document.GetURI());
-
             // 1. Invoking code actions on document with empty cache.
             await RunCodeActionsAndAssertActionsInCacheAsync(testLspServer, cache, caretLocation, document);
 

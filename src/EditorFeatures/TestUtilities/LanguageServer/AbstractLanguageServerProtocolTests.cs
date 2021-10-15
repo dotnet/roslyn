@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Test;
@@ -297,7 +298,6 @@ namespace Roslyn.Test.Utilities
                 _ => throw new ArgumentException($"language name {languageName} is not valid for a test workspace"),
             };
 
-            RegisterWorkspaceForLsp(workspace);
             var solution = workspace.CurrentSolution;
 
             foreach (var document in workspace.Documents)
@@ -312,10 +312,9 @@ namespace Roslyn.Test.Utilities
             return new TestLspServer(workspace);
         }
 
-        protected TestLspServer CreateXmlTestLspServer(string xmlContent, out Dictionary<string, IList<LSP.Location>> locations)
+        protected TestLspServer CreateXmlTestLspServer(string xmlContent, out Dictionary<string, IList<LSP.Location>> locations, string? workspaceKind = null)
         {
-            var workspace = TestWorkspace.Create(xmlContent, composition: Composition);
-            RegisterWorkspaceForLsp(workspace);
+            var workspace = TestWorkspace.Create(XElement.Parse(xmlContent), openDocuments: false, composition: Composition, workspaceKind: workspaceKind);
             locations = GetAnnotatedLocations(workspace, workspace.CurrentSolution);
             return new TestLspServer(workspace);
         }
@@ -329,12 +328,6 @@ namespace Roslyn.Test.Utilities
                 SourceCodeKind.Regular, loader, $"C:\\{TestSpanMapper.GeneratedFileName}", isGenerated: true, designTimeOnly: false, new TestSpanMapperProvider());
             var newSolution = workspace.CurrentSolution.AddDocument(generatedDocumentInfo);
             workspace.TryApplyChanges(newSolution);
-        }
-
-        private protected static void RegisterWorkspaceForLsp(TestWorkspace workspace)
-        {
-            var provider = workspace.ExportProvider.GetExportedValue<LspWorkspaceRegistrationService>();
-            provider.Register(workspace);
         }
 
         public static Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(TestWorkspace workspace, Solution solution)
@@ -494,6 +487,10 @@ namespace Roslyn.Test.Utilities
             internal RequestExecutionQueue.TestAccessor GetQueueAccessor() => _executionQueue.GetTestAccessor();
 
             internal RequestDispatcher.TestAccessor GetDispatcherAccessor() => _requestDispatcher.GetTestAccessor();
+
+            internal LspWorkspaceManager.TestAccessor GetManagerAccessor() => _executionQueue.GetTestAccessor().GetLspWorkspaceManager().GetTestAccessor();
+
+            internal LspWorkspaceManager GetManager() => _executionQueue.GetTestAccessor().GetLspWorkspaceManager();
 
             public void Dispose()
             {

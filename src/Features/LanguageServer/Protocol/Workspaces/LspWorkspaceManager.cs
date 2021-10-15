@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// Manages the registered workspaces and corresponding LSP solutions for an LSP server.
 /// This type is tied to a particular server.
 /// </summary>
-internal partial class LspWorkspaceManager
+internal partial class LspWorkspaceManager : IDisposable
 {
     /// <summary>
     /// Lock to gate access to the <see cref="_workspaceToLspSolution"/>.
@@ -41,6 +41,7 @@ internal partial class LspWorkspaceManager
     private readonly IDocumentChangeTracker _documentChangeTracker;
     private readonly LspMiscellaneousFilesWorkspace? _lspMiscellaneousFilesWorkspace;
     private readonly RequestTelemetryLogger _requestTelemetryLogger;
+    private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
 
     public LspWorkspaceManager(
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
@@ -56,6 +57,7 @@ internal partial class LspWorkspaceManager
         _logger = logger;
         _requestTelemetryLogger = requestTelemetryLogger;
 
+        _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
         lspWorkspaceRegistrationService.WorkspaceRegistered += OnWorkspaceRegistered;
         // This server may have been started after workspaces were registered, we need to ensure we know about them.
         PopulateAlreadyRegisteredWorkspaces();
@@ -369,6 +371,16 @@ internal partial class LspWorkspaceManager
     internal TestAccessor GetTestAccessor()
             => new(this);
 
+    public void Dispose()
+    {
+        _lspWorkspaceRegistrationService.WorkspaceRegistered -= OnWorkspaceRegistered;
+        var registeredWorkspaces = _workspaceToLspSolution.Keys.ToImmutableArray();
+        foreach (var registeredWorkspace in registeredWorkspaces)
+        {
+            registeredWorkspace.WorkspaceChanged -= OnWorkspaceChanged;
+        }
+    }
+
     internal readonly struct TestAccessor
     {
         private readonly LspWorkspaceManager _manager;
@@ -376,5 +388,7 @@ internal partial class LspWorkspaceManager
         public TestAccessor(LspWorkspaceManager manager)
             => _manager = manager;
         public LspMiscellaneousFilesWorkspace? GetLspMiscellaneousFilesWorkspace() => _manager._lspMiscellaneousFilesWorkspace;
+
+        public Dictionary<Workspace, Solution?> GetWorkspaceState() => _manager._workspaceToLspSolution;
     }
 }
