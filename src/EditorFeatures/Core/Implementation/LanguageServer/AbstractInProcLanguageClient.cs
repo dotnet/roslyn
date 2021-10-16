@@ -139,7 +139,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 this,
                 serverStream,
                 serverStream,
-                _lspWorkspaceRegistrationService,
                 _lspLoggerFactory,
                 _diagnosticsClientName,
                 cancellationToken).ConfigureAwait(false);
@@ -170,7 +169,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             AbstractInProcLanguageClient languageClient,
             Stream inputStream,
             Stream outputStream,
-            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             ILspLoggerFactory lspLoggerFactory,
             string? clientName,
             CancellationToken cancellationToken)
@@ -190,7 +188,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             var server = languageClient.Create(
                 jsonRpc,
                 languageClient,
-                lspWorkspaceRegistrationService,
                 logger);
 
             jsonRpc.StartListening();
@@ -200,14 +197,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public ILanguageServerTarget Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
-            LspWorkspaceRegistrationService workspaceRegistrationService,
             ILspLogger logger)
         {
             return new VisualStudioInProcLanguageServer(
                 _requestDispatcherFactory,
                 jsonRpc,
                 capabilitiesProvider,
-                workspaceRegistrationService,
+                _lspWorkspaceRegistrationService,
                 GlobalOptions,
                 _listenerProvider,
                 logger,

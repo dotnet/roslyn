@@ -139,10 +139,13 @@ internal partial class LspWorkspaceManager : IDisposable
             var updatedSolutions = ForkAllWorkspaces();
 
             // If we can't find the document in any of the registered workspaces, add it to our loose files workspace.
-            var findDocumentResult = FindDocument(uri, updatedSolutions, _lspMiscellaneousFilesWorkspace?.CurrentSolution, clientName: null, _requestTelemetryLogger, _logger);
-            if (findDocumentResult == null)
+            if (!updatedSolutions.Any(solution => solution.GetDocuments(uri).Any()) && _lspMiscellaneousFilesWorkspace != null)
             {
-                _lspMiscellaneousFilesWorkspace?.AddMiscellaneousDocument(uri, documentText);
+                var miscDocument = _lspMiscellaneousFilesWorkspace.AddMiscellaneousDocument(uri, documentText);
+                if (miscDocument != null)
+                {
+                    _workspaceToLspSolution[_lspMiscellaneousFilesWorkspace] = miscDocument.Project.Solution;
+                }
             }
         }
     }
@@ -171,7 +174,7 @@ internal partial class LspWorkspaceManager : IDisposable
             // Get our current solutions and re-fork from the workspace as needed.
             var updatedSolutions = UpdateAllSolutions();
 
-            var findDocumentResult = FindDocument(uri, updatedSolutions, _lspMiscellaneousFilesWorkspace?.CurrentSolution, clientName: null, _requestTelemetryLogger, _logger);
+            var findDocumentResult = FindDocument(uri, updatedSolutions, clientName: null, _requestTelemetryLogger, _logger);
             if (findDocumentResult == null)
             {
                 // We didn't find this document in a registered workspace or in the misc workspace.
@@ -183,19 +186,16 @@ internal partial class LspWorkspaceManager : IDisposable
                 return;
             }
 
-            if (findDocumentResult.Value.LspSolution.Workspace == _lspMiscellaneousFilesWorkspace)
-            {
-                // We found the document in the lsp misc files workspace.  Update it with the latest text.
-                _lspMiscellaneousFilesWorkspace.TryUpdateMiscellaneousDocument(uri, newSourceText);
-                return;
-            }
-
             // Update all the documents that have a matching uri with the new source text and store as our new incremental solution.
             var solution = GetSolutionWithReplacedDocuments(findDocumentResult.Value.LspSolution, (uri, newSourceText));
             _workspaceToLspSolution[solution.Workspace] = solution;
 
-            // We found the document in a registered solution.  Remove it from the loose files workspace if it exists.
-            _lspMiscellaneousFilesWorkspace?.TryRemoveMiscellaneousDocument(uri);
+            if (solution.Workspace is not LspMiscellaneousFilesWorkspace && _lspMiscellaneousFilesWorkspace != null)
+            {
+                // If we found the uri in a workspace that isn't LSP misc files, we can remove it from the lsp misc files if it is there.
+                _lspMiscellaneousFilesWorkspace.TryRemoveMiscellaneousDocument(uri);
+            }
+
             return;
         }
     }
@@ -231,7 +231,7 @@ internal partial class LspWorkspaceManager : IDisposable
             var currentLspSolutions = UpdateAllSolutions();
 
             // Search through the latest lsp solutions to find the document with matching uri and client name.
-            var findDocumentResult = FindDocument(textDocumentIdentifier.Uri, currentLspSolutions, _lspMiscellaneousFilesWorkspace?.CurrentSolution, clientName, _requestTelemetryLogger, _logger);
+            var findDocumentResult = FindDocument(textDocumentIdentifier.Uri, currentLspSolutions, clientName, _requestTelemetryLogger, _logger);
             if (findDocumentResult != null)
             {
                 // Filter the matching documents by project context.
@@ -292,12 +292,14 @@ internal partial class LspWorkspaceManager : IDisposable
     private static (Solution LspSolution, ImmutableArray<Document> MatchingDocuments)? FindDocument(
         Uri uri,
         ImmutableArray<Solution> registeredSolutions,
-        Solution? lspMiscFilesSolution,
         string? clientName,
         RequestTelemetryLogger telemetryLogger,
         ILspLogger logger)
     {
         logger.TraceInformation($"Finding document corresponding to {uri}");
+
+        // Ensure we search the lsp misc files solution last if it is present.
+        registeredSolutions = registeredSolutions.OrderBy(solution => solution.Workspace is LspMiscellaneousFilesWorkspace).ToImmutableArray();
 
         // First search the registered workspaces for documents with a matching URI.
         if (TryGetDocumentsForUri(uri, registeredSolutions, clientName, out var documents, out var solution))
@@ -306,15 +308,6 @@ internal partial class LspWorkspaceManager : IDisposable
             logger.TraceInformation($"{documents.Value.First().FilePath} found in workspace {solution.Workspace.Kind}");
 
             return (solution, documents.Value);
-        }
-
-        // If the document was not in a registered workspace, try to retrieve from the LSP misc files workspace.
-        var miscDocuments = lspMiscFilesSolution?.GetDocuments(uri);
-        if (lspMiscFilesSolution != null && miscDocuments?.Any() == true)
-        {
-            telemetryLogger.UpdateFindDocumentTelemetryData(success: true, lspMiscFilesSolution.Workspace.Kind);
-            logger.TraceInformation($"{miscDocuments.Value.First().FilePath} found in LSP miscellaneous workspace");
-            return (lspMiscFilesSolution, miscDocuments.Value);
         }
 
         // We didn't find the document in any workspace, record a telemetry notification that we did not find it.

@@ -372,10 +372,8 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
         using var testWorkspaceTwo = TestWorkspace.Create(
             XElement.Parse(secondWorkspaceXml),
-            workspaceKind: "OtherWorkspaceKind",
+            workspaceKind: WorkspaceKind.MSBuild,
             exportProvider: exportProvider);
-        var workspaceRegistrationService = exportProvider.GetExport<LspWorkspaceRegistrationService>();
-        workspaceRegistrationService.Value.Register(testWorkspaceTwo);
 
         // Verify both workspaces registered.
         Assert.Null(GetManagerWorkspaceState(testLspServer.TestWorkspace, testLspServer));
@@ -438,10 +436,8 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
         using var testWorkspaceTwo = TestWorkspace.Create(
             XElement.Parse(secondWorkspaceXml),
-            workspaceKind: "OtherWorkspaceKind",
+            workspaceKind: WorkspaceKind.MSBuild,
             exportProvider: exportProvider);
-        var workspaceRegistrationService = exportProvider.GetExport<LspWorkspaceRegistrationService>();
-        workspaceRegistrationService.Value.Register(testWorkspaceTwo);
 
         var firstWorkspaceDocumentUri = ProtocolConversions.GetUriFromFilePath(@"C:\FirstWorkspace.cs");
         var secondWorkspaceDocumentUri = ProtocolConversions.GetUriFromFilePath(@"C:\SecondWorkspace.cs");

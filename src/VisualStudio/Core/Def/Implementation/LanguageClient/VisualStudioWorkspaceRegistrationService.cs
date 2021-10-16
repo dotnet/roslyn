@@ -10,18 +10,17 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 [Export(typeof(LspWorkspaceRegistrationService)), Shared]
-[ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host, WorkspaceKind.MiscellaneousFiles, WorkspaceKind.MetadataAsSource)]
-internal class DefaultLspWorkspaceRegistrationService : LspWorkspaceRegistrationService, IEventListener<object>
+internal class VisualStudioWorkspaceRegistrationService : LspWorkspaceRegistrationService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public DefaultLspWorkspaceRegistrationService()
+    public VisualStudioWorkspaceRegistrationService()
     {
     }
 
     public override string GetHostWorkspaceKind() => WorkspaceKind.Host;
 
-    public void StartListening(Workspace workspace, object _)
+    public override void Register(Workspace workspace)
     {
         // The lsp misc files workspace has the MiscellaneousFiles workspace kind,
         // but we don't actually want to mark it as a registered workspace in VS since we
@@ -31,7 +30,6 @@ internal class DefaultLspWorkspaceRegistrationService : LspWorkspaceRegistration
             return;
         }
 
-        Register(workspace);
+        base.Register(workspace);
     }
 }
-

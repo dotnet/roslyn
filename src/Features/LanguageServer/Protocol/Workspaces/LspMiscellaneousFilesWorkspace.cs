@@ -72,24 +72,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         /// <summary>
-        /// Updates the text in the workspace for a miscellaneous document, if it exists in this workspace.
-        /// Returns true if the document exists and was successfully updated.
-        /// </summary>
-        public bool TryUpdateMiscellaneousDocument(Uri uri, SourceText newSourceText)
-        {
-            var uriAbsolutePath = uri.AbsolutePath;
-            var matchingDocument = CurrentSolution.GetDocumentIdsWithFilePath(uriAbsolutePath).SingleOrDefault();
-            if (matchingDocument != null)
-            {
-                var document = CurrentSolution.GetRequiredDocument(matchingDocument);
-                var newSolution = document.WithText(newSourceText).Project.Solution;
-                return this.TryApplyChanges(newSolution);
-            }
-
-            return false;
-        }
-
-        /// <summary>
         /// Removes a document with the matching file path from this workspace.
         /// 
         /// Calls to this method and <see cref="AddMiscellaneousDocument(Uri, SourceText)"/> are made
@@ -110,16 +92,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 var project = CurrentSolution.GetRequiredProject(matchingDocument.ProjectId);
                 OnProjectRemoved(project.Id);
             }
-        }
-
-        public override bool CanApplyChange(ApplyChangesKind feature)
-        {
-            if (feature == ApplyChangesKind.ChangeDocument)
-            {
-                return true;
-            }
-
-            return base.CanApplyChange(feature);
         }
 
         private class SourceTextLoader : TextLoader
