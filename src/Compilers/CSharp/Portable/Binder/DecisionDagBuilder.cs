@@ -456,7 +456,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var tests = ArrayBuilder<Tests>.GetInstance(2);
-                var convertedInput = MakeConvertToType(input, constant.Syntax, constant.Value.Type!, isExplicitTest: false, tests);
+                Debug.Assert(constant.Value.Type is not null || constant.HasErrors);
+                var convertedInput = constant.Value.Type is { } type ? MakeConvertToType(input, constant.Syntax, type, isExplicitTest: false, tests) : input;
                 output = convertedInput;
                 tests.Add(new Tests.One(new BoundDagValueTest(constant.Syntax, constant.ConstantValue, convertedInput)));
                 return Tests.AndSequence.Create(tests);
