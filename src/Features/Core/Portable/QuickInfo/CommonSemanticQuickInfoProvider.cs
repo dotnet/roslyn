@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             var cancellationToken = context.CancellationToken;
             var semanticModel = await context.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return await CreateContentAsync(
-                context.Document.Project.Solution.Workspace, semanticModel, token, tokenInformation, supportedPlatforms, cancellationToken).ConfigureAwait(false);
+                context.Document.Project.Solution.Workspace, semanticModel, token, tokenInformation, supportedPlatforms, context.Options, cancellationToken).ConfigureAwait(false);
         }
 
         protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 return null;
 
             return await CreateContentAsync(
-                context.Workspace, context.SemanticModel, token, tokenInformation, supportedPlatforms: null, context.CancellationToken).ConfigureAwait(false);
+                context.Workspace, context.SemanticModel, token, tokenInformation, supportedPlatforms: null, context.Options, context.CancellationToken).ConfigureAwait(false);
         }
 
         private async Task<(TokenInformation tokenInformation, SupportedPlatformData? supportedPlatforms)> ComputeQuickInfoDataAsync(
@@ -152,6 +152,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             SyntaxToken token,
             TokenInformation tokenInformation,
             SupportedPlatformData? supportedPlatforms,
+            SymbolDescriptionOptions options,
             CancellationToken cancellationToken)
         {
             var syntaxFactsService = workspace.Services.GetLanguageServices(semanticModel.Language).GetRequiredService<ISyntaxFactsService>();
@@ -169,7 +170,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             return QuickInfoUtilities.CreateQuickInfoItemAsync(
                 workspace, semanticModel, token.Span, symbols, supportedPlatforms,
-                tokenInformation.ShowAwaitReturn, tokenInformation.NullableFlowState, cancellationToken);
+                tokenInformation.ShowAwaitReturn, tokenInformation.NullableFlowState, options, cancellationToken);
         }
 
         protected abstract bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found);

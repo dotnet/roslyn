@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Completion
             Document document,
             CompletionItem item,
             CancellationToken cancellationToken = default)
-            => GetDescriptionAsync(document, item, CompletionOptions.From(document.Project), cancellationToken);
+            => GetDescriptionAsync(document, item, CompletionOptions.From(document.Project), SymbolDescriptionOptions.From(document.Project), cancellationToken);
 
         /// <summary>
         /// Gets the description of the item.
@@ -170,8 +171,9 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <paramref name="item"/> was created against.</param>
         /// <param name="item">The item to get the description for.</param>
         /// <param name="options">Completion options</param>
+        /// <param name="displayOptions">Display options</param>
         /// <param name="cancellationToken"></param>
-        internal abstract Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, CancellationToken cancellationToken = default);
+        internal abstract Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets the change to be applied when the item is committed.

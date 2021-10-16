@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.QuickInfo
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         public override async Task<QuickInfoItem?> GetQuickInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var extensionManager = _workspace.Services.GetRequiredService<IExtensionManager>();
+            var options = SymbolDescriptionOptions.From(document.Project);
 
             // returns the first non-empty quick info found (based on provider order)
             foreach (var provider in GetProviders())
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 {
                     if (!extensionManager.IsDisabled(provider))
                     {
-                        var context = new QuickInfoContext(document, position, cancellationToken);
+                        var context = new QuickInfoContext(document, position, options, cancellationToken);
 
                         var info = await provider.GetQuickInfoAsync(context).ConfigureAwait(false);
                         if (info != null)
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return null;
         }
 
-        internal async Task<QuickInfoItem?> GetQuickInfoAsync(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        internal async Task<QuickInfoItem?> GetQuickInfoAsync(Workspace workspace, SemanticModel semanticModel, int position, SymbolDescriptionOptions options, CancellationToken cancellationToken)
         {
             var extensionManager = _workspace.Services.GetRequiredService<IExtensionManager>();
 
@@ -90,7 +92,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 {
                     if (!extensionManager.IsDisabled(provider))
                     {
-                        var context = new CommonQuickInfoContext(workspace, semanticModel, position, cancellationToken);
+                        var context = new CommonQuickInfoContext(workspace, semanticModel, position, options, cancellationToken);
 
                         var info = await provider.GetQuickInfoAsync(context).ConfigureAwait(false);
                         if (info != null)

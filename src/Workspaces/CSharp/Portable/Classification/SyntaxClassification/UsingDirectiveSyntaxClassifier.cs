@@ -15,11 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
     internal class UsingDirectiveSyntaxClassifier : AbstractSyntaxClassifier
     {
         public override void AddClassifications(
-            Workspace workspace,
             SyntaxNode syntax,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
-            CancellationToken cancellationToken)
+            ClassificationOptions options,
+            ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             if (syntax is UsingDirectiveSyntax usingDirective)
             {
