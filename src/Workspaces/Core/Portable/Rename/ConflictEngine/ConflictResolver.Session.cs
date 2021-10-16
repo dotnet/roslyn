@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             private ImmutableArray<ISymbol> GetSymbolsInNewSolution(Document newDocument, SemanticModel newDocumentSemanticModel, RenameActionAnnotation conflictAnnotation, SyntaxNodeOrToken tokenOrNode)
             {
-                var newReferencedSymbols = RenameUtilities.GetSymbolsTouchingPosition(tokenOrNode.Span.Start, newDocumentSemanticModel, newDocument.Project.Solution.Workspace, _cancellationToken);
+                var newReferencedSymbols = RenameUtilities.GetSymbolsTouchingPosition(tokenOrNode.Span.Start, newDocumentSemanticModel, newDocument.Project.Solution.Workspace.Services, _cancellationToken);
 
                 if (conflictAnnotation.IsInvocationExpression)
                 {

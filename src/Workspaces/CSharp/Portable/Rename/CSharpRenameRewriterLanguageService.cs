@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         return newToken;
                     }
 
-                    var symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Workspace, _cancellationToken);
+                    var symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Workspace.Services, _cancellationToken);
 
                     string? suffix = null;
                     var prefix = isRenameLocation && _renameLocations[token.Span].IsRenamableAccessor

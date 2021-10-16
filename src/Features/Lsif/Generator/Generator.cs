@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             // even emitted in the final lsif hover information.
             var workspace = languageServices.WorkspaceServices.Workspace;
             workspace.SetOptions(workspace.Options.WithChangedOption(
-                QuickInfoOptions.IncludeNavigationHintsInQuickInfo, false));
+                QuickInfoOptions.Metadata.IncludeNavigationHintsInQuickInfo, false));
 
             var tasks = new List<Task>();
             foreach (var syntaxTree in compilation.SyntaxTrees)

@@ -749,7 +749,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return ImmutableArray<ISymbol>.Empty;
             }
 
-            var semanticInfo = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken);
+            var semanticInfo = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace.Services, cancellationToken);
             return semanticInfo.ReferencedSymbols;
         }
 

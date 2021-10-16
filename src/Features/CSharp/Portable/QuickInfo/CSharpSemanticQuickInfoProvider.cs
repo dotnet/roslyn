@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         protected override bool ShouldCheckPreviousToken(SyntaxToken token)
             => !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
 
-        protected override NullableFlowState GetNullabilityAnalysis(Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken)
+        protected override NullableFlowState GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken)
         {
             // Anything less than C# 8 we just won't show anything, even if the compiler could theoretically give analysis
             var parseOptions = (CSharpParseOptions)semanticModel.SyntaxTree!.Options;
