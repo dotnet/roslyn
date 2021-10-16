@@ -27,9 +27,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
-        public void SetPersistenceOption(bool value)
-            => SetOption("Enabled", PersistentStorageOptions.OptionName, value);
-
         public bool IsPrettyListingOn(string languageName)
             => _inProc.IsPrettyListingOn(languageName);
 
