@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             private IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> BuildDescriptionSections()
             {
-                var includeNavigationHints = Options.IncludeNavigationHintsInQuickInfo;
+                var includeNavigationHints = Options.QuickInfoOptions.IncludeNavigationHintsInQuickInfo;
 
                 // Merge the two maps into one final result.
                 var result = new Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>>(_documentationMap);

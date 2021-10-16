@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Get the quick info service to compute quick info.
             // This code path is only invoked for C# and VB, so we can directly cast to QuickInfoServiceWithProviders.
             var quickInfoService = (QuickInfoServiceWithProviders)languageServices.GetRequiredService<QuickInfoService>();
-            var info = await quickInfoService.GetQuickInfoAsync(languageServices.WorkspaceServices.Workspace, semanticModel, position, options, cancellationToken).ConfigureAwait(false);
+            var info = await quickInfoService.GetQuickInfoAsync(semanticModel, position, options, cancellationToken).ConfigureAwait(false);
             if (info == null)
             {
                 return null;
