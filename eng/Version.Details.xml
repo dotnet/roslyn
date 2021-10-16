@@ -6,9 +6,9 @@
       <Sha>7e80445ee82adbf9a8e6ae601ac5e239d982afaa</Sha>
       <SourceBuild RepoName="xliff-tasks" ManagedOnly="true" />
     </Dependency>
-    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build" Version="0.1.0-alpha.1.21514.1">
+    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build" Version="0.1.0-alpha.1.21515.2">
       <Uri>https://github.com/dotnet/source-build</Uri>
-      <Sha>fd4b37f7f5e7c4cc82b1d55daecc11870d1aacef</Sha>
+      <Sha>03462c6b31f9c97d4fb0b9bcca7355b81c7fde76</Sha>
       <SourceBuild RepoName="source-build" ManagedOnly="true" />
     </Dependency>
   </ProductDependencies>
