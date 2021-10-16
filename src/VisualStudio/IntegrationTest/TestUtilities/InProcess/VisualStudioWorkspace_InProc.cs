@@ -72,13 +72,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                         NotificationOption2.Suggestion)));
             });
 
-        public void EnableQuickInfo(bool value)
-            => InvokeOnUIThread(cancellationToken =>
-            {
-                _visualStudioWorkspace.SetOptions(_visualStudioWorkspace.Options.WithChangedOption(
-                    InternalFeatureOnOffOptions.QuickInfo, value));
-            });
-
         public void SetPerLanguageOption(string optionName, string feature, string language, object value)
         {
             var option = GetOption(optionName, feature);
