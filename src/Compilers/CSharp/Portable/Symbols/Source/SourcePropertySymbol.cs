@@ -13,17 +13,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourcePropertySymbol : SourcePropertySymbolBase
     {
-        internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, PropertyDeclarationSyntax syntax, BindingDiagnosticBag diagnostics, bool ignoreFieldKeyword = false)
+        internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, PropertyDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             var nameToken = syntax.Identifier;
             var location = nameToken.GetLocation();
-            return Create(containingType, bodyBinder, syntax, nameToken.ValueText, location, diagnostics, ignoreFieldKeyword);
+            return Create(containingType, bodyBinder, syntax, nameToken.ValueText, location, diagnostics);
         }
 
         internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, IndexerDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             var location = syntax.ThisKeyword.GetLocation();
-            return Create(containingType, bodyBinder, syntax, DefaultIndexerName, location, diagnostics, ignoreFieldKeyword: true);
+            return Create(containingType, bodyBinder, syntax, DefaultIndexerName, location, diagnostics);
         }
 
         private static SourcePropertySymbol Create(
@@ -32,14 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BasePropertyDeclarationSyntax syntax,
             string name,
             Location location,
-            BindingDiagnosticBag diagnostics,
-            bool ignoreFieldKeyword)
+            BindingDiagnosticBag diagnostics)
         {
             GetAccessorDeclarations(
                 syntax,
                 containingType,
                 diagnostics,
-                ignoreFieldKeyword,
                 out bool isAutoProperty,
                 out bool hasAccessorList,
                 out bool accessorsHaveImplementation,
@@ -162,7 +160,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpSyntaxNode syntaxNode,
             SourceMemberContainerTypeSymbol containingType,
             BindingDiagnosticBag diagnostics,
-            bool ignoreFieldKeyword,
             out bool isAutoProperty,
             out bool hasAccessorList,
             out bool accessorsHaveImplementation,
@@ -224,20 +221,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (accessor.Body != null || accessor.ExpressionBody != null)
                     {
                         accessorsHaveImplementation = true;
-                        if (!ignoreFieldKeyword)
-                        {
-                            var containsFieldKeyword = ((SyntaxNode?)accessor.Body ?? accessor.ExpressionBody!.Expression).DescendantTokens()
-                                .Any(t => t.IsKind(SyntaxKind.IdentifierToken) && t.ContextualKind() == SyntaxKind.FieldKeyword && !t.Parent.IsKind(SyntaxKind.AttributeTargetSpecifier));
-
-                            if (containsFieldKeyword)
-                            {
-                                var members = containingType.GetMembers("field");
-                                if (members.Length == 0)
-                                {
-                                    isAutoProperty = true;
-                                }
-                            }
-                        }
                     }
                     else
                     {

@@ -63,6 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private SynthesizedSealedPropertyAccessor _lazySynthesizedSealedAccessor;
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
 
+        private readonly bool _hasGetAccessor;
+        private readonly bool _hasSetAccessor;
+        private readonly bool _isInitOnly;
+
         // CONSIDER: if the parameters were computed lazily, ParameterCount could be overridden to fall back on the syntax (as in SourceMemberMethodSymbol).
 
         public Location Location { get; }
@@ -93,8 +97,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _syntaxRef = syntax.GetReference();
             Location = location;
             _containingType = containingType;
+            _hasGetAccessor = hasGetAccessor;
+            _hasSetAccessor = hasSetAccessor;
             _refKind = refKind;
             _modifiers = modifiers;
+            _isInitOnly = isInitOnly;
             _explicitInterfaceType = explicitInterfaceType;
 
             if (isExplicitInterfaceImplementation)
@@ -145,12 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((isAutoProperty && hasGetAccessor) || hasInitializer)
             {
                 Debug.Assert(!IsIndexer);
-                string fieldName = GeneratedNames.MakeBackingFieldName(_name);
-                BackingField = new SynthesizedBackingFieldSymbol(this,
-                                                                      fieldName,
-                                                                      isReadOnly: (hasGetAccessor && !hasSetAccessor) || isInitOnly,
-                                                                      this.IsStatic,
-                                                                      hasInitializer);
+                CreateBackingField();
             }
 
             if (hasGetAccessor)
@@ -163,6 +165,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _setMethod = CreateSetAccessorSymbol(isAutoPropertyAccessor: isAutoProperty, diagnostics);
             }
         }
+
+        internal void CreateBackingField() => BackingField = new SynthesizedBackingFieldSymbol(this,
+                                                                      GeneratedNames.MakeBackingFieldName(_name),
+                                                                      isReadOnly: (_hasGetAccessor && !_hasSetAccessor) || _isInitOnly,
+                                                                      this.IsStatic,
+                                                                      hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0);
 
         private void EnsureSignatureGuarded(BindingDiagnosticBag diagnostics)
         {
@@ -630,7 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Backing field for automatically implemented property, or
         /// for a property with an initializer.
         /// </summary>
-        internal SynthesizedBackingFieldSymbol BackingField { get; }
+        internal SynthesizedBackingFieldSymbol BackingField { get; set; }
 
         internal override bool MustCallMethodsDirectly
         {

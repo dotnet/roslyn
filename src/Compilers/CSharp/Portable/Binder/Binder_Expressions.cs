@@ -1557,10 +1557,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         expression = new BoundDiscardExpression(node, LocalScopeDepth, type: null);
                     }
                     else if (node.Identifier.ContextualKind() == SyntaxKind.FieldKeyword &&
-                        ContainingMemberOrLambda is SourcePropertyAccessorSymbol accessor && // PROTOTYPE: We should traverse until we get a property accessor.
-                        accessor.Property.BackingField is { } backingField)
+                        ContainingMemberOrLambda is SourcePropertyAccessorSymbol accessor // PROTOTYPE: We should traverse until we get a property accessor.
+                        )
                     {
-                        expression = BindNonMethod(node, backingField, diagnostics, LookupResultKind.Viable, indexed: false, isError: false);
+                        accessor.Property.CreateBackingField();
+                        expression = BindNonMethod(node, accessor.Property.BackingField, diagnostics, LookupResultKind.Viable, indexed: false, isError: false);
+
                     }
                 }
 

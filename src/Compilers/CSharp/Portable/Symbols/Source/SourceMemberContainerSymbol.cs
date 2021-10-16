@@ -4232,8 +4232,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             synthesizedMembers.Free();
         }
 
-        private bool _isCreatingPropertySymbol;
-
         private void AddNonTypeMembers(
             DeclaredMembersAndInitializersBuilder builder,
             SyntaxList<MemberDeclarationSyntax> members,
@@ -4367,16 +4365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     new SourceLocation(propertySyntax.Identifier));
                             }
 
-
-                            // PROTOTYPE(semi-auto-prop): TODO: Is adding an optional flag parameter to GetMembers that keeps delegating all the way until here a better idea?
-                            // GetMembers(string, bool) -> GetMembersByName(bool) -> GetMembersByNameSlow(bool) -> MakeAllMembers(BindingDiagnosticBag, bool)
-                            // -> GetMembersAndInitializers(bool) -> BuildMembersAndInitializers(BindingDiagnosticBag, bool) -> getDeclaredMembersAndInitializers
-                            // -> buildDeclaredMembersAndInitializers -> AddDeclaredNontypeMembers -> AddNonTypeMembers
-                            var ignoreFieldKeyword = _isCreatingPropertySymbol;
-                            _isCreatingPropertySymbol = true;
-
-                            var property = SourcePropertySymbol.Create(this, bodyBinder, propertySyntax, diagnostics, ignoreFieldKeyword: ignoreFieldKeyword);
-                            _isCreatingPropertySymbol = false;
+                            var property = SourcePropertySymbol.Create(this, bodyBinder, propertySyntax, diagnostics);
                             builder.NonTypeMembers.Add(property);
 
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.GetMethod);
