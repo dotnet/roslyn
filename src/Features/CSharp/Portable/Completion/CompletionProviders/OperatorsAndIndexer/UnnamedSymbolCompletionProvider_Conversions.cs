@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -97,14 +98,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CompletionChange.Create(fullTextChange, newPosition);
         }
 
-        private static async Task<CompletionDescription?> GetConversionDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        private static async Task<CompletionDescription?> GetConversionDescriptionAsync(Document document, CompletionItem item, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
         {
             var conversion = await TryRehydrateAsync(document, item, cancellationToken).ConfigureAwait(false);
             if (conversion == null)
                 return null;
 
             return await SymbolCompletionItem.GetDescriptionForSymbolsAsync(
-                item, document, ImmutableArray.Create(conversion), cancellationToken).ConfigureAwait(false);
+                item, document, ImmutableArray.Create(conversion), displayOptions, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<ISymbol?> TryRehydrateAsync(Document document, CompletionItem item, CancellationToken cancellationToken)

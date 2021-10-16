@@ -5,6 +5,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
@@ -59,6 +60,11 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public virtual Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => Task.FromResult<CompletionDescription?>(CompletionDescription.Empty);
+
+        internal virtual Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+#pragma warning disable RS0030 // Do not used banned APIs
+            => GetDescriptionAsync(document, item, cancellationToken);
+#pragma warning restore
 
         /// <summary>
         /// Gets the change to be applied when the specified item is committed.

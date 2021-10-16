@@ -386,7 +386,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (service == null)
                 return null;
 
-            var description = await service.GetDescriptionAsync(document, roslynItem, cancellationToken).ConfigureAwait(false);
+            var options = CompletionOptions.From(document.Project);
+            var displayOptions = SymbolDescriptionOptions.From(document.Project);
+            var description = await service.GetDescriptionAsync(document, roslynItem, options, displayOptions, cancellationToken).ConfigureAwait(false);
             if (description == null)
                 return null;
 

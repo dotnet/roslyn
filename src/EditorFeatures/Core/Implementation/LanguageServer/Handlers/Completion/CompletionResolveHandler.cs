@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
@@ -63,7 +64,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return completionItem;
             }
 
-            var description = await completionService.GetDescriptionAsync(document, selectedItem, cancellationToken).ConfigureAwait(false)!;
+            var options = CompletionOptions.From(document.Project);
+            var displayOptions = SymbolDescriptionOptions.From(document.Project);
+            var description = await completionService.GetDescriptionAsync(document, selectedItem, options, displayOptions, cancellationToken).ConfigureAwait(false)!;
             if (description != null)
             {
                 var supportsVSExtensions = context.ClientCapabilities.HasVisualStudioLspCapability();

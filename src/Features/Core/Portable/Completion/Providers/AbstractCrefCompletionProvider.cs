@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
@@ -14,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         protected const string HideAdvancedMembers = nameof(HideAdvancedMembers);
 
-        protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(
-            Document document, CompletionItem item, CancellationToken cancellationToken)
+        internal override async Task<CompletionDescription> GetDescriptionWorkerAsync(
+            Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
         {
             var position = SymbolCompletionItem.GetContextPosition(item);
 
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var name = SymbolCompletionItem.GetSymbolName(item);
             var kind = SymbolCompletionItem.GetKind(item);
             var bestSymbols = symbols.WhereAsArray(s => s.Kind == kind && s.Name == name);
-            return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, semanticModel, cancellationToken).ConfigureAwait(false);
+            return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, semanticModel, displayOptions, cancellationToken).ConfigureAwait(false);
         }
 
         protected abstract Task<(SyntaxToken, SemanticModel?, ImmutableArray<ISymbol>)> GetSymbolsAsync(

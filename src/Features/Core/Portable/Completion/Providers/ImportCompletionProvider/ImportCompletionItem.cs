@@ -116,9 +116,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public static string GetContainingNamespace(CompletionItem item)
             => item.InlineDescription;
 
-        public static async Task<CompletionDescription> GetCompletionDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        public static async Task<CompletionDescription> GetCompletionDescriptionAsync(Document document, CompletionItem item, SymbolDescriptionOptions options, CancellationToken cancellationToken)
         {
-            var compilation = (await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false));
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var (symbol, overloadCount) = GetSymbolAndOverloadCount(item, compilation);
 
             if (symbol != null)
@@ -126,11 +126,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 return await CommonCompletionUtilities.CreateDescriptionAsync(
-                    document.Project.Solution.Workspace,
+                    document.Project.Solution.Workspace.Services,
                     semanticModel,
                     position: 0,
                     symbol,
                     overloadCount,
+                    options,
                     supportedPlatforms: null,
                     cancellationToken).ConfigureAwait(false);
             }

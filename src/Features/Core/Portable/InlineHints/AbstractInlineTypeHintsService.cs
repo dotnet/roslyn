@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var displayOptions = SymbolDescriptionOptions.From(document.Project);
 
             var displayAllOverride = options.GetOption(InlineHintsOptions.DisplayAllOverride);
             var enabledForTypes = options.GetOption(InlineHintsOptions.EnabledForTypes);
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
                 result.Add(new InlineHint(
                     span, finalParts.ToTaggedText(),
-                    InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey(cancellationToken: cancellationToken))));
+                    InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
             }
 
             return result.ToImmutable();

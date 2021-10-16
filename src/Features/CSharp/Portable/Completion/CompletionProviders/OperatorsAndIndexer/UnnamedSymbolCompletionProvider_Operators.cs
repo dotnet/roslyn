@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -154,8 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static OperatorPosition GetOperatorPosition(string operatorName)
             => s_operatorNameToInfo[operatorName].position;
 
-        private static Task<CompletionDescription> GetOperatorDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+        private static Task<CompletionDescription> GetOperatorDescriptionAsync(Document document, CompletionItem item, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
 
         private static string GetOperatorInlineDescription(string opName)
         {

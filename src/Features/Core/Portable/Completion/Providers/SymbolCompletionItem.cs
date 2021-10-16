@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -170,14 +171,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             => SymbolKey.ResolveString(id, compilation).GetAnySymbol();
 
         public static async Task<CompletionDescription> GetDescriptionAsync(
-            CompletionItem item, Document document, CancellationToken cancellationToken)
+            CompletionItem item, Document document, SymbolDescriptionOptions options, CancellationToken cancellationToken)
         {
             var symbols = await GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
-            return await GetDescriptionForSymbolsAsync(item, document, symbols, cancellationToken).ConfigureAwait(false);
+            return await GetDescriptionForSymbolsAsync(item, document, symbols, options, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<CompletionDescription> GetDescriptionForSymbolsAsync(
-            CompletionItem item, Document document, ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
+            CompletionItem item, Document document, ImmutableArray<ISymbol> symbols, SymbolDescriptionOptions options, CancellationToken cancellationToken)
         {
             if (symbols.Length == 0)
                 return CompletionDescription.Empty;
@@ -190,8 +191,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var contextDocument = FindAppropriateDocumentForDescriptionContext(document, supportedPlatforms);
             var semanticModel = await contextDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var workspace = document.Project.Solution.Workspace;
-            return await CommonCompletionUtilities.CreateDescriptionAsync(workspace, semanticModel, position, symbols, supportedPlatforms, cancellationToken).ConfigureAwait(false);
+            var services = document.Project.Solution.Workspace.Services;
+            return await CommonCompletionUtilities.CreateDescriptionAsync(services, semanticModel, position, symbols, options, supportedPlatforms, cancellationToken).ConfigureAwait(false);
         }
 
         private static Document FindAppropriateDocumentForDescriptionContext(Document document, SupportedPlatformData? supportedPlatforms)
@@ -345,14 +346,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             => item.Properties.TryGetValue("IsGeneric", out var v) && bool.TryParse(v, out var isGeneric) && isGeneric;
 
         public static async Task<CompletionDescription> GetDescriptionAsync(
-            CompletionItem item, IReadOnlyList<ISymbol> symbols, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
+            CompletionItem item, IReadOnlyList<ISymbol> symbols, Document document, SemanticModel semanticModel, SymbolDescriptionOptions options, CancellationToken cancellationToken)
         {
             var position = GetDescriptionPosition(item);
             var supportedPlatforms = GetSupportedPlatforms(item, document.Project.Solution);
 
             if (symbols.Count != 0)
             {
-                return await CommonCompletionUtilities.CreateDescriptionAsync(document.Project.Solution.Workspace, semanticModel, position, symbols, supportedPlatforms, cancellationToken).ConfigureAwait(false);
+                return await CommonCompletionUtilities.CreateDescriptionAsync(document.Project.Solution.Workspace.Services, semanticModel, position, symbols, options, supportedPlatforms, cancellationToken).ConfigureAwait(false);
             }
             else
             {

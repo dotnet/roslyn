@@ -22,11 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             typeof(PostfixUnaryExpressionSyntax));
 
         public override void AddClassifications(
-            Workspace workspace,
             SyntaxNode syntax,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
-            CancellationToken cancellationToken)
+            ClassificationOptions options,
+            ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var symbolInfo = semanticModel.GetSymbolInfo(syntax, cancellationToken);
             if (symbolInfo.Symbol is IMethodSymbol methodSymbol

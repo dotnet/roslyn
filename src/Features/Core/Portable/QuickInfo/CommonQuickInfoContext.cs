@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.QuickInfo
 {
@@ -11,17 +12,20 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         public readonly Workspace Workspace;
         public readonly SemanticModel SemanticModel;
         public readonly int Position;
+        public readonly SymbolDescriptionOptions Options;
         public readonly CancellationToken CancellationToken;
 
         public CommonQuickInfoContext(
             Workspace workspace,
             SemanticModel semanticModel,
             int position,
+            SymbolDescriptionOptions options,
             CancellationToken cancellationToken)
         {
             Workspace = workspace;
             SemanticModel = semanticModel;
             Position = position;
+            Options = options;
             CancellationToken = cancellationToken;
         }
     }

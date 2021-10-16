@@ -8,6 +8,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.QuickInfo
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
@@ -27,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
                 token As SyntaxToken) As Task(Of QuickInfoItem)
             Dim semanticModel = Await context.Document.GetRequiredSemanticModelAsync(context.CancellationToken).ConfigureAwait(False)
             Dim info = Await BuildQuickInfoAsync(context.Document.Project.Solution.Workspace,
-                semanticModel, token, context.CancellationToken).ConfigureAwait(False)
+                semanticModel, token, context.Options, context.CancellationToken).ConfigureAwait(False)
             If info IsNot Nothing Then
                 Return info
             End If
@@ -38,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
         Protected Overrides Async Function BuildQuickInfoAsync(
                 context As CommonQuickInfoContext,
                 token As SyntaxToken) As Task(Of QuickInfoItem)
-            Dim info = Await BuildQuickInfoAsync(context.Workspace, context.SemanticModel, token, context.CancellationToken).ConfigureAwait(False)
+            Dim info = Await BuildQuickInfoAsync(context.Workspace, context.SemanticModel, token, context.Options, context.CancellationToken).ConfigureAwait(False)
             If info IsNot Nothing Then
                 Return info
             End If
@@ -50,6 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
                 workspace As Workspace,
                 semanticModel As SemanticModel,
                 token As SyntaxToken,
+                options As SymbolDescriptionOptions,
                 cancellationToken As CancellationToken) As Task(Of QuickInfoItem)
 
             Dim parent = token.Parent
@@ -68,9 +70,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
 
                 Case SyntaxKind.DimKeyword
                     If TypeOf parent Is FieldDeclarationSyntax Then
-                        Return Await BuildContentAsync(workspace, semanticModel, token, DirectCast(parent, FieldDeclarationSyntax).Declarators, cancellationToken).ConfigureAwait(False)
+                        Return Await BuildContentAsync(workspace, semanticModel, token, DirectCast(parent, FieldDeclarationSyntax).Declarators, options, cancellationToken).ConfigureAwait(False)
                     ElseIf TypeOf parent Is LocalDeclarationStatementSyntax Then
-                        Return Await BuildContentAsync(workspace, semanticModel, token, DirectCast(parent, LocalDeclarationStatementSyntax).Declarators, cancellationToken).ConfigureAwait(False)
+                        Return Await BuildContentAsync(workspace, semanticModel, token, DirectCast(parent, LocalDeclarationStatementSyntax).Declarators, options, cancellationToken).ConfigureAwait(False)
                     End If
 
                 Case SyntaxKind.CTypeKeyword
@@ -162,6 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
                 semanticModel As SemanticModel,
                 token As SyntaxToken,
                 declarators As SeparatedSyntaxList(Of VariableDeclaratorSyntax),
+                options As SymbolDescriptionOptions,
                 cancellationToken As CancellationToken) As Task(Of QuickInfoItem)
 
             If declarators.Count = 0 Then
@@ -192,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
                 Return QuickInfoItem.Create(token.Span, sections:=ImmutableArray.Create(QuickInfoSection.Create(QuickInfoSectionKinds.Description, ImmutableArray.Create(New TaggedText(TextTags.Text, VBFeaturesResources.Multiple_Types)))))
             End If
 
-            Return Await CreateContentAsync(workspace, semanticModel, token, New TokenInformation(types), supportedPlatforms:=Nothing, cancellationToken:=cancellationToken).ConfigureAwait(False)
+            Return Await CreateContentAsync(workspace, semanticModel, token, New TokenInformation(types), supportedPlatforms:=Nothing, options, cancellationToken).ConfigureAwait(False)
         End Function
 
         Private Shared Function BuildContentForIntrinsicOperator(

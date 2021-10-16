@@ -20,9 +20,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 {
     internal static class QuickInfoUtilities
     {
-
-        public static Task<QuickInfoItem> CreateQuickInfoItemAsync(Workspace workspace, SemanticModel semanticModel, TextSpan span, ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
-            => CreateQuickInfoItemAsync(workspace, semanticModel, span, symbols, supportedPlatforms: null, showAwaitReturn: false, flowState: NullableFlowState.None, cancellationToken);
+        public static Task<QuickInfoItem> CreateQuickInfoItemAsync(Workspace workspace, SemanticModel semanticModel, TextSpan span, ImmutableArray<ISymbol> symbols, SymbolDescriptionOptions options, CancellationToken cancellationToken)
+            => CreateQuickInfoItemAsync(workspace, semanticModel, span, symbols, supportedPlatforms: null, showAwaitReturn: false, flowState: NullableFlowState.None, options, cancellationToken);
 
         public static async Task<QuickInfoItem> CreateQuickInfoItemAsync(
             Workspace workspace,
@@ -32,10 +31,11 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             SupportedPlatformData? supportedPlatforms,
             bool showAwaitReturn,
             NullableFlowState flowState,
+            SymbolDescriptionOptions options,
             CancellationToken cancellationToken)
         {
             var descriptionService = workspace.Services.GetLanguageServices(semanticModel.Language).GetRequiredService<ISymbolDisplayService>();
-            var groups = await descriptionService.ToDescriptionGroupsAsync(workspace, semanticModel, span.Start, symbols, cancellationToken).ConfigureAwait(false);
+            var groups = await descriptionService.ToDescriptionGroupsAsync(semanticModel, span.Start, symbols, options, cancellationToken).ConfigureAwait(false);
 
             using var _1 = ArrayBuilder<QuickInfoSection>.GetInstance(out var sections);
 
