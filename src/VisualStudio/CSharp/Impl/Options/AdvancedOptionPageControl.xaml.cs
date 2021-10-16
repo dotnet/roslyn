@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
@@ -43,10 +44,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             InitializeComponent();
 
-            BindToOption(Background_analysis_scope_none, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.None, LanguageNames.CSharp);
-            BindToOption(Background_analysis_scope_active_file, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.ActiveFile, LanguageNames.CSharp);
-            BindToOption(Background_analysis_scope_open_files, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.OpenFilesAndProjects, LanguageNames.CSharp);
-            BindToOption(Background_analysis_scope_full_solution, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution, LanguageNames.CSharp);
+            // Get the default background analysis scope based on the feature flag
+            Func<BackgroundAnalysisScope?> onNullBackgroundAnalysisScope =
+                () => optionStore.GetOption(SolutionCrawlerOptions.DefaultBackgroundAnalysisScopeFeatureFlag) ? BackgroundAnalysisScope.ActiveFile : BackgroundAnalysisScope.Default;
+            BindToOption<BackgroundAnalysisScope?>(Background_analysis_scope_none, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.None, LanguageNames.CSharp, onNullBackgroundAnalysisScope);
+            BindToOption<BackgroundAnalysisScope?>(Background_analysis_scope_active_file, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.ActiveFile, LanguageNames.CSharp, onNullBackgroundAnalysisScope);
+            BindToOption<BackgroundAnalysisScope?>(Background_analysis_scope_open_files, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.OpenFilesAndProjects, LanguageNames.CSharp, onNullBackgroundAnalysisScope);
+            BindToOption<BackgroundAnalysisScope?>(Background_analysis_scope_full_solution, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution, LanguageNames.CSharp, onNullBackgroundAnalysisScope);
+            
             BindToOption(DisplayDiagnosticsInline, InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.CSharp);
             BindToOption(at_the_end_of_the_line_of_code, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfCode, LanguageNames.CSharp);
             BindToOption(on_the_right_edge_of_the_editor_window, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfEditor, LanguageNames.CSharp);

@@ -12,9 +12,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// <summary>
         /// Option to turn configure background analysis scope for the current user.
         /// </summary>
-        public static readonly PerLanguageOption2<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new(
-            nameof(SolutionCrawlerOptions), nameof(BackgroundAnalysisScopeOption), defaultValue: BackgroundAnalysisScope.Default,
+        public static readonly PerLanguageOption2<BackgroundAnalysisScope?> BackgroundAnalysisScopeOption = new(
+            nameof(SolutionCrawlerOptions), nameof(BackgroundAnalysisScopeOption), defaultValue: null,
             storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption"));
+
+        /// <summary>
+        /// Feature flag to control the default background analysis scope for the current user.
+        /// </summary>
+        public static readonly Option2<bool> DefaultBackgroundAnalysisScopeFeatureFlag = new(
+            nameof(SolutionCrawlerOptions), nameof(DefaultBackgroundAnalysisScopeFeatureFlag), defaultValue: false,
+            storageLocation: new FeatureFlagStorageLocation("Roslyn.DefaultBackgroundAnalysisScopeFeatureFlag"));
 
         /// <summary>
         /// Option to turn configure background analysis scope for the current solution.
@@ -59,7 +66,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return BackgroundAnalysisScope.Default;
 
                 default:
-                    return options.GetOption(BackgroundAnalysisScopeOption, language);
+                    var analysisScope = options.GetOption(BackgroundAnalysisScopeOption, language);
+                    if (analysisScope.HasValue)
+                    {
+                        return analysisScope.Value;
+                    }
+
+                    var isExperimentEnabled = options.GetOption(DefaultBackgroundAnalysisScopeFeatureFlag);
+                    return isExperimentEnabled ? BackgroundAnalysisScope.ActiveFile : BackgroundAnalysisScope.Default;
             }
         }
 

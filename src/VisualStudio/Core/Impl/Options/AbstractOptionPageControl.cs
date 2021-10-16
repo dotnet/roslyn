@@ -172,14 +172,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        private protected void BindToOption<T>(RadioButton radiobutton, PerLanguageOption2<T> optionKey, T optionValue, string languageName)
+        private protected void BindToOption<T>(RadioButton radiobutton, PerLanguageOption2<T> optionKey, T optionValue, string languageName, Func<T> onNullValue = null)
         {
             var binding = new Binding()
             {
                 Source = new PerLanguageOptionBinding<T>(OptionStore, optionKey, languageName),
                 Path = new PropertyPath("Value"),
                 UpdateSourceTrigger = UpdateSourceTrigger.Default,
-                Converter = new RadioButtonCheckedConverter(),
+                Converter = new RadioButtonCheckedConverter<T>(onNullValue),
                 ConverterParameter = optionValue
             };
 
@@ -204,11 +204,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
     }
 
-    public class RadioButtonCheckedConverter : IValueConverter
+    public class RadioButtonCheckedConverter<T> : IValueConverter
     {
+        private readonly Func<T> _onNullValue;
+
+        public RadioButtonCheckedConverter(Func<T> onNullValue)
+        {
+            _onNullValue = onNullValue;
+        }
+
         public object Convert(object value, Type targetType, object parameter,
             System.Globalization.CultureInfo culture)
         {
+            value ??= _onNullValue();
             return value.Equals(parameter);
         }
 

@@ -1209,7 +1209,7 @@ class D { }
             var solution = workspace.CurrentSolution;
             var optionKey = new OptionKey2(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
             var optionValue = solution.Options.GetOption(optionKey);
-            Assert.Equal(BackgroundAnalysisScope.Default, optionValue);
+            Assert.Null(optionValue);
 
             var newOptions = solution.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.ActiveFile);
             var newSolution = solution.WithOptions(newOptions);
@@ -1242,8 +1242,8 @@ class D { }
             var beforeSolutionForSecondaryWorkspace = secondaryWorkspace.CurrentSolution;
 
             var optionKey = new OptionKey2(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
-            Assert.Equal(BackgroundAnalysisScope.Default, primaryWorkspace.Options.GetOption(optionKey));
-            Assert.Equal(BackgroundAnalysisScope.Default, secondaryWorkspace.Options.GetOption(optionKey));
+            Assert.Null(primaryWorkspace.Options.GetOption(optionKey));
+            Assert.Null(secondaryWorkspace.Options.GetOption(optionKey));
 
             // Hook up the option changed event handler.
             var optionService = primaryWorkspace.Services.GetRequiredService<IOptionService>();
@@ -1283,7 +1283,7 @@ class D { }
 
                 // Verify workspace.CurrentSolution has changed option.
                 var optionKey = new OptionKey2(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
-                Assert.Equal(BackgroundAnalysisScope.Default, beforeOptionChangedSolution.Options.GetOption(optionKey));
+                Assert.Null(beforeOptionChangedSolution.Options.GetOption(optionKey));
                 Assert.Equal(BackgroundAnalysisScope.ActiveFile, currentSolution.Options.GetOption(optionKey));
             }
         }
