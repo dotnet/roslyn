@@ -166,12 +166,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal void CreateBackingField() => BackingField = new SynthesizedBackingFieldSymbol(this,
-                                                                      GeneratedNames.MakeBackingFieldName(_name),
-                                                                      isReadOnly: (_hasGetAccessor && !_hasSetAccessor) || _isInitOnly,
-                                                                      this.IsStatic,
-                                                                      hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0);
+        internal void CreateBackingField()
+        {
+            Debug.Assert(BackingField is null);
+            if (IsIndexer)
+            {
+                return;
+            }
 
+            BackingField = new SynthesizedBackingFieldSymbol(this,
+                                      GeneratedNames.MakeBackingFieldName(_name),
+                                      isReadOnly: (_hasGetAccessor && !_hasSetAccessor) || _isInitOnly,
+                                      this.IsStatic,
+                                      hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0);
+        }
         private void EnsureSignatureGuarded(BindingDiagnosticBag diagnostics)
         {
             PropertySymbol? explicitlyImplementedProperty = null;

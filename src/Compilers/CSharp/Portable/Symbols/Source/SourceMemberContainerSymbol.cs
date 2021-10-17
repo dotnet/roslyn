@@ -1508,6 +1508,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Backing fields for field-like events are not added to the members list.
                 member = e;
             }
+            else if (member is FieldSymbol)
+            {
+                // PROTOTYPE.
+                return;
+            }
 
             var membersAndInitializers = Volatile.Read(ref _lazyMembersAndInitializers);
 
