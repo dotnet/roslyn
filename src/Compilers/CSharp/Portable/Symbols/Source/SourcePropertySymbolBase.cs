@@ -168,12 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void CreateBackingField()
         {
-            Debug.Assert(BackingField is null);
-            if (IsIndexer)
-            {
-                return;
-            }
-
+            Debug.Assert(BackingField is null && !IsIndexer);
             BackingField = new SynthesizedBackingFieldSymbol(this,
                                       GeneratedNames.MakeBackingFieldName(_name),
                                       isReadOnly: (_hasGetAccessor && !_hasSetAccessor) || _isInitOnly,

@@ -1367,7 +1367,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 yield return valueField;
             }
 
-            foreach (var m in this.GetMembers())
+            var members = this.GetMembers();
+            foreach (var m in members)
             {
                 switch (m.Kind)
                 {
@@ -1384,6 +1385,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if ((object?)associatedField != null)
                         {
                             yield return associatedField;
+                        }
+                        break;
+                    case SymbolKind.Property:
+                        FieldSymbol? backingField = (m as SourcePropertySymbolBase)?.BackingField;
+                        if (backingField is not null && !members.Contains(backingField))
+                        {
+                            yield return backingField;
                         }
                         break;
                 }

@@ -94,6 +94,41 @@ public class C
 }
 ");
             CompileAndVerify(comp).VerifyTypeIL("C", @"
+.class public auto ansi beforefieldinit C
+	extends [netstandard]System.Object
+{
+	// Fields
+	.field private initonly string '<P>k__BackingField'
+	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname 
+		instance string get_P () cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld string C::'<P>k__BackingField'
+		IL_0006: ret
+	} // end of method C::get_P
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2058
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [netstandard]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method C::.ctor
+	// Properties
+	.property instance string P()
+	{
+		.get instance string C::get_P()
+	}
+} // end of class C
 ");
         }
 
