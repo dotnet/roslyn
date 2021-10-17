@@ -201,13 +201,13 @@ unsafe class C
 }");
 
             var expectedOperationTree = @"
-IInvocationOperation (delegate*<System.String, System.Void>) (OperationKind.Invocation, Type: System.Void) (Syntax: 'ptr(Prop)')
-  Instance Receiver:
-    null
+IFunctionPointerInvocationOperation (OperationKind.FunctionPointerInvocation, Type: System.Void) (Syntax: 'ptr(Prop)')
+  Expression: 
+    IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.String, System.Void>) (Syntax: 'ptr')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: ) (OperationKind.Argument, Type: null) (Syntax: 'Prop')
         IPropertyReferenceOperation: System.String C.Prop { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'Prop')
-          Instance Receiver:
+          Instance Receiver: 
             IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Prop')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -335,9 +335,9 @@ IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'ptr(Prop)')
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand:
-                    IInvocationOperation (delegate*<System.String, System.Int32>) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'ptr(Prop)')
-                      Instance Receiver:
-                        null
+                    IFunctionPointerInvocationOperation (OperationKind.FunctionPointerInvocation, Type: System.Int32, IsInvalid) (Syntax: 'ptr(Prop)')
+                      Expression:
+                        IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.String, System.Int32>, IsInvalid) (Syntax: 'ptr')
                       Arguments(1):
                           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: ) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'Prop')
                             IPropertyReferenceOperation: System.String C.Prop { get; } (OperationKind.PropertyReference, Type: System.String, IsInvalid) (Syntax: 'Prop')
@@ -356,9 +356,9 @@ IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'ptr(Prop)')
             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand:
-              IInvocationOperation (delegate*<System.String, System.Int32>) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'ptr(Prop)')
-                Instance Receiver:
-                  null
+              IFunctionPointerInvocationOperation (OperationKind.FunctionPointerInvocation, Type: System.Int32, IsInvalid) (Syntax: 'ptr(Prop)')
+                Expression:
+                  IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.String, System.Int32>, IsInvalid) (Syntax: 'ptr')
                 Arguments(1):
                     IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: ) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'Prop')
                       IPropertyReferenceOperation: System.String C.Prop { get; } (OperationKind.PropertyReference, Type: System.String, IsInvalid) (Syntax: 'Prop')
@@ -478,10 +478,14 @@ Block[B0] - Entry
 
 .locals {R1}
 {
-    CaptureIds: [0]
+    CaptureIds: [0] [1]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (0)
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'ptr')
+              Value:
+                IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.String, System.Void>) (Syntax: 'ptr')
+
         Jump if False (Regular) to Block[B3]
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
 
@@ -489,7 +493,7 @@ Block[B0] - Entry
     Block[B2] - Block
         Predecessors: [B1]
         Statements (1)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 's1')
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 's1')
               Value:
                 IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.String) (Syntax: 's1')
 
@@ -497,7 +501,7 @@ Block[B0] - Entry
     Block[B3] - Block
         Predecessors: [B1]
         Statements (1)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 's2')
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 's2')
               Value:
                 IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: System.String) (Syntax: 's2')
 
@@ -507,12 +511,12 @@ Block[B0] - Entry
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ptr(b ? s1 : s2);')
               Expression:
-                IInvocationOperation (delegate*<System.String, System.Void>) (OperationKind.Invocation, Type: System.Void) (Syntax: 'ptr(b ? s1 : s2)')
-                  Instance Receiver:
-                    null
+                IFunctionPointerInvocationOperation (OperationKind.FunctionPointerInvocation, Type: System.Void) (Syntax: 'ptr(b ? s1 : s2)')
+                  Expression:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: delegate*<System.String, System.Void>, IsImplicit) (Syntax: 'ptr')
                   Arguments(1):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: ) (OperationKind.Argument, Type: null) (Syntax: 'b ? s1 : s2')
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b ? s1 : s2')
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b ? s1 : s2')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 

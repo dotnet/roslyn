@@ -824,6 +824,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArguments(operation.Arguments);
         }
 
+        public override void VisitFunctionPointerInvocation(IFunctionPointerInvocationOperation operation)
+        {
+            LogString(nameof(IFunctionPointerInvocationOperation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Pointer, "Expression");
+            VisitArguments(operation.Arguments);
+        }
+
         private void VisitArguments(ImmutableArray<IArgumentOperation> arguments)
         {
             VisitArray(arguments, "Arguments", logElementCount: true);
