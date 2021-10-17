@@ -127,12 +127,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return;
             }
 
-            if (binary.Language == LanguageNames.VisualBasic)
+            if (binary.Language == LanguageNames.VisualBasic
+                && (IsSymbolClassType(binary.LeftOperand) || IsSymbolClassType(binary.RightOperand)))
             {
-                if (IsSymbolClassType(binary.LeftOperand) || IsSymbolClassType(binary.RightOperand))
-                {
-                    return;
-                }
+                return;
             }
 
             if (IsExplicitCastToObject(binary.LeftOperand) || IsExplicitCastToObject(binary.RightOperand))
@@ -187,15 +185,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     break;
 
                 default:
-                    if (equalityComparerMethods.TryGetValue(method.Name, out var possibleMethodTypes))
+                    if (equalityComparerMethods.TryGetValue(method.Name, out var possibleMethodTypes) &&
+                        symbolEqualityComparerType is not null &&
+                        possibleMethodTypes.Contains(method.ContainingType.OriginalDefinition) &&
+                        IsBehavingOnSymbolType(method, symbolType) &&
+                        !invocationOperation.Arguments.Any(arg => IsSymbolType(arg.Value, symbolEqualityComparerType)))
                     {
-                        if (symbolEqualityComparerType is not null &&
-                            possibleMethodTypes.Contains(method.ContainingType.OriginalDefinition) &&
-                            IsBehavingOnSymbolType(method, symbolType) &&
-                            !invocationOperation.Arguments.Any(arg => IsSymbolType(arg.Value, symbolEqualityComparerType)))
-                        {
-                            context.ReportDiagnostic(invocationOperation.CreateDiagnostic(CollectionRule));
-                        }
+                        context.ReportDiagnostic(invocationOperation.CreateDiagnostic(CollectionRule));
                     }
                     break;
             }
@@ -285,13 +281,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private static bool IsSymbolClassType(IOperation operation)
         {
-            if (operation.Type is object)
+            if (operation.Type is object &&
+                operation.Type.TypeKind == TypeKind.Class &&
+                operation.Type.SpecialType != SpecialType.System_Object)
             {
-                if (operation.Type.TypeKind == TypeKind.Class
-                    && operation.Type.SpecialType != SpecialType.System_Object)
-                {
-                    return true;
-                }
+                return true;
             }
 
             if (operation is IConversionOperation conversion)
