@@ -683,6 +683,23 @@
       </Comments>
     </Property>
   </Node>
+  <Node Name="IFunctionPointerInvocationOperation" Base="IOperation" ChildrenOrder="Pointer,Arguments" HasType="true">
+    <Comments>
+      <summary>
+        Represents an invocation of a function pointer.
+      </summary>
+    </Comments>
+	<Property Name="Pointer" Type="IOperation">
+      <Comments>
+        <summary>Invoked pointer.</summary>
+      </Comments>
+    </Property>
+    <Property Name="Arguments" Type="ImmutableArray&lt;IArgumentOperation&gt;">
+      <Comments>
+        <summary>Arguments of the invocation. Arguments are in evaluation order.</summary>
+      </Comments>
+    </Property>
+  </Node>
   <Node Name="IArrayElementReferenceOperation" Base="IOperation" ChildrenOrder="ArrayReference,Indices" HasType="true">
     <Comments>
       <summary>

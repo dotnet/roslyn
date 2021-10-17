@@ -455,11 +455,10 @@ namespace Microsoft.CodeAnalysis.Operations
                 ImmutableArray<IOperation> children = CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundFunctionPointerInvocation).InvalidNodeChildren);
                 return new InvalidOperation(children, _semanticModel, syntax, type, constantValue: null, isImplicit);
             }
-            var arguments = DeriveArguments(boundFunctionPointerInvocation);
-            var invoke = new InvocationOperation(boundFunctionPointerInvocation.FunctionPointer.Signature.GetPublicSymbol(),
-                null, false, arguments, _semanticModel, syntax, type, isImplicit);
 
-            return invoke;
+            var pointer = Create(boundFunctionPointerInvocation.InvokedExpression);
+            var arguments = DeriveArguments(boundFunctionPointerInvocation);
+            return new FunctionPointerInvocationOperation(pointer, arguments, _semanticModel, syntax, type, isImplicit);
         }
 
         private IOperation CreateBoundUnconvertedAddressOfOperatorOperation(BoundUnconvertedAddressOfOperator boundUnconvertedAddressOf)

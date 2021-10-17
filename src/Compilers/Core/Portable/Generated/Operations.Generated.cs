@@ -731,6 +731,28 @@ namespace Microsoft.CodeAnalysis.Operations
         ImmutableArray<IArgumentOperation> Arguments { get; }
     }
     /// <summary>
+    /// Represents an invocation of a function pointer.
+    /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.FunctionPointerInvocation"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
+    /// </remarks>
+    public interface IFunctionPointerInvocationOperation : IOperation
+    {
+        /// <summary>
+        /// Invoked pointer.
+        /// </summary>
+        IOperation Pointer { get; }
+        /// <summary>
+        /// Arguments of the invocation. Arguments are in evaluation order.
+        /// </summary>
+        ImmutableArray<IArgumentOperation> Arguments { get; }
+    }
+    /// <summary>
     /// Represents a reference to an array element.
     /// <para>
     /// Current usage:
@@ -4180,6 +4202,51 @@ namespace Microsoft.CodeAnalysis.Operations
         public override OperationKind Kind => OperationKind.Invocation;
         public override void Accept(OperationVisitor visitor) => visitor.VisitInvocation(this);
         public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitInvocation(this, argument);
+    }
+    internal sealed partial class FunctionPointerInvocationOperation : Operation, IFunctionPointerInvocationOperation
+    {
+        internal FunctionPointerInvocationOperation(IOperation pointer, ImmutableArray<IArgumentOperation> arguments, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Pointer = SetParentOperation(pointer, this);
+            Arguments = SetParentOperation(arguments, this);
+            Type = type;
+        }
+        public IOperation Pointer { get; }
+        public ImmutableArray<IArgumentOperation> Arguments { get; }
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
+            {
+                0 when Pointer != null
+                    => Pointer,
+                1 when index < Arguments.Length
+                    => Arguments[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Pointer != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (!Arguments.IsEmpty) return (true, 1, 0);
+                    else goto case 1;
+                case 1 when previousIndex + 1 < Arguments.Length:
+                    return (true, 1, previousIndex + 1);
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.FunctionPointerInvocation;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitFunctionPointerInvocation(this);
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitFunctionPointerInvocation(this, argument);
     }
     internal sealed partial class ArrayElementReferenceOperation : Operation, IArrayElementReferenceOperation
     {
@@ -7725,6 +7792,11 @@ namespace Microsoft.CodeAnalysis.Operations
             var internalOperation = (InvocationOperation)operation;
             return new InvocationOperation(internalOperation.TargetMethod, Visit(internalOperation.Instance), internalOperation.IsVirtual, VisitArray(internalOperation.Arguments), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
+        public override IOperation VisitFunctionPointerInvocation(IFunctionPointerInvocationOperation operation, object? argument)
+        {
+            var internalOperation = (FunctionPointerInvocationOperation)operation;
+            return new FunctionPointerInvocationOperation(Visit(internalOperation.Pointer), VisitArray(internalOperation.Arguments), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
         public override IOperation VisitArrayElementReference(IArrayElementReferenceOperation operation, object? argument)
         {
             var internalOperation = (ArrayElementReferenceOperation)operation;
@@ -8192,6 +8264,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual void VisitLiteral(ILiteralOperation operation) => DefaultVisit(operation);
         public virtual void VisitConversion(IConversionOperation operation) => DefaultVisit(operation);
         public virtual void VisitInvocation(IInvocationOperation operation) => DefaultVisit(operation);
+        public virtual void VisitFunctionPointerInvocation(IFunctionPointerInvocationOperation operation) => DefaultVisit(operation);
         public virtual void VisitArrayElementReference(IArrayElementReferenceOperation operation) => DefaultVisit(operation);
         public virtual void VisitLocalReference(ILocalReferenceOperation operation) => DefaultVisit(operation);
         public virtual void VisitParameterReference(IParameterReferenceOperation operation) => DefaultVisit(operation);
@@ -8318,6 +8391,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual TResult? VisitLiteral(ILiteralOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitConversion(IConversionOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitInvocation(IInvocationOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult? VisitFunctionPointerInvocation(IFunctionPointerInvocationOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitArrayElementReference(IArrayElementReferenceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitLocalReference(ILocalReferenceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitParameterReference(IParameterReferenceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
