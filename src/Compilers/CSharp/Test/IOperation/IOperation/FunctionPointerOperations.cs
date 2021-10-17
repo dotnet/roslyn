@@ -201,16 +201,16 @@ unsafe class C
 }");
 
             var expectedOperationTree = @"
-  IInvocationOperation (delegate*<System.String, System.Void>) (OperationKind.Invocation, Type: System.Void) (Syntax: 'ptr(Prop)')
+IInvocationOperation (delegate*<System.String, System.Void>) (OperationKind.Invocation, Type: System.Void) (Syntax: 'ptr(Prop)')
   Instance Receiver:
-  null
+    null
   Arguments(1):
-  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: ) (OperationKind.Argument, Type: null) (Syntax: 'Prop')
-  IPropertyReferenceOperation: System.String C.Prop { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'Prop')
-  Instance Receiver:
-  IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Prop')
-  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: ) (OperationKind.Argument, Type: null) (Syntax: 'Prop')
+        IPropertyReferenceOperation: System.String C.Prop { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'Prop')
+          Instance Receiver:
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Prop')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             ";
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[0]);
