@@ -201,12 +201,16 @@ unsafe class C
 }");
 
             var expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: System.Void) (Syntax: 'ptr(Prop)')
-  Children(2):
-      IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.String, System.Void>) (Syntax: 'ptr')
-      IPropertyReferenceOperation: System.String C.Prop { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'Prop')
-        Instance Receiver: 
-          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Prop')
+  IInvocationOperation (delegate*<System.String, System.Void>) (OperationKind.Invocation, Type: System.Void) (Syntax: 'ptr(Prop)')
+  Instance Receiver:
+  null
+  Arguments(1):
+  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: ) (OperationKind.Argument, Type: null) (Syntax: 'Prop')
+  IPropertyReferenceOperation: System.String C.Prop { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'Prop')
+  Instance Receiver:
+  IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Prop')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             ";
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[0]);
@@ -326,34 +330,42 @@ IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
     IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'string s = ptr(Prop)')
       Declarators:
           IVariableDeclaratorOperation (Symbol: System.String s) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 's = ptr(Prop)')
-            Initializer: 
+            Initializer:
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= ptr(Prop)')
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'ptr(Prop)')
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: 
-                    IOperation:  (OperationKind.None, Type: System.Int32, IsInvalid) (Syntax: 'ptr(Prop)')
-                      Children(2):
-                          IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.String, System.Int32>, IsInvalid) (Syntax: 'ptr')
-                          IPropertyReferenceOperation: System.String C.Prop { get; } (OperationKind.PropertyReference, Type: System.String, IsInvalid) (Syntax: 'Prop')
-                            Instance Receiver: 
-                              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'Prop')
-      Initializer: 
+                  Operand:
+                    IInvocationOperation (delegate*<System.String, System.Int32>) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'ptr(Prop)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: ) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'Prop')
+                            IPropertyReferenceOperation: System.String C.Prop { get; } (OperationKind.PropertyReference, Type: System.String, IsInvalid) (Syntax: 'Prop')
+                              Instance Receiver:
+                                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'Prop')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Initializer:
         null
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 's = ptr(Prop);')
-    Expression: 
+    Expression:
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid) (Syntax: 's = ptr(Prop)')
-        Left: 
+        Left:
           ILocalReferenceOperation: s (OperationKind.LocalReference, Type: System.String) (Syntax: 's')
-        Right: 
+        Right:
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'ptr(Prop)')
             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: 
-              IOperation:  (OperationKind.None, Type: System.Int32, IsInvalid) (Syntax: 'ptr(Prop)')
-                Children(2):
-                    IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.String, System.Int32>, IsInvalid) (Syntax: 'ptr')
-                    IPropertyReferenceOperation: System.String C.Prop { get; } (OperationKind.PropertyReference, Type: System.String, IsInvalid) (Syntax: 'Prop')
-                      Instance Receiver: 
-                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'Prop')
+            Operand:
+              IInvocationOperation (delegate*<System.String, System.Int32>) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'ptr(Prop)')
+                Instance Receiver:
+                  null
+                Arguments(1):
+                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: ) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'Prop')
+                      IPropertyReferenceOperation: System.String C.Prop { get; } (OperationKind.PropertyReference, Type: System.String, IsInvalid) (Syntax: 'Prop')
+                        Instance Receiver:
+                          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'Prop')
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
 
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -463,44 +475,51 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
+
 .locals {R1}
 {
-    CaptureIds: [0] [1]
+    CaptureIds: [0]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (1)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'ptr')
-              Value: 
-                IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.String, System.Void>) (Syntax: 'ptr')
+        Statements (0)
         Jump if False (Regular) to Block[B3]
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
         Next (Regular) Block[B2]
     Block[B2] - Block
         Predecessors: [B1]
         Statements (1)
-            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 's1')
-              Value: 
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 's1')
+              Value:
                 IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.String) (Syntax: 's1')
+
         Next (Regular) Block[B4]
     Block[B3] - Block
         Predecessors: [B1]
         Statements (1)
-            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 's2')
-              Value: 
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 's2')
+              Value:
                 IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: System.String) (Syntax: 's2')
+
         Next (Regular) Block[B4]
     Block[B4] - Block
         Predecessors: [B2] [B3]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ptr(b ? s1 : s2);')
-              Expression: 
-                IOperation:  (OperationKind.None, Type: System.Void) (Syntax: 'ptr(b ? s1 : s2)')
-                  Children(2):
-                      IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: delegate*<System.String, System.Void>, IsImplicit) (Syntax: 'ptr')
-                      IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b ? s1 : s2')
+              Expression:
+                IInvocationOperation (delegate*<System.String, System.Void>) (OperationKind.Invocation, Type: System.Void) (Syntax: 'ptr(b ? s1 : s2)')
+                  Instance Receiver:
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: ) (OperationKind.Argument, Type: null) (Syntax: 'b ? s1 : s2')
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b ? s1 : s2')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
         Next (Regular) Block[B5]
             Leaving: {R1}
 }
+
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)

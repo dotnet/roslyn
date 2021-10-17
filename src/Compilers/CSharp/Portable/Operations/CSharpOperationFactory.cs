@@ -449,16 +449,17 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol? type = boundFunctionPointerInvocation.GetPublicTypeSymbol();
             SyntaxNode syntax = boundFunctionPointerInvocation.Syntax;
             bool isImplicit = boundFunctionPointerInvocation.WasCompilerGenerated;
-            ImmutableArray<IOperation> children;
 
             if (boundFunctionPointerInvocation.ResultKind != LookupResultKind.Viable)
             {
-                children = CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundFunctionPointerInvocation).InvalidNodeChildren);
+                ImmutableArray<IOperation> children = CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundFunctionPointerInvocation).InvalidNodeChildren);
                 return new InvalidOperation(children, _semanticModel, syntax, type, constantValue: null, isImplicit);
             }
+            var arguments = DeriveArguments(boundFunctionPointerInvocation);
+            var invoke = new InvocationOperation(boundFunctionPointerInvocation.FunctionPointer.Signature.GetPublicSymbol(),
+                null, false, arguments, _semanticModel, syntax, type, isImplicit);
 
-            children = GetIOperationChildren(boundFunctionPointerInvocation);
-            return new NoneOperation(children, _semanticModel, syntax, type, constantValue: null, isImplicit);
+            return invoke;
         }
 
         private IOperation CreateBoundUnconvertedAddressOfOperatorOperation(BoundUnconvertedAddressOfOperator boundUnconvertedAddressOf)
