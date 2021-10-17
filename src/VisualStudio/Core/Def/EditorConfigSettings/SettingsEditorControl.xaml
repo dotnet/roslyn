@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             DataContext="{Binding RelativeSource={RelativeSource Self}}"
              x:ClassModifier="internal"
              mc:Ignorable="d">
     <UserControl.Resources>
@@ -14,13 +15,36 @@
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" MaxHeight="22" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <TabControl TabStripPlacement="Top"
-            Grid.Row="0">
-            <TabItem x:Name="WhitespaceTab" Header="{Binding Whitespace}"/>
-            <TabItem x:Name="CodeStyleTab" Header="{Binding CodeStyle}" />
-            <TabItem x:Name="AnalyzersTab" Header="{Binding Analyzers}" />
+        <TabControl x:Name="SettingsEditorTabs"
+                    Grid.Row="0"
+                    Margin="0,20,0,12"
+                    IsSynchronizedWithCurrentItem="False"
+                    TabStripPlacement="Top"
+                    SelectionChanged="tabsSettingsEditor_SelectionChanged">
+            <TabItem x:Name="WhitespaceTab" IsSelected="True"
+                     Header="{Binding WhitespaceTabTitle}"
+                     Tag="{Binding WhitespaceControl}"/>
+            <TabItem x:Name="CodeStyleTab"
+                     Header="{Binding CodeStyleTabTitle}"
+                     Tag="{Binding CodeStyleControl}" />
+            <TabItem x:Name="AnalyzersTab"
+                     Header="{Binding AnalyzersTabTitle}"
+                     Tag="{Binding AnalyzersControl}" />
         </TabControl>
+        <StackPanel x:Name="SettingsEditorSearch" Grid.Row="1" Margin="20,0,0,0" Orientation="Horizontal">
+            <Border x:Name="SearchControl"
+                    MinWidth="200"
+                    MaxWidth="400"
+                    VerticalAlignment="Center"/>
+        </StackPanel>
+        <Grid x:Name="SettingDisplayArea" Grid.Row="2" Margin="5,0,0,0">
+            <Frame x:Name="WhitespaceFrame" Grid.Row="3" Content="{Binding WhitespaceControl}" Visibility="Visible"/>
+            <Frame x:Name="CodeStyleFrame" Grid.Row="3" Content="{Binding CodeStyleControl}" Visibility="Hidden"/>
+            <Frame x:Name="AnalyzersFrame" Grid.Row="3" Content="{Binding AnalyzersControl}" Visibility="Hidden"/>
+        </Grid>
     </Grid>
 </UserControl>

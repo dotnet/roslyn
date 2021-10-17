@@ -6,13 +6,10 @@
              xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.View"
              mc:Ignorable="d" 
              x:ClassModifier="internal">
-    <Grid>
-        <Border
-            x:Name="WhitespaceTable"
-            Grid.Row="0"
-            BorderThickness="1"
-            Margin="12 0"
-            VerticalAlignment="Stretch"
-            HorizontalAlignment="Stretch" />
-    </Grid>
+     <Border
+        x:Name="WhitespaceTable"
+        BorderThickness="1"
+        Margin="12 0"
+        VerticalAlignment="Stretch"
+        HorizontalAlignment="Stretch" />
 </UserControl>
