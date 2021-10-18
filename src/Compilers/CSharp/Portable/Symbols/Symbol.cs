@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // this part is expected to disappear when inlining "someSymbol == null"
-            return (object)left == (object)right || right.Equals(left, SymbolEqualityComparer.Default.CompareKind);
+            return (object)left == (object)right || right.Equals(left);
         }
 
         /// <summary>
@@ -653,12 +653,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // this part is expected to disappear when inlining "someSymbol != null"
-            return (object)left != (object)right && !right.Equals(left, SymbolEqualityComparer.Default.CompareKind);
+            return (object)left != (object)right && !right.Equals(left);
         }
 
         public sealed override bool Equals(object obj)
         {
             return this.Equals(obj as Symbol, SymbolEqualityComparer.Default.CompareKind);
+        }
+
+        public bool Equals(Symbol other)
+        {
+            return this.Equals(other, SymbolEqualityComparer.Default.CompareKind);
         }
 
         bool ISymbolInternal.Equals(ISymbolInternal other, TypeCompareKind compareKind)
