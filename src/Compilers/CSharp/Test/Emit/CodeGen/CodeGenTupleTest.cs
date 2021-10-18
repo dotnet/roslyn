@@ -28368,10 +28368,12 @@ class C
                 Assert.Same(item1Underlying, item1Underlying.TupleUnderlyingField);
 
                 var item2 = tuple.GetMember<TupleElementFieldSymbol>("Item2");
-                Assert.Equal(1, item2.TupleElementIndex);
+                // Instrumenting test as part of investigating flakiness: https://github.com/dotnet/roslyn/issues/52658
+                RoslynDebug.AssertOrFailFast(1 == item2.TupleElementIndex);
                 var item2Underlying = item2.TupleUnderlyingField;
                 Assert.IsType<SubstitutedFieldSymbol>(item2Underlying);
-                Assert.Equal(1, item2Underlying.TupleElementIndex);
+                // Instrumenting test as part of investigating flakiness: https://github.com/dotnet/roslyn/issues/52658
+                RoslynDebug.AssertOrFailFast(1 == item2Underlying.TupleElementIndex);
                 Assert.Same(item2Underlying, item2Underlying.TupleUnderlyingField);
             }
         }

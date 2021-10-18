@@ -66,10 +66,10 @@ namespace Microsoft.CodeAnalysis.Editor
 
         private static bool IsConditionalDirective(TDirectiveTriviaSyntax directive)
         {
-            return directive is TIfDirectiveTriviaSyntax ||
-                   directive is TElseIfDirectiveTriviaSyntax ||
-                   directive is TElseDirectiveTriviaSyntax ||
-                   directive is TEndIfDirectiveTriviaSyntax;
+            return directive is TIfDirectiveTriviaSyntax or
+                   TElseIfDirectiveTriviaSyntax or
+                   TElseDirectiveTriviaSyntax or
+                   TEndIfDirectiveTriviaSyntax;
         }
     }
 }

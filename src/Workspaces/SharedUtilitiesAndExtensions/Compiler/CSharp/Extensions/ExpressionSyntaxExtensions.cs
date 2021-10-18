@@ -574,12 +574,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             // Parent type checks.
-            if (expression.Parent is PostfixUnaryExpressionSyntax ||
-                expression.Parent is BinaryExpressionSyntax ||
-                expression.Parent is AssignmentExpressionSyntax ||
-                expression.Parent is QueryClauseSyntax ||
-                expression.Parent is SelectOrGroupClauseSyntax ||
-                expression.Parent is CheckedExpressionSyntax)
+            if (expression.Parent is PostfixUnaryExpressionSyntax or
+                BinaryExpressionSyntax or
+                AssignmentExpressionSyntax or
+                QueryClauseSyntax or
+                SelectOrGroupClauseSyntax or
+                CheckedExpressionSyntax)
             {
                 return true;
             }
@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 var instanceSymbol = semanticModel.GetSymbolInfo(expression, cancellationToken).GetAnySymbol();
 
-                if (!(instanceSymbol is INamespaceOrTypeSymbol))
+                if (instanceSymbol is not INamespaceOrTypeSymbol)
                 {
                     var instanceType = instanceSymbol.GetSymbolType();
                     if (instanceType != null)

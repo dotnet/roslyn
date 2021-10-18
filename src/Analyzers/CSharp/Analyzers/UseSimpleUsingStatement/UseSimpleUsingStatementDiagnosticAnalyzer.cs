@@ -206,8 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
         }
 
         private static bool IsGotoOrLabeledStatement(StatementSyntax priorStatement)
-            => priorStatement.Kind() == SyntaxKind.GotoStatement ||
-               priorStatement.Kind() == SyntaxKind.LabeledStatement;
+            => priorStatement.Kind() is SyntaxKind.GotoStatement or
+               SyntaxKind.LabeledStatement;
 
         private static bool UsingValueDoesNotLeakToFollowingStatements(
             SyntaxList<StatementSyntax> statements, int index)
@@ -230,8 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 
             // Not the last statement, get the next statement and examine that.
             var nextStatement = statements[index + 1];
-            if (nextStatement is BreakStatementSyntax ||
-                nextStatement is ContinueStatementSyntax)
+            if (nextStatement is BreakStatementSyntax or
+                ContinueStatementSyntax)
             {
                 // using statement followed by break/continue.  Can convert this as executing 
                 // the break/continue will cause the code to exit the using scope, causing 

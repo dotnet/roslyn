@@ -112,11 +112,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
         }
 
         private static bool IsValidSymbolToSynchronize(ISymbol symbol) =>
-            symbol.Kind == SymbolKind.Event ||
-            symbol.Kind == SymbolKind.Field ||
-            symbol.Kind == SymbolKind.Method ||
-            symbol.Kind == SymbolKind.NamedType ||
-            symbol.Kind == SymbolKind.Property;
+            symbol.Kind is SymbolKind.Event or
+            SymbolKind.Field or
+            SymbolKind.Method or
+            SymbolKind.NamedType or
+            SymbolKind.Property;
 
         public CommandState GetCommandState(SyncClassViewCommandArgs args)
             => Commanding.CommandState.Available;

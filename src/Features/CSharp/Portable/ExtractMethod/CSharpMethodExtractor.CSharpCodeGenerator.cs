@@ -722,7 +722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 var syntaxNode = originalDocument.Root.GetAnnotatedNodesAndTokens(MethodDefinitionAnnotation).FirstOrDefault().AsNode();
-                var nodeIsMethodOrLocalFunction = syntaxNode is MethodDeclarationSyntax || syntaxNode is LocalFunctionStatementSyntax;
+                var nodeIsMethodOrLocalFunction = syntaxNode is MethodDeclarationSyntax or LocalFunctionStatementSyntax;
                 if (!nodeIsMethodOrLocalFunction)
                 {
                     return await base.UpdateMethodAfterGenerationAsync(originalDocument, methodSymbolResult, cancellationToken).ConfigureAwait(false);

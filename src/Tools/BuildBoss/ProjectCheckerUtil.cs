@@ -32,7 +32,7 @@ namespace BuildBoss
         public bool Check(TextWriter textWriter)
         {
             var allGood = true;
-            if (ProjectType == ProjectFileType.CSharp || ProjectType == ProjectFileType.Basic)
+            if (ProjectType is ProjectFileType.CSharp or ProjectFileType.Basic)
             {
                 if (!_projectUtil.IsNewSdk)
                 {
@@ -289,7 +289,8 @@ namespace BuildBoss
                     case "net20":
                     case "net472":
                     case "netcoreapp3.1":
-                    case "net5.0":
+                    case "net6.0":
+                    case "net6.0-windows":
                         continue;
                 }
 
