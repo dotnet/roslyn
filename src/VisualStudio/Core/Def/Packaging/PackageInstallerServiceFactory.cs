@@ -342,12 +342,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             {
                 return await this.PerformNuGetProjectServiceWorkAsync(async (nugetService, cancellationToken) =>
                 {
-                    // explicitly switch to BG thread to do the installation as nuget installer APIs are free threaded.
-                    await TaskScheduler.Default;
-
                     var installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(false);
                     if (installedPackagesMap.ContainsKey(packageName))
                         return false;
+
+                    // explicitly switch to UI thread. While the nuget installer APIs are doc'ed as being free threaded
+                    // they contain a bug that violates this.  See: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1415416
+                    await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                     // Once we start the installation, we can't cancel anymore.
                     cancellationToken = default;
@@ -414,14 +415,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             {
                 return await this.PerformNuGetProjectServiceWorkAsync(async (nugetService, cancellationToken) =>
                 {
-                    // explicitly switch to BG thread to do the installation as nuget installer APIs are free threaded.
-                    await TaskScheduler.Default;
-
                     var installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(false);
                     if (!installedPackagesMap.TryGetValue(packageName, out var installedVersion))
                         return false;
 
                     cancellationToken.ThrowIfCancellationRequested();
+
+                    // explicitly switch to UI thread. While the nuget installer APIs are doc'ed as being free threaded
+                    // they contain a bug that violates this.  See: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1415416
+                    await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                     // Once we start the installation, we can't cancel anymore.
                     cancellationToken = default;
@@ -600,7 +602,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _projectToInstalledPackageAndVersion[projectId] = newState ?? ProjectState.Disabled;
         }
 
-        private static async Task<ProjectState?> GetCurrentProjectStateAsync(
+        private async Task<ProjectState?> GetCurrentProjectStateAsync(
             INuGetProjectService nugetService,
             Guid projectGuid,
             CancellationToken cancellationToken)
@@ -618,9 +620,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
         }
 
-        private static async Task<ImmutableDictionary<string, string>> GetInstalledPackagesMapAsync(INuGetProjectService nugetService, Guid projectGuid, CancellationToken cancellationToken)
+        private async Task<ImmutableDictionary<string, string>> GetInstalledPackagesMapAsync(INuGetProjectService nugetService, Guid projectGuid, CancellationToken cancellationToken)
         {
-            var installedPackagesResult = await nugetService.GetInstalledPackagesAsync(projectGuid, cancellationToken).ConfigureAwait(false);
+            // explicitly switch to UI thread. While the nuget installer APIs are doc'ed as being free threaded
+            // they contain a bug that violates this.  See: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1415416
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var installedPackagesResult = await nugetService.GetInstalledPackagesAsync(projectGuid, cancellationToken).ConfigureAwait(true);
 
             using var _ = PooledDictionary<string, string>.GetInstance(out var installedPackages);
             if (installedPackagesResult?.Status == InstalledPackageResultStatus.Successful)

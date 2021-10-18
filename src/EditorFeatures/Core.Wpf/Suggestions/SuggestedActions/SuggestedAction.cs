@@ -153,7 +153,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private void InvokeWorker(
             Func<Document> getFromDocument, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            AssertIsForeground();
+            this.ThreadingContext.JoinableTaskFactory.Run(() => InvokeWorkerAsync(getFromDocument, progressTracker, cancellationToken));
+        }
+
+        private async Task InvokeWorkerAsync(
+            Func<Document> getFromDocument, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        {
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             IEnumerable<CodeActionOperation> operations = null;
             if (CodeAction is CodeActionWithOptions actionWithOptions)
             {
@@ -161,14 +168,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (options != null)
                 {
                     // Note: we want to block the UI thread here so the user cannot modify anything while the codefix applies
-                    operations = GetOperationsAsync(actionWithOptions, options, cancellationToken).WaitAndGetResult(cancellationToken);
+                    operations = await GetOperationsAsync(actionWithOptions, options, cancellationToken).ConfigureAwait(true);
                 }
             }
             else
             {
                 // Note: we want to block the UI thread here so the user cannot modify anything while the codefix applies
-                operations = GetOperationsAsync(progressTracker, cancellationToken).WaitAndGetResult(cancellationToken);
+                operations = await GetOperationsAsync(progressTracker, cancellationToken).ConfigureAwait(true);
             }
+
+            AssertIsForeground();
 
             if (operations != null)
             {
