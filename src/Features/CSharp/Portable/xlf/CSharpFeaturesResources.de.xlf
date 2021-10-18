@@ -122,6 +122,11 @@
         <target state="translated">Als für NULL-Werte zulässig deklarieren</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_types">
+        <source>Enable nullable reference types</source>
+        <target state="new">Enable nullable reference types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_return_type">
         <source>Fix return type</source>
         <target state="translated">Rückgabetyp korrigieren</target>
