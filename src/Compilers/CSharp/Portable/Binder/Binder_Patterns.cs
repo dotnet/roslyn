@@ -798,7 +798,7 @@ done:
             BindPatternDesignation(
                 designation: node.Designation, declType: boundDeclType.TypeWithAnnotations, valEscape, permitDesignations, typeSyntax, diagnostics,
                 hasErrors: ref hasErrors, variableSymbol: out Symbol? variableSymbol, variableAccess: out BoundExpression? variableAccess);
-            return new BoundDeclarationPattern(node, variableSymbol, variableAccess, boundDeclType, isVar: false, inputType, boundDeclType.Type, hasErrors);
+            return new BoundDeclarationPattern(node, boundDeclType, isVar: false, variableSymbol, variableAccess, inputType: inputType, narrowedType: boundDeclType.Type, hasErrors);
         }
 
         private BoundTypeExpression BindTypeForPattern(
