@@ -23,8 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
     /// only alternative at our disposal.
     /// </para>
     /// </summary>
-    internal abstract class UnboundIdentifiersDiagnosticAnalyzerBase<TLanguageKindEnum, TSimpleNameSyntax, TQualifiedNameSyntax, TIncompleteMemberSyntax>
-        : DiagnosticAnalyzer, IBuiltInAnalyzer
+    internal abstract class UnboundIdentifiersDiagnosticAnalyzerBase<TLanguageKindEnum, TSimpleNameSyntax, TQualifiedNameSyntax, TIncompleteMemberSyntax> : DiagnosticAnalyzer, IBuiltInAnalyzer
         where TLanguageKindEnum : struct
         where TSimpleNameSyntax : SyntaxNode
         where TQualifiedNameSyntax : SyntaxNode
