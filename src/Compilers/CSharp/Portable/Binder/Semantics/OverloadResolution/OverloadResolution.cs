@@ -1011,7 +1011,7 @@ outerDefault:
         // We need to know if this is a valid formal parameter list with a parameter array
         // as the final formal parameter. We might be in an error recovery scenario
         // where the params array is not an array type.
-        public static bool IsValidParams(Symbol member)
+        public bool IsValidParams(Symbol member)
         {
             // A varargs method is never a valid params method.
             if (member.GetIsVararg())
@@ -1029,10 +1029,10 @@ outerDefault:
             return IsValidParamsParameter(final);
         }
 
-        public static bool IsValidParamsParameter(ParameterSymbol final)
+        public bool IsValidParamsParameter(ParameterSymbol final)
         {
             Debug.Assert((object)final == final.ContainingSymbol.GetParameters().Last());
-            return final.IsParams && final.Type.IsParamsType(final.DeclaringCompilation);
+            return final.IsParams && final.Type.IsParamsType(Compilation);
         }
 
         /// <summary>

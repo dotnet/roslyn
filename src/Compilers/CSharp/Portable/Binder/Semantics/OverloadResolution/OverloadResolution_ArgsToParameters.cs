@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static ArgumentAnalysisResult AnalyzeArguments(
+        private ArgumentAnalysisResult AnalyzeArguments(
             Symbol symbol,
             AnalyzedArguments arguments,
             bool isMethodGroupConversion,
