@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Storage;
@@ -52,6 +53,14 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         public async ValueTask OnResultFoundAsync(RoslynNavigateToItem result)
-            => await _onResultFound(result).ConfigureAwait(false);
+        {
+            try
+            {
+                await _onResultFound(result).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex))
+            {
+            }
+        }
     }
 }

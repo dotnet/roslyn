@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -76,9 +77,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
                 TaggerEventSources.OnTextChanged(subjectBuffer));
         }
 
-        protected override async Task ProduceTagsAsync(TaggerContext<LineSeparatorTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+        protected override async Task ProduceTagsAsync(
+            TaggerContext<LineSeparatorTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, CancellationToken cancellationToken)
         {
-            var cancellationToken = context.CancellationToken;
             var document = documentSnapshotSpan.Document;
             if (document == null)
             {
