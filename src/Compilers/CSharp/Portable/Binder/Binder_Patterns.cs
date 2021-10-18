@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundListPattern(
                 syntax: node, subpatterns: subpatterns, hasSlice: sawSlice, lengthProperty: lengthProperty,
                 indexerAccess: indexerAccess, indexerSymbol: indexerSymbol, variable: variableSymbol,
-                variableAccess: variableAccess, inputType: inputType, narrowedType: narrowedType, hasErrors: hasErrors);
+                variableAccess: variableAccess, inputType: inputType, narrowedType: narrowedType, hasErrors);
         }
 
         private bool TryPerformPatternIndexerLookup(
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool argIsIndex,
             out BoundIndexerAccess? indexerAccess,
             out Symbol? patternSymbol,
-            [NotNullWhen(true)] out PropertySymbol? lengthProperty,
+            out PropertySymbol? lengthProperty,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!receiverType.IsErrorType());
@@ -1005,9 +1005,9 @@ done:
                 deconstructionSubpatterns.IsDefault;
             return new BoundRecursivePattern(
                 syntax: node, declaredType: boundDeclType, deconstructMethod: deconstructMethod,
-                deconstruction: deconstructionSubpatterns, properties: properties, variable: variableSymbol,
-                variableAccess: variableAccess, isExplicitNotNullTest: isExplicitNotNullTest, inputType: inputType,
-                narrowedType: boundDeclType?.Type ?? inputType.StrippedType(), hasErrors: hasErrors);
+                deconstruction: deconstructionSubpatterns, properties: properties, isExplicitNotNullTest: isExplicitNotNullTest,
+                variable: variableSymbol, variableAccess: variableAccess, inputType: inputType,
+                narrowedType: boundDeclType?.Type ?? inputType.StrippedType(), hasErrors);
         }
 
         private MethodSymbol? BindDeconstructSubpatterns(
@@ -1331,8 +1331,8 @@ done:
                         Debug.Assert(node.Parent is { });
                         return new BoundDeclarationPattern(
                             node.Parent.Kind() == SyntaxKind.VarPattern ? node.Parent : node, // for `var x` use whole pattern, otherwise use designation for the syntax
-                            variableSymbol, variableAccess, boundOperandType, isVar: true,
-                            inputType: inputType, narrowedType: inputType, hasErrors: hasErrors);
+                            boundOperandType, isVar: true, variableSymbol, variableAccess,
+                            inputType: inputType, narrowedType: inputType, hasErrors);
                     }
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
