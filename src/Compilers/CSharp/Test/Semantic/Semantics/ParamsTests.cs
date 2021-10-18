@@ -253,21 +253,30 @@ class Program
         [Fact]
         public void OverloadResolution_01()
         {
-            var source =
+            var spanLib = GetSpanLibrary();
+            var sourceA =
 @"using System;
-class Program
+public class A
 {
-    static void F1(params object[] args) { throw new Exception(); }
-    static void F1(params Span<object> args) { foreach (var arg in args) Console.WriteLine(arg); }
-    static void F2(params object[] args) { throw new Exception(); }
-    static void F2(params ReadOnlySpan<object> args) { foreach (var arg in args) Console.WriteLine(arg); }
+    public static void F1(params object[] args) { throw new Exception(); }
+    public static void F1(params Span<object> args) { foreach (var arg in args) Console.WriteLine(arg); }
+    public static void F2(params object[] args) { throw new Exception(); }
+    public static void F2(params ReadOnlySpan<object> args) { foreach (var arg in args) Console.WriteLine(arg); }
+}";
+            var comp = CreateCompilation(sourceA, references: new[] { spanLib });
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"using System;
+class B : A
+{
     static void Main()
     {
         F1(1, 2, 3);
         F2(""hello"", ""world"");
     }
 }";
-            CompileAndVerify(new[] { source, SpanSource, StackAllocDefinition }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+            CompileAndVerify(new[] { sourceB, StackAllocDefinition }, references: new[] { refA, spanLib }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
 @"1
 2
 3
