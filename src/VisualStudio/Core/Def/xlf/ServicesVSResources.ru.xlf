@@ -867,16 +867,6 @@
         <target state="translated">Идет переопределение элементов</target>
         <note />
       </trans-unit>
-      <trans-unit id="Package_install_canceled">
-        <source>Package install canceled</source>
-        <target state="translated">Установка пакета отменена</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Package_uninstall_canceled">
-        <source>Package uninstall canceled</source>
-        <target state="translated">Удаление пакета отменено</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Packages">
         <source>Packages</source>
         <target state="translated">Пакеты</target>

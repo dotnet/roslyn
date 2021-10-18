@@ -867,16 +867,6 @@
         <target state="translated">替代成员</target>
         <note />
       </trans-unit>
-      <trans-unit id="Package_install_canceled">
-        <source>Package install canceled</source>
-        <target state="translated">已取消包安装</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Package_uninstall_canceled">
-        <source>Package uninstall canceled</source>
-        <target state="translated">已取消包卸载</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Packages">
         <source>Packages</source>
         <target state="translated">包</target>

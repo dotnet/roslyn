@@ -867,16 +867,6 @@
         <target state="translated">Membri di override</target>
         <note />
       </trans-unit>
-      <trans-unit id="Package_install_canceled">
-        <source>Package install canceled</source>
-        <target state="translated">L'installazione è stata annullata</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Package_uninstall_canceled">
-        <source>Package uninstall canceled</source>
-        <target state="translated">La disinstallazione del pacchetto è stata annullata</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Packages">
         <source>Packages</source>
         <target state="translated">Pacchetti</target>

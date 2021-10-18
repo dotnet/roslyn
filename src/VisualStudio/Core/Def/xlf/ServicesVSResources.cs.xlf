@@ -867,16 +867,6 @@
         <target state="translated">Přepsání členů</target>
         <note />
       </trans-unit>
-      <trans-unit id="Package_install_canceled">
-        <source>Package install canceled</source>
-        <target state="translated">Instalace balíčku se zrušila.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Package_uninstall_canceled">
-        <source>Package uninstall canceled</source>
-        <target state="translated">Odinstalace balíčku se zrušila.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Packages">
         <source>Packages</source>
         <target state="translated">Balíčky</target>

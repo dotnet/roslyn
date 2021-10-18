@@ -867,16 +867,6 @@
         <target state="translated">Remplacement des membres</target>
         <note />
       </trans-unit>
-      <trans-unit id="Package_install_canceled">
-        <source>Package install canceled</source>
-        <target state="translated">Installation du package annulée</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Package_uninstall_canceled">
-        <source>Package uninstall canceled</source>
-        <target state="translated">Désinstallation du package annulée</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Packages">
         <source>Packages</source>
         <target state="translated">Packages</target>

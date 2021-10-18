@@ -4,7 +4,6 @@
 
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation
 {
@@ -15,10 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation
         private readonly object _gate = new();
 
         public UIThreadOperationContextProgressTracker(IUIThreadOperationScope scope)
-        {
-            Contract.ThrowIfNull(scope);
-            _scope = scope;
-        }
+            => _scope = scope;
 
         public string? Description { get => _scope.Description; set => _scope.Description = value; }
 

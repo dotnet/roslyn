@@ -72,8 +72,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
         {
             return _installerService.TryInstallPackage(
                 workspace, _document.Id, _source, _packageName,
-                _versionOpt, _includePrerelease,
-                progressTracker, cancellationToken);
+                _versionOpt, _includePrerelease, cancellationToken);
         }
     }
 }
