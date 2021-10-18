@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis
             "System.AsyncCallback",
             "System.Runtime.CompilerServices.RuntimeFeature",
             "System.Runtime.CompilerServices.PreserveBaseOverridesAttribute",
+            "System.ValueArray`2",
         };
 
         private static readonly Dictionary<string, SpecialType> s_nameToTypeIdMap;
