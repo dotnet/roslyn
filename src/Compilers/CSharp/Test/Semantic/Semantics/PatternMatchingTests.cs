@@ -7191,7 +7191,7 @@ public class C
         [WorkItem(28633, "https://github.com/dotnet/roslyn/issues/28633")]
         public void EscapeScopeInSubpatternOfNonRefType()
         {
-            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithRecursivePatterns, text: @"
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.Regular10, text: @"
 using System;
 public ref struct R
 {
@@ -7210,6 +7210,7 @@ public class C
     {
         R outer = stackalloc int[100];
         if (outer is { SProp: { RProp: var x }}) return x; // OK
+        if (outer is { SProp.RProp: var y }) return y; // OK
         throw null;
     }
     public R M2()
@@ -7218,6 +7219,14 @@ public class C
         switch (outer)
         {
             case { SProp: { RProp: var x }}: return x; // OK
+        }
+    }
+    public R M2b()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case { SProp.RProp: var x }: return x; // OK
         }
     }
     public R M3()
