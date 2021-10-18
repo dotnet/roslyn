@@ -177,6 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tryHandleTuplePattern(ref unnamedEnumValue) ??
                 tryHandleNumericLimits(ref unnamedEnumValue) ??
                 tryHandleRecursivePattern(ref unnamedEnumValue) ??
+                tryHandleListPattern(ref unnamedEnumValue) ??
                 produceFallbackPattern();
 
             static ImmutableArray<T> getArray<T>(Dictionary<BoundDagTemp, ArrayBuilder<T>> map, BoundDagTemp temp)
@@ -317,6 +318,95 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return null;
+            }
+
+            // Handle the special case of a list pattern
+            string tryHandleListPattern(ref bool unnamedEnumValue)
+            {
+                if (constraints.IsEmpty && evaluations.IsEmpty)
+                    return null;
+
+                if (!constraints.All(c => c switch
+                {
+                    // not-null tests are implicitly incorporated into a recursive pattern
+                    (test: BoundDagNonNullTest _, sense: true) => true,
+                    (test: BoundDagExplicitNullTest _, sense: false) => true,
+                    _ => false,
+                }))
+                {
+                    return null;
+                }
+
+                var indexes = new Dictionary<int, string>();
+                int length = -1;
+
+                foreach (var eval in evaluations)
+                {
+                    switch (eval)
+                    {
+                        case BoundDagPropertyEvaluation e when e.IsLengthOrCount:
+                            {
+                                Debug.Assert(length == -1);
+                                var subInput = new BoundDagTemp(e.Syntax, e.Property.Type, e);
+                                var lengthValue = SamplePatternForTemp(subInput, constraintMap, evaluationMap, false, ref unnamedEnumValue);
+                                if (int.TryParse(lengthValue, out var parsedLength))
+                                {
+                                    Debug.Assert(parsedLength >= 0);
+                                    length = parsedLength;
+                                }
+                            }
+                            break;
+                        case BoundDagIndexerEvaluation e:
+                            {
+                                var subInput = new BoundDagTemp(e.Syntax, e.IndexerType, e);
+                                var subPattern = SamplePatternForTemp(subInput, constraintMap, evaluationMap, false, ref unnamedEnumValue);
+                                indexes.Add(e.Index, subPattern);
+                            }
+                            break;
+                        case BoundDagSliceEvaluation e:
+                            {
+                                if (e.StartIndex < length + e.EndIndex)
+                                {
+                                    var subInput = new BoundDagTemp(e.Syntax, e.SliceType, e);
+                                    var subPattern = SamplePatternForTemp(subInput, constraintMap, evaluationMap, false, ref unnamedEnumValue);
+                                    indexes.Add(e.StartIndex, ".. " + subPattern);
+                                }
+                            }
+                            break;
+                        default:
+                            return null;
+                    }
+                }
+
+                if (length < 0)
+                {
+                    Debug.Assert(false);
+                    return null;
+                }
+
+                var pooledBuilder = PooledStringBuilder.GetInstance();
+                var builder = pooledBuilder.Builder;
+
+                builder.Append("[");
+                for (int i = 0; i < length; i++)
+                {
+                    string sample = (indexes.TryGetValue(i, out var sampleFromStart), indexes.TryGetValue(i - length, out var sampleFromEnd)) switch
+                    {
+                        (true, false) => sampleFromStart,
+                        (false, true) => sampleFromEnd,
+                        _ => "_"
+                    };
+
+                    if (builder.Length > 1)
+                    {
+                        builder.Append(", ");
+                    }
+
+                    builder.Append(sample);
+                }
+                builder.Append("]");
+
+                return pooledBuilder.ToStringAndFree();
             }
 
             // Handle the special case of a recursive pattern

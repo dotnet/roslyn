@@ -3129,21 +3129,21 @@ _ = o switch
     { Length: 0 or > 1 } => 0,
 };
 
-_ = o switch // didn't test for null
+_ = o switch // 1, didn't test for null
 {
     [null] => 0,
     [not null] => 0,
     { Length: 0 or > 1 } => 0,
 };
 
-_ = o switch // didn't test for [null]
+_ = o switch // 2, didn't test for [null]
 {
     null => 0,
     [not null] => 0,
     { Length: 0 or > 1 } => 0,
 };
 
-_ = o switch // didn't test for [not null]
+_ = o switch // 3, didn't test for [not null]
 {
     null => 0,
     [null] => 0,
@@ -3158,14 +3158,14 @@ _ = o switch
     [.., not null] => 0,
 };
 
-_ = o switch // didn't test for [.., null]
+_ = o switch // 4, didn't test for [null]
 {
     null => 0,
     [] => 0,
     [.., not null] => 0,
 };
 
-_ = o switch // didn't test for [.., not null]
+_ = o switch // 5, didn't test for [not null]
 {
     null => 0,
     [] => 0,
@@ -3179,25 +3179,65 @@ _ = o switch
     [not null, ..] => 0,
     { Length: 0 or > 1 } => 0,
 };
+
+_ = o switch // 6, didn't test for [_, null]
+{
+    null => 0,
+    [] => 0,
+    [_] => 0,
+    [.., not null] => 0,
+};
+
+_ = o switch // 7, didn't test for [null, _]
+{
+    null => 0,
+    [] => 0,
+    [_] => 0,
+    [not null, ..] => 0,
+};
+
+_ = o switch // 8, didn't test for { Length: 0 }
+{
+    null => 0,
+    [_, ..] => 0,
+};
+
+_ = o switch // 9, didn't test for [null]
+{
+    null => 0,
+    [] => 0,
+    [..var x, not null] => 0,
+};
 ";
-        // PROTOTYPE: incorrect exhaustiveness examples from explainer
-        var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
         compilation.VerifyEmitDiagnostics(
             // (13,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-            // _ = o switch // didn't test for null
+            // _ = o switch // 1, didn't test for null
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(13, 7),
-            // (20,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-            // _ = o switch // didn't test for [null]
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(20, 7),
-            // (27,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
-            // _ = o switch // didn't test for [not null]
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(27, 7),
-            // (42,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-            // _ = o switch // didn't test for [.., null]
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(42, 7),
-            // (49,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
-            // _ = o switch // didn't test for [.., not null]
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(49, 7)
+            // (20,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[null]' is not covered.
+            // _ = o switch // 2, didn't test for [null]
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[null]").WithLocation(20, 7),
+            // (27,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[not null]' is not covered.
+            // _ = o switch // 3, didn't test for [not null]
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[not null]").WithLocation(27, 7),
+            // (42,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[null]' is not covered.
+            // _ = o switch // 4, didn't test for [null]
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[null]").WithLocation(42, 7),
+            // (49,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[not null]' is not covered.
+            // _ = o switch // 5, didn't test for [not null]
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[not null]").WithLocation(49, 7),
+            // (64,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[_, null]' is not covered.
+            // _ = o switch // 6, didn't test for [_, null]
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[_, null]").WithLocation(64, 7),
+            // (72,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[null, _]' is not covered.
+            // _ = o switch // 7, didn't test for [null, _]
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[null, _]").WithLocation(72, 7),
+            // (80,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+            // _ = o switch // 8, didn't test for { Length: 0 }
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(80, 7),
+            // (86,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[null]' is not covered.
+            // _ = o switch // 9, didn't test for [null]
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[null]").WithLocation(86, 7)
             );
     }
 
@@ -3263,15 +3303,52 @@ class C
     }
 }
 ";
-        // PROTOTYPE: incorrect exhaustiveness examples from explainer
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyEmitDiagnostics(
-            // (20,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
+            // (20,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[.. null]' is not covered.
             //         _ = this switch // no tests for null slice
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(20, 18),
-            // (27,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[.. null]").WithLocation(20, 18),
+            // (27,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[.. not null]' is not covered.
             //         _ = this switch // no test for not null slice
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(27, 18)
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[.. not null]").WithLocation(27, 18)
+            );
+    }
+
+    [Fact]
+    public void SlicePattern_Nullability_Exhaustiveness_WithNestedPropertyTest()
+    {
+        var source = @"
+#nullable enable
+using System;
+class C
+{
+    public int Length => throw null!;
+    public D? this[Index i] => throw null!;
+    public D? this[Range r] => throw null!;
+
+    public void M()
+    {
+        _ = this switch
+        {
+            null => 0,
+            [] => 0,
+            [_, _, ..] => 0,
+            [.. null] => 0,
+            [.. { Property: < 0 }] => 0,
+        };
+    }
+}
+
+class D
+{
+    public int Property { get; set; }
+}
+";
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        compilation.VerifyEmitDiagnostics(
+            // (12,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[.. { Property: 0 }]' is not covered.
+            //         _ = this switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[.. { Property: 0 }]").WithLocation(12, 18)
             );
     }
 
@@ -3316,6 +3393,7 @@ class C
     }
 }
 ";
+        // TODO2
         // PROTOTYPE: unexpected exhaustiveness diagnostic
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyEmitDiagnostics(
@@ -3878,15 +3956,14 @@ class C
     public int Count => throw null;
     public int this[int i] => throw null;
 }";
-        // PROTOTYPE bad explanation for 2
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 0 }' is not covered.
             // _ = new C() switch // 1
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 0 }").WithLocation(2, 13),
-            // (8,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+            // (8,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[0]' is not covered.
             // _ = new C() switch // 2
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(8, 13)
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[0]").WithLocation(8, 13)
             );
     }
 
@@ -3928,12 +4005,11 @@ class C
     public int Count => throw null!;
     public string? this[int i] => throw null!;
 }";
-        // PROTOTYPE bad explanations on 1 and 2
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,13): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
+            // (3,13): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[null]' is not covered.
             // _ = new C() switch // 1
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(3, 13),
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[null]").WithLocation(3, 13),
             // (18,13): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
             // _ = new C() switch // 2
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(18, 13)
@@ -3956,12 +4032,11 @@ class C
     public int Count => throw null;
     public int this[int i] => throw null;
 }";
-        // PROTOTYPE bad explanation
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+            // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[_, 0]' is not covered.
             // _ = new C() switch // 1
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(2, 13)
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[_, 0]").WithLocation(2, 13)
             );
     }
 
@@ -3981,12 +4056,11 @@ class C
     public int Count => throw null;
     public int this[int i] => throw null;
 }";
-        // PROTOTYPE bad explanation
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+            // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[0, _]' is not covered.
             // _ = new C() switch // 1
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(2, 13)
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[0, _]").WithLocation(2, 13)
             );
     }
 
@@ -4006,12 +4080,11 @@ class C
     public int Count => throw null;
     public int this[int i] => throw null;
 }";
-        // PROTOTYPE bad explanation
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+            // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[0]' is not covered.
             // _ = new C() switch // 1
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(2, 13)
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[0]").WithLocation(2, 13)
             );
     }
 
