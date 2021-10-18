@@ -863,6 +863,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             AssertTableEntries(table, new[] { (1, EntryState.Cached, 0), new(2, EntryState.Cached, 0), new(3, EntryState.Cached, 0) });
         }
 
+        [Fact]
+        public void RecordedStep_Tree_Includes_Most_Recent_Recording_Of_Run_Even_When_All_Inputs_Cached()
+        {
+            int thirdValue = 3;
+            var inputNode = new InputNode<int>((_) => ImmutableArray.Create(1, 2, thirdValue)).WithTrackingName("Input");
+            var batchNode = new BatchNode<int>(inputNode, name: "Batch");
+            var transformNode = new TransformNode<ImmutableArray<int>, int>(batchNode, (arr, ct) => arr, name: "Transform");
+            var filterNode = new TransformNode<int, int>(transformNode, (i, ct) => i <= 2 ? ImmutableArray.Create(i) : ImmutableArray<int>.Empty, name: "Filter");
+            var doubleNode = new TransformNode<int, int>(filterNode, (i, ct) => i * 2, name: "Double");
+            var addOneNode = new TransformNode<int, int>(doubleNode, (i, ct) => i + 1, name: "AddOne");
+
+            DriverStateTable.Builder dstBuilder = GetBuilder(DriverStateTable.Empty, trackIncrementalGeneratorSteps: true);
+
+            List<IncrementalGeneratorRunStep> steps = new();
+
+            _ = dstBuilder.GetLatestStateTableForNode(addOneNode);
+
+            thirdValue = 4;
+
+            // second time through we should be able to see that the third input value was 4 when getting to the batch node through tree traversal.
+            dstBuilder = GetBuilder(dstBuilder.ToImmutable(), trackIncrementalGeneratorSteps: true);
+            var table = dstBuilder.GetLatestStateTableForNode(addOneNode);
+
+            var addOneStep = table.Steps[0];
+
+            var doubleStep = addOneStep.Inputs[0].Source;
+
+            var filterNodeStep = doubleStep.Inputs[0].Source;
+
+            var transformNodeStep = filterNodeStep.Inputs[0].Source;
+
+            Assert.Equal(thirdValue, (int)transformNodeStep.Outputs[2].Value);
+        }
+
         private void AssertTableEntries<T>(NodeStateTable<T> table, IList<(T Item, EntryState State, int OutputIndex)> expected)
         {
             int index = 0;
@@ -903,11 +937,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                     trackIncrementalGeneratorSteps: trackIncrementalGeneratorSteps);
 
             return new DriverStateTable.Builder(c, state, ImmutableArray<ISyntaxInputNode>.Empty, SharedInputNodes.SyntaxTrees);
-        }
-
-        private GeneratorRunStateTable.Builder GetRunStateTableBuilder(bool recordExecutedSteps)
-        {
-            return new GeneratorRunStateTable.Builder(recordExecutedSteps);
         }
 
         private class CallbackNode<T> : IIncrementalGeneratorNode<T>

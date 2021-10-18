@@ -135,11 +135,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // If we have tracked steps, then we need to report removed entries to ensure all steps are in the graph.
                 // Otherwise, we can just return non-removed entries to build the next value.
-                if (HasTrackedSteps)
-                {
-                    sourceBuilder.Add(entry);
-                }
-                else if (entry.State != EntryState.Removed)
+                if (entry.State != EntryState.Removed || HasTrackedSteps)
                 {
                     sourceBuilder.Add(entry);
                 }
@@ -265,6 +261,10 @@ namespace Microsoft.CodeAnalysis
                 if (previousEntry.Count == 0 && outputs.Length == 0)
                 {
                     _states.Add(previousEntry);
+                    if (TrackIncrementalSteps)
+                    {
+                        RecordStepInfoForLastEntry(elapsedTime, stepInputs, EntryState.Cached);
+                    }
                     return true;
                 }
 
