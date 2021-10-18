@@ -175,9 +175,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tryHandleTypeTestAndTypeEvaluation(ref unnamedEnumValue) ??
                 tryHandleUnboxNullableValueType(ref unnamedEnumValue) ??
                 tryHandleTuplePattern(ref unnamedEnumValue) ??
-                tryHandleListPattern(ref unnamedEnumValue) ??
                 tryHandleNumericLimits(ref unnamedEnumValue) ??
                 tryHandleRecursivePattern(ref unnamedEnumValue) ??
+                tryHandleListPattern(ref unnamedEnumValue) ??
                 produceFallbackPattern();
 
             static ImmutableArray<T> getArray<T>(Dictionary<BoundDagTemp, ArrayBuilder<T>> map, BoundDagTemp temp)
@@ -240,9 +240,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Handle the special case of a list pattern
             string tryHandleListPattern(ref bool unnamedEnumValue)
             {
-                if (constraints.IsEmpty &&
-                    evaluations.Length >= 1 &&
-                    evaluations[0] is BoundDagPropertyEvaluation { IsLengthOrCount: true } lengthOrCount)
+                if (constraints.IsEmpty && evaluations.IsEmpty)
+                    return null;
+
+                if (!constraints.All(c => c switch
+                {
+                    // not-null tests are implicitly incorporated into a recursive pattern
+                    (test: BoundDagNonNullTest _, sense: true) => true,
+                    (test: BoundDagExplicitNullTest _, sense: false) => true,
+                    _ => false,
+                }))
+                {
+                    return null;
+                }
+
+                if (evaluations[0] is BoundDagPropertyEvaluation { IsLengthOrCount: true } lengthOrCount)
                 {
                     BoundDagSliceEvaluation slice = null;
                     for (int i = 1; i < evaluations.Length; i++)
@@ -264,11 +276,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var lengthTemp = new BoundDagTemp(lengthOrCount.Syntax, lengthOrCount.Property.Type, lengthOrCount);
                     var lengthValues = (IValueSet<int>)computeRemainingValues(ValueSetFactory.ForLength, getArray(constraintMap, lengthTemp));
                     int lengthValue = lengthValues.Sample.Int32Value;
-
-                    // TODO handle a few special cases:
-                    // - []
-                    // - [..]
-                    // - etc
 
                     var subpatterns = new ArrayBuilder<string>(lengthValue);
                     subpatterns.AddMany("_", lengthValue);
