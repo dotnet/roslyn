@@ -3410,6 +3410,38 @@ class C
     }
 
     [Fact]
+    public void SlicePattern_Nullability_Exhaustiveness_Multiple()
+    {
+        var source = @"
+#nullable enable
+using System;
+class C
+{
+    public int Length => throw null!;
+    public object? this[Index i] => throw null!;
+    public C? this[Range r] => throw null!;
+
+    public void M()
+    {
+        _ = this switch
+        {
+            null => 0,
+            [] => 0,
+            [1, .., 2, .., 3] => 0,
+            { Length: > 1 } => 0,
+        };
+    }
+}
+";
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        compilation.VerifyEmitDiagnostics(
+            // (16,24): error CS9202: Slice patterns may only be used once and directly inside a list pattern.
+            //             [1, .., 2, .., 3] => 0,
+            Diagnostic(ErrorCode.ERR_MisplacedSlicePattern, "..").WithLocation(16, 24)
+            );
+    }
+
+    [Fact]
     public void ListPattern_Dynamic()
     {
         var source = @"

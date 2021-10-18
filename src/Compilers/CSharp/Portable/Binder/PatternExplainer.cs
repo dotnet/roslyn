@@ -284,33 +284,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (BoundDagNonNullTest _, true) => true,
                         _ => false
                     }) &&
-                    ValueSetFactory.ForType(input.Type) is { } fac)
+                    ValueSetFactory.ForInput(input) is { } fac)
                 {
                     // All we have are numeric constraints. Process them to compute a value not covered.
-                    var remainingValues = fac.AllValues;
-                    foreach (var constraint in constraints)
-                    {
-                        var (test, sense) = constraint;
-                        switch (test)
-                        {
-                            case BoundDagValueTest v:
-                                addRelation(BinaryOperatorKind.Equal, v.Value);
-                                break;
-                            case BoundDagRelationalTest r:
-                                addRelation(r.Relation, r.Value);
-                                break;
-                        }
-                        void addRelation(BinaryOperatorKind relation, ConstantValue value)
-                        {
-                            if (value.IsBad)
-                                return;
-                            var filtered = fac.Related(relation, value);
-                            if (!sense)
-                                filtered = filtered.Complement();
-                            remainingValues = remainingValues.Intersect(filtered);
-                        }
-                    }
-
+                    IValueSet remainingValues = computeRemainingValues(fac, constraints);
                     if (remainingValues.Complement().IsEmpty)
                         return "_";
 
@@ -318,6 +295,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return null;
+            }
+
+            static IValueSet computeRemainingValues(IValueSetFactory fac, ImmutableArray<(BoundDagTest test, bool sense)> constraints)
+            {
+                var remainingValues = fac.AllValues;
+                foreach (var constraint in constraints)
+                {
+                    var (test, sense) = constraint;
+                    switch (test)
+                    {
+                        case BoundDagValueTest v:
+                            addRelation(BinaryOperatorKind.Equal, v.Value);
+                            break;
+                        case BoundDagRelationalTest r:
+                            addRelation(r.Relation, r.Value);
+                            break;
+                    }
+
+                    void addRelation(BinaryOperatorKind relation, ConstantValue value)
+                    {
+                        if (value.IsBad)
+                            return;
+                        var filtered = fac.Related(relation, value);
+                        if (!sense)
+                            filtered = filtered.Complement();
+                        remainingValues = remainingValues.Intersect(filtered);
+                    }
+                }
+
+                return remainingValues;
             }
 
             // Handle the special case of a list pattern
@@ -347,13 +354,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundDagPropertyEvaluation e when e.IsLengthOrCount:
                             {
                                 Debug.Assert(length == -1);
-                                var subInput = new BoundDagTemp(e.Syntax, e.Property.Type, e);
-                                var lengthValue = SamplePatternForTemp(subInput, constraintMap, evaluationMap, false, ref unnamedEnumValue);
-                                if (int.TryParse(lengthValue, out var parsedLength))
-                                {
-                                    Debug.Assert(parsedLength >= 0);
-                                    length = parsedLength;
-                                }
+                                var lengthTemp = new BoundDagTemp(e.Syntax, e.Property.Type, e);
+                                var lengthValues = (IValueSet<int>)computeRemainingValues(ValueSetFactory.ForLength, getArray(constraintMap, lengthTemp));
+                                length = lengthValues.Sample.Int32Value;
                             }
                             break;
                         case BoundDagIndexerEvaluation e:
