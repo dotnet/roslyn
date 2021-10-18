@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
     {
         internal static readonly GlobalFlowStateAnalysisDomain GlobalFlowStateAnalysisDomainInstance = new(GlobalFlowStateAnalysisValueSetDomain.Instance);
 
-        private GlobalFlowStateAnalysis(GlobalFlowStateAnalysisDomain analysisDomain, GlobalFlowStateDataFlowOperationVisitor operationVisitor)
+        private GlobalFlowStateAnalysis(GlobalFlowStateAnalysisDomain analysisDomain, GlobalFlowStateValueSetFlowOperationVisitor operationVisitor)
             : base(analysisDomain, operationVisitor)
         {
         }
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         /// </summary>
         /// <param name="cfg">Control flow graph to analyze.</param>
         /// <param name="owningSymbol">Owning symbol for the analyzed <paramref name="cfg"/>.</param>
-        /// <param name="createOperationVisitor">Delegate to create a <see cref="GlobalFlowStateDataFlowOperationVisitor"/> that performs the core analysis.</param>
+        /// <param name="createOperationVisitor">Delegate to create a <see cref="GlobalFlowStateValueSetFlowOperationVisitor"/> that performs the core analysis.</param>
         /// <param name="wellKnownTypeProvider">Well-known type provider for the compilation.</param>
         /// <param name="analyzerOptions">Analyzer options for analysis</param>
         /// <param name="rule"><see cref="DiagnosticDescriptor"/> for fetching any rule specific analyzer option values from <paramref name="analyzerOptions"/>.</param>
@@ -50,12 +50,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         /// Optional delegate to compute values for <paramref name="additionalSupportedValueTypes"/>.
         /// Must be non-null if <paramref name="additionalSupportedValueTypes"/> is non-empty.
         /// </param>
-        /// 
+        ///
         /// <returns>Global flow state analysis result, or null if analysis did not succeed.</returns>
         public static GlobalFlowStateAnalysisResult? TryGetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
-            Func<GlobalFlowStateAnalysisContext, GlobalFlowStateDataFlowOperationVisitor> createOperationVisitor,
+            Func<GlobalFlowStateAnalysisContext, GlobalFlowStateValueSetFlowOperationVisitor> createOperationVisitor,
             WellKnownTypeProvider wellKnownTypeProvider,
             AnalyzerOptions analyzerOptions,
             DiagnosticDescriptor rule,
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         private static GlobalFlowStateAnalysisResult? TryGetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
-            Func<GlobalFlowStateAnalysisContext, GlobalFlowStateDataFlowOperationVisitor> createOperationVisitor,
+            Func<GlobalFlowStateAnalysisContext, GlobalFlowStateValueSetFlowOperationVisitor> createOperationVisitor,
             WellKnownTypeProvider wellKnownTypeProvider,
             AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
 
         private static GlobalFlowStateAnalysisResult? TryGetOrComputeResultForAnalysisContext(
             GlobalFlowStateAnalysisContext analysisContext,
-            Func<GlobalFlowStateAnalysisContext, GlobalFlowStateDataFlowOperationVisitor> createOperationVisitor)
+            Func<GlobalFlowStateAnalysisContext, GlobalFlowStateValueSetFlowOperationVisitor> createOperationVisitor)
         {
             var operationVisitor = createOperationVisitor(analysisContext);
             var analysis = new GlobalFlowStateAnalysis(GlobalFlowStateAnalysisDomainInstance, operationVisitor);
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         {
             // Update the operation state map with global values map
             // These are the values that analyzers care about.
-            var operationVisitor = (GlobalFlowStateDataFlowOperationVisitor)OperationVisitor;
+            var operationVisitor = (GlobalFlowStateValueSetFlowOperationVisitor)OperationVisitor;
             return dataFlowAnalysisResult.With(operationVisitor.GetGlobalValuesMap());
         }
 
