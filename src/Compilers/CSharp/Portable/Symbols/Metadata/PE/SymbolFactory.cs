@@ -46,6 +46,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return new PointerTypeSymbol(CreateType(type, customModifiers));
         }
 
+        internal override TypeSymbol MakeRefTypeSymbol(PEModuleSymbol moduleSymbol, TypeSymbol type, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
+        {
+            if (type is UnsupportedMetadataTypeSymbol)
+            {
+                return type;
+            }
+
+            var refKind = RefKind.Ref;
+            // PROTOTYPE(delegate-type-args): it's not clear how to decode OutAttribute etc
+
+            return new RefTypeSymbol(refKind, CreateType(type, customModifiers));
+        }
+
         internal override TypeSymbol MakeFunctionPointerTypeSymbol(Cci.CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
         {
             return FunctionPointerTypeSymbol.CreateFromMetadata(callingConvention, retAndParamTypes);

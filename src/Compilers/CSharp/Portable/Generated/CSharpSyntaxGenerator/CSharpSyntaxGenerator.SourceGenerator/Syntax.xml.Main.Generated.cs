@@ -2390,7 +2390,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new RefTypeSyntax instance.</summary>
         public static RefTypeSyntax RefType(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type)
         {
-            if (refKeyword.Kind() != SyntaxKind.RefKeyword) throw new ArgumentException(nameof(refKeyword));
+            switch (refKeyword.Kind())
+            {
+                case SyntaxKind.RefKeyword:
+                case SyntaxKind.InKeyword:
+                case SyntaxKind.OutKeyword: break;
+                default: throw new ArgumentException(nameof(refKeyword));
+            }
             switch (readOnlyKeyword.Kind())
             {
                 case SyntaxKind.ReadOnlyKeyword:
@@ -2402,8 +2408,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new RefTypeSyntax instance.</summary>
-        public static RefTypeSyntax RefType(TypeSyntax type)
-            => SyntaxFactory.RefType(SyntaxFactory.Token(SyntaxKind.RefKeyword), default, type);
+        public static RefTypeSyntax RefType(SyntaxToken refKeyword, TypeSyntax type)
+            => SyntaxFactory.RefType(refKeyword, default, type);
 
         /// <summary>Creates a new ParenthesizedExpressionSyntax instance.</summary>
         public static ParenthesizedExpressionSyntax ParenthesizedExpression(SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)

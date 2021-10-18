@@ -148,6 +148,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Overrides Function MakeFunctionPointerTypeSymbol(callingConvention As Cci.CallingConvention, retAndParamTypes As ImmutableArray(Of ParamInfo(Of TypeSymbol))) As TypeSymbol
             Return New UnsupportedMetadataTypeSymbol()
         End Function
+
+        Friend Overrides Function MakeRefTypeSymbol(moduleSymbol As PEModuleSymbol, type As TypeSymbol, customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol))) As TypeSymbol
+            Return New UnsupportedMetadataTypeSymbol()
+        End Function
     End Class
 
 End Namespace

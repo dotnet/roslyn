@@ -107,6 +107,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         TypeWithAnnotations pointedAtType = pointer.PointedAtTypeWithAnnotations;
                         return checkTypeWithAnnotations(pointedAtType, flagNonDefaultArraySizesOrLowerBounds);
                     }
+                case SymbolKind.RefType:
+                    {
+                        var refType = (RefTypeSymbol)type;
+                        TypeWithAnnotations referencedType = refType.ReferencedTypeWithAnnotations;
+                        return checkTypeWithAnnotations(referencedType, flagNonDefaultArraySizesOrLowerBounds);
+                    }
                 case SymbolKind.FunctionPointerType:
                     {
                         var funcPtr = (FunctionPointerTypeSymbol)type;

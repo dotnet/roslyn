@@ -24,6 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ReferencedTypeWithAnnotations = referencedTypeWithAnnotations;
         }
 
+        internal RefTypeSymbol WithReferencedType(TypeWithAnnotations newReferencedType)
+        {
+            return ReferencedTypeWithAnnotations.IsSameAs(newReferencedType) ? this : new RefTypeSymbol(RefKind, newReferencedType);
+        }
+
         public override bool IsReferenceType => false;
         public override bool IsValueType => false;
 

@@ -801,7 +801,7 @@ C.M1(C.M0);
 
 class C
 {
-    public static void M0(int x)
+    public static void M0(ref int x)
     {
         x++;
     }
@@ -815,7 +815,7 @@ class C
     }
 }";
             // PROTOTYPE: requires updated runtime support to verify output
-            var verifier = CompileAndVerify(source/*, expectedOutput: "01"*/);
+            var verifier = CompileAndVerify(source, symbolValidator: verify, sourceSymbolValidator: verify/*, expectedOutput: "01"*/);
             verifier.VerifyDiagnostics();
             // PROTOTYPE: requires updated symbol display for meaningful-ish disassembly
             verifier.VerifyIL("C.M1", @"
@@ -834,6 +834,21 @@ class C
   IL_0011:  call       ""void System.Console.Write(int)""
   IL_0016:  ret
 }");
+            void verify(ModuleSymbol module)
+            {
+                var m1 = module.GlobalNamespace.GetMember<MethodSymbol>("C.M1");
+                var actionParam = m1.Parameters[0];
+                var actionType = (NamedTypeSymbol)actionParam.Type;
+                var typeArgs = actionType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+                var typeArg = (RefTypeSymbol)typeArgs[0].Type;
+                Assert.Equal(RefKind.Ref, typeArg.RefKind);
+                Assert.Equal("System.Int32", typeArg.ReferencedTypeWithAnnotations.ToTestDisplayString());
+
+                var invokeMethod = actionType.DelegateInvokeMethod();
+                var invokeParam = invokeMethod.Parameters[0];
+                Assert.Equal(RefKind.Ref, invokeParam.RefKind);
+                Assert.Equal("System.Int32", invokeParam.TypeWithAnnotations.ToTestDisplayString());
+            }
         }
 
         [Fact]
@@ -842,42 +857,81 @@ class C
             var source = @"
 using System;
 
+class C
+{
+    public static unsafe void M0(delegate*<int, void> fn)
+    {
+        fn(0);
+    }
+
+    public static unsafe void M1(Action<delegate*<int, void>> action)
+    {
+        action(&M2);
+    }
+
+    public static void M2(int x) { }
+
+    static unsafe void Main()
+    {
+        C.M1(C.M0);
+    }
+}";
+            // PROTOTYPE(delegate-type-args): allow other kinds of restricted type arguments to delegates
+            var verifier = CreateCompilation(source, options: TestOptions.UnsafeDebugExe);
+            verifier.VerifyDiagnostics(
+                // (11,63): error CS0306: The type 'delegate*<int, void>' may not be used as a type argument
+                //     public static unsafe void M1(Action<delegate*<int, void>> action)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "action").WithArguments("delegate*<int, void>").WithLocation(11, 63));
+        }
+
+        [Fact]
+        public void DelegateRefTypeArgument_03()
+        {
+            var source = @"
+using System;
+
 C.M1(C.M0);
 
 class C
 {
-    public static void M0(int x)
+    public static void M0(out int x)
     {
-        x++;
+        x = 42;
     }
 
-    public static void M1(Action<delegate*<int, void>> action)
+    public static void M1(Action<out int> action)
     {
-        int i = 0;
-        Console.Write(i);
-        action(ref i);
+        int i;
+        action(out i);
         Console.Write(i);
     }
 }";
-            // PROTOTYPE(delegate-type-args): provide other kinds of restricted type arguments to delegates
-            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugDll/*, expectedOutput: "01"*/);
+            // PROTOTYPE: requires updated runtime support to verify output
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, symbolValidator: verify/*, expectedOutput: "01"*/);
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M1", @"
-{
-  // Code size       23 (0x17)
-  .maxstack  2
-  .locals init (int V_0) //i
-  IL_0000:  ldc.i4.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  call       ""void System.Console.Write(int)""
-  IL_0008:  ldarg.0
-  IL_0009:  ldloca.s   V_0
-  IL_000b:  callvirt   ""void System.Action<int>.Invoke(ref int)""
-  IL_0010:  ldloc.0
-  IL_0011:  call       ""void System.Console.Write(int)""
-  IL_0016:  ret
-}");
+            // PROTOTYPE: requires updated symbol display for meaningful-ish disassembly
+//             verifier.VerifyIL("C.M1", @"
+// {
+//   // Code size       15 (0xf)
+//   .maxstack  2
+//   .locals init (int V_0) //i
+//   IL_0000:  ldarg.0
+//   IL_0001:  ldloca.s   V_0
+//   IL_0003:  callvirt   ""void System.Action<int>.Invoke(out int)""
+//   IL_0008:  ldloc.0
+//   IL_0009:  call       ""void System.Console.Write(int)""
+//   IL_000e:  ret
+// }");
+            void verify(ModuleSymbol module)
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.M1");
+                var param = method.Parameters[0];
+                // PROTOTYPE(delegate-type-args): decoding these types is not working yet
+
+                // var invokeMethod = param.Type.DelegateInvokeMethod();
+                // var delegateParam = invokeMethod.Parameters[0];
+                // Assert.Equal(RefKind.Out, delegateParam.RefKind);
+            }
         }
     }
 }

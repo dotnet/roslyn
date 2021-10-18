@@ -982,7 +982,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public OmittedTypeArgumentSyntax WithOmittedTypeArgumentToken(SyntaxToken omittedTypeArgumentToken) => Update(omittedTypeArgumentToken);
     }
 
-    /// <summary>The ref modifier of a method's return value or a local.</summary>
+    /// <summary>The ref modifier of a method's return value, a local, or a type argument.</summary>
     /// <remarks>
     /// <para>This node is associated with the following syntax kinds:</para>
     /// <list type="bullet">
@@ -998,6 +998,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
+        /// <summary>SyntaxToken representing the 'ref', 'in' or 'out' keyword.</summary>
         public SyntaxToken RefKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.RefTypeSyntax)this.Green).refKeyword, Position, 0);
 
         /// <summary>Gets the optional "readonly" keyword.</summary>

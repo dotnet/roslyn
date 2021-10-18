@@ -2082,7 +2082,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    /// <summary>The ref modifier of a method's return value or a local.</summary>
+    /// <summary>The ref modifier of a method's return value, a local, or a type argument.</summary>
     internal sealed partial class RefTypeSyntax : TypeSyntax
     {
         internal readonly SyntaxToken refKeyword;
@@ -2135,6 +2135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.type = type;
         }
 
+        /// <summary>SyntaxToken representing the 'ref', 'in' or 'out' keyword.</summary>
         public SyntaxToken RefKeyword => this.refKeyword;
         /// <summary>Gets the optional "readonly" keyword.</summary>
         public SyntaxToken? ReadOnlyKeyword => this.readOnlyKeyword;
@@ -35481,7 +35482,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
 #if DEBUG
             if (refKeyword == null) throw new ArgumentNullException(nameof(refKeyword));
-            if (refKeyword.Kind != SyntaxKind.RefKeyword) throw new ArgumentException(nameof(refKeyword));
+            switch (refKeyword.Kind)
+            {
+                case SyntaxKind.RefKeyword:
+                case SyntaxKind.InKeyword:
+                case SyntaxKind.OutKeyword: break;
+                default: throw new ArgumentException(nameof(refKeyword));
+            }
             if (readOnlyKeyword != null)
             {
                 switch (readOnlyKeyword.Kind)
@@ -40454,7 +40461,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
 #if DEBUG
             if (refKeyword == null) throw new ArgumentNullException(nameof(refKeyword));
-            if (refKeyword.Kind != SyntaxKind.RefKeyword) throw new ArgumentException(nameof(refKeyword));
+            switch (refKeyword.Kind)
+            {
+                case SyntaxKind.RefKeyword:
+                case SyntaxKind.InKeyword:
+                case SyntaxKind.OutKeyword: break;
+                default: throw new ArgumentException(nameof(refKeyword));
+            }
             if (readOnlyKeyword != null)
             {
                 switch (readOnlyKeyword.Kind)
