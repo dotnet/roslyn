@@ -34,15 +34,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         Private ReadOnly _editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory
         Private ReadOnly _editorAdaptersFactoryService As IVsEditorAdaptersFactoryService
         Private ReadOnly _argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata))
+        Private ReadOnly _globalOptions As IGlobalOptionService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(threadingContext As IThreadingContext, signatureHelpControllerProvider As SignatureHelpControllerProvider, editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService, <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)))
+        Public Sub New(
+            threadingContext As IThreadingContext,
+            signatureHelpControllerProvider As SignatureHelpControllerProvider,
+            editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
+            editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
+            <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
+            globalOptions As IGlobalOptionService)
+
             _threadingContext = threadingContext
             _signatureHelpControllerProvider = signatureHelpControllerProvider
             _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory
-            Me._editorAdaptersFactoryService = editorAdaptersFactoryService
+            _editorAdaptersFactoryService = editorAdaptersFactoryService
             _argumentProviders = argumentProviders.ToImmutableArray()
+            _globalOptions = globalOptions
         End Sub
 
         Friend Overrides ReadOnly Property IsSnippetProvider As Boolean
@@ -109,7 +118,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                           subjectBuffer As ITextBuffer,
                           triggerSnapshot As ITextSnapshot,
                           commitChar As Char?) Implements ICustomCommitCompletionProvider.Commit
-            Dim snippetClient = SnippetExpansionClient.GetSnippetExpansionClient(_threadingContext, textView, subjectBuffer, _signatureHelpControllerProvider, _editorCommandHandlerServiceFactory, _editorAdaptersFactoryService, _argumentProviders)
+            Dim snippetClient = SnippetExpansionClient.GetSnippetExpansionClient(
+                _threadingContext,
+                textView,
+                subjectBuffer,
+                _signatureHelpControllerProvider,
+                _editorCommandHandlerServiceFactory,
+                _editorAdaptersFactoryService,
+                _argumentProviders,
+                _globalOptions)
 
             Dim trackingSpan = triggerSnapshot.CreateTrackingSpan(completionItem.Span.ToSpan(), SpanTrackingMode.EdgeInclusive)
             Dim currentSpan = trackingSpan.GetSpan(subjectBuffer.CurrentSnapshot)

@@ -1211,14 +1211,18 @@ class C
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextInfo.Method.ToTestDisplayString());
             Assert.Empty(info.MoveNextInfo.Arguments);
             Assert.True(info.NeedsDisposal);
-            Assert.Equal(ConversionKind.ImplicitReference, info.CollectionConversion.Kind);
-            Assert.Equal(ConversionKind.Unboxing, info.CurrentConversion.Kind);
-            Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.ImplicitReference, GetCollectionConversion(boundNode).Kind);
+            Assert.Equal(ConversionKind.Unboxing, BoundNode.GetConversion(info.CurrentConversion, info.CurrentPlaceholder).Kind);
 
-            Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(boundNode.ElementConversion, boundNode.ElementPlaceholder).Kind);
             Assert.Equal("System.Int32 x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal(SpecialType.System_Collections_IEnumerable, boundNode.Expression.Type.SpecialType);
             Assert.Equal(SymbolKind.ArrayType, ((BoundConversion)boundNode.Expression).Operand.Type.Kind);
+        }
+
+        private static Conversion GetCollectionConversion(BoundForEachStatement boundNode)
+        {
+            return ((BoundConversion)boundNode.Expression).Conversion;
         }
 
         [Fact]
@@ -1245,11 +1249,10 @@ class C
             Assert.Equal("System.Boolean System.CharEnumerator.MoveNext()", info.MoveNextInfo.Method.ToTestDisplayString());
             Assert.Empty(info.MoveNextInfo.Arguments);
             Assert.True(info.NeedsDisposal);
-            Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
-            Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, GetCollectionConversion(boundNode).Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(info.CurrentConversion, info.CurrentPlaceholder).Kind);
 
-            Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(boundNode.ElementConversion, boundNode.ElementPlaceholder).Kind);
             Assert.Equal("System.Char c", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal(SpecialType.System_String, boundNode.Expression.Type.SpecialType);
             Assert.Equal(SpecialType.System_String, ((BoundConversion)boundNode.Expression).Operand.Type.SpecialType);
@@ -1290,11 +1293,10 @@ class Enumerator
             Assert.Equal("System.Boolean Enumerator.MoveNext()", info.MoveNextInfo.Method.ToTestDisplayString());
             Assert.Empty(info.MoveNextInfo.Arguments);
             Assert.True(info.NeedsDisposal);
-            Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
-            Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, GetCollectionConversion(boundNode).Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(info.CurrentConversion, info.CurrentPlaceholder).Kind);
 
-            Assert.Equal(ConversionKind.ImplicitNumeric, boundNode.ElementConversion.Kind);
+            Assert.Equal(ConversionKind.ImplicitNumeric, BoundNode.GetConversion(boundNode.ElementConversion, boundNode.ElementPlaceholder).Kind);
             Assert.Equal("System.Int64 x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal("Enumerable", boundNode.Expression.Type.ToTestDisplayString());
             Assert.Equal("Enumerable", ((BoundConversion)boundNode.Expression).Operand.Type.ToTestDisplayString());
@@ -1335,11 +1337,10 @@ struct Enumerator
             Assert.Equal("System.Boolean Enumerator.MoveNext()", info.MoveNextInfo.Method.ToTestDisplayString());
             Assert.Empty(info.MoveNextInfo.Arguments);
             Assert.False(info.NeedsDisposal); // Definitely not disposable
-            Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, GetCollectionConversion(boundNode).Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(info.CurrentConversion, info.CurrentPlaceholder).Kind);
 
-            Assert.Equal(ConversionKind.ImplicitNumeric, boundNode.ElementConversion.Kind);
+            Assert.Equal(ConversionKind.ImplicitNumeric, BoundNode.GetConversion(boundNode.ElementConversion, boundNode.ElementPlaceholder).Kind);
             Assert.Equal("System.Int64 x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal("Enumerable", boundNode.Expression.Type.ToTestDisplayString());
             Assert.Equal("Enumerable", ((BoundConversion)boundNode.Expression).Operand.Type.ToTestDisplayString());
@@ -1369,11 +1370,10 @@ class C
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextInfo.Method.ToTestDisplayString());
             Assert.Empty(info.MoveNextInfo.Arguments);
             Assert.True(info.NeedsDisposal);
-            Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
-            Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, GetCollectionConversion(boundNode).Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(info.CurrentConversion, info.CurrentPlaceholder).Kind);
 
-            Assert.Equal(ConversionKind.Unboxing, boundNode.ElementConversion.Kind);
+            Assert.Equal(ConversionKind.Unboxing, BoundNode.GetConversion(boundNode.ElementConversion, boundNode.ElementPlaceholder).Kind);
             Assert.Equal("System.Int64 x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal("System.Collections.IEnumerable", boundNode.Expression.Type.ToTestDisplayString());
             Assert.Equal("System.Collections.IEnumerable", ((BoundConversion)boundNode.Expression).Operand.Type.ToTestDisplayString());
@@ -1410,11 +1410,10 @@ class Enumerable : System.Collections.Generic.IEnumerable<int>
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextInfo.Method.ToTestDisplayString()); //NB: not on generic interface
             Assert.Empty(info.MoveNextInfo.Arguments);
             Assert.True(info.NeedsDisposal);
-            Assert.Equal(ConversionKind.ImplicitReference, info.CollectionConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
-            Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.ImplicitReference, GetCollectionConversion(boundNode).Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(info.CurrentConversion, info.CurrentPlaceholder).Kind);
 
-            Assert.Equal(ConversionKind.ImplicitNumeric, boundNode.ElementConversion.Kind);
+            Assert.Equal(ConversionKind.ImplicitNumeric, BoundNode.GetConversion(boundNode.ElementConversion, boundNode.ElementPlaceholder).Kind);
             Assert.Equal("System.Int64 x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal("System.Collections.Generic.IEnumerable<System.Int32>", boundNode.Expression.Type.ToTestDisplayString());
             Assert.Equal("Enumerable", ((BoundConversion)boundNode.Expression).Operand.Type.ToTestDisplayString());
@@ -1453,11 +1452,10 @@ class Enumerable : System.Collections.Generic.IEnumerable<Enumerable.Hidden>
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextInfo.Method.ToTestDisplayString());
             Assert.Empty(info.MoveNextInfo.Arguments);
             Assert.True(info.NeedsDisposal);
-            Assert.Equal(ConversionKind.ImplicitReference, info.CollectionConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
-            Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.ImplicitReference, GetCollectionConversion(boundNode).Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(info.CurrentConversion, info.CurrentPlaceholder).Kind);
 
-            Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(boundNode.ElementConversion, boundNode.ElementPlaceholder).Kind);
             Assert.Equal("System.Object x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal(SpecialType.System_Collections_IEnumerable, boundNode.Expression.Type.SpecialType);
             Assert.Equal("Enumerable", ((BoundConversion)boundNode.Expression).Operand.Type.ToTestDisplayString());
@@ -1493,11 +1491,10 @@ class Enumerable : System.Collections.IEnumerable
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextInfo.Method.ToTestDisplayString());
             Assert.Empty(info.MoveNextInfo.Arguments);
             Assert.True(info.NeedsDisposal);
-            Assert.Equal(ConversionKind.ImplicitReference, info.CollectionConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
-            Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.ImplicitReference, GetCollectionConversion(boundNode).Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(info.CurrentConversion, info.CurrentPlaceholder).Kind);
 
-            Assert.Equal(ConversionKind.Unboxing, boundNode.ElementConversion.Kind);
+            Assert.Equal(ConversionKind.Unboxing, BoundNode.GetConversion(boundNode.ElementConversion, boundNode.ElementPlaceholder).Kind);
             Assert.Equal("System.Int64 x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal(SpecialType.System_Collections_IEnumerable, boundNode.Expression.Type.SpecialType);
             Assert.Equal("Enumerable", ((BoundConversion)boundNode.Expression).Operand.Type.ToTestDisplayString());
@@ -1527,11 +1524,10 @@ class C
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextInfo.Method.ToTestDisplayString());
             Assert.Empty(info.MoveNextInfo.Arguments);
             Assert.True(info.NeedsDisposal);
-            Assert.Equal(ConversionKind.ImplicitReference, info.CollectionConversion.Kind);
-            Assert.Equal(ConversionKind.Unboxing, info.CurrentConversion.Kind);
-            Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.ImplicitReference, GetCollectionConversion(boundNode).Kind);
+            Assert.Equal(ConversionKind.Unboxing, BoundNode.GetConversion(info.CurrentConversion, info.CurrentPlaceholder).Kind);
 
-            Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(boundNode.ElementConversion, boundNode.ElementPlaceholder).Kind);
             Assert.Equal(SpecialType.System_Int32, boundNode.IterationVariables.Single().Type.SpecialType);
         }
 
@@ -1559,11 +1555,10 @@ class C
             Assert.Equal("System.Boolean System.CharEnumerator.MoveNext()", info.MoveNextInfo.Method.ToTestDisplayString());
             Assert.Empty(info.MoveNextInfo.Arguments);
             Assert.True(info.NeedsDisposal);
-            Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
-            Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, GetCollectionConversion(boundNode).Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(info.CurrentConversion, info.CurrentPlaceholder).Kind);
 
-            Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(boundNode.ElementConversion, boundNode.ElementPlaceholder).Kind);
             Assert.Equal(SpecialType.System_Char, boundNode.IterationVariables.Single().Type.SpecialType);
         }
 
@@ -1592,7 +1587,7 @@ class Enumerator
 ";
             var boundNode = GetBoundForEachStatement(text);
             Assert.NotNull(boundNode.EnumeratorInfoOpt);
-            Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(boundNode.ElementConversion, boundNode.ElementPlaceholder).Kind);
             Assert.Equal(SpecialType.System_Int32, boundNode.IterationVariables.Single().Type.SpecialType);
         }
 
@@ -1616,7 +1611,7 @@ class Enumerable : System.Collections.IEnumerable
 ";
             var boundNode = GetBoundForEachStatement(text);
             Assert.NotNull(boundNode.EnumeratorInfoOpt);
-            Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(boundNode.ElementConversion, boundNode.ElementPlaceholder).Kind);
             Assert.Equal(SpecialType.System_Object, boundNode.IterationVariables.Single().Type.SpecialType);
         }
 
@@ -1646,11 +1641,10 @@ class C
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextInfo.Method.ToTestDisplayString());
             Assert.Empty(info.MoveNextInfo.Arguments);
             Assert.True(info.NeedsDisposal);
-            Assert.Equal(ConversionKind.ImplicitReference, info.CollectionConversion.Kind);
-            Assert.Equal(ConversionKind.ExplicitReference, info.CurrentConversion.Kind); //object to C.var
-            Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.ImplicitReference, GetCollectionConversion(boundNode).Kind);
+            Assert.Equal(ConversionKind.ExplicitReference, BoundNode.GetConversion(info.CurrentConversion, info.CurrentPlaceholder).Kind); //object to C.var
 
-            Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(boundNode.ElementConversion, boundNode.ElementPlaceholder).Kind);
             Assert.Equal("C.var", boundNode.IterationVariables.Single().TypeWithAnnotations.ToTestDisplayString());
         }
 
@@ -1678,11 +1672,10 @@ class C
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextInfo.Method.ToTestDisplayString());
             Assert.Empty(info.MoveNextInfo.Arguments);
             Assert.True(info.NeedsDisposal);
-            Assert.Equal(ConversionKind.ImplicitDynamic, info.CollectionConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
-            Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.ImplicitDynamic, GetCollectionConversion(boundNode).Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(info.CurrentConversion, info.CurrentPlaceholder).Kind);
 
-            Assert.Equal(ConversionKind.ExplicitDynamic, boundNode.ElementConversion.Kind);
+            Assert.Equal(ConversionKind.ExplicitDynamic, BoundNode.GetConversion(boundNode.ElementConversion, boundNode.ElementPlaceholder).Kind);
             Assert.Equal("System.Int32 x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal(SpecialType.System_Collections_IEnumerable, boundNode.Expression.Type.SpecialType);
             Assert.Equal(TypeKind.Dynamic, ((BoundConversion)boundNode.Expression).Operand.Type.TypeKind);
@@ -1712,11 +1705,10 @@ class C
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextInfo.Method.ToTestDisplayString());
             Assert.Empty(info.MoveNextInfo.Arguments);
             Assert.True(info.NeedsDisposal);
-            Assert.Equal(ConversionKind.ImplicitDynamic, info.CollectionConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
-            Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.ImplicitDynamic, GetCollectionConversion(boundNode).Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(info.CurrentConversion, info.CurrentPlaceholder).Kind);
 
-            Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind); //NB: differs from explicit case
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(boundNode.ElementConversion, boundNode.ElementPlaceholder).Kind); //NB: differs from explicit case
             Assert.Equal("dynamic x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal(SpecialType.System_Collections_IEnumerable, boundNode.Expression.Type.SpecialType);
             Assert.Equal(SymbolKind.DynamicType, ((BoundConversion)boundNode.Expression).Operand.Type.Kind);
@@ -1754,11 +1746,10 @@ public class Enumerable<T>
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextInfo.Method.ToTestDisplayString());
             Assert.Empty(info.MoveNextInfo.Arguments);
             Assert.True(info.NeedsDisposal);
-            Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
-            Assert.Equal(ConversionKind.Boxing, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, GetCollectionConversion(boundNode).Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(info.CurrentConversion, info.CurrentPlaceholder).Kind);
 
-            Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(boundNode.ElementConversion, boundNode.ElementPlaceholder).Kind);
             Assert.Equal("System.Object x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal("Enumerable<T>", boundNode.Expression.Type.ToTestDisplayString());
             Assert.Equal("Enumerable<T>", ((BoundConversion)boundNode.Expression).Operand.Type.ToTestDisplayString());
@@ -1839,11 +1830,10 @@ interface MyEnumerator
             Assert.Equal("System.Boolean MyEnumerator.MoveNext()", info.MoveNextInfo.Method.ToTestDisplayString());
             Assert.Empty(info.MoveNextInfo.Arguments);
             Assert.True(info.NeedsDisposal);
-            Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
-            Assert.Equal(ConversionKind.Boxing, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, GetCollectionConversion(boundNode).Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(info.CurrentConversion, info.CurrentPlaceholder).Kind);
 
-            Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(boundNode.ElementConversion, boundNode.ElementPlaceholder).Kind);
             Assert.Equal("System.Object x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal("Enumerable<T>", boundNode.Expression.Type.ToTestDisplayString());
             Assert.Equal("Enumerable<T>", ((BoundConversion)boundNode.Expression).Operand.Type.ToTestDisplayString());
@@ -1887,11 +1877,10 @@ struct Enumerator
             Assert.Equal("System.Boolean Enumerator.MoveNext()", info.MoveNextInfo.Method.ToTestDisplayString());
             Assert.Empty(info.MoveNextInfo.Arguments);
             Assert.False(info.NeedsDisposal); // Definitely not disposable
-            Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, GetCollectionConversion(boundNode).Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(info.CurrentConversion, info.CurrentPlaceholder).Kind);
 
-            Assert.Equal(ConversionKind.ImplicitNumeric, boundNode.ElementConversion.Kind);
+            Assert.Equal(ConversionKind.ImplicitNumeric, BoundNode.GetConversion(boundNode.ElementConversion, boundNode.ElementPlaceholder).Kind);
             Assert.Equal("System.Int64 x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal("Enumerable", boundNode.Expression.Type.ToTestDisplayString());
             Assert.Equal("Enumerable", ((BoundConversion)boundNode.Expression).Operand.Type.ToTestDisplayString());
@@ -3124,11 +3113,10 @@ namespace System.Collections
             Assert.Equal("System.Boolean System.CharEnumerator.MoveNext()", info.MoveNextInfo.Method.ToTestDisplayString());
             Assert.Empty(info.MoveNextInfo.Arguments);
             Assert.True(info.NeedsDisposal);
-            Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
-            Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, GetCollectionConversion(boundNode).Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(info.CurrentConversion, info.CurrentPlaceholder).Kind);
 
-            Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(boundNode.ElementConversion, boundNode.ElementPlaceholder).Kind);
             Assert.Equal(SpecialType.System_Char, boundNode.IterationVariables.Single().Type.SpecialType);
         }
 
@@ -3238,11 +3226,10 @@ public static class Extensions
             Assert.Equal("System.Boolean C.Enumerator.MoveNext()", info.MoveNextInfo.Method.ToTestDisplayString());
             Assert.Empty(info.MoveNextInfo.Arguments);
             Assert.False(info.NeedsDisposal);
-            Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
-            Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, GetCollectionConversion(boundNode).Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(info.CurrentConversion, info.CurrentPlaceholder).Kind);
 
-            Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, BoundNode.GetConversion(boundNode.ElementConversion, boundNode.ElementPlaceholder).Kind);
             Assert.Equal("System.Int32 i", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal("C", boundNode.Expression.Type.ToDisplayString());
         }
@@ -3298,8 +3285,8 @@ public static class Extensions
                 }
 
                 Assert.Equal(enumeratorInfo.ElementType.GetPublicSymbol(), statementInfo.ElementType);
-                Assert.Equal(boundNode.ElementConversion, statementInfo.ElementConversion);
-                Assert.Equal(enumeratorInfo.CurrentConversion, statementInfo.CurrentConversion);
+                Assert.Equal(BoundNode.GetConversion(boundNode.ElementConversion, boundNode.ElementPlaceholder), statementInfo.ElementConversion);
+                Assert.Equal(BoundNode.GetConversion(enumeratorInfo.CurrentConversion, enumeratorInfo.CurrentPlaceholder), statementInfo.CurrentConversion);
             }
 
             return boundNode;

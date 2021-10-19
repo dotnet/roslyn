@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         }
 
         protected sealed override async Task ProduceTagsAsync(
-            TaggerContext<IStructureTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+            TaggerContext<IStructureTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, CancellationToken cancellationToken)
         {
             try
             {
@@ -142,13 +143,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                     return;
 
                 var blockStructure = await outliningService.GetBlockStructureAsync(
-                        documentSnapshotSpan.Document, context.CancellationToken).ConfigureAwait(false);
+                    documentSnapshotSpan.Document, cancellationToken).ConfigureAwait(false);
 
                 ProcessSpans(
                     context, documentSnapshotSpan.SnapshotSpan, outliningService,
                     blockStructure.Spans);
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

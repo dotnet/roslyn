@@ -38,11 +38,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             ILspWorkspaceRegistrationService workspaceRegistrationService,
             ILspLogger logger)
         {
+            var lspMiscellaneousFilesWorkspace = new LspMiscellaneousFilesWorkspace(logger);
+
             return new LanguageServerTarget(
                 _dispatcherFactory,
                 jsonRpc,
                 capabilitiesProvider,
                 workspaceRegistrationService,
+                lspMiscellaneousFilesWorkspace,
                 _globalOptions,
                 _listenerProvider,
                 logger,

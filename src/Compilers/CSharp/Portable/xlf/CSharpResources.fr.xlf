@@ -747,6 +747,11 @@
         <target state="translated">La méthode '{0}' avec un bloc itérateur doit être 'async' pour retourner '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LambdaExplicitReturnTypeVar">
+        <source>The contextual keyword 'var' cannot be used as an explicit lambda return type</source>
+        <target state="new">The contextual keyword 'var' cannot be used as an explicit lambda return type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LambdaWithAttributesToExpressionTree">
         <source>A lambda expression with attributes cannot be converted to an expression tree</source>
         <target state="new">A lambda expression with attributes cannot be converted to an expression tree</target>
@@ -1458,8 +1463,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter">
-        <source>Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
-        <target state="translated">Le paramètre {0} se produit après {1} dans la liste de paramètres, mais est utilisé en tant qu’argument pour les conversions de gestionnaire de chaîne interpolées. Cela demande à l’appelant de réorganiser les paramètres avec des arguments nommés sur le site d’appel. Envisagez de placer le paramètre de gestionnaire de chaîne interpolé après tous les arguments concernés.</target>
+        <source>Parameter '{0}' occurs after '{1}' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
+        <target state="needs-review-translation">Le paramètre {0} se produit après {1} dans la liste de paramètres, mais est utilisé en tant qu’argument pour les conversions de gestionnaire de chaîne interpolées. Cela demande à l’appelant de réorganiser les paramètres avec des arguments nommés sur le site d’appel. Envisagez de placer le paramètre de gestionnaire de chaîne interpolé après tous les arguments concernés.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">

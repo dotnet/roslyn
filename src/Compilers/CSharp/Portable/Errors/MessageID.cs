@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return LanguageVersion.CSharp9;
 
                 // C# 8.0 features.
-                case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
+                case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings: // semantic check
                 case MessageID.IDS_FeatureCoalesceAssignmentExpression:
                 case MessageID.IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator:
                 case MessageID.IDS_FeatureNullableReferenceTypes: // syntax and semantic check

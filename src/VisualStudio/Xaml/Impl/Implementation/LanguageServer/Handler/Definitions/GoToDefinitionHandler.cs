@@ -166,8 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             }
             else
             {
-                var metadataLocation = symbol.Locations.Where(loc => loc.IsInMetadata).FirstOrDefault();
-                if (metadataLocation != null && metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
+                if (metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
                 {
                     var project = context.Document?.GetCodeProject();
                     if (project != null)

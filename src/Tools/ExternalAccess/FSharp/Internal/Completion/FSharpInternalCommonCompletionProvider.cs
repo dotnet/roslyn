@@ -16,12 +16,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Completion
 {
     internal sealed class FSharpInternalCommonCompletionProvider : CommonCompletionProvider
     {
+#pragma warning disable CS0612 // Switch to FSharpCommonCompletionProviderBase after F# switches
         private readonly IFSharpCommonCompletionProvider _provider;
 
         public FSharpInternalCommonCompletionProvider(IFSharpCommonCompletionProvider provider)
         {
             _provider = provider;
         }
+#pragma warning restore CS0612 // Type or member is obsolete
 
         public override Task ProvideCompletionsAsync(CompletionContext context)
         {

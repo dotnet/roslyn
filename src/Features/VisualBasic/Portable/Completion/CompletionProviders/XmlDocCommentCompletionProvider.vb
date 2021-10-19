@@ -194,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim nameToken = name.LocalName
             If Not nameToken.IsMissing AndAlso nameToken.ValueText.Length > 0 Then
-                Return SpecializedCollections.SingletonEnumerable(CreateCompletionItem(nameToken.ValueText, nameToken.ValueText & ">", String.Empty))
+                Return SpecializedCollections.SingletonEnumerable(CreateCompletionItem(nameToken.ValueText, beforeCaretText:=nameToken.ValueText & ">", afterCaretText:=String.Empty))
             End If
 
             Return Nothing

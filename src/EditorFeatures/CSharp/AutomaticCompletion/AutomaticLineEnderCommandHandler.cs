@@ -601,7 +601,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 // Consider this as a SwitchExpression, add the brace after 'switch'
                 if (switchStatementNode.OpenParenToken.IsMissing
                     && switchStatementNode.CloseParenToken.IsMissing
-                    && IsTokenPartOfExpresion(switchStatementNode.GetFirstToken().GetPreviousToken()))
+                    && IsTokenPartOfExpression(switchStatementNode.GetFirstToken().GetPreviousToken()))
                 {
                     return switchStatementNode.SwitchKeyword.Span.End;
                 }
@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             };
         }
 
-        private static bool IsTokenPartOfExpresion(SyntaxToken syntaxToken)
+        private static bool IsTokenPartOfExpression(SyntaxToken syntaxToken)
         {
             if (syntaxToken.IsMissing || syntaxToken.IsKind(SyntaxKind.None))
             {
