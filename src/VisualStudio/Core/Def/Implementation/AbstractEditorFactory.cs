@@ -39,6 +39,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         protected abstract string ContentTypeName { get; }
         protected abstract string LanguageName { get; }
 
+        /// <summary>
+        /// The project that is used to format newly added documents is in an unknown state - it might be
+        /// fully realized, we might have only recieved part of the data about it, or it could be a temporary
+        /// one that we create solely for the purpose of new document formatting. Since the language version
+        /// informs what types of formatting changes might be possible, this method exists to ensure that we
+        /// at least provide that piece of information regardless of anything else.
+        /// </summary>
         protected abstract Project GetProjectWithCorrectParseOptionsForProject(Project project, IVsHierarchy hierarchy);
 
         public void SetEncoding(bool value)

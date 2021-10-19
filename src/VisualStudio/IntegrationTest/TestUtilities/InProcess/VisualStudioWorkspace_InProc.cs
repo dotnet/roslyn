@@ -192,6 +192,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// </summary>
         public void ResetOptions()
         {
+            SetFileScopedNamespaces(false);
+
             ResetOption(CompletionViewOptions.EnableArgumentCompletionSnippets);
             ResetOption(FeatureOnOffOptions.NavigateToDecompiledSources);
             return;

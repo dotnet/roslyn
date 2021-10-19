@@ -40,5 +40,19 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.ErrorList.ShowErrorList();
             VisualStudio.ErrorList.Verify.NoErrors();
         }
+
+        [WpfFact]
+        [WorkItem(1411721, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1411721")]
+        public void CreateSDKProjectWithFileScopedNamespaces()
+        {
+            var project = new ProjectUtils.Project("TestProj");
+
+            VisualStudio.Workspace.SetFileScopedNamespaces(true);
+
+            VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.CSharpNetCoreConsoleApplication, LanguageNames.CSharp);
+
+            VisualStudio.ErrorList.ShowErrorList();
+            VisualStudio.ErrorList.Verify.NoErrors();
+        }
     }
 }
