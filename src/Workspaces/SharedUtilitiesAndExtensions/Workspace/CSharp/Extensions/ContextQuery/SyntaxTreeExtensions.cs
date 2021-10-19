@@ -2645,18 +2645,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
             }
 
-            // List and slice patterns
+            // List patterns
             // is [ |
             // is [ 0, |
             if (token.IsKind(SyntaxKind.OpenBracketToken, SyntaxKind.CommaToken)
                 && token.Parent.IsKind(SyntaxKind.ListPattern))
-            {
-                return true;
-            }
-
-            // is [ ..|
-            if (token.IsKind(SyntaxKind.DotDotToken)
-                && token.Parent.IsKind(SyntaxKind.SlicePattern))
             {
                 return true;
             }
