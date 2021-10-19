@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             var projectId = ProjectId.CreateNewId();
             var workspace = new AdhocWorkspace(VisualStudioTestCompositions.LanguageServices.GetHostServices(), WorkspaceKind.Host);
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution
-                .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp)
+                .AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), "proj1", "proj1.dll", LanguageNames.CSharp, filePath: "/a/b/proj1.csproj"))
                 .AddDocument(DocumentId.CreateNewId(projectId), "goo.cs", "public class Goo { }")
                 .AddAdditionalDocument(DocumentId.CreateNewId(projectId), "add.txt", "text")
                 .AddAnalyzerReference(projectId, new MockAnalyzerReference())
