@@ -7,8 +7,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
 {
     internal class TrackingInvocationSet
     {
-        public ImmutableHashSet<IOperation> Operations;
-        public InvocationCount TotalCount;
+        public ImmutableHashSet<IOperation> Operations { get; }
+        public InvocationCount TotalCount { get; }
 
         public static readonly TrackingInvocationSet Empty = new(ImmutableHashSet<IOperation>.Empty, InvocationCount.Zero);
 

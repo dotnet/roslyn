@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
@@ -11,20 +12,37 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
     using InvocationCountAnalysisData = DictionaryAnalysisData<AnalysisEntity, InvocationCountAnalysisValue>;
     using InvocationCountAnalysisResult = DataFlowAnalysisResult<InvocationCountBlockAnalysisResult, InvocationCountAnalysisValue>;
 
-    internal sealed class InvocationCountDataFlowOperationVisitor : GlobalFlowStateDataFlowOperationVisitor<
+    internal abstract class InvocationCountDataFlowOperationVisitor : GlobalFlowStateDataFlowOperationVisitor<
         InvocationCountAnalysisData,
         InvocationCountAnalysisContext,
         InvocationCountAnalysisResult,
         InvocationCountAnalysisValue>
     {
-        public InvocationCountDataFlowOperationVisitor(
-            InvocationCountAnalysisContext analysisContext,
-            bool hasPredicatedGlobalState) : base(analysisContext, hasPredicatedGlobalState)
+        protected InvocationCountDataFlowOperationVisitor(
+            InvocationCountAnalysisContext analysisContext) : base(analysisContext, true)
         {
         }
 
         public override InvocationCountAnalysisData GetEmptyAnalysisData()
             => new();
+
+        private void EnsureInitialized(InvocationCountAnalysisData input)
+        {
+            if (input.Count == 0)
+            {
+                input[GlobalEntity] = ValueDomain.Bottom;
+            }
+            else
+            {
+                Debug.Assert(input.ContainsKey(GlobalEntity));
+            }
+        }
+
+        public sealed override (InvocationCountAnalysisData output, bool isFeasibleBranch) FlowBranch(BasicBlock fromBlock, BranchWithInfo branch, InvocationCountAnalysisData input)
+        {
+            EnsureInitialized(input);
+            return base.FlowBranch(fromBlock, branch, input);
+        }
 
         protected override void AddTrackedEntities(InvocationCountAnalysisData analysisData, HashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis = false)
             => builder.UnionWith(analysisData.Keys);
@@ -77,7 +95,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
         protected override void UpdateValuesForAnalysisData(InvocationCountAnalysisData targetAnalysisData)
             => UpdateValuesForAnalysisData(targetAnalysisData, CurrentAnalysisData);
 
-        private static void SetAbstractValue(InvocationCountAnalysisData analysisData, AnalysisEntity analysisEntity, InvocationCountAnalysisValue value)
+        protected static void SetAbstractValue(InvocationCountAnalysisData analysisData, AnalysisEntity analysisEntity, InvocationCountAnalysisValue value)
         {
             if (value.Kind == InvocationCountAnalysisValueKind.Known)
             {

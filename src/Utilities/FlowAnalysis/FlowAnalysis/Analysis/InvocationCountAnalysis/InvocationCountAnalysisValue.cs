@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
@@ -61,8 +62,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
 
         public static InvocationCountAnalysisValue Intersect(InvocationCountAnalysisValue value1, InvocationCountAnalysisValue value2)
         {
-            using var builder = PooledObjects.PooledDictionary<AnalysisEntity, TrackingInvocationSet>.GetInstance();
-            using var intersectedKeys = PooledObjects.PooledHashSet<AnalysisEntity>.GetInstance();
+            using var builder = PooledDictionary<AnalysisEntity, TrackingInvocationSet>.GetInstance();
+            using var intersectedKeys = PooledHashSet<AnalysisEntity>.GetInstance();
 
             foreach (var kvp in value1.TrackedEntities)
             {
