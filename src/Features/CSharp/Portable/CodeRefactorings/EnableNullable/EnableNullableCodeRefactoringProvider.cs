@@ -143,7 +143,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             if (!HasLeadingNullableDirective(root, out var leadingDirective))
             {
                 var nullableDisableTrivia = SyntaxFactory.Trivia(SyntaxFactory.NullableDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.DisableKeyword).WithPrependedLeadingTrivia(SyntaxFactory.ElasticSpace), isActive: true));
-                return root.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(firstToken.LeadingTrivia.Add(nullableDisableTrivia).Add(newLine).Add(newLine)));
+
+                var existingTriviaList = firstToken.LeadingTrivia;
+                var insertionIndex = GetInsertionPoint(existingTriviaList);
+
+                return root.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(existingTriviaList.InsertRange(insertionIndex, new[] { nullableDisableTrivia, newLine, newLine })));
             }
             else if (leadingDirective.SettingToken.IsKind(SyntaxKind.RestoreKeyword) && leadingDirective.TargetToken.IsKind(SyntaxKind.None))
             {
@@ -157,6 +161,33 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
                 // '#nullable' directive that will override it.
                 return root;
             }
+        }
+
+        private static int GetInsertionPoint(SyntaxTriviaList list)
+        {
+            var insertionPoint = list.Count;
+            for (var i = list.Count - 1; i >= 0; i--)
+            {
+                switch (list[i].Kind())
+                {
+                    case SyntaxKind.WhitespaceTrivia:
+                    case SyntaxKind.EndOfLineTrivia:
+                    case SyntaxKind.SingleLineCommentTrivia:
+                    case SyntaxKind.MultiLineCommentTrivia:
+                        continue;
+
+                    case SyntaxKind.SingleLineDocumentationCommentTrivia:
+                    case SyntaxKind.MultiLineDocumentationCommentTrivia:
+                        // Insert before the documentation comment
+                        insertionPoint = i;
+                        continue;
+
+                    default:
+                        return insertionPoint;
+                }
+            }
+
+            return insertionPoint;
         }
 
         private static SyntaxToken GetFirstTokenOfInterest(SyntaxNode root)

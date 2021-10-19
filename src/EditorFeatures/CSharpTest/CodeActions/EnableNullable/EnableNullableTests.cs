@@ -212,6 +212,118 @@ class Example3
         }
 
         [Fact]
+        public async Task PlacementBeforeDocComment()
+        {
+            var code1 = @"
+#nullable enable$$
+
+class Example
+{
+  string? value;
+}
+";
+            var code2 = @"// Line comment
+class Example2
+{
+  string value;
+}
+";
+            var code3 = @"/*
+ * Block comment
+ */
+class Example3
+{
+  string value;
+}
+";
+            var code4 = @"/// <summary>Single line doc comment</summary>
+class Example4
+{
+  string value;
+}
+";
+            var code5 = @"/**
+ * Multi-line doc comment
+ */
+class Example5
+{
+  string value;
+}
+";
+
+            var fixedCode1 = @"
+
+class Example
+{
+  string? value;
+}
+";
+            var fixedCode2 = @"// Line comment
+#nullable disable
+
+class Example2
+{
+  string value;
+}
+";
+            var fixedCode3 = @"/*
+ * Block comment
+ */
+#nullable disable
+
+class Example3
+{
+  string value;
+}
+";
+            var fixedCode4 = @"#nullable disable
+
+/// <summary>Single line doc comment</summary>
+class Example4
+{
+  string value;
+}
+";
+            var fixedCode5 = @"#nullable disable
+
+/**
+ * Multi-line doc comment
+ */
+class Example5
+{
+  string value;
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        code1,
+                        code2,
+                        code3,
+                        code4,
+                        code5,
+                    },
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        fixedCode1,
+                        fixedCode2,
+                        fixedCode3,
+                        fixedCode4,
+                        fixedCode5,
+                    },
+                },
+                SolutionTransforms = { s_enableNullableInFixedSolution },
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task OmitLeadingRestore()
         {
             var code1 = @"
