@@ -10199,6 +10199,26 @@ _ = this is[ 0,.. var  rest ];
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatSlicePattern_NoSpace()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this is[ 0,..var  rest ];
+}
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is [0, .. var rest];
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSlicePatternWithAnd()
         {
             var code = @"class C

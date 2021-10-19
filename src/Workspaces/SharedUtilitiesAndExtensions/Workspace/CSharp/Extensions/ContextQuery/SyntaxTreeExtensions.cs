@@ -1362,6 +1362,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
+            // e is [..$$
+            // e is [..., ..$$
+            if (leftToken.IsKind(SyntaxKind.DotDotToken) && leftToken.Parent.IsKind(SyntaxKind.SlicePattern))
+            {
+                return true;
+            }
+
             // e is { P: $$
             // e is { ..., P: $$
             // e is { ..., P.P2: $$

@@ -9442,6 +9442,35 @@ public class C
 
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInSlicePattern_VarKeyword(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+public class C
+{
+    public int Length => 0;
+    public int this[int i] => 0;
+    public C Slice(int i, int j) => null;
+
+    void M(C c)
+    {
+        _ = c is [$$]
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars(".. va")
+                Await state.AssertSelectedCompletionItem(displayText:="var", isHardSelected:=True)
+
+                state.SendTab()
+                state.SendTypeChars(" x")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("c is [.. var x]", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionInSlicePattern_NullKeyword(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
