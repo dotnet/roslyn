@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override LocalState VisitSwitchStatementDispatch(BoundSwitchStatement node)
         {
             // first, learn from any null tests in the patterns
-            int slot = node.Expression.IsSuppressed ? GetOrCreatePlaceholderSlot(node.Expression) : MakeSlot(node.Expression);
+            int slot = GetSlotForSwitchInputValue(node.Expression);
             if (slot > 0)
             {
                 var originalInputType = node.Expression.Type;
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to evaluate the patterns.  In this way we infer non-nullability of the original element's parts.
             // We do not extend such courtesy to nested tuple literals.
             var originalInputElementSlots = expression is BoundTupleExpression tuple
-                ? tuple.Arguments.SelectAsArray(static (a, w) => w.MakeSlot(a), this)
+                ? tuple.Arguments.SelectAsArray(static (a, w) => w.GetSlotForSwitchInputValue(a), this)
                 : default;
             var originalInputMap = PooledDictionary<int, BoundExpression>.GetInstance();
             originalInputMap.Add(originalInputSlot, expression);
@@ -512,6 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     break;
                                 case BoundDagNonNullTest t:
                                     var inputMaybeNull = this.StateWhenTrue[inputSlot].MayBeNull();
+
                                     if (inputSlot > 0)
                                     {
                                         MarkDependentSlotsNotNull(inputSlot, inputType, ref this.StateWhenFalse);
@@ -758,7 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitSwitchExpressionCore(BoundSwitchExpression node, bool inferType)
         {
             // first, learn from any null tests in the patterns
-            int slot = node.Expression.IsSuppressed ? GetOrCreatePlaceholderSlot(node.Expression) : MakeSlot(node.Expression);
+            int slot = GetSlotForSwitchInputValue(node.Expression);
             if (slot > 0)
             {
                 var originalInputType = node.Expression.Type;
@@ -774,7 +775,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var endState = UnreachableState();
 
             if (!node.ReportedNotExhaustive && node.DefaultLabel != null &&
-                labelStateMap.TryGetValue(node.DefaultLabel, out var defaultLabelState) && defaultLabelState.believedReachable)
+                labelStateMap.TryGetValue(node.DefaultLabel, out var defaultLabelState) &&
+                defaultLabelState.believedReachable)
             {
                 SetState(defaultLabelState.state);
                 var nodes = node.DecisionDag.TopologicallySortedNodes;
@@ -871,6 +873,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LocalState getStateForArm(BoundSwitchExpressionArm arm)
                 => !arm.Pattern.HasErrors && labelStateMap.TryGetValue(arm.Label, out var labelState) ? labelState.state : UnreachableState();
+        }
+
+        private int GetSlotForSwitchInputValue(BoundExpression node)
+        {
+            return node.IsSuppressed ? GetOrCreatePlaceholderSlot(node) : MakeSlot(node);
         }
 
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)

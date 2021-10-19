@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -88,7 +89,8 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
                               .ToList();
         }
 
-        protected override Task ProduceTagsAsync(TaggerContext<NavigableHighlightTag> context)
+        protected override Task ProduceTagsAsync(
+            TaggerContext<NavigableHighlightTag> context, CancellationToken cancellationToken)
         {
             // NOTE(cyrusn): Normally we'd limit ourselves to producing tags in the span we were
             // asked about.  However, we want to produce all tags here so that the user can actually
@@ -130,16 +132,15 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             }
 
             // Otherwise, we need to go produce all tags.
-            return ProduceTagsAsync(context, caretPosition, document);
+            return ProduceTagsAsync(context, caretPosition, document, cancellationToken);
         }
 
         internal static async Task ProduceTagsAsync(
             TaggerContext<NavigableHighlightTag> context,
             SnapshotPoint position,
-            Document document)
+            Document document,
+            CancellationToken cancellationToken)
         {
-            var cancellationToken = context.CancellationToken;
-
             var solution = document.Project.Solution;
 
             using (Logger.LogBlock(FunctionId.Tagger_ReferenceHighlighting_TagProducer_ProduceTags, cancellationToken))
@@ -158,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
                         {
                             foreach (var documentHighlights in documentHighlightsList)
                             {
-                                AddTagSpans(context, documentHighlights);
+                                AddTagSpans(context, documentHighlights, cancellationToken);
                             }
                         }
                     }
@@ -168,9 +169,9 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 
         private static void AddTagSpans(
             TaggerContext<NavigableHighlightTag> context,
-            DocumentHighlights documentHighlights)
+            DocumentHighlights documentHighlights,
+            CancellationToken cancellationToken)
         {
-            var cancellationToken = context.CancellationToken;
             var document = documentHighlights.Document;
 
             var textSnapshot = context.SpansToTag.FirstOrDefault(s => s.Document == document).SnapshotSpan.Snapshot;
@@ -190,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
                         textSnapshot.GetSpan(Span.FromBounds(span.TextSpan.Start, span.TextSpan.End)), tag));
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 // report NFW and continue.
                 // also, rather than return partial results, return nothing

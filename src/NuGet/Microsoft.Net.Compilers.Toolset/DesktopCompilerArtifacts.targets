@@ -20,7 +20,7 @@
     VS training data to the assemblies they produce.
   -->
 
-  <Target Name="InitializeDesktopCompilerArtifacts">
+  <Target Name="InitializeDesktopCompilerArtifacts" Condition="'$(DotNetBuildFromSource)' != 'true'">
     <ItemGroup>
       
       <!-- The Roslyn built binaries must be taken from these locations because this is the location where signing occurs -->
