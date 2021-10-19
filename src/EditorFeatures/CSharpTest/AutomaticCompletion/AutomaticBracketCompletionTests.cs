@@ -274,6 +274,9 @@ class C
 ";
             using var session = CreateSession(code);
             CheckStart(session.Session);
+            // Open bracket probably should be moved to new line
+            // Close bracket probably should be aligned with open bracket
+            // Tracked by https://github.com/dotnet/roslyn/issues/57244
             CheckReturn(session.Session, 0, expected);
         }
 
