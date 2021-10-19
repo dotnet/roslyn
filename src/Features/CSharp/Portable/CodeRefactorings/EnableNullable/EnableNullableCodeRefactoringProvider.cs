@@ -44,16 +44,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             if (token.IsKind(SyntaxKind.EndOfDirectiveToken))
                 token = root.FindToken(textSpan.Start - 1, findInsideTrivia: true);
 
-            if (!token.IsKind(SyntaxKind.EnableKeyword))
+            if (!token.IsKind(SyntaxKind.EnableKeyword) || !token.Parent.IsKind(SyntaxKind.NullableDirectiveTrivia))
                 return;
 
             context.RegisterRefactoring(
-                new MyCodeAction(cancellationToken => EnableNullableReferenceTypesAsync(document.Project.Solution, document.Project.Id, cancellationToken)));
+                new MyCodeAction(cancellationToken => EnableNullableReferenceTypesAsync(document.Project, cancellationToken)));
         }
 
-        public static async Task<Solution> EnableNullableReferenceTypesAsync(Solution solution, ProjectId projectId, CancellationToken cancellationToken)
+        public static async Task<Solution> EnableNullableReferenceTypesAsync(Project project, CancellationToken cancellationToken)
         {
-            var project = solution.GetRequiredProject(projectId);
+            var solution = project.Solution;
             foreach (var document in project.Documents)
             {
                 var updatedDocumentRoot = await EnableNullableReferenceTypesAsync(document, cancellationToken).ConfigureAwait(false);
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             }
 
             var compilationOptions = (CSharpCompilationOptions)project.CompilationOptions!;
-            solution = solution.WithProjectCompilationOptions(projectId, compilationOptions.WithNullableContextOptions(NullableContextOptions.Enable));
+            solution = solution.WithProjectCompilationOptions(project.Id, compilationOptions.WithNullableContextOptions(NullableContextOptions.Enable));
             return solution;
         }
 
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
 
             var firstNonDirectiveToken = root.GetFirstToken();
             var firstDirective = root.GetFirstDirective(s_isNullableDirectiveTriviaPredicate);
-            if (firstNonDirectiveToken.IsKind(SyntaxKind.None) && firstDirective.IsKind(SyntaxKind.None))
+            if (firstNonDirectiveToken.IsKind(SyntaxKind.None) && firstDirective is null)
             {
                 // The document has no semantic content, and also has no nullable directives to update
                 return root;
@@ -164,6 +164,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
 
         private static bool HasLeadingNullableDirective(SyntaxNode root)
         {
+            // A leading nullable directive is a '#nullable' directive which precedes any conditional directives ('#if')
+            // or code (non-trivia).
             var firstRelevantDirective = root.GetFirstDirective(static directive => directive.IsKind(SyntaxKind.NullableDirectiveTrivia, SyntaxKind.IfDirectiveTrivia));
             if (firstRelevantDirective.IsKind(SyntaxKind.NullableDirectiveTrivia, out NullableDirectiveTriviaSyntax? nullableDirective)
                 && nullableDirective.TargetToken.IsKind(SyntaxKind.None))
