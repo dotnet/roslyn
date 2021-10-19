@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ namespace Roslyn.ComponentDebugger
 {
     [Export(typeof(IDebugProfileLaunchTargetsProvider))]
     [AppliesTo(Constants.RoslynComponentCapability)]
-    public class DebugProfileProvider : IDebugProfileLaunchTargetsProvider
+    public sealed class DebugProfileProvider : IDebugProfileLaunchTargetsProvider, IDisposable
     {
         private readonly ConfiguredProject _configuredProject;
         private readonly LaunchSettingsManager _launchSettingsManager;
@@ -69,13 +70,25 @@ namespace Roslyn.ComponentDebugger
 
                     // get its compilation args
                     var args = await targetProjectUnconfigured.GetCompilationArgumentsAsync().ConfigureAwait(true);
+                    args = args.Remove("/noconfig");
 
-                    // append the command line args to the debugger launch
-                    settings.Arguments = string.Join(" ", args);
+                    // write the command line args out to a response file
+                    var file = GetResponseFileName();
+                    File.WriteAllText(file, string.Join(" ", args));
+
+                    // pass the response file as the argument to the launch command
+                    settings.Arguments = $"@\"{file}\"";
                 }
             }
             // https://github.com/dotnet/roslyn-sdk/issues/728 : better error handling
             return new IDebugLaunchSettings[] { settings };
+        }
+
+        private static string GetResponseFileName()
+        {
+            // prefix with the VS PID so we don't stomp on another instance
+            var pid = Process.GetCurrentProcess().Id;
+            return Path.Combine(Path.GetTempPath(), $"{Constants.CommandName}_{pid}.txt");
         }
 
         private async Task<string?> GetCompilerRootAsync(SVsServiceProvider? serviceProvider)
@@ -92,6 +105,23 @@ namespace Roslyn.ComponentDebugger
             }
 
             return null;
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1031:Do not catch general exception types", Justification = "Best effort only.")]
+        public void Dispose()
+        {
+            try
+            {
+                var responseFile = GetResponseFileName();
+                if (File.Exists(responseFile))
+                {
+                    File.Delete(responseFile);
+                }
+            }
+            catch
+            {
+                // best effort, do nothing if we can't remove it for whatever reason
+            }
         }
     }
 }
