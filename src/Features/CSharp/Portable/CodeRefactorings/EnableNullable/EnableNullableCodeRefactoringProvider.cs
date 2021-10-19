@@ -79,12 +79,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
                 return root;
             }
 
+            // Update #nullable directives that already exist in the document
+            (root, firstToken) = RewriteExistingDirectives(root, firstToken);
+
+            // Update existing documents to retain their original semantics
+            //
+            // * Add '#nullable disable' if the document didn't specify other semantics
+            // * Remove leading '#nullable restore' (was '#nullable enable' prior to rewrite in the previous step)
+            // * Otherwise, leave existing '#nullable' directive since it will control the initial semantics for the document
+            return await DisableNullableReferenceTypesInExistingDocumentIfNecessaryAsync(document, root, firstToken, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static (SyntaxNode root, SyntaxToken firstToken) RewriteExistingDirectives(SyntaxNode root, SyntaxToken firstToken)
+        {
             var firstNonDirectiveToken = root.GetFirstToken();
             var firstDirective = root.GetFirstDirective(s_isNullableDirectiveTriviaPredicate);
             if (firstNonDirectiveToken.IsKind(SyntaxKind.None) && firstDirective is null)
             {
                 // The document has no semantic content, and also has no nullable directives to update
-                return root;
+                return (root, firstToken);
             }
 
             // Update all prior nullable directives
@@ -94,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
                 directives.Add((NullableDirectiveTriviaSyntax)directive);
             }
 
-            root = root.ReplaceNodes(
+            var updatedRoot = root.ReplaceNodes(
                 directives,
                 (originalNode, rewrittenNode) =>
                 {
@@ -118,8 +131,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
                     return rewrittenNode;
                 });
 
-            firstToken = GetFirstTokenOfInterest(root);
+            return (updatedRoot, GetFirstTokenOfInterest(updatedRoot));
+        }
 
+        private static async Task<SyntaxNode> DisableNullableReferenceTypesInExistingDocumentIfNecessaryAsync(Document document, SyntaxNode root, SyntaxToken firstToken, CancellationToken cancellationToken)
+        {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var newLine = SyntaxFactory.EndOfLine(options.GetOption(FormattingOptions2.NewLine));
 
