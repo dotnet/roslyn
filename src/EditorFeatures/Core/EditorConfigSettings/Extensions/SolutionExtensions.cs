@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions
@@ -14,21 +13,23 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions
         public static ImmutableArray<Project> GetProjectsForPath(this Solution solution, string givenPath)
         {
             if (Path.GetDirectoryName(givenPath) is not string givenFolderPath ||
-                solution.FilePath is null)
-            {
-                return solution.Projects.ToImmutableArray();
-            }
-
-            var givenFolder = new DirectoryInfo(givenFolderPath);
-            if (givenFolder.FullName == (new DirectoryInfo(solution.FilePath).Parent).FullName)
+                solution.FilePath is not string solutionFilePath ||
+                new DirectoryInfo(solutionFilePath).Parent is not DirectoryInfo solutionParentDirectory ||
+                new DirectoryInfo(givenFolderPath).FullName == solutionParentDirectory.FullName)
             {
                 return solution.Projects.ToImmutableArray();
             }
 
             var builder = ArrayBuilder<Project>.GetInstance();
-            foreach (var (projectDirectoryPath, project) in solution.Projects.Select(p => (new DirectoryInfo(p.FilePath).Parent, p)))
+            foreach (var project in solution.Projects)
             {
-                if (ContainsPath(givenFolder, projectDirectoryPath))
+                if (project.FilePath is not string projectFilePath ||
+                    new DirectoryInfo(projectFilePath).Parent is not DirectoryInfo projectDirectoryPath)
+                {
+                    continue;
+                }
+
+                if (ContainsPath(new DirectoryInfo(givenFolderPath), projectDirectoryPath))
                 {
                     builder.Add(project);
                 }
