@@ -356,6 +356,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             static void PromoteCommonCommitCharactersOntoList(LSP.VSInternalCompletionList completionList)
             {
+                if (completionList.Items.IsEmpty())
+                {
+                    return;
+                }
+
                 var defaultCommitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
                 var commitCharacterReferences = new Dictionary<object, int>();
                 var mostUsedCount = 0;

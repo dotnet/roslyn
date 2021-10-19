@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         private readonly IRemoteControlService _remoteControlService;
         private readonly IPatchService _patchService;
         private readonly IDatabaseFactoryService _databaseFactoryService;
-        private readonly Func<Exception, bool> _reportAndSwallowException;
+        private readonly Func<Exception, CancellationToken, bool> _reportAndSwallowExceptionUnlessCanceled;
 
         /// <param name="cancellationToken">
         /// Cancellation support for the task we use to keep the local database up to date.
@@ -193,12 +193,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                         return await DownloadFullDatabaseAsync(databaseFileInfo, cancellationToken).ConfigureAwait(false);
                     }
                 }
-                catch (OperationCanceledException)
-                {
-                    // Just allow our caller to handle this (they will use this to stop their loop).
-                    throw;
-                }
-                catch (Exception e) when (_service._reportAndSwallowException(e))
+                catch (Exception e) when (_service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
                 {
                     // Something bad happened (IO Exception, network exception etc.).
                     // ask our caller to try updating again a minute from now.
@@ -276,7 +271,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 {
                     await CreateAndSetInMemoryDatabaseAsync(bytes, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (_service._reportAndSwallowException(e))
+                catch (Exception e) when (_service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
                 {
                     // We retrieved bytes from the server, but we couldn't make a DB
                     // out of it.  That's very bad.  Just trying again one minute later
@@ -302,7 +297,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 await LogInfoAsync("Writing database file", cancellationToken).ConfigureAwait(false);
 
                 await RepeatIOAsync(
-                    async () =>
+                    async cancellationToken =>
                     {
                         var guidString = Guid.NewGuid().ToString();
                         var tempFilePath = Path.Combine(_cacheDirectoryInfo.FullName, guidString + ".tmp");
@@ -366,7 +361,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 {
                     database = await CreateAndSetInMemoryDatabaseAsync(databaseBytes, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (_service._reportAndSwallowException(e))
+                catch (Exception e) when (_service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
                 {
                     await LogExceptionAsync(e, "Error creating database from local copy. Downloading full database", cancellationToken).ConfigureAwait(false);
                     return await DownloadFullDatabaseAsync(databaseFileInfo, cancellationToken).ConfigureAwait(false);
@@ -414,7 +409,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                     // Fall through and download full database.
                 }
-                catch (Exception e) when (_service._reportAndSwallowException(e))
+                catch (Exception e) when (_service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
                 {
                     await LogExceptionAsync(e, "Error occurred while processing patch element. Downloading full database", cancellationToken).ConfigureAwait(false);
                     // Fall through and download full database.
@@ -566,7 +561,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 return result;
             }
 
-            private async Task RepeatIOAsync(Func<Task> action, CancellationToken cancellationToken)
+            private async Task RepeatIOAsync(Func<CancellationToken, Task> action, CancellationToken cancellationToken)
             {
                 const int repeat = 6;
                 for (var i = 0; i < repeat; i++)
@@ -575,10 +570,10 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                     try
                     {
-                        await action().ConfigureAwait(false);
+                        await action(cancellationToken).ConfigureAwait(false);
                         return;
                     }
-                    catch (Exception e) when (IOUtilities.IsNormalIOException(e) || _service._reportAndSwallowException(e))
+                    catch (Exception e) when (IOUtilities.IsNormalIOException(e) || _service._reportAndSwallowExceptionUnlessCanceled(e, cancellationToken))
                     {
                         // The exception filter above might be a little funny looking. We always
                         // want to enter this catch block, but if we ran into a normal IO exception
@@ -600,7 +595,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 var contentsAttribute = element.Attribute(ContentAttributeName);
                 if (contentsAttribute == null)
                 {
-                    _service._reportAndSwallowException(new FormatException($"Database element invalid. Missing '{ContentAttributeName}' attribute"));
+                    _service._reportAndSwallowExceptionUnlessCanceled(new FormatException($"Database element invalid. Missing '{ContentAttributeName}' attribute"), CancellationToken.None);
 
                     return (succeeded: false, null);
                 }
@@ -619,7 +614,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                     if (!StringComparer.Ordinal.Equals(expectedChecksum, actualChecksum))
                     {
-                        _service._reportAndSwallowException(new FormatException($"Checksum mismatch: expected != actual. {expectedChecksum} != {actualChecksum}"));
+                        _service._reportAndSwallowExceptionUnlessCanceled(new FormatException($"Checksum mismatch: expected != actual. {expectedChecksum} != {actualChecksum}"), CancellationToken.None);
 
                         return (succeeded: false, null);
                     }

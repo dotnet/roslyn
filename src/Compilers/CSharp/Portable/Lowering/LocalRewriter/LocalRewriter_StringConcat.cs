@@ -187,20 +187,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.NullCoalescingOperator:
                     var boundCoalesce = (BoundNullCoalescingOperator)lowered;
 
-                    if (boundCoalesce.LeftConversion.IsIdentity)
-                    {
-                        // The RHS may be a constant value with an identity conversion to string even
-                        // if it is not a string: in particular, the null literal behaves this way.
-                        // To be safe, check that the constant value is actually a string before
-                        // attempting to access its value as a string.
+                    Debug.Assert(boundCoalesce.LeftPlaceholder is null);
+                    Debug.Assert(boundCoalesce.LeftConversion is null);
 
-                        var rightConstant = boundCoalesce.RightOperand.ConstantValue;
-                        if (rightConstant != null && rightConstant.IsString && rightConstant.StringValue.Length == 0)
-                        {
-                            arguments = ImmutableArray.Create(boundCoalesce.LeftOperand);
-                            return true;
-                        }
+                    // The RHS may be a constant value with an identity conversion to string even
+                    // if it is not a string: in particular, the null literal behaves this way.
+                    // To be safe, check that the constant value is actually a string before
+                    // attempting to access its value as a string.
+
+                    var rightConstant = boundCoalesce.RightOperand.ConstantValue;
+                    if (rightConstant != null && rightConstant.IsString && rightConstant.StringValue.Length == 0)
+                    {
+                        arguments = ImmutableArray.Create(boundCoalesce.LeftOperand);
+                        return true;
                     }
+
                     break;
             }
 

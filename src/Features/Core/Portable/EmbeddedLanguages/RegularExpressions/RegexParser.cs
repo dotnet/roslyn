@@ -172,8 +172,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             var root = new RegexCompilationUnit(expression, _currentToken);
 
-            var seenDiagnostics = new HashSet<EmbeddedDiagnostic>();
-            using var _ = ArrayBuilder<EmbeddedDiagnostic>.GetInstance(out var diagnostics);
+            using var _1 = PooledHashSet<EmbeddedDiagnostic>.GetInstance(out var seenDiagnostics);
+            using var _2 = ArrayBuilder<EmbeddedDiagnostic>.GetInstance(out var diagnostics);
             CollectDiagnostics(root, seenDiagnostics, diagnostics);
 
             return new RegexTree(
@@ -181,8 +181,22 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 _captureNamesToSpan, _captureNumbersToSpan);
         }
 
-        private static void CollectDiagnostics(
+        private void CollectDiagnostics(
             RegexNode node, HashSet<EmbeddedDiagnostic> seenDiagnostics, ArrayBuilder<EmbeddedDiagnostic> diagnostics)
+        {
+            try
+            {
+                _recursionDepth++;
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+                CollectDiagnosticsWorker(node, seenDiagnostics, diagnostics);
+            }
+            finally
+            {
+                _recursionDepth--;
+            }
+        }
+
+        private void CollectDiagnosticsWorker(RegexNode node, HashSet<EmbeddedDiagnostic> seenDiagnostics, ArrayBuilder<EmbeddedDiagnostic> diagnostics)
         {
             foreach (var child in node)
             {

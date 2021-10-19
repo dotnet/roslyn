@@ -628,7 +628,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             }
                             else if (_lexer.TextWindow.PeekChar(1) == '$' && _lexer.TextWindow.PeekChar(2) == '"')
                             {
-                                _lexer.CheckFeatureAvailability(MessageID.IDS_FeatureAltInterpolatedVerbatimStrings);
                                 var interpolations = (ArrayBuilder<Interpolation>?)null;
                                 var info = default(TokenInfo);
                                 bool wasVerbatim = _isVerbatim;
