@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
     internal class EnableNullableCodeRefactoringProvider : CodeRefactoringProvider
     {
         private static readonly Func<DirectiveTriviaSyntax, bool> s_isNullableDirectiveTriviaPredicate =
-            static directive => directive.IsKind(SyntaxKind.NullableDirectiveTrivia);
+            directive => directive.IsKind(SyntaxKind.NullableDirectiveTrivia);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
 
             // Update all prior nullable directives
             var directives = new List<NullableDirectiveTriviaSyntax>();
-            for (var directive = firstDirective; directive.IsKind(SyntaxKind.NullableDirectiveTrivia); directive = directive.GetNextDirective(s_isNullableDirectiveTriviaPredicate))
+            for (var directive = firstDirective; directive is not null; directive = directive.GetNextDirective(s_isNullableDirectiveTriviaPredicate))
             {
                 directives.Add((NullableDirectiveTriviaSyntax)directive);
             }
@@ -122,26 +122,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
 
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var newLine = SyntaxFactory.EndOfLine(options.GetOption(FormattingOptions2.NewLine));
-            SyntaxNode updatedRoot;
 
             // Add a new '#nullable disable' to the top of each file
             if (!HasLeadingNullableDirective(root, out var leadingDirective))
             {
                 var nullableDisableTrivia = SyntaxFactory.Trivia(SyntaxFactory.NullableDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.DisableKeyword).WithPrependedLeadingTrivia(SyntaxFactory.ElasticSpace), isActive: true));
-                updatedRoot = root.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(firstToken.LeadingTrivia.Add(nullableDisableTrivia).Add(newLine).Add(newLine)));
+                return root.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(firstToken.LeadingTrivia.Add(nullableDisableTrivia).Add(newLine).Add(newLine)));
             }
             else if (leadingDirective.SettingToken.IsKind(SyntaxKind.RestoreKeyword) && leadingDirective.TargetToken.IsKind(SyntaxKind.None))
             {
-                updatedRoot = root.ReplaceTrivia(leadingDirective.ParentTrivia, SyntaxFactory.ElasticMarker);
+                // Remove the leading `#nullable restore` directive because it's redundant. Since there is no
+                // RemoveTrivia call, we replace the trivia with an empty marker.
+                return root.ReplaceTrivia(leadingDirective.ParentTrivia, SyntaxFactory.ElasticMarker);
             }
             else
             {
                 // No need to add a '#nullable disable' directive because the file already starts with an unconditional
                 // '#nullable' directive that will override it.
-                updatedRoot = root;
+                return root;
             }
-
-            return updatedRoot;
         }
 
         private static SyntaxToken GetFirstTokenOfInterest(SyntaxNode root)
