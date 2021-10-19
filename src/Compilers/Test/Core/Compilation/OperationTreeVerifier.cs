@@ -829,7 +829,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IFunctionPointerInvocationOperation));
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.Pointer, "Pointer");
+            Visit(operation.InvokedPointer, "Pointer");
             VisitArguments(operation.Arguments);
         }
 
