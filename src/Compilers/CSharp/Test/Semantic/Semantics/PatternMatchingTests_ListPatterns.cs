@@ -3430,6 +3430,12 @@ class C
             null or { Length: not 5 } => 0,
             [_, .. null or [_, not null, _], _] => 0,
         };
+
+        _ = this switch // didn't test for [.. null, _] // TODO2 we're trying to construct an example with Length=1 but a null slice // 10
+        {
+            null or { Length: not 1 } => 0,
+            [.. { Length: 1 }] => 0,
+        };
     }
 }
 ";
@@ -3463,7 +3469,10 @@ class C
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[_, .. [_, null], _, _]").WithLocation(64, 18),
             // (70,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[_, .. [_, null, _], _]' is not covered.
             //         _ = this switch // didn't test for [_, .. [_, null, _], _] // 9
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[_, .. [_, null, _], _]").WithLocation(70, 18)
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[_, .. [_, null, _], _]").WithLocation(70, 18),
+            // (76,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[.. null, _]' is not covered.
+            //         _ = this switch // didn't test for [.. null, _] // TODO2 we're trying to construct an example with Length=1 but a null slice // 10
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[.. null, _]").WithLocation(76, 18)
             );
     }
 
@@ -4238,6 +4247,33 @@ class C
 }";
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ListPattern_Exhaustiveness_Conjunction()
+    {
+        var src = @"
+_ = new C() switch
+{
+    { Count: not 1 } => 0,
+    [0] or not Derived => 0,
+};
+
+class C
+{
+    public int Count => throw null;
+    public int this[int i] => throw null;
+    public C Slice(int i, int j) => throw null;
+}
+class Derived : C { }
+";
+        // Note: we don't know how to explain `Derived and [1]`
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+            // _ = new C() switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(2, 13)
+            );
     }
 
     [Fact]

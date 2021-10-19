@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             appendWithSeparatorIfNeeded(builder, ".. " + sample2);
                         }
 
-                        if (sample2.StartsWith("[")) // TODO2
+                        if (sample2.StartsWith("["))
                         {
                             // The nested slice is handling a section of the list
                             int endIndex = slice.EndIndex >= 0 ? slice.EndIndex : length + slice.EndIndex - 1;
@@ -400,9 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    string sample = subpatterns[i];
-
-                    appendWithSeparatorIfNeeded(builder, sample);
+                    appendWithSeparatorIfNeeded(builder, subpatterns[i]);
                 }
                 builder.Append("]");
 
