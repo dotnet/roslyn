@@ -75,25 +75,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         /// </summary>
         private static (SyntaxToken dotLikeToken, int expressionStart) GetDotAndExpressionStart(SyntaxNode root, int position, CancellationToken cancellationToken)
         {
-            if (CompletionUtilities.GetDotTokenLeftOfPosition(root.SyntaxTree, position, cancellationToken) is SyntaxToken dotToken)
-            {
-                // if we have `.Name`, we want to get the parent member-access of that to find the starting position.
-                // Otherwise, if we have .. then we want the left side of that to find the starting position.
-                var expression = dotToken.Kind() == SyntaxKind.DotToken
-                    ? dotToken.Parent as ExpressionSyntax
-                    : (dotToken.Parent as RangeExpressionSyntax)?.LeftOperand;
-
-                if (expression == null)
-                    return default;
-
-                // If we're after a ?. find the root of that conditional to find the start position of the expression.
-                expression = expression.GetRootConditionalAccessExpression() ?? expression;
-                return (dotToken, expression.SpanStart);
-            }
-            else
-            {
+            if (CompletionUtilities.GetDotTokenLeftOfPosition(root.SyntaxTree, position, cancellationToken) is not SyntaxToken dotToken)
                 return default;
-            }
+
+            // if we have `.Name`, we want to get the parent member-access of that to find the starting position.
+            // Otherwise, if we have .. then we want the left side of that to find the starting position.
+            var expression = dotToken.Kind() == SyntaxKind.DotToken
+                ? dotToken.Parent as ExpressionSyntax
+                : (dotToken.Parent as RangeExpressionSyntax)?.LeftOperand;
+
+            if (expression == null)
+                return default;
+
+            // If we're after a ?. find the root of that conditional to find the start position of the expression.
+            expression = expression.GetRootConditionalAccessExpression() ?? expression;
+            return (dotToken, expression.SpanStart);
         }
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
