@@ -67,8 +67,6 @@ class Example4
 ";
 
             var fixedCode1 = @"
-#nullable disable
-
 #nullable restore
 
 class Example
@@ -95,8 +93,6 @@ class Example3
 }
 ";
             var fixedCode4 = @"
-#nullable disable
-
 #nullable disable
 
 class Example4
@@ -162,8 +158,6 @@ class Example3
 ";
 
             var fixedCode1 = @"
-#nullable disable
-
 #nullable restore
 
 class Example

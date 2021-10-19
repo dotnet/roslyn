@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -115,11 +116,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
 
             firstToken = GetFirstTokenOfInterest(root);
 
-            // Add a new '#nullable disable' to the top of each file
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var newLine = SyntaxFactory.EndOfLine(options.GetOption(FormattingOptions2.NewLine));
-            var nullableDisableTrivia = SyntaxFactory.Trivia(SyntaxFactory.NullableDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.DisableKeyword).WithPrependedLeadingTrivia(SyntaxFactory.ElasticSpace), isActive: true));
-            var updatedRoot = root.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(firstToken.LeadingTrivia.Add(nullableDisableTrivia).Add(newLine).Add(newLine)));
+            SyntaxNode updatedRoot;
+
+            // Add a new '#nullable disable' to the top of each file
+            if (!HasLeadingNullableDirective(root))
+            {
+                var nullableDisableTrivia = SyntaxFactory.Trivia(SyntaxFactory.NullableDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.DisableKeyword).WithPrependedLeadingTrivia(SyntaxFactory.ElasticSpace), isActive: true));
+                updatedRoot = root.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(firstToken.LeadingTrivia.Add(nullableDisableTrivia).Add(newLine).Add(newLine)));
+            }
+            else
+            {
+                // No need to add a '#nullable disable' directive because the file already starts with an unconditional
+                // '#nullable' directive that will override it.
+                updatedRoot = root;
+            }
 
             // TODO: remove all '#nullable disable' directives in code with no nullable types
 
@@ -148,6 +160,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             }
 
             return firstToken;
+        }
+
+        private static bool HasLeadingNullableDirective(SyntaxNode root)
+        {
+            var firstRelevantDirective = root.GetFirstDirective(static directive => directive.IsKind(SyntaxKind.NullableDirectiveTrivia, SyntaxKind.IfDirectiveTrivia));
+            if (firstRelevantDirective.IsKind(SyntaxKind.NullableDirectiveTrivia, out NullableDirectiveTriviaSyntax? nullableDirective)
+                && nullableDirective.TargetToken.IsKind(SyntaxKind.None))
+            {
+                var firstSemanticToken = root.GetFirstToken();
+                if (firstSemanticToken.IsKind(SyntaxKind.None) || firstSemanticToken.SpanStart > nullableDirective.Span.End)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private sealed class MyCodeAction : CodeActions.CodeAction.SolutionChangeAction
