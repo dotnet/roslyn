@@ -122,9 +122,9 @@
         <target state="translated">Deklarovat jako s možnou hodnotou null</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_nullable_reference_types">
-        <source>Enable nullable reference types</source>
-        <target state="new">Enable nullable reference types</target>
+      <trans-unit id="Enable_nullable_reference_types_in_project">
+        <source>Enable nullable reference types in project</source>
+        <target state="new">Enable nullable reference types in project</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_return_type">
