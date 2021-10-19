@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Differencing;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -125,7 +123,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // the old and new tokens. Edits are computed on an int level, with five ints representing
             // one token. We compute on int level rather than token level to minimize the amount of
             // edits we send back to the client.
-            var edits = await LongestCommonSemanticTokensSubsequence.GetEditsAsync(oldSemanticTokens, newSemanticTokens).ConfigureAwait(false);
+            var edits = await SemanticTokensEditsDiffer.ComputeSemanticTokensEditsAsync(oldSemanticTokens, newSemanticTokens).ConfigureAwait(false);
 
             var processedEdits = ProcessEdits(newSemanticTokens, edits);
             return processedEdits;
@@ -133,25 +131,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         private static LSP.SemanticTokensEdit[] ProcessEdits(
             int[] newSemanticTokens,
-            SequenceEdit[] edits)
+            IReadOnlyList<DiffEdit> edits)
         {
             using var _ = ArrayBuilder<RoslynSemanticTokensEdit>.GetInstance(out var results);
-            var insertIndex = 0;
 
             // Go through and attempt to combine individual edits into larger edits. By default,
-            // edits are returned from Roslyn's LCS ordered from largest -> smallest index.
-            // However, to simplify computation, we process edits ordered from smallest -> largest
-            // index.
-            for (var i = edits.Length - 1; i >= 0; i--)
+            // Edits are ordered and processsed from smallest -> largest index.
+            foreach (var edit in edits)
             {
-                var edit = edits[i];
-
                 // Retrieve the most recent edit to see if it can be expanded.
                 var editInProgress = results.Count > 0 ? results[^1] : null;
 
-                switch (edit.Kind)
+                switch (edit.Operation)
                 {
-                    case EditKind.Delete:
+                    case DiffEdit.Type.Delete:
                         // If we have a deletion edit, we should see if there's an edit in progress
                         // we can combine with. If not, we'll generate a new edit.
                         //
@@ -160,7 +153,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                         // because the edits list passed into this method always orders the
                         // insertions for a given start index before deletions.
                         if (editInProgress != null &&
-                            editInProgress.Start + editInProgress.DeleteCount == edit.OldIndex)
+                            editInProgress.Start + editInProgress.DeleteCount == edit.InsertPosition)
                         {
                             editInProgress.DeleteCount++;
                         }
@@ -168,13 +161,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                         {
                             results.Add(new RoslynSemanticTokensEdit
                             {
-                                Start = edit.OldIndex,
+                                Start = edit.InsertPosition,
                                 DeleteCount = 1,
                             });
                         }
 
                         break;
-                    case EditKind.Insert:
+                    case DiffEdit.Type.Insert:
                         // If we have an insertion edit, we should see if there's an insertion edit
                         // in progress we can combine with. If not, we'll generate a new edit.
                         //
@@ -183,18 +176,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                         if (editInProgress != null &&
                             editInProgress.Data != null &&
                             editInProgress.Data.Count > 0 &&
-                            editInProgress.Start == insertIndex)
+                            editInProgress.Start == edit.InsertPosition)
                         {
-                            editInProgress.Data.Add(newSemanticTokens[edit.NewIndex]);
+                            editInProgress.Data.Add(newSemanticTokens[edit.NewTextPosition!.Value]);
                         }
                         else
                         {
                             var semanticTokensEdit = new RoslynSemanticTokensEdit
                             {
-                                Start = insertIndex,
+                                Start = edit.InsertPosition,
                                 Data = new List<int>
                                 {
-                                    newSemanticTokens[edit.NewIndex],
+                                    newSemanticTokens[edit.NewTextPosition!.Value],
                                 },
                                 DeleteCount = 0,
                             };
@@ -203,11 +196,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                         }
 
                         break;
-                    case EditKind.Update:
-                        // For EditKind.Inserts, we need to keep track of where in the old sequence we should be
-                        // inserting. This location is based off the location of the previous update.
-                        insertIndex = edit.OldIndex + 1;
-                        break;
                     default:
                         throw new InvalidOperationException("Only EditKind.Insert and EditKind.Delete are valid.");
                 }
@@ -215,93 +203,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             var processedResults = results.Select(e => e.ToSemanticTokensEdit());
             return processedResults.ToArray();
-        }
-
-        internal sealed class LongestCommonSemanticTokensSubsequence : LongestCommonSubsequence<ArraySegment<int>>
-        {
-            private const int MaxArraySize = 100;
-            private static readonly LongestCommonSemanticTokensSubsequence s_instance = new();
-
-            protected override bool ItemsEqual(
-                ArraySegment<int> oldSemanticTokens, int oldIndex,
-                ArraySegment<int> newSemanticTokens, int newIndex)
-                => ((IList<int>)oldSemanticTokens)[oldIndex] == ((IList<int>)newSemanticTokens)[newIndex];
-
-            public static async Task<SequenceEdit[]> GetEditsAsync(int[] oldSemanticTokens, int[] newSemanticTokens)
-            {
-                try
-                {
-                    using var _1 = ArrayBuilder<SequenceEdit>.GetInstance(out var edits);
-                    using var _2 = ArrayBuilder<Task<SequenceEdit[]>>.GetInstance(out var tasks);
-                    var numSets = Math.Max(oldSemanticTokens.Length / MaxArraySize, newSemanticTokens.Length / MaxArraySize) + 1;
-                    for (var i = 0; i < numSets; i++)
-                    {
-                        var j = i;
-                        var task = Task.Run(() =>
-                        {
-                            var oldTokenSet = new ArraySegment<int>();
-                            var newTokenSet = new ArraySegment<int>();
-
-                            if (oldSemanticTokens.Length > j * MaxArraySize)
-                            {
-                                var offset = j * MaxArraySize;
-                                var count = Math.Min(MaxArraySize, oldSemanticTokens.Length - offset);
-                                oldTokenSet = new ArraySegment<int>(oldSemanticTokens, offset, count);
-                            }
-
-                            if (newSemanticTokens.Length > j * MaxArraySize)
-                            {
-                                var offset = j * MaxArraySize;
-                                var count = Math.Min(MaxArraySize, newSemanticTokens.Length - offset);
-                                newTokenSet = new ArraySegment<int>(newSemanticTokens, offset, count);
-                            }
-
-                            var currentEditSet = s_instance.GetEdits(
-                                oldTokenSet, oldTokenSet.Count, newTokenSet, newTokenSet.Count);
-
-                            using var _ = ArrayBuilder<SequenceEdit>.GetInstance(out var adjustedEdits);
-                            adjustedEdits.AddRange(currentEditSet.SelectAsArray(edit =>
-                            {
-                                if (edit.Kind is EditKind.Insert)
-                                {
-                                    return new SequenceEdit(-1, edit.NewIndex * (j + 1));
-                                }
-                                else if (edit.Kind is EditKind.Delete)
-                                {
-                                    return new SequenceEdit(edit.OldIndex * (j + 1), -1);
-                                }
-                                else if (edit.Kind is EditKind.Update)
-                                {
-                                    return new SequenceEdit(edit.OldIndex * (j + 1), edit.NewIndex * (j + 1));
-                                }
-                                else
-                                {
-                                    throw new ArgumentException("Unexpected EditKind.");
-                                }
-                            }));
-
-                            return adjustedEdits.ToArray();
-                        });
-
-                        tasks.Add(task);
-                    }
-
-                    var completedTasks = await Task.WhenAll(tasks).ConfigureAwait(false);
-                    var finalEdits = new List<SequenceEdit>();
-                    foreach (var li in completedTasks)
-                    {
-                        finalEdits.AddRange(li);
-                    }
-
-                    return finalEdits.ToArray();
-                }
-                catch (OutOfMemoryException e) when (FatalError.ReportAndCatch(e))
-                {
-                    // The algorithm is superlinear in memory usage so we might potentially run out in rare cases.
-                    // Report telemetry and return no edits.
-                    return Array.Empty<SequenceEdit>();
-                }
-            }
         }
 
         // We need to have a shim class because SemanticTokensEdit.Data is an array type, so if we
