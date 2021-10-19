@@ -14,7 +14,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
     public class DoNotCallGetTestAccessorTests
     {
         [Fact]
-        public async Task DoNotCallGetTestAccessor_CSharp()
+        public async Task DoNotCallGetTestAccessor_CSharpAsync()
         {
             var source = @"class TestClass {
     internal void Method()
@@ -44,7 +44,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         }
 
         [Fact]
-        public async Task DoNotCallGetTestAccessor_VisualBasic()
+        public async Task DoNotCallGetTestAccessor_VisualBasicAsync()
         {
             var source = @"Class TestClass
     Friend Sub Method()
@@ -70,7 +70,7 @@ End Class";
         }
 
         [Fact]
-        public async Task DoNotConstructTestAccessor_CSharp()
+        public async Task DoNotConstructTestAccessor_CSharpAsync()
         {
             var source = @"class TestClass {
     internal void Method()
@@ -99,7 +99,7 @@ End Class";
         }
 
         [Fact]
-        public async Task DoNotConstructTestAccessor_VisualBasic()
+        public async Task DoNotConstructTestAccessor_VisualBasicAsync()
         {
             var source = @"Class TestClass
     Friend Sub Method()
@@ -124,7 +124,7 @@ End Class";
         }
 
         [Fact]
-        public async Task DoNotAccessTestAccessorStaticMember_CSharp()
+        public async Task DoNotAccessTestAccessorStaticMember_CSharpAsync()
         {
             var source = @"
 using System;
@@ -173,7 +173,7 @@ class OtherClass {
         }
 
         [Fact]
-        public async Task DoNotAccessTestAccessorStaticMember_VisualBasic()
+        public async Task DoNotAccessTestAccessorStaticMember_VisualBasicAsync()
         {
             var source = @"
 Imports System

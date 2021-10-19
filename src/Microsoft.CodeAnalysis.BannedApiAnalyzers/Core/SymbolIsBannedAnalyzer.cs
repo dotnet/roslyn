@@ -16,29 +16,29 @@ using DiagnosticIds = Roslyn.Diagnostics.Analyzers.RoslynDiagnosticIds;
 
 namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 {
+    using static BannedApiAnalyzerResources;
+
     internal static class SymbolIsBannedAnalyzer
     {
-        public const string BannedSymbolsFileName = "BannedSymbols.txt";
-
         public static readonly DiagnosticDescriptor SymbolIsBannedRule = new(
             id: DiagnosticIds.SymbolIsBannedRuleId,
-            title: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.SymbolIsBannedTitle), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
-            messageFormat: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.SymbolIsBannedMessage), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
+            title: CreateLocalizableResourceString(nameof(SymbolIsBannedTitle)),
+            messageFormat: CreateLocalizableResourceString(nameof(SymbolIsBannedMessage)),
             category: "ApiDesign",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.SymbolIsBannedDescription), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
+            description: CreateLocalizableResourceString(nameof(SymbolIsBannedDescription)),
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         public static readonly DiagnosticDescriptor DuplicateBannedSymbolRule = new(
             id: DiagnosticIds.DuplicateBannedSymbolRuleId,
-            title: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.DuplicateBannedSymbolTitle), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
-            messageFormat: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.DuplicateBannedSymbolMessage), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
+            title: CreateLocalizableResourceString(nameof(DuplicateBannedSymbolTitle)),
+            messageFormat: CreateLocalizableResourceString(nameof(DuplicateBannedSymbolMessage)),
             category: "ApiDesign",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.DuplicateBannedSymbolDescription), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
+            description: CreateLocalizableResourceString(nameof(DuplicateBannedSymbolDescription)),
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
     }
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
     public abstract class SymbolIsBannedAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
         where TSyntaxKind : struct
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
             ImmutableArray.Create(SymbolIsBannedAnalyzer.SymbolIsBannedRule, SymbolIsBannedAnalyzer.DuplicateBannedSymbolRule);
 
         protected abstract TSyntaxKind XmlCrefSyntaxKind { get; }
@@ -155,6 +155,9 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                                 VerifyType(context.ReportDiagnostic, incrementOrDecrement.OperatorMethod.ContainingType, context.Operation.Syntax);
                             }
                             break;
+                        case ITypeOfOperation typeOfOperation:
+                            VerifyType(context.ReportDiagnostic, typeOfOperation.TypeOperand, context.Operation.Syntax);
+                            break;
                     }
                 },
                 OperationKind.ObjectCreation,
@@ -169,7 +172,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 OperationKind.UnaryOperator,
                 OperationKind.BinaryOperator,
                 OperationKind.Increment,
-                OperationKind.Decrement);
+                OperationKind.Decrement,
+                OperationKind.TypeOf);
 
             compilationContext.RegisterSyntaxNodeAction(
                 context => VerifyDocumentationSyntax(context.ReportDiagnostic, GetReferenceSyntaxNodeFromXmlCref(context.Node), context),
@@ -181,7 +185,9 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             {
                 var query =
                     from additionalFile in compilationContext.Options.AdditionalFiles
-                    where StringComparer.Ordinal.Equals(Path.GetFileName(additionalFile.Path), SymbolIsBannedAnalyzer.BannedSymbolsFileName)
+                    let fileName = Path.GetFileName(additionalFile.Path)
+                    where fileName != null && fileName.StartsWith("BannedSymbols.", StringComparison.Ordinal) && fileName.EndsWith(".txt", StringComparison.Ordinal)
+                    orderby additionalFile.Path // Additional files are sorted by DocumentId (which is a GUID), make the file order deterministic
                     let sourceText = additionalFile.GetText(compilationContext.CancellationToken)
                     where sourceText != null
                     from line in sourceText.Lines

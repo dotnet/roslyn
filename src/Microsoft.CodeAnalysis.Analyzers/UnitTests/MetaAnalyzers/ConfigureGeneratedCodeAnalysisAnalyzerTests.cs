@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
     public class ConfigureGeneratedCodeAnalysisAnalyzerTests
     {
         [Fact]
-        public async Task TestSimpleCase_CSharp()
+        public async Task TestSimpleCase_CSharpAsync()
         {
             var code = @"
 using System.Collections.Immutable;
@@ -47,7 +47,7 @@ class Analyzer : DiagnosticAnalyzer {
         }
 
         [Fact]
-        public async Task TestSimpleCase_VisualBasic()
+        public async Task TestSimpleCase_VisualBasicAsync()
         {
             var code = @"
 Imports System.Collections.Immutable
@@ -91,7 +91,7 @@ End Class
         }
 
         [Fact]
-        public async Task RenamedMethod_CSharp()
+        public async Task RenamedMethod_CSharpAsync()
         {
             var code = @"
 using System.Collections.Immutable;
@@ -115,7 +115,7 @@ class Analyzer : DiagnosticAnalyzer {
         }
 
         [Fact]
-        public async Task RenamedMethod_VisualBasic()
+        public async Task RenamedMethod_VisualBasicAsync()
         {
             var code = @"
 Imports System.Collections.Immutable
@@ -144,7 +144,7 @@ End Class
         }
 
         [Fact, WorkItem(2698, "https://github.com/dotnet/roslyn-analyzers/issues/2698")]
-        public async Task RS1025_ExpressionBodiedMethod()
+        public async Task RS1025_ExpressionBodiedMethodAsync()
         {
             var code = @"
 using System.Collections.Immutable;

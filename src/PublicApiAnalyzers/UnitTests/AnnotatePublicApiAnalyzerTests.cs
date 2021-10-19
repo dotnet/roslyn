@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
         #region Fix tests
 
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
-        public async Task NoObliviousWhenUnannotatedClassConstraint()
+        public async Task NoObliviousWhenUnannotatedClassConstraintAsync()
         {
             var source = @"
 #nullable enable
@@ -81,7 +81,7 @@ C<T>
         }
 
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
-        public async Task NoObliviousWhenAnnotatedClassConstraint()
+        public async Task NoObliviousWhenAnnotatedClassConstraintAsync()
         {
             var source = @"
 #nullable enable
@@ -135,7 +135,7 @@ C<T>
         }
 
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
-        public async Task ObliviousWhenObliviousClassConstraint()
+        public async Task ObliviousWhenObliviousClassConstraintAsync()
         {
             var source = @"
 #nullable enable
@@ -156,7 +156,7 @@ C<T>.C() -> void
         }
 
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
-        public async Task NoObliviousWhenUnannotatedReferenceTypeConstraint()
+        public async Task NoObliviousWhenUnannotatedReferenceTypeConstraintAsync()
         {
             var source = @"
 #nullable enable
@@ -178,7 +178,7 @@ D.D() -> void
         }
 
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
-        public async Task NoObliviousWhenAnnotatedReferenceTypeConstraint()
+        public async Task NoObliviousWhenAnnotatedReferenceTypeConstraintAsync()
         {
             var source = @"
 #nullable enable
@@ -200,7 +200,7 @@ D.D() -> void
         }
 
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
-        public async Task ObliviousWhenObliviousReferenceTypeConstraint()
+        public async Task ObliviousWhenObliviousReferenceTypeConstraintAsync()
         {
             var source = @"
 #nullable enable
@@ -225,7 +225,7 @@ D.D() -> void
         }
 
         [Fact]
-        public async Task DoNotAnnotateMemberInUnannotatedUnshippedAPI_Nullable()
+        public async Task DoNotAnnotateMemberInUnannotatedUnshippedAPI_NullableAsync()
         {
             var source = @"
 #nullable enable
@@ -244,7 +244,7 @@ C.Field -> string";
         }
 
         [Fact]
-        public async Task DoNotAnnotateMemberInUnannotatedUnshippedAPI_NonNullable()
+        public async Task DoNotAnnotateMemberInUnannotatedUnshippedAPI_NonNullableAsync()
         {
             var source = @"
 #nullable enable
@@ -263,7 +263,7 @@ C.Field2 -> string";
         }
 
         [Fact]
-        public async Task DoNotAnnotateMemberInUnannotatedShippedAPI()
+        public async Task DoNotAnnotateMemberInUnannotatedShippedAPIAsync()
         {
             var source = @"
 #nullable enable
@@ -284,7 +284,7 @@ C.Field2 -> string";
         }
 
         [Fact]
-        public async Task AnnotatedMemberInAnnotatedShippedAPI()
+        public async Task AnnotatedMemberInAnnotatedShippedAPIAsync()
         {
             var source = @"
 #nullable enable
@@ -316,7 +316,7 @@ C.Field2 -> string!";
         }
 
         [Fact]
-        public async Task AnnotatedMemberInAnnotatedUnshippedAPI_EnabledViaUnshipped()
+        public async Task AnnotatedMemberInAnnotatedUnshippedAPI_EnabledViaUnshippedAsync()
         {
             var source = @"
 #nullable enable
@@ -348,7 +348,7 @@ C.Field2 -> string!";
         }
 
         [Fact]
-        public async Task AnnotatedMemberInAnnotatedUnshippedAPI_EnabledViaMultipleUnshipped()
+        public async Task AnnotatedMemberInAnnotatedUnshippedAPI_EnabledViaMultipleUnshippedAsync()
         {
             var source = @"
 #nullable enable
@@ -392,7 +392,7 @@ C.Field2 -> string!";
         }
 
         [Fact]
-        public async Task AnnotatedMemberInAnnotatedUnshippedAPI_EnabledViaShipped()
+        public async Task AnnotatedMemberInAnnotatedUnshippedAPI_EnabledViaShippedAsync()
         {
             var source = @"
 #nullable enable
@@ -421,7 +421,7 @@ C.Field2 -> string!";
         }
 
         [Fact]
-        public async Task AnnotatedMemberInAnnotatedUnshippedAPI_EnabledViaBoth()
+        public async Task AnnotatedMemberInAnnotatedUnshippedAPI_EnabledViaBothAsync()
         {
             var source = @"
 #nullable enable
@@ -452,7 +452,7 @@ C.Field2 -> string!";
         }
 
         [Fact]
-        public async Task TestAddAndRemoveMembers_CSharp_Fix_WithAddedNullability_WithoutOblivious()
+        public async Task TestAddAndRemoveMembers_CSharp_Fix_WithAddedNullability_WithoutObliviousAsync()
         {
             var source = @"
 #nullable enable
@@ -472,7 +472,7 @@ C.ChangedField -> string?";
         }
 
         [Fact]
-        public async Task LegacyAPIShouldBeAnnotatedWithObliviousMarker()
+        public async Task LegacyAPIShouldBeAnnotatedWithObliviousMarkerAsync()
         {
             var source = @"
 public class C
@@ -491,7 +491,7 @@ C.C() -> void
         }
 
         [Fact]
-        public async Task LegacyAPIShouldBeAnnotatedWithObliviousMarker_ShippedFile()
+        public async Task LegacyAPIShouldBeAnnotatedWithObliviousMarker_ShippedFileAsync()
         {
             var source = @"
 public class C
@@ -512,7 +512,7 @@ C.C() -> void
         }
 
         [Fact]
-        public async Task LegacyAPIWithObliviousMarkerGetsAnnotatedAsNullable()
+        public async Task LegacyAPIWithObliviousMarkerGetsAnnotatedAsNullableAsync()
         {
             var source = @"
 #nullable enable
@@ -534,7 +534,7 @@ C.Field -> string?";
         }
 
         [Fact]
-        public async Task LegacyAPIWithObliviousMarkerGetsAnnotatedAsNotNullable()
+        public async Task LegacyAPIWithObliviousMarkerGetsAnnotatedAsNotNullableAsync()
         {
             var source = @"
 #nullable enable

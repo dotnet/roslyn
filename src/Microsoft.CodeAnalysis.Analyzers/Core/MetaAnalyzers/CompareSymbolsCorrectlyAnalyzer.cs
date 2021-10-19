@@ -11,13 +11,14 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
+    using static CodeAnalysisDiagnosticsResources;
+
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class CompareSymbolsCorrectlyAnalyzer : DiagnosticAnalyzer
     {
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.CompareSymbolsCorrectlyTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.CompareSymbolsCorrectlyMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.CompareSymbolsCorrectlyDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableDescriptionGetHashCode = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.CompareSymbolsCorrectlyDescriptionGetHashCode), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableTitle = CreateLocalizableResourceString(nameof(CompareSymbolsCorrectlyTitle));
+        private static readonly LocalizableString s_localizableMessage = CreateLocalizableResourceString(nameof(CompareSymbolsCorrectlyMessage));
+        private static readonly LocalizableString s_localizableDescription = CreateLocalizableResourceString(nameof(CompareSymbolsCorrectlyDescription));
 
         private static readonly string s_symbolTypeFullName = typeof(ISymbol).FullName;
         private const string s_symbolEqualsName = nameof(ISymbol.Equals);
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_localizableDescription,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         public static readonly DiagnosticDescriptor GetHashCodeRule = new(
             DiagnosticIds.CompareSymbolsCorrectlyRuleId,
@@ -41,8 +42,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: s_localizableDescriptionGetHashCode,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            description: CreateLocalizableResourceString(nameof(CompareSymbolsCorrectlyDescriptionGetHashCode)),
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         public static readonly DiagnosticDescriptor CollectionRule = new(
             DiagnosticIds.CompareSymbolsCorrectlyRuleId,
@@ -52,9 +53,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_localizableDescription,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(EqualityRule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(EqualityRule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -126,12 +127,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return;
             }
 
-            if (binary.Language == LanguageNames.VisualBasic)
+            if (binary.Language == LanguageNames.VisualBasic
+                && (IsSymbolClassType(binary.LeftOperand) || IsSymbolClassType(binary.RightOperand)))
             {
-                if (IsSymbolClassType(binary.LeftOperand) || IsSymbolClassType(binary.RightOperand))
-                {
-                    return;
-                }
+                return;
             }
 
             if (IsExplicitCastToObject(binary.LeftOperand) || IsExplicitCastToObject(binary.RightOperand))
@@ -186,15 +185,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     break;
 
                 default:
-                    if (equalityComparerMethods.TryGetValue(method.Name, out var possibleMethodTypes))
+                    if (equalityComparerMethods.TryGetValue(method.Name, out var possibleMethodTypes) &&
+                        symbolEqualityComparerType is not null &&
+                        possibleMethodTypes.Contains(method.ContainingType.OriginalDefinition) &&
+                        IsBehavingOnSymbolType(method, symbolType) &&
+                        !invocationOperation.Arguments.Any(arg => IsSymbolType(arg.Value, symbolEqualityComparerType)))
                     {
-                        if (symbolEqualityComparerType is not null &&
-                            possibleMethodTypes.Contains(method.ContainingType.OriginalDefinition) &&
-                            IsBehavingOnSymbolType(method, symbolType) &&
-                            !invocationOperation.Arguments.Any(arg => IsSymbolType(arg.Value, symbolEqualityComparerType)))
-                        {
-                            context.ReportDiagnostic(invocationOperation.CreateDiagnostic(CollectionRule));
-                        }
+                        context.ReportDiagnostic(invocationOperation.CreateDiagnostic(CollectionRule));
                     }
                     break;
             }
@@ -284,13 +281,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private static bool IsSymbolClassType(IOperation operation)
         {
-            if (operation.Type is object)
+            if (operation.Type is object &&
+                operation.Type.TypeKind == TypeKind.Class &&
+                operation.Type.SpecialType != SpecialType.System_Object)
             {
-                if (operation.Type.TypeKind == TypeKind.Class
-                    && operation.Type.SpecialType != SpecialType.System_Object)
-                {
-                    return true;
-                }
+                return true;
             }
 
             if (operation is IConversionOperation conversion)

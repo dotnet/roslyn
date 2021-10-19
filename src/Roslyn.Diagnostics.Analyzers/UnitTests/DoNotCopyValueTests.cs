@@ -17,7 +17,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
     public class DoNotCopyValueTests
     {
         [Fact]
-        public async Task TestSliceOfString()
+        public async Task TestSliceOfStringAsync()
         {
             await new VerifyCS.Test
             {
@@ -39,7 +39,7 @@ class C
         }
 
         [Fact]
-        public async Task TestAcquireFromReturnByValue()
+        public async Task TestAcquireFromReturnByValueAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Runtime.InteropServices;
@@ -68,7 +68,7 @@ End Class");
         [InlineData("Func<ConfiguredValueTaskAwaitable<GCHandle>>", "Func(Of ConfiguredValueTaskAwaitable(Of GCHandle))")]
         [InlineData("Func<Task<GCHandle>>", "Func(Of Task(Of GCHandle))")]
         [InlineData("Func<ConfiguredTaskAwaitable<GCHandle>>", "Func(Of ConfiguredTaskAwaitable(Of GCHandle))")]
-        public async Task TestAcquireFromAwaitInvocation(string csharpInvokeType, string visualBasicInvokeType)
+        public async Task TestAcquireFromAwaitInvocationAsync(string csharpInvokeType, string visualBasicInvokeType)
         {
             await VerifyCS.VerifyAnalyzerAsync($@"
 using System;
@@ -103,7 +103,7 @@ End Class");
         [Theory]
         [InlineData("ValueTask<GCHandle>", "ValueTask(Of GCHandle)")]
         [InlineData("ConfiguredValueTaskAwaitable<GCHandle>", "ConfiguredValueTaskAwaitable(Of GCHandle)")]
-        public async Task TestAcquireFromAwait(string csharpAwaitableType, string visualBasicAwaitableType)
+        public async Task TestAcquireFromAwaitAsync(string csharpAwaitableType, string visualBasicAwaitableType)
         {
             await VerifyCS.VerifyAnalyzerAsync($@"
 using System.Runtime.CompilerServices;
@@ -134,7 +134,7 @@ End Class");
         [Theory]
         [InlineData("Task<GCHandle>", "Task(Of GCHandle)")]
         [InlineData("ConfiguredTaskAwaitable<GCHandle>", "ConfiguredTaskAwaitable(Of GCHandle)")]
-        public async Task TestFailedAcquireFromUnsupportedAwait(string csharpAwaitableType, string visualBasicAwaitableType)
+        public async Task TestFailedAcquireFromUnsupportedAwaitAsync(string csharpAwaitableType, string visualBasicAwaitableType)
         {
             await VerifyCS.VerifyAnalyzerAsync($@"
 using System.Runtime.CompilerServices;
@@ -172,7 +172,7 @@ End Class",
         [InlineData("this.field", "Me.field")]
         [InlineData("(this).field", null)]
         [InlineData("((C)this).field", "DirectCast(Me, C).field")]
-        public async Task TestAcquireIntoFieldFromReturnByValue(string csharpFieldReference, string? visualBasicFieldReference)
+        public async Task TestAcquireIntoFieldFromReturnByValueAsync(string csharpFieldReference, string? visualBasicFieldReference)
         {
             await VerifyCS.VerifyAnalyzerAsync($@"
 using System.Runtime.InteropServices;
@@ -211,7 +211,7 @@ End Class");
         [InlineData("this.field", "Me.field")]
         [InlineData("(this).field", null)]
         [InlineData("((C)this).field", "DirectCast(Me, C).field")]
-        public async Task TestAcquireIntoArrayFieldFromReturnByValue(string csharpFieldReference, string? visualBasicFieldReference)
+        public async Task TestAcquireIntoArrayFieldFromReturnByValueAsync(string csharpFieldReference, string? visualBasicFieldReference)
         {
             await VerifyCS.VerifyAnalyzerAsync($@"
 using System.Runtime.InteropServices;
@@ -243,7 +243,7 @@ End Class");
         }
 
         [Fact]
-        public async Task TestDoNotAcquireFromReturnByReference()
+        public async Task TestDoNotAcquireFromReturnByReferenceAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Runtime.InteropServices;
@@ -263,7 +263,7 @@ class C
         }
 
         [Fact]
-        public async Task TestPassToInstancePropertyGetter()
+        public async Task TestPassToInstancePropertyGetterAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Runtime.InteropServices;
@@ -299,7 +299,7 @@ class C
         }
 
         [Fact]
-        public async Task TestPassToInstanceMethod()
+        public async Task TestPassToInstanceMethodAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Runtime.InteropServices;
@@ -335,7 +335,7 @@ class C
         }
 
         [Fact]
-        public async Task TestPassToExtensionMethod()
+        public async Task TestPassToExtensionMethodAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Runtime.InteropServices;
@@ -404,7 +404,7 @@ static class E
         [InlineData("throw null")]
         [InlineData("(true ? throw null : default(GCHandle))")]
         [InlineData("(false ? new GCHandle() : throw null)")]
-        public async Task TestConversionFromThrowNull(string throwExpression)
+        public async Task TestConversionFromThrowNullAsync(string throwExpression)
         {
             await VerifyCS.VerifyAnalyzerAsync($@"
 using System.Runtime.InteropServices;
@@ -417,7 +417,7 @@ class C
         }
 
         [Fact]
-        public async Task TestPassByReference()
+        public async Task TestPassByReferenceAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Runtime.InteropServices;
@@ -439,7 +439,7 @@ End Class");
         }
 
         [Fact]
-        public async Task TestPassByReadOnlyReference()
+        public async Task TestPassByReadOnlyReferenceAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Runtime.InteropServices;
@@ -452,7 +452,7 @@ class C
         }
 
         [Fact]
-        public async Task TestAssignToMember()
+        public async Task TestAssignToMemberAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Runtime.InteropServices;
@@ -487,7 +487,7 @@ internal sealed class NonCopyableAttribute : System.Attribute { }
         }
 
         [Fact]
-        public async Task ReturnLocalByValue()
+        public async Task ReturnLocalByValueAsync()
         {
             var source = @"
 using System.Runtime.InteropServices;
@@ -510,7 +510,7 @@ class C
         }
 
         [Fact]
-        public async Task TestReturnMember()
+        public async Task TestReturnMemberAsync()
         {
             var source = @"
 using System.Runtime.InteropServices;
@@ -626,7 +626,7 @@ internal sealed class NonCopyableAttribute : System.Attribute { }
         }
 
         [Fact]
-        public async Task NonReadonlyMemberProperties()
+        public async Task NonReadonlyMemberPropertiesAsync()
         {
             // Verify that a non-readonly member of a non-copyable type can reference another non-readonly member of the
             // same type.
@@ -652,7 +652,7 @@ internal sealed class NonCopyableAttribute : System.Attribute { }
         }
 
         [Fact]
-        public async Task NonReadonlyMemberMethods()
+        public async Task NonReadonlyMemberMethodsAsync()
         {
             // Verify that a non-readonly member of a non-copyable type can reference another non-readonly member of the
             // same type.
@@ -678,7 +678,7 @@ internal sealed class NonCopyableAttribute : System.Attribute { }
         }
 
         [Fact]
-        public async Task AllowObjectInitializer()
+        public async Task AllowObjectInitializerAsync()
         {
             var source = @"
 using System.Runtime.InteropServices;
@@ -709,7 +709,7 @@ internal sealed class NonCopyableAttribute : System.Attribute { }
         }
 
         [Fact]
-        public async Task AllowCustomForeachEnumerator()
+        public async Task AllowCustomForeachEnumeratorAsync()
         {
             var source = @"
 using System.Runtime.InteropServices;
@@ -749,7 +749,7 @@ internal sealed class NonCopyableAttribute : System.Attribute { }
 
         [Theory]
         [CombinatorialData]
-        public async Task AllowCustomForeachEnumeratorParameterReference(
+        public async Task AllowCustomForeachEnumeratorParameterReferenceAsync(
             [CombinatorialValues("", "ref", "in")] string parameterModifiers,
             [CombinatorialValues("", "readonly")] string getEnumeratorModifiers)
         {
@@ -800,7 +800,7 @@ internal sealed class NonCopyableAttribute : System.Attribute {{ }}
         }
 
         [Fact]
-        public async Task AllowCustomForeachEnumeratorDisposableObject1()
+        public async Task AllowCustomForeachEnumeratorDisposableObject1Async()
         {
             var source = @"
 using System;
@@ -841,7 +841,7 @@ internal sealed class NonCopyableAttribute : System.Attribute { }
         }
 
         [Fact]
-        public async Task AllowCustomForeachEnumeratorDisposableObject2()
+        public async Task AllowCustomForeachEnumeratorDisposableObject2Async()
         {
             var source = @"
 using System;
@@ -888,7 +888,7 @@ internal sealed class NonCopyableAttribute : System.Attribute { }
         [InlineData("default(CannotCopy)")]
         [InlineData("CannotCopy.Create()")]
         [InlineData("CannotCopy.Empty")]
-        public async Task AllowDisposableObject(string creation)
+        public async Task AllowDisposableObjectAsync(string creation)
         {
             var source = $@"
 using System;
@@ -943,7 +943,7 @@ internal sealed class NonCopyableAttribute : System.Attribute {{ }}
         }
 
         [Fact]
-        public async Task AllowCustomForeachReadonlyEnumerator()
+        public async Task AllowCustomForeachReadonlyEnumeratorAsync()
         {
             var source = @"
 using System.Runtime.InteropServices;
@@ -985,7 +985,7 @@ internal sealed class NonCopyableAttribute : System.Attribute { }
         [InlineData("")]
         [InlineData("ref")]
         [InlineData("in")]
-        public async Task AllowNameOfParameterReference(string parameterModifiers)
+        public async Task AllowNameOfParameterReferenceAsync(string parameterModifiers)
         {
             var source = $@"
 using System.Runtime.InteropServices;
@@ -1018,7 +1018,7 @@ internal sealed class NonCopyableAttribute : System.Attribute {{ }}
         [Theory]
         [InlineData("ref")]
         [InlineData("in")]
-        public async Task AllowUnsafeAsRefParameterReference(string parameterModifiers)
+        public async Task AllowUnsafeAsRefParameterReferenceAsync(string parameterModifiers)
         {
             var source = $@"
 using System.Runtime.InteropServices;
@@ -1052,7 +1052,7 @@ internal sealed class NonCopyableAttribute : System.Attribute {{ }}
         [Theory]
         [InlineData("ref")]
         [InlineData("in")]
-        public async Task StoreUnsafeAsRefParameterReferenceToLocal(string parameterModifiers)
+        public async Task StoreUnsafeAsRefParameterReferenceToLocalAsync(string parameterModifiers)
         {
             var localModifiers = parameterModifiers switch
             {
@@ -1092,7 +1092,7 @@ internal sealed class NonCopyableAttribute : System.Attribute {{ }}
         }
 
         [Fact]
-        public async Task CannotStoreRefReturnByValue()
+        public async Task CannotStoreRefReturnByValueAsync()
         {
             var source = $@"
 using System.Runtime.InteropServices;
@@ -1139,7 +1139,7 @@ internal sealed class NonCopyableAttribute : System.Attribute {{ }}
         }
 
         [Fact]
-        public async Task CannotReturnRefReturnByValue()
+        public async Task CannotReturnRefReturnByValueAsync()
         {
             var source = $@"
 using System.Runtime.InteropServices;
@@ -1176,7 +1176,7 @@ internal sealed class NonCopyableAttribute : System.Attribute {{ }}
         }
 
         [Fact]
-        public async Task TestNonCopyableAttribute()
+        public async Task TestNonCopyableAttributeAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Runtime.InteropServices;
@@ -1209,7 +1209,7 @@ internal sealed class NonCopyableAttribute : System.Attribute { }
         }
 
         [Fact]
-        public async Task DoNotWrapNonCopyableTypeInNullableT()
+        public async Task DoNotWrapNonCopyableTypeInNullableTAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Runtime.InteropServices;
@@ -1224,7 +1224,7 @@ class C
         }
 
         [Fact]
-        public async Task DoNotDefineNonCopyableFieldInCopyableType()
+        public async Task DoNotDefineNonCopyableFieldInCopyableTypeAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 class C1
@@ -1279,7 +1279,7 @@ Public NotInheritable Class NonCopyableAttribute : Inherits System.Attribute : E
         }
 
         [Fact]
-        public async Task DoNotDefineNonCopyableAutoProperty()
+        public async Task DoNotDefineNonCopyableAutoPropertyAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 class C1

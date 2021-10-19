@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests
     public class ConcatenationAllocationAnalyzerTests
     {
         [Fact]
-        public async Task ConcatenationAllocation_Basic1()
+        public async Task ConcatenationAllocation_Basic1Async()
         {
             var sampleProgram =
 @"using System;
@@ -31,7 +31,7 @@ public class MyClass
         }
 
         [Fact]
-        public async Task ConcatenationAllocation_Basic2()
+        public async Task ConcatenationAllocation_Basic2Async()
         {
             var sampleProgram =
 @"using System;
@@ -57,7 +57,7 @@ public class MyClass
         [InlineData("string s0 = nameof(System.String) + true;")]
         [InlineData("string s0 = nameof(System.String) + new System.IntPtr();")]
         [InlineData("string s0 = nameof(System.String) + new System.UIntPtr();")]
-        public async Task ConcatenationAllocation_DoNotWarnForOptimizedValueTypes(string statement)
+        public async Task ConcatenationAllocation_DoNotWarnForOptimizedValueTypesAsync(string statement)
         {
             var source = $@"using System;
 using Roslyn.Utilities;
@@ -78,7 +78,7 @@ public class MyClass
         [InlineData(@"const string s0 = nameof(System.String) + ""."";")]
         [InlineData(@"string s0 = nameof(System.String) + ""."" + nameof(System.String);")]
         [InlineData(@"string s0 = nameof(System.String) + ""."";")]
-        public async Task ConcatenationAllocation_DoNotWarnForConst(string statement)
+        public async Task ConcatenationAllocation_DoNotWarnForConstAsync(string statement)
         {
             var source = $@"using System;
 using Roslyn.Utilities;
@@ -96,7 +96,7 @@ public class MyClass
 
         [Fact]
         [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
-        public async Task Non_constant_value_types_in_CSharp_string_concatenation()
+        public async Task Non_constant_value_types_in_CSharp_string_concatenationAsync()
         {
             var source = @"
 using System;

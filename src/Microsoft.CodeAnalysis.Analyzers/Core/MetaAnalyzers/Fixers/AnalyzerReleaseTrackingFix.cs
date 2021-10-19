@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 
 ";
 
-        public override ImmutableArray<string> FixableDiagnosticIds =>
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(DiagnosticIds.DeclareDiagnosticIdInAnalyzerReleaseRuleId, DiagnosticIds.UpdateDiagnosticIdInAnalyzerReleaseRuleId, DiagnosticIds.EnableAnalyzerReleaseTrackingRuleId);
 
         public override FixAllProvider GetFixAllProvider()
@@ -280,12 +280,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                                 builder.AppendLine();
                             }
                         }
-                        else if (currentTableKind == RuleEntryTableKind.Changed)
+                        else if (currentTableKind == RuleEntryTableKind.Changed
+                            && AddAllEntries(changedRuleEntriesToAdd, builder, prependNewLine: false))
                         {
-                            if (AddAllEntries(changedRuleEntriesToAdd, builder, prependNewLine: false))
-                            {
-                                builder.AppendLine();
-                            }
+                            builder.AppendLine();
                         }
                     }
 
