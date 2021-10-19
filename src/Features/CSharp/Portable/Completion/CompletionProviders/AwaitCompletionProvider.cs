@@ -59,7 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             //   await Test();
             // someTask.await Test() is parsed as a local function statement.
             // We skip this and look further up in the hierarchy.
-            var parent = token.GetRequiredParent();
+            var parent = token.Parent;
+            if (parent == null)
+                return null;
+
             if (parent is QualifiedNameSyntax { Parent: LocalFunctionStatementSyntax localFunction } qualifiedName &&
                 localFunction.ReturnType == qualifiedName)
             {
