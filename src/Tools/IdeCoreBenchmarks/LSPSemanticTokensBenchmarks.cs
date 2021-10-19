@@ -67,19 +67,19 @@ namespace IdeCoreBenchmarks
         }
 
         [Benchmark]
-        public async Task RunLSPSemanticTokensBenchmark_10k() => await RunLSPSemanticTokensBenchmark(10000).ConfigureAwait(false);
+        public Task RunLSPSemanticTokensBenchmark_10k() => RunLSPSemanticTokensBenchmark(10000);
 
         [Benchmark]
-        public async Task RunLSPSemanticTokensBenchmark_20k() => await RunLSPSemanticTokensBenchmark(20000).ConfigureAwait(false);
+        public Task RunLSPSemanticTokensBenchmark_20k() => RunLSPSemanticTokensBenchmark(20000);
 
         [Benchmark]
-        public async Task RunLSPSemanticTokensBenchmark_100k() => await RunLSPSemanticTokensBenchmark(100000).ConfigureAwait(false);
+        public Task RunLSPSemanticTokensBenchmark_100k() => RunLSPSemanticTokensBenchmark(100000);
 
         [Benchmark]
-        public async Task RunLSPSemanticTokensBenchmark_250k() => await RunLSPSemanticTokensBenchmark(250000).ConfigureAwait(false);
+        public Task RunLSPSemanticTokensBenchmark_250k() => RunLSPSemanticTokensBenchmark(250000);
 
         [Benchmark]
-        public async Task RunLSPSemanticTokensBenchmark_AllTokens() => await RunLSPSemanticTokensBenchmark().ConfigureAwait(false);
+        public Task RunLSPSemanticTokensBenchmark_AllTokens() => RunLSPSemanticTokensBenchmark();
 
         private async Task RunLSPSemanticTokensBenchmark(int? numTokens = null)
         {
