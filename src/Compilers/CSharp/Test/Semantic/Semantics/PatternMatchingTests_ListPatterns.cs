@@ -3355,6 +3355,7 @@ class D
     [Fact]
     public void SlicePattern_Nullability_Exhaustiveness_NestedSlice()
     {
+        // TODO2 verify execution/DAG
         var source = @"
 #nullable enable
 using System;
@@ -3366,41 +3367,68 @@ class C
 
     public void M()
     {
-        //_ = this switch
-        //{
-        //    null => 0,
-        //    [] => 0,
-        //    [.. [null]] => 0,
-        //    [not null] => 0,
-        //    { Length: > 1 } => 0,
-        //};
+        _ = this switch
+        {
+            null or { Length: not 1 } => 0,
+            [.. null] => 0,
+            [.. [null]] => 0,
+            [not null] => 0,
+        };
 
-        //_ = this switch // didn't test for not null first element
-        //{
-        //    null => 0,
-        //    [] => 0,
-        //    [.. [null]] => 0,
-        //    { Length: > 1 } => 0,
-        //};
+        _ = this switch // TODO2 we didn't test for [.. null] but we're looking for an example with Length=1. incorrect explanation [.. null, null] // 1
+        {
+            null or { Length: not 1 } => 0,
+            [.. [null]] => 0,
+            [not null] => 0,
+        };
 
-        //_ = this switch // didn't test for null first element
-        //{
-        //    null => 0,
-        //    [] => 0,
-        //    [.. [not null]] => 0,
-        //    { Length: > 1 } => 0,
-        //};
+        _ = this switch // didn't test for [.. [not null]] // TODO2 // 2
+        {
+            null or { Length: not 1 } => 0,
+            [.. [null]] => 0,
+        };
 
-        //_ = this switch // didn't test for null slice
-        //{
-        //    null or { Length: not 4 } => 0,
-        //    [_, .. [_, not null], _] => 0,
-        //};
+        _ = this switch // didn't test for [.. [not null]] // TODO2 // 3
+        {
+            null or { Length: not 1 } => 0,
+            [.. null] => 0,
+            [.. [null]] => 0,
+        };
 
-        _ = this switch // didn't test for
+        _ = this switch // didn't test for [.. null, _] // TODO2 we're trying to construct an example with Length=1, the slice may not be null // 4
+        {
+            null or { Length: not 1 } => 0,
+            [.. [not null]] => 0,
+        };
+
+        _ = this switch // didn't test for [_, .. null, _, _, _] // TODO2 we're trying to construct an example with Length=4, the slice may not be null // 5
+        {
+            null or { Length: not 4 } => 0,
+            [_, .. [_, not null], _] => 0,
+        };
+
+        _ = this switch // TODO2 we should consider this switch exhaustive // 6
+        {
+            null or { Length: not 4 } => 0,
+            [_, .. [_, _], _] => 0,
+        };
+
+        _ = this switch // didn't test for [_, .. [_, null], _] // 7
         {
             null or { Length: not 4 } => 0,
             [_, .. null or [_, not null], _] => 0,
+        };
+
+        _ = this switch // didn't test for [_, .. [_, null], _, _] // 8
+        {
+            null or { Length: not 5 } => 0,
+            [_, .. null or [_, not null], _, _] => 0,
+        };
+
+        _ = this switch // didn't test for [_, .. [_, null, _], _] // 9
+        {
+            null or { Length: not 5 } => 0,
+            [_, .. null or [_, not null, _], _] => 0,
         };
     }
 }
@@ -3409,15 +3437,33 @@ class C
         // PROTOTYPE: unexpected exhaustiveness diagnostic
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyEmitDiagnostics(
-            // (12,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(12, 18),
-            // (21,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for not null first element
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(21, 18),
-            // (29,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for null first element
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(29, 18)
+            // (20,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[.. null, null]' is not covered.
+            //         _ = this switch // TODO2 we didn't test for [.. null] but we're looking for an example with Length=1. incorrect explanation [.. null, null] // 1
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[.. null, null]").WithLocation(20, 18),
+            // (27,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[.. [not null]]' is not covered.
+            //         _ = this switch // didn't test for [.. [not null]] // TODO2 // 2
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[.. [not null]]").WithLocation(27, 18),
+            // (33,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[.. [not null]]' is not covered.
+            //         _ = this switch // didn't test for [.. [not null]] // TODO2 // 3
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[.. [not null]]").WithLocation(33, 18),
+            // (40,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[.. null, _]' is not covered.
+            //         _ = this switch // didn't test for [.. null, _] // TODO2 we're trying to construct an example with Length=1, the slice may not be null // 4
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[.. null, _]").WithLocation(40, 18),
+            // (46,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[_, .. null, _, _, _]' is not covered.
+            //         _ = this switch // didn't test for [_, .. null, _, _, _] // TODO2 we're trying to construct an example with Length=4, the slice may not be null // 5
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[_, .. null, _, _, _]").WithLocation(46, 18),
+            // (52,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[_, .. null, _, _, _]' is not covered.
+            //         _ = this switch // TODO2 we should consider this switch exhaustive // 6
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[_, .. null, _, _, _]").WithLocation(52, 18),
+            // (58,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[_, .. [_, null], _]' is not covered.
+            //         _ = this switch // didn't test for [_, .. [_, null], _] // 7
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[_, .. [_, null], _]").WithLocation(58, 18),
+            // (64,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[_, .. [_, null], _, _]' is not covered.
+            //         _ = this switch // didn't test for [_, .. [_, null], _, _] // 8
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[_, .. [_, null], _, _]").WithLocation(64, 18),
+            // (70,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[_, .. [_, null, _], _]' is not covered.
+            //         _ = this switch // didn't test for [_, .. [_, null, _], _] // 9
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[_, .. [_, null, _], _]").WithLocation(70, 18)
             );
     }
 
@@ -5410,5 +5456,133 @@ class C : Base
   IL_0066:  ldloc.s    V_7
   IL_0068:  ret
 }");
+    }
+
+    [Fact]
+    public void SlicePattern_OnConsList()
+    {
+        var source = @"
+#nullable enable
+using System;
+
+record ConsList(object Head, ConsList? Tail)
+{
+    public int Length => throw null!;
+    public object this[Index i] => throw null!;
+    public ConsList? this[Range r] => throw null!;
+
+    public static void Print(ConsList? list)
+    {
+        switch (list)
+        {
+            case null:
+                return;
+            case [var head, .. var tail]:
+                System.Console.Write(head.ToString() + "" "");
+                Print(tail);
+                return;
+        }
+    }
+}
+";
+        // Note: this pattern doesn't work well because list-patterns needs a functional Length
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, IsExternalInitTypeDefinition });
+        compilation.VerifyDiagnostics();
+        var verifier = CompileAndVerify(compilation);
+        verifier.VerifyIL("ConsList.Print", @"
+{
+  // Code size       84 (0x54)
+  .maxstack  4
+  .locals init (object V_0, //head
+                ConsList V_1) //tail
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0036
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""int ConsList.Length.get""
+  IL_0009:  ldc.i4.1
+  IL_000a:  blt.s      IL_0053
+  IL_000c:  ldarg.0
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0014:  callvirt   ""object ConsList.this[System.Index].get""
+  IL_0019:  stloc.0
+  IL_001a:  ldarg.0
+  IL_001b:  ldc.i4.1
+  IL_001c:  ldc.i4.0
+  IL_001d:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0022:  ldc.i4.0
+  IL_0023:  ldc.i4.1
+  IL_0024:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0029:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_002e:  callvirt   ""ConsList ConsList.this[System.Range].get""
+  IL_0033:  stloc.1
+  IL_0034:  br.s       IL_0037
+  IL_0036:  ret
+  IL_0037:  ldloc.0
+  IL_0038:  callvirt   ""string object.ToString()""
+  IL_003d:  ldstr      "" ""
+  IL_0042:  call       ""string string.Concat(string, string)""
+  IL_0047:  call       ""void System.Console.Write(string)""
+  IL_004c:  ldloc.1
+  IL_004d:  call       ""void ConsList.Print(ConsList)""
+  IL_0052:  ret
+  IL_0053:  ret
+}
+");
+    }
+
+    [Fact]
+    public void PositionalPattern_OnConsList()
+    {
+        var source = @"
+#nullable enable
+
+var list = new ConsList(1, new ConsList(2, new ConsList(3, null)));
+ConsList.Print(list);
+
+record ConsList(object Head, ConsList? Tail)
+{
+    public static void Print(ConsList? list)
+    {
+        switch (list)
+        {
+            case null:
+                return;
+            case (var head, var tail):
+                System.Console.Write(head.ToString() + "" "");
+                Print(tail);
+                return;
+        }
+    }
+}
+";
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, IsExternalInitTypeDefinition });
+        compilation.VerifyDiagnostics();
+        var verifier = CompileAndVerify(compilation, expectedOutput: "1 2 3");
+        verifier.VerifyIL("ConsList.Print", @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  3
+  .locals init (object V_0, //head
+                ConsList V_1) //tail
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000f
+  IL_0003:  ldarg.0
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  callvirt   ""void ConsList.Deconstruct(out object, out ConsList)""
+  IL_000d:  br.s       IL_0010
+  IL_000f:  ret
+  IL_0010:  ldloc.0
+  IL_0011:  callvirt   ""string object.ToString()""
+  IL_0016:  ldstr      "" ""
+  IL_001b:  call       ""string string.Concat(string, string)""
+  IL_0020:  call       ""void System.Console.Write(string)""
+  IL_0025:  ldloc.1
+  IL_0026:  call       ""void ConsList.Print(ConsList)""
+  IL_002b:  ret
+}
+");
     }
 }

@@ -348,10 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return null;
                 }
-
-                var lengthTemp = new BoundDagTemp(lengthOrCount.Syntax, lengthOrCount.Property.Type, lengthOrCount);
-                var lengthValues = (IValueSet<int>)computeRemainingValues(ValueSetFactory.ForLength, getArray(constraintMap, lengthTemp));
-                var length = lengthValues.Sample.Int32Value;
+                int length = computeLength(new BoundDagTemp(lengthOrCount.Syntax, lengthOrCount.Property.Type, lengthOrCount));
 
                 BoundDagSliceEvaluation slice = null;
                 var subpatterns = new ArrayBuilder<string>(length);
@@ -387,32 +384,52 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (slice?.StartIndex == i)
                     {
-                        int endIndex = slice.EndIndex >= 0 ? slice.EndIndex : length + slice.EndIndex - 1;
                         var subInput = new BoundDagTemp(slice.Syntax, slice.SliceType, slice);
-                        var sample2 =  SamplePatternForTemp(subInput, constraintMap, evaluationMap, false, ref unnamedEnumValue);
+                        var sample2 = SamplePatternForTemp(subInput, constraintMap, evaluationMap, false, ref unnamedEnumValue);
                         if (sample2 != "_")
                         {
-                            if (builder.Length > 1)
-                            {
-                                builder.Append(", ");
-                            }
+                            appendWithSeparatorIfNeeded(builder, ".. " + sample2);
+                        }
 
-                            builder.Append(".. " + sample2);
+                        if (sample2.StartsWith("[")) // TODO2
+                        {
+                            // The nested slice is handling a section of the list
+                            int endIndex = slice.EndIndex >= 0 ? slice.EndIndex : length + slice.EndIndex - 1;
+                            i += endIndex - slice.StartIndex;
+                            continue;
                         }
                     }
 
                     string sample = subpatterns[i];
 
-                    if (builder.Length > 1)
-                    {
-                        builder.Append(", ");
-                    }
-
-                    builder.Append(sample);
+                    appendWithSeparatorIfNeeded(builder, sample);
                 }
                 builder.Append("]");
 
                 return pooledBuilder.ToStringAndFree();
+            }
+
+            static void appendWithSeparatorIfNeeded(StringBuilder builder, string sample)
+            {
+                if (builder.Length > 1)
+                {
+                    builder.Append(", ");
+                }
+
+                builder.Append(sample);
+            }
+
+            int computeLength(BoundDagTemp lengthTemp)
+            {
+                if (lengthTemp is { Source: BoundDagPropertyEvaluation { Input: { Source: BoundDagSliceEvaluation slice } } })
+                {
+                    var outerLength = computeLength(slice.LengthTemp);
+                    return outerLength - slice.StartIndex + slice.EndIndex;
+                }
+
+                var lengthValues = (IValueSet<int>)computeRemainingValues(ValueSetFactory.ForLength, getArray(constraintMap, lengthTemp));
+                var length = lengthValues.Sample.Int32Value;
+                return length;
             }
 
             // Handle the special case of a recursive pattern
