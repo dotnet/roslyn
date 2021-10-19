@@ -77,6 +77,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             for (int i = 1; i <= (int)SpecialType.Count; i++)
             {
+                // HACKATHON: special type
+                if (i == (int)SpecialType.System_ValueArray_TR)
+                {
+                    continue;
+                }
+
                 NamedTypeSymbol type = c1.GetSpecialType((SpecialType)i);
                 if (i == (int)SpecialType.System_Runtime_CompilerServices_RuntimeFeature ||
                     i == (int)SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute)

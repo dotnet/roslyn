@@ -517,6 +517,12 @@ namespace System
                 var symbol = comp.GetSpecialType(special);
                 Assert.NotNull(symbol);
 
+                if (special == SpecialType.System_ValueArray_TR)
+                {
+                    // HACKATHONE: experimental type
+                    continue;
+                }
+
                 if (special == SpecialType.System_Runtime_CompilerServices_RuntimeFeature ||
                     special == SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute)
                 {

@@ -454,6 +454,11 @@ End Namespace
                 Dim symbol = comp.GetSpecialType(special)
                 Assert.NotNull(symbol)
 
+                If special = SpecialType.System_ValueArray_TR Then
+                    ' HACKATHONE: experimental Type
+                    Continue For
+                End If
+
                 If special = SpecialType.System_Runtime_CompilerServices_RuntimeFeature OrElse
                    special = SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute Then
                     Assert.Equal(SymbolKind.ErrorType, symbol.Kind) ' Not available
