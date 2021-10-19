@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         public void Test()
         {
             var source = @"System.Console.Write(""I'm a new test project. Please delete this test."");";
-            CompileAndVerify(source, expectedOutput: "Hello");
+            CompileAndVerify(source, expectedOutput: "I'm a new test project. Please delete this test.");
         }
     }
 }
