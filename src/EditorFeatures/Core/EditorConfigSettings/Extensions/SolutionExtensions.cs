@@ -12,11 +12,15 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions
     {
         public static ImmutableArray<Project> GetProjectsForPath(this Solution solution, string givenPath)
         {
-            if (Path.GetDirectoryName(givenPath) is not string givenFolderPath ||
-                solution.FilePath is not string solutionFilePath ||
-                new DirectoryInfo(solutionFilePath).Parent is not DirectoryInfo solutionParentDirectory ||
-                new DirectoryInfo(givenFolderPath).FullName == solutionParentDirectory.FullName)
+            if (Path.GetDirectoryName(givenPath) is not string givenFolderPath)
             {
+                // we have been given an invalid file path
+                return ImmutableArray<Project>.Empty;
+            }
+
+            if (SolutionIsInSameFolder(solution, givenFolderPath))
+            {
+                // All projects are applicable
                 return solution.Projects.ToImmutableArray();
             }
 
@@ -26,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions
                 if (project.FilePath is not string projectFilePath ||
                     new DirectoryInfo(projectFilePath).Parent is not DirectoryInfo projectDirectoryPath)
                 {
+                    // Certain ASP.NET scenarios will create artificial projects that do not exist on disk
                     continue;
                 }
 
@@ -36,6 +41,31 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions
             }
 
             return builder.ToImmutableAndFree();
+
+            static bool SolutionIsInSameFolder(Solution givenSolution, string givenFolderPath)
+            {
+                if (givenSolution.FilePath is not string solutionFilePath)
+                {
+                    // The solution path is null
+                    return false;
+                }
+
+                var givenDirectory = new DirectoryInfo(givenFolderPath);
+                var solutionParentDirectory = new DirectoryInfo(solutionFilePath).Parent;
+                if (solutionParentDirectory is null)
+                {
+                    // we have been given an invalid file path
+                    return false;
+                }
+
+                if (solutionParentDirectory.FullName == givenDirectory.FullName)
+                {
+                    // Solution is in the same folder
+                    return true;
+                }
+
+                return false;
+            }
 
             static bool ContainsPath(DirectoryInfo givenPath, DirectoryInfo projectPath)
             {
