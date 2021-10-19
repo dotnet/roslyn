@@ -303,7 +303,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var sliceTemp = new BoundDagTemp(slice.Syntax, slice.SliceType, slice);
                         var slicePattern = SamplePatternForTemp(sliceTemp, constraintMap, evaluationMap, requireExactType: false, ref unnamedEnumValue);
-                        subpatterns.Insert(slice.StartIndex, $".. {slicePattern}");
+                        if (slicePattern != "_")
+                        {
+                            // If the slice is not matched against any pattern, the slice pattern would
+                            // have no effect on the output given the provided sample length value.
+                            subpatterns.Insert(slice.StartIndex, $".. {slicePattern}");
+                        }
                     }
 
                     return "[" + string.Join(", ", subpatterns) + "]";

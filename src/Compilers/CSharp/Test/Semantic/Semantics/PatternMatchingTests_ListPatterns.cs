@@ -3235,9 +3235,9 @@ _ = o switch // 9, didn't test for [null]
             // (80,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
             // _ = o switch // 8, didn't test for { Length: 0 }
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(80, 7),
-            // (86,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[.. _, null]' is not covered.
+            // (86,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[null]' is not covered.
             // _ = o switch // 9, didn't test for [null]
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[.. _, null]").WithLocation(86, 7)
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[null]").WithLocation(86, 7)
             );
     }
 
