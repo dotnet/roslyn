@@ -8,7 +8,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
     {
         public static readonly InvocationCountAnalysisValueDomain Instance = new();
 
-        public InvocationCountAnalysisValueDomain()
+        private InvocationCountAnalysisValueDomain()
         {
         }
 
