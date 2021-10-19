@@ -97,22 +97,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (memberAccessExpression.IsKind(SyntaxKind.IdentifierName))
                 {
                     var symbol = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol;
-                    if (symbol is INamedTypeSymbol)
-                    {
+                    if (symbol is ITypeSymbol)
                         return null;
-                    }
                 }
 
                 return semanticModel.GetTypeInfo(memberAccessExpression, cancellationToken).Type;
             }
-
-            if (potentialAwaitableExpression is ExpressionSyntax expression)
+            else if (potentialAwaitableExpression is ExpressionSyntax expression &&
+                     expression.ShouldNameExpressionBeTreatedAsExpressionInsteadOfType(semanticModel, out _, out var container))
             {
-                if (expression.ShouldNameExpressionBeTreatedAsExpressionInsteadOfType(semanticModel, out _, out var container))
-                    return container;
+                return container;
             }
-
-            return semanticModel.GetTypeInfo(potentialAwaitableExpression, cancellationToken).Type;
+            else
+            {
+                return semanticModel.GetTypeInfo(potentialAwaitableExpression, cancellationToken).Type;
+            }
         }
     }
 }
