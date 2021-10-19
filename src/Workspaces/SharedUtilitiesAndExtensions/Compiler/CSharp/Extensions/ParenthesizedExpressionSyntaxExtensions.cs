@@ -772,20 +772,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             switch (pattern)
             {
-                case ConstantPatternSyntax:
-                case DiscardPatternSyntax:
-                case DeclarationPatternSyntax:
-                case RecursivePatternSyntax:
-                case TypePatternSyntax:
-                case VarPatternSyntax:
+                case ConstantPatternSyntax _:
+                case DiscardPatternSyntax _:
+                case DeclarationPatternSyntax _:
+                case RecursivePatternSyntax _:
+                case TypePatternSyntax _:
+                case VarPatternSyntax _:
                     return OperatorPrecedence.Primary;
 
-                case UnaryPatternSyntax:
-                case RelationalPatternSyntax:
+                case UnaryPatternSyntax _:
+                case RelationalPatternSyntax _:
                     return OperatorPrecedence.Unary;
-
-                case SlicePatternSyntax:
-                    return OperatorPrecedence.Slice;
 
                 case BinaryPatternSyntax binaryPattern:
                     if (binaryPattern.IsKind(SyntaxKind.AndPattern))

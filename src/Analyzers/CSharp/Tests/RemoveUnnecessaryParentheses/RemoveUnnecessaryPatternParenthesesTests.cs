@@ -294,25 +294,5 @@ class C
     }
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
-        public async Task TestNotAlwaysUnnecessaryForSlicePattern()
-        {
-            await TestAsync(
-@"class C
-{
-    void M(object o)
-    {
-        bool x = o is [ ..$$(a and b) ];
-    }
-}",
-@"class C
-{
-    void M(object o)
-    {
-        bool x = o is [ ..a and b ];
-    }
-}", offeredWhenRequireForClarityIsEnabled: false);
-        }
     }
 }

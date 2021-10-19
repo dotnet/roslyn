@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
                 return true;
             }
 
-            if (!(parenthesizedPattern.Parent is BinaryPatternSyntax or SlicePatternSyntax))
+            if (!(parenthesizedPattern.Parent is BinaryPatternSyntax parentPattern))
             {
                 // We're parented by something other than a BinaryPattern.  These parentheses are never needed for
                 // clarity and can always be removed.
@@ -67,7 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
             }
 
             // We're parented by something binary-like. 
-            var parentPattern = (PatternSyntax)parenthesizedPattern.Parent;
             parentPrecedenceKind = CSharpPatternPrecedenceService.Instance.GetPrecedenceKind(parentPattern);
 
             // Precedence is clarified any time we have expression with different precedence

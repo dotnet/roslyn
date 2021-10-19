@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddRequiredParentheses
             Return s_kinds
         End Function
 
-        Protected Overrides Function GetPrecedence(binary As ExpressionSyntax) As Integer
+        Protected Overrides Function GetPrecedence(binary As BinaryExpressionSyntax) As Integer
             Return binary.GetOperatorPrecedence()
         End Function
 

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         private static ImmutableDictionary<string, string> GetProperties(bool includeInFixAll, string equivalenceKey)
             => s_cachedProperties[(includeInFixAll, equivalenceKey)];
 
-        protected abstract int GetPrecedence(TExpressionSyntax binaryLike);
+        protected abstract int GetPrecedence(TBinaryLikeExpressionSyntax binaryLike);
         protected abstract TExpressionSyntax? TryGetAppropriateParent(TBinaryLikeExpressionSyntax binaryLike);
         protected abstract bool IsBinaryLike(TExpressionSyntax node);
         protected abstract (TExpressionSyntax, SyntaxToken, TExpressionSyntax) GetPartsOfBinaryLike(TBinaryLikeExpressionSyntax binaryLike);
@@ -88,13 +88,14 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 return;
             }
 
-            if (GetPrecedence(binaryLike) == GetPrecedence(parent))
+            var parentBinaryLike = (TBinaryLikeExpressionSyntax)parent;
+            if (GetPrecedence(binaryLike) == GetPrecedence(parentBinaryLike))
             {
                 return;
             }
 
             var childPrecedence = GetLanguageOption(_precedenceService.GetPrecedenceKind(binaryLike));
-            var parentPrecedence = GetLanguageOption(_precedenceService.GetPrecedenceKind(parent));
+            var parentPrecedence = GetLanguageOption(_precedenceService.GetPrecedenceKind(parentBinaryLike));
 
             // only add parentheses within the same precedence band.
             if (parentPrecedence != childPrecedence)

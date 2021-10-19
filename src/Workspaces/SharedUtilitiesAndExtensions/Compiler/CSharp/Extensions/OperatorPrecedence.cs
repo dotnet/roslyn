@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         AssignmentAndLambdaExpression,
         Conditional,
         NullCoalescing,
-        Slice,
         ConditionalOr,
         ConditionalAnd,
         LogicalOr,
