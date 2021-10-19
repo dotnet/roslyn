@@ -93,23 +93,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_EnableHighlightReferences As String =
             BasicVSResources.Highlight_references_to_symbol_under_cursor
 
-        Public ReadOnly Property Option_EnableLineCommit As String
-            Get
-                Return BasicVSResources.Pretty_listing_reformatting_of_code
-            End Get
-        End Property
+        Public ReadOnly Property Option_EnableLineCommit As String =
+            BasicVSResources.Pretty_listing_reformatting_of_code
 
-        Public ReadOnly Property Option_EnableOutlining As String
-            Get
-                Return BasicVSResources.Enter_outlining_mode_when_files_open
-            End Get
-        End Property
+        Public ReadOnly Property Option_EnableOutlining As String =
+            BasicVSResources.Enter_outlining_mode_when_files_open
 
-        Public ReadOnly Property Option_ExtractMethod As String
-            Get
-                Return BasicVSResources.Extract_Method
-            End Get
-        End Property
+        Public ReadOnly Property Option_ExtractMethod As String =
+            BasicVSResources.Extract_Method
 
         Public ReadOnly Property Option_Implement_Interface_or_Abstract_Class As String =
             ServicesVSResources.Implement_Interface_or_Abstract_Class
