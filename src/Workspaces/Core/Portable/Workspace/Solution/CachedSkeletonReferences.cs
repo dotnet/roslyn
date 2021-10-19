@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -228,11 +229,8 @@ namespace Microsoft.CodeAnalysis
                 // lookup first and eagerly return cached value if we have it.
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    if (_metadataReferences.TryGetValue(properties, out var weakMetadata) &&
-                        weakMetadata.TryGetTarget(out var metadataReference))
-                    {
+                    if (TryGetExisting(out var metadataReference))
                         return metadataReference;
-                    }
                 }
 
                 // otherwise, create the metadata outside of the lock, and then try to assign it if no one else beat us
@@ -242,17 +240,21 @@ namespace Microsoft.CodeAnalysis
 
                     using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                     {
-                        if (_metadataReferences.TryGetValue(properties, out var innherWeakMetadata) &&
-                            weakMetadata.TryGetTarget(out var innerMetadataReference))
-                        {
-                            // someone beat us to writing this.
-                            return innerMetadataReference;
-                        }
+                        // see if someone beat us to writing this.
+                        if (TryGetExisting(out var existingMetadataReference))
+                            return existingMetadataReference;
 
                         _metadataReferences[properties] = weakMetadata;
                     }
 
                     return metadataReference;
+                }
+
+                bool TryGetExisting([NotNullWhen(true)] out MetadataReference? metadataReference)
+                {
+                    metadataReference = null;
+                    return _metadataReferences.TryGetValue(properties, out var weakMetadata) &&
+                        weakMetadata.TryGetTarget(out metadataReference);
                 }
             }
         }
