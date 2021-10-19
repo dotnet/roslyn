@@ -9,13 +9,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         public DiffEdit(Type operation, int pos, int? newTextPosition)
         {
             Operation = operation;
-            InsertPosition = pos;
+            Position = pos;
             NewTextPosition = newTextPosition;
         }
 
         public Type Operation { get; }
 
-        public int InsertPosition { get; }
+        public int Position { get; }
 
         public int? NewTextPosition { get; }
 
