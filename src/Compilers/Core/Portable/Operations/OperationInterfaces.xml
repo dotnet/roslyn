@@ -3057,13 +3057,13 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IFunctionPointerInvocationOperation" Base="IOperation" ChildrenOrder="Pointer,Arguments" HasType="true">
+  <Node Name="IFunctionPointerInvocationOperation" Base="IOperation" ChildrenOrder="InvokedPointer,Arguments" HasType="true">
     <Comments>
       <summary>
         Represents an invocation of a function pointer.
       </summary>
     </Comments>
-	<Property Name="Pointer" Type="IOperation">
+	<Property Name="InvokedPointer" Type="IOperation">
       <Comments>
         <summary>Invoked pointer.</summary>
       </Comments>
