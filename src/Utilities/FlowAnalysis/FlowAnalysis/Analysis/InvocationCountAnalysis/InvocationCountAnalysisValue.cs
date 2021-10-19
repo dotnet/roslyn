@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
@@ -25,8 +26,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
 
         public static InvocationCountAnalysisValue Merge(InvocationCountAnalysisValue value1, InvocationCountAnalysisValue value2)
         {
-            RoslynDebug.Assert(value1.Kind == InvocationCountAnalysisValueKind.Known && value2.Kind == InvocationCountAnalysisValueKind.Known);
-
             if (value1.TrackedEntities.Count == 0)
             {
                 return value2;
@@ -37,7 +36,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
                 return value1;
             }
 
-            using var builder = PooledObjects.PooledDictionary<AnalysisEntity, TrackingInvocationSet>.GetInstance();
+            using var builder = PooledDictionary<AnalysisEntity, TrackingInvocationSet>.GetInstance();
             foreach (var kvp in value2.TrackedEntities)
             {
                 builder[kvp.Key] = kvp.Value;
@@ -57,13 +56,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
                 }
             }
 
-            return new InvocationCountAnalysisValue(builder.ToImmutableDictionaryAndFree(), InvocationCountAnalysisValueKind.Known);
+            return new InvocationCountAnalysisValue(builder.ToImmutableDictionary(), InvocationCountAnalysisValueKind.Known);
         }
 
         public static InvocationCountAnalysisValue Intersect(InvocationCountAnalysisValue value1, InvocationCountAnalysisValue value2)
         {
-            using var builder = PooledDictionary<AnalysisEntity, TrackingInvocationSet>.GetInstance();
-            using var intersectedKeys = PooledHashSet<AnalysisEntity>.GetInstance();
+            var builder = ImmutableDictionary.CreateBuilder<AnalysisEntity, TrackingInvocationSet>();
+            var intersectedKeys = new HashSet<AnalysisEntity>();
 
             foreach (var kvp in value1.TrackedEntities)
             {
@@ -91,7 +90,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
                 }
             }
 
-            return new InvocationCountAnalysisValue(builder.ToImmutableDictionaryAndFree(), InvocationCountAnalysisValueKind.Known);
+            return new InvocationCountAnalysisValue(builder.ToImmutable(), InvocationCountAnalysisValueKind.Known);
         }
 
         protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<InvocationCountAnalysisValue> obj)

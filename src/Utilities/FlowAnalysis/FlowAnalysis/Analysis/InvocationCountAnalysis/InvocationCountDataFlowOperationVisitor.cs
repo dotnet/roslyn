@@ -78,7 +78,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
             => data.Count > 0;
 
         protected override InvocationCountAnalysisData MergeAnalysisData(InvocationCountAnalysisData value1, InvocationCountAnalysisData value2)
-            => InvocationCountAnalysis.Domain.Intersect(value1, value2, InvocationCountAnalysisValueDomain.Intersect);
+            => InvocationCountAnalysis.Domain.Merge(value1, value2);
+
+        protected sealed override InvocationCountAnalysisData MergeAnalysisData(InvocationCountAnalysisData value1, InvocationCountAnalysisData value2, BasicBlock forBlock)
+            => HasPredicatedGlobalState && forBlock.DominatesPredecessors(DataFlowAnalysisContext.ControlFlowGraph) ?
+            InvocationCountAnalysis.Domain.Intersect(value1, value2, InvocationCountAnalysisValueDomain.Intersect) :
+            InvocationCountAnalysis.Domain.Merge(value1, value2);
 
         protected override InvocationCountAnalysisData MergeAnalysisDataForBackEdge(InvocationCountAnalysisData value1, InvocationCountAnalysisData value2, BasicBlock forBlock)
             => InvocationCountAnalysis.Domain.Merge(value1, value2);

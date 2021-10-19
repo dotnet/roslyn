@@ -2,10 +2,11 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
 {
-    internal class TrackingInvocationSet
+    internal class TrackingInvocationSet : CacheBasedEquatable<TrackingInvocationSet>
     {
         public ImmutableHashSet<IOperation> Operations { get; }
         public InvocationCount TotalCount { get; }
@@ -16,6 +17,19 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
         {
             Operations = operations;
             TotalCount = totalCount;
+        }
+
+        protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
+        {
+            hashCode.Add(TotalCount.GetHashCode());
+            hashCode.Add(HashUtilities.Combine(Operations));
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<TrackingInvocationSet> obj)
+        {
+            var other = (TrackingInvocationSet)obj;
+            return other.TotalCount.GetHashCode() == TotalCount.GetHashCode()
+                && HashUtilities.Combine(other.Operations) == HashUtilities.Combine(Operations);
         }
     }
 }

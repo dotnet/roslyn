@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
-using Analyzer.Utilities.PooledObjects;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
@@ -10,7 +10,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
     {
         public static TrackingInvocationSet Merge(TrackingInvocationSet set1, TrackingInvocationSet set2)
         {
-            using var builder = PooledHashSet<IOperation>.GetInstance();
+            var builder = ImmutableHashSet.CreateBuilder<IOperation>();
             var totalCount = AddInvocationCount(set1.TotalCount, set2.TotalCount);
             foreach (var operation in set1.Operations)
             {
@@ -27,7 +27,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
 
         public static TrackingInvocationSet Intersect(TrackingInvocationSet set1, TrackingInvocationSet set2)
         {
-            using var builder = PooledHashSet<IOperation>.GetInstance();
+            var builder = ImmutableHashSet.CreateBuilder<IOperation>();
             var totalCount = Min(set1.TotalCount, set2.TotalCount);
             foreach (var operation in set1.Operations)
             {
