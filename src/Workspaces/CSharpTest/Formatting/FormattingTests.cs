@@ -10179,6 +10179,70 @@ class C
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatListPattern_WithNewline()
+        {
+            var code = @"
+class C
+{
+    void M() {
+_ = this is
+[1,2,>=3
+];
+}
+}";
+            await AssertFormatAsync(code: code, expected: @"
+class C
+{
+    void M()
+    {
+        _ = this is
+        [1, 2, >= 3
+        ];
+    }
+}");
+
+            var options = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { SpaceBetweenEmptySquareBrackets, false },
+                { SpaceWithinSquareBrackets, false },
+                { SpaceBeforeComma, false },
+                { SpaceAfterComma, false },
+            };
+
+            await AssertFormatAsync(code: code, changedOptionSet: options, expected: @"
+class C
+{
+    void M()
+    {
+        _ = this is
+        [1,2,>= 3
+        ];
+    }
+}");
+
+            options = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { SpaceBeforeOpenSquareBracket, false }, // ignored
+                { SpaceBetweenEmptySquareBrackets, true },
+                { SpaceWithinSquareBrackets, true },
+                { SpaceBeforeComma, true },
+                { SpaceAfterComma, true },
+            };
+
+            await AssertFormatAsync(code: code, changedOptionSet: options, expected: @"
+class C
+{
+    void M()
+    {
+        _ = this is
+        [ 1 , 2 , >= 3
+        ];
+    }
+}");
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSlicePattern()
         {
             var code = @"class C
