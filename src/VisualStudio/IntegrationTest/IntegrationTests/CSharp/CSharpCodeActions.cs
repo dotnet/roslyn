@@ -70,6 +70,21 @@ public class Foo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public void AddUsingOnIncompleteMember()
+        {
+            // Need to ensure that incomplete member diagnostics run at high pri so that add-using can be
+            // triggered by them.
+            SetUpEditor(@"
+class Program
+{
+    DateTime$$
+}
+");
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("using System;");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public void FastDoubleInvoke()
         {
             // We want to invoke the first smart tag and then *immediately * try invoking the next.
