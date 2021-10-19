@@ -216,8 +216,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 if (analysisScope == BackgroundAnalysisScope.ActiveFile)
                 {
                     // When the active document changes and we are only analyzing the active file, trigger a document
-                    // changed event to reanalyze the newly-active file.
-                    EnqueueEvent(solution, activeDocumentId, InvocationReasons.DocumentChanged, nameof(OnActiveDocumentChanged));
+                    // reanalysis event to reanalyze the newly-active file.
+                    var scope = new ReanalyzeScope(documentIds: new[] { activeDocumentId });
+                    foreach (var analyzer in _documentAndProjectWorkerProcessor.AnalyzersForActiveDocumentChanged)
+                    {
+                        Reanalyze(analyzer, scope, highPriority: true);
+                    }
                 }
             }
 

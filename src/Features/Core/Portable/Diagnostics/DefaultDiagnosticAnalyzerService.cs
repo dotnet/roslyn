@@ -78,6 +78,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
+            public bool NeedsReanalysisOnActiveDocumentChanged => false;
+
             public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
                 => AnalyzeSyntaxOrNonSourceDocumentAsync(document, cancellationToken);
 

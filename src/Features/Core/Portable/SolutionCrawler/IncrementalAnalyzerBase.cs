@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public virtual bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
             => false;
 
+        public virtual bool NeedsReanalysisOnActiveDocumentChanged => false;
+
         public virtual Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             => Task.CompletedTask;
 

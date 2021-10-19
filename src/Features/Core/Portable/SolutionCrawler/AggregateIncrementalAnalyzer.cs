@@ -67,6 +67,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             return false;
         }
 
+        public bool NeedsReanalysisOnActiveDocumentChanged => false;
+
         public async Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             if (TryGetAnalyzer(document.Project, out var analyzer))

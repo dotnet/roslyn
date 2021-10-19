@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private readonly object _gate;
                     private Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
+                    private Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzersForActiveDocumentChanged;
 
                     public AbstractPriorityProcessor(
                         IAsynchronousOperationListener listener,
@@ -36,6 +37,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         _gate = new object();
                         _lazyAnalyzers = lazyAnalyzers;
+                        _lazyAnalyzersForActiveDocumentChanged = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(
+                            () => Analyzers.WhereAsArray(a => a.NeedsReanalysisOnActiveDocumentChanged));
 
                         Processor = processor;
                         Processor._documentTracker.NonRoslynBufferTextChanged += OnNonRoslynBufferTextChanged;
@@ -52,12 +55,29 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
+                    public ImmutableArray<IIncrementalAnalyzer> AnalyzersForActiveDocumentChanged
+                    {
+                        get
+                        {
+                            lock (_gate)
+                            {
+                                return _lazyAnalyzersForActiveDocumentChanged.Value;
+                            }
+                        }
+                    }
+
                     public void AddAnalyzer(IIncrementalAnalyzer analyzer)
                     {
                         lock (_gate)
                         {
                             var analyzers = _lazyAnalyzers.Value;
                             _lazyAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => analyzers.Add(analyzer));
+
+                            if (analyzer.NeedsReanalysisOnActiveDocumentChanged)
+                            {
+                                analyzers = _lazyAnalyzersForActiveDocumentChanged.Value;
+                                _lazyAnalyzersForActiveDocumentChanged = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => analyzers.Add(analyzer));
+                            }
                         }
                     }
 

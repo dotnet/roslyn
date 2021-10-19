@@ -198,6 +198,8 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
                 => false;
 
+            public bool NeedsReanalysisOnActiveDocumentChanged => false;
+
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 

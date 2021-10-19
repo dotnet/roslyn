@@ -30,5 +30,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken);
 
         bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e);
+        bool NeedsReanalysisOnActiveDocumentChanged { get; }
     }
 }

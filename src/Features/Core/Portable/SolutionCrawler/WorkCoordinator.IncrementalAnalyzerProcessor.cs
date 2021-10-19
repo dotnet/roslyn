@@ -131,6 +131,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 public ImmutableArray<IIncrementalAnalyzer> Analyzers => _normalPriorityProcessor.Analyzers;
+                public ImmutableArray<IIncrementalAnalyzer> AnalyzersForActiveDocumentChanged => _normalPriorityProcessor.AnalyzersForActiveDocumentChanged;
 
                 private ProjectDependencyGraph DependencyGraph => _registration.GetSolutionToAnalyze().GetProjectDependencyGraph();
                 private IDiagnosticAnalyzerService? DiagnosticAnalyzerService => _lazyDiagnosticAnalyzerService?.Value;
