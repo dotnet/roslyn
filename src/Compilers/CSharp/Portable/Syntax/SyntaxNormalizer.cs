@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static bool NeedsSeparatorForListPattern(SyntaxToken token, SyntaxToken next)
         {
-            ListPatternSyntax? listPattern;
+            ListPatternSyntax listPattern;
             if (token.Parent.IsKind(SyntaxKind.ListPattern))
             {
                 listPattern = (ListPatternSyntax)token.Parent;
@@ -537,15 +537,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 
             // is$$[1, 2]
-            var nextIsOpenBracket = next.IsKind(SyntaxKind.OpenBracketToken);
-            if (nextIsOpenBracket)
+            if (next.IsKind(SyntaxKind.OpenBracketToken))
             {
                 return true;
             }
 
             // is [1, 2]$$list
-            var tokenIsOpenBracket = token.IsKind(SyntaxKind.OpenBracketToken);
-            if (tokenIsOpenBracket)
+            if (token.IsKind(SyntaxKind.OpenBracketToken))
             {
                 return listPattern.Designation is not null;
             }

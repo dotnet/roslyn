@@ -250,6 +250,33 @@ class C { }";
             CheckStart(session.Session);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void ListPattern()
+        {
+            var code = @"
+class C
+{
+    void M(object o)
+    {
+        _ = o is $$
+    }
+}
+";
+            var expected = @"
+class C
+{
+    void M(object o)
+    {
+        _ = o is [
+]
+    }
+}
+";
+            using var session = CreateSession(code);
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 0, expected);
+        }
+
         internal static Holder CreateSession(string code)
         {
             return CreateSession(
