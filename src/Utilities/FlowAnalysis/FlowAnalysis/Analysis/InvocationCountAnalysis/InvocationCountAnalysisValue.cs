@@ -7,22 +7,22 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
 {
     internal class InvocationCountAnalysisValue : CacheBasedEquatable<InvocationCountAnalysisValue>
     {
-        public ImmutableDictionary<AnalysisEntity, IInvocationSet> TrackedEntities { get; }
+        public ImmutableDictionary<AnalysisEntity, TrackingInvocationSet> TrackedEntities { get; }
 
         public InvocationCountAnalysisValueKind Kind { get; }
 
-        public static readonly InvocationCountAnalysisValue Empty = new(ImmutableDictionary<AnalysisEntity, IInvocationSet>.Empty, InvocationCountAnalysisValueKind.Empty);
-        public static readonly InvocationCountAnalysisValue Unknown = new(ImmutableDictionary<AnalysisEntity, IInvocationSet>.Empty, InvocationCountAnalysisValueKind.Unknown);
+        public static readonly InvocationCountAnalysisValue Empty = new(ImmutableDictionary<AnalysisEntity, TrackingInvocationSet>.Empty, InvocationCountAnalysisValueKind.Empty);
+        public static readonly InvocationCountAnalysisValue Unknown = new(ImmutableDictionary<AnalysisEntity, TrackingInvocationSet>.Empty, InvocationCountAnalysisValueKind.Unknown);
 
         public InvocationCountAnalysisValue(
-            ImmutableDictionary<AnalysisEntity, IInvocationSet> trackedEntities,
+            ImmutableDictionary<AnalysisEntity, TrackingInvocationSet> trackedEntities,
             InvocationCountAnalysisValueKind kind)
         {
             TrackedEntities = trackedEntities;
             Kind = kind;
         }
 
-        public static InvocationCountAnalysisValue MergeKnownValues(InvocationCountAnalysisValue value1, InvocationCountAnalysisValue value2)
+        public static InvocationCountAnalysisValue Merge(InvocationCountAnalysisValue value1, InvocationCountAnalysisValue value2)
         {
             RoslynDebug.Assert(value1.Kind == InvocationCountAnalysisValueKind.Known && value2.Kind == InvocationCountAnalysisValueKind.Known);
 
@@ -36,7 +36,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
                 return value1;
             }
 
-            using var builder = PooledObjects.PooledDictionary<AnalysisEntity, IInvocationSet>.GetInstance();
+            using var builder = PooledObjects.PooledDictionary<AnalysisEntity, TrackingInvocationSet>.GetInstance();
             foreach (var kvp in value2.TrackedEntities)
             {
                 builder[kvp.Key] = kvp.Value;
@@ -59,26 +59,34 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
             return new InvocationCountAnalysisValue(builder.ToImmutableDictionaryAndFree(), InvocationCountAnalysisValueKind.Known);
         }
 
-        public static InvocationCountAnalysisValue IntersectKnownValues(InvocationCountAnalysisValue value1, InvocationCountAnalysisValue value2)
+        public static InvocationCountAnalysisValue Intersect(InvocationCountAnalysisValue value1, InvocationCountAnalysisValue value2)
         {
-            RoslynDebug.Assert(value1.Kind == InvocationCountAnalysisValueKind.Known && value2.Kind == InvocationCountAnalysisValueKind.Known);
-            using var builder = PooledObjects.PooledDictionary<AnalysisEntity, IInvocationSet>.GetInstance();
-            foreach (var kvp in value2.TrackedEntities)
-            {
-                builder[kvp.Key] = kvp.Value;
-            }
+            using var builder = PooledObjects.PooledDictionary<AnalysisEntity, TrackingInvocationSet>.GetInstance();
+            using var intersectedKeys = PooledObjects.PooledHashSet<AnalysisEntity>.GetInstance();
 
             foreach (var kvp in value1.TrackedEntities)
             {
                 var key = kvp.Key;
-                var trackedEntities1 = kvp.Value;
+                var invocationSet = kvp.Value;
                 if (value2.TrackedEntities.TryGetValue(key, out var trackedEntities2))
                 {
-                    builder[key] = InvocationSetHelpers.Intersect(trackedEntities1, trackedEntities2);
+                    builder[key] = InvocationSetHelpers.Intersect(invocationSet, trackedEntities2);
+                    intersectedKeys.Add(key);
                 }
                 else
                 {
-                    builder[key] = kvp.Value;
+                    builder[key] = InvocationSetHelpers.Intersect(invocationSet, TrackingInvocationSet.Empty);
+                }
+            }
+
+            foreach (var kvp in value2.TrackedEntities)
+            {
+                var key = kvp.Key;
+                var invocationSet = kvp.Value;
+
+                if (!intersectedKeys.Contains(kvp.Key))
+                {
+                    builder[key] = InvocationSetHelpers.Intersect(invocationSet, TrackingInvocationSet.Empty);
                 }
             }
 

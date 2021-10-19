@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis;
 
@@ -10,7 +11,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
     using InvocationCountAnalysisData = DictionaryAnalysisData<AnalysisEntity, InvocationCountAnalysisValue>;
     using InvocationCountAnalysisResult = DataFlowAnalysisResult<InvocationCountBlockAnalysisResult, InvocationCountAnalysisValue>;
 
-    internal class InvocationCountDataFlowOperationVisitor : GlobalFlowStateDataFlowOperationVisitor<
+    internal sealed class InvocationCountDataFlowOperationVisitor : GlobalFlowStateDataFlowOperationVisitor<
         InvocationCountAnalysisData,
         InvocationCountAnalysisContext,
         InvocationCountAnalysisResult,
@@ -59,6 +60,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
             => data.Count > 0;
 
         protected override InvocationCountAnalysisData MergeAnalysisData(InvocationCountAnalysisData value1, InvocationCountAnalysisData value2)
+            => InvocationCountAnalysis.Domain.Intersect(value1, value2, InvocationCountAnalysisValueDomain.Intersect);
+
+        protected override InvocationCountAnalysisData MergeAnalysisDataForBackEdge(InvocationCountAnalysisData value1, InvocationCountAnalysisData value2, BasicBlock forBlock)
             => InvocationCountAnalysis.Domain.Merge(value1, value2);
 
         protected override void ResetCurrentAnalysisData()

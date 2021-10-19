@@ -5,15 +5,17 @@ using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
 {
-    internal class TrackingInvocationSet : IInvocationSet
+    internal class TrackingInvocationSet
     {
-        public TrackingInvocationSet(ImmutableDictionary<IOperation, InvocationCount> countedInvocationOperations)
+        public ImmutableHashSet<IOperation> Operations;
+        public InvocationCount TotalCount;
+
+        public static readonly TrackingInvocationSet Empty = new(ImmutableHashSet<IOperation>.Empty, InvocationCount.Zero);
+
+        public TrackingInvocationSet(ImmutableHashSet<IOperation> operations, InvocationCount totalCount)
         {
-            CountedInvocationOperations = countedInvocationOperations;
+            Operations = operations;
+            TotalCount = totalCount;
         }
-
-        public ImmutableDictionary<IOperation, InvocationCount> CountedInvocationOperations { get; }
-
-        public InvocationSetKind Kind => InvocationSetKind.Invocations;
     }
 }

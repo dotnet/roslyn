@@ -64,7 +64,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
                 return value1;
             }
 
-            return InvocationCountAnalysisValue.MergeKnownValues(value1, value2);
+            return InvocationCountAnalysisValue.Merge(value1, value2);
         }
 
         public static InvocationCountAnalysisValue Intersect(InvocationCountAnalysisValue value1, InvocationCountAnalysisValue value2)
@@ -84,12 +84,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
                 return InvocationCountAnalysisValue.Unknown;
             }
 
-            if (value1.Kind == InvocationCountAnalysisValueKind.Empty || value2.Kind == InvocationCountAnalysisValueKind.Empty)
-            {
-                return InvocationCountAnalysisValue.Empty;
-            }
-
-            return InvocationCountAnalysisValue.IntersectKnownValues(value1, value2);
+            return InvocationCountAnalysisValue.Intersect(value1, value2);
         }
     }
 }

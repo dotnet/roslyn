@@ -34,9 +34,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
             PointsToAnalysisResult? pointsToAnalysisResult,
             DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>? valueContentAnalysisResult,
             Func<InvocationCountAnalysisContext, InvocationCountAnalysisResult?> tryGetOrComputeAnalysisResult,
-            ControlFlowGraph? parentControlFlowGraph,
-            InterproceduralAnalysisData<InvocationCountAnalysisData, InvocationCountAnalysisContext, InvocationCountAnalysisValue>? interproceduralAnalysisData,
-            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate) : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, analyzerOptions, interproceduralAnalysisConfig, pessimisticAnalysis, predicateAnalysis, exceptionPathsAnalysis, copyAnalysisResult, pointsToAnalysisResult, valueContentAnalysisResult, tryGetOrComputeAnalysisResult, parentControlFlowGraph, interproceduralAnalysisData, interproceduralAnalysisPredicate)
+            ControlFlowGraph? parentControlFlowGraph = null,
+            InterproceduralAnalysisData<InvocationCountAnalysisData, InvocationCountAnalysisContext, InvocationCountAnalysisValue>? interproceduralAnalysisData = null,
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate = null) : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, analyzerOptions, interproceduralAnalysisConfig, pessimisticAnalysis, predicateAnalysis, exceptionPathsAnalysis, copyAnalysisResult, pointsToAnalysisResult, valueContentAnalysisResult, tryGetOrComputeAnalysisResult, parentControlFlowGraph, interproceduralAnalysisData, interproceduralAnalysisPredicate)
         {
         }
 
@@ -68,9 +68,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
         }
 
         protected override bool ComputeEqualsByHashCodeParts(AbstractDataFlowAnalysisContext<InvocationCountAnalysisData, InvocationCountAnalysisContext, InvocationCountAnalysisResult, InvocationCountAnalysisValue> obj)
-        {
-            return true;
-        }
+            => true;
 
         protected override void ComputeHashCodePartsSpecific(ref RoslynHashCode hashCode)
         {

@@ -1,71 +1,50 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
 {
     internal static class InvocationSetHelpers
     {
-        public static IInvocationSet Merge(IInvocationSet set1, IInvocationSet set2)
+        public static TrackingInvocationSet Merge(TrackingInvocationSet set1, TrackingInvocationSet set2)
         {
-            // If both of them are basic InvocationsSet then we can merge them directly
-            if (set1 is TrackingInvocationSet trackingInvocationSet1 && set2 is TrackingInvocationSet trackingInvocationSet2)
+            using var builder = PooledHashSet<IOperation>.GetInstance();
+            var totalCount = AddInvocationCount(set1.TotalCount, set2.TotalCount);
+            foreach (var operation in set1.Operations)
             {
-                using var builder = PooledObjects.PooledDictionary<IOperation, InvocationCount>.GetInstance();
-
-                foreach (var kvp in trackingInvocationSet2.CountedInvocationOperations)
-                {
-                    builder[kvp.Key] = kvp.Value;
-                }
-
-                foreach (var kvp in trackingInvocationSet1.CountedInvocationOperations)
-                {
-                    var operation = kvp.Key;
-                    var countTimesOfSet1 = kvp.Value;
-                    if (trackingInvocationSet2.CountedInvocationOperations.TryGetValue(operation, out var countTimesOfSet2))
-                    {
-                        builder[operation] = AddInvocationCount(countTimesOfSet1, countTimesOfSet2);
-                    }
-                    else
-                    {
-                        builder[operation] = countTimesOfSet1;
-                    }
-                }
-
-                return new TrackingInvocationSet(builder.ToImmutableDictionaryAndFree());
+                builder.Add(operation);
             }
 
-            return new RelationshipSet(ImmutableHashSet.Create(set1, set2), InvocationSetKind.Union);
+            foreach (var operation in set2.Operations)
+            {
+                builder.Add(operation);
+            }
+
+            return new TrackingInvocationSet(builder.ToImmutable(), totalCount);
         }
 
-        public static IInvocationSet Intersect(IInvocationSet set1, IInvocationSet set2)
+        public static TrackingInvocationSet Intersect(TrackingInvocationSet set1, TrackingInvocationSet set2)
         {
-            // If both of them are basic InvocationsSet then we can intersect them directly
-            if (set1 is TrackingInvocationSet trackingInvocationSet1 && set2 is TrackingInvocationSet trackingInvocationSet2)
+            using var builder = PooledHashSet<IOperation>.GetInstance();
+            var totalCount = Min(set1.TotalCount, set2.TotalCount);
+            foreach (var operation in set1.Operations)
             {
-                using var builder = PooledObjects.PooledDictionary<IOperation, InvocationCount>.GetInstance();
-
-                foreach (var kvp in trackingInvocationSet1.CountedInvocationOperations)
-                {
-                    var operation = kvp.Key;
-                    var countTimesOfSet1 = kvp.Value;
-                    if (trackingInvocationSet2.CountedInvocationOperations.TryGetValue(operation, out var countTimesOfSet2))
-                    {
-                        builder[operation] = Min(countTimesOfSet1, countTimesOfSet2);
-                    }
-                }
-
-                return new TrackingInvocationSet(builder.ToImmutableDictionaryAndFree());
+                builder.Add(operation);
             }
 
-            return new RelationshipSet(ImmutableHashSet.Create(set1, set2), InvocationSetKind.Intersect);
+            foreach (var operation in set2.Operations)
+            {
+                builder.Add(operation);
+            }
+
+            return new TrackingInvocationSet(builder.ToImmutable(), totalCount);
         }
 
         public static InvocationCount Min(InvocationCount count1, InvocationCount count2)
         {
-            // Unknown = 0, One = 1, TwoOrMoreTime = 2
+            // Unknown = -1, Zero = 0, One = 1, TwoOrMoreTime = 2
             var min = Math.Min((int)count1, (int)count2);
             return (InvocationCount)min;
         }
@@ -75,10 +54,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
             {
                 (InvocationCount.None, _) => InvocationCount.None,
                 (_, InvocationCount.None) => InvocationCount.None,
+                (InvocationCount.Zero, _) => count2,
+                (_, InvocationCount.Zero) => count1,
                 (InvocationCount.One, InvocationCount.One) => InvocationCount.TwoOrMoreTime,
-                (InvocationCount.One, InvocationCount.TwoOrMoreTime) => InvocationCount.TwoOrMoreTime,
-                (InvocationCount.TwoOrMoreTime, InvocationCount.One) => InvocationCount.TwoOrMoreTime,
-                (InvocationCount.TwoOrMoreTime, InvocationCount.TwoOrMoreTime) => InvocationCount.TwoOrMoreTime,
+                (InvocationCount.TwoOrMoreTime, _) => InvocationCount.TwoOrMoreTime,
+                (_, InvocationCount.TwoOrMoreTime) => InvocationCount.TwoOrMoreTime,
                 (_, _) => InvocationCount.None,
             };
     }

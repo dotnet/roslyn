@@ -4,7 +4,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
 {
     internal enum InvocationCount
     {
-        None,
+        None = -1,
+        Zero,
         One,
         TwoOrMoreTime
     }
