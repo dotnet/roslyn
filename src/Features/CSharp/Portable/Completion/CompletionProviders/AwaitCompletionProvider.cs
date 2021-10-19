@@ -57,12 +57,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             //   await Test();
             // someTask.await Test() is parsed as a local function statement.
             // We skip this and look further up in the hierarchy.
-            if (token.Parent is QualifiedNameSyntax { Parent: LocalFunctionStatementSyntax localFunction } qualifiedName && localFunction.ReturnType == qualifiedName)
+            var parent = token.GetRequiredParent();
+            if (parent is QualifiedNameSyntax { Parent: LocalFunctionStatementSyntax localFunction } qualifiedName &&
+                localFunction.ReturnType == qualifiedName)
             {
-                return localFunction.Parent?.FirstAncestorOrSelf<SyntaxNode>(node => node.IsAsyncSupportingFunctionSyntax());
+                parent = localFunction;
             }
 
-            return token.GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
+            return parent.Ancestors().FirstOrDefault(node => node.IsAsyncSupportingFunctionSyntax());
         }
 
         protected override SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
