@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.InlineHints
             var symbol = symbolKey.Resolve(semanticModel.Compilation, cancellationToken: cancellationToken).Symbol;
             if (symbol != null)
             {
-                var workspace = document.Project.Solution.Workspace;
                 var symbolDisplayService = document.GetRequiredLanguageService<ISymbolDisplayService>();
 
                 var parts = new List<TaggedText>();
