@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -14,8 +15,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     internal abstract class AsynchronousViewTaggerProvider<TTag> : AbstractAsynchronousTaggerProvider<TTag>, IViewTaggerProvider
         where TTag : ITag
     {
-        protected AsynchronousViewTaggerProvider(IThreadingContext threadingContext, IAsynchronousOperationListener asyncListener)
-            : base(threadingContext, asyncListener)
+        protected AsynchronousViewTaggerProvider(
+            IThreadingContext threadingContext,
+            IGlobalOptionService globalOptions,
+            IAsynchronousOperationListener asyncListener)
+            : base(threadingContext, globalOptions, asyncListener)
         {
         }
 

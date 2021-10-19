@@ -47,8 +47,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             IDiagnosticService diagnosticService,
             ClassificationTypeMap typeMap,
             IEditorOptionsFactoryService editorOptionsFactoryService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, diagnosticService, listenerProvider.GetListener(FeatureAttribute.Classification))
+            : base(threadingContext, diagnosticService, globalOptions, listenerProvider.GetListener(FeatureAttribute.Classification))
         {
             _typeMap = typeMap;
             _classificationTag = new ClassificationTag(_typeMap.GetClassificationType(ClassificationTypeDefinitions.UnnecessaryCode));

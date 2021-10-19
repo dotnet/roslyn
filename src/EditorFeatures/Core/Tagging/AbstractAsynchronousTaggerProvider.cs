@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         private readonly object _uniqueKey = new();
 
         protected readonly IAsynchronousOperationListener AsyncListener;
+        protected readonly IGlobalOptionService GlobalOptions;
 
         /// <summary>
         /// The behavior the tagger engine will have when text changes happen to the subject buffer
@@ -84,9 +85,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         protected AbstractAsynchronousTaggerProvider(
             IThreadingContext threadingContext,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListener asyncListener)
             : base(threadingContext)
         {
+            GlobalOptions = globalOptions;
             AsyncListener = asyncListener;
 
 #if DEBUG
@@ -96,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         protected ITagger<T>? CreateTaggerWorker<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
         {
-            if (!subjectBuffer.GetFeatureOnOffOption(EditorComponentOnOffOptions.Tagger))
+            if (!GlobalOptions.GetOption(EditorComponentOnOffOptions.Tagger))
                 return null;
 
             var tagSource = GetOrCreateTagSource(textViewOpt, subjectBuffer);

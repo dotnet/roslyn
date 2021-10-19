@@ -41,11 +41,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         public InlineDiagnosticsTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
             IEditorFormatMapService editorFormatMapService,
             IClassificationFormatMapService classificationFormatMapService,
             IClassificationTypeRegistryService classificationTypeRegistryService)
-            : base(threadingContext, diagnosticService, listenerProvider)
+            : base(threadingContext, diagnosticService, globalOptions, listenerProvider)
         {
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
             _classificationFormatMapService = classificationFormatMapService;
