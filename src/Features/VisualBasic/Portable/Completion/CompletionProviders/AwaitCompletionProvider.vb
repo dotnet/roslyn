@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExportCompletionProvider(NameOf(AwaitCompletionProvider), LanguageNames.VisualBasic)>
@@ -22,6 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
+            MyBase.New(VisualBasicSyntaxFacts.Instance)
         End Sub
 
         Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CommonTriggerChars
