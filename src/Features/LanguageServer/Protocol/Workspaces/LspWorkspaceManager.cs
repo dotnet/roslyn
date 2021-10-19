@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -21,6 +22,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// Manages the registered workspaces and corresponding LSP solutions for an LSP server.
 /// This type is tied to a particular server.
 /// </summary>
+/// <remarks>
+/// This type is build to store an incremental LSP solution that we update based on LSP text changes. This solution is _eventually consistent_ with the workspace,
+///   1. When LSP text changes come in, we only fork the relevant document.
+///   2. We listen to workspace events. When we receive an event that is not for an LSP open document,
+///      we delete our incremental LSP solution so that we can fork the workspace with all open LSP documents.
+/// This is more complex, but has a few nice properties
+///   1. LSP didChange events only cause us to update the document that changed, not all open documents.
+///   2. Since we incrementally update our LSP documents, we only have to re-parse the document that changed.
+///   3. Since we incrementally update our LSP documents, project versions for other open documents remain unchanged.
+///   4. We are not reliant on the workspace being updated frequently (which it is not in VSCode) to do checksum diffing between LSP and the workspace.
+/// </remarks>
 internal partial class LspWorkspaceManager : IDisposable
 {
     /// <summary>
@@ -32,7 +44,10 @@ internal partial class LspWorkspaceManager : IDisposable
     private readonly object _gate = new();
 
     /// <summary>
-    /// A map from the registered workspace to the running lsp solution with incremental changes.
+    /// A map from the registered workspace to the running lsp solution with incremental changes from LSP
+    /// text sync applied to it.
+    /// This solution is null (cleared) when we detect a change that requires us to re-fork the LSP solution from the workspace,
+    /// for example project changes, document adds/removed.
     /// </summary>
     private readonly Dictionary<Workspace, Solution?> _workspaceToLspSolution = new();
 
@@ -60,14 +75,22 @@ internal partial class LspWorkspaceManager : IDisposable
         _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
         lspWorkspaceRegistrationService.WorkspaceRegistered += OnWorkspaceRegistered;
         // This server may have been started after workspaces were registered, we need to ensure we know about them.
-        PopulateAlreadyRegisteredWorkspaces();
-
-        void PopulateAlreadyRegisteredWorkspaces()
+        foreach (var workspace in lspWorkspaceRegistrationService.GetAllRegistrations())
         {
-            foreach (var workspace in lspWorkspaceRegistrationService.GetAllRegistrations())
+            OnWorkspaceRegistered(this, new LspWorkspaceRegisteredEventArgs(workspace));
+        }
+    }
+
+    public void Dispose()
+    {
+        // Workspace events can come in while we're disposing of an LSP server (e.g. restart).
+        lock (_gate)
+        {
+            _lspWorkspaceRegistrationService.WorkspaceRegistered -= OnWorkspaceRegistered;
+            var registeredWorkspaces = _workspaceToLspSolution.Keys.ToImmutableArray();
+            foreach (var registeredWorkspace in registeredWorkspaces)
             {
-                _workspaceToLspSolution[workspace] = null;
-                workspace.WorkspaceChanged += OnWorkspaceChanged;
+                registeredWorkspace.WorkspaceChanged -= OnWorkspaceChanged;
             }
         }
     }
@@ -82,6 +105,7 @@ internal partial class LspWorkspaceManager : IDisposable
     {
         lock (_gate)
         {
+            // Set the LSP solution for the workspace to null so that when asked we fork from the workspace.
             _workspaceToLspSolution[e.Workspace] = null;
             e.Workspace.WorkspaceChanged += OnWorkspaceChanged;
         }
@@ -99,7 +123,8 @@ internal partial class LspWorkspaceManager : IDisposable
             var workspace = e.NewSolution.Workspace;
             if (e.Kind is WorkspaceChangeKind.DocumentChanged or WorkspaceChangeKind.AdditionalDocumentChanged or WorkspaceChangeKind.AnalyzerConfigDocumentChanged)
             {
-                if (e.DocumentId == null || IsDocumentTrackedByLsp(e.DocumentId, e.NewSolution, _documentChangeTracker))
+                Contract.ThrowIfNull(e.DocumentId, $"DocumentId missing for document change event {e.Kind}");
+                if (IsDocumentTrackedByLsp(e.DocumentId, e.NewSolution, _documentChangeTracker))
                 {
                     // We're tracking the document already, no need to fork the workspace to get the changes, LSP will have sent them to us.
                     return;
@@ -136,16 +161,18 @@ internal partial class LspWorkspaceManager : IDisposable
     {
         lock (_gate)
         {
-            var updatedSolutions = ForkAllWorkspaces();
+            var updatedSolutions = ResetIncrementalLspSolutions_CalledUnderLock();
+
+            if (updatedSolutions.Any(solution => solution.GetDocuments(uri).Any()))
+            {
+                return;
+            }
 
             // If we can't find the document in any of the registered workspaces, add it to our loose files workspace.
-            if (!updatedSolutions.Any(solution => solution.GetDocuments(uri).Any()) && _lspMiscellaneousFilesWorkspace != null)
+            var miscDocument = _lspMiscellaneousFilesWorkspace?.AddMiscellaneousDocument(uri, documentText);
+            if (miscDocument != null)
             {
-                var miscDocument = _lspMiscellaneousFilesWorkspace.AddMiscellaneousDocument(uri, documentText);
-                if (miscDocument != null)
-                {
-                    _workspaceToLspSolution[_lspMiscellaneousFilesWorkspace] = miscDocument.Project.Solution;
-                }
+                _workspaceToLspSolution[miscDocument.Project.Solution.Workspace] = miscDocument.Project.Solution;
             }
         }
     }
@@ -157,7 +184,9 @@ internal partial class LspWorkspaceManager : IDisposable
     {
         lock (_gate)
         {
-            _ = ForkAllWorkspaces();
+            // Trigger a fork of all workspaces, the LSP document text may not be correct any more and this document
+            // may have been removed / moved to a different workspace.
+            _ = ResetIncrementalLspSolutions_CalledUnderLock();
 
             // Remove from the lsp misc files workspace if it was added there.
             _lspMiscellaneousFilesWorkspace?.TryRemoveMiscellaneousDocument(uri);
@@ -172,7 +201,7 @@ internal partial class LspWorkspaceManager : IDisposable
         lock (_gate)
         {
             // Get our current solutions and re-fork from the workspace as needed.
-            var updatedSolutions = UpdateAllSolutions();
+            var updatedSolutions = ComputeIncrementalLspSolutions_CalledUnderLock();
 
             var findDocumentResult = FindDocument(uri, updatedSolutions, clientName: null, _requestTelemetryLogger, _logger);
             if (findDocumentResult == null)
@@ -187,16 +216,21 @@ internal partial class LspWorkspaceManager : IDisposable
             }
 
             // Update all the documents that have a matching uri with the new source text and store as our new incremental solution.
+            // We can have multiple documents with the same URI (e.g. linked documents).
             var solution = GetSolutionWithReplacedDocuments(findDocumentResult.Value.LspSolution, (uri, newSourceText));
             _workspaceToLspSolution[solution.Workspace] = solution;
 
             if (solution.Workspace is not LspMiscellaneousFilesWorkspace && _lspMiscellaneousFilesWorkspace != null)
             {
                 // If we found the uri in a workspace that isn't LSP misc files, we can remove it from the lsp misc files if it is there.
+                //
+                // Example: In VSCode, the server is started and file opened before the user has chosen which project/sln in the folder they want to open,
+                // and therefore on didOpen the file gets put into LSP misc files.
+                //
+                // Once the workspace is updated with the document however, we proactively cleanup the lsp misc files workspace here
+                // so that we don't keep lingering references around.
                 _lspMiscellaneousFilesWorkspace.TryRemoveMiscellaneousDocument(uri);
             }
-
-            return;
         }
     }
 
@@ -213,7 +247,7 @@ internal partial class LspWorkspaceManager : IDisposable
         lock (_gate)
         {
             // Ensure we have the latest lsp solutions
-            var updatedSolutions = UpdateAllSolutions();
+            var updatedSolutions = ComputeIncrementalLspSolutions_CalledUnderLock();
 
             var hostWorkspaceSolution = updatedSolutions.FirstOrDefault(s => s.Workspace.Kind == _hostWorkspaceKind);
             return hostWorkspaceSolution;
@@ -221,25 +255,26 @@ internal partial class LspWorkspaceManager : IDisposable
     }
 
     /// <summary>
-    /// Returns a document with the LSP tracked text forked from the appropriate workspace solution. 
+    /// Returns a document with the LSP tracked text forked from the appropriate workspace solution.
     /// </summary>
+    /// <param name="clientName">returns documents that have a matching client name.  Commonly used to distinguish razor documents.</param>
     public Document? GetLspDocument(TextDocumentIdentifier textDocumentIdentifier, string? clientName)
     {
         lock (_gate)
         {
             // Ensure we have the latest lsp solutions
-            var currentLspSolutions = UpdateAllSolutions();
+            var currentLspSolutions = ComputeIncrementalLspSolutions_CalledUnderLock();
 
             // Search through the latest lsp solutions to find the document with matching uri and client name.
             var findDocumentResult = FindDocument(textDocumentIdentifier.Uri, currentLspSolutions, clientName, _requestTelemetryLogger, _logger);
-            if (findDocumentResult != null)
+            if (findDocumentResult == null)
             {
-                // Filter the matching documents by project context.
-                var documentInProjectContext = findDocumentResult.Value.MatchingDocuments.FindDocumentInProjectContext(textDocumentIdentifier);
-                return documentInProjectContext;
+                return null;
             }
 
-            return null;
+            // Filter the matching documents by project context.
+            var documentInProjectContext = findDocumentResult.Value.MatchingDocuments.FindDocumentInProjectContext(textDocumentIdentifier);
+            return documentInProjectContext;
         }
     }
 
@@ -249,15 +284,17 @@ internal partial class LspWorkspaceManager : IDisposable
     /// Helper to clear out the LSP incremental solution for all registered workspaces and re-fork from the workspace.
     /// Should be called under <see cref="_gate"/>
     /// </summary>
-    private ImmutableArray<Solution> ForkAllWorkspaces()
+    private ImmutableArray<Solution> ResetIncrementalLspSolutions_CalledUnderLock()
     {
+        Contract.ThrowIfFalse(Monitor.IsEntered(_gate));
+
         var workspaces = _workspaceToLspSolution.Keys.ToImmutableArray();
         foreach (var workspace in workspaces)
         {
             _workspaceToLspSolution[workspace] = null;
         }
 
-        return UpdateAllSolutions();
+        return ComputeIncrementalLspSolutions_CalledUnderLock();
     }
 
     /// <summary>
@@ -265,20 +302,20 @@ internal partial class LspWorkspaceManager : IDisposable
     /// If the incremental lsp solution is missing, this will re-fork from the workspace.
     /// Should be called under <see cref="_gate"/>
     /// </summary>
-    private ImmutableArray<Solution> UpdateAllSolutions()
+    private ImmutableArray<Solution> ComputeIncrementalLspSolutions_CalledUnderLock()
     {
+        Contract.ThrowIfFalse(Monitor.IsEntered(_gate));
+
         var workspacePairs = _workspaceToLspSolution.ToImmutableArray();
         using var updatedSolutions = TemporaryArray<Solution>.Empty;
-        foreach (var pair in workspacePairs)
+        foreach (var (workspace, incrementalSolution) in workspacePairs)
         {
-            var incrementalSolution = pair.Value;
-            var workspace = pair.Key;
             if (incrementalSolution == null)
             {
                 // We have no incremental lsp solution, create a new one forked from the workspace with LSP tracked documents.
-                incrementalSolution = GetSolutionWithReplacedDocuments(workspace.CurrentSolution, _documentChangeTracker.GetTrackedDocuments().ToArray());
-                _workspaceToLspSolution[workspace] = incrementalSolution;
-                updatedSolutions.Add(incrementalSolution);
+                var newIncrementalSolution = GetSolutionWithReplacedDocuments(workspace.CurrentSolution, _documentChangeTracker.GetTrackedDocuments().ToArray());
+                _workspaceToLspSolution[workspace] = newIncrementalSolution;
+                updatedSolutions.Add(newIncrementalSolution);
             }
             else
             {
@@ -364,24 +401,17 @@ internal partial class LspWorkspaceManager : IDisposable
     internal TestAccessor GetTestAccessor()
             => new(this);
 
-    public void Dispose()
-    {
-        _lspWorkspaceRegistrationService.WorkspaceRegistered -= OnWorkspaceRegistered;
-        var registeredWorkspaces = _workspaceToLspSolution.Keys.ToImmutableArray();
-        foreach (var registeredWorkspace in registeredWorkspaces)
-        {
-            registeredWorkspace.WorkspaceChanged -= OnWorkspaceChanged;
-        }
-    }
-
     internal readonly struct TestAccessor
     {
         private readonly LspWorkspaceManager _manager;
 
         public TestAccessor(LspWorkspaceManager manager)
             => _manager = manager;
-        public LspMiscellaneousFilesWorkspace? GetLspMiscellaneousFilesWorkspace() => _manager._lspMiscellaneousFilesWorkspace;
 
-        public Dictionary<Workspace, Solution?> GetWorkspaceState() => _manager._workspaceToLspSolution;
+        public LspMiscellaneousFilesWorkspace? GetLspMiscellaneousFilesWorkspace()
+            => _manager._lspMiscellaneousFilesWorkspace;
+
+        public Dictionary<Workspace, Solution?> GetWorkspaceState()
+            => _manager._workspaceToLspSolution;
     }
 }

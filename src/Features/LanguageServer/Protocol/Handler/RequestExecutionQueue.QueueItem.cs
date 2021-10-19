@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             public readonly CancellationToken CancellationToken;
 
             /// <summary>
-            /// The task completion source representing the processing of this request to the caller
+            /// An action to be called when the queue fails to begin execution of this work item.
             /// </summary>
             public readonly Action<Exception> HandleQueueFailure;
 

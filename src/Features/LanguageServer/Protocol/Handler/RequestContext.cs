@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly IDocumentChangeTracker _documentChangeTracker;
 
         /// <summary>
-        /// Manages changes to the LSP solution
+        /// Manages the workspaces registered for LSP and handles updates from both LSP text sync and workspace updates.
         /// </summary>
         private readonly LspWorkspaceManager _lspWorkspaceManager;
 
@@ -92,12 +92,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             ILspLogger logger,
             ClientCapabilities clientCapabilities,
             LspWorkspaceManager lspWorkspaceManager,
-            IDocumentChangeTracker? documentChangeTracker,
+            IDocumentChangeTracker documentChangeTracker,
             ImmutableArray<string> supportedLanguages,
             IGlobalOptionService globalOptions)
         {
-            documentChangeTracker ??= new NoOpDocumentChangeTracker();
-
             // If the handler doesn't need an LSP solution we do two important things:
             // 1. We don't bother building the LSP solution for perf reasons
             // 2. We explicitly don't give the handler a solution or document, even if we could
@@ -134,6 +132,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         /// <summary>
         /// Allows a mutating request to open a document and start it being tracked.
+        /// Mutating requests are serialized by the execution queue in order to prevent concurrent access.
         /// </summary>
         public void StartTracking(Uri uri, SourceText initialText)
         {
@@ -143,6 +142,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         /// <summary>
         /// Allows a mutating request to update the contents of a tracked document.
+        /// Mutating requests are serialized by the execution queue in order to prevent concurrent access.
         /// </summary>
         public void UpdateTrackedDocument(Uri uri, SourceText changedText)
         {
@@ -155,6 +155,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         /// <summary>
         /// Allows a mutating request to close a document and stop it being tracked.
+        /// Mutating requests are serialized by the execution queue in order to prevent concurrent access.
         /// </summary>
         public void StopTracking(Uri uri)
         {
@@ -170,18 +171,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public void TraceInformation(string message)
             => _traceInformation(message);
-
-        private class NoOpDocumentChangeTracker : IDocumentChangeTracker
-        {
-            public ImmutableArray<(Uri DocumentUri, SourceText Text)> GetTrackedDocuments()
-                => ImmutableArray<(Uri DocumentUri, SourceText Text)>.Empty;
-
-            public SourceText GetTrackedDocumentSourceText(Uri documentUri) => null!;
-
-            public bool IsTracking(Uri documentUri) => false;
-            public void StartTracking(Uri documentUri, SourceText initialText) { }
-            public void StopTracking(Uri documentUri) { }
-            public void UpdateTrackedDocument(Uri documentUri, SourceText text) { }
-        }
     }
 }

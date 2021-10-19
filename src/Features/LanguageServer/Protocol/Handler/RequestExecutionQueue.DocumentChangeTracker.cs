@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// Keeps track of changes to documents that are opened in the LSP client. Calls MUST not overlap, so this
         /// should be called from a mutating request handler. See <see cref="RequestExecutionQueue"/> for more details.
         /// </summary>
-        internal class DocumentChangeTracker : IWorkspaceService, IDocumentChangeTracker
+        internal class DocumentChangeTracker : IDocumentChangeTracker
         {
             private readonly Dictionary<Uri, SourceText> _trackedDocuments = new();
 

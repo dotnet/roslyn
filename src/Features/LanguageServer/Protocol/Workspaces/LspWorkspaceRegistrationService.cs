@@ -19,7 +19,7 @@ internal abstract class LspWorkspaceRegistrationService
     public ImmutableArray<Workspace> GetAllRegistrations()
         => _registrations;
 
-    public void Register(Workspace workspace)
+    public virtual void Register(Workspace workspace)
     {
         Logger.Log(FunctionId.RegisterWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
         {
