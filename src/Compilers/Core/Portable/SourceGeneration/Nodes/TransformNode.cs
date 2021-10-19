@@ -67,8 +67,6 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (entry.State != EntryState.Cached || !newTable.TryUseCachedEntries(TimeSpan.Zero, inputs))
                 {
-                    // start twice to improve accuracy. See AnalyzerExecutor.ExecuteAndCatchIfThrows for more details
-                    _ = SharedStopwatch.StartNew();
                     var stopwatch = SharedStopwatch.StartNew();
                     // generate the new entries
                     var newOutputs = _func(entry.Item, cancellationToken);

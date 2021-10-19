@@ -89,8 +89,6 @@ namespace Microsoft.CodeAnalysis
                     // get the syntax nodes from cache, or a syntax walk using the filter
                     if (state != EntryState.Cached || !_filterTable.TryUseCachedEntries(TimeSpan.Zero, filterTableInputs, out ImmutableArray<SyntaxNode> nodes))
                     {
-                        // start twice to improve accuracy. See AnalyzerExecutor.ExecuteAndCatchIfThrows for more details
-                        _ = SharedStopwatch.StartNew();
                         var stopwatch = SharedStopwatch.StartNew();
                         nodes = IncrementalGeneratorSyntaxWalker.GetFilteredNodes(root.Value, _owner._filterFunc, cancellationToken);
                         _filterTable.AddEntries(nodes, state, stopwatch.Elapsed, filterTableInputs, state);
@@ -100,9 +98,6 @@ namespace Microsoft.CodeAnalysis
                     for (int i = 0; i < nodes.Length; i++)
                     {
                         var transformTableInputs = _transformTable.TrackIncrementalSteps ? ImmutableArray.Create((_filterTable.Steps[^1], i)) : default;
-
-                        // start twice to improve accuracy. See AnalyzerExecutor.ExecuteAndCatchIfThrows for more details
-                        _ = SharedStopwatch.StartNew();
                         var stopwatch = SharedStopwatch.StartNew();
                         var node = nodes[i];
                         var value = new GeneratorSyntaxContext(node, model);

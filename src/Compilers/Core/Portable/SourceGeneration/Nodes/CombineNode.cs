@@ -57,8 +57,6 @@ namespace Microsoft.CodeAnalysis
             // append the input2 item to each item in input1 
             foreach (var entry1 in input1Table)
             {
-                // start twice to improve accuracy. See AnalyzerExecutor.ExecuteAndCatchIfThrows for more details
-                _ = SharedStopwatch.StartNew();
                 var stopwatch = SharedStopwatch.StartNew();
 
                 var stepInputs = builder.TrackIncrementalSteps ? ImmutableArray.Create((entry1.Step!, entry1.OutputIndex), (input2Step!, 0)) : default;

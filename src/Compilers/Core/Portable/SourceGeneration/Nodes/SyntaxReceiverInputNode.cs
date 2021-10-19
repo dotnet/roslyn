@@ -92,8 +92,6 @@ namespace Microsoft.CodeAnalysis
                     Debug.Assert(model is not null);
                     try
                     {
-                        // start twice to improve accuracy. See AnalyzerExecutor.ExecuteAndCatchIfThrows for more details
-                        _ = SharedStopwatch.StartNew();
                         var stopwatch = SharedStopwatch.StartNew();
                         _walker.VisitWithModel(model, root.Value);
                         if (TrackIncrementalSteps)

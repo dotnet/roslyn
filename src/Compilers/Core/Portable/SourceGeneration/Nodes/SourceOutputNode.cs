@@ -71,9 +71,6 @@ namespace Microsoft.CodeAnalysis
                     SourceProductionContext context = new SourceProductionContext(sourcesBuilder, diagnostics, cancellationToken);
                     try
                     {
-
-                        // start twice to improve accuracy. See AnalyzerExecutor.ExecuteAndCatchIfThrows for more details
-                        _ = SharedStopwatch.StartNew();
                         var stopwatch = SharedStopwatch.StartNew();
                         _action(context, entry.Item);
                         var sourcesAndDiagnostics = (sourcesBuilder.ToImmutable(), diagnostics.ToReadOnly());

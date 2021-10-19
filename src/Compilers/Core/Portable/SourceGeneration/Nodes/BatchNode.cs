@@ -47,8 +47,6 @@ namespace Microsoft.CodeAnalysis
             // If this execution is tracking steps, then the source table should have also tracked steps or be the empty table.
             Debug.Assert(!newTable.TrackIncrementalSteps || (sourceTable.HasTrackedSteps || sourceTable.IsEmpty));
 
-            // start twice to improve accuracy. See AnalyzerExecutor.ExecuteAndCatchIfThrows for more details
-            _ = SharedStopwatch.StartNew();
             var stopwatch = SharedStopwatch.StartNew();
 
             var batchedSourceEntries = sourceTable.Batch();

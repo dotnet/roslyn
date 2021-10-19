@@ -38,8 +38,6 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken)
         {
-            // start twice to improve accuracy. See AnalyzerExecutor.ExecuteAndCatchIfThrows for more details
-            _ = SharedStopwatch.StartNew();
             var stopwatch = SharedStopwatch.StartNew();
             var inputItems = _getInput(graphState);
             TimeSpan elapsedTime = stopwatch.Elapsed;
