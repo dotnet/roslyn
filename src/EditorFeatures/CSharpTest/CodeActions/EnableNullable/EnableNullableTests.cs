@@ -67,7 +67,6 @@ class Example4
 ";
 
             var fixedCode1 = @"
-#nullable restore
 
 class Example
 {
@@ -158,7 +157,6 @@ class Example3
 ";
 
             var fixedCode1 = @"
-#nullable restore
 
 class Example
 {
@@ -206,6 +204,103 @@ class Example3
                         fixedCode1,
                         fixedCode2,
                         fixedCode3,
+                    },
+                },
+                SolutionTransforms = { s_enableNullableInFixedSolution },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task OmitLeadingRestore()
+        {
+            var code1 = @"
+#nullable enable$$
+
+class Example
+{
+  string? value;
+}
+";
+            var code2 = @"
+#nullable enable
+
+class Example2
+{
+  string? value;
+}
+";
+            var code3 = @"
+#nullable enable warnings
+
+class Example3
+{
+  string value;
+}
+";
+            var code4 = @"
+#nullable enable annotations
+
+class Example4
+{
+  string? value;
+}
+";
+
+            var fixedCode1 = @"
+
+class Example
+{
+  string? value;
+}
+";
+            var fixedCode2 = @"
+
+class Example2
+{
+  string? value;
+}
+";
+            var fixedCode3 = @"
+#nullable disable
+
+#nullable restore warnings
+
+class Example3
+{
+  string value;
+}
+";
+            var fixedCode4 = @"
+#nullable disable
+
+#nullable restore annotations
+
+class Example4
+{
+  string? value;
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        code1,
+                        code2,
+                        code3,
+                        code4,
+                    },
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        fixedCode1,
+                        fixedCode2,
+                        fixedCode3,
+                        fixedCode4,
                     },
                 },
                 SolutionTransforms = { s_enableNullableInFixedSolution },

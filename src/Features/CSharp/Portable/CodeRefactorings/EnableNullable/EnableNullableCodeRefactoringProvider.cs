@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -121,10 +122,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             SyntaxNode updatedRoot;
 
             // Add a new '#nullable disable' to the top of each file
-            if (!HasLeadingNullableDirective(root))
+            if (!HasLeadingNullableDirective(root, out var leadingDirective))
             {
                 var nullableDisableTrivia = SyntaxFactory.Trivia(SyntaxFactory.NullableDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.DisableKeyword).WithPrependedLeadingTrivia(SyntaxFactory.ElasticSpace), isActive: true));
                 updatedRoot = root.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(firstToken.LeadingTrivia.Add(nullableDisableTrivia).Add(newLine).Add(newLine)));
+            }
+            else if (leadingDirective.SettingToken.IsKind(SyntaxKind.RestoreKeyword) && leadingDirective.TargetToken.IsKind(SyntaxKind.None))
+            {
+                updatedRoot = root.ReplaceTrivia(leadingDirective.ParentTrivia, SyntaxFactory.ElasticMarker);
             }
             else
             {
@@ -132,10 +137,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
                 // '#nullable' directive that will override it.
                 updatedRoot = root;
             }
-
-            // TODO: remove all '#nullable disable' directives in code with no nullable types
-
-            // TODO: remove all redundant directives
 
             return updatedRoot;
         }
@@ -162,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             return firstToken;
         }
 
-        private static bool HasLeadingNullableDirective(SyntaxNode root)
+        private static bool HasLeadingNullableDirective(SyntaxNode root, [NotNullWhen(true)] out NullableDirectiveTriviaSyntax? leadingNullableDirective)
         {
             // A leading nullable directive is a '#nullable' directive which precedes any conditional directives ('#if')
             // or code (non-trivia).
@@ -173,10 +174,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
                 var firstSemanticToken = root.GetFirstToken();
                 if (firstSemanticToken.IsKind(SyntaxKind.None) || firstSemanticToken.SpanStart > nullableDirective.Span.End)
                 {
+                    leadingNullableDirective = nullableDirective;
                     return true;
                 }
             }
 
+            leadingNullableDirective = null;
             return false;
         }
 
