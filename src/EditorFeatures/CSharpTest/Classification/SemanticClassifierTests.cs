@@ -2611,8 +2611,8 @@ struct Type<T>
             var globalOptionsService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
 
             var provider = new SemanticClassificationViewTaggerProvider(
-                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
+                workspace.GetService<IThreadingContext>(),
+                workspace.GetService<ClassificationTypeMap>(),
                 listenerProvider,
                 globalOptionsService);
 

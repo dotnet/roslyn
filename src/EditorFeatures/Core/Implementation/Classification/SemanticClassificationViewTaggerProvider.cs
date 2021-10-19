@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         public SemanticClassificationViewTaggerProvider(
             IThreadingContext threadingContext,
             ClassificationTypeMap typeMap,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            IGlobalOptionService globalOptionsService)
-            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Classification))
+            IGlobalOptionService globalOptions,
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.Classification))
         {
             _typeMap = typeMap;
             _globalOptionsService = globalOptionsService;

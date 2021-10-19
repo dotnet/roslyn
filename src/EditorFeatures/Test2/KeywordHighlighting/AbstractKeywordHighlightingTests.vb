@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Utilities
@@ -30,10 +31,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
 
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractKeywordHighlightingTests)}.{NameOf(Me.VerifyHighlightsAsync)} creates asynchronous taggers")
 
-                Dim highlightingService = workspace.GetService(Of IHighlightingService)()
                 Dim tagProducer = New HighlighterViewTaggerProvider(
-                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
-                    highlightingService,
+                    workspace.GetService(Of IThreadingContext),
+                    workspace.GetService(Of IHighlightingService)(),
+                    workspace.GetService(Of IGlobalOptionService),
                     AsynchronousOperationListenerProvider.NullProvider)
 
                 Dim context = New TaggerContext(Of KeywordHighlightTag)(document, snapshot, New SnapshotPoint(snapshot, caretPosition))

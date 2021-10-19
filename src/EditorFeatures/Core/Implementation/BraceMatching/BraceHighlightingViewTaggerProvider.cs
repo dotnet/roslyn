@@ -39,8 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
         public BraceHighlightingViewTaggerProvider(
             IThreadingContext threadingContext,
             IBraceMatchingService braceMatcherService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.BraceHighlighting))
+            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.BraceHighlighting))
         {
             _braceMatcherService = braceMatcherService;
         }
