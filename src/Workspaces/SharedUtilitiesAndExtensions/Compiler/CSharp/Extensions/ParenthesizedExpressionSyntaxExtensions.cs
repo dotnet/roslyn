@@ -743,10 +743,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (node.Parent is IsPatternExpressionSyntax)
                 return true;
 
-            // x is [ ..(<...>) ]  ->  x is [ ..<...> ]
-            if (node.Parent is SlicePatternSyntax)
-                return true;
-
             // (x or y) => ...  ->    x or y => ...
             if (node.Parent is SwitchExpressionArmSyntax)
                 return true;
