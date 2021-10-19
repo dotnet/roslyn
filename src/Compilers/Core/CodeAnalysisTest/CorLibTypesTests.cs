@@ -92,6 +92,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             for (var specialType = SpecialType.None + 1; specialType <= SpecialType.Count; specialType++)
             {
+                // HACKATHON: special type
+                if (specialType == SpecialType.System_ValueArray_TR)
+                {
+                    continue;
+                }
+
                 var symbol = comp.GetSpecialType(specialType);
                 if (knownMissingTypes.Contains(specialType))
                 {
