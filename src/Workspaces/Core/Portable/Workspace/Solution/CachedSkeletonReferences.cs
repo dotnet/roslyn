@@ -177,34 +177,19 @@ namespace Microsoft.CodeAnalysis
                     finalOrDeclarationCompilation, properties, cancellationToken).ConfigureAwait(false);
             }
 
-            // okay, now use version based cache that can live multiple compilation as long as there is no semantic changes.
-
-            var result = await TryGetReferenceAsync(properties, finalOrDeclarationCompilation, version, cancellationToken).ConfigureAwait(false);
-            if (result != null)
-                workspace.LogTestMessage($"Found already cached metadata for the branch and version {version}");
-
-            return result;
-        }
-
-        private async Task<MetadataReference?> TryGetReferenceAsync(
-            MetadataReferenceProperties properties,
-            Compilation finalOrDeclarationCompilation,
-            VersionStamp? version,
-            CancellationToken cancellationToken)
-        {
+            // otherwise see if we can use the cached skeleton associated with a particular semantic version-stamp.
             SkeletonReferenceSet set;
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (_skeletonReferenceSet != null &&
-                    (version == null || _version == version))
-                {
-                    // record it to snapshot based cache.
-                    set = s_compilationToReferenceMap.GetValue(finalOrDeclarationCompilation, _ => _skeletonReferenceSet);
-                }
-                else
-                {
+                // if we don't have a skeleton cached, then we have nothing to return.
+                if (_skeletonReferenceSet == null)
                     return null;
-                }
+
+                // if the caller is requiring a particular semantic version, it much match what we have cached.
+                if (version != null && version != _version)
+                    return null;
+
+                set = _skeletonReferenceSet;
             }
 
             return await set.GetMetadataReferenceAsync(finalOrDeclarationCompilation, properties, cancellationToken).ConfigureAwait(false);
