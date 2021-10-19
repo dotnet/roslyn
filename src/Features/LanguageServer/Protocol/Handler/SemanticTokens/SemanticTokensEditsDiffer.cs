@@ -73,11 +73,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     {
                         if (edit.Operation is DiffEdit.Type.Insert)
                         {
-                            return new DiffEdit(DiffEdit.Type.Insert, edit.Position * (j + 1), edit.NewTextPosition * (j + 1));
+                            // max array size
+                            return new DiffEdit(DiffEdit.Type.Insert, edit.InsertPosition + (j * MaxArraySize), edit.NewTextPosition + (j * MaxArraySize));
                         }
                         else if (edit.Operation is DiffEdit.Type.Delete)
                         {
-                            return new DiffEdit(DiffEdit.Type.Delete, edit.Position * (j + 1), null);
+                            return new DiffEdit(DiffEdit.Type.Delete, edit.InsertPosition + (j * MaxArraySize), null);
                         }
                         else
                         {
