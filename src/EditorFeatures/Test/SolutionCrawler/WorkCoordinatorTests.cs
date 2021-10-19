@@ -976,7 +976,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentEvents = (analysisScope, hasActiveDocumentBefore) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, _) => 5,
+                (BackgroundAnalysisScope.ActiveFile, _) => 1,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution or BackgroundAnalysisScope.None, _) => 0,
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -1747,6 +1747,8 @@ class C
                     || e.Option == SolutionCrawlerOptions.SolutionBackgroundAnalysisScopeOption;
             }
 
+            public bool NeedsReanalysisOnActiveDocumentChanged => true;
+
             #region unused 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
                 => Task.CompletedTask;
@@ -1774,6 +1776,7 @@ class C
 
             #region unused 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e) => false;
+            public bool NeedsReanalysisOnActiveDocumentChanged => false;
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
