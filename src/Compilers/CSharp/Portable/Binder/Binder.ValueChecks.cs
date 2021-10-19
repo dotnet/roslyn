@@ -1320,7 +1320,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (symbol.ContainingType?.IsValueArrayType() == true)
             {
-                // any instance member access on a ValueArray just forwards to the receiver (like a struct field access that it logically is)
+                // all the references that can be obtained from ValueArray instance accessors/methods
+                // point back to the instance
+                // therefore any instance member access on a ValueArray just forwards to the receiver.
                 return isRefEscape || symbol.GetTypeOrReturnType().Type.IsRefLikeType ?
                     GetRefEscape(receiverOpt, scopeOfTheContainingExpression) :
                     GetValEscape(receiverOpt, scopeOfTheContainingExpression);
@@ -1434,7 +1436,9 @@ moreArguments:
             }
             else if (symbol.ContainingType?.IsValueArrayType() == true)
             {
-                // any instance member access on a ValueArray just forwards to the receiver (like a struct field access that it logically is)
+                // all the references that can be obtained from ValueArray instance accessors/methods
+                // point back to the instance
+                // therefore any instance member access on a ValueArray just forwards to the receiver.
                 return isRefEscape || symbol.GetTypeOrReturnType().Type.IsRefLikeType ?
                     CheckRefEscape(receiverOpt.Syntax, receiverOpt, escapeFrom, escapeTo, true, diagnostics) :
                     CheckValEscape(receiverOpt.Syntax, receiverOpt, escapeFrom, escapeTo, true, diagnostics);
