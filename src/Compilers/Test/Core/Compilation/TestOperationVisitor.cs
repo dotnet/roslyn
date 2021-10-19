@@ -505,9 +505,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitFunctionPointerInvocation(IFunctionPointerInvocationOperation operation)
         {
             Assert.Equal(OperationKind.FunctionPointerInvocation, operation.Kind);
-            Assert.NotNull(operation.Pointer);
+            Assert.NotNull(operation.InvokedPointer);
 
-            IEnumerable<IOperation> children = new[] { operation.Pointer }.Concat(operation.Arguments);
+            IEnumerable<IOperation> children = new[] { operation.InvokedPointer }.Concat(operation.Arguments);
 
             AssertEx.Equal(children, operation.Children);
         }
