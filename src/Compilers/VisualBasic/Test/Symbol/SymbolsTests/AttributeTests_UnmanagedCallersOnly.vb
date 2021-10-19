@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Private ReadOnly _parseOptions As CSharp.CSharpParseOptions = CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.Default)
         Private ReadOnly _csharpCompOptions As CSharp.CSharpCompilationOptions = New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe:=True)
-        Private ReadOnly _csharpReferences As ImmutableArray(Of MetadataReference) = TargetFrameworkUtil.NetCoreAppReferences.Add(NetCoreApp.SystemRuntimeInteropServices)
+        Private ReadOnly _csharpReferences As ImmutableArray(Of MetadataReference) = TargetFrameworkUtil.GetReferences(TargetFramework.NetCoreApp).Add(NetCoreApp.SystemRuntimeInteropServices)
 
         Private ReadOnly UnmanagedCallersOnlyAttributeIl As String = <![CDATA[
 .class public auto ansi sealed beforefieldinit System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute
@@ -75,16 +75,16 @@ End Class
             Dim comp = CreateCompilation(source, references:={NetCoreApp.SystemRuntimeInteropServices}, targetFramework:=TargetFramework.NetCoreApp)
 
             comp.AssertTheseDiagnostics(<![CDATA[
-BC42365: 'UnmanagedCallersOnly' attribute is not supported.
+BC37316: 'UnmanagedCallersOnly' attribute is not supported.
     <UnmanagedCallersOnly>
      ~~~~~~~~~~~~~~~~~~~~
-BC42365: 'UnmanagedCallersOnly' attribute is not supported.
+BC37316: 'UnmanagedCallersOnly' attribute is not supported.
     <UnmanagedCallersOnly(CallConvs := { GetType(CallConvCdecl) })>
      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC42365: 'UnmanagedCallersOnly' attribute is not supported.
+BC37316: 'UnmanagedCallersOnly' attribute is not supported.
         <UnmanagedCallersOnly>
          ~~~~~~~~~~~~~~~~~~~~
-BC42365: 'UnmanagedCallersOnly' attribute is not supported.
+BC37316: 'UnmanagedCallersOnly' attribute is not supported.
         <UnmanagedCallersOnly>
          ~~~~~~~~~~~~~~~~~~~~
 ]]>)

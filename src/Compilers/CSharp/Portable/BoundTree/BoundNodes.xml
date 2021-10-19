@@ -34,6 +34,7 @@
   <ValueType Name="NullableAnnotation"/>
   <ValueType Name="ErrorCode"/>
   <ValueType Name="ImmutableBindingDiagnostic"/>
+  <ValueType Name="InterpolatedStringHandlerData"/>
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -81,6 +82,12 @@
   <AbstractNode Name="BoundValuePlaceholderBase" Base="BoundExpression">
   </AbstractNode>
 
+  <!--
+  This node will not survive the local rewriting.
+  -->
+  <Node Name="BoundValuePlaceholder" Base="BoundValuePlaceholderBase">
+  </Node>
+  
   <!--
   This node is used to represent an expression returning value of a certain type.
   It is used to perform intermediate binding, and will not survive the local rewriting.
@@ -288,6 +295,7 @@
     <Field Name="Operand" Type="BoundExpression"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
     <Field Name="MethodOpt" Type="MethodSymbol?"/>
+    <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <!--The set of method symbols from which this operator's method was chosen.
         Only kept in the tree if the operator was an error and overload resolution
@@ -303,15 +311,25 @@
     <Field Name="OperatorKind" Type="UnaryOperatorKind"/>
     <Field Name="Operand" Type="BoundExpression"/>
     <Field Name="MethodOpt" Type="MethodSymbol?"/>
-    <Field Name="OperandConversion" Type="Conversion"/>
-    <Field Name="ResultConversion" Type="Conversion"/>
+    <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow"/>
+    
+    <!-- Used as an operand to bind OperandConversion -->
+    <Field Name="OperandPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Could be a BoundConversion or, in some cases of an identity conversion, the OperandPlaceholder, or null for no conversion case -->
+    <Field Name="OperandConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+
+    <!-- Used as an operand to bind ResultConversion -->
+    <Field Name="ResultPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Could be a BoundConversion or, in some cases of an identity conversion, the ResultPlaceholder, or null for no conversion case -->
+    <Field Name="ResultConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+    
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <!--The set of method symbols from which this operator's method was chosen.
         Only kept in the tree if the operator was an error and overload resolution
         was unable to choose a best method.-->
     <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true"/>
   </Node>
-
+  
   <!-- Not really an operator since overload resolution is never required. -->
   <Node Name="BoundAddressOfOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
@@ -339,6 +357,7 @@
   <!-- Represents a resolved AddressOf function pointer. Not used in initial binding. -->
   <Node Name="BoundFunctionPointerLoad" Base="BoundExpression">
     <Field Name="TargetMethod" Type="MethodSymbol"/>
+    <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow"/>
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
@@ -346,6 +365,10 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Operand" Type="BoundExpression"/>
+    <!-- Used by emit to determine whether this pointer indirection is by value or by ref. If true, emit
+         will emit the address of the target, and not actually perform an indirect load (in practice this just
+         means emitting the Operand alone). -->
+    <Field Name="RefersToLocation" Type="bool"/>
   </Node>
   <Node Name="BoundPointerElementAccess" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
@@ -354,6 +377,10 @@
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="Index" Type="BoundExpression"/>
     <Field Name="Checked" Type="bool"/>
+    <!-- Used by emit to determine whether this pointer element access is by value or by ref. If true, emit
+         will emit the address of the target, and not actually perform an indirect load (in practice this just
+         means emitting the Operand alone). -->
+    <Field Name="RefersToLocation" Type="bool"/>
   </Node>
 
   <Node Name="BoundFunctionPointerInvocation" Base="BoundExpression">
@@ -409,13 +436,8 @@
 
   <Node Name="BoundBinaryOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true">
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
-    <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
-    <Field Name="MethodOpt" Type="MethodSymbol?"/>
+    <Field Name="Data" Type="BoundBinaryOperator.UncommonData?" />
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
-    <!--The set of method symbols from which this operator's method was chosen.
-        Only kept in the tree if the operator was an error and overload resolution
-        was unable to choose a best method.-->
-    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true"/>
   </Node>
 
   <Node Name="BoundTupleBinaryOperator" Base="BoundExpression">
@@ -432,6 +454,7 @@
     <Field Name="LogicalOperator" Type="MethodSymbol"/>
     <Field Name="TrueOperator" Type="MethodSymbol"/>
     <Field Name="FalseOperator" Type="MethodSymbol"/>
+    <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <!--The set of method symbols from which this operator's method was chosen.
         Only kept in the tree if the operator was an error and overload resolution
@@ -472,8 +495,17 @@
     <Field Name="Operator" Type="BinaryOperatorSignature" Null="NotApplicable"/>
     <Field Name="Left" Type="BoundExpression"/>
     <Field Name="Right" Type="BoundExpression"/>
-    <Field Name="LeftConversion" Type="Conversion"/>
-    <Field Name="FinalConversion" Type="Conversion"/>
+    
+    <!-- Used as an operand to bind LeftConversion -->
+    <Field Name="LeftPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Could be a BoundConversion or, in some cases of an identity conversion, the LeftPlaceholder, or null for no conversion case -->
+    <Field Name="LeftConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+    
+    <!-- Used as an operand to bind LeftConversion -->
+    <Field Name="FinalPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Could be a BoundConversion or, in some cases of an identity conversion, the FinalPlaceholder, or null for no conversion case -->
+    <Field Name="FinalConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+    
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <!--The set of method symbols from which this operator's method was chosen.
         Only kept in the tree if the operator was an error and overload resolution
@@ -692,7 +724,7 @@
 
     <Field Name="Operand" Type="BoundExpression"/>
     <Field Name="TargetType" Type="BoundTypeExpression"/>
-    <Field Name="Conversion" Type="Conversion"/>
+    <Field Name="ConversionKind" Type="ConversionKind"/>
   </Node>
 
   <Node Name="BoundAsOperator" Base="BoundExpression">
@@ -941,7 +973,6 @@
   -->
   <Node Name="BoundUsingLocalDeclarations" Base="BoundMultipleLocalDeclarationsBase">
     <Field Name="PatternDisposeInfoOpt" Type="MethodArgumentInfo?"/>
-    <Field Name="IDisposableConversion" Type="Conversion"/>
     <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
   </Node>
 
@@ -1107,7 +1138,6 @@
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="DeclarationsOpt" Type="BoundMultipleLocalDeclarations?"/>
     <Field Name="ExpressionOpt" Type="BoundExpression?"/>
-    <Field Name="IDisposableConversion" Type="Conversion" />
     <Field Name="Body" Type="BoundStatement"/>
     <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
     <Field Name="PatternDisposeInfoOpt" Type="MethodArgumentInfo?"/>
@@ -1429,6 +1459,7 @@
   </Node>
   <Node Name="BoundDagPropertyEvaluation" Base="BoundDagEvaluation">
     <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
+    <Field Name="IsLengthOrCount" Type="bool"/>
   </Node>
   <Node Name="BoundDagIndexEvaluation" Base="BoundDagEvaluation">
     <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
@@ -1450,6 +1481,9 @@
     <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
     <Field Name="SliceMethod" Type="MethodSymbol?"/>
   </Node>
+  <Node Name="BoundDagAssignmentEvaluation" Base="BoundDagEvaluation">
+    <Field Name="Target" Type="BoundDagTemp"/>
+  </Node>
 
   <Node Name="BoundSwitchSection" Base="BoundStatementList">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
@@ -1465,7 +1499,7 @@
   <AbstractNode Name="BoundMethodOrPropertyGroup" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
-
+    
     <!--We wish to keep the left-hand-side of the member access in the method group even if the
     *instance* expression ought to be null. For example, if we have System.Console.WriteLine then
     we want to keep the System.Console type expression as the receiver, even though the spec
@@ -1592,6 +1626,7 @@
     <Field Name="LookupSymbolOpt" Type="Symbol?"/>
     <Field Name="LookupError" Type="DiagnosticInfo?"/>
     <Field Name="Flags" Type="BoundMethodGroupFlags?"/>
+    <Field Name="FunctionType" Type="FunctionTypeSymbol.Lazy?" Null="allow"/>
   </Node>
 
   <Node Name="BoundPropertyGroup" Base="BoundMethodOrPropertyGroup">
@@ -1636,7 +1671,7 @@
 
     <Field Name="Constructor" Type="MethodSymbol?"/>
     <Field Name="ConstructorArguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
-    <Field Name="ConstructorArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
+    <Field Name="ConstructorArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
     <Field Name="ConstructorArgumentsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ConstructorExpanded" Type="bool" />
     <Field Name="NamedArguments" Type ="ImmutableArray&lt;BoundAssignmentOperator&gt;"/>
@@ -1651,7 +1686,7 @@
       <!-- Type is not significant for this node type; always null -->
       <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
       <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
-      <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;IdentifierNameSyntax&gt;" Null="allow"/>
+      <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;(string Name, Location Location)?&gt;" Null="allow"/>
       <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
       <Field Name="InitializerOpt" Type="InitializerExpressionSyntax?" Null="allow"/>
   </Node>
@@ -1990,6 +2025,7 @@
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
     <Field Name="Data" Type="UnboundLambdaState" Null="disallow"/>
+    <Field Name="FunctionType" Type="FunctionTypeSymbol.Lazy?" Null="allow"/>
     <!-- Track dependencies while binding body, etc. -->
     <Field Name="WithDependencies" Type="Boolean"/>
   </Node>
@@ -2028,8 +2064,8 @@
 
   <AbstractNode Name="BoundInterpolatedStringBase" Base="BoundExpression">
     <!-- The sequence of parts of an interpolated string. The even numbered positions (starting with 0) are
-         from the literal parts of the input. The odd numbered positions are the string inserts. When a
-         width or format string are provided, the corresponding insert will be a BoundStringInsert -->
+         from the literal parts of the input. The odd numbered positions are the string inserts. If the interpolated
+         string has been bound using the builder pattern, literals are replaced with calls. -->
     <Field Name="Parts" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
   </AbstractNode>
@@ -2038,12 +2074,28 @@
   </Node>
 
   <Node Name="BoundInterpolatedString" Base="BoundInterpolatedStringBase">
+    <Field Name="InterpolationData" Type="InterpolatedStringHandlerData?"/>
+  </Node>
+
+  <Node Name="BoundInterpolatedStringHandlerPlaceholder" Base="BoundValuePlaceholderBase"/>
+
+  <!-- A typed expression placeholder for the arguments to the constructor call for an interpolated string handler
+       conversion. We intentionally use a placeholder for overload resolution here to ensure that no conversion
+       from expression can occur. This node is only used for intermediate binding and does not survive local rewriting. -->
+  <Node Name="BoundInterpolatedStringArgumentPlaceholder" Base="BoundValuePlaceholderBase">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow" />
+    <!-- The index in the containing member of the argument this is the placeholder for. Should be a positive number or
+         one of the constants in the other part of the partial class. -->
+    <Field Name="ArgumentIndex" Type="int" />
+    <Field Name="ValSafeToEscape" Type="uint" />
   </Node>
 
   <Node Name="BoundStringInsert" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
     <Field Name="Value" Type="BoundExpression" Null="disallow"/>
     <Field Name="Alignment" Type="BoundExpression?"/>
     <Field Name="Format" Type="BoundLiteral?"/>
+    <Field Name="IsInterpolatedStringHandlerAppendCall" Type="bool"/>
   </Node>
   
     <!-- An 'is pattern'. The fields DecisionDag, WhenTrueLabel, and WhenFalseLabel represent the inner pattern
@@ -2072,7 +2124,6 @@
   <Node Name="BoundDiscardPattern" Base="BoundPattern">
   </Node>
 
-  <!-- PROTOTYPE(list-patterns): UNDONE: Base node for BoundListPattern as well as BoundDeclarationPattern and BoundRecursivePattern -->
   <AbstractNode Name="BoundObjectPattern" Base="BoundPattern">
     <!-- Variable is a local symbol, or in the case of top-level code in scripts and interactive,
          a field that is a member of the script class. Variable is null if `_` is used or if the identifier is omitted. -->
@@ -2087,38 +2138,16 @@
     <Field Name="VariableAccess" Type="BoundExpression?"/>
   </AbstractNode>
 
-  <Node Name="BoundDeclarationPattern" Base="BoundPattern">
-    <!-- Variable is a local symbol, or in the case of top-level code in scripts and interactive,
-         a field that is a member of the script class. Variable is null if `_` is used. -->
-    <Field Name="Variable" Type="Symbol?"/>
-    <!-- VariableAccess is an access to the declared variable, suitable for use
-         in the lowered form in either an lvalue or rvalue position. We maintain it separately
-         from the Symbol to facilitate lowerings in which the variable is no longer a simple
-         variable access (e.g. in the expression evaluator). It is expected to be logically side-effect
-         free. The necessity of this member is a consequence of a design issue documented in
-         https://github.com/dotnet/roslyn/issues/13960 . When that is fixed this field can be
-         removed. -->
-    <Field Name="VariableAccess" Type="BoundExpression?"/>
+  <Node Name="BoundDeclarationPattern" Base="BoundObjectPattern">
     <Field Name="DeclaredType" Type="BoundTypeExpression" Null="disallow"/>
     <Field Name="IsVar" Type="bool"/>
   </Node>
 
-  <Node Name="BoundRecursivePattern" Base="BoundPattern">
+  <Node Name="BoundRecursivePattern" Base="BoundObjectPattern">
     <Field Name="DeclaredType" Type="BoundTypeExpression?"/>
     <Field Name="DeconstructMethod" Type="MethodSymbol?"/>
-    <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundSubpattern&gt;" Null="allow"/>
-    <Field Name="Properties" Type="ImmutableArray&lt;BoundSubpattern&gt;" Null="allow"/>
-    <!-- Variable is a local symbol, or in the case of top-level code in scripts and interactive,
-         a field that is a member of the script class. Variable is null if `_` is used or if the identifier is omitted. -->
-    <Field Name="Variable" Type="Symbol?"/>
-    <!-- VariableAccess is an access to the declared variable, suitable for use
-         in the lowered form in either an lvalue or rvalue position. We maintain it separately
-         from the Symbol to facilitate lowerings in which the variable is no longer a simple
-         variable access (e.g. in the expression evaluator). It is expected to be logically side-effect
-         free. The necessity of this member is a consequence of a design issue documented in
-         https://github.com/dotnet/roslyn/issues/13960 . When that is fixed this field can be
-         removed. -->
-    <Field Name="VariableAccess" Type="BoundExpression?"/>
+    <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundPositionalSubpattern&gt;" Null="allow"/>
+    <Field Name="Properties" Type="ImmutableArray&lt;BoundPropertySubpattern&gt;" Null="allow"/>
     <Field Name="IsExplicitNotNullTest" Type="bool"/>
   </Node>
 
@@ -2139,14 +2168,25 @@
   <Node Name="BoundITuplePattern" Base="BoundPattern">
     <Field Name="GetLengthMethod" Type="MethodSymbol" Null="disallow"/>
     <Field Name="GetItemMethod" Type="MethodSymbol" Null="disallow"/>
-    <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundSubpattern&gt;" Null="disallow"/>
+    <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPositionalSubpattern&gt;" Null="disallow"/>
   </Node>
 
-  <!-- A subpattern, either in a positional or property part of a recursive pattern. -->
-  <Node Name="BoundSubpattern" Base="BoundNode">
-    <!-- The tuple element or parameter in a positional pattern, or the property or field in a property pattern. -->
+  <AbstractNode Name="BoundSubpattern" Base="BoundNode">
+    <Field Name="Pattern" Type="BoundPattern"/>
+  </AbstractNode>
+  <Node Name="BoundPositionalSubpattern" Base="BoundSubpattern">
+    <!-- The tuple element or parameter in a positional pattern. -->
     <Field Name="Symbol" Type="Symbol?"/>
-    <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
+  </Node>
+  <Node Name="BoundPropertySubpattern" Base="BoundSubpattern">
+    <!-- The property or field access in a property pattern. -->
+    <Field Name="Member" Type="BoundPropertySubpatternMember?"/>
+    <Field Name="IsLengthOrCount" Type="bool"/>
+  </Node>
+  <Node Name="BoundPropertySubpatternMember" Base="BoundNode">
+    <Field Name="Receiver" Type="BoundPropertySubpatternMember?"/>
+    <Field Name="Symbol" Type="Symbol?"/>
+    <Field Name="Type" Type="TypeSymbol"/>
   </Node>
 
   <Node Name="BoundTypePattern" Base="BoundPattern">
@@ -2175,6 +2215,7 @@
          is null before type inference, and it is replaced by a BoundDiscardExpression with a non-null
          type after inference. -->
     <Field Name="Type" Type="TypeSymbol?" Override="true"/>
+    <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
   </Node>
 
   <Node Name="BoundThrowExpression" Base="BoundExpression">
@@ -2212,7 +2253,7 @@
 
   <Node Name="BoundConstructorMethodBody" Base="BoundMethodBodyBase">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-    <Field Name="Initializer" Type="BoundExpressionStatement?"/>
+    <Field Name="Initializer" Type="BoundStatement?"/>
   </Node>
 
   <!-- Node only used during nullability flow analysis to represent an expression with an updated nullability -->

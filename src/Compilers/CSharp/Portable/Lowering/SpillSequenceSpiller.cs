@@ -826,7 +826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return UpdateExpression(builder, node.Update(node.OperatorKind, node.ConstantValue, node.MethodOpt, node.ResultKind, left, right, node.Type));
+            return UpdateExpression(builder, node.Update(node.OperatorKind, node.ConstantValue, node.Method, node.ConstrainedToType, node.ResultKind, left, right, node.Type));
         }
 
         public override BoundNode VisitCall(BoundCall node)
@@ -835,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arguments = this.VisitExpressionList(ref builder, node.Arguments, node.ArgumentRefKindsOpt);
 
             BoundExpression receiver = null;
-            if (builder == null)
+            if (builder == null || node.ReceiverOpt is BoundTypeExpression)
             {
                 receiver = VisitExpression(ref builder, node.ReceiverOpt);
             }
@@ -958,12 +958,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             var operand = VisitExpression(ref builder, node.Operand);
-            return UpdateExpression(builder, node.Update(operand, node.TargetType, node.Conversion, node.Type));
+            return UpdateExpression(builder, node.Update(operand, node.TargetType, node.ConversionKind, node.Type));
         }
 
         public override BoundNode VisitMakeRefOperator(BoundMakeRefOperator node)
         {
-            throw ExceptionUtilities.Unreachable;
+            BoundSpillSequenceBuilder builder = null;
+            var operand = VisitExpression(ref builder, node.Operand);
+            return UpdateExpression(builder, node.Update(operand, node.Type));
         }
 
         public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
@@ -1175,14 +1177,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder = expressionBuilder;
             }
 
-            return UpdateExpression(builder, node.Update(expression, index, node.Checked, node.Type));
+            return UpdateExpression(builder, node.Update(expression, index, node.Checked, node.RefersToLocation, node.Type));
         }
 
         public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
         {
             BoundSpillSequenceBuilder builder = null;
             var operand = VisitExpression(ref builder, node.Operand);
-            return UpdateExpression(builder, node.Update(operand, node.Type));
+            return UpdateExpression(builder, node.Update(operand, node.RefersToLocation, node.Type));
         }
 
         public override BoundNode VisitSequence(BoundSequence node)
@@ -1245,7 +1247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             BoundExpression operand = VisitExpression(ref builder, node.Operand);
-            return UpdateExpression(builder, node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, node.Type));
+            return UpdateExpression(builder, node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ConstrainedToTypeOpt, node.ResultKind, node.Type));
         }
 
         public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)

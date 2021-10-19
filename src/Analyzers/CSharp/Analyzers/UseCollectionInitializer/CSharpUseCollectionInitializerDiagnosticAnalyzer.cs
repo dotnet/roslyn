@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             ExpressionStatementSyntax,
             VariableDeclaratorSyntax>
     {
-        protected override bool AreCollectionInitializersSupported(SyntaxNodeAnalysisContext context)
-            => ((CSharpParseOptions)context.Node.SyntaxTree.Options).LanguageVersion >= LanguageVersion.CSharp3;
+        protected override bool AreCollectionInitializersSupported(Compilation compilation)
+            => ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp3;
 
         protected override ISyntaxFacts GetSyntaxFacts() => CSharpSyntaxFacts.Instance;
     }

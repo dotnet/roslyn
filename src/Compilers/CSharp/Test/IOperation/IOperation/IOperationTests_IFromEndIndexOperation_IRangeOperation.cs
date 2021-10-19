@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IFromEndIndexOperation_IRangeOperation : SemanticModelTestBase
     {
         // The tests in this file right now are just to verify that we do not assert in the CFG builder. These need to be expanded.
         // https://github.com/dotnet/roslyn/issues/31545

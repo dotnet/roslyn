@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../CSharpEditorResources.resx">
     <body>
@@ -11,16 +11,6 @@
         <source>Adding missing usings...</source>
         <target state="translated">Fehlende using-Anweisungen werden hinzugefügt...</target>
         <note>Shown in a thread await dialog. "usings" is a language specific term and should not be localized</note>
-      </trans-unit>
-      <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
-        <source>Avoid expression statements that implicitly ignore value</source>
-        <target state="translated">Ausdrucksanweisungen vermeiden, die implizit Werte ignorieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Avoid_unused_value_assignments">
-        <source>Avoid unused value assignments</source>
-        <target state="translated">Zuweisungen nicht verwendeter Werte vermeiden</target>
-        <note />
       </trans-unit>
       <trans-unit id="Chosen_version_0">
         <source>Chosen version: '{0}'</source>
@@ -42,24 +32,9 @@
         <target state="translated">Dekompilierungsprotokoll</target>
         <note />
       </trans-unit>
-      <trans-unit id="Discard">
-        <source>Discard</source>
-        <target state="translated">Verwerfen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Elsewhere">
-        <source>Elsewhere</source>
-        <target state="translated">Anderswo</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_interpolated_verbatim_string">
         <source>Fix interpolated verbatim string</source>
         <target state="translated">Interpolierte ausführliche Zeichenfolge korrigieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="For_built_in_types">
-        <source>For built-in types</source>
-        <target state="translated">Für integrierte Typen</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_0_assemblies_for_1">
@@ -87,166 +62,6 @@
         <target state="translated">Ereignisabonnement generieren</target>
         <note />
       </trans-unit>
-      <trans-unit id="Ignore_spaces_in_declaration_statements">
-        <source>Ignore spaces in declaration statements</source>
-        <target state="translated">Leerzeichen um Deklarationsanweisungen ignorieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indent_block_contents">
-        <source>Indent block contents</source>
-        <target state="translated">Blockinhalte einziehen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indent_case_contents">
-        <source>Indent case contents</source>
-        <target state="translated">case-Inhalte einziehen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indent_case_contents_when_block">
-        <source>Indent case contents (when block)</source>
-        <target state="translated">Case-Inhalte einziehen (bei Block)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indent_case_labels">
-        <source>Indent case labels</source>
-        <target state="translated">case-Bezeichnungen einziehen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indent_open_and_close_braces">
-        <source>Indent open and close braces</source>
-        <target state="translated">Öffnende und schließende geschweifte Klammern einziehen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_after_cast">
-        <source>Insert space after cast</source>
-        <target state="translated">Leerzeichen nach Umwandlung einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_after_colon_for_base_or_interface_in_type_declaration">
-        <source>Insert space after colon for base or interface in type declaration</source>
-        <target state="translated">In Typdeklarationen Leerzeichen nach Doppelpunkt für Basis oder Schnittstelle einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_after_comma">
-        <source>Insert space after comma</source>
-        <target state="translated">Leerzeichen nach Komma einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_after_dot">
-        <source>Insert space after dot</source>
-        <target state="translated">Leerzeichen nach Punkt einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_after_keywords_in_control_flow_statements">
-        <source>Insert space after keywords in control flow statements</source>
-        <target state="translated">Leerzeichen nach Schlüsselwörtern in Anweisungen für die Ablaufsteuerung einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_after_semicolon_in_for_statement">
-        <source>Insert space after semicolon in "for" statement</source>
-        <target state="translated">In for-Anweisung Leerzeichen nach Semikolon einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_before_colon_for_base_or_interface_in_type_declaration">
-        <source>Insert space before colon for base or interface in type declaration</source>
-        <target state="translated">In Typdeklarationen Leerzeichen vor Doppelpunkt für Basis oder Schnittstelle einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_before_comma">
-        <source>Insert space before comma</source>
-        <target state="translated">Leerzeichen vor Komma einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_before_dot">
-        <source>Insert space before dot</source>
-        <target state="translated">Leerzeichen vor Punkt einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_before_open_square_bracket">
-        <source>Insert space before open square bracket</source>
-        <target state="translated">Leerzeichen vor öffnender eckiger Klammer einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_before_semicolon_in_for_statement">
-        <source>Insert space before semicolon in "for" statement</source>
-        <target state="translated">In for-Anweisung Leerzeichen vor Semikolon einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis1">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">Leerzeichen zwischen Methodenname und öffnender runder Klammer einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis2">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">Leerzeichen zwischen Methodenname und öffnender runder Klammer einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_within_argument_list_parentheses">
-        <source>Insert space within argument list parentheses</source>
-        <target state="translated">Leerzeichen zwischen runden Klammern um Argumentliste einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_within_empty_argument_list_parentheses">
-        <source>Insert space within empty argument list parentheses</source>
-        <target state="translated">Leerzeichen zwischen runden Klammern um leere Argumentliste einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_within_empty_parameter_list_parentheses">
-        <source>Insert space within empty parameter list parentheses</source>
-        <target state="translated">Leerzeichen zwischen runden Klammern in leere Parameterliste einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_within_empty_square_brackets">
-        <source>Insert space within empty square brackets</source>
-        <target state="translated">Leerzeichen zwischen leeren eckigen Klammern einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_within_parameter_list_parentheses">
-        <source>Insert space within parameter list parentheses</source>
-        <target state="translated">Leerzeichen zwischen runden Klammern in Parameterliste einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_within_parentheses_of_expressions">
-        <source>Insert space within parentheses of expressions</source>
-        <target state="translated">Leerzeichen zwischen runden Klammern von Ausdrücken einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_within_parentheses_of_type_casts">
-        <source>Insert space within parentheses of type casts</source>
-        <target state="translated">Leerzeichen zwischen runde Klammern für Typumwandlungen einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_spaces_within_parentheses_of_control_flow_statements">
-        <source>Insert spaces within parentheses of control flow statements</source>
-        <target state="translated">Leerzeichen zwischen den Klammern von Ablaufsteuerungsanweisungen einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_spaces_within_square_brackets">
-        <source>Insert spaces within square brackets</source>
-        <target state="translated">Leerzeichen zwischen eckigen Klammern einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Inside_namespace">
-        <source>Inside namespace</source>
-        <target state="translated">Innerhalb des Namespaces</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Label_Indentation">
-        <source>Label Indentation</source>
-        <target state="translated">Bezeichnungseinzug</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Leave_block_on_single_line">
-        <source>Leave block on single line</source>
-        <target state="translated">Block auf einzelner Zeile belassen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Leave_statements_and_member_declarations_on_the_same_line">
-        <source>Leave statements and member declarations on the same line</source>
-        <target state="translated">Anweisungen und Memberdeklarationen auf der gleichen Zeile belassen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Load_from_0">
         <source>Load from: '{0}'</source>
         <target state="translated">Laden von: {0}</target>
@@ -257,179 +72,9 @@
         <target state="translated">Das Modul wurde nicht gefunden.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="translated">Nie</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Outside_namespace">
         <source>Outside namespace</source>
         <target state="translated">Außerhalb des Namespaces</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_catch_on_new_line">
-        <source>Place "catch" on new line</source>
-        <target state="translated">catch-Anweisung in neue Zeile setzen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_else_on_new_line">
-        <source>Place "else" on new line</source>
-        <target state="translated">else-Anweisung in neue Zeile setzen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_finally_on_new_line">
-        <source>Place "finally" on new line</source>
-        <target state="translated">finally-Anweisung in neue Zeile setzen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_members_in_anonymous_types_on_new_line">
-        <source>Place members in anonymous types on new line</source>
-        <target state="translated">Member in anonymen Typen in neue Zeile setzen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_members_in_object_initializers_on_new_line">
-        <source>Place members in object initializers on new line</source>
-        <target state="translated">Elemente in Objektinitialisierern in neue Zeile setzen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_open_brace_on_new_line_for_anonymous_methods">
-        <source>Place open brace on new line for anonymous methods</source>
-        <target state="translated">Öffnende geschweifte Klammer für anonyme Methoden in neuer Zeile platzieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_open_brace_on_new_line_for_anonymous_types">
-        <source>Place open brace on new line for anonymous types</source>
-        <target state="translated">Öffnende geschweifte Klammer für anonyme Typen in neuer Zeile platzieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_open_brace_on_new_line_for_control_blocks">
-        <source>Place open brace on new line for control blocks</source>
-        <target state="translated">Öffnende geschweifte Klammer für Kontrollblöcke in neuer Zeile platzieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_open_brace_on_new_line_for_lambda_expression">
-        <source>Place open brace on new line for lambda expression</source>
-        <target state="translated">Öffnende geschweifte Klammer für Lambdaausdruck in neue Zeile setzen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_open_brace_on_new_line_for_methods_local_functions">
-        <source>Place open brace on new line for methods and local functions</source>
-        <target state="translated">Öffnende geschweifte Klammer in neuer Zeile für Methoden und lokale Funktionen einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
-        <source>Place open brace on new line for object, collection, array, and with initializers</source>
-        <target state="translated">Öffnende geschweifte Klammer für Objekt-, Sammlungs-, Array- und with-Initialisierer in neue Zeile einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_open_brace_on_new_line_for_properties_indexers_and_events">
-        <source>Place open brace on new line for properties, indexers, and events</source>
-        <target state="translated">Fügt eine öffnende geschweifte Klammer für Eigenschaften, Indexer und Ereignisse in einer neuen Zeile ein.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_open_brace_on_new_line_for_property_indexer_and_event_accessors">
-        <source>Place open brace on new line for property, indexer, and event accessors</source>
-        <target state="translated">Fügt eine öffnende geschweifte Klammer für eine Eigenschaft, den Indexer und Ereignisaccessor in einer neuen Zeile ein.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_open_brace_on_new_line_for_types">
-        <source>Place open brace on new line for types</source>
-        <target state="translated">Öffnende geschweifte Klammer für Typen in neuer Zeile platzieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_query_expression_clauses_on_new_line">
-        <source>Place query expression clauses on new line</source>
-        <target state="translated">Klauseln von Abfrageausdrücken in neuer Zeile platzieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_conditional_delegate_call">
-        <source>Prefer conditional delegate call</source>
-        <target state="translated">Bedingten Delegataufruf bevorzugen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_deconstructed_variable_declaration">
-        <source>Prefer deconstructed variable declaration</source>
-        <target state="translated">Dekonstruierte Variablendeklaration vorziehen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_explicit_type">
-        <source>Prefer explicit type</source>
-        <target state="translated">Expliziten Typ bevorzugen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_index_operator">
-        <source>Prefer index operator</source>
-        <target state="translated">Indexoperator bevorzugen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_inlined_variable_declaration">
-        <source>Prefer inlined variable declaration</source>
-        <target state="translated">Inlinevariablendeklaration vorziehen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_local_function_over_anonymous_function">
-        <source>Prefer local function over anonymous function</source>
-        <target state="translated">Lokale Funktion gegenüber anonymer Funktion bevorzugen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_pattern_matching">
-        <source>Prefer pattern matching</source>
-        <target state="translated">Musterabgleich bevorzugen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_pattern_matching_over_as_with_null_check">
-        <source>Prefer pattern matching over 'as' with 'null' check</source>
-        <target state="translated">Bei der NULL-Überprüfung Musterabgleich gegenüber "as" bevorzugen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_pattern_matching_over_is_with_cast_check">
-        <source>Prefer pattern matching over 'is' with 'cast' check</source>
-        <target state="translated">Bei der cast-Überprüfung Musterabgleich gegenüber "is" bevorzugen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_pattern_matching_over_mixed_type_check">
-        <source>Prefer pattern matching over mixed type check</source>
-        <target state="translated">Musterabgleich gegenüber der Überprüfung gemischter Typen bevorzugen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_range_operator">
-        <source>Prefer range operator</source>
-        <target state="translated">Bereichsoperator bevorzugen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_simple_default_expression">
-        <source>Prefer simple 'default' expression</source>
-        <target state="translated">Einfachen "default"-Ausdruck bevorzugen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_simple_using_statement">
-        <source>Prefer simple 'using' statement</source>
-        <target state="translated">Einfache using-Anweisung bevorzugen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_static_local_functions">
-        <source>Prefer static local functions</source>
-        <target state="translated">Statische lokale Funktionen bevorzugen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_switch_expression">
-        <source>Prefer switch expression</source>
-        <target state="translated">Switch-Ausdruck bevorzugen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_throw_expression">
-        <source>Prefer throw-expression</source>
-        <target state="translated">throw-Ausdruck bevorzugen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_var">
-        <source>Prefer 'var'</source>
-        <target state="translated">"var" bevorzugen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Preferred_using_directive_placement">
-        <source>Preferred 'using' directive placement</source>
-        <target state="translated">Bevorzugte Platzierung der using-Anweisung</target>
         <note />
       </trans-unit>
       <trans-unit id="Press_TAB_to_insert">
@@ -447,11 +92,6 @@
         <target state="translated">Modul auflösen: {0} von {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Set_spacing_for_operators">
-        <source>Set spacing for operators</source>
-        <target state="translated">Abstände für Operatoren festlegen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Smart_Indenting">
         <source>Smart Indenting</source>
         <target state="translated">Intelligenter Einzug</target>
@@ -462,69 +102,9 @@
         <target state="translated">Zeichenfolge teilen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unused_local">
-        <source>Unused local</source>
-        <target state="translated">Nicht verwendete lokale Variable</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_accessors">
-        <source>Use expression body for accessors</source>
-        <target state="translated">Ausdruckskörper für Accessoren verwenden</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_constructors">
-        <source>Use expression body for constructors</source>
-        <target state="translated">Ausdruckskörper für Konstruktoren verwenden</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_indexers">
-        <source>Use expression body for indexers</source>
-        <target state="translated">Ausdruckskörper für Indexer verwenden</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_lambdas">
-        <source>Use expression body for lambdas</source>
-        <target state="translated">Ausdruckskörper für Lambdaausdrücke verwenden</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_local_functions">
-        <source>Use expression body for local functions</source>
-        <target state="translated">Ausdruckstext für lokale Funktionen verwenden</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_methods">
-        <source>Use expression body for methods</source>
-        <target state="translated">Ausdruckskörper für Methoden verwenden</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_operators">
-        <source>Use expression body for operators</source>
-        <target state="translated">Ausdruckskörper für Operatoren verwenden</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_properties">
-        <source>Use expression body for properties</source>
-        <target state="translated">Ausdruckskörper für Eigenschaften verwenden</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WARN_Version_mismatch_Expected_0_Got_1">
         <source>WARN: Version mismatch. Expected: '{0}', Got: '{1}'</source>
         <target state="translated">WARNUNG: Versionskonflikt. Erwartet: "{0}", erhalten: "{1}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="When_on_single_line">
-        <source>When on single line</source>
-        <target state="translated">In einzelner Zeile</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="When_possible">
-        <source>When possible</source>
-        <target state="translated">Wenn möglich</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="When_variable_type_is_apparent">
-        <source>When variable type is apparent</source>
-        <target state="translated">Wenn der Variablentyp offensichtlich ist</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_items_in_cache">

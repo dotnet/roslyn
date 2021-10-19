@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection.Metadata;
@@ -35,9 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var serializationProperties = compilation.ConstructModuleSerializationProperties(emitOptions, runtimeMDVersion, baseline.ModuleVersionId);
             var manifestResources = SpecializedCollections.EmptyEnumerable<ResourceDescription>();
 
-            var updatedMethods = ArrayBuilder<MethodDefinitionHandle>.GetInstance();
-            var updatedTypes = ArrayBuilder<TypeDefinitionHandle>.GetInstance();
-
             PEDeltaAssemblyBuilder moduleBeingBuilt;
             try
             {
@@ -55,7 +53,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 // TODO: https://github.com/dotnet/roslyn/issues/9004
                 diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName, e.Message);
-                return new EmitDifferenceResult(success: false, diagnostics: diagnostics.ToReadOnlyAndFree(), baseline: null, updatedMethods: updatedMethods.ToImmutableAndFree(), updatedTypes: updatedTypes.ToImmutableAndFree());
+                return new EmitDifferenceResult(
+                    success: false,
+                    diagnostics: diagnostics.ToReadOnlyAndFree(),
+                    baseline: null,
+                    updatedMethods: ImmutableArray<MethodDefinitionHandle>.Empty,
+                    changedTypes: ImmutableArray<TypeDefinitionHandle>.Empty);
             }
 
             if (testData != null)
@@ -65,9 +68,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             var definitionMap = moduleBeingBuilt.PreviousDefinitions;
-            var changes = moduleBeingBuilt.Changes;
+            var changes = moduleBeingBuilt.EncSymbolChanges;
+            Debug.Assert(changes != null);
 
             EmitBaseline? newBaseline = null;
+            var updatedMethods = ArrayBuilder<MethodDefinitionHandle>.GetInstance();
+            var changedTypes = ArrayBuilder<TypeDefinitionHandle>.GetInstance();
 
             if (compilation.Compile(
                 moduleBeingBuilt,
@@ -90,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     ilStream,
                     pdbStream,
                     updatedMethods,
-                    updatedTypes,
+                    changedTypes,
                     diagnostics,
                     testData?.SymWriterFactory,
                     emitOptions.PdbFilePath,
@@ -102,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 diagnostics: diagnostics.ToReadOnlyAndFree(),
                 baseline: newBaseline,
                 updatedMethods: updatedMethods.ToImmutableAndFree(),
-                updatedTypes: updatedTypes.ToImmutableAndFree());
+                changedTypes: changedTypes.ToImmutableAndFree());
         }
 
         /// <summary>
@@ -134,12 +140,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             // Mapping from previous compilation to the current.
             var anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap();
+            var synthesizedDelegates = moduleBeingBuilt.GetSynthesizedDelegates();
             var sourceAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
             var sourceContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var otherContext = new EmitContext(moduleBeingBuilt, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
             var matcher = new CSharpSymbolMatcher(
                 anonymousTypeMap,
+                synthesizedDelegates,
                 sourceAssembly,
                 sourceContext,
                 compilation.SourceAssembly,
@@ -151,6 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // TODO: can we reuse some data from the previous matcher?
             var matcherWithAllSynthesizedMembers = new CSharpSymbolMatcher(
                 anonymousTypeMap,
+                synthesizedDelegates,
                 sourceAssembly,
                 sourceContext,
                 compilation.SourceAssembly,

@@ -93,14 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal void UsingStatement(string text, ParseOptions? options, params DiagnosticDescription[] expectedErrors)
         {
             var node = SyntaxFactory.ParseStatement(text, options: options);
-            // we validate the text roundtrips
-            Assert.Equal(text, node.ToFullString());
-            var actualErrors = node.GetDiagnostics();
-            actualErrors.Verify(expectedErrors);
+            Validate(text, node, expectedErrors);
             UsingNode(node);
         }
 
-        internal void UsingDeclaration(string text, ParseOptions options, params DiagnosticDescription[] expectedErrors)
+        internal void UsingDeclaration(string text, ParseOptions? options, params DiagnosticDescription[] expectedErrors)
         {
             UsingDeclaration(text, offset: 0, options, consumeFullText: true, expectedErrors: expectedErrors);
         }
@@ -127,11 +124,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected void UsingNode(string text, CSharpSyntaxNode node, DiagnosticDescription[] expectedErrors)
         {
+            Validate(text, node, expectedErrors);
+            UsingNode(node);
+        }
+
+        protected void Validate(string text, CSharpSyntaxNode node, params DiagnosticDescription[] expectedErrors)
+        {
             // we validate the text roundtrips
             Assert.Equal(text, node.ToFullString());
             var actualErrors = node.GetDiagnostics();
             actualErrors.Verify(expectedErrors);
-            UsingNode(node);
         }
 
         internal void UsingExpression(string text, params DiagnosticDescription[] expectedErrors)
@@ -190,15 +192,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             try
             {
                 Assert.True(_treeEnumerator!.MoveNext());
-                Assert.Equal(kind, _treeEnumerator.Current.Kind());
-                Assert.False(_treeEnumerator.Current.IsMissing);
+                var current = _treeEnumerator.Current;
+
+                Assert.Equal(kind, current.Kind());
+                Assert.False(current.IsMissing);
 
                 if (value != null)
                 {
-                    Assert.Equal(_treeEnumerator.Current.ToString(), value);
+                    Assert.Equal(current.ToString(), value);
                 }
 
-                return _treeEnumerator.Current;
+                return current;
             }
             catch when (DumpAndCleanup())
             {
@@ -286,11 +290,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     case SyntaxKind.IdentifierToken:
                     case SyntaxKind.NumericLiteralToken:
+                    case SyntaxKind.StringLiteralToken:
                         if (node.IsMissing)
                         {
                             goto default;
                         }
-                        _output.WriteLine(@"N(SyntaxKind.{0}, ""{1}"");", node.Kind(), node.ToString());
+                        var value = node.ToString().Replace("\"", "\\\"");
+                        _output.WriteLine(@"N(SyntaxKind.{0}, ""{1}"");", node.Kind(), value);
                         break;
                     default:
                         _output.WriteLine("{0}(SyntaxKind.{1});", node.IsMissing ? "M" : "N", node.Kind());

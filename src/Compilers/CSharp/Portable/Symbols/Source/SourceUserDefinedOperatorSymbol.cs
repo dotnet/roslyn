@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public static SourceUserDefinedOperatorSymbol CreateUserDefinedOperatorSymbol(
             SourceMemberContainerTypeSymbol containingType,
+            Binder bodyBinder,
             OperatorDeclarationSyntax syntax,
             bool isNullableAnalysisEnabled,
             BindingDiagnosticBag diagnostics)
@@ -24,27 +25,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             string name = OperatorFacts.OperatorNameFromDeclaration(syntax);
 
+            var interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
+
+            TypeSymbol explicitInterfaceType;
+            name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, name, diagnostics, out explicitInterfaceType, aliasQualifierOpt: out _);
+
+            var methodKind = interfaceSpecifier == null
+                ? MethodKind.UserDefinedOperator
+                : MethodKind.ExplicitInterfaceImplementation;
+
             return new SourceUserDefinedOperatorSymbol(
-                containingType, name, location, syntax, isNullableAnalysisEnabled, diagnostics);
+                methodKind, containingType, explicitInterfaceType, name, location, syntax, isNullableAnalysisEnabled, diagnostics);
         }
 
         // NOTE: no need to call WithUnsafeRegionIfNecessary, since the signature
         // is bound lazily using binders from a BinderFactory (which will already include an
         // UnsafeBinder, if necessary).
         private SourceUserDefinedOperatorSymbol(
+            MethodKind methodKind,
             SourceMemberContainerTypeSymbol containingType,
+            TypeSymbol explicitInterfaceType,
             string name,
             Location location,
             OperatorDeclarationSyntax syntax,
             bool isNullableAnalysisEnabled,
             BindingDiagnosticBag diagnostics) :
             base(
-                MethodKind.UserDefinedOperator,
+                methodKind,
+                explicitInterfaceType,
                 name,
                 containingType,
                 location,
                 syntax,
-                MakeDeclarationModifiers(containingType.IsInterface, syntax, location, diagnostics),
+                MakeDeclarationModifiers(methodKind, containingType.IsInterface, syntax, location, diagnostics),
                 hasBody: syntax.HasAnyBody(),
                 isExpressionBodied: syntax.Body == null && syntax.ExpressionBody != null,
                 isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
@@ -54,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
 
-            if (name != WellKnownMemberNames.EqualityOperatorName && name != WellKnownMemberNames.InequalityOperatorName)
+            if (IsAbstract || (name != WellKnownMemberNames.EqualityOperatorName && name != WellKnownMemberNames.InequalityOperatorName))
             {
                 CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: syntax.Body != null || syntax.ExpressionBody != null, diagnostics: diagnostics);
             }

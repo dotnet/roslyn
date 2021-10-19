@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -58,14 +59,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            if (expression is StackAllocArrayCreationExpressionSyntax ||
-                expression is ImplicitStackAllocArrayCreationExpressionSyntax)
+            if (expression is StackAllocArrayCreationExpressionSyntax or ImplicitStackAllocArrayCreationExpressionSyntax)
             {
                 // var span = (stackalloc byte[8]);
                 // https://github.com/dotnet/roslyn/issues/44629
                 // The code semantics changes if the parenthesis removed.
                 // With parenthesis:    variable span is of type `Span<byte>`.
                 // Without parenthesis: variable span is of type `byte*` which can only be used in unsafe context.
+                if (node.Parent is EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax varDecl } })
+                {
+                    // we have either `var x = (stackalloc byte[8])` or `Span<byte> x = (stackalloc byte[8])`.  The former
+                    // is not safe to remove. the latter is.
+                    if (semanticModel.GetTypeInfo(varDecl.Type, cancellationToken).Type is
+                        {
+                            Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
+                            ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
+                        })
+                    {
+                        return !varDecl.Type.IsVar;
+                    }
+                }
+
                 return false;
             }
 
@@ -418,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // If the expression's precedence is the same as its parent, and both are binary expressions,
                 // check for associativity and commutability.
 
-                if (!(expression is BinaryExpressionSyntax || expression is AssignmentExpressionSyntax))
+                if (expression is not (BinaryExpressionSyntax or AssignmentExpressionSyntax))
                 {
                     // If the expression is not a binary expression, association never changes.
                     return false;
@@ -717,7 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //
             // you can safely convert to `not ... or not ...`
             var patternPrecedence = pattern.GetOperatorPrecedence();
-            if (patternPrecedence == OperatorPrecedence.Primary || patternPrecedence == OperatorPrecedence.Unary)
+            if (patternPrecedence is OperatorPrecedence.Primary or OperatorPrecedence.Unary)
                 return true;
 
             // We're parenthesized and are inside a parenthesized pattern.  We can remove our parens.

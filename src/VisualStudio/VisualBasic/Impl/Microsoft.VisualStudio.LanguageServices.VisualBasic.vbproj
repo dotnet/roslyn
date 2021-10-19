@@ -6,7 +6,7 @@
     <TargetFramework>net472</TargetFramework>
     <UseWpf>true</UseWpf>
     <RootNamespace></RootNamespace>
-    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+    <ApplyNgenOptimization>full</ApplyNgenOptimization>
 
     <!-- VSIX -->
     <CreateVsixContainer>false</CreateVsixContainer>
@@ -33,8 +33,6 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Windows.Forms" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.16.9.DesignTime" Version="$(MicrosoftVisualStudioShellInterop169DesignTimeVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="$(MicrosoftVisualStudioSDKEmbedInteropTypesVersion)" PrivateAssets="none" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
@@ -44,6 +42,8 @@
   </ItemGroup>
   <ItemGroup>
     <Import Include="Roslyn.Utilities" />
+    <Import Include="System.Threading.Tasks"/>
+    <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="BasicVSResources.resx" GenerateSource="true" Namespace="Microsoft.VisualStudio.LanguageServices.VisualBasic" />

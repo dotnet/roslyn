@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         private readonly List<CompletionItem> _items;
 
-        internal IReadOnlyList<CompletionItem> Items => _items;
+        private CompletionItem? _suggestionModeItem;
 
         internal CompletionProvider Provider { get; }
 
@@ -104,6 +102,8 @@ namespace Microsoft.CodeAnalysis.Completion
             _items = new List<CompletionItem>();
         }
 
+        internal IReadOnlyList<CompletionItem> Items => _items;
+
         public void AddItem(CompletionItem item)
         {
             if (item == null)
@@ -128,8 +128,6 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        private CompletionItem _suggestionModeItem;
-
         /// <summary>
         /// An optional <see cref="CompletionItem"/> that appears selected in the list presented to the user during suggestion mode.
         /// 
@@ -140,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// 
         /// No text is ever inserted when this item is completed, leaving the text the user typed instead.
         /// </summary>
-        public CompletionItem SuggestionModeItem
+        public CompletionItem? SuggestionModeItem
         {
             get
             {
@@ -149,12 +147,12 @@ namespace Microsoft.CodeAnalysis.Completion
 
             set
             {
-                _suggestionModeItem = value;
-
-                if (_suggestionModeItem != null)
+                if (value != null)
                 {
-                    _suggestionModeItem = FixItem(_suggestionModeItem);
+                    value = FixItem(value);
                 }
+
+                _suggestionModeItem = value;
             }
         }
 

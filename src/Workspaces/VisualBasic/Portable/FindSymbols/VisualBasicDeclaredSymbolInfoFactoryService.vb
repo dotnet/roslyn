@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Text
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -16,7 +17,16 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
     <ExportLanguageService(GetType(IDeclaredSymbolInfoFactoryService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicDeclaredSymbolInfoFactoryService
-        Inherits AbstractDeclaredSymbolInfoFactoryService
+        Inherits AbstractDeclaredSymbolInfoFactoryService(Of
+            CompilationUnitSyntax,
+            ImportsStatementSyntax,
+            NamespaceBlockSyntax,
+            TypeBlockSyntax,
+            EnumBlockSyntax,
+            StatementSyntax,
+            NameSyntax,
+            QualifiedNameSyntax,
+            IdentifierNameSyntax)
 
         Private Const ExtensionName As String = "Extension"
         Private Const ExtensionAttributeName As String = "ExtensionAttribute"
@@ -108,15 +118,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return simpleName.Identifier.ValueText
         End Function
 
-        Private Shared Function GetContainerDisplayName(node As SyntaxNode) As String
+        Protected Overrides Function GetContainerDisplayName(node As StatementSyntax) As String
             Return VisualBasicSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeTypeParameters)
         End Function
 
-        Private Shared Function GetFullyQualifiedContainerName(node As SyntaxNode, rootNamespace As String) As String
+        Protected Overrides Function GetFullyQualifiedContainerName(node As StatementSyntax, rootNamespace As String) As String
             Return VisualBasicSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeNamespaces, rootNamespace)
         End Function
 
-        Public Overrides Function TryGetDeclaredSymbolInfo(stringTable As StringTable, node As SyntaxNode, rootNamespace As String, ByRef declaredSymbolInfo As DeclaredSymbolInfo) As Boolean
+        Protected Overrides Sub AddDeclaredSymbolInfosWorker(
+                container As SyntaxNode,
+                node As StatementSyntax,
+                stringTable As StringTable,
+                declaredSymbolInfos As ArrayBuilder(Of DeclaredSymbolInfo),
+                aliases As Dictionary(Of String, String),
+                extensionMethodInfo As Dictionary(Of String, ArrayBuilder(Of Integer)),
+                containerDisplayName As String,
+                fullyQualifiedContainerName As String,
+                cancellationToken As CancellationToken)
+
             ' If this Is a part of partial type that only contains nested types, then we don't make an info type for it.
             ' That's because we effectively think of this as just being a virtual container just to hold the nested
             ' types, And Not something someone would want to explicitly navigate to itself.  Similar to how we think of
@@ -127,171 +147,215 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                typeDecl.Members.Any() AndAlso
                typeDecl.Members.All(Function(m) TypeOf m Is TypeBlockSyntax) Then
 
-                declaredSymbolInfo = Nothing
-                Return False
+                Return
+            End If
+
+            If node.Kind() = SyntaxKind.PropertyBlock Then
+                node = DirectCast(node, PropertyBlockSyntax).PropertyStatement
+            ElseIf node.Kind() = SyntaxKind.EventBlock Then
+                node = DirectCast(node, EventBlockSyntax).EventStatement
+            ElseIf TypeOf node Is MethodBlockBaseSyntax Then
+                node = DirectCast(node, MethodBlockBaseSyntax).BlockStatement
             End If
 
             Dim kind = node.Kind()
             Select Case kind
                 Case SyntaxKind.ClassBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ModuleBlock, SyntaxKind.StructureBlock
                     Dim typeBlock = CType(node, TypeBlockSyntax)
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         typeDecl.BlockStatement.Identifier.ValueText,
                         GetTypeParameterSuffix(typeBlock.BlockStatement.TypeParameterList),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent, rootNamespace),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         typeBlock.BlockStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
                         If(kind = SyntaxKind.ClassBlock, DeclaredSymbolInfoKind.Class,
                         If(kind = SyntaxKind.InterfaceBlock, DeclaredSymbolInfoKind.Interface,
                         If(kind = SyntaxKind.ModuleBlock, DeclaredSymbolInfoKind.Module,
                         DeclaredSymbolInfoKind.Struct))),
-                        GetAccessibility(typeBlock, typeBlock.BlockStatement.Modifiers),
+                        GetAccessibility(container, typeBlock, typeBlock.BlockStatement.Modifiers),
                         typeBlock.BlockStatement.Identifier.Span,
                         GetInheritanceNames(stringTable, typeBlock),
-                        IsNestedType(typeBlock))
-                    Return True
+                        IsNestedType(typeBlock)))
+                    Return
                 Case SyntaxKind.EnumBlock
-                    Dim enumDecl = CType(node, EnumBlockSyntax)
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    Dim enumDecl = DirectCast(node, EnumBlockSyntax)
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         enumDecl.EnumStatement.Identifier.ValueText, Nothing,
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent, rootNamespace),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         enumDecl.EnumStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Enum,
-                        GetAccessibility(enumDecl, enumDecl.EnumStatement.Modifiers),
+                        GetAccessibility(container, enumDecl, enumDecl.EnumStatement.Modifiers),
                         enumDecl.EnumStatement.Identifier.Span,
                         ImmutableArray(Of String).Empty,
-                        IsNestedType(enumDecl))
-                    Return True
-                Case SyntaxKind.ConstructorBlock
-                    Dim constructor = CType(node, ConstructorBlockSyntax)
-                    Dim typeBlock = TryCast(constructor.Parent, TypeBlockSyntax)
+                        IsNestedType(enumDecl)))
+                    Return
+                Case SyntaxKind.SubNewStatement
+                    Dim constructor = DirectCast(node, SubNewStatementSyntax)
+                    Dim typeBlock = TryCast(container, TypeBlockSyntax)
                     If typeBlock IsNot Nothing Then
-                        declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                        declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                             stringTable,
                             typeBlock.BlockStatement.Identifier.ValueText,
                             GetConstructorSuffix(constructor),
-                            GetContainerDisplayName(node.Parent),
-                            GetFullyQualifiedContainerName(node.Parent, rootNamespace),
-                            constructor.SubNewStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
+                            containerDisplayName,
+                            fullyQualifiedContainerName,
+                            constructor.Modifiers.Any(SyntaxKind.PartialKeyword),
                             DeclaredSymbolInfoKind.Constructor,
-                            GetAccessibility(constructor, constructor.SubNewStatement.Modifiers),
-                            constructor.SubNewStatement.NewKeyword.Span,
+                            GetAccessibility(container, constructor, constructor.Modifiers),
+                            constructor.NewKeyword.Span,
                             ImmutableArray(Of String).Empty,
-                            parameterCount:=If(constructor.SubNewStatement.ParameterList?.Parameters.Count, 0))
+                            parameterCount:=If(constructor.ParameterList?.Parameters.Count, 0)))
 
-                        Return True
+                        Return
                     End If
                 Case SyntaxKind.DelegateFunctionStatement, SyntaxKind.DelegateSubStatement
-                    Dim delegateDecl = CType(node, DelegateStatementSyntax)
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    Dim delegateDecl = DirectCast(node, DelegateStatementSyntax)
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         delegateDecl.Identifier.ValueText,
                         GetTypeParameterSuffix(delegateDecl.TypeParameterList),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent, rootNamespace),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         delegateDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Delegate,
-                        GetAccessibility(delegateDecl, delegateDecl.Modifiers),
+                        GetAccessibility(container, delegateDecl, delegateDecl.Modifiers),
                         delegateDecl.Identifier.Span,
-                        ImmutableArray(Of String).Empty)
-                    Return True
+                        ImmutableArray(Of String).Empty))
+                    Return
                 Case SyntaxKind.EnumMemberDeclaration
-                    Dim enumMember = CType(node, EnumMemberDeclarationSyntax)
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    Dim enumMember = DirectCast(node, EnumMemberDeclarationSyntax)
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         enumMember.Identifier.ValueText, Nothing,
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent, rootNamespace),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         isPartial:=False,
                         DeclaredSymbolInfoKind.EnumMember,
                         Accessibility.Public,
                         enumMember.Identifier.Span,
-                        ImmutableArray(Of String).Empty)
-                    Return True
+                        ImmutableArray(Of String).Empty))
+                    Return
                 Case SyntaxKind.EventStatement
-                    Dim eventDecl = CType(node, EventStatementSyntax)
-                    Dim statementOrBlock = If(TypeOf node.Parent Is EventBlockSyntax, node.Parent, node)
-                    Dim eventParent = statementOrBlock.Parent
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    Dim eventDecl = DirectCast(node, EventStatementSyntax)
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         eventDecl.Identifier.ValueText, Nothing,
-                        GetContainerDisplayName(eventParent),
-                        GetFullyQualifiedContainerName(eventParent, rootNamespace),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         eventDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Event,
-                        GetAccessibility(statementOrBlock, eventDecl.Modifiers),
+                        GetAccessibility(container, eventDecl, eventDecl.Modifiers),
                         eventDecl.Identifier.Span,
-                        ImmutableArray(Of String).Empty)
-                    Return True
-                Case SyntaxKind.FunctionBlock, SyntaxKind.SubBlock
-                    Dim funcDecl = CType(node, MethodBlockSyntax)
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                        ImmutableArray(Of String).Empty))
+                    Return
+                Case SyntaxKind.FunctionStatement, SyntaxKind.SubStatement
+                    Dim funcDecl = DirectCast(node, MethodStatementSyntax)
+                    Dim isExtension = IsExtensionMethod(funcDecl)
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
-                        funcDecl.SubOrFunctionStatement.Identifier.ValueText,
+                        funcDecl.Identifier.ValueText,
                         GetMethodSuffix(funcDecl),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent, rootNamespace),
-                        funcDecl.SubOrFunctionStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
-                        If(IsExtensionMethod(funcDecl), DeclaredSymbolInfoKind.ExtensionMethod, DeclaredSymbolInfoKind.Method),
-                        GetAccessibility(node, funcDecl.SubOrFunctionStatement.Modifiers),
-                        funcDecl.SubOrFunctionStatement.Identifier.Span,
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
+                        funcDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
+                        If(isExtension, DeclaredSymbolInfoKind.ExtensionMethod, DeclaredSymbolInfoKind.Method),
+                        GetAccessibility(container, funcDecl, funcDecl.Modifiers),
+                        funcDecl.Identifier.Span,
                         ImmutableArray(Of String).Empty,
-                        parameterCount:=If(funcDecl.SubOrFunctionStatement.ParameterList?.Parameters.Count, 0),
-                        typeParameterCount:=If(funcDecl.SubOrFunctionStatement.TypeParameterList?.Parameters.Count, 0))
-                    Return True
-                Case SyntaxKind.ModifiedIdentifier
-                    Dim modifiedIdentifier = CType(node, ModifiedIdentifierSyntax)
-                    Dim variableDeclarator = TryCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
-                    Dim fieldDecl = TryCast(variableDeclarator?.Parent, FieldDeclarationSyntax)
-                    If fieldDecl IsNot Nothing Then
-                        declaredSymbolInfo = DeclaredSymbolInfo.Create(
-                            stringTable,
-                            modifiedIdentifier.Identifier.ValueText, Nothing,
-                            GetContainerDisplayName(fieldDecl.Parent),
-                            GetFullyQualifiedContainerName(fieldDecl.Parent, rootNamespace),
-                            fieldDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
-                            If(fieldDecl.Modifiers.Any(Function(m) m.Kind() = SyntaxKind.ConstKeyword),
-                                DeclaredSymbolInfoKind.Constant,
-                                DeclaredSymbolInfoKind.Field),
-                            GetAccessibility(fieldDecl, fieldDecl.Modifiers),
-                            modifiedIdentifier.Identifier.Span,
-                            ImmutableArray(Of String).Empty)
-                        Return True
+                        parameterCount:=If(funcDecl.ParameterList?.Parameters.Count, 0),
+                        typeParameterCount:=If(funcDecl.TypeParameterList?.Parameters.Count, 0)))
+                    If isExtension Then
+                        AddExtensionMethodInfo(funcDecl, aliases, declaredSymbolInfos.Count - 1, extensionMethodInfo)
                     End If
+
+                    Return
                 Case SyntaxKind.PropertyStatement
-                    Dim propertyDecl = CType(node, PropertyStatementSyntax)
-                    Dim statementOrBlock = If(TypeOf node.Parent Is PropertyBlockSyntax, node.Parent, node)
-                    Dim propertyParent = statementOrBlock.Parent
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    Dim propertyDecl = DirectCast(node, PropertyStatementSyntax)
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         propertyDecl.Identifier.ValueText,
                         GetPropertySuffix(propertyDecl),
-                        GetContainerDisplayName(propertyParent),
-                        GetFullyQualifiedContainerName(propertyParent, rootNamespace),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         propertyDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Property,
-                        GetAccessibility(statementOrBlock, propertyDecl.Modifiers),
+                        GetAccessibility(container, propertyDecl, propertyDecl.Modifiers),
                         propertyDecl.Identifier.Span,
-                        ImmutableArray(Of String).Empty)
-                    Return True
+                        ImmutableArray(Of String).Empty))
+                    Return
+                Case SyntaxKind.FieldDeclaration
+                    Dim fieldDecl = DirectCast(node, FieldDeclarationSyntax)
+                    For Each variableDeclarator In fieldDecl.Declarators
+                        For Each modifiedIdentifier In variableDeclarator.Names
+                            declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
+                                stringTable,
+                                modifiedIdentifier.Identifier.ValueText, Nothing,
+                                containerDisplayName,
+                                fullyQualifiedContainerName,
+                                fieldDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
+                                If(fieldDecl.Modifiers.Any(Function(m) m.Kind() = SyntaxKind.ConstKeyword),
+                                    DeclaredSymbolInfoKind.Constant,
+                                    DeclaredSymbolInfoKind.Field),
+                                GetAccessibility(container, fieldDecl, fieldDecl.Modifiers),
+                                modifiedIdentifier.Identifier.Span,
+                                ImmutableArray(Of String).Empty))
+                        Next
+                    Next
             End Select
+        End Sub
 
-            declaredSymbolInfo = Nothing
-            Return False
+        Protected Overrides Function GetChildren(node As CompilationUnitSyntax) As SyntaxList(Of StatementSyntax)
+            Return node.Members
         End Function
 
-        Private Shared Function IsExtensionMethod(node As MethodBlockSyntax) As Boolean
-            Dim parameterCount = node.SubOrFunctionStatement.ParameterList?.Parameters.Count
+        Protected Overrides Function GetChildren(node As NamespaceBlockSyntax) As SyntaxList(Of StatementSyntax)
+            Return node.Members
+        End Function
+
+        Protected Overrides Function GetChildren(node As TypeBlockSyntax) As SyntaxList(Of StatementSyntax)
+            Return node.Members
+        End Function
+
+        Protected Overrides Function GetChildren(node As EnumBlockSyntax) As IEnumerable(Of StatementSyntax)
+            Return node.Members
+        End Function
+
+        Protected Overrides Function GetUsingAliases(node As CompilationUnitSyntax) As SyntaxList(Of ImportsStatementSyntax)
+            Return node.Imports
+        End Function
+
+        Protected Overrides Function GetUsingAliases(node As NamespaceBlockSyntax) As SyntaxList(Of ImportsStatementSyntax)
+            Return Nothing
+        End Function
+
+        Protected Overrides Function GetName(node As NamespaceBlockSyntax) As NameSyntax
+            Return node.NamespaceStatement.Name
+        End Function
+
+        Protected Overrides Function GetLeft(node As QualifiedNameSyntax) As NameSyntax
+            Return node.Left
+        End Function
+
+        Protected Overrides Function GetRight(node As QualifiedNameSyntax) As NameSyntax
+            Return node.Right
+        End Function
+
+        Protected Overrides Function GetIdentifier(node As IdentifierNameSyntax) As SyntaxToken
+            Return node.Identifier
+        End Function
+
+        Private Shared Function IsExtensionMethod(node As MethodStatementSyntax) As Boolean
+            Dim parameterCount = node.ParameterList?.Parameters.Count
 
             ' Extension method must have at least one parameter and declared inside a module
-            If Not parameterCount.HasValue OrElse parameterCount.Value = 0 OrElse TypeOf node.Parent IsNot ModuleBlockSyntax Then
+            If Not parameterCount.HasValue OrElse parameterCount.Value = 0 OrElse TypeOf node.Parent?.Parent IsNot ModuleBlockSyntax Then
                 Return False
             End If
 
-            For Each attributeList In node.BlockStatement.AttributeLists
+            For Each attributeList In node.AttributeLists
                 For Each attribute In attributeList.Attributes
                     ' ExtensionAttribute takes no argument.
                     If attribute.ArgumentList?.Arguments.Count > 0 Then
@@ -312,7 +376,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return TypeOf node.Parent Is TypeBlockSyntax
         End Function
 
-        Private Shared Function GetAccessibility(node As SyntaxNode, modifiers As SyntaxTokenList) As Accessibility
+        Private Shared Function GetAccessibility(container As SyntaxNode, node As StatementSyntax, modifiers As SyntaxTokenList) As Accessibility
             Dim sawFriend = False
 
             For Each modifier In modifiers
@@ -331,7 +395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             End If
 
             ' No accessibility modifiers
-            Select Case node.Parent.Kind()
+            Select Case container.Kind()
                 Case SyntaxKind.ClassBlock
                     ' In a class, fields and shared-constructors are private by default,
                     ' everything Else Is Public
@@ -339,13 +403,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         Return Accessibility.Private
                     End If
 
-                    If node.Kind() = SyntaxKind.ConstructorBlock AndAlso
-                       DirectCast(node, ConstructorBlockSyntax).SubNewStatement.Modifiers.Any(SyntaxKind.SharedKeyword) Then
+                    If node.Kind() = SyntaxKind.SubNewStatement AndAlso
+                       DirectCast(node, SubNewStatementSyntax).Modifiers.Any(SyntaxKind.SharedKeyword) Then
                         Return Accessibility.Private
                     End If
 
                     Return Accessibility.Public
-
                 Case SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ModuleBlock
                     ' Everything in a struct/interface/module is public
                     Return Accessibility.Public
@@ -355,13 +418,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return Accessibility.Internal
         End Function
 
-        Private Shared Function GetMethodSuffix(method As MethodBlockSyntax) As String
-            Return GetTypeParameterSuffix(method.SubOrFunctionStatement.TypeParameterList) &
-                   GetSuffix(method.SubOrFunctionStatement.ParameterList)
+        Private Shared Function GetMethodSuffix(method As MethodStatementSyntax) As String
+            Return GetTypeParameterSuffix(method.TypeParameterList) & GetSuffix(method.ParameterList)
         End Function
 
-        Private Shared Function GetConstructorSuffix(method As ConstructorBlockSyntax) As String
-            Return ".New" & GetSuffix(method.SubNewStatement.ParameterList)
+        Private Shared Function GetConstructorSuffix(method As SubNewStatementSyntax) As String
+            Return ".New" & GetSuffix(method.ParameterList)
         End Function
 
         Private Shared Function GetPropertySuffix([property] As PropertyStatementSyntax) As String
@@ -422,6 +484,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             If parameterList IsNot Nothing Then
                 AppendParameters(parameterList.Parameters, builder)
             End If
+
             builder.Append(")"c)
 
             Return pooledBuilder.ToStringAndFree()
@@ -449,24 +512,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Next
         End Sub
 
-        Public Overrides Function GetReceiverTypeName(node As SyntaxNode) As String
-            Dim funcDecl = CType(node, MethodBlockSyntax)
+        Protected Overrides Function GetReceiverTypeName(node As StatementSyntax) As String
+            Dim funcDecl = DirectCast(node, MethodStatementSyntax)
             Debug.Assert(IsExtensionMethod(funcDecl))
 
-            Dim typeParameterNames = funcDecl.SubOrFunctionStatement.TypeParameterList?.Parameters.SelectAsArray(Function(p) p.Identifier.Text)
+            Dim typeParameterNames = funcDecl.TypeParameterList?.Parameters.SelectAsArray(Function(p) p.Identifier.Text)
             Dim targetTypeName As String = Nothing
             Dim isArray As Boolean = False
 
-            TryGetSimpleTypeNameWorker(funcDecl.BlockStatement.ParameterList.Parameters(0).AsClause?.Type, typeParameterNames, targetTypeName, isArray)
+            TryGetSimpleTypeNameWorker(funcDecl.ParameterList.Parameters(0).AsClause?.Type, typeParameterNames, targetTypeName, isArray)
             Return CreateReceiverTypeString(targetTypeName, isArray)
         End Function
 
-        Public Overrides Function TryGetAliasesFromUsingDirective(node As SyntaxNode, ByRef aliases As ImmutableArray(Of (aliasName As String, name As String))) As Boolean
-
-            Dim importStatement = TryCast(node, ImportsStatementSyntax)
+        Protected Overrides Function TryGetAliasesFromUsingDirective(importStatement As ImportsStatementSyntax, ByRef aliases As ImmutableArray(Of (aliasName As String, name As String))) As Boolean
             Dim builder = ArrayBuilder(Of (String, String)).GetInstance()
 
-            If (importStatement IsNot Nothing) Then
+            If importStatement IsNot Nothing Then
                 For Each importsClause In importStatement.ImportsClauses
 
                     If importsClause.Kind = SyntaxKind.SimpleImportsClause Then
@@ -511,7 +572,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                 Dim genericName = DirectCast(node, GenericNameSyntax)
                 Dim name = genericName.Identifier.Text
                 Dim arity = genericName.Arity
-                simpleTypeName = If(arity = 0, name, name + GetMetadataAritySuffix(arity))
+                simpleTypeName = If(arity = 0, name, name + ArityUtilities.GetMetadataAritySuffix(arity))
                 Return True
 
             ElseIf TypeOf node Is QualifiedNameSyntax Then
@@ -576,7 +637,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             End Select
         End Function
 
-        Public Overrides Function GetRootNamespace(compilationOptions As CompilationOptions) As String
+        Protected Overrides Function GetRootNamespace(compilationOptions As CompilationOptions) As String
             Return DirectCast(compilationOptions, VisualBasicCompilationOptions).RootNamespace
         End Function
     End Class

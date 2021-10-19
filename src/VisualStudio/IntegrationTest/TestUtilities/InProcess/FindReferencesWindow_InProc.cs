@@ -37,6 +37,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                         groupingPriority: 0);
                     newColumnsStates.Add(newState);
                 }
+
                 tableControl.SetColumnStates(newColumnsStates);
 
                 // Force a refresh, if necessary. This doesn't re-run the Find References or

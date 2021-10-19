@@ -491,12 +491,12 @@ End Class
 
             Dim c = compilation1.GetMember(Of NamedTypeSymbol)("C")
             Dim displayClasses = peAssemblyBuilder.GetSynthesizedTypes(c).ToArray()
-            Assert.Equal("_Closure$__1-0", displayClasses(0).Name)
-            Assert.Equal("_Closure$__", displayClasses(1).Name)
+            Assert.Equal("_Closure$__", displayClasses(0).Name)
+            Assert.Equal("_Closure$__1-0", displayClasses(1).Name)
 
             Dim emitContext = New EmitContext(peAssemblyBuilder, Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
 
-            Dim fields = displayClasses(0).GetFields(emitContext).ToArray()
+            Dim fields = displayClasses(1).GetFields(emitContext).ToArray()
             Dim x1 = fields(0)
             Dim x2 = fields(1)
             Assert.Equal("$VB$Local_x1", x1.Name)
@@ -513,6 +513,38 @@ End Class
 
             Assert.Equal("$VB$Local_x1", mappedX1.Name)
             Assert.Null(mappedX2)
+        End Sub
+
+        <Fact>
+        Public Sub Method_RenameParameter()
+            Dim source0 = "
+Class C
+    Public Function X(a As Integer) As Integer
+        Return a
+    End Function
+End Class
+"
+            Dim source1 = "
+Class C
+    Public Function X(b As Integer) As Integer
+        Return b
+    End Function
+End Class
+"
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
+            Dim compilation1 = compilation0.WithSource(source1)
+
+            Dim matcher = New VisualBasicSymbolMatcher(
+                Nothing,
+                compilation1.SourceAssembly,
+                New EmitContext(),
+                compilation0.SourceAssembly,
+                New EmitContext(),
+                Nothing)
+
+            Dim member = compilation1.GetMember(Of MethodSymbol)("C.X")
+            Dim other = matcher.MapDefinition(member.GetCciAdapter())
+            Assert.NotNull(other)
         End Sub
 
         <Fact>

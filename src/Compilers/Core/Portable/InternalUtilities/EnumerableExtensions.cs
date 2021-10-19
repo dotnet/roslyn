@@ -341,6 +341,26 @@ namespace Roslyn.Utilities
             return builder.ToImmutableAndFree();
         }
 
+        public static async ValueTask<ImmutableArray<TResult>> SelectManyAsArrayAsync<TItem, TArg, TResult>(this IEnumerable<TItem> source, Func<TItem, TArg, CancellationToken, ValueTask<IEnumerable<TResult>>> selector, TArg arg, CancellationToken cancellationToken)
+        {
+            var builder = ArrayBuilder<TResult>.GetInstance();
+
+            foreach (var item in source)
+            {
+                builder.AddRange(await selector(item, arg, cancellationToken).ConfigureAwait(false));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        public static async ValueTask<IEnumerable<TResult>> SelectManyInParallelAsync<TItem, TResult>(
+           this IEnumerable<TItem> sequence,
+           Func<TItem, CancellationToken, Task<IEnumerable<TResult>>> selector,
+           CancellationToken cancellationToken)
+        {
+            return (await Task.WhenAll(sequence.Select(item => selector(item, cancellationToken))).ConfigureAwait(false)).Flatten();
+        }
+
         public static bool All(this IEnumerable<bool> source)
         {
             if (source == null)

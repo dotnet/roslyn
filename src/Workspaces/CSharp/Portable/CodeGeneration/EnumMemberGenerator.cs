@@ -74,14 +74,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return null;
             }
 
-            if (!(enumMember.ConstantValue is byte) &&
-                !(enumMember.ConstantValue is sbyte) &&
-                !(enumMember.ConstantValue is ushort) &&
-                !(enumMember.ConstantValue is short) &&
-                !(enumMember.ConstantValue is int) &&
-                !(enumMember.ConstantValue is uint) &&
-                !(enumMember.ConstantValue is long) &&
-                !(enumMember.ConstantValue is ulong))
+            if (enumMember.ConstantValue is not byte and
+                not sbyte and
+                not ushort and
+                not short and
+                not int and
+                not uint and
+                not long and
+                not ulong)
             {
                 return null;
             }

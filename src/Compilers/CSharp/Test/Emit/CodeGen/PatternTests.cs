@@ -17,6 +17,71 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     {
         #region Miscellaneous
 
+        [Fact, WorkItem(48493, "https://github.com/dotnet/roslyn/issues/48493")]
+        public void Repro_48493()
+        {
+            var source = @"
+using System;
+using System.Linq;
+
+namespace Sample
+{
+    internal class Row
+    {
+        public string Message { get; set; } = """";
+    }
+
+    internal class Program
+    {
+        private static void Main()
+        {
+            Console.WriteLine(ProcessRow(new Row()));
+        }
+
+        private static string ProcessRow(Row row)
+        {
+            if (row == null) throw new ArgumentNullException(nameof(row));
+            return row switch
+            {
+                { Message: ""stringA"" } => ""stringB"",
+                var r when new[] { ""stringC"", ""stringD"" }.Any(x => r.Message.Contains(x)) => ""stringE"",
+                { Message: ""stringF"" } => ""stringG"",
+                _ => ""stringH"",
+            };
+        }
+    }
+}";
+            CompileAndVerify(source, expectedOutput: "stringH");
+        }
+
+        [Fact, WorkItem(48493, "https://github.com/dotnet/roslyn/issues/48493")]
+        public void Repro_48493_Simple()
+        {
+            var source = @"
+using System;
+
+internal class Widget
+{
+    public bool IsGood { get; set; }
+}
+
+internal class Program
+{
+    private static bool M0(Func<bool> fn) => fn();
+
+    private static void Main()
+    {
+        Console.Write(new Widget() switch
+        {
+            { IsGood: true } => 1,
+            _ when M0(() => true) => 2,
+            { } => 3,
+        });
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"2");
+        }
+
         [Fact, WorkItem(18811, "https://github.com/dotnet/roslyn/issues/18811")]
         public void MissingNullable_01()
         {
@@ -2004,6 +2069,56 @@ public class C {
   IL_003e:  call       ""string string.Concat(string, string, string)""
   IL_0043:  call       ""void System.Console.WriteLine(string)""
   IL_0048:  ret
+}");
+        }
+
+        [Fact, WorkItem(51801, "https://github.com/dotnet/roslyn/issues/51801")]
+        public void PropertyOverrideLacksAccessor()
+        {
+            var source = @"
+#nullable enable
+
+class Base
+{
+  public virtual bool IsOk { get { return true; } set { } }
+}
+
+class C : Base
+{
+  public override bool IsOk { set { } }
+  public string? Value { get; }
+
+  public string M()
+  {
+    switch (this)
+    {
+      case { IsOk: true }:
+        return Value;
+      default:
+        return Value;
+    }
+  }
+}
+";
+            var verifier = CompileAndVerify(source);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brfalse.s  IL_0013
+  IL_0005:  ldloc.0
+  IL_0006:  callvirt   ""bool Base.IsOk.get""
+  IL_000b:  pop
+  IL_000c:  ldarg.0
+  IL_000d:  call       ""string C.Value.get""
+  IL_0012:  ret
+  IL_0013:  ldarg.0
+  IL_0014:  call       ""string C.Value.get""
+  IL_0019:  ret
 }");
         }
 

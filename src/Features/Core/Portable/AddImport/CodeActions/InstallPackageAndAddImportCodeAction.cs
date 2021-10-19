@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 // Make a SolutionChangeAction.  This way we can let it generate the diff
                 // preview appropriately.
-                var solutionChangeAction = new SolutionChangeAction("", c => GetUpdatedSolutionAsync(c));
+                var solutionChangeAction = new SolutionChangeAction("", c => GetUpdatedSolutionAsync(c), "");
 
                 using var _ = ArrayBuilder<CodeActionOperation>.GetInstance(out var result);
                 result.AddRange(await solutionChangeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(false));
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             internal override bool ApplyDuringTests => _installPackageOperation.ApplyDuringTests;
             public override string Title => _installPackageOperation.Title;
 
-            internal override bool TryApply(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+            internal override async Task<bool> TryApplyAsync(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
             {
                 var newSolution = workspace.CurrentSolution.WithDocumentText(
                     _changedDocumentId, _newText);
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 // First make the changes to add the import to the document.
                 if (workspace.TryApplyChanges(newSolution, progressTracker))
                 {
-                    if (_installPackageOperation.TryApply(workspace, progressTracker, cancellationToken))
+                    if (await _installPackageOperation.TryApplyAsync(workspace, progressTracker, cancellationToken).ConfigureAwait(true))
                     {
                         return true;
                     }

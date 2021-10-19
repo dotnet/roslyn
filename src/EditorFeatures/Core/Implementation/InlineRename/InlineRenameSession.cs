@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IFeatureService _featureService;
         private readonly IFeatureDisableToken _completionDisabledToken;
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
-        private readonly IDebuggingWorkspaceService _debuggingWorkspaceService;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly Solution _baseSolution;
         private readonly Document _triggerDocument;
@@ -163,9 +162,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _baseSolution = _triggerDocument.Project.Solution;
             this.UndoManager = workspace.Services.GetService<IInlineRenameUndoManager>();
 
-            _debuggingWorkspaceService = workspace.Services.GetService<IDebuggingWorkspaceService>();
-            _debuggingWorkspaceService.BeforeDebuggingStateChanged += OnBeforeDebuggingStateChanged;
-
             if (_renameInfo is IInlineRenameInfoWithFileRename renameInfoWithFileRename)
             {
                 FileRenameInfo = renameInfoWithFileRename.GetFileRenameInfo();
@@ -176,17 +172,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             InitializeOpenBuffers(triggerSpan);
-        }
-
-        private void OnBeforeDebuggingStateChanged(object sender, DebuggingStateChangedEventArgs args)
-        {
-            if (args.After == DebuggingState.Run)
-            {
-                // It's too late for us to change anything, which means we can neither commit nor
-                // rollback changes to cancel. End the rename session but keep all open buffers in
-                // their current state.
-                Cancel(rollbackTemporaryEdits: false);
-            }
         }
 
         public string OriginalSymbolName => _renameInfo.DisplayName;
@@ -229,6 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         FatalError.ReportAndCatch(new NullTextBufferException(document, text));
                         continue;
                     }
+
                     Contract.ThrowIfNull(textSnapshot.TextBuffer);
 
                     openBuffers.Add(textSnapshot.TextBuffer);
@@ -723,7 +709,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void EndRenameSession()
         {
-            _debuggingWorkspaceService.BeforeDebuggingStateChanged -= OnBeforeDebuggingStateChanged;
             CancelAllOpenDocumentTrackingTasks();
             RenameTrackingDismisser.DismissRenameTracking(_workspace, _workspace.GetOpenDocumentIds());
             _inlineRenameSessionDurationLogBlock.Dispose();
@@ -770,11 +755,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 Dismiss(rollbackTemporaryEdits: true);
                 CancelAllOpenDocumentTrackingTasks();
 
+                _triggerView.Caret.PositionChanged += LogPositionChanged;
+
                 ApplyRename(newSolution, operationContext);
 
                 LogRenameSession(RenameLogMessage.UserActionOutcome.Committed, previewChanges);
 
                 EndRenameSession();
+
+                _triggerView.Caret.PositionChanged -= LogPositionChanged;
+
+                void LogPositionChanged(object sender, CaretPositionChangedEventArgs e)
+                {
+                    try
+                    {
+                        throw new InvalidOperationException("Caret position changed during application of rename");
+                    }
+                    catch (InvalidOperationException ex) when (FatalError.ReportAndCatch(ex))
+                    {
+                        // Unreachable code due to ReportAndCatch
+                        Contract.ThrowIfTrue(true);
+                    }
+                }
             }
         }
 
@@ -869,6 +871,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             return false;
         }
+
+        internal bool IsInOpenTextBuffer(SnapshotPoint point)
+            => _openTextBuffers.ContainsKey(point.Snapshot.TextBuffer);
 
         internal TestAccessor GetTestAccessor()
             => new TestAccessor(this);

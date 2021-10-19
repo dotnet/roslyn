@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../CSharpVSResources.resx">
     <body>
@@ -37,6 +37,11 @@
         <target state="translated">인수 목록에 자동으로 완성 목록 표시</target>
         <note />
       </trans-unit>
+      <trans-unit id="Block_scoped">
+        <source>Block scoped</source>
+        <target state="translated">블록 범위 지정됨</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp">
         <source>C#</source>
         <target state="translated">C#</target>
@@ -65,6 +70,11 @@
       <trans-unit id="Edit_color_scheme">
         <source>Edit color scheme</source>
         <target state="translated">색 구성표 편집</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_scoped">
+        <source>File scoped</source>
+        <target state="translated">파일 범위 지정됨</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -112,6 +122,11 @@
         <target state="translated">개체, 컬렉션, 배열 및 with 이니셜라이저의 여는 중괄호를 새 줄에 배치</target>
         <note>{Locked="with"}</note>
       </trans-unit>
+      <trans-unit id="Prefer_extended_property_pattern">
+        <source>Prefer extended property pattern</source>
+        <target state="new">Prefer extended property pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
         <target state="translated">형식이 명백한 경우 암시적 개체 만들기 선호</target>
@@ -121,6 +136,11 @@
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">참조 같음 검사에 대해 'is null' 선호</target>
         <note>'is null' is a C# string and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="translated">형식 검사보다 'null' 검사 선호</target>
+        <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>

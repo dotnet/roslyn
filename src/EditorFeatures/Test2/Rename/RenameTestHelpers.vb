@@ -23,8 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
         Private ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeaturesWpf.AddParts(
             GetType(MockDocumentNavigationServiceFactory),
-            GetType(MockPreviewDialogService),
-            GetType(TestExperimentationService))
+            GetType(MockPreviewDialogService))
 
         Private Function GetSessionInfo(workspace As TestWorkspace) As (document As Document, textSpan As TextSpan)
             Dim hostdoc = workspace.DocumentWithCursor

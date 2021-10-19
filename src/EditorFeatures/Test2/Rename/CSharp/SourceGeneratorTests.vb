@@ -34,6 +34,28 @@ public class GeneratedClass
         End Sub
 
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameWithReferenceInGeneratedFile(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="ClassLibrary1" CommonReferences="true">
+                            <Document>
+public class [|$$RegularClass|]
+{
+}
+                            </Document>
+                            <DocumentFromSourceGenerator>
+public class GeneratedClass
+{
+    public void M(RegularClass c) { }
+}
+                            </DocumentFromSourceGenerator>
+                        </Project>
+                    </Workspace>, host:=host, renameTo:="A")
+
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(51537, "https://github.com/dotnet/roslyn/issues/51537")>
         Public Sub RenameWithCascadeIntoGeneratedFile(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,

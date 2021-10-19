@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             {
                 result[i++] = item;
             }
+
             return result;
         }
 

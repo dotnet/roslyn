@@ -369,6 +369,42 @@ class C
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            public async Task AddCustomEventToClassFromSourceSymbol()
+            {
+                var sourceGenerated = @"class [|C2|]
+{
+    event EventHandler Click
+    {
+        add
+        {
+            Events.AddHandler(""ClickEvent"", value)
+        }
+        remove
+        {
+            Events.RemoveHandler(""ClickEvent"", value)
+        }
+    }
+}";
+                var input = "class [|C1|] { }";
+                var expected = @"class C1
+{
+    event EventHandler Click
+    {
+        add
+        {
+            Events.AddHandler(""ClickEvent"", value)
+        }
+        remove
+        {
+            Events.RemoveHandler(""ClickEvent"", value)
+        }
+    }
+}";
+                var options = new CodeGenerationOptions(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, codeGenerationOptions: options);
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public async Task AddUnsafeEvent()
             {
                 var input = "class [|C|] { }";
@@ -416,6 +452,28 @@ class C
 }";
                 await TestAddMethodAsync(input, expected,
                     returnType: typeof(void));
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            public async Task AddMethodToClassFromSourceSymbol()
+            {
+                var sourceGenerated = @"class [|C2|]
+{
+    public int FInt()
+    {
+        return 0;
+    }
+}";
+                var input = "class [|C1|] { }";
+                var expected = @"class C1
+{
+    public int FInt()
+    {
+        return 0;
+    }
+}";
+                var options = new CodeGenerationOptions(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, codeGenerationOptions: options);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -922,6 +980,34 @@ class C
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            public async Task AddPropertyToClassFromSourceSymbol()
+            {
+                var sourceGenerated = @"class [|C2|]
+{
+    public int P
+    {
+        get
+        {
+            return 0;
+        }
+    }
+}";
+                var input = "class [|C1|] { }";
+                var expected = @"class C1
+{
+    public int P
+    {
+        get
+        {
+            return 0;
+        }
+    }
+}";
+                var options = new CodeGenerationOptions(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, codeGenerationOptions: options);
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public async Task AddIndexer1()
             {
                 var input = "class [|C|] { }";
@@ -1002,7 +1088,7 @@ class C { }";
             public async Task AddAttributeToMethods()
             {
                 var input = "class C { public void [|M()|] { } }";
-                var expected = "class C {[System.Serializable] public void M() { } }";
+                var expected = "class C { [System.Serializable] public void M() { } }";
                 await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
@@ -1018,7 +1104,7 @@ class C { }";
             public async Task AddAttributeToFields()
             {
                 var input = "class C { [|public int F|]; }";
-                var expected = "class C {[System.Serializable] public int F; }";
+                var expected = "class C { [System.Serializable] public int F; }";
                 await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
@@ -1034,7 +1120,7 @@ class C { }";
             public async Task AddAttributeToProperties()
             {
                 var input = "class C { public int [|P|] { get; set; }}";
-                var expected = "class C {[System.Serializable] public int P { get; set; } }";
+                var expected = "class C { [System.Serializable] public int P { get; set; } }";
                 await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
@@ -1083,7 +1169,7 @@ enum C { One, Two }";
             public async Task AddAttributeToEnumMembers()
             {
                 var input = "enum C { [|One|], Two }";
-                var expected = "enum C {[System.Serializable] One, Two }";
+                var expected = "enum C { [System.Serializable] One, Two }";
                 await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
@@ -1099,7 +1185,7 @@ enum C { One, Two }";
             public async Task AddAttributeToIndexer()
             {
                 var input = "class C { public int [|this[int y]|] { get; set; }}";
-                var expected = "class C {[System.Serializable] public int this[int y] { get; set; } }";
+                var expected = "class C { [System.Serializable] public int this[int y] { get; set; } }";
                 await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
@@ -1115,7 +1201,7 @@ enum C { One, Two }";
             public async Task AddAttributeToOperator()
             {
                 var input = "class C { public static C operator [|+|] (C c1, C c2) { return new C(); }}";
-                var expected = "class C {[System.Serializable] public static C operator +(C c1, C c2) { return new C(); } }";
+                var expected = "class C { [System.Serializable] public static C operator +(C c1, C c2) { return new C(); } }";
                 await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 

@@ -1140,6 +1140,123 @@ static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
                 Documentation("My Field"));
         }
 
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestPartialMethodDocComment_01()
+        {
+            var markup =
+@"partial class MyClass
+{
+    ///<summary>My Method Definition</summary>
+    public partial void MyMethod();
+
+    ///<summary>My Method Implementation</summary>
+    public partial void MyMethod()
+    {
+    }
+}
+static class Test { static void Method() { MyClass.My$$Method(); } }";
+
+            await TestAsync(markup,
+                MainDescription($"void MyClass.MyMethod()"),
+                Documentation("My Method Implementation"));
+        }
+
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestPartialMethodDocComment_02()
+        {
+            var markup =
+@"partial class MyClass
+{
+    ///<summary>My Method Definition</summary>
+    public partial void MyMethod();
+
+    public partial void MyMethod()
+    {
+    }
+}
+static class Test { static void Method() { MyClass.My$$Method(); } }";
+
+            await TestAsync(markup,
+                MainDescription($"void MyClass.MyMethod()"),
+                Documentation("My Method Definition"));
+        }
+
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestPartialMethodDocComment_03()
+        {
+            var markup =
+@"partial class MyClass
+{
+    public partial void MyMethod();
+
+    ///<summary>My Method Implementation</summary>
+    public partial void MyMethod()
+    {
+    }
+}
+static class Test { static void Method() { MyClass.My$$Method(); } }";
+
+            await TestAsync(markup,
+                MainDescription($"void MyClass.MyMethod()"),
+                Documentation("My Method Implementation"));
+        }
+
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestPartialMethodDocComment_04()
+        {
+            var markup =
+@"partial class MyClass
+{
+    ///<summary>My Method Definition</summary>
+    public partial void MyMethod();
+}
+static class Test { static void Method() { MyClass.My$$Method(); } }";
+
+            await TestAsync(markup,
+                MainDescription($"void MyClass.MyMethod()"),
+                Documentation("My Method Definition"));
+        }
+
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestPartialMethodDocComment_05()
+        {
+            var markup =
+@"partial class MyClass
+{
+    ///<summary>My Method Implementation</summary>
+    public partial void MyMethod() { }
+}
+static class Test { static void Method() { MyClass.My$$Method(); } }";
+
+            await TestAsync(markup,
+                MainDescription($"void MyClass.MyMethod()"),
+                Documentation("My Method Implementation"));
+        }
+
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestPartialMethodDocComment_06()
+        {
+            var markup =
+@"partial class MyClass
+{
+    ///<summary>My Method Definition</summary>
+    partial void MyMethod();
+
+    partial void MyMethod() { }
+}
+static class Test { static void Method() { MyClass.My$$Method(); } }";
+
+            await TestAsync(markup,
+                MainDescription($"void MyClass.MyMethod()"),
+                Documentation("My Method Definition"));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestMetadataFieldMinimal()
         {
@@ -3351,7 +3468,7 @@ namespace N {
 ",
             MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<'a> IEnumerable<int>.Select<int, 'a>(Func<int, 'a> selector)"),
             AnonymousTypes($@"
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{ int i, bool j }}"));
         }
 
@@ -3925,7 +4042,7 @@ class C
                 NoTypeParameterMap,
                 AnonymousTypes(
 $@"
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{  }}"));
         }
 
@@ -3943,7 +4060,7 @@ x[0].$$Address",
                 NoTypeParameterMap,
                 AnonymousTypes(
 $@"
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{ string Name, 'b Address }}
     'b {FeaturesResources.is_} new {{ string Street, string Zip }}"));
 
@@ -3956,7 +4073,7 @@ x[0].$$Name",
                 NoTypeParameterMap,
                 AnonymousTypes(
 $@"
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{ string Name, 'b Address }}
     'b {FeaturesResources.is_} new {{ string Street, string Zip }}"));
         }
@@ -3985,7 +4102,7 @@ $@"
                 NoTypeParameterMap,
                 AnonymousTypes(
 $@"
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{ int N }}"));
         }
 
@@ -6037,7 +6154,7 @@ public class C
     }
 }
 ",
-                MainDescription("(System.Int32, System.Int32)"));
+                MainDescription("(int, int)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6862,6 +6979,76 @@ void $$M(int x, int y) { }";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocTwoLevels1()
+        {
+            var markup =
+@"
+/// <summary>Summary documentation</summary>
+/// <remarks>Remarks documentation</remarks>
+void M() { }
+
+/// <inheritdoc cref=""M()""/>
+void M(int x) { }
+
+/// <inheritdoc cref=""M(int)""/>
+void $$M(int x, int y) { }";
+
+            await TestInClassAsync(markup,
+                MainDescription("void C.M(int x, int y)"),
+                Documentation("Summary documentation"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocTwoLevels2()
+        {
+            var markup =
+@"
+/// <summary>Summary documentation</summary>
+/// <remarks>Remarks documentation</remarks>
+void M() { }
+
+/// <summary><inheritdoc cref=""M()""/></summary>
+void M(int x) { }
+
+/// <summary><inheritdoc cref=""M(int)""/></summary>
+void $$M(int x, int y) { }";
+
+            await TestInClassAsync(markup,
+                MainDescription("void C.M(int x, int y)"),
+                Documentation("Summary documentation"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocWithTypeParamRef()
+        {
+            var markup =
+@"
+public class Program
+{
+    public static void Main() => _ = new Test<int>().$$Clone();
+}
+
+public class Test<T> : ICloneable<Test<T>>
+{
+	/// <inheritdoc/>
+	public Test<T> Clone() => new();
+}
+
+/// <summary>A type that has clonable instances.</summary>
+/// <typeparam name=""T"">The type of instances that can be cloned.</typeparam>
+public interface ICloneable<T>
+{
+    /// <summary>Clones a <typeparamref name=""T""/>.</summary>
+    /// <returns>A clone of the <typeparamref name=""T""/>.</returns>
+    public T Clone();
+}";
+
+            await TestInClassAsync(markup,
+                MainDescription("Test<int> Test<int>.Clone()"),
+                Documentation("Clones a Test<T>."));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestInheritdocCycle1()
         {
             var markup =
@@ -7367,6 +7554,388 @@ public class Student : Person { public Student() : $$base(0) { } }
     }
 }",
                 MainDescription($"({FeaturesResources.local_variable}) char[]? one"));
+        }
+
+        [WorkItem(53135, "https://github.com/dotnet/roslyn/issues/53135")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestDocumentationCData()
+        {
+            var markup =
+@"using I$$ = IGoo;
+/// <summary>
+/// summary for interface IGoo
+/// <code><![CDATA[
+/// List<string> y = null;
+/// ]]></code>
+/// </summary>
+interface IGoo {  }";
+
+            await TestAsync(markup,
+                MainDescription("interface IGoo"),
+                Documentation(@"summary for interface IGoo
+
+List<string> y = null;"));
+        }
+
+        [WorkItem(37503, "https://github.com/dotnet/roslyn/issues/37503")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task DoNotNormalizeWhitespaceForCode()
+        {
+            var markup =
+@"using I$$ = IGoo;
+/// <summary>
+/// Normalize    this, and <c>Also        this</c>
+/// <code>
+/// line 1
+/// line     2
+/// </code>
+/// </summary>
+interface IGoo {  }";
+
+            await TestAsync(markup,
+                MainDescription("interface IGoo"),
+                Documentation(@"Normalize this, and Also this
+
+line 1
+line     2"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestStaticAbstract_ImplicitImplementation()
+        {
+            var code = @"
+interface I1
+{
+    /// <summary>Summary text</summary>
+    static abstract void M1();
+}
+
+class C1_1 : I1
+{
+    public static void $$M1() { }
+}
+";
+
+            await TestAsync(
+                code,
+                MainDescription("void C1_1.M1()"),
+                Documentation("Summary text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestStaticAbstract_ImplicitImplementation_FromReference()
+        {
+            var code = @"
+interface I1
+{
+    /// <summary>Summary text</summary>
+    static abstract void M1();
+}
+
+class C1_1 : I1
+{
+    public static void M1() { }
+}
+
+class R
+{
+    public static void M() { C1_1.$$M1(); }
+}
+";
+
+            await TestAsync(
+                code,
+                MainDescription("void C1_1.M1()"),
+                Documentation("Summary text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestStaticAbstract_FromTypeParameterReference()
+        {
+            var code = @"
+interface I1
+{
+    /// <summary>Summary text</summary>
+    static abstract void M1();
+}
+
+class R
+{
+    public static void M<T>() where T : I1 { T.$$M1(); }
+}
+";
+
+            await TestAsync(
+                code,
+                MainDescription("void I1.M1()"),
+                Documentation("Summary text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestStaticAbstract_ExplicitInheritdoc_ImplicitImplementation()
+        {
+            var code = @"
+interface I1
+{
+    /// <summary>Summary text</summary>
+    static abstract void M1();
+}
+
+class C1_1 : I1
+{
+    /// <inheritdoc/>
+    public static void $$M1() { }
+}
+";
+
+            await TestAsync(
+                code,
+                MainDescription("void C1_1.M1()"),
+                Documentation("Summary text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestStaticAbstract_ExplicitImplementation()
+        {
+            var code = @"
+interface I1
+{
+    /// <summary>Summary text</summary>
+    static abstract void M1();
+}
+
+class C1_1 : I1
+{
+    static void I1.$$M1() { }
+}
+";
+
+            await TestAsync(
+                code,
+                MainDescription("void C1_1.M1()"),
+                Documentation("Summary text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestStaticAbstract_ExplicitInheritdoc_ExplicitImplementation()
+        {
+            var code = @"
+interface I1
+{
+    /// <summary>Summary text</summary>
+    static abstract void M1();
+}
+
+class C1_1 : I1
+{
+    /// <inheritdoc/>
+    static void I1.$$M1() { }
+}
+";
+
+            await TestAsync(
+                code,
+                MainDescription("void C1_1.M1()"),
+                Documentation("Summary text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoLambdaReturnType_01()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"class Program
+{
+    System.Delegate D = bo$$ol () => true;
+}",
+                MainDescription("struct System.Boolean"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoLambdaReturnType_02()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"class A
+{
+    struct B { }
+    System.Delegate D = A.B$$ () => null;
+}",
+                MainDescription("struct A.B"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoLambdaReturnType_03()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"class A<T>
+{
+}
+struct B
+{
+    System.Delegate D = A<B$$> () => null;
+}",
+                MainDescription("struct B"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestNormalFuncSynthesizedLambdaType()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        $$var v = (int i) => i.ToString();
+    }
+}",
+                MainDescription("delegate TResult System.Func<in T, out TResult>(T arg)"),
+                TypeParameterMap($@"
+T {FeaturesResources.is_} int
+TResult {FeaturesResources.is_} string"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        $$var v = (ref int i) => i.ToString();
+    }
+}",
+                MainDescription("delegate string <anonymous delegate>(ref int)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestSingleTupleType()
+        {
+            await TestInClassAsync(
+@"void M((int x, string y) t) { }
+  void N()
+  {
+    $$M(default);
+  }",
+                MainDescription(@"void C.M((int x, string y) t)"),
+                NoTypeParameterMap);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestMultipleTupleTypesSameType()
+        {
+            await TestInClassAsync(
+@"void M((int x, string y) s, (int x, string y) t) { }
+  void N()
+  {
+    $$M(default);
+  }",
+                MainDescription(@"void C.M('a s, 'a t)"),
+                NoTypeParameterMap,
+                AnonymousTypes($@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} (int x, string y)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestMultipleTupleTypesDifferentTypes1()
+        {
+            await TestInClassAsync(
+@"void M((int x, string y) s, (int a, string b) u) { }
+  void N()
+  {
+    $$M(default);
+  }",
+                MainDescription(@"void C.M((int x, string y) s, (int a, string b) u)"),
+                NoTypeParameterMap);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestMultipleTupleTypesDifferentTypes2()
+        {
+            await TestInClassAsync(
+@"void M((int x, string y) s, (int x, string y) t, (int a, string b) u, (int a, string b) v) { }
+  void N()
+  {
+    $$M(default);
+  }",
+                MainDescription(@"void C.M('a s, 'a t, 'b u, 'b v)"),
+                NoTypeParameterMap,
+                AnonymousTypes($@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} (int x, string y)
+    'b {FeaturesResources.is_} (int a, string b)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestMultipleTupleTypesDifferentTypes3()
+        {
+            await TestInClassAsync(
+@"void M((int x, string y) s, (int x, string y) t, (int a, string b) u) { }
+  void N()
+  {
+    $$M(default);
+  }",
+                MainDescription(@"void C.M('a s, 'a t, 'b u)"),
+                NoTypeParameterMap,
+                AnonymousTypes($@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} (int x, string y)
+    'b {FeaturesResources.is_} (int a, string b)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestMultipleTupleTypesInference()
+        {
+            await TestInClassAsync(
+@"T M<T>(T t) { }
+  void N()
+  {
+    (int a, string b) x = default;
+    $$M(x);
+  }",
+                MainDescription(@"'a C.M<'a>('a t)"),
+                NoTypeParameterMap,
+                AnonymousTypes($@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} (int a, string b)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousTypeWithTupleTypesInference1()
+        {
+            await TestInClassAsync(
+@"T M<T>(T t) { }
+  void N()
+  {
+    var v = new { x = default((int a, string b)) };
+    $$M(v);
+  }",
+                MainDescription(@"'a C.M<'a>('a t)"),
+                NoTypeParameterMap,
+                AnonymousTypes($@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} new {{ (int a, string b) x }}"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousTypeWithTupleTypesInference2()
+        {
+            await TestInClassAsync(
+@"T M<T>(T t) { }
+  void N()
+  {
+    var v = new { x = default((int a, string b)), y = default((int a, string b)) };
+    $$M(v);
+  }",
+                MainDescription(@"'a C.M<'a>('a t)"),
+                NoTypeParameterMap,
+                AnonymousTypes($@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} new {{ 'b x, 'b y }}
+    'b {FeaturesResources.is_} (int a, string b)"));
         }
     }
 }

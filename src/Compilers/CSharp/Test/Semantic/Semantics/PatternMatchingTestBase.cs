@@ -15,6 +15,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -433,7 +434,32 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
+        protected static void AssertEmpty(SymbolInfo info)
+        {
+            Assert.NotEqual(default, info);
+            Assert.Null(info.Symbol);
+            Assert.Equal(CandidateReason.None, info.CandidateReason);
+        }
 
+        protected static void VerifyDecisionDagDump<T>(Compilation comp, string expectedDecisionDag)
+            where T : CSharpSyntaxNode
+        {
+#if DEBUG
+            var tree = comp.SyntaxTrees.First();
+            var node = tree.GetRoot().DescendantNodes().OfType<T>().First();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(node.SpanStart);
+            var decisionDag = node switch
+            {
+                SwitchStatementSyntax n => ((BoundSwitchStatement)binder.BindStatement(n, BindingDiagnosticBag.Discarded)).DecisionDag,
+                SwitchExpressionSyntax n => ((BoundSwitchExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded)).DecisionDag,
+                IsPatternExpressionSyntax n => ((BoundIsPatternExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded)).DecisionDag,
+                var v => throw ExceptionUtilities.UnexpectedValue(v)
+            };
+
+            AssertEx.Equal(expectedDecisionDag, decisionDag.Dump());
+#endif
+        }
         #endregion helpers
     }
 }

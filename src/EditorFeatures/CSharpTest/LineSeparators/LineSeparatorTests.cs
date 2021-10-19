@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Threading;
@@ -11,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -283,6 +282,20 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
+        public async Task UsingDirectiveInFileScopedNamespace()
+        {
+            var file = @"namespace N;
+
+using System;
+
+class C
+{
+}
+";
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
         public async Task PropertyStyleEventDeclaration()
         {
             var file = @"class C
@@ -521,13 +534,15 @@ class Program
             await AssertTagsOnBracesOrSemicolonsTokensAsync(contents, tokenIndices, Options.Script);
         }
 
-        private static async Task AssertTagsOnBracesOrSemicolonsTokensAsync(string contents, int[] tokenIndices, CSharpParseOptions options = null)
+        private static async Task AssertTagsOnBracesOrSemicolonsTokensAsync(string contents, int[] tokenIndices, CSharpParseOptions? options = null)
         {
             using var workspace = TestWorkspace.CreateCSharp(contents, options);
-            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-            var lineSeparatorService = Assert.IsType<CSharpLineSeparatorService>(workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ILineSeparatorService>());
-            var spans = await lineSeparatorService.GetLineSeparatorsAsync(document, (await document.GetSyntaxRootAsync()).FullSpan, CancellationToken.None);
-            var tokens = (await document.GetSyntaxRootAsync(CancellationToken.None)).DescendantTokens().Where(t => t.Kind() == SyntaxKind.CloseBraceToken || t.Kind() == SyntaxKind.SemicolonToken);
+            var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
+            var root = await document.GetRequiredSyntaxRootAsync(default);
+
+            var lineSeparatorService = Assert.IsType<CSharpLineSeparatorService>(workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<ILineSeparatorService>());
+            var spans = await lineSeparatorService.GetLineSeparatorsAsync(document, root.FullSpan, CancellationToken.None);
+            var tokens = root.DescendantTokens().Where(t => t.Kind() is SyntaxKind.CloseBraceToken or SyntaxKind.SemicolonToken);
 
             Assert.Equal(tokenIndices.Length, spans.Count());
 

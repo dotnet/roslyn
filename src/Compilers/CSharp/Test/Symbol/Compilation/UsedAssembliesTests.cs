@@ -186,7 +186,7 @@ public class C2
 ");
             builder.Append(afterUsings);
 
-            var parseOptions = ((CSharpParseOptions)tree.Options).WithLanguageVersion(LanguageVersion.Preview);
+            var parseOptions = ((CSharpParseOptions)tree.Options).WithLanguageVersion(LanguageVersion.CSharp10);
             yield return (comp.ReplaceSyntaxTree(tree, CSharpTestBase.Parse(builder.ToString(), tree.FilePath, parseOptions)), before, after);
 
             // With global usings in a separate unit

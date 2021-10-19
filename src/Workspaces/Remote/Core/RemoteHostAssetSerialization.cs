@@ -13,31 +13,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal static class RemoteHostAssetSerialization
     {
         internal static readonly PipeOptions PipeOptionsWithUnlimitedWriterBuffer = new(pauseWriterThreshold: long.MaxValue);
-
-        public static async Task WriteDataAsync(ObjectWriter writer, SolutionAssetStorage assetStorage, ISerializerService serializer, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
-        {
-            SolutionAsset? singleAsset = null;
-            IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap = null;
-
-            if (checksums.Length == 1)
-            {
-                singleAsset = (await assetStorage.GetAssetAsync(scopeId, checksums[0], cancellationToken).ConfigureAwait(false)) ?? SolutionAsset.Null;
-            }
-            else
-            {
-                assetMap = await assetStorage.GetAssetsAsync(scopeId, checksums, cancellationToken).ConfigureAwait(false);
-            }
-
-            var replicationContext = assetStorage.GetReplicationContext(scopeId);
-            WriteData(writer, singleAsset, assetMap, serializer, replicationContext, scopeId, checksums, cancellationToken);
-        }
 
         public static void WriteData(
             ObjectWriter writer,
@@ -94,6 +75,9 @@ namespace Microsoft.CodeAnalysis.Remote
             cancellationToken.ThrowIfCancellationRequested();
             var mustNotCancelToken = CancellationToken.None;
 
+            // Workaround for https://github.com/AArnott/Nerdbank.Streams/issues/361
+            var mustNotCancelUntilBugFix = CancellationToken.None;
+
             // Workaround for ObjectReader not supporting async reading.
             // Unless we read from the RPC stream asynchronously and with cancallation support we might deadlock when the server cancels.
             // https://github.com/dotnet/roslyn/issues/47861
@@ -108,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 try
                 {
-                    await pipeReader.CopyToAsync(localPipe.Writer, cancellationToken).ConfigureAwait(false);
+                    await pipeReader.CopyToAsync(localPipe.Writer, mustNotCancelUntilBugFix).ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
@@ -124,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Remote
             try
             {
                 using var stream = localPipe.Reader.AsStream(leaveOpen: false);
-                return ReadData(stream, scopeId, checksums, serializerService, cancellationToken);
+                return ReadData(stream, scopeId, checksums, serializerService, mustNotCancelUntilBugFix);
             }
             catch (EndOfStreamException) when (IsEndOfStreamExceptionExpected(copyException, cancellationToken))
             {

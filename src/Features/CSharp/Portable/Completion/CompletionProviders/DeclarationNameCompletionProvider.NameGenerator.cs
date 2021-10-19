@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Humanizer;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -106,6 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         return name.Substring(1);
                     }
                 }
+
                 return type.CreateParameterName();
             }
         }

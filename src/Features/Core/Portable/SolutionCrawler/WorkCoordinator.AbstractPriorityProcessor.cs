@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
                         IGlobalOperationNotificationService globalOperationNotificationService,
-                        int backOffTimeSpanInMs,
+                        TimeSpan backOffTimeSpan,
                         CancellationToken shutdownToken)
-                        : base(listener, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
+                        : base(listener, globalOperationNotificationService, backOffTimeSpan, shutdownToken)
                     {
                         _gate = new object();
                         _lazyAnalyzers = lazyAnalyzers;

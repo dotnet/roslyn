@@ -59,159 +59,244 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             bool hasErrors = false)
         {
-            RoslynDebug.Assert(source != null);
-            RoslynDebug.Assert((object)destination != null);
-            RoslynDebug.Assert(!isCast || conversionGroupOpt != null);
 
-            if (conversion.IsIdentity)
+            var result = createConversion(syntax, source, conversion, isCast, conversionGroupOpt, wasCompilerGenerated, destination, diagnostics, hasErrors);
+
+            Debug.Assert(result is BoundConversion || (conversion.IsIdentity && ((object)result == source) || source.NeedsToBeConverted()) || hasErrors);
+
+#if DEBUG
+            if (source is BoundValuePlaceholder placeholder1)
             {
-                if (source is BoundTupleLiteral sourceTuple)
+                Debug.Assert(filterConversion(conversion));
+                Debug.Assert(BoundNode.GetConversion(result, placeholder1) == conversion);
+            }
+            else if (source.Type is not null && filterConversion(conversion))
+            {
+                var placeholder2 = new BoundValuePlaceholder(source.Syntax, source.Type);
+                var result2 = createConversion(syntax, placeholder2, conversion, isCast, conversionGroupOpt, wasCompilerGenerated, destination, BindingDiagnosticBag.Discarded, hasErrors);
+                Debug.Assert(BoundNode.GetConversion(result2, placeholder2) == conversion);
+            }
+
+            static bool filterConversion(Conversion conversion)
+            {
+                return !conversion.IsInterpolatedString &&
+                       !conversion.IsInterpolatedStringHandler &&
+                       !conversion.IsSwitchExpression &&
+                       !(conversion.IsTupleLiteralConversion || (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion)) &&
+                       (!conversion.IsUserDefined || filterConversion(conversion.UserDefinedFromConversion));
+            }
+#endif
+
+            return result;
+
+            BoundExpression createConversion(
+                SyntaxNode syntax,
+                BoundExpression source,
+                Conversion conversion,
+                bool isCast,
+                ConversionGroup? conversionGroupOpt,
+                bool wasCompilerGenerated,
+                TypeSymbol destination,
+                BindingDiagnosticBag diagnostics,
+                bool hasErrors = false)
+            {
+                RoslynDebug.Assert(source != null);
+                RoslynDebug.Assert((object)destination != null);
+                RoslynDebug.Assert(!isCast || conversionGroupOpt != null || wasCompilerGenerated);
+
+                if (conversion.IsIdentity)
                 {
-                    NamedTypeSymbol.ReportTupleNamesMismatchesIfAny(destination, sourceTuple, diagnostics);
+                    if (source is BoundTupleLiteral sourceTuple)
+                    {
+                        NamedTypeSymbol.ReportTupleNamesMismatchesIfAny(destination, sourceTuple, diagnostics);
+                    }
+
+                    // identity tuple and switch conversions result in a converted expression
+                    // to indicate that such conversions are no longer applicable.
+                    source = BindToNaturalType(source, diagnostics);
+                    RoslynDebug.Assert(source.Type is object);
+
+                    // We need to preserve any conversion that changes the type (even identity conversions, like object->dynamic),
+                    // or that was explicitly written in code (so that GetSemanticInfo can find the syntax in the bound tree).
+                    if (!isCast && source.Type.Equals(destination, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+                    {
+                        return source;
+                    }
                 }
 
-                // identity tuple and switch conversions result in a converted expression
-                // to indicate that such conversions are no longer applicable.
-                source = BindToNaturalType(source, diagnostics);
-                RoslynDebug.Assert(source.Type is object);
-
-                // We need to preserve any conversion that changes the type (even identity conversions, like object->dynamic),
-                // or that was explicitly written in code (so that GetSemanticInfo can find the syntax in the bound tree).
-                if (!isCast && source.Type.Equals(destination, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+                if (conversion.IsMethodGroup)
                 {
-                    return source;
+                    return CreateMethodGroupConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
                 }
-            }
 
-            if (conversion.IsMethodGroup)
-            {
-                return CreateMethodGroupConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
-            }
+                // Obsolete diagnostics for method group are reported as part of creating the method group conversion.
+                ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
+                if (conversion.Method is not null)
+                {
+                    ReportUseSite(conversion.Method, diagnostics, syntax.Location);
+                }
+                CheckConstraintLanguageVersionAndRuntimeSupportForConversion(syntax, conversion, diagnostics);
 
-            // Obsolete diagnostics for method group are reported as part of creating the method group conversion.
-            ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
+                if (conversion.IsAnonymousFunction && source.Kind == BoundKind.UnboundLambda)
+                {
+                    return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
+                }
 
-            if (conversion.IsAnonymousFunction && source.Kind == BoundKind.UnboundLambda)
-            {
-                return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
-            }
+                if (conversion.Kind == ConversionKind.FunctionType)
+                {
+                    return CreateFunctionTypeConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
+                }
 
-            if (conversion.IsStackAlloc)
-            {
-                return CreateStackAllocConversion(syntax, source, conversion, isCast, conversionGroupOpt, destination, diagnostics);
-            }
+                if (conversion.IsStackAlloc)
+                {
+                    return CreateStackAllocConversion(syntax, source, conversion, isCast, conversionGroupOpt, destination, diagnostics);
+                }
 
-            if (conversion.IsTupleLiteralConversion ||
-                (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion))
-            {
-                return CreateTupleLiteralConversion(syntax, (BoundTupleLiteral)source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
-            }
+                if (conversion.IsTupleLiteralConversion ||
+                    (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion))
+                {
+                    return CreateTupleLiteralConversion(syntax, (BoundTupleLiteral)source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
+                }
 
-            if (conversion.Kind == ConversionKind.SwitchExpression)
-            {
-                var convertedSwitch = ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, destination, conversionIfTargetTyped: conversion, diagnostics);
+                if (conversion.Kind == ConversionKind.SwitchExpression)
+                {
+                    var convertedSwitch = ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, destination, conversionIfTargetTyped: conversion, diagnostics);
+                    return new BoundConversion(
+                        syntax,
+                        convertedSwitch,
+                        conversion,
+                        CheckOverflowAtRuntime,
+                        explicitCastInCode: isCast && !wasCompilerGenerated,
+                        conversionGroupOpt,
+                        convertedSwitch.ConstantValue,
+                        destination,
+                        hasErrors);
+                }
+
+                if (conversion.Kind == ConversionKind.ConditionalExpression)
+                {
+                    var convertedConditional = ConvertConditionalExpression((BoundUnconvertedConditionalOperator)source, destination, conversionIfTargetTyped: conversion, diagnostics);
+                    return new BoundConversion(
+                        syntax,
+                        convertedConditional,
+                        conversion,
+                        CheckOverflowAtRuntime,
+                        explicitCastInCode: isCast && !wasCompilerGenerated,
+                        conversionGroupOpt,
+                        convertedConditional.ConstantValue,
+                        destination,
+                        hasErrors);
+                }
+
+                if (conversion.Kind == ConversionKind.InterpolatedString)
+                {
+                    var unconvertedSource = (BoundUnconvertedInterpolatedString)source;
+                    source = new BoundInterpolatedString(
+                        unconvertedSource.Syntax,
+                        interpolationData: null,
+                        BindInterpolatedStringParts(unconvertedSource, diagnostics),
+                        unconvertedSource.ConstantValue,
+                        unconvertedSource.Type,
+                        unconvertedSource.HasErrors);
+                }
+
+                if (conversion.Kind == ConversionKind.InterpolatedStringHandler)
+                {
+                    return new BoundConversion(
+                        syntax,
+                        BindUnconvertedInterpolatedExpressionToHandlerType(source, (NamedTypeSymbol)destination, diagnostics),
+                        conversion,
+                        @checked: CheckOverflowAtRuntime,
+                        explicitCastInCode: isCast && !wasCompilerGenerated,
+                        conversionGroupOpt,
+                        constantValueOpt: null,
+                        destination);
+                }
+
+                if (source.Kind == BoundKind.UnconvertedSwitchExpression)
+                {
+                    TypeSymbol? type = source.Type;
+                    if (type is null)
+                    {
+                        Debug.Assert(!conversion.Exists);
+                        type = CreateErrorType();
+                        hasErrors = true;
+                    }
+
+                    source = ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, type, conversionIfTargetTyped: null, diagnostics, hasErrors);
+                    if (destination.Equals(type, TypeCompareKind.ConsiderEverything) && wasCompilerGenerated)
+                    {
+                        return source;
+                    }
+                }
+
+                if (conversion.IsObjectCreation)
+                {
+                    return ConvertObjectCreationExpression(syntax, (BoundUnconvertedObjectCreationExpression)source, isCast, destination, diagnostics);
+                }
+
+                if (source.Kind == BoundKind.UnconvertedConditionalOperator)
+                {
+                    TypeSymbol? type = source.Type;
+                    if (type is null)
+                    {
+                        Debug.Assert(!conversion.Exists);
+                        type = CreateErrorType();
+                        hasErrors = true;
+                    }
+
+                    source = ConvertConditionalExpression((BoundUnconvertedConditionalOperator)source, type, conversionIfTargetTyped: null, diagnostics, hasErrors);
+                    if (destination.Equals(type, TypeCompareKind.ConsiderEverything) && wasCompilerGenerated)
+                    {
+                        return source;
+                    }
+                }
+
+                if (conversion.IsUserDefined)
+                {
+                    // User-defined conversions are likely to be represented as multiple
+                    // BoundConversion instances so a ConversionGroup is necessary.
+                    return CreateUserDefinedConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt ?? new ConversionGroup(conversion), destination, diagnostics, hasErrors);
+                }
+
+                ConstantValue? constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
+                if (conversion.Kind == ConversionKind.DefaultLiteral)
+                {
+                    source = new BoundDefaultExpression(source.Syntax, targetType: null, constantValue, type: destination)
+                        .WithSuppression(source.IsSuppressed);
+                }
+
                 return new BoundConversion(
                     syntax,
-                    convertedSwitch,
+                    BindToNaturalType(source, diagnostics),
                     conversion,
-                    CheckOverflowAtRuntime,
+                    @checked: CheckOverflowAtRuntime,
                     explicitCastInCode: isCast && !wasCompilerGenerated,
                     conversionGroupOpt,
-                    convertedSwitch.ConstantValue,
-                    destination,
-                    hasErrors);
+                    constantValueOpt: constantValue,
+                    type: destination,
+                    hasErrors: hasErrors)
+                { WasCompilerGenerated = wasCompilerGenerated };
             }
+        }
 
-            if (conversion.Kind == ConversionKind.ConditionalExpression)
+        internal void CheckConstraintLanguageVersionAndRuntimeSupportForConversion(SyntaxNodeOrToken syntax, Conversion conversion, BindingDiagnosticBag diagnostics)
+        {
+            if (conversion.IsUserDefined && conversion.Method is MethodSymbol method && method.IsStatic && method.IsAbstract)
             {
-                var convertedConditional = ConvertConditionalExpression((BoundUnconvertedConditionalOperator)source, destination, conversionIfTargetTyped: conversion, diagnostics);
-                return new BoundConversion(
-                    syntax,
-                    convertedConditional,
-                    conversion,
-                    CheckOverflowAtRuntime,
-                    explicitCastInCode: isCast && !wasCompilerGenerated,
-                    conversionGroupOpt,
-                    convertedConditional.ConstantValue,
-                    destination,
-                    hasErrors);
-            }
+                Debug.Assert(conversion.ConstrainedToTypeOpt is TypeParameterSymbol);
 
-            if (conversion.Kind == ConversionKind.InterpolatedString)
-            {
-                var unconvertedSource = (BoundUnconvertedInterpolatedString)source;
-                source = new BoundInterpolatedString(
-                    unconvertedSource.Syntax,
-                    unconvertedSource.Parts,
-                    unconvertedSource.ConstantValue,
-                    unconvertedSource.Type,
-                    unconvertedSource.HasErrors);
-            }
-
-            if (source.Kind == BoundKind.UnconvertedSwitchExpression)
-            {
-                TypeSymbol? type = source.Type;
-                if (type is null)
+                if (Compilation.SourceModule != method.ContainingModule)
                 {
-                    Debug.Assert(!conversion.Exists);
-                    type = CreateErrorType();
-                    hasErrors = true;
-                }
+                    Debug.Assert(syntax.SyntaxTree is object);
+                    CheckFeatureAvailability(syntax.SyntaxTree, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics, syntax.GetLocation()!);
 
-                source = ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, type, conversionIfTargetTyped: null, diagnostics, hasErrors);
-                if (destination.Equals(type, TypeCompareKind.ConsiderEverything) && wasCompilerGenerated)
-                {
-                    return source;
+                    if (!Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, syntax);
+                    }
                 }
             }
-
-            if (conversion.IsObjectCreation)
-            {
-                return ConvertObjectCreationExpression(syntax, (BoundUnconvertedObjectCreationExpression)source, isCast, destination, diagnostics);
-            }
-
-            if (source.Kind == BoundKind.UnconvertedConditionalOperator)
-            {
-                TypeSymbol? type = source.Type;
-                if (type is null)
-                {
-                    Debug.Assert(!conversion.Exists);
-                    type = CreateErrorType();
-                    hasErrors = true;
-                }
-
-                source = ConvertConditionalExpression((BoundUnconvertedConditionalOperator)source, type, conversionIfTargetTyped: null, diagnostics, hasErrors);
-                if (destination.Equals(type, TypeCompareKind.ConsiderEverything) && wasCompilerGenerated)
-                {
-                    return source;
-                }
-            }
-
-            if (conversion.IsUserDefined)
-            {
-                // User-defined conversions are likely to be represented as multiple
-                // BoundConversion instances so a ConversionGroup is necessary.
-                return CreateUserDefinedConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt ?? new ConversionGroup(conversion), destination, diagnostics, hasErrors);
-            }
-
-            ConstantValue? constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
-            if (conversion.Kind == ConversionKind.DefaultLiteral)
-            {
-                source = new BoundDefaultExpression(source.Syntax, targetType: null, constantValue, type: destination)
-                    .WithSuppression(source.IsSuppressed);
-            }
-
-            return new BoundConversion(
-                syntax,
-                BindToNaturalType(source, diagnostics),
-                conversion,
-                @checked: CheckOverflowAtRuntime,
-                explicitCastInCode: isCast && !wasCompilerGenerated,
-                conversionGroupOpt,
-                constantValueOpt: constantValue,
-                type: destination,
-                hasErrors: hasErrors)
-            { WasCompilerGenerated = wasCompilerGenerated };
         }
 
         private BoundExpression ConvertObjectCreationExpression(SyntaxNode syntax, BoundUnconvertedObjectCreationExpression node, bool isCast, TypeSymbol destination, BindingDiagnosticBag diagnostics)
@@ -299,8 +384,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : GenerateConversionForAssignment(destination, source.Alternative, diagnostics);
             var constantValue = FoldConditionalOperator(condition, trueExpr, falseExpr);
             hasErrors |= constantValue?.IsBad == true;
-            if (targetTyped && !destination.IsErrorType())
-                MessageID.IDS_FeatureTargetTypedConditional.CheckFeatureAvailability(diagnostics, source.Syntax);
+            if (targetTyped && !destination.IsErrorType() && !Compilation.IsFeatureEnabled(MessageID.IDS_FeatureTargetTypedConditional))
+            {
+                diagnostics.Add(
+                    ErrorCode.ERR_NoImplicitConvTargetTypedConditional,
+                    source.Syntax.Location,
+                    Compilation.LanguageVersion.ToDisplayString(),
+                    source.Consequence.Display,
+                    source.Alternative.Display,
+                    new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()));
+            }
 
             return new BoundConditionalOperator(source.Syntax, isRef: false, condition, trueExpr, falseExpr, constantValue, source.Type, wasTargetTyped: targetTyped, destination, hasErrors)
                 .WithSuppression(source.IsSuppressed);
@@ -319,11 +412,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0, n = source.SwitchArms.Length; i < n; i++)
             {
                 var oldCase = source.SwitchArms[i];
+                Debug.Assert(oldCase.Syntax is SwitchExpressionArmSyntax);
+                var binder = GetRequiredBinder(oldCase.Syntax);
                 var oldValue = oldCase.Value;
                 var newValue =
                     targetTyped
-                    ? CreateConversion(oldValue.Syntax, oldValue, underlyingConversions[i], isCast: false, conversionGroupOpt: null, destination, diagnostics)
-                    : GenerateConversionForAssignment(destination, oldValue, diagnostics);
+                    ? binder.CreateConversion(oldValue.Syntax, oldValue, underlyingConversions[i], isCast: false, conversionGroupOpt: null, destination, diagnostics)
+                    : binder.GenerateConversionForAssignment(destination, oldValue, diagnostics);
                 var newCase = (oldValue == newValue) ? oldCase :
                     new BoundSwitchExpressionArm(oldCase.Syntax, oldCase.Locals, oldCase.Pattern, oldCase.WhenClause, newValue, oldCase.Label, oldCase.HasErrors);
                 builder.Add(newCase);
@@ -346,6 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors)
         {
             Debug.Assert(conversionGroup != null);
+            Debug.Assert(conversion.IsUserDefined);
 
             if (!conversion.IsValid)
             {
@@ -501,6 +597,54 @@ namespace Microsoft.CodeAnalysis.CSharp
             return finalConversion;
         }
 
+        private BoundExpression CreateFunctionTypeConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(conversion.Kind == ConversionKind.FunctionType);
+            Debug.Assert(source.Kind is BoundKind.MethodGroup or BoundKind.UnboundLambda);
+            Debug.Assert(syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType));
+
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            var delegateType = source.GetInferredDelegateType(ref useSiteInfo);
+            Debug.Assert(delegateType is { });
+
+            if (source.Kind == BoundKind.UnboundLambda &&
+                destination.IsNonGenericExpressionType())
+            {
+                delegateType = Compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T).Construct(delegateType);
+                delegateType.AddUseSiteInfo(ref useSiteInfo);
+            }
+
+            conversion = Conversions.ClassifyConversionFromExpression(source, delegateType, ref useSiteInfo);
+            bool warnOnMethodGroupConversion =
+                source.Kind == BoundKind.MethodGroup &&
+                !isCast &&
+                conversion.Exists &&
+                destination.SpecialType == SpecialType.System_Object;
+            BoundExpression expr;
+            if (!conversion.Exists)
+            {
+                GenerateImplicitConversionError(diagnostics, syntax, conversion, source, delegateType);
+                expr = new BoundConversion(syntax, source, conversion, @checked: false, explicitCastInCode: isCast, conversionGroup, constantValueOpt: ConstantValue.NotAvailable, type: delegateType, hasErrors: true) { WasCompilerGenerated = source.WasCompilerGenerated };
+            }
+            else
+            {
+                expr = CreateConversion(syntax, source, conversion, isCast, conversionGroup, delegateType, diagnostics);
+            }
+
+            conversion = Conversions.ClassifyConversionFromExpression(expr, destination, ref useSiteInfo);
+            if (!conversion.Exists)
+            {
+                GenerateImplicitConversionError(diagnostics, syntax, conversion, source, destination);
+            }
+            else if (warnOnMethodGroupConversion)
+            {
+                Error(diagnostics, ErrorCode.WRN_MethGrpToNonDel, syntax, ((BoundMethodGroup)source).Name, destination);
+            }
+
+            diagnostics.Add(syntax, useSiteInfo);
+            return CreateConversion(syntax, expr, conversion, isCast, conversionGroup, destination, diagnostics);
+        }
+
         private BoundExpression CreateAnonymousFunctionConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, BindingDiagnosticBag diagnostics)
         {
             // We have a successful anonymous function conversion; rather than producing a node
@@ -511,58 +655,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             // UNDONE: is converted to a delegate that does not match. What to surface then?
 
             var unboundLambda = (UnboundLambda)source;
-            if (destination.SpecialType == SpecialType.System_Delegate || destination.IsNonGenericExpressionType())
-            {
-                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInferredDelegateType, diagnostics);
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                var delegateType = unboundLambda.InferDelegateType(ref useSiteInfo);
-                BoundLambda boundLambda;
-                if (delegateType is { })
-                {
-                    if (destination.IsNonGenericExpressionType())
-                    {
-                        delegateType = Compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T).Construct(delegateType);
-                        delegateType.AddUseSiteInfo(ref useSiteInfo);
-                    }
-                    boundLambda = unboundLambda.Bind(delegateType);
-                }
-                else
-                {
-                    diagnostics.Add(ErrorCode.ERR_CannotInferDelegateType, syntax.GetLocation());
-                    delegateType = CreateErrorType();
-                    boundLambda = unboundLambda.BindForErrorRecovery();
-                }
-                diagnostics.AddRange(boundLambda.Diagnostics);
-                var expr = createAnonymousFunctionConversion(syntax, source, boundLambda, conversion, isCast, conversionGroup, delegateType);
-                conversion = Conversions.ClassifyConversionFromExpression(expr, destination, ref useSiteInfo);
-                diagnostics.Add(syntax, useSiteInfo);
-                return CreateConversion(syntax, expr, conversion, isCast, conversionGroup, destination, diagnostics);
-            }
-            else
-            {
-#if DEBUG
-                // Test inferring a delegate type for all callers.
-                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                _ = unboundLambda.InferDelegateType(ref discardedUseSiteInfo);
-#endif
-                var boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination);
-                diagnostics.AddRange(boundLambda.Diagnostics);
-                return createAnonymousFunctionConversion(syntax, source, boundLambda, conversion, isCast, conversionGroup, destination);
-            }
 
-            static BoundConversion createAnonymousFunctionConversion(SyntaxNode syntax, BoundExpression source, BoundLambda boundLambda, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination)
-            {
-                return new BoundConversion(
-                    syntax,
-                    boundLambda,
-                    conversion,
-                    @checked: false,
-                    explicitCastInCode: isCast,
-                    conversionGroup,
-                    constantValueOpt: ConstantValue.NotAvailable,
-                    type: destination)
-                { WasCompilerGenerated = source.WasCompilerGenerated };
-            }
+            var boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination, isExpressionTree: destination.IsGenericOrNonGenericExpressionType(out _));
+            diagnostics.AddRange(boundLambda.Diagnostics);
+            return new BoundConversion(
+                syntax,
+                boundLambda,
+                conversion,
+                @checked: false,
+                explicitCastInCode: isCast,
+                conversionGroup,
+                constantValueOpt: ConstantValue.NotAvailable,
+                type: destination)
+            { WasCompilerGenerated = source.WasCompilerGenerated };
         }
 
         private BoundExpression CreateMethodGroupConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, BindingDiagnosticBag diagnostics)
@@ -581,29 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            if (destination.SpecialType == SpecialType.System_Delegate)
-            {
-                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInferredDelegateType, diagnostics);
-                // https://github.com/dotnet/roslyn/issues/52869: Avoid calculating the delegate type multiple times during conversion.
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                var delegateType = GetMethodGroupDelegateType(group, ref useSiteInfo);
-                var expr = createMethodGroupConversion(syntax, group, conversion, isCast, conversionGroup, delegateType!, hasErrors);
-                conversion = Conversions.ClassifyConversionFromExpression(expr, destination, ref useSiteInfo);
-                diagnostics.Add(syntax, useSiteInfo);
-                return CreateConversion(syntax, expr, conversion, isCast, conversionGroup, destination, diagnostics);
-            }
-
-#if DEBUG
-            // Test inferring a delegate type for all callers.
-            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            _ = GetMethodGroupDelegateType(group, ref discardedUseSiteInfo);
-#endif
-            return createMethodGroupConversion(syntax, group, conversion, isCast, conversionGroup, destination, hasErrors);
-
-            static BoundConversion createMethodGroupConversion(SyntaxNode syntax, BoundMethodGroup group, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, bool hasErrors)
-            {
-                return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, conversionGroup, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = group.WasCompilerGenerated };
-            }
+            return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, conversionGroup, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = group.WasCompilerGenerated };
         }
 
         private BoundExpression CreateStackAllocConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, BindingDiagnosticBag diagnostics)
@@ -768,6 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 group.LookupSymbolOpt,
                 group.LookupError,
                 group.Flags,
+                group.FunctionType,
                 receiverOpt, //only change
                 group.ResultKind);
         }
@@ -788,7 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!IsBadBaseAccess(node, receiverOpt, methodSymbol, diagnostics))
             {
-                CheckRuntimeSupportForSymbolAccess(node, receiverOpt, methodSymbol, diagnostics);
+                CheckReceiverAndRuntimeSupportForSymbolAccess(node, receiverOpt, methodSymbol, diagnostics);
             }
 
             if (MemberGroupFinalValidationAccessibilityChecks(receiverOpt, methodSymbol, node, diagnostics, invokedAsExtensionMethod))
@@ -1180,13 +1264,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol delegateOrFuncPtrType,
             BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(delegateOrFuncPtrType.SpecialType == SpecialType.System_Delegate || delegateOrFuncPtrType.TypeKind == TypeKind.Delegate || delegateOrFuncPtrType.TypeKind == TypeKind.FunctionPointer);
-
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            Debug.Assert(Conversions.IsAssignableFromMulticastDelegate(delegateOrFuncPtrType, ref discardedUseSiteInfo) || delegateOrFuncPtrType.TypeKind == TypeKind.Delegate || delegateOrFuncPtrType.TypeKind == TypeKind.FunctionPointer);
             Debug.Assert(conversion.Method is object);
             MethodSymbol selectedMethod = conversion.Method;
 
             var location = syntax.Location;
-            if (delegateOrFuncPtrType.SpecialType != SpecialType.System_Delegate)
+            if (!Conversions.IsAssignableFromMulticastDelegate(delegateOrFuncPtrType, ref discardedUseSiteInfo))
             {
                 if (!MethodIsCompatibleWithDelegateOrFunctionPointer(receiverOpt, isExtensionMethod, selectedMethod, delegateOrFuncPtrType, location, diagnostics) ||
                     MemberGroupFinalValidation(receiverOpt, selectedMethod, syntax, diagnostics, isExtensionMethod))

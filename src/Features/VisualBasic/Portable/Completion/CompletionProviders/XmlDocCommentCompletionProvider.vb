@@ -194,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim nameToken = name.LocalName
             If Not nameToken.IsMissing AndAlso nameToken.ValueText.Length > 0 Then
-                Return SpecializedCollections.SingletonEnumerable(CreateCompletionItem(nameToken.ValueText, nameToken.ValueText & ">", String.Empty))
+                Return SpecializedCollections.SingletonEnumerable(CreateCompletionItem(nameToken.ValueText, beforeCaretText:=nameToken.ValueText & ">", afterCaretText:=String.Empty))
             End If
 
             Return Nothing
@@ -336,6 +336,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Function(attribute As XmlCrefAttributeSyntax) attribute.Name)
 
             Return nameSyntax?.LocalName.ValueText
+        End Function
+
+        Protected Overrides Function GetParameters(symbol As ISymbol) As ImmutableArray(Of IParameterSymbol)
+            Return symbol.GetParameters()
         End Function
 
         Private Shared ReadOnly s_defaultRules As CompletionItemRules =

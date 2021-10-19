@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
 
         private IImmutableSet<Document> IncludeDocuments(CallHierarchySearchScope scope, Project project)
         {
-            if (scope == CallHierarchySearchScope.CurrentDocument || scope == CallHierarchySearchScope.CurrentProject)
+            if (scope is CallHierarchySearchScope.CurrentDocument or CallHierarchySearchScope.CurrentProject)
             {
                 var documentTrackingService = project.Solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
                 var activeDocument = documentTrackingService.TryGetActiveDocument();

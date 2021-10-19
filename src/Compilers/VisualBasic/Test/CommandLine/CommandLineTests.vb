@@ -216,7 +216,7 @@ dotnet_diagnostic.cs0169.severity = suppress"
             Dim exitCode = cmd.Run(outWriter)
             Assert.Equal(1, exitCode)
             Assert.Equal(
-                $"vbc : error BC42500: Multiple analyzer config files cannot be in the same directory ('{dir.Path}').",
+                $"vbc : error BC37317: Multiple analyzer config files cannot be in the same directory ('{dir.Path}').",
                 outWriter.ToString().TrimEnd())
         End Sub
 
@@ -2072,8 +2072,6 @@ End Module").Path
             Assert.Equal(LanguageVersion.VisualBasic15_5, LanguageVersion.VisualBasic15_5.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.VisualBasic16.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic16_9, LanguageVersion.VisualBasic16_9.MapSpecifiedToEffectiveVersion())
-            Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.Default.MapSpecifiedToEffectiveVersion())
-            Assert.Equal(LanguageVersion.VisualBasic16_9, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion())
 
             ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()
