@@ -47,19 +47,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Protected Overrides Function GetTypeSymbolOfExpression(semanticModel As SemanticModel, potentialAwaitableExpression As SyntaxNode, cancellationToken As CancellationToken) As ITypeSymbol
             Dim memberAccessExpression = TryCast(potentialAwaitableExpression, MemberAccessExpressionSyntax)?.Expression
-            If memberAccessExpression IsNot Nothing Then
-                Dim symbolInfo = semanticModel.GetSymbolInfo(memberAccessExpression.WalkDownParentheses(), cancellationToken)
-                Dim symbol = symbolInfo.Symbol
-                If TypeOf symbol Is ITypeSymbol Then ' e.g. Task.$$
-                    Return Nothing
-                End If
-
-                Return If(symbol?.GetSymbolType(),
-                    If(symbol?.GetMemberType(),
-                    semanticModel.GetTypeInfo(memberAccessExpression, cancellationToken).Type))
+            If memberAccessExpression Is Nothing Then
+                Return Nothing
             End If
 
-            Return Nothing
+            Dim symbol = semanticModel.GetSymbolInfo(memberAccessExpression.WalkDownParentheses(), cancellationToken).Symbol
+            Return If(TypeOf symbol Is ITypeSymbol, Nothing, semanticModel.GetTypeInfo(memberAccessExpression, cancellationToken).Type)
         End Function
 
         Protected Overrides Function GetExpressionToPlaceAwaitInFrontOf(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As SyntaxNode
@@ -69,13 +62,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             Dim memberAccess = TryCast(dotToken.Value.Parent, MemberAccessExpressionSyntax)
-            If memberAccess IsNot Nothing Then
-                If memberAccess.Expression.GetParentConditionalAccessExpression() Is Nothing Then
-                    Return memberAccess
-                End If
+            If memberAccess Is Nothing Then
+                Return Nothing
             End If
 
-            Return Nothing
+            If memberAccess.Expression.GetParentConditionalAccessExpression() IsNot Nothing Then
+                Return Nothing
+            End If
+
+            Return memberAccess
         End Function
 
         Protected Overrides Function GetDotTokenLeftOfPosition(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As SyntaxToken?

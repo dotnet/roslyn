@@ -96,14 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // In cases like Task.$$ semanticModel.GetTypeInfo returns Task, but
                 // we don't want to suggest await here. We look up the symbol of the "Task" part
                 // and return null if it is a NamedType.
-                if (memberAccessExpression.IsKind(SyntaxKind.IdentifierName))
-                {
-                    var symbol = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol;
-                    if (symbol is ITypeSymbol)
-                        return null;
-                }
-
-                return semanticModel.GetTypeInfo(memberAccessExpression, cancellationToken).Type;
+                var symbol = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol;
+                return symbol is ITypeSymbol ? null : semanticModel.GetTypeInfo(memberAccessExpression, cancellationToken).Type;
             }
             else if (potentialAwaitableExpression is ExpressionSyntax expression &&
                      expression.ShouldNameExpressionBeTreatedAsExpressionInsteadOfType(semanticModel, out _, out var container))
