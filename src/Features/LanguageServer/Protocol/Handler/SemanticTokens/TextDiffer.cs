@@ -4,16 +4,21 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Differencing;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
-    //
-    // This class implements the linear space variation of the difference algorithm described in
-    // "An O(ND) Difference Algorithm and its Variations" by Eugene W. Myers
-    //
-    // Note: Some variable names in this class are not be fully compliant with the C# naming guidelines
-    // in the interest of using the same terminology discussed in the paper for ease of understanding.
-    //
+    /// <summary>
+    /// This class implements the linear space variation of the difference algorithm described in
+    /// "An O(ND) Difference Algorithm and its Variations" by Eugene W. Myers.
+    /// </summary>
+    /// <remarks>
+    /// NOTE: This class is adapted from Razor. For the original see
+    /// https://github.com/dotnet/razor-tooling/blob/main/src/Razor/src/Microsoft.AspNetCore.Razor.LanguageServer/TextDiffer.cs.
+    /// We use Razor's implementation over Roslyn's (see <see cref="LongestCommonSubsequence"/>)
+    /// since Razor's version of the algorithm performs better for semantic tokens. We may want to
+    /// consider unifying the two implementations in the future.
+    /// </remarks>
     internal abstract class TextDiffer
     {
         protected abstract int OldTextLength { get; }

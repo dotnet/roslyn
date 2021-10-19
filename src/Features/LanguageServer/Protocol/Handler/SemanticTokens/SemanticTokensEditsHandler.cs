@@ -119,9 +119,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 return Array.Empty<SemanticTokensEdit>();
             }
 
-            // We use Roslyn's version of the Myers' Diff Algorithm to compute the minimal edits between
-            // the old and new tokens. Edits are computed on an int level, with five ints representing
-            // one token. We compute on int level rather than token level to minimize the amount of
+            // Edits are computed on an int level, with five ints representing one token.
+            // We compute on int level rather than token level to minimize the amount of
             // edits we send back to the client.
             var edits = await SemanticTokensEditsDiffer.ComputeSemanticTokensEditsAsync(oldSemanticTokens, newSemanticTokens).ConfigureAwait(false);
 
@@ -153,7 +152,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                         // because the edits list passed into this method always orders the
                         // insertions for a given start index before deletions.
                         if (editInProgress != null &&
-                            editInProgress.Start + editInProgress.DeleteCount == edit.InsertPosition)
+                            editInProgress.Start + editInProgress.DeleteCount == edit.Position)
                         {
                             editInProgress.DeleteCount++;
                         }
@@ -161,7 +160,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                         {
                             results.Add(new RoslynSemanticTokensEdit
                             {
-                                Start = edit.InsertPosition,
+                                Start = edit.Position,
                                 DeleteCount = 1,
                             });
                         }
@@ -176,7 +175,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                         if (editInProgress != null &&
                             editInProgress.Data != null &&
                             editInProgress.Data.Count > 0 &&
-                            editInProgress.Start == edit.InsertPosition)
+                            editInProgress.Start == edit.Position)
                         {
                             editInProgress.Data.Add(newSemanticTokens[edit.NewTextPosition!.Value]);
                         }
@@ -184,7 +183,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                         {
                             var semanticTokensEdit = new RoslynSemanticTokensEdit
                             {
-                                Start = edit.InsertPosition,
+                                Start = edit.Position,
                                 Data = new List<int>
                                 {
                                     newSemanticTokens[edit.NewTextPosition!.Value],
@@ -197,7 +196,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
                         break;
                     default:
-                        throw new InvalidOperationException("Only EditKind.Insert and EditKind.Delete are valid.");
+                        throw new InvalidOperationException("Unexpected DiffEdit operation: " + edit.Operation);
                 }
             }
 
