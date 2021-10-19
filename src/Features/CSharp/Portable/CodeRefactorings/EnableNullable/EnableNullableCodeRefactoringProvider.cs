@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
         private static async Task<SyntaxNode> EnableNullableReferenceTypesAsync(Document document, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var firstToken = root.GetFirstToken(includeDirectives: true);
+            var firstToken = GetFirstTokenOfInterest(root);
             if (firstToken.IsKind(SyntaxKind.None))
             {
                 // The document has no content, so it's fine to change the nullable context
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
                     return rewrittenNode;
                 });
 
-            firstToken = root.GetFirstToken(includeDirectives: true);
+            firstToken = GetFirstTokenOfInterest(root);
 
             // Add a new '#nullable disable' to the top of each file
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -126,6 +126,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             // TODO: remove all redundant directives
 
             return updatedRoot;
+        }
+
+        private static SyntaxToken GetFirstTokenOfInterest(SyntaxNode root)
+        {
+            var firstToken = root.GetFirstToken(includeDirectives: true);
+            if (firstToken.IsKind(SyntaxKind.None))
+            {
+                return firstToken;
+            }
+
+            if (firstToken.IsKind(SyntaxKind.HashToken) && firstToken.Parent.IsKind(SyntaxKind.RegionDirectiveTrivia))
+            {
+                // If the file starts with a #region/#endregion that contains no semantic content (e.g. just a file
+                // header), skip it.
+                var nextToken = firstToken.Parent.GetLastToken(includeDirectives: true).GetNextToken(includeDirectives: true);
+                if (nextToken.IsKind(SyntaxKind.HashToken) && nextToken.Parent.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+                {
+                    firstToken = nextToken.Parent.GetLastToken(includeDirectives: true).GetNextToken(includeDirectives: true);
+                }
+            }
+
+            return firstToken;
         }
 
         private sealed class MyCodeAction : CodeActions.CodeAction.SolutionChangeAction

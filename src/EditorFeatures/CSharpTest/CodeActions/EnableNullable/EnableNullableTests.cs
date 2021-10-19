@@ -181,12 +181,12 @@ class Example2
   string value;
 }
 ";
-            var fixedCode3 = @"#nullable disable
-
-#region File Header
+            var fixedCode3 = @"#region File Header
 // File header line 1
 // File header line 2
 #endregion
+
+#nullable disable
 
 class Example3
 {
