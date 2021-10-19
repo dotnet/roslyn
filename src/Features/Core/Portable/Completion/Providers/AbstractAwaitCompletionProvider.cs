@@ -25,10 +25,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
     {
         private const string AwaitCompletionTargetTokenPosition = nameof(AwaitCompletionTargetTokenPosition);
-        private const string AddAwaitAtCursor = nameof(AddAwaitAtCursor);
-        private const string AddAwaitBeforeDotExpression = nameof(AddAwaitBeforeDotExpression);
         private const string AppendConfigureAwait = nameof(AppendConfigureAwait);
         private const string MakeContainerAsync = nameof(MakeContainerAsync);
+
+        /// <summary>
+        /// If 'await' should be placed at the current position.  If not present, it means to add 'await' prior 
+        /// to the preceding expression.
+        /// </summary>
+        private const string AddAwaitAtCurrentPosition = nameof(AddAwaitAtCurrentPosition);
 
         protected enum DotAwaitContext
         {
@@ -101,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (isAwaitKeywordContext)
             {
-                properties = properties.Add(AddAwaitAtCursor, string.Empty);
+                properties = properties.Add(AddAwaitAtCurrentPosition, string.Empty);
                 context.AddItem(CreateCompletionItem(
                     properties, _awaitKeyword, _awaitKeyword,
                     FeaturesResources.Asynchronously_waits_for_the_task_to_finish,
@@ -112,7 +116,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 Contract.ThrowIfTrue(dotAwaitContext == DotAwaitContext.None);
 
                 // add the `await` option that will remove the dot and add `await` to the start of the expression.
-                properties = properties.Add(AddAwaitBeforeDotExpression, string.Empty);
                 context.AddItem(CreateCompletionItem(
                     properties, _awaitKeyword, _awaitKeyword,
                     FeaturesResources.Await_the_preceding_expression,
@@ -181,10 +184,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 builder.Add(new TextChange(new TextSpan(GetSpanStart(declaration), 0), syntaxFacts.GetText(syntaxKinds.AsyncKeyword) + " "));
             }
 
-            if (properties.ContainsKey(AddAwaitAtCursor))
+            if (properties.ContainsKey(AddAwaitAtCurrentPosition))
+            {
                 builder.Add(new TextChange(item.Span, _awaitKeyword));
-
-            if (properties.ContainsKey(AddAwaitBeforeDotExpression))
+            }
+            else
             {
                 var position = item.Span.Start;
                 var dotToken = GetDotTokenLeftOfPosition(syntaxTree, position, cancellationToken);
