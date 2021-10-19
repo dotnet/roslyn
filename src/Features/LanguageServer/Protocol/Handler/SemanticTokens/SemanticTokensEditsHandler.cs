@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         {
             using var _ = ArrayBuilder<RoslynSemanticTokensEdit>.GetInstance(out var results);
 
-            // Go through and attempt to combine individual edits into larger edits. By default,
+            // Go through and attempt to combine individual edits into larger edits.
             // Edits are ordered and processsed from smallest -> largest index.
             foreach (var edit in edits)
             {
