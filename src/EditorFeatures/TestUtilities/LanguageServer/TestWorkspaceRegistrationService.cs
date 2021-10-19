@@ -14,7 +14,7 @@ namespace Roslyn.Test.Utilities
     public abstract partial class AbstractLanguageServerProtocolTests
     {
         [Export(typeof(LspWorkspaceRegistrationService)), Shared, PartNotDiscoverable]
-        private class TestWorkspaceRegistrationService : LspWorkspaceRegistrationService
+        internal class TestWorkspaceRegistrationService : LspWorkspaceRegistrationService
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
