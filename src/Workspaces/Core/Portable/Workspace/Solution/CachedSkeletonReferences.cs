@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis
             return await set.GetMetadataReferenceAsync(finalOrDeclarationCompilation, properties, cancellationToken).ConfigureAwait(false);
         }
 
-        private class SkeletonReferenceSet
+        private sealed class SkeletonReferenceSet
         {
             private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
