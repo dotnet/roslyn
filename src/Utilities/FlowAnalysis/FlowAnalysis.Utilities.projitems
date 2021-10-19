@@ -30,11 +30,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\InvocationCountAnalysis\InvocationCountAnalysis.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\InvocationCountAnalysis\InvocationCountAnalysisContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\InvocationCountAnalysis\InvocationCountAnalysisValueKind.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\InvocationCountAnalysis\InvocationSetHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\InvocationCountAnalysis\TrackingInvocationSet.cs" />
-    <Compile Include="..\..\Utilities\FlowAnalysis\FlowAnalysis\Analysis\InvocationCountAnalysis\IInvocationSet.cs" />
-    <Compile Include="..\..\Utilities\FlowAnalysis\FlowAnalysis\Analysis\InvocationCountAnalysis\RelationshipSet.cs" />
-    <Compile Include="..\..\Utilities\FlowAnalysis\FlowAnalysis\Analysis\InvocationCountAnalysis\InvocationSetKind.cs" />
-    <Compile Include="..\..\Utilities\FlowAnalysis\FlowAnalysis\Analysis\InvocationCountAnalysis\InvocationCountAnalysisValue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\InvocationCountAnalysis\IInvocationSet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\InvocationCountAnalysis\RelationshipSet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\InvocationCountAnalysis\InvocationSetKind.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\InvocationCountAnalysis\InvocationCountAnalysisValue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\InvocationCountAnalysis\InvocationCountAnalysisValueDomain.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\InvocationCountAnalysis\InvocationCountBlockAnalysisResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\InvocationCountAnalysis\InvocationCountDataFlowOperationVisitor.cs" />

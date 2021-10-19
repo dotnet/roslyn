@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
@@ -24,88 +23,62 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
         }
 
         public override InvocationCountAnalysisData GetEmptyAnalysisData()
-        {
-            throw new NotImplementedException();
-        }
+            => new();
 
         protected override void AddTrackedEntities(InvocationCountAnalysisData analysisData, HashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis = false)
-        {
-            throw new NotImplementedException();
-        }
+            => builder.UnionWith(analysisData.Keys);
 
         protected override void ApplyInterproceduralAnalysisResultCore(InvocationCountAnalysisData resultData)
-        {
-            throw new NotImplementedException();
-        }
+            => ApplyInterproceduralAnalysisResultHelper(resultData);
 
         protected override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(InvocationCountAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
-        {
-            throw new NotImplementedException();
-        }
+            => ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(dataAtException, CurrentAnalysisData, throwBranchWithExceptionType);
 
         protected override bool Equals(InvocationCountAnalysisData value1, InvocationCountAnalysisData value2)
-        {
-            throw new NotImplementedException();
-        }
+            => InvocationCountAnalysis.Domain.Equals(value1, value2);
 
         protected override InvocationCountAnalysisValue GetAbstractDefaultValue(ITypeSymbol type)
-        {
-            throw new NotImplementedException();
-        }
+            => InvocationCountAnalysisValue.Empty;
 
         protected override InvocationCountAnalysisValue GetAbstractValue(AnalysisEntity analysisEntity)
-        {
-            throw new NotImplementedException();
-        }
+            => CurrentAnalysisData.TryGetValue(analysisEntity, out var value) ? value : ValueDomain.UnknownOrMayBeValue;
 
         protected override InvocationCountAnalysisData GetClonedAnalysisData(InvocationCountAnalysisData analysisData)
-        {
-            throw new NotImplementedException();
-        }
+            => new(analysisData);
 
         protected override InvocationCountAnalysisData GetExitBlockOutputData(InvocationCountAnalysisResult analysisResult)
-        {
-            throw new NotImplementedException();
-        }
+            => new(analysisResult.EntryBlockOutput.Data);
 
         protected override InvocationCountAnalysisData GetTrimmedCurrentAnalysisData(IEnumerable<AnalysisEntity> withEntities)
-        {
-            throw new NotImplementedException();
-        }
+            => GetTrimmedCurrentAnalysisDataHelper(withEntities, CurrentAnalysisData, SetAbstractValue);
 
         protected override bool HasAbstractValue(AnalysisEntity analysisEntity)
-        {
-            throw new NotImplementedException();
-        }
+            => CurrentAnalysisData.ContainsKey(analysisEntity);
 
         protected override bool HasAnyAbstractValue(InvocationCountAnalysisData data)
-        {
-            throw new NotImplementedException();
-        }
+            => data.Count > 0;
 
         protected override InvocationCountAnalysisData MergeAnalysisData(InvocationCountAnalysisData value1, InvocationCountAnalysisData value2)
-        {
-            throw new NotImplementedException();
-        }
+            => InvocationCountAnalysis.Domain.Merge(value1, value2);
 
         protected override void ResetCurrentAnalysisData()
-        {
-            throw new NotImplementedException();
-        }
+            => ResetAnalysisData(CurrentAnalysisData);
 
         protected override void SetAbstractValue(AnalysisEntity analysisEntity, InvocationCountAnalysisValue value)
-        {
-            throw new NotImplementedException();
-        }
+            => SetAbstractValue(CurrentAnalysisData, analysisEntity, value);
 
         protected override void StopTrackingEntity(AnalysisEntity analysisEntity, InvocationCountAnalysisData analysisData)
-        {
-            throw new NotImplementedException();
-        }
+            => analysisData.Remove(analysisEntity);
 
         protected override void UpdateValuesForAnalysisData(InvocationCountAnalysisData targetAnalysisData)
+            => UpdateValuesForAnalysisData(targetAnalysisData, CurrentAnalysisData);
+
+        private static void SetAbstractValue(InvocationCountAnalysisData analysisData, AnalysisEntity analysisEntity, InvocationCountAnalysisValue value)
         {
-            throw new NotImplementedException();
+            if (value.Kind == InvocationCountAnalysisValueKind.Known)
+            {
+                analysisData[analysisEntity] = value;
+            }
         }
     }
 }
