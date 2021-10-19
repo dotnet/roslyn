@@ -62,10 +62,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption2<bool> StreamingGoToImplementation = new(
             nameof(FeatureOnOffOptions), nameof(StreamingGoToImplementation), defaultValue: true);
 
-        public static readonly Option2<bool> NavigateToDecompiledSources = new(
-            nameof(FeatureOnOffOptions), nameof(NavigateToDecompiledSources), defaultValue: true,
-            storageLocation: new RoamingProfileStorageLocation($"TextEditor.{nameof(NavigateToDecompiledSources)}"));
-
         public static readonly Option2<int> UseEnhancedColors = new(
             nameof(FeatureOnOffOptions), nameof(UseEnhancedColors), defaultValue: 1,
             storageLocation: new RoamingProfileStorageLocation("WindowManagement.Options.UseEnhancedColorsForManagedLanguages"));
@@ -125,7 +121,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.RenameTracking,
             FeatureOnOffOptions.RefactoringVerification,
             FeatureOnOffOptions.StreamingGoToImplementation,
-            FeatureOnOffOptions.NavigateToDecompiledSources,
             FeatureOnOffOptions.UseEnhancedColors,
             FeatureOnOffOptions.AddImportsOnPaste,
             FeatureOnOffOptions.OfferRemoveUnusedReferences,

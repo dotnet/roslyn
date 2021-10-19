@@ -58,12 +58,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                 Contract.ThrowIfNull(temporaryDocument, "The temporary ProjectInfo didn't contain the document it said it would.");
 
-                var useDecompiler = !signaturesOnly;
-                if (useDecompiler)
-                {
-                    useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == nameof(SuppressIldasmAttribute)
+                // We only want to use the decompiler if the caller allows full source, the user has the option on, and [SuppressIldasm] isn't present
+                var useDecompiler = !signaturesOnly
+                    && project.Solution.Workspace.Options.GetOption(MetadataAsSourceOptions.NavigateToDecompiledSources)
+                    && !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == nameof(SuppressIldasmAttribute)
                         && attribute.AttributeClass.ToNameDisplayString() == typeof(SuppressIldasmAttribute).FullName);
-                }
 
                 if (useDecompiler)
                 {
