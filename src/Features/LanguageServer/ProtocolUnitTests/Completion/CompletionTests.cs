@@ -1195,6 +1195,71 @@ class A
             Assert.Equal(listMaxSize, results.Items.Length);
         }
 
+        [Fact]
+        public async Task TestRequestForIncompleteListFiltersDownToEmptyAsync()
+        {
+            var markup =
+@"using System;
+using System.Buffers;
+using System.Buffers.Binary;
+using System.Buffers.Text;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.ComponentModel.Design;
+using System.Configuration;
+using System.Data;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Dynamic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Media;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+class A
+{
+    void M()
+    {
+        T{|caret:|}
+    }
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var caretLocation = locations["caret"].Single();
+            await testLspServer.OpenDocumentAsync(caretLocation.Uri);
+
+            var completionParams = CreateCompletionParams(
+                caretLocation,
+                invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+                triggerCharacter: "T",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+            Assert.Equal(1000, results.Items.Length);
+            Assert.True(results.IsIncomplete);
+            Assert.Equal("T", results.Items.First().Label);
+
+            await testLspServer.InsertTextAsync(caretLocation.Uri, (caretLocation.Range.End.Line, caretLocation.Range.End.Character, "z"));
+
+            completionParams = CreateCompletionParams(
+                locations["caret"].Single(),
+                invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+                triggerCharacter: "z",
+                triggerKind: LSP.CompletionTriggerKind.TriggerForIncompleteCompletions);
+
+            results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+            Assert.True(results.IsIncomplete);
+            Assert.Empty(results.Items);
+        }
+
         internal static Task<LSP.CompletionList> RunGetCompletionsAsync(TestLspServer testLspServer, LSP.CompletionParams completionParams)
         {
             var clientCapabilities = new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true };

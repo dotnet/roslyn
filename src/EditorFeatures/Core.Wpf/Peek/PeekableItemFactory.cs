@@ -67,11 +67,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
             var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
             var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
 
-            var result = await symbolNavigationService.WouldNavigateToSymbolAsync(definitionItem, cancellationToken).ConfigureAwait(false);
-            if (result is var (filePath, lineNumber, charOffset))
+            var result = await symbolNavigationService.GetExternalNavigationSymbolLocationAsync(definitionItem, cancellationToken).ConfigureAwait(false);
+            if (result is var (filePath, linePosition))
             {
-                var position = new LinePosition(lineNumber, charOffset);
-                results.Add(new ExternalFilePeekableItem(new FileLinePositionSpan(filePath, position, position), PredefinedPeekRelationships.Definitions, peekResultFactory));
+                results.Add(new ExternalFilePeekableItem(new FileLinePositionSpan(filePath, linePosition, linePosition), PredefinedPeekRelationships.Definitions, peekResultFactory));
             }
             else
             {

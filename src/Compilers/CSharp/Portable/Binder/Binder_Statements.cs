@@ -1358,18 +1358,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol pointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(elementType));
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            Conversion elementConversion = this.Conversions.ClassifyConversionFromType(pointerType, declType, ref useSiteInfo);
+            Conversion elementConversionClassification = this.Conversions.ClassifyConversionFromType(pointerType, declType, ref useSiteInfo);
             diagnostics.Add(initializerSyntax, useSiteInfo);
 
-            if (!elementConversion.IsValid || !elementConversion.IsImplicit)
+            BoundValuePlaceholder elementPlaceholder;
+            BoundExpression elementConversion;
+
+            if (!elementConversionClassification.IsValid || !elementConversionClassification.IsImplicit)
             {
-                GenerateImplicitConversionError(diagnostics, this.Compilation, initializerSyntax, elementConversion, pointerType, declType);
+                GenerateImplicitConversionError(diagnostics, this.Compilation, initializerSyntax, elementConversionClassification, pointerType, declType);
                 hasErrors = true;
+            }
+
+            if (elementConversionClassification.IsValid)
+            {
+                elementPlaceholder = new BoundValuePlaceholder(initializerSyntax, pointerType).MakeCompilerGenerated();
+                elementConversion = CreateConversion(initializerSyntax, elementPlaceholder, elementConversionClassification, isCast: false, conversionGroupOpt: null, declType,
+                    elementConversionClassification.IsImplicit ? diagnostics : BindingDiagnosticBag.Discarded);
+            }
+            else
+            {
+                elementPlaceholder = null;
+                elementConversion = null;
             }
 
             return new BoundFixedLocalCollectionInitializer(
                 initializerSyntax,
                 pointerType,
+                elementPlaceholder,
                 elementConversion,
                 initializer,
                 patternMethodOpt,
@@ -1768,6 +1784,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DefaultParameter = 1 << 0,
             RefAssignment = 1 << 1,
             IncrementAssignment = 1 << 2,
+            CompoundAssignment = 1 << 3,
+            PredefinedOperator = 1 << 4,
         }
 
         internal BoundExpression GenerateConversionForAssignment(TypeSymbol targetType, BoundExpression expression, BindingDiagnosticBag diagnostics, ConversionForAssignmentFlags flags = ConversionForAssignmentFlags.None)
@@ -1807,7 +1825,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return expression;
                 }
             }
-            else if (!conversion.IsImplicit || !conversion.IsValid)
+            else if (!conversion.IsValid ||
+                ((flags & ConversionForAssignmentFlags.CompoundAssignment) == 0 ?
+                    !conversion.IsImplicit :
+                    (conversion.IsExplicit && (flags & ConversionForAssignmentFlags.PredefinedOperator) == 0)))
             {
                 // We suppress conversion errors on default parameters; eg,
                 // if someone says "void M(string s = 123) {}". We will report

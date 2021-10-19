@@ -16,7 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
     <ExportCompletionProvider(NameOf(TypeImportCompletionProvider), LanguageNames.VisualBasic)>
-    <ExtensionOrder(After:=NameOf(EmbeddedLanguageCompletionProvider))>
+    <ExtensionOrder(After:=NameOf(AggregateEmbeddedLanguageCompletionProvider))>
     <[Shared]>
     Friend NotInheritable Class TypeImportCompletionProvider
         Inherits AbstractTypeImportCompletionProvider(Of SimpleImportsClauseSyntax)
