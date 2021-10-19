@@ -22,7 +22,8 @@ efforts behind them.
 | [Top Level statement attribute specifiers](https://github.com/dotnet/csharplang/issues/5045) | [main-attributes](https://github.com/dotnet/roslyn/tree/features/features/main-attributes) | [In Progress](https://github.com/dotnet/roslyn/issues/57047) | [chsienki](https://github.com/chsienki) | TBD | [jaredpar](https://github.com/jaredpar) |
 | [Primary Constructors](https://github.com/dotnet/csharplang/issues/2691) | [primary-constructors](https://github.com/dotnet/roslyn/tree/features/features/primary-constructors) | [In Progress](https://github.com/dotnet/roslyn/issues/57048) | TBD | TBD | [MadsTorgersen](https://github.com/MadsTorgersen) |
 | [Params Span<T> + Stackalloc any array type](https://github.com/dotnet/csharplang/issues/1757) | [params-span](https://github.com/dotnet/roslyn/tree/features/features/params-span) | [In Progress](https://github.com/dotnet/roslyn/issues/57049) | [cston](https://github.com/cston) | TBD | [jaredpar](https://github.com/jaredpar) |
-
+| [Newlines in interpolations](https://github.com/dotnet/csharplang/issues/4935) | main | [In Progress](https://github.com/dotnet/roslyn/issues/57154) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [jcouv](https://github.com/jcouv), TBD | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
+  
 # C# 10.0
 
 | Feature | Branch | State | Developer | Reviewer | LDM Champ |
