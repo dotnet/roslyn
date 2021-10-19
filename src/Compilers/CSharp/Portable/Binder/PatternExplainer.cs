@@ -344,47 +344,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                var indexes = new Dictionary<int, string>();
-                int length = -1;
-
-                foreach (var eval in evaluations)
+                if (evaluations[0] is not BoundDagPropertyEvaluation { IsLengthOrCount: true } lengthOrCount)
                 {
-                    switch (eval)
+                    return null;
+                }
+
+                var lengthTemp = new BoundDagTemp(lengthOrCount.Syntax, lengthOrCount.Property.Type, lengthOrCount);
+                var lengthValues = (IValueSet<int>)computeRemainingValues(ValueSetFactory.ForLength, getArray(constraintMap, lengthTemp));
+                var length = lengthValues.Sample.Int32Value;
+
+                BoundDagSliceEvaluation slice = null;
+                var subpatterns = new ArrayBuilder<string>(length);
+                subpatterns.AddMany("_", length);
+
+                for (int i = 1; i < evaluations.Length; i++)
+                {
+                    switch (evaluations[i])
                     {
-                        case BoundDagPropertyEvaluation e when e.IsLengthOrCount:
-                            {
-                                Debug.Assert(length == -1);
-                                var lengthTemp = new BoundDagTemp(e.Syntax, e.Property.Type, e);
-                                var lengthValues = (IValueSet<int>)computeRemainingValues(ValueSetFactory.ForLength, getArray(constraintMap, lengthTemp));
-                                length = lengthValues.Sample.Int32Value;
-                            }
-                            break;
                         case BoundDagIndexerEvaluation e:
-                            {
-                                var subInput = new BoundDagTemp(e.Syntax, e.IndexerType, e);
-                                var subPattern = SamplePatternForTemp(subInput, constraintMap, evaluationMap, false, ref unnamedEnumValue);
-                                indexes.Add(e.Index, subPattern);
-                            }
+                            var indexerTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
+                            int integerIndex = e.Index;
+                            var newPattern = SamplePatternForTemp(indexerTemp, constraintMap, evaluationMap, requireExactType: false, ref unnamedEnumValue);
+                            var index = integerIndex >= 0 ? integerIndex : length + integerIndex;
+
+                            Debug.Assert(subpatterns[index] == "_");
+                            subpatterns[index] = newPattern;
                             break;
                         case BoundDagSliceEvaluation e:
-                            {
-                                if (e.StartIndex < length + e.EndIndex)
-                                {
-                                    var subInput = new BoundDagTemp(e.Syntax, e.SliceType, e);
-                                    var subPattern = SamplePatternForTemp(subInput, constraintMap, evaluationMap, false, ref unnamedEnumValue);
-                                    indexes.Add(e.StartIndex, ".. " + subPattern);
-                                }
-                            }
+                            Debug.Assert(slice is null);
+                            slice = e;
                             break;
                         default:
                             return null;
                     }
-                }
-
-                if (length < 0)
-                {
-                    Debug.Assert(false);
-                    return null;
                 }
 
                 var pooledBuilder = PooledStringBuilder.GetInstance();
@@ -393,12 +385,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Append("[");
                 for (int i = 0; i < length; i++)
                 {
-                    string sample = (indexes.TryGetValue(i, out var sampleFromStart), indexes.TryGetValue(i - length, out var sampleFromEnd)) switch
+                    if (slice?.StartIndex == i)
                     {
-                        (true, false) => sampleFromStart,
-                        (false, true) => sampleFromEnd,
-                        _ => "_"
-                    };
+                        int endIndex = slice.EndIndex >= 0 ? slice.EndIndex : length + slice.EndIndex - 1;
+                        var subInput = new BoundDagTemp(slice.Syntax, slice.SliceType, slice);
+                        var sample2 =  SamplePatternForTemp(subInput, constraintMap, evaluationMap, false, ref unnamedEnumValue);
+                        if (sample2 != "_")
+                        {
+                            if (builder.Length > 1)
+                            {
+                                builder.Append(", ");
+                            }
+
+                            builder.Append(".. " + sample2);
+                        }
+                    }
+
+                    string sample = subpatterns[i];
 
                     if (builder.Length > 1)
                     {
