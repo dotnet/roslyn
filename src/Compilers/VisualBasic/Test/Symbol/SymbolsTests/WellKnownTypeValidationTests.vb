@@ -455,7 +455,7 @@ End Namespace
                 Assert.NotNull(symbol)
 
                 If special = SpecialType.System_ValueArray_TR Then
-                    ' HACKATHONE: experimental Type
+                    ' HACKATHON: experimental Type
                     Continue For
                 End If
 

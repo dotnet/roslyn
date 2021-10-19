@@ -519,7 +519,7 @@ namespace System
 
                 if (special == SpecialType.System_ValueArray_TR)
                 {
-                    // HACKATHONE: experimental type
+                    // HACKATHON: experimental type
                     continue;
                 }
 
