@@ -57,6 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             var solution = project.Solution;
             foreach (var document in project.Documents)
             {
+                if (await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false))
+                    continue;
+
                 var updatedDocumentRoot = await EnableNullableReferenceTypesAsync(document, cancellationToken).ConfigureAwait(false);
                 solution = solution.WithDocumentSyntaxRoot(document.Id, updatedDocumentRoot);
             }
