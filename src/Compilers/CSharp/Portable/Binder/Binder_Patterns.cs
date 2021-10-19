@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool argIsIndex,
             out BoundIndexerAccess? indexerAccess,
             out Symbol? patternSymbol,
-            out PropertySymbol? lengthProperty,
+            [NotNullWhen(true)] out PropertySymbol? lengthProperty,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!receiverType.IsErrorType());
