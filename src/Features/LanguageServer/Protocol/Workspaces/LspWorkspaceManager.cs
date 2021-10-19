@@ -188,7 +188,8 @@ internal partial class LspWorkspaceManager : IDisposable
             // may have been removed / moved to a different workspace.
             _ = ResetIncrementalLspSolutions_CalledUnderLock();
 
-            // Remove from the lsp misc files workspace if it was added there.
+            // If the file was added to the LSP misc files workspace, it needs to be removed as we no longer care about it once closed.
+            // If the misc document ended up being added to an actual workspace, we may have already removed it from LSP misc in UpdateLspDocument.
             _lspMiscellaneousFilesWorkspace?.TryRemoveMiscellaneousDocument(uri);
         }
     }
@@ -212,6 +213,9 @@ internal partial class LspWorkspaceManager : IDisposable
                 // This means that the LSP solution will be stale until the event is processed and will not be able to answer requests on this URI.
                 // When the workspace event is processed, we will fork from the workspace and apply all missed incremental LSP text (stored in IDocumentChangeTracker)
                 // to bring the incremental LSP solution up to date.
+                //
+                // TODO - Once we always create the misc files workspace we should never hit this path (when workspace events are behind the doc will go into misc).
+                // Remove as part of https://github.com/dotnet/roslyn/issues/57243
                 return;
             }
 
@@ -326,6 +330,12 @@ internal partial class LspWorkspaceManager : IDisposable
         return updatedSolutions.ToImmutableAndClear();
     }
 
+    /// <summary>
+    /// Looks for document(s - e.g. linked docs) from a single solution matching the input URI in the set of passed in solutions.
+    /// 
+    /// Client name is used in razor cases to filter out non-razor documents.  However once we switch fully over to pull
+    /// diagnostics, the client should only ever ask the razor server about razor documents, so we may be able to remove it here.
+    /// </summary>
     private static (Solution LspSolution, ImmutableArray<Document> MatchingDocuments)? FindDocument(
         Uri uri,
         ImmutableArray<Solution> registeredSolutions,
