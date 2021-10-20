@@ -312,7 +312,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     nestedConversions.Add((operandPlaceholder, new BoundConversion(syntax, operandPlaceholder, nestedConversion,
                                                                                    @checked: false, explicitCastInCode: false,
                                                                                    conversionGroupOpt: null, constantValueOpt: null,
+#pragma warning disable format
                                                                                    type: ErrorTypeSymbol.UnknownResultType) { WasCompilerGenerated = true }));
+#pragma warning restore format
                 }
                 else
                 {
