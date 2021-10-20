@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             // the manager keeps itself alive by listening to text view events.
             _ = new InlineDiagnosticsAdornmentManager(
                 ThreadingContext, textView, TagAggregatorFactoryService, AsyncListener,
-                AdornmentLayerName, _classificationFormatMapService, _classificationTypeRegistryService);
+                AdornmentLayerName, _classificationFormatMapService, _classificationTypeRegistryService, GlobalOptions);
         }
     }
 }

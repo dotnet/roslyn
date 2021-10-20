@@ -58,8 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected virtual SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
 
         /// <summary>
-        /// Options controlling this tagger.  The tagger infrastructure will check this option
-        /// against the buffer it is associated with to see if it should tag or not.
+        /// Global options controlling if the tagger should tag or not.
         /// 
         /// An empty enumerable can be returned to indicate that this tagger should 
         /// run unconditionally.
