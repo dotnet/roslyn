@@ -9,19 +9,19 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
-namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
+namespace Analyzer.Utilities.FlowAnalysis.Analysis.GlobalFlowStateDictionaryAnalysis
 {
-    using InvocationCountAnalysisData = DictionaryAnalysisData<AnalysisEntity, InvocationCountAnalysisValue>;
-    using InvocationCountAnalysisResult = DataFlowAnalysisResult<InvocationCountBlockAnalysisResult, InvocationCountAnalysisValue>;
+    using GlobalFlowStateDictionaryAnalysisData = DictionaryAnalysisData<AnalysisEntity, GlobalFlowStateDictionaryAnalysisValue>;
+    using GlobalFlowStateDictionaryAnalysisResult = DataFlowAnalysisResult<GlobalFlowStateDictionaryBlockAnalysisResult, GlobalFlowStateDictionaryAnalysisValue>;
 
-    internal class InvocationCountAnalysisContext : AbstractDataFlowAnalysisContext<
-        InvocationCountAnalysisData,
-        InvocationCountAnalysisContext,
-        InvocationCountAnalysisResult,
-        InvocationCountAnalysisValue>
+    internal class GlobalFlowStateDictionaryAnalysisContext : AbstractDataFlowAnalysisContext<
+        GlobalFlowStateDictionaryAnalysisData,
+        GlobalFlowStateDictionaryAnalysisContext,
+        GlobalFlowStateDictionaryAnalysisResult,
+        GlobalFlowStateDictionaryAnalysisValue>
     {
-        public InvocationCountAnalysisContext(
-            AbstractValueDomain<InvocationCountAnalysisValue> valueDomain,
+        public GlobalFlowStateDictionaryAnalysisContext(
+            AbstractValueDomain<GlobalFlowStateDictionaryAnalysisValue> valueDomain,
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
@@ -33,22 +33,21 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
             DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>? copyAnalysisResult,
             PointsToAnalysisResult? pointsToAnalysisResult,
             DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>? valueContentAnalysisResult,
-            Func<InvocationCountAnalysisContext, InvocationCountAnalysisResult?> tryGetOrComputeAnalysisResult,
+            Func<GlobalFlowStateDictionaryAnalysisContext, GlobalFlowStateDictionaryAnalysisResult?> tryGetOrComputeAnalysisResult,
             ControlFlowGraph? parentControlFlowGraph = null,
-            InterproceduralAnalysisData<InvocationCountAnalysisData, InvocationCountAnalysisContext, InvocationCountAnalysisValue>? interproceduralAnalysisData = null,
+            InterproceduralAnalysisData<GlobalFlowStateDictionaryAnalysisData, GlobalFlowStateDictionaryAnalysisContext, GlobalFlowStateDictionaryAnalysisValue>? interproceduralAnalysisData = null,
             InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate = null) : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, analyzerOptions, interproceduralAnalysisConfig, pessimisticAnalysis, predicateAnalysis, exceptionPathsAnalysis, copyAnalysisResult, pointsToAnalysisResult, valueContentAnalysisResult, tryGetOrComputeAnalysisResult, parentControlFlowGraph, interproceduralAnalysisData, interproceduralAnalysisPredicate)
         {
         }
 
-        public override InvocationCountAnalysisContext ForkForInterproceduralAnalysis(
+        public override GlobalFlowStateDictionaryAnalysisContext ForkForInterproceduralAnalysis(
             IMethodSymbol invokedMethod,
             ControlFlowGraph invokedCfg,
             PointsToAnalysisResult? pointsToAnalysisResult,
             DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>? copyAnalysisResult,
             DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>? valueContentAnalysisResult,
-            InterproceduralAnalysisData<InvocationCountAnalysisData, InvocationCountAnalysisContext, InvocationCountAnalysisValue>? interproceduralAnalysisData)
-        {
-            return new InvocationCountAnalysisContext(
+            InterproceduralAnalysisData<GlobalFlowStateDictionaryAnalysisData, GlobalFlowStateDictionaryAnalysisContext, GlobalFlowStateDictionaryAnalysisValue>? interproceduralAnalysisData)
+            => new(
                 ValueDomain,
                 WellKnownTypeProvider,
                 invokedCfg,
@@ -65,9 +64,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
                 ControlFlowGraph,
                 interproceduralAnalysisData,
                 InterproceduralAnalysisPredicate);
-        }
 
-        protected override bool ComputeEqualsByHashCodeParts(AbstractDataFlowAnalysisContext<InvocationCountAnalysisData, InvocationCountAnalysisContext, InvocationCountAnalysisResult, InvocationCountAnalysisValue> obj)
+        protected override bool ComputeEqualsByHashCodeParts(AbstractDataFlowAnalysisContext<GlobalFlowStateDictionaryAnalysisData, GlobalFlowStateDictionaryAnalysisContext, GlobalFlowStateDictionaryAnalysisResult, GlobalFlowStateDictionaryAnalysisValue> obj)
             => true;
 
         protected override void ComputeHashCodePartsSpecific(ref RoslynHashCode hashCode)

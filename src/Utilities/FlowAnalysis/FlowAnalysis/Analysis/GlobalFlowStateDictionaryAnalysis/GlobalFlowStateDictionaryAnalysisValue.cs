@@ -5,25 +5,25 @@ using System.Collections.Immutable;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 
-namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
+namespace Analyzer.Utilities.FlowAnalysis.Analysis.GlobalFlowStateDictionaryAnalysis
 {
-    internal class InvocationCountAnalysisValue : CacheBasedEquatable<InvocationCountAnalysisValue>
+    internal class GlobalFlowStateDictionaryAnalysisValue : CacheBasedEquatable<GlobalFlowStateDictionaryAnalysisValue>
     {
         /// <summary>
-        /// The core analysis value of <see cref="InvocationCountAnalysis"/>.
+        /// The core analysis value of <see cref="GlobalFlowStateDictionaryAnalysis"/>.
         /// Key is the <see cref="AnalysisEntity"/> tracked my the analysis. Value is the state of the <see cref="AnalysisEntity"/>.
         /// </summary>
         public ImmutableDictionary<AnalysisEntity, TrackingInvocationSet> TrackedEntities { get; }
 
-        public InvocationCountAnalysisValueKind Kind { get; }
+        public GlobalFlowStateDictionaryAnalysisValueKind Kind { get; }
 
-        public static readonly InvocationCountAnalysisValue Empty = new(ImmutableDictionary<AnalysisEntity, TrackingInvocationSet>.Empty, InvocationCountAnalysisValueKind.Empty);
+        public static readonly GlobalFlowStateDictionaryAnalysisValue Empty = new(ImmutableDictionary<AnalysisEntity, TrackingInvocationSet>.Empty, GlobalFlowStateDictionaryAnalysisValueKind.Empty);
 
-        public static readonly InvocationCountAnalysisValue Unknown = new(ImmutableDictionary<AnalysisEntity, TrackingInvocationSet>.Empty, InvocationCountAnalysisValueKind.Unknown);
+        public static readonly GlobalFlowStateDictionaryAnalysisValue Unknown = new(ImmutableDictionary<AnalysisEntity, TrackingInvocationSet>.Empty, GlobalFlowStateDictionaryAnalysisValueKind.Unknown);
 
-        public InvocationCountAnalysisValue(
+        public GlobalFlowStateDictionaryAnalysisValue(
             ImmutableDictionary<AnalysisEntity, TrackingInvocationSet> trackedEntities,
-            InvocationCountAnalysisValueKind kind)
+            GlobalFlowStateDictionaryAnalysisValueKind kind)
         {
             TrackedEntities = trackedEntities;
             Kind = kind;
@@ -49,7 +49,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
         ///     "entity3" : "1"
         /// }
         /// </remarks>
-        public static InvocationCountAnalysisValue Merge(InvocationCountAnalysisValue value1, InvocationCountAnalysisValue value2)
+        public static GlobalFlowStateDictionaryAnalysisValue Merge(GlobalFlowStateDictionaryAnalysisValue value1, GlobalFlowStateDictionaryAnalysisValue value2)
         {
             if (value1.TrackedEntities.Count == 0)
             {
@@ -81,7 +81,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
                 }
             }
 
-            return new InvocationCountAnalysisValue(builder.ToImmutableDictionary(), InvocationCountAnalysisValueKind.Known);
+            return new GlobalFlowStateDictionaryAnalysisValue(builder.ToImmutableDictionary(), GlobalFlowStateDictionaryAnalysisValueKind.Known);
         }
 
         /// <summary>
@@ -106,7 +106,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
         ///     "entity3" : "1"
         /// }
         /// </remarks>
-        public static InvocationCountAnalysisValue Intersect(InvocationCountAnalysisValue value1, InvocationCountAnalysisValue value2)
+        public static GlobalFlowStateDictionaryAnalysisValue Intersect(GlobalFlowStateDictionaryAnalysisValue value1, GlobalFlowStateDictionaryAnalysisValue value2)
         {
             var builder = ImmutableDictionary.CreateBuilder<AnalysisEntity, TrackingInvocationSet>();
             var intersectedKeys = new HashSet<AnalysisEntity>();
@@ -137,12 +137,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
                 }
             }
 
-            return new InvocationCountAnalysisValue(builder.ToImmutable(), InvocationCountAnalysisValueKind.Known);
+            return new GlobalFlowStateDictionaryAnalysisValue(builder.ToImmutable(), GlobalFlowStateDictionaryAnalysisValueKind.Known);
         }
 
-        protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<InvocationCountAnalysisValue> obj)
+        protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<GlobalFlowStateDictionaryAnalysisValue> obj)
         {
-            var other = (InvocationCountAnalysisValue)obj;
+            var other = (GlobalFlowStateDictionaryAnalysisValue)obj;
             return HashUtilities.Combine(TrackedEntities) == HashUtilities.Combine(other.TrackedEntities)
                 && Kind.GetHashCode() == other.Kind.GetHashCode();
         }

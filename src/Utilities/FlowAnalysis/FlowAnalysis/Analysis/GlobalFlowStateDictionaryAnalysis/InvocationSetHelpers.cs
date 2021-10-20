@@ -4,7 +4,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 
-namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
+namespace Analyzer.Utilities.FlowAnalysis.Analysis.GlobalFlowStateDictionaryAnalysis
 {
     internal static class InvocationSetHelpers
     {

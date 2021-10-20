@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 
-namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
+namespace Analyzer.Utilities.FlowAnalysis.Analysis.GlobalFlowStateDictionaryAnalysis
 {
     internal class TrackingInvocationSet : CacheBasedEquatable<TrackingInvocationSet>
     {
