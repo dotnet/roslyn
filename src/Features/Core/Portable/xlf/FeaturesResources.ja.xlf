@@ -227,7 +227,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Applying_source_changes_while_the_application_is_running_is_not_supported_by_the_runtime">
         <source>Applying source changes while the application is running is not supported by the runtime.</source>
-        <target state="new">Applying source changes while the application is running is not supported by the runtime.</target>
+        <target state="translated">アプリケーションの実行中にソースの変更を適用することは、ランタイムでサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_requires_restarting_the_application">
@@ -462,7 +462,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Convert_to_tuple">
         <source>Convert to tuple</source>
-        <target state="new">Convert to tuple</target>
+        <target state="translated">タプルに変換</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_type_to_0">
@@ -2903,7 +2903,7 @@ If the "H" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="all_anonymous_types_in_container">
         <source>all anonymous types in container</source>
-        <target state="new">all anonymous types in container</target>
+        <target state="translated">コンテナー内のすべての匿名型</target>
         <note />
       </trans-unit>
       <trans-unit id="and_update_call_sites_directly">
@@ -3064,7 +3064,7 @@ The "f" standard format specifier represents a combination of the long date ("D"
       </trans-unit>
       <trans-unit id="just_this_anonymous_type">
         <source>just this anonymous type</source>
-        <target state="new">just this anonymous type</target>
+        <target state="translated">この匿名型のみ</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">

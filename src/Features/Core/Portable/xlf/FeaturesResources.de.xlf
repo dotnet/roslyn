@@ -227,7 +227,7 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       </trans-unit>
       <trans-unit id="Applying_source_changes_while_the_application_is_running_is_not_supported_by_the_runtime">
         <source>Applying source changes while the application is running is not supported by the runtime.</source>
-        <target state="new">Applying source changes while the application is running is not supported by the runtime.</target>
+        <target state="translated">Das Anwenden von Quelländerungen während der Ausführung der Anwendung wird von der Laufzeit nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_requires_restarting_the_application">
@@ -462,7 +462,7 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       </trans-unit>
       <trans-unit id="Convert_to_tuple">
         <source>Convert to tuple</source>
-        <target state="new">Convert to tuple</target>
+        <target state="translated">In Tupel konvertieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_type_to_0">
@@ -2903,7 +2903,7 @@ Bei Verwendung des Formatbezeichners "H" ohne weitere benutzerdefinierte Formatb
       </trans-unit>
       <trans-unit id="all_anonymous_types_in_container">
         <source>all anonymous types in container</source>
-        <target state="new">all anonymous types in container</target>
+        <target state="translated">Alle anonymen Typen im Container</target>
         <note />
       </trans-unit>
       <trans-unit id="and_update_call_sites_directly">
@@ -3064,7 +3064,7 @@ Der Standardformatbezeichner "f" repräsentiert eine Kombination aus den Mustern
       </trans-unit>
       <trans-unit id="just_this_anonymous_type">
         <source>just this anonymous type</source>
-        <target state="new">just this anonymous type</target>
+        <target state="translated">nur dieser anonyme Typ</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">
