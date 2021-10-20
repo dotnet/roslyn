@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis
 
             public CachedSkeletonReferences CachedSkeletonReferences { get; }
 
-            public GeneratedFileReplacingCompilationTracker(
-                ICompilationTracker underlyingTracker,
-                SourceGeneratedDocumentState replacementDocumentState)
+            public GeneratedFileReplacingCompilationTracker(ICompilationTracker underlyingTracker, SourceGeneratedDocumentState replacementDocumentState)
             {
                 _underlyingTracker = underlyingTracker;
                 _replacedGeneratedDocumentState = replacementDocumentState;
