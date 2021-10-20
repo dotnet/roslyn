@@ -64,35 +64,30 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             var assemblyName = symbol.ContainingAssembly.Identity.Name;
 
             ImmutableDictionary<string, string> pdbCompilationOptions;
-            ImmutableArray<(string FilePath, TextLoader Loader)> filePathsAndTextLoaders;
+            ImmutableArray<SourceDocument> sourceDocuments;
             // We know we have a DLL, call and see if we can find metadata readers for it, and for the PDB (whereever it may be)
             using (var documentDebugInfoReader = await _pdbFileLocatorService.GetDocumentDebugInfoReaderAsync(dllPath, cancellationToken).ConfigureAwait(false))
             {
                 if (documentDebugInfoReader is null)
                     return null;
 
-                // Try to find some actual document information from the PDB
-                var sourceDocuments = documentDebugInfoReader.FindSourceDocuments(symbol);
-                if (sourceDocuments.Length == 0)
-                    return null;
-
-                // Get text loaders for our documents. We do this here because if we can't load any of the files, then
-                // we can't provide any results.
-                var textLoaderTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(sd, documentDebugInfoReader)).ToArray();
-                var textLoaders = await Task.WhenAll(textLoaderTasks).ConfigureAwait(false);
-                if (textLoaders.Where(t => t is null).Any())
-                    return null;
-
-                Contract.ThrowIfFalse(sourceDocuments.Length == textLoaders.Length);
-
-                // Combine text loaders and file paths. Task.WhenAll ensures order is preserved.
-                filePathsAndTextLoaders = sourceDocuments.Select((sd, i) => (sd.FilePath, textLoaders[i]!)).ToImmutableArray();
-
                 // If we don't already have a project for this assembly, we'll need to create one, and we want to use
                 // the same compiler options for it that the DLL was created with. We also want to do that early so we
                 // can dispose files sooner
                 pdbCompilationOptions = documentDebugInfoReader.GetCompilationOptions();
+
+                // Try to find some actual document information from the PDB
+                sourceDocuments = documentDebugInfoReader.FindSourceDocuments(symbol);
+                if (sourceDocuments.Length == 0)
+                    return null;
             }
+
+            // Get text loaders for our documents. We do this here because if we can't load any of the files, then
+            // we can't provide any results, so there is no point adding a project to the workspace etc.
+            var textLoaderTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(sd)).ToArray();
+            var textLoaders = await Task.WhenAll(textLoaderTasks).ConfigureAwait(false);
+            if (textLoaders.Where(t => t is null).Any())
+                return null;
 
             if (!_assemblyToProjectMap.TryGetValue(assemblyName, out var projectId))
             {
@@ -109,8 +104,12 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             }
 
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
-
             var navigateProject = workspace.CurrentSolution.GetRequiredProject(projectId);
+
+            Contract.ThrowIfFalse(sourceDocuments.Length == textLoaders.Length);
+
+            // Combine text loaders and file paths. Task.WhenAll ensures order is preserved.
+            var filePathsAndTextLoaders = sourceDocuments.Select((sd, i) => (sd.FilePath, textLoaders[i]!)).ToImmutableArray();
             var documentInfos = CreateDocumentInfos(filePathsAndTextLoaders, navigateProject);
             if (documentInfos.Length > 0)
             {

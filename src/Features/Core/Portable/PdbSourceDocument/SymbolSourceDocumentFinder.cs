@@ -3,33 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.Debugging;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
     internal static class SymbolSourceDocumentFinder
     {
-        public static ImmutableArray<SourceDocument> FindSourceDocuments(ISymbol symbol, MetadataReader dllReader, MetadataReader pdbReader)
-        {
-            var documentHandles = FindDocumentHandles(symbol, dllReader, pdbReader);
-
-            using var _ = ArrayBuilder<SourceDocument>.GetInstance(out var sourceDocuments);
-
-            foreach (var handle in documentHandles)
-            {
-                var document = pdbReader.GetDocument(handle);
-                var filePath = pdbReader.GetString(document.Name);
-                sourceDocuments.Add(new SourceDocument(handle, filePath));
-            }
-
-            return sourceDocuments.ToImmutable();
-        }
-
-        private static HashSet<DocumentHandle> FindDocumentHandles(ISymbol symbol, MetadataReader dllReader, MetadataReader pdbReader)
+        public static HashSet<DocumentHandle> FindDocumentHandles(ISymbol symbol, MetadataReader dllReader, MetadataReader pdbReader)
         {
             var docList = new HashSet<DocumentHandle>();
 

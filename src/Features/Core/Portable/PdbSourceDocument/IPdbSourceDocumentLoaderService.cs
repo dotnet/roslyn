@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
     internal interface IPdbSourceDocumentLoaderService
     {
-        Task<TextLoader?> LoadSourceDocumentAsync(SourceDocument sourceDocument, DocumentDebugInfoReader documentDebugInfoReader);
+        Task<TextLoader?> LoadSourceDocumentAsync(SourceDocument sourceDocument);
     }
 }

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.IO.Compression;
@@ -37,12 +36,24 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         public ImmutableArray<SourceDocument> FindSourceDocuments(ISymbol symbol)
         {
-            return SymbolSourceDocumentFinder.FindSourceDocuments(symbol, _dllReader, _pdbReader);
+            var documentHandles = SymbolSourceDocumentFinder.FindDocumentHandles(symbol, _dllReader, _pdbReader);
+
+            using var _ = ArrayBuilder<SourceDocument>.GetInstance(out var sourceDocuments);
+
+            foreach (var handle in documentHandles)
+            {
+                var document = _pdbReader.GetDocument(handle);
+                var filePath = _pdbReader.GetString(document.Name);
+                var embeddedText = TryGetEmbeddedSourceText(handle);
+                sourceDocuments.Add(new SourceDocument(filePath, embeddedText));
+            }
+
+            return sourceDocuments.ToImmutable();
         }
 
-        public SourceText? TryGetEmbeddedSourceText(SourceDocument sourceDocument)
+        private SourceText? TryGetEmbeddedSourceText(DocumentHandle handle)
         {
-            var handles = _pdbReader.GetCustomDebugInformation(sourceDocument.Handle);
+            var handles = _pdbReader.GetCustomDebugInformation(handle);
             foreach (var cdiHandle in handles)
             {
                 var cdi = _pdbReader.GetCustomDebugInformation(cdiHandle);
@@ -66,7 +77,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
                             if (decompressed.Length != uncompressedSize)
                             {
-                                throw new InvalidDataException();
+                                return null;
                             }
 
                             stream = decompressed;

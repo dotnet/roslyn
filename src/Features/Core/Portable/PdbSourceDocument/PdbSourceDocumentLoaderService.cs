@@ -20,21 +20,19 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         {
         }
 
-        public Task<TextLoader?> LoadSourceDocumentAsync(SourceDocument sourceDocument, DocumentDebugInfoReader documentDebugInfoReader)
+        public Task<TextLoader?> LoadSourceDocumentAsync(SourceDocument sourceDocument)
         {
-            // First, check the easiest case which is the document exists on the disk
+            // If we already have the embedded text then use that directly
+            if (sourceDocument.EmbeddedText is not null)
+            {
+                var textAndVersion = TextAndVersion.Create(sourceDocument.EmbeddedText, VersionStamp.Default, sourceDocument.FilePath);
+                return Task.FromResult<TextLoader?>(TextLoader.From(textAndVersion));
+            }
+
+            // Otherwise, check the easiest (but most unlikely) case which is the document exists on the disk
             if (File.Exists(sourceDocument.FilePath))
             {
                 return Task.FromResult<TextLoader?>(new FileTextLoader(sourceDocument.FilePath, Encoding.UTF8));
-            }
-
-            // Otherwise it might be embedded source
-            var text = documentDebugInfoReader.TryGetEmbeddedSourceText(sourceDocument);
-
-            if (text is not null)
-            {
-                var textAndVersion = TextAndVersion.Create(text, VersionStamp.Default, sourceDocument.FilePath);
-                return Task.FromResult<TextLoader?>(TextLoader.From(textAndVersion));
             }
 
             // TODO: Call the debugger to download the file
