@@ -65,19 +65,19 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textViewOpt),
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, _listener),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.DisplayAllOverride),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.EnabledForParameters),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForLiteralParameters),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForIndexerParameters),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForObjectCreationParameters),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForOtherParameters),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.SuppressForParametersThatMatchMethodIntent),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.SuppressForParametersThatMatchArgumentName),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.EnabledForTypes),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForImplicitVariableTypes),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForLambdaParameterTypes),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForImplicitObjectCreation));
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsGlobalStateOption.DisplayAllOverride),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.EnabledForParameters),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.ForLiteralParameters),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.ForIndexerParameters),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.ForObjectCreationParameters),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.ForOtherParameters),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.SuppressForParametersThatMatchMethodIntent),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.SuppressForParametersThatDifferOnlyBySuffix),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.SuppressForParametersThatMatchArgumentName),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineTypeHintsOptions.Metadata.EnabledForTypes),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineTypeHintsOptions.Metadata.ForImplicitVariableTypes),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineTypeHintsOptions.Metadata.ForLambdaParameterTypes),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineTypeHintsOptions.Metadata.ForImplicitObjectCreation));
         }
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)

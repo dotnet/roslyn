@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -17,11 +18,18 @@ namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal abstract class AbstractInlineParameterNameHintsService : IInlineParameterNameHintsService
     {
+        private readonly IGlobalOptionService _globalOptions;
+
         protected enum HintKind
         {
             Literal,
             ObjectCreation,
             Other
+        }
+
+        public AbstractInlineParameterNameHintsService(IGlobalOptionService globalOptions)
+        {
+            _globalOptions = globalOptions;
         }
 
         protected abstract void AddAllParameterNameHintLocations(
@@ -35,25 +43,24 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
         public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = InlineParameterHintsOptions.From(document.Project);
             var displayOptions = SymbolDescriptionOptions.From(document.Project);
+            var displayAllOverride = _globalOptions.GetOption(InlineHintsGlobalStateOption.DisplayAllOverride);
 
-            var displayAllOverride = options.GetOption(InlineHintsOptions.DisplayAllOverride);
-
-            var enabledForParameters = displayAllOverride || options.GetOption(InlineHintsOptions.EnabledForParameters);
+            var enabledForParameters = displayAllOverride || options.EnabledForParameters;
             if (!enabledForParameters)
                 return ImmutableArray<InlineHint>.Empty;
 
-            var literalParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForLiteralParameters);
-            var objectCreationParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForObjectCreationParameters);
-            var otherParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForOtherParameters);
+            var literalParameters = displayAllOverride || options.ForLiteralParameters;
+            var objectCreationParameters = displayAllOverride || options.ForObjectCreationParameters;
+            var otherParameters = displayAllOverride || options.ForOtherParameters;
             if (!literalParameters && !objectCreationParameters && !otherParameters)
                 return ImmutableArray<InlineHint>.Empty;
 
-            var indexerParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForIndexerParameters);
-            var suppressForParametersThatDifferOnlyBySuffix = !displayAllOverride && options.GetOption(InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix);
-            var suppressForParametersThatMatchMethodIntent = !displayAllOverride && options.GetOption(InlineHintsOptions.SuppressForParametersThatMatchMethodIntent);
-            var suppressForParametersThatMatchArgumentName = !displayAllOverride && options.GetOption(InlineHintsOptions.SuppressForParametersThatMatchArgumentName);
+            var indexerParameters = displayAllOverride || options.ForIndexerParameters;
+            var suppressForParametersThatDifferOnlyBySuffix = !displayAllOverride && options.SuppressForParametersThatDifferOnlyBySuffix;
+            var suppressForParametersThatMatchMethodIntent = !displayAllOverride && options.SuppressForParametersThatMatchMethodIntent;
+            var suppressForParametersThatMatchArgumentName = !displayAllOverride && options.SuppressForParametersThatMatchArgumentName;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

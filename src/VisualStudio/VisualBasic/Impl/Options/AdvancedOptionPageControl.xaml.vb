@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 Imports Microsoft.CodeAnalysis.Editor.InlineDiagnostics
+Imports Microsoft.CodeAnalysis.Editor.InlineHints
 Imports Microsoft.CodeAnalysis.Editor.Options
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
@@ -132,17 +133,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(prefer_auto_properties, ImplementTypeOptions.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties, LanguageNames.VisualBasic)
 
             ' Inline hints
-            BindToOption(DisplayAllHintsWhilePressingAltF1, InlineHintsOptions.DisplayAllHintsWhilePressingAltF1)
-            BindToOption(ColorHints, InlineHintsOptions.ColorHints, LanguageNames.VisualBasic)
+            BindToOption(DisplayAllHintsWhilePressingAltF1, InlineHintsViewOptions.DisplayAllHintsWhilePressingAltF1)
+            BindToOption(ColorHints, InlineHintsViewOptions.ColorHints, LanguageNames.VisualBasic)
 
-            BindToOption(DisplayInlineParameterNameHints, InlineHintsOptions.EnabledForParameters, LanguageNames.VisualBasic)
-            BindToOption(ShowHintsForLiterals, InlineHintsOptions.ForLiteralParameters, LanguageNames.VisualBasic)
-            BindToOption(ShowHintsForNewExpressions, InlineHintsOptions.ForObjectCreationParameters, LanguageNames.VisualBasic)
-            BindToOption(ShowHintsForEverythingElse, InlineHintsOptions.ForOtherParameters, LanguageNames.VisualBasic)
-            BindToOption(ShowHintsForIndexers, InlineHintsOptions.ForIndexerParameters, LanguageNames.VisualBasic)
-            BindToOption(SuppressHintsWhenParameterNameMatchesTheMethodsIntent, InlineHintsOptions.SuppressForParametersThatMatchMethodIntent, LanguageNames.VisualBasic)
-            BindToOption(SuppressHintsWhenParameterNamesDifferOnlyBySuffix, InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix, LanguageNames.VisualBasic)
-            BindToOption(SuppressHintsWhenParameterNamesMatchArgumentNames, InlineHintsOptions.SuppressForParametersThatMatchArgumentName, LanguageNames.VisualBasic)
+            BindToOption(DisplayInlineParameterNameHints, InlineParameterHintsOptions.Metadata.EnabledForParameters, LanguageNames.VisualBasic)
+            BindToOption(ShowHintsForLiterals, InlineParameterHintsOptions.Metadata.ForLiteralParameters, LanguageNames.VisualBasic)
+            BindToOption(ShowHintsForNewExpressions, InlineParameterHintsOptions.Metadata.ForObjectCreationParameters, LanguageNames.VisualBasic)
+            BindToOption(ShowHintsForEverythingElse, InlineParameterHintsOptions.Metadata.ForOtherParameters, LanguageNames.VisualBasic)
+            BindToOption(ShowHintsForIndexers, InlineParameterHintsOptions.Metadata.ForIndexerParameters, LanguageNames.VisualBasic)
+            BindToOption(SuppressHintsWhenParameterNameMatchesTheMethodsIntent, InlineParameterHintsOptions.Metadata.SuppressForParametersThatMatchMethodIntent, LanguageNames.VisualBasic)
+            BindToOption(SuppressHintsWhenParameterNamesDifferOnlyBySuffix, InlineParameterHintsOptions.Metadata.SuppressForParametersThatDifferOnlyBySuffix, LanguageNames.VisualBasic)
+            BindToOption(SuppressHintsWhenParameterNamesMatchArgumentNames, InlineParameterHintsOptions.Metadata.SuppressForParametersThatMatchArgumentName, LanguageNames.VisualBasic)
 
             BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.VisualBasic,
                          Function()
@@ -168,7 +169,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         End Sub
 
         Private Sub UpdateInlineHintsOptions()
-            Dim enabledForParameters = Me.OptionStore.GetOption(InlineHintsOptions.EnabledForParameters, LanguageNames.VisualBasic) <> False
+            Dim enabledForParameters = Me.OptionStore.GetOption(InlineParameterHintsOptions.Metadata.EnabledForParameters, LanguageNames.VisualBasic) <> False
             ShowHintsForLiterals.IsEnabled = enabledForParameters
             ShowHintsForNewExpressions.IsEnabled = enabledForParameters
             ShowHintsForEverythingElse.IsEnabled = enabledForParameters
@@ -179,12 +180,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         End Sub
 
         Private Sub DisplayInlineParameterNameHints_Checked()
-            Me.OptionStore.SetOption(InlineHintsOptions.EnabledForParameters, LanguageNames.VisualBasic, True)
+            Me.OptionStore.SetOption(InlineParameterHintsOptions.Metadata.EnabledForParameters, LanguageNames.VisualBasic, True)
             UpdateInlineHintsOptions()
         End Sub
 
         Private Sub DisplayInlineParameterNameHints_Unchecked()
-            Me.OptionStore.SetOption(InlineHintsOptions.EnabledForParameters, LanguageNames.VisualBasic, False)
+            Me.OptionStore.SetOption(InlineParameterHintsOptions.Metadata.EnabledForParameters, LanguageNames.VisualBasic, False)
             UpdateInlineHintsOptions()
         End Sub
     End Class
