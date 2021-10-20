@@ -73,17 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         /// <summary>
         /// Gets the dot-like token we're after, and also the start of the expression we'd want to place any text before.
         /// </summary>
-        private static (SyntaxToken dotLikeToken, int expressionStart) GetDotAndExpressionStart(SyntaxNode root, int position)
+        private static (SyntaxToken dotLikeToken, int expressionStart) GetDotAndExpressionStart(SyntaxNode root, int position, CancellationToken cancellationToken)
         {
-            var tokenOnLeft = root.FindTokenOnLeftOfPosition(position, includeSkipped: true);
-            var dotToken = tokenOnLeft.GetPreviousTokenIfTouchingWord(position);
-
-            // Has to be a . or a .. token
-            if (!CompletionUtilities.TreatAsDot(dotToken, position - 1))
-                return default;
-
-            // don't want to trigger after a number.  All other cases after dot are ok.
-            if (dotToken.GetPreviousToken().Kind() == SyntaxKind.NumericLiteralToken)
+            if (CompletionUtilities.GetDotTokenLeftOfPosition(root.SyntaxTree, position, cancellationToken) is not SyntaxToken dotToken)
                 return default;
 
             // if we have `.Name`, we want to get the parent member-access of that to find the starting position.
@@ -111,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var dotAndExprStart = GetDotAndExpressionStart(root, position);
+            var dotAndExprStart = GetDotAndExpressionStart(root, position, cancellationToken);
             if (dotAndExprStart == default)
                 return;
 
@@ -190,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var position = SymbolCompletionItem.GetContextPosition(item);
 
-            var (dotToken, _) = GetDotAndExpressionStart(root, position);
+            var (dotToken, _) = GetDotAndExpressionStart(root, position, cancellationToken);
             var questionToken = dotToken.GetPreviousToken().Kind() == SyntaxKind.QuestionToken
                 ? dotToken.GetPreviousToken()
                 : (SyntaxToken?)null;

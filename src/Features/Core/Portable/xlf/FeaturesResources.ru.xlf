@@ -240,6 +240,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Асинхронно ожидает окончания задачи.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Await_the_preceding_expression">
+        <source>Await the preceding expression</source>
+        <target state="new">Await the preceding expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Await_the_preceding_expression_and_add_ConfigureAwait_0">
+        <source>Await the preceding expression and add ConfigureAwait({0}).</source>
+        <target state="new">Await the preceding expression and add ConfigureAwait({0}).</target>
+        <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
+      </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
         <target state="translated">Ожидаемая задача возвращает "{0}".</target>
@@ -4173,16 +4183,6 @@ This version used in: {2}</source>
       <trans-unit id="Add_missing_param_nodes">
         <source>Add missing param nodes</source>
         <target state="translated">Добавить отсутствующие узлы параметров</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_containing_scope_async">
-        <source>Make containing scope async</source>
-        <target state="translated">Преобразовать содержащую область в асинхронную</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_containing_scope_async_return_Task">
-        <source>Make containing scope async (return Task)</source>
-        <target state="translated">Преобразовать содержащую область в асинхронную (задача возврата)</target>
         <note />
       </trans-unit>
       <trans-unit id="paren_Unknown_paren">
