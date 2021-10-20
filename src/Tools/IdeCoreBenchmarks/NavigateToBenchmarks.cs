@@ -30,6 +30,7 @@ namespace IdeCoreBenchmarks
     public class NavigateToBenchmarks
     {
         Solution _solution;
+        string _solutionPath;
 
         [GlobalSetup]
         public void SetUp()
@@ -41,13 +42,17 @@ namespace IdeCoreBenchmarks
             MSBuildLocator.RegisterInstance(msBuildInstance);
 
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            var solutionPath = Path.Combine(roslynRoot, @"Roslyn.sln");
+            _solutionPath = Path.Combine(roslynRoot, @"Roslyn.sln");
 
             if (!File.Exists(solutionPath))
                 throw new ArgumentException("Couldn't find Roslyn.sln");
 
             Console.Write("Found Roslyn.sln: " + Process.GetCurrentProcess().Id);
+        }
 
+        [IterationSetup]
+        public void IterationSetup()
+        {
             var assemblies = MSBuildMefHostServices.DefaultAssemblies
                 .Add(typeof(AnalyzerRunnerHelper).Assembly)
                 .Add(typeof(FindReferencesBenchmarks).Assembly);
@@ -77,20 +82,33 @@ namespace IdeCoreBenchmarks
             if (storageService == null)
                 throw new ArgumentException("Couldn't get storage service");
 
-            using (var storage = storageService.GetStorageAsync(SolutionKey.ToSolutionKey(workspace.CurrentSolution), CancellationToken.None).Result)
+            var task = storageService.GetStorageAsync(_workspace.CurrentSolution, CancellationToken.None);
+            while (!task.IsCompleted)
             {
-                Console.WriteLine();
+                Thread.Sleep(100);
             }
+
+            using var storage = task.Result;
+            Console.WriteLine();
+        }
+
+
+        [IterationCleanup]
+        public void IterationCleanup()
+        {
+            _workspace.Dispose();
+            _workspace = null;
         }
 
         [Benchmark]
+
         public async Task RunNavigateTo()
         {
             Console.WriteLine("Starting navigate to");
 
             var start = DateTime.Now;
             // Search each project with an independent threadpool task.
-            var searchTasks = _solution.Projects.Select(
+            var searchTasks = _workspace.CurrentSolution.Projects.Select(
                 p => Task.Run(() => SearchAsync(p, priorityDocuments: ImmutableArray<Document>.Empty), CancellationToken.None)).ToArray();
 
             var result = await Task.WhenAll(searchTasks).ConfigureAwait(false);
@@ -105,7 +123,7 @@ namespace IdeCoreBenchmarks
             var service = project.LanguageServices.GetService<INavigateToSearchService>();
             var results = new List<INavigateToSearchResult>();
             await service.SearchProjectAsync(
-                project, priorityDocuments, "Document", service.KindsProvided,
+                project, priorityDocuments, "Syntax", service.KindsProvided,
                 r =>
                 {
                     lock (results)
