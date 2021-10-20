@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
         /// <para/>
         /// The implementation works by keeping metadata references around associated with a specific <see cref="VersionStamp"/>
         /// for a project. As long as the <see cref="Project.GetDependentSemanticVersionAsync"/> for that project
-        /// is the same, then all the references of it can be reused.  When a <see cref="ProjectState"/> forks itself, it 
+        /// is the same, then all the references of it can be reused.  When an <see cref="ICompilationTracker"/> forks itself, it 
         /// will also <see cref="Clone"/> this, allowing previously computed references to be used by later forks.  However,
         /// this means that later forks (esp. ones that fail to produce a skeleton, or which produce a skeleton for different
         /// semantics) will not leak backward to a prior <see cref="ProjectState"/>, causing it to see a view of the world
