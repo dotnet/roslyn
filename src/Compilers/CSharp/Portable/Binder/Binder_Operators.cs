@@ -390,8 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We need to make sure left is either implicitly convertible to Boolean or has user defined truth operator.
                 //   left && right is lowered to {op_False|op_Implicit}(left) ? left : And(left, right)
                 //   left || right is lowered to {op_True|!op_Implicit}(left) ? left : Or(left, right)
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                if (!IsValidDynamicCondition(left, isNegative: kind == BinaryOperatorKind.LogicalAnd, useSiteInfo: ref useSiteInfo, userDefinedOperator: out userDefinedOperator))
+                if (!IsValidDynamicCondition(left, isNegative: kind == BinaryOperatorKind.LogicalAnd, diagnostics, userDefinedOperator: out userDefinedOperator))
                 {
                     // Dev11 reports ERR_MustHaveOpTF. The error was shared between this case and user-defined binary Boolean operators.
                     // We report two distinct more specific error messages.
@@ -404,8 +403,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(left.Type is not TypeParameterSymbol);
                     CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, userDefinedOperator, constrainedToTypeOpt: null, diagnostics);
                 }
-
-                diagnostics.Add(node, useSiteInfo);
             }
 
             return new BoundBinaryOperator(
@@ -990,7 +987,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBinaryOperator(node, kind, left, right, ConstantValue.NotAvailable, methodOpt: null, constrainedToTypeOpt: null, lookupResult, originalUserDefinedOperators, CreateErrorType(), true);
         }
 
-        private bool IsValidDynamicCondition(BoundExpression left, bool isNegative, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out MethodSymbol userDefinedOperator)
+        private bool IsValidDynamicCondition(BoundExpression left, bool isNegative, BindingDiagnosticBag diagnostics, out MethodSymbol userDefinedOperator)
         {
             userDefinedOperator = null;
 
@@ -1005,19 +1002,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            var implicitConversion = Conversions.ClassifyImplicitConversionFromExpression(left, Compilation.GetSpecialType(SpecialType.System_Boolean), ref useSiteInfo);
+            var booleanType = Compilation.GetSpecialType(SpecialType.System_Boolean);
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            var implicitConversion = Conversions.ClassifyImplicitConversionFromExpression(left, booleanType, ref useSiteInfo);
+
             if (implicitConversion.Exists)
             {
+                if (left.Type is not null)
+                {
+                    var operandPlaceholder = new BoundValuePlaceholder(left.Syntax, left.Type).MakeCompilerGenerated();
+                    CreateConversion(left.Syntax, operandPlaceholder, implicitConversion, isCast: false, conversionGroupOpt: null, booleanType, diagnostics);
+                }
+                else
+                {
+                    Debug.Assert(left.IsLiteralNull());
+                }
+
+                diagnostics.Add(left.Syntax, useSiteInfo);
                 return true;
             }
 
             if (type.Kind != SymbolKind.NamedType)
             {
+                diagnostics.Add(left.Syntax, useSiteInfo);
                 return false;
             }
 
             var namedType = type as NamedTypeSymbol;
-            return HasApplicableBooleanOperator(namedType, isNegative ? WellKnownMemberNames.FalseOperatorName : WellKnownMemberNames.TrueOperatorName, type, ref useSiteInfo, out userDefinedOperator);
+            var result = HasApplicableBooleanOperator(namedType, isNegative ? WellKnownMemberNames.FalseOperatorName : WellKnownMemberNames.TrueOperatorName, type, ref useSiteInfo, out userDefinedOperator);
+            diagnostics.Add(left.Syntax, useSiteInfo);
+
+            return result;
         }
 
         private bool IsValidUserDefinedConditionalLogicalOperator(
