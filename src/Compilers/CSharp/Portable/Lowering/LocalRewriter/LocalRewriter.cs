@@ -253,23 +253,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldInstrumenter = _instrumenter;
             try
             {
-<<<<<<< HEAD
-                _factory.CurrentFunction = node.Symbol;
-                var visited = (BoundLambda)base.VisitLambda(node)!;
-
-                if (RewriteNullChecking(visited.Body) is BoundBlock newBody)
-                {
-                    visited = visited.Update(visited.UnboundLambda, visited.Symbol, newBody, visited.Diagnostics, visited.Binder, visited.Type);
-                }
-                return visited;
-=======
                 _factory.CurrentFunction = lambda;
                 if (lambda.IsDirectlyExcludedFromCodeCoverage)
                 {
                     _instrumenter = RemoveDynamicAnalysisInjectors(oldInstrumenter);
                 }
-                return base.VisitLambda(node)!;
->>>>>>> upstream/main
+
+                var visited = (BoundLambda)base.VisitLambda(node)!;
+                if (RewriteNullChecking(visited.Body) is BoundBlock newBody)
+                {
+                    visited = visited.Update(visited.UnboundLambda, visited.Symbol, newBody, visited.Diagnostics, visited.Binder, visited.Type);
+                }
+                return visited;
             }
             finally
             {
@@ -326,15 +321,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _instrumenter = RemoveDynamicAnalysisInjectors(oldInstrumenter);
                 }
 
-<<<<<<< HEAD
-                var visited = (BoundLocalFunctionStatement)base.VisitLocalFunctionStatement(node)!;
-
-                if (!localFunction.IsIterator && RewriteNullChecking(visited.Body) is BoundBlock newBody)
-                {
-                    visited = visited.Update(localFunction, newBody, null);
-                }
-                return visited;
-=======
                 if (localFunction.IsGenericMethod)
                 {
                     // Each generic local function gets its own dynamic factory because it 
@@ -343,8 +329,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _dynamicFactory = new LoweredDynamicOperationFactory(_factory, _dynamicFactory.MethodOrdinal, localFunctionOrdinal);
                 }
 
-                return base.VisitLocalFunctionStatement(node)!;
->>>>>>> upstream/main
+                var visited = (BoundLocalFunctionStatement)base.VisitLocalFunctionStatement(node)!;
+
+                if (!localFunction.IsIterator && RewriteNullChecking(visited.Body) is BoundBlock newBody)
+                {
+                    visited = visited.Update(localFunction, newBody, null);
+                }
+                return visited;
             }
             finally
             {

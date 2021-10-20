@@ -2,12 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-<<<<<<< HEAD
-using System;
-=======
 #nullable disable
 
->>>>>>> upstream/main
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -104,12 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int i = 0; i < invoke.Parameters.Length; i++)
             {
-<<<<<<< HEAD
                 var parameterSymbol = invoke.Parameters[i];
                 if (!parameterSymbol.TypeWithAnnotations.IsAtLeastAsVisibleAs(delegateType, ref useSiteDiagnostics))
-=======
-                if (!parameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(delegateType, ref useSiteInfo))
->>>>>>> upstream/main
                 {
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than delegate '{0}'
                     diagnostics.Add(ErrorCode.ERR_BadVisDelegateParam, delegateType.Locations[0], delegateType, parameterSymbol.Type);

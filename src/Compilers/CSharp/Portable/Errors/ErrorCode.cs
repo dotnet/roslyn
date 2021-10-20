@@ -1882,17 +1882,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CopyConstructorWrongAccessibility = 8878,
         ERR_NonPrivateAPIInRecord = 8879,
 
-<<<<<<< HEAD
-        ERR_IncorrectNullCheckSyntax = 8890,
-        ERR_MustNullCheckInImplementation = 8891,
-        ERR_NonNullableValueTypeIsNullChecked = 8892,
-        WRN_NullCheckedHasDefaultNull = 8893,
-        ERR_NullCheckingOnByRefParameter = 8894,
-        WRN_NullCheckingOnNullableValueType = 8895,
-
-        #endregion diagnostics introduced for C# 9.0
-
-=======
         // The following warnings correspond to errors of the same name, but are reported
         // when a definite assignment issue is reported due to private fields imported from metadata.
         WRN_UnassignedThisAutoProperty = 8880,
@@ -2012,9 +2001,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_MethGrpToNonDel = 8974,
         ERR_LambdaExplicitReturnTypeVar = 8975,
 
+        ERR_IncorrectNullCheckSyntax = 8990,
+        ERR_MustNullCheckInImplementation = 8991,
+        ERR_NonNullableValueTypeIsNullChecked = 8992,
+        WRN_NullCheckedHasDefaultNull = 8993,
+        ERR_NullCheckingOnByRefParameter = 8994,
+        WRN_NullCheckingOnNullableValueType = 8995,
+
         #endregion
 
->>>>>>> upstream/main
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }

@@ -361,23 +361,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-<<<<<<< HEAD
             if (this.IsNullChecked && convertedExpression.ConstantValue?.IsNull == true)
             {
                 diagnostics.Add(ErrorCode.WRN_NullCheckedHasDefaultNull, Locations.FirstOrNone(), this.Name);
             }
 
-            if (parameterType.Type.IsReferenceType &&
-                parameterType.NullableAnnotation.IsNotAnnotated() &&
-                convertedExpression.ConstantValue?.IsNull == true &&
-                !suppressNullableWarning(convertedExpression) &&
-                DeclaringCompilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
-            {
-                diagnostics.Add(ErrorCode.WRN_NullAsNonNullable, parameterSyntax.Default.Value.Location);
-            }
-
-=======
->>>>>>> upstream/main
             // represent default(struct) by a Null constant:
             var value = convertedExpression.ConstantValue ?? ConstantValue.Null;
             return value;

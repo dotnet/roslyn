@@ -789,7 +789,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return refKind;
         }
 
-<<<<<<< HEAD
         internal static void AddNullCheckingErrorsToParameter(DiagnosticBag diagnostics, ParameterSymbol parameter)
         {
             if (!parameter.IsNullChecked)
@@ -813,10 +812,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
-        internal static ImmutableArray<CustomModifier> ConditionallyCreateInModifiers(RefKind refKind, bool addRefReadOnlyModifier, Binder binder, DiagnosticBag diagnostics, SyntaxNode syntax)
-=======
+
         internal static ImmutableArray<CustomModifier> ConditionallyCreateInModifiers(RefKind refKind, bool addRefReadOnlyModifier, Binder binder, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
->>>>>>> upstream/main
         {
             if (addRefReadOnlyModifier && refKind == RefKind.In)
             {

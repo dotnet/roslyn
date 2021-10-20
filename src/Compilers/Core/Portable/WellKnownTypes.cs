@@ -311,14 +311,12 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_IsExternalInit,
         System_Runtime_InteropServices_OutAttribute,
 
-<<<<<<< HEAD
-        System_ArgumentNullException,
-=======
         System_Text_StringBuilder,
 
         System_Runtime_CompilerServices_DefaultInterpolatedStringHandler,
 
->>>>>>> upstream/main
+        System_ArgumentNullException,
+
         NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
     }
@@ -624,12 +622,9 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.IsExternalInit",
             "System.Runtime.InteropServices.OutAttribute",
 
-<<<<<<< HEAD
-            "System.ArgumentNullException",
-=======
             "System.Text.StringBuilder",
             "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler",
->>>>>>> upstream/main
+            "System.ArgumentNullException",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

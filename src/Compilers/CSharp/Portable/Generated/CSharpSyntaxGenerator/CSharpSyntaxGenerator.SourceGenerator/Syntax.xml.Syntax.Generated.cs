@@ -13095,23 +13095,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-<<<<<<< HEAD:src/Compilers/CSharp/Portable/Generated/Syntax.xml.Syntax.Generated.cs
-        public ParameterSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.Type, this.Identifier, this.ExclamationExclamationToken, this.Default);
-        public ParameterSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.Type, this.Identifier, this.ExclamationExclamationToken, this.Default);
-        public ParameterSyntax WithType(TypeSyntax? type) => Update(this.AttributeLists, this.Modifiers, type, this.Identifier, this.ExclamationExclamationToken, this.Default);
+        internal override BaseParameterSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+        public new ParameterSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.Type, this.Identifier, this.ExclamationExclamationToken, this.Default);
+        internal override BaseParameterSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+        public new ParameterSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.Type, this.Identifier, this.ExclamationExclamationToken, this.Default);
+        internal override BaseParameterSyntax WithTypeCore(TypeSyntax? type) => WithType(type);
+        public new ParameterSyntax WithType(TypeSyntax? type) => Update(this.AttributeLists, this.Modifiers, type, this.Identifier, this.ExclamationExclamationToken, this.Default);
         public ParameterSyntax WithIdentifier(SyntaxToken identifier) => Update(this.AttributeLists, this.Modifiers, this.Type, identifier, this.ExclamationExclamationToken, this.Default);
         public ParameterSyntax WithExclamationExclamationToken(SyntaxToken exclamationExclamationToken) => Update(this.AttributeLists, this.Modifiers, this.Type, this.Identifier, exclamationExclamationToken, this.Default);
         public ParameterSyntax WithDefault(EqualsValueClauseSyntax? @default) => Update(this.AttributeLists, this.Modifiers, this.Type, this.Identifier, this.ExclamationExclamationToken, @default);
-=======
-        internal override BaseParameterSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
-        public new ParameterSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.Type, this.Identifier, this.Default);
-        internal override BaseParameterSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
-        public new ParameterSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.Type, this.Identifier, this.Default);
-        internal override BaseParameterSyntax WithTypeCore(TypeSyntax? type) => WithType(type);
-        public new ParameterSyntax WithType(TypeSyntax? type) => Update(this.AttributeLists, this.Modifiers, type, this.Identifier, this.Default);
-        public ParameterSyntax WithIdentifier(SyntaxToken identifier) => Update(this.AttributeLists, this.Modifiers, this.Type, identifier, this.Default);
-        public ParameterSyntax WithDefault(EqualsValueClauseSyntax? @default) => Update(this.AttributeLists, this.Modifiers, this.Type, this.Identifier, @default);
->>>>>>> upstream/main:src/Compilers/CSharp/Portable/Generated/CSharpSyntaxGenerator/CSharpSyntaxGenerator.SourceGenerator/Syntax.xml.Syntax.Generated.cs
 
         internal override BaseParameterSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
         public new ParameterSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
