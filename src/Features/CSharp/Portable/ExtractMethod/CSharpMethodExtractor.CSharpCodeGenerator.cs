@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
@@ -132,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var lastStatementToRemove = GetLastStatementOrInitializerSelectedAtCallSite();
 
                 Contract.ThrowIfFalse(firstStatementToRemove.Parent == lastStatementToRemove.Parent
-                    || (firstStatementToRemove.IsParentKind(SyntaxKind.GlobalStatement) && lastStatementToRemove.IsParentKind(SyntaxKind.GlobalStatement)));
+                    || CSharpSyntaxFacts.Instance.AreStatementsInSameContainer(firstStatementToRemove, lastStatementToRemove));
 
                 var statementsToInsert = await CreateStatementsOrInitializerToInsertAtCallSiteAsync(cancellationToken).ConfigureAwait(false);
 

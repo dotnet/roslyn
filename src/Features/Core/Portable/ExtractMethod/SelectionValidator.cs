@@ -156,15 +156,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return new Tuple<SyntaxNode, SyntaxNode>(firstStatement, lastStatement);
 
             static bool CanMergeExistingSpineWithCurrent(ISyntaxFacts syntaxFacts, T existing, T current)
-            {
-                if (existing.Parent == current.Parent)
-                    return true;
-
-                if (syntaxFacts.IsGlobalStatement(existing.Parent) && syntaxFacts.IsGlobalStatement(current.Parent))
-                    return true;
-
-                return false;
-            }
+                => syntaxFacts.AreStatementsInSameContainer(existing, current);
         }
 
         protected static Tuple<SyntaxNode, SyntaxNode> GetStatementRangeContainedInSpan<T>(

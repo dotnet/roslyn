@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Options;
@@ -125,8 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             Contract.ThrowIfNull(statement);
             var firstStatementUnderContainer = GetFirstStatementUnderContainer();
-            Contract.ThrowIfFalse(statement.Parent == firstStatementUnderContainer.Parent
-                || (statement.IsParentKind(SyntaxKind.GlobalStatement) && firstStatementUnderContainer.IsParentKind(SyntaxKind.GlobalStatement)));
+            Contract.ThrowIfFalse(CSharpSyntaxFacts.Instance.AreStatementsInSameContainer(statement, firstStatementUnderContainer));
 
             return statement;
         }

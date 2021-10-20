@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Options;
@@ -44,8 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     {
                         var firstUnderContainer = result.GetFirstStatementUnderContainer();
                         var lastUnderContainer = result.GetLastStatementUnderContainer();
-                        Contract.ThrowIfFalse(firstUnderContainer.Parent == lastUnderContainer.Parent
-                            || (firstUnderContainer.IsParentKind(SyntaxKind.GlobalStatement) && lastUnderContainer.IsParentKind(SyntaxKind.GlobalStatement)));
+                        Contract.ThrowIfFalse(CSharpSyntaxFacts.Instance.AreStatementsInSameContainer(firstUnderContainer, lastUnderContainer));
                         return true;
                     }
 

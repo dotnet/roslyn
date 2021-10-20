@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     _lastStatementOrFieldToReplace = lastStatementOrFieldToReplace;
 
                     Contract.ThrowIfFalse(_firstStatementOrFieldToReplace.Parent == _lastStatementOrFieldToReplace.Parent
-                        || (_firstStatementOrFieldToReplace.IsParentKind(SyntaxKind.GlobalStatement) && _lastStatementOrFieldToReplace.IsParentKind(SyntaxKind.GlobalStatement)));
+                        || CSharpSyntaxFacts.Instance.AreStatementsInSameContainer(_firstStatementOrFieldToReplace, _lastStatementOrFieldToReplace));
                 }
 
                 public SyntaxNode Generate()
