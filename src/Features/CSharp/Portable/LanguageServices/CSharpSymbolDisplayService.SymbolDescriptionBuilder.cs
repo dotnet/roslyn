@@ -210,6 +210,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 }
             }
 
+            protected override void InlineAllDelegateAnonymousTypes()
+            {
+            }
+
             protected override SymbolDisplayFormat MinimallyQualifiedFormat => s_minimallyQualifiedFormat;
 
             protected override SymbolDisplayFormat MinimallyQualifiedFormatWithConstants => s_minimallyQualifiedFormatWithConstants;

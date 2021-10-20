@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddNameAndTypeArgumentsOrParameters(INamedTypeSymbol symbol)
         {
-            if (symbol.IsAnonymousType)
+            if (symbol.IsAnonymousType && symbol.TypeKind != TypeKind.Delegate)
             {
                 AddAnonymousTypeName(symbol);
                 return;
@@ -335,14 +335,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (symbolName is null && symbol.IsAnonymousType && symbol.TypeKind == TypeKind.Delegate)
+            {
+                symbolName = "<anonymous delegate>";
+            }
+
             var partKind = GetPartKind(symbol);
 
             symbolName ??= symbol.Name;
-
-            var renderSimpleAnonymousDelegate =
-                symbol.TypeKind == TypeKind.Delegate &&
-                !symbol.CanBeReferencedByName &&
-                !format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames);
 
             if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) &&
                 partKind == SymbolDisplayPartKind.ErrorTypeName &&
@@ -350,13 +350,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.Add(CreatePart(partKind, symbol, "?"));
             }
-            else if (renderSimpleAnonymousDelegate)
-            {
-                builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.DelegateName, null, "<anonymous delegate>"));
-            }
             else
             {
-                symbolName = RemoveAttributeSufficeIfNecessary(symbol, symbolName);
+                symbolName = RemoveAttributeSuffixIfNecessary(symbol, symbolName);
                 builder.Add(CreatePart(partKind, symbol, symbolName));
             }
 
@@ -370,9 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         MetadataHelpers.GetAritySuffix(symbol.Arity)));
                 }
             }
-            else if (!renderSimpleAnonymousDelegate &&
-                     symbol.Arity > 0 &&
-                     format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters))
+            else if (symbol.Arity > 0 && format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters))
             {
                 // It would be nice to handle VB symbols too, but it's not worth the effort.
                 if (underlyingTypeSymbol is UnsupportedMetadataTypeSymbol || underlyingTypeSymbol is MissingMetadataTypeSymbol || symbol.IsUnboundGenericType)
@@ -660,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (isFirstSymbolVisited && format.KindOptions.IncludesOption(SymbolDisplayKindOptions.IncludeTypeKeyword))
             {
-                if (symbol.IsAnonymousType)
+                if (symbol.IsAnonymousType && symbol.TypeKind != TypeKind.Delegate)
                 {
                     builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.AnonymousTypeIndicator, null, "AnonymousType"));
                     AddSpace();

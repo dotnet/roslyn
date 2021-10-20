@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static bool ContainsAnonymousType(INamedTypeSymbol type)
         {
-            if (type.IsAnonymousType || type.IsAnonymousDelegateType())
+            if (type.IsAnonymousType)
                 return true;
 
             foreach (var typeArg in type.GetAllTypeArguments())

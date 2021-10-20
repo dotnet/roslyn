@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 FixStructuralTypes(firstSymbol);
             }
 
-            private void InlineAllDelegateAnonymousTypes()
+            protected virtual void InlineAllDelegateAnonymousTypes()
             {
 restart:
                 foreach (var (group, parts) in _groupMap)

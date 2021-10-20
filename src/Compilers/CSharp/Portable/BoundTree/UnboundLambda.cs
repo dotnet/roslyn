@@ -630,9 +630,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (!returnType.HasType)
+            {
+                // Binder.GetMethodGroupOrLambdaDelegateType() expects a non-null return type.
+                returnType = TypeWithAnnotations.Create(Binder.Compilation.GetSpecialType(SpecialType.System_Void));
+            }
+
             return Binder.GetMethodGroupOrLambdaDelegateType(
+                _unboundLambda.Syntax,
                 returnRefKind,
-                returnType.Type?.IsVoidType() == true ? default : returnType,
+                returnType,
                 parameterRefKinds,
                 parameterTypes);
         }
