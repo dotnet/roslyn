@@ -19,25 +19,29 @@ namespace IdeCoreBenchmarks
 
         private Solution _solution;
         private ISymbol _symbol;
-        private readonly OptionSet _options;
+        private string _csFilePath;
 
         [GlobalSetup]
         public void GlobalSetup()
         {
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            var csFilePath = Path.Combine(roslynRoot, @"src\Compilers\CSharp\Portable\Generated\BoundNodes.xml.Generated.cs");
+            _csFilePath = Path.Combine(roslynRoot, @"src\Compilers\CSharp\Portable\Generated\BoundNodes.xml.Generated.cs");
 
-            if (!File.Exists(csFilePath))
+            if (!File.Exists(_csFilePath))
             {
                 throw new ArgumentException();
             }
+        }
 
+        [IterationSetup]
+        public void IterationSetup()
+        {
             var projectId = ProjectId.CreateNewId();
             var documentId = DocumentId.CreateNewId(projectId);
 
             _solution = new AdhocWorkspace().CurrentSolution
                 .AddProject(projectId, "ProjectName", "AssemblyName", LanguageNames.CSharp)
-                .AddDocument(documentId, "DocumentName", File.ReadAllText(csFilePath));
+                .AddDocument(documentId, "DocumentName", File.ReadAllText(_csFilePath));
 
             var project = _solution.Projects.First();
             var compilation = project.GetCompilationAsync().Result;
@@ -47,7 +51,7 @@ namespace IdeCoreBenchmarks
         [Benchmark]
         public void RenameNodes()
         {
-            _ = Microsoft.CodeAnalysis.Rename.Renamer.RenameSymbolAsync(_solution, _symbol, "NewName", _options);
+            _ = Microsoft.CodeAnalysis.Rename.Renamer.RenameSymbolAsync(_solution, _symbol, "NewName", optionSet: null);
         }
 
         [IterationCleanup]

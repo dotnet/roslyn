@@ -105,7 +105,6 @@ namespace IdeCoreBenchmarks
             }
         }
 
-
         [IterationCleanup]
         public void IterationCleanup()
         {
