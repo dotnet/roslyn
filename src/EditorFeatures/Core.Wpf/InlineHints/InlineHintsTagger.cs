@@ -8,6 +8,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 }
 
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                var classify = document?.Project.Solution.Options.GetOption(InlineHintsOptions.ColorHints, document?.Project.Language) ?? false;
+                var classify = document != null && _taggerProvider.GlobalOptions.GetOption(InlineHintsViewOptions.ColorHints, document.Project.Language);
 
                 var selectedSpans = new List<ITagSpan<IntraTextAdornmentTag>>();
                 for (var i = 0; i < _cache.Count; i++)

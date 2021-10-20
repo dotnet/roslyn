@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -21,6 +22,13 @@ namespace Microsoft.CodeAnalysis.InlineHints
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
+        private readonly IGlobalOptionService _globalOptions;
+
+        public AbstractInlineTypeHintsService(IGlobalOptionService globalOptions)
+        {
+            _globalOptions = globalOptions;
+        }
+
         protected abstract TypeHint? TryGetTypeHint(
             SemanticModel semanticModel, SyntaxNode node,
             bool displayAllOverride,
@@ -32,17 +40,17 @@ namespace Microsoft.CodeAnalysis.InlineHints
         public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
             Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = InlineTypeHintsOptions.From(document.Project);
             var displayOptions = SymbolDescriptionOptions.From(document.Project);
+            var displayAllOverride = _globalOptions.GetOption(InlineHintsGlobalStateOption.DisplayAllOverride);
 
-            var displayAllOverride = options.GetOption(InlineHintsOptions.DisplayAllOverride);
-            var enabledForTypes = options.GetOption(InlineHintsOptions.EnabledForTypes);
+            var enabledForTypes = options.EnabledForTypes;
             if (!enabledForTypes && !displayAllOverride)
                 return ImmutableArray<InlineHint>.Empty;
 
-            var forImplicitVariableTypes = enabledForTypes && options.GetOption(InlineHintsOptions.ForImplicitVariableTypes);
-            var forLambdaParameterTypes = enabledForTypes && options.GetOption(InlineHintsOptions.ForLambdaParameterTypes);
-            var forImplicitObjectCreation = enabledForTypes && options.GetOption(InlineHintsOptions.ForImplicitObjectCreation);
+            var forImplicitVariableTypes = enabledForTypes && options.ForImplicitVariableTypes;
+            var forLambdaParameterTypes = enabledForTypes && options.ForLambdaParameterTypes;
+            var forImplicitObjectCreation = enabledForTypes && options.ForImplicitObjectCreation;
             if (!forImplicitVariableTypes && !forLambdaParameterTypes && !forImplicitObjectCreation && !displayAllOverride)
                 return ImmutableArray<InlineHint>.Empty;
 
