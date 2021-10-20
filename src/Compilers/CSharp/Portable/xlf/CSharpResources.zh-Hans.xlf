@@ -617,11 +617,11 @@
         <target state="translated">带有 "in" 修饰符的参数不能用于动态调度的表达式。</target>
         <note />
       </trans-unit>
-<<<<<<< HEAD
       <trans-unit id="ERR_IncorrectNullCheckSyntax">
         <source>Incorrect parameter null checking syntax. Should be '!!'.</source>
         <target state="new">Incorrect parameter null checking syntax. Should be '!!'.</target>
-=======
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
         <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
         <target state="translated">C# {0} 中不支持从包含密封 'Object.ToString' 的记录继承。请使用语言版本 '{1}’ 或更高版本。</target>
@@ -630,7 +630,6 @@
       <trans-unit id="ERR_InitCannotBeReadonly">
         <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
         <target state="translated">"init" 访问器不能标记为“只读”。请转而将“{0}”标记为“只读”。</target>
->>>>>>> upstream/main
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -878,19 +877,11 @@
         <target state="translated">无法确定输出目录</target>
         <note />
       </trans-unit>
-<<<<<<< HEAD
-      <trans-unit id="ERR_NoSingleCloneMethod">
-        <source>The receiver type '{0}' is not a valid record type.</source>
-        <target state="translated">指定的接收器类型“{0}”不是有效的记录类型。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NonNullableValueTypeIsNullChecked">
         <source>Parameter '{0}' is a non-nullable value type and cannot be null-checked.</source>
         <target state="new">Parameter '{0}' is a non-nullable value type and cannot be null-checked.</target>
         <note />
       </trans-unit>
-=======
->>>>>>> upstream/main
       <trans-unit id="ERR_NonPrivateAPIInRecord">
         <source>Record member '{0}' must be private.</source>
         <target state="translated">记录成员“{0}”必须是非公开的。</target>
@@ -921,14 +912,14 @@
         <target state="translated">“{0}”必须允许替代，因为包含的记录未密封。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
-        <source>null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.</source>
-        <target state="translated">null 不是有效的参数名称。若要获取对实例方法接收器的访问权限，请使用空字符串作为参数名。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NullCheckingOnByRefParameter">
         <source>By-reference parameter '{0}' cannot be null-checked.</source>
         <target state="new">By-reference parameter '{0}' cannot be null-checked.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
+        <source>null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.</source>
+        <target state="translated">null 不是有效的参数名称。若要获取对实例方法接收器的访问权限，请使用空字符串作为参数名。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
@@ -1361,6 +1352,11 @@
         <target state="translated">在结构上</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_ParameterNullChecking">
+        <source>parameter null-checking</source>
+        <target state="new">parameter null-checking</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">包含类型“{1}”的程序集“{0}”引用了 .NET Framework，而此操作不受支持。</target>
@@ -1479,6 +1475,26 @@
       <trans-unit id="WRN_MethGrpToNonDel_Title">
         <source>Converting method group to non-delegate type</source>
         <target state="translated">将方法组转换为非委托类型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckedHasDefaultNull">
+        <source>Parameter '{0}' is null-checked but is null by default.</source>
+        <target state="new">Parameter '{0}' is null-checked but is null by default.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckedHasDefaultNull_Title">
+        <source>Parameter is null-checked but is null by default.</source>
+        <target state="new">Parameter is null-checked but is null by default.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckingOnNullableValueType">
+        <source>Nullable value type '{0}' is null-checked and will throw if null.</source>
+        <target state="new">Nullable value type '{0}' is null-checked and will throw if null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckingOnNullableValueType_Title">
+        <source>Nullable value type is null-checked and will throw if null.</source>
+        <target state="new">Nullable value type is null-checked and will throw if null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -2256,11 +2272,6 @@
         <target state="translated">重写和显式接口实现方法的约束</target>
         <note />
       </trans-unit>
-<<<<<<< HEAD
-      <trans-unit id="IDS_ParameterNullChecking">
-        <source>parameter null-checking</source>
-        <target state="new">parameter null-checking</target>
-=======
       <trans-unit id="IDS_Parameter">
         <source>parameter</source>
         <target state="translated">参数</target>
@@ -2269,7 +2280,6 @@
       <trans-unit id="IDS_Return">
         <source>return</source>
         <target state="translated">返回</target>
->>>>>>> upstream/main
         <note />
       </trans-unit>
       <trans-unit id="IDS_ThrowExpression">
@@ -2874,26 +2884,6 @@
       <trans-unit id="WRN_NullAsNonNullable_Title">
         <source>Cannot convert null literal to non-nullable reference type.</source>
         <target state="translated">无法将 null 字面量转换为非 null 的引用类型。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullCheckedHasDefaultNull">
-        <source>Parameter '{0}' is null-checked but is null by default.</source>
-        <target state="new">Parameter '{0}' is null-checked but is null by default.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullCheckedHasDefaultNull_Title">
-        <source>Parameter is null-checked but is null by default.</source>
-        <target state="new">Parameter is null-checked but is null by default.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullCheckingOnNullableValueType">
-        <source>Nullable value type '{0}' is null-checked and will throw if null.</source>
-        <target state="new">Nullable value type '{0}' is null-checked and will throw if null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullCheckingOnNullableValueType_Title">
-        <source>Nullable value type is null-checked and will throw if null.</source>
-        <target state="new">Nullable value type is null-checked and will throw if null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceArgument">

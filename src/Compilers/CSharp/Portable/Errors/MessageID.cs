@@ -208,10 +208,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureNullPointerConstantPattern = MessageBase + 12783,
         IDS_FeatureModuleInitializers = MessageBase + 12784,
         IDS_FeatureTargetTypedConditional = MessageBase + 12785,
-<<<<<<< HEAD
-
-        IDS_ParameterNullChecking = MessageBase + 12786,
-=======
         IDS_FeatureCovariantReturnsForOverrides = MessageBase + 12786,
         IDS_FeatureExtensionGetEnumerator = MessageBase + 12787,
         IDS_FeatureExtensionGetAsyncEnumerator = MessageBase + 12788,
@@ -240,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureParameterlessStructConstructors = MessageBase + 12810,
         IDS_FeatureStructFieldInitializers = MessageBase + 12811,
         IDS_FeatureGenericAttributes = MessageBase + 12812,
->>>>>>> upstream/main
+        IDS_ParameterNullChecking = MessageBase + 12813,
     }
 
     // Message IDs may refer to strings that need to be localized.

@@ -72,20 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalParam.DefaultValueFromAttributes; }
         }
 
-<<<<<<< HEAD
-        internal override ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ImmutableArray<CustomModifier> newRefCustomModifiers, bool newIsParams)
-        {
-            return new SourceClonedParameterSymbol(
-                _originalParam.WithCustomModifiersAndParamsCore(newType, newCustomModifiers, newRefCustomModifiers, newIsParams),
-                this.ContainingSymbol,
-                this.Ordinal,
-                _suppressOptional);
-        }
-
         public override bool IsNullChecked => _originalParam.IsNullChecked;
 
-=======
->>>>>>> upstream/main
         #region Forwarded
 
         public override TypeWithAnnotations TypeWithAnnotations

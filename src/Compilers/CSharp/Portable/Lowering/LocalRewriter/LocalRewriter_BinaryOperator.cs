@@ -1799,11 +1799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Recommendation: Do not use, use <see cref="TryGetNullableMethod"/> instead! 
         /// If used, a unit-test with a missing member is absolutely a must have.
         /// </summary>
-<<<<<<< HEAD
-        internal static MethodSymbol UnsafeGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member, CSharpCompilation compilation, DiagnosticBag diagnostics)
-=======
         private static MethodSymbol UnsafeGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
->>>>>>> upstream/main
         {
             var nullableType2 = nullableType as NamedTypeSymbol;
             Debug.Assert(nullableType2 is { });

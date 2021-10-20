@@ -509,8 +509,6 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
         System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags,
-<<<<<<< HEAD
-=======
 
         System_Text_StringBuilder__AppendString,
         System_Text_StringBuilder__AppendChar,
@@ -519,7 +517,6 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear,
 
->>>>>>> upstream/main
         Count
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

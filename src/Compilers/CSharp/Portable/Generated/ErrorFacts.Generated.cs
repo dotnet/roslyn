@@ -247,10 +247,6 @@
                 case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
                 case ErrorCode.WRN_IsPatternAlways:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial:
-<<<<<<< HEAD
-                case ErrorCode.WRN_NullCheckedHasDefaultNull:
-                case ErrorCode.WRN_NullCheckingOnNullableValueType:
-=======
                 case ErrorCode.WRN_ParameterNotNullIfNotNull:
                 case ErrorCode.WRN_ReturnNotNullIfNotNull:
                 case ErrorCode.WRN_PartialMethodTypeDifference:
@@ -283,7 +279,8 @@
                 case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
                 case ErrorCode.WRN_CompileTimeCheckedOverflow:
                 case ErrorCode.WRN_MethGrpToNonDel:
->>>>>>> upstream/main
+                case ErrorCode.WRN_NullCheckedHasDefaultNull:
+                case ErrorCode.WRN_NullCheckingOnNullableValueType:
                     return true;
                 default:
                     return false;

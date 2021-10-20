@@ -7421,11 +7421,7 @@ done:;
                 var lessThanTokenError = WithAdditionalDiagnostics(SyntaxFactory.MissingToken(SyntaxKind.LessThanToken), GetExpectedTokenError(SyntaxKind.LessThanToken, SyntaxKind.None));
                 var missingTypes = _pool.AllocateSeparated<FunctionPointerParameterSyntax>();
                 var missingTypeName = CreateMissingIdentifierName();
-<<<<<<< HEAD
-                var missingType = SyntaxFactory.Parameter(attributeLists: default, modifiers: default, missingTypeName, identifier: CreateMissingIdentifierToken(), exclamationExclamationToken: null, @default: null);
-=======
                 var missingType = SyntaxFactory.FunctionPointerParameter(attributeLists: default, modifiers: default, missingTypeName);
->>>>>>> upstream/main
                 missingTypes.Add(missingType);
                 // Handle the simple case of delegate*>. We don't try to deal with any variation of delegate*invalid>, as
                 // we don't know for sure that the expression isn't a relational with something else.
@@ -7451,11 +7447,7 @@ done:;
                         ParseParameterModifiers(modifiers, isFunctionPointerParameter: true);
 
                         var parameterType = ParseTypeOrVoid();
-<<<<<<< HEAD
-                        types.Add(SyntaxFactory.Parameter(attributeLists: default, modifiers, parameterType, identifier: CreateMissingIdentifierToken(), exclamationExclamationToken: null, @default: null));
-=======
                         types.Add(SyntaxFactory.FunctionPointerParameter(attributeLists: default, modifiers, parameterType));
->>>>>>> upstream/main
 
                         if (skipBadFunctionPointerTokens(types) == PostSkipAction.Abort)
                         {
@@ -11632,13 +11624,6 @@ tryAgain:
                     switch (this.CurrentToken.Kind)
                     {
                         case SyntaxKind.CommaToken:
-<<<<<<< HEAD
-                            if (foundParameterModifier)
-                            {
-                                return true;
-                            }
-=======
->>>>>>> upstream/main
                             continue;
 
                         case SyntaxKind.CloseParenToken:
@@ -11836,40 +11821,7 @@ tryAgain:
                     return false;
                 }
 
-<<<<<<< HEAD
-            SyntaxKind token1 = this.PeekToken(1).Kind;
-            if (token1 == SyntaxKind.EqualsGreaterThanToken)
-            {
-                return true;
-            }
-            if (token1 == SyntaxKind.ExclamationToken
-                && this.PeekToken(2).Kind == SyntaxKind.ExclamationToken
-                && this.PeekToken(3).Kind == SyntaxKind.EqualsGreaterThanToken)
-            {
-                return true;
-            }
-
-            // Broken case but error will be added in lambda function (!=>).
-            if (token1 == SyntaxKind.ExclamationEqualsToken && this.PeekToken(2).Kind == SyntaxKind.GreaterThanToken)
-            {
-                return true;
-            }
-
-            // Broken case but error will be added in lambda function (!!=>).
-            if (token1 == SyntaxKind.ExclamationToken
-                && this.PeekToken(2).Kind == SyntaxKind.ExclamationEqualsToken
-                && this.PeekToken(3).Kind == SyntaxKind.GreaterThanToken)
-            {
-                return true;
-            }
-
-            // If we start with `static` or `async static` then just jump past those and do the
-            // analysis after that point.  Note, we don't just blindly consume `async` in `static
-            // async` because that `async` may not be a modifier (it may just be an identifier) and
-            // we have to figure out what it is.
-=======
                 bool lastTokenIsBinaryOperator = true;
->>>>>>> upstream/main
 
                 EatToken();
                 while (isBinaryPatternKeyword())
@@ -11901,6 +11853,32 @@ tryAgain:
             if (precedence > Precedence.Lambda)
             {
                 return false;
+            }
+
+            SyntaxKind token1 = this.PeekToken(1).Kind;
+            if (token1 == SyntaxKind.EqualsGreaterThanToken)
+            {
+                return true;
+            }
+            if (token1 == SyntaxKind.ExclamationToken
+                && this.PeekToken(2).Kind == SyntaxKind.ExclamationToken
+                && this.PeekToken(3).Kind == SyntaxKind.EqualsGreaterThanToken)
+            {
+                return true;
+            }
+
+            // Broken case but error will be added in lambda function (!=>).
+            if (token1 == SyntaxKind.ExclamationEqualsToken && this.PeekToken(2).Kind == SyntaxKind.GreaterThanToken)
+            {
+                return true;
+            }
+
+            // Broken case but error will be added in lambda function (!!=>).
+            if (token1 == SyntaxKind.ExclamationToken
+                && this.PeekToken(2).Kind == SyntaxKind.ExclamationEqualsToken
+                && this.PeekToken(3).Kind == SyntaxKind.GreaterThanToken)
+            {
+                return true;
             }
 
             var resetPoint = this.GetResetPoint();
@@ -13079,7 +13057,6 @@ tryAgain:
             }
 
             SyntaxToken paramName = this.ParseIdentifierToken();
-<<<<<<< HEAD
             SyntaxToken exclamationExclamation = null;
             if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
             {
@@ -13091,10 +13068,7 @@ tryAgain:
                     ? ConvertToMissingWithTrailingTrivia(exclamationExclamation, SyntaxKind.ExclamationExclamationToken)
                     : CheckFeatureAvailability(exclamationExclamation, MessageID.IDS_ParameterNullChecking);
             }
-            var parameter = _syntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), modifiers.ToList(), paramType, paramName, exclamationExclamation, null);
-=======
-            var parameter = _syntaxFactory.Parameter(attributes, modifiers.ToList(), paramType, paramName, null);
->>>>>>> upstream/main
+            var parameter = _syntaxFactory.Parameter(attributes, modifiers.ToList(), paramType, paramName, exclamationExclamation, null);
             _pool.Free(modifiers);
             return parameter;
         }

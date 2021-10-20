@@ -1290,7 +1290,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 boundStatements = boundStatements.Concat(ImmutableArray.Create(loweredBodyOpt));
                             }
 
-<<<<<<< HEAD
                             var factory = new SyntheticBoundNodeFactory(methodSymbol, syntax, compilationState, diagsForCurrentMethod);
 
                             // Iterators handled in IteratorRewriter.cs
@@ -1311,10 +1310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                             }
                         }
-                        if (!(methodSymbol is SynthesizedStaticConstructor cctor) || cctor.ShouldEmit(processedInitializers.BoundInitializers))
-=======
                         if (_emitMethodBodies && (!(methodSymbol is SynthesizedStaticConstructor cctor) || cctor.ShouldEmit(processedInitializers.BoundInitializers)))
->>>>>>> upstream/main
                         {
                             var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
 

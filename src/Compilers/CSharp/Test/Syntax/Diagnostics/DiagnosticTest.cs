@@ -256,12 +256,6 @@ class X
                         case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
                         case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
                         case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
-<<<<<<< HEAD
-                        case ErrorCode.WRN_NullCheckedHasDefaultNull:
-                        case ErrorCode.WRN_NullCheckingOnNullableValueType:
-=======
-                        case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
-                        case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue:
                         case ErrorCode.WRN_RecordNamedDisallowed:
                         case ErrorCode.WRN_ParameterNotNullIfNotNull:
                         case ErrorCode.WRN_ReturnNotNullIfNotNull:
@@ -274,7 +268,8 @@ class X
                         case ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression:
                         case ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName:
                         case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
->>>>>>> upstream/main
+                        case ErrorCode.WRN_NullCheckedHasDefaultNull:
+                        case ErrorCode.WRN_NullCheckingOnNullableValueType:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
