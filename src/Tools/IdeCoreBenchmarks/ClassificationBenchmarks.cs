@@ -108,14 +108,12 @@ namespace IdeCoreBenchmarks
         [Benchmark]
         public void ClassifyDocument()
         {
-            foreach (var project in _solution.Projects)
+            var project = _solution.Projects.First(p => p.AssemblyName == "Microsoft.CodeAnalysis");
+            foreach (var document in project.Documents)
             {
-                foreach (var document in project.Documents)
-                {
-                    var text = document.GetTextAsync().Result.ToString();
-                    var span = new TextSpan(0, text.Length);
-                    _ = GetSemanticClassificationsAsync(document, span);
-                }
+                var text = document.GetTextAsync().Result.ToString();
+                var span = new TextSpan(0, text.Length);
+                _ = GetSemanticClassificationsAsync(document, span);
             }
         }
 
