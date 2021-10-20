@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!constraints.All(c => c switch
                 {
-                    // not-null tests are implicitly incorporated into a recursive pattern
+                    // not-null tests are implicitly incorporated into a list pattern
                     (test: BoundDagNonNullTest _, sense: true) => true,
                     (test: BoundDagExplicitNullTest _, sense: false) => true,
                     _ => false,
@@ -276,17 +276,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var lengthTemp = new BoundDagTemp(lengthOrCount.Syntax, lengthOrCount.Property.Type, lengthOrCount);
                     var lengthValues = (IValueSet<int>)computeRemainingValues(ValueSetFactory.ForLength, getArray(constraintMap, lengthTemp));
                     int lengthValue = lengthValues.Sample.Int32Value;
-
                     var subpatterns = new ArrayBuilder<string>(lengthValue);
                     subpatterns.AddMany("_", lengthValue);
+                    if (slice != null && lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
+                    {
+                        // Bail if there's a slice but only one length value is remained.
+                        return null;
+                    }
+
                     for (int i = 1; i < evaluations.Length; i++)
                     {
                         switch (evaluations[i])
                         {
                             case BoundDagIndexerEvaluation e:
                                 var indexerTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
-                                int integerIndex = e.Index;
-                                var effectiveIndex = integerIndex < 0 ? ^-integerIndex : integerIndex;
+                                int index = e.Index;
+                                if (index > lengthValue - 1)
+                                    return null;
+                                var effectiveIndex = index < 0 ? ^-index : index;
                                 var oldPattern = subpatterns[effectiveIndex];
                                 var newPattern = SamplePatternForTemp(indexerTemp, constraintMap, evaluationMap, requireExactType: false, ref unnamedEnumValue);
                                 subpatterns[effectiveIndex] = makeConjunct(oldPattern, newPattern);
