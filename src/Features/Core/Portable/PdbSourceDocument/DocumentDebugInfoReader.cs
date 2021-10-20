@@ -10,6 +10,7 @@ using System.IO.Compression;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
@@ -82,8 +83,10 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return null;
         }
 
-        public IEnumerable<(string key, string value)> GetCompilationOptions()
+        public ImmutableDictionary<string, string> GetCompilationOptions()
         {
+            using var _ = PooledDictionary<string, string>.GetInstance(out var result);
+
             foreach (var handle in _pdbReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition))
             {
                 var customDebugInformation = _pdbReader.GetCustomDebugInformation(handle);
@@ -103,7 +106,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                         nullIndex = blobReader.IndexOf(0);
                         var value = blobReader.ReadUTF8(nullIndex);
 
-                        yield return (key, value);
+                        result.Add(key, value);
 
                         // Skip the null terminator
                         blobReader.ReadByte();
@@ -111,6 +114,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     }
                 }
             }
+
+            return result.ToImmutableDictionary();
         }
 
         public void Dispose()

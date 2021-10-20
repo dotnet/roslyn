@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             var assemblyName = symbol.ContainingAssembly.Identity.Name;
 
-            ProjectInfo? projectInfo;
+            ImmutableDictionary<string, string> pdbCompilationOptions;
             ImmutableArray<(string FilePath, TextLoader Loader)> filePathsAndTextLoaders;
             // We know we have a DLL, call and see if we can find metadata readers for it, and for the PDB (whereever it may be)
             using (var documentDebugInfoReader = await _pdbFileLocatorService.GetDocumentDebugInfoReaderAsync(dllPath, cancellationToken).ConfigureAwait(false))
@@ -88,12 +88,17 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 // Combine text loaders and file paths. Task.WhenAll ensures order is preserved.
                 filePathsAndTextLoaders = sourceDocuments.Select((sd, i) => (sd.FilePath, textLoaders[i]!)).ToImmutableArray();
 
-                // Get the project info now, so we can dispose the documentDebugInfoReader sooner
-                projectInfo = CreateProjectInfo(workspace, project, documentDebugInfoReader, assemblyName);
+                // If we don't already have a project for this assembly, we'll need to create one, and we want to use
+                // the same compiler options for it that the DLL was created with. We also want to do that early so we
+                // can dispose files sooner
+                pdbCompilationOptions = documentDebugInfoReader.GetCompilationOptions();
             }
 
             if (!_assemblyToProjectMap.TryGetValue(assemblyName, out var projectId))
             {
+                // Get the project info now, so we can dispose the documentDebugInfoReader sooner
+                var projectInfo = CreateProjectInfo(workspace, project, pdbCompilationOptions, assemblyName);
+
                 if (projectInfo is null)
                     return null;
 
@@ -170,21 +175,16 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return new MetadataAsSourceFile(tempFilePath, navigateLocation, documentName, navigateDocument.FilePath);
         }
 
-        private static ProjectInfo? CreateProjectInfo(Workspace workspace, Project project, DocumentDebugInfoReader documentDebugInfoReader, string assemblyName)
+        private static ProjectInfo? CreateProjectInfo(Workspace workspace, Project project, ImmutableDictionary<string, string> pdbCompilationOptions, string assemblyName)
         {
-            // If we don't already have a project for this assembly, we need to create one, and we want to use
-            // the same compiler options for it that the DLL was created with.
-            var commandLineArguments = RetreiveCompilerOptions(documentDebugInfoReader, out var languageName);
-
+            // First we need the language name in order to get the services
             // TODO: Find language another way for non portable PDBs: https://github.com/dotnet/roslyn/issues/55834
-            if (languageName is null)
+            if (!pdbCompilationOptions.TryGetValue("language", out var languageName) || languageName is null)
                 return null;
 
-            var parser = workspace.Services.GetLanguageServices(languageName).GetRequiredService<ICommandLineParserService>();
-            var arguments = parser.Parse(commandLineArguments, baseDirectory: null, isInteractive: false, sdkDirectory: null);
-
-            var compilationOptions = arguments.CompilationOptions;
-            var parseOptions = arguments.ParseOptions;
+            var languageServices = workspace.Services.GetLanguageServices(languageName);
+            var compilationOptions = languageServices.GetRequiredService<ICompilationFactoryService>().GetCompilationOptionsFromPortablePdbMetadata(pdbCompilationOptions);
+            var parseOptions = languageServices.GetRequiredService<ISyntaxTreeFactoryService>().GetParseOptionsFromPortablePdbMetadata(pdbCompilationOptions);
 
             var projectId = ProjectId.CreateNewId();
             return ProjectInfo.Create(
@@ -218,34 +218,6 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             }
 
             return documents.ToImmutable();
-        }
-
-        private static IEnumerable<string> RetreiveCompilerOptions(DocumentDebugInfoReader documentDebugInfoReader, out string? languageName)
-        {
-            languageName = null;
-
-            using var _ = ArrayBuilder<string>.GetInstance(out var options);
-
-            foreach (var (key, value) in documentDebugInfoReader.GetCompilationOptions())
-            {
-                // Key and value now have strings containing serialized compiler flag information
-                // Not all keys match their command line equivalents though, so translate as necessary
-                options.Add($"/{TranslateKey(key)}:{value}");
-
-                if (key == "language")
-                {
-                    languageName = value;
-                }
-            }
-
-            return options.ToImmutable();
-
-            static string TranslateKey(string key)
-                => key switch
-                {
-                    "output-kind" => "target",
-                    _ => key
-                };
         }
 
         public bool TryAddDocumentToWorkspace(Workspace workspace, string filePath, SourceTextContainer sourceTextContainer)
