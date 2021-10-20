@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -31,10 +30,16 @@ namespace Microsoft.CodeAnalysis
             [DisallowNull]
             private Compilation? _compilationWithReplacement;
 
-            public GeneratedFileReplacingCompilationTracker(ICompilationTracker underlyingTracker, SourceGeneratedDocumentState replacementDocumentState)
+            private readonly CachedSkeletonReferences _cachedSkeletonReferences;
+
+            public GeneratedFileReplacingCompilationTracker(
+                ICompilationTracker underlyingTracker,
+                SourceGeneratedDocumentState replacementDocumentState,
+                CachedSkeletonReferences cachedSkeletonReferences)
             {
                 _underlyingTracker = underlyingTracker;
                 _replacedGeneratedDocumentState = replacementDocumentState;
+                _cachedSkeletonReferences = cachedSkeletonReferences;
             }
 
             public ProjectState ProjectState => _underlyingTracker.ProjectState;
@@ -141,9 +146,9 @@ namespace Microsoft.CodeAnalysis
                 // Otherwise we need to create a skeleton for this project.  See if we can reuse an existing
                 // one, or create a new one when we can't.
                 var version = await GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
-                var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
-                return await this.ProjectState.CachedSkeletonReferences.GetOrBuildReferenceAsync(
-                    solution.Workspace, properties, compilation, version, cancellationToken).ConfigureAwait(false);
+                var properties = new MetadataReferenceProperties(MetadataImageKind.Assembly, projectReference.Aliases, projectReference.EmbedInteropTypes);
+                return await _cachedSkeletonReferences.GetOrBuildReferenceAsync(
+                    solution.Workspace, this.ProjectState.Id, properties, compilation, version, cancellationToken).ConfigureAwait(false);
             }
 
             public CompilationReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)

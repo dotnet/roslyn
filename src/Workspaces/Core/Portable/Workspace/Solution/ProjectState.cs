@@ -61,8 +61,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private ImmutableArray<ISourceGenerator> _lazySourceGenerators;
 
-        public CachedSkeletonReferences CachedSkeletonReferences { get; }
-
         private ProjectState(
             ProjectInfo projectInfo,
             HostLanguageServices languageServices,
@@ -72,8 +70,7 @@ namespace Microsoft.CodeAnalysis
             TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates,
             AsyncLazy<VersionStamp> lazyLatestDocumentVersion,
             AsyncLazy<VersionStamp> lazyLatestDocumentTopLevelChangeVersion,
-            ValueSource<CachingAnalyzerConfigSet> lazyAnalyzerConfigSet,
-            CachedSkeletonReferences cachedSkeletonReferences)
+            ValueSource<CachingAnalyzerConfigSet> lazyAnalyzerConfigSet)
         {
             _solutionServices = solutionServices;
             _languageServices = languageServices;
@@ -83,7 +80,6 @@ namespace Microsoft.CodeAnalysis
             _lazyLatestDocumentVersion = lazyLatestDocumentVersion;
             _lazyLatestDocumentTopLevelChangeVersion = lazyLatestDocumentTopLevelChangeVersion;
             _lazyAnalyzerConfigSet = lazyAnalyzerConfigSet;
-            CachedSkeletonReferences = cachedSkeletonReferences;
 
             // ownership of information on document has moved to project state. clear out documentInfo the state is
             // holding on. otherwise, these information will be held onto unnecessarily by projectInfo even after
@@ -104,7 +100,6 @@ namespace Microsoft.CodeAnalysis
 
             _languageServices = languageServices;
             _solutionServices = solutionServices;
-            CachedSkeletonReferences = new CachedSkeletonReferences(projectInfo.Id);
 
             var projectInfoFixed = FixProjectInfo(projectInfo);
 
@@ -484,11 +479,7 @@ namespace Microsoft.CodeAnalysis
                 analyzerConfigDocumentStates ?? AnalyzerConfigDocumentStates,
                 latestDocumentVersion ?? _lazyLatestDocumentVersion,
                 latestDocumentTopLevelChangeVersion ?? _lazyLatestDocumentTopLevelChangeVersion,
-                analyzerConfigSet ?? _lazyAnalyzerConfigSet,
-                // Ensure this fork get's a clone of whatever cached skeletons we point at.  It can reuse them if its
-                // top level semantic version is the same, or if it fails to produce its own skeletons due to errors.
-                // if it produces new skeletons, it won't affect us though as it will only work on its own copy.
-                this.CachedSkeletonReferences.Clone());
+                analyzerConfigSet ?? _lazyAnalyzerConfigSet);
         }
 
         private ProjectInfo.ProjectAttributes Attributes
