@@ -517,12 +517,6 @@ namespace System
                 var symbol = comp.GetSpecialType(special);
                 Assert.NotNull(symbol);
 
-                if (special == SpecialType.System_ValueArray_TR)
-                {
-                    // HACKATHON: experimental type
-                    continue;
-                }
-
                 if (special == SpecialType.System_Runtime_CompilerServices_RuntimeFeature ||
                     special == SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute)
                 {
@@ -616,6 +610,7 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_IsExternalInit:
                     case WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler:
+                    case WellKnownType.System_ValueArray_TR:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:

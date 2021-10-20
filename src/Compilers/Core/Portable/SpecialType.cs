@@ -259,13 +259,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_PreserveBaseOverridesAttribute = 45,
 
         /// <summary>
-        /// Indicates that the type is ValueArray.
-        /// </summary>
-        System_ValueArray_TR = 46,
-
-        /// <summary>
         /// Count of special types. This is not a count of enum members.
         /// </summary>
-        Count = System_ValueArray_TR
+        Count = System_Runtime_CompilerServices_PreserveBaseOverridesAttribute
     }
 }

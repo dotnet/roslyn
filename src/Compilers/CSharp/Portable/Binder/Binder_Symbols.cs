@@ -660,9 +660,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var dimension = rankSpecifier.Sizes;
                 if (!permitDimensions && dimension.Count != 0 && dimension[0].Kind() != SyntaxKind.OmittedArraySizeExpression)
                 {
-                    // https://github.com/dotnet/roslyn/issues/32464
-                    // Should capture invalid dimensions for use in `SemanticModel` and `IOperation`.
-                    Error(diagnostics, ErrorCode.ERR_ArraySizeInDeclaration, rankSpecifier);
+                    var size0 = dimension[0];
+                    if (dimension.Count == 1)
+                    {
+                        // TODO: VS better errors
+                        if (rankSpecifier.Rank > 1)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_ArraySizeInDeclaration, node.ElementType, type);
+                        }
+
+                        var sizeExpr = BindExpression(size0, diagnostics);
+
+                        ulong arrSize;
+                        if (sizeExpr.ConstantValue?.IsIntegral != true)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_ArraySizeInDeclaration, node.ElementType, type);
+                            arrSize = 1;
+                        }
+                        else
+                        {
+                            arrSize = sizeExpr.ConstantValue.UInt64Value;
+
+                            if (arrSize == 0 || arrSize > int.MaxValue)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_ArraySizeInDeclaration, node.ElementType, type);
+                                arrSize = 1;
+                            }
+                        }
+
+                        var arrType = CreateValueArrayTypeSymbol(type, (int)arrSize, diagnostics, node);
+                        type = TypeWithAnnotations.Create(AreNullableAnnotationsEnabled(rankSpecifier.CloseBracketToken), arrType);
+                        continue;
+                    }
+                    else
+                    {
+                        // https://github.com/dotnet/roslyn/issues/32464
+                        // Should capture invalid dimensions for use in `SemanticModel` and `IOperation`.
+                        Error(diagnostics, ErrorCode.ERR_ArraySizeInDeclaration, rankSpecifier);
+                    }
                 }
 
                 var array = ArrayTypeSymbol.CreateCSharpArray(this.Compilation.Assembly, type, rankSpecifier.Rank);
@@ -670,6 +705,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return type;
+        }
+
+        internal TypeSymbol CreateValueArrayTypeSymbol(
+            TypeWithAnnotations elementTypeWithAnnotations,
+            int length,
+            BindingDiagnosticBag diagnostics,
+            SyntaxNode node)
+        {
+            var lengthMarker = Compilation.CreateArrayTypeSymbol(Compilation.GetSpecialType(SpecialType.System_Object), length);
+
+            return GetWellKnownType(WellKnownType.System_ValueArray_TR, diagnostics, node).Construct(ImmutableArray.Create(
+                elementTypeWithAnnotations,
+                TypeWithAnnotations.Create(lengthMarker, NullableAnnotation.Oblivious)));
         }
 
         private TypeSymbol BindTupleType(TupleTypeSyntax syntax, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved)

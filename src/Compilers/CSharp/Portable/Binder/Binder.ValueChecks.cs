@@ -1318,7 +1318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // ignore receiver when symbol is static
                 receiverOpt = null;
             }
-            else if (symbol.ContainingType?.IsValueArrayType() == true)
+            else if (symbol.ContainingType?.IsValueArrayType(symbol.DeclaringCompilation ) == true)
             {
                 // all the references that can be obtained from ValueArray instance accessors/methods
                 // point back to the instance
@@ -1434,7 +1434,7 @@ moreArguments:
                 // ignore receiver when symbol is static
                 receiverOpt = null;
             }
-            else if (symbol.ContainingType?.IsValueArrayType() == true)
+            else if (symbol.ContainingType?.IsValueArrayType(symbol.DeclaringCompilation) == true)
             {
                 // all the references that can be obtained from ValueArray instance accessors/methods
                 // point back to the instance

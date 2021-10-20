@@ -18,24 +18,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             for (int i = 1; i <= (int)SpecialType.Count; i++)
             {
-                // HACKATHON: special type
-                if (i == (int)SpecialType.System_ValueArray_TR)
-                {
-                    continue;
-                }
-
                 string name = SpecialTypes.GetMetadataName((SpecialType)i);
                 Assert.Equal((SpecialType)i, SpecialTypes.GetTypeFromMetadataName(name));
             }
 
             for (int i = 0; i <= (int)SpecialType.Count; i++)
             {
-                // HACKATHON: special type
-                if (i == (int)SpecialType.System_ValueArray_TR)
-                {
-                    continue;
-                }
-
                 Cci.PrimitiveTypeCode code = SpecialTypes.GetTypeCode((SpecialType)i);
 
                 if (code != Cci.PrimitiveTypeCode.NotPrimitive)
@@ -46,12 +34,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             for (int i = 0; i <= (int)Cci.PrimitiveTypeCode.Invalid; i++)
             {
-                // HACKATHON: special type
-                if (i == (int)SpecialType.System_ValueArray_TR)
-                {
-                    continue;
-                }
-
                 SpecialType id = SpecialTypes.GetTypeFromMetadataName((Cci.PrimitiveTypeCode)i);
 
                 if (id != SpecialType.None)
@@ -92,12 +74,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             for (var specialType = SpecialType.None + 1; specialType <= SpecialType.Count; specialType++)
             {
-                // HACKATHON: special type
-                if (specialType == SpecialType.System_ValueArray_TR)
-                {
-                    continue;
-                }
-
                 var symbol = comp.GetSpecialType(specialType);
                 if (knownMissingTypes.Contains(specialType))
                 {

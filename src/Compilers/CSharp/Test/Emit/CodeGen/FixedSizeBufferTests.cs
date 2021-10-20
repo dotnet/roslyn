@@ -1156,5 +1156,199 @@ public unsafe struct FixedBuffer
             var retargetingField = comp3.GlobalNamespace.GetMember<NamedTypeSymbol>("FixedBuffer").GetMember<RetargetingFieldSymbol>("buffer");
             Assert.True(retargetingField.IsFixedSizeBuffer);
         }
+
+        private static readonly string mockValueArray =
+@"
+using System.Collections.Generic;
+
+namespace System
+{
+    public struct ValueArray<T, R> // where R : System.Array
+    {
+        public int Length => RankOf<R>.Value;
+
+        private T[] Elements;
+        public ref T this[int index]
+        {
+            get
+            {
+                Elements ??= new T[16];
+                return ref Elements[index];
+            }
+        }
+    }
+
+    // internal helper to compute and cache the Rank of an object array.
+    internal static class RankOf<R>
+    {
+        public static readonly int Value = GetRank();
+
+        private static int GetRank()
+        {
+            var type = typeof(R);
+            if (!type.IsArray)
+                throw new ArgumentException(""R must be an array"");
+
+            if (type.GetElementType() != typeof(object))
+                throw new ArgumentException(""R must be an object array"");
+
+            return type.GetArrayRank();
+        }
+    }
+}
+";
+
+        [Fact]
+        public void ValueArray001()
+        {
+            var text =
+@"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        int[10] x = default;
+        x[5] = 123;
+        System.Console.WriteLine(x[5]);
+    }
+}
+";
+
+            var comp = CreateCompilation(new string[] { text, mockValueArray }, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "123");
+
+            verifier.VerifyIL("Program.Main",
+@"
+    {
+  // Code size       34 (0x22)
+  .maxstack  2
+  .locals init (System.ValueArray<int, object[,,,,,,,,,]> V_0) //x
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""System.ValueArray<int, object[,,,,,,,,,]>""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldc.i4.5
+  IL_000b:  call       ""ref int System.ValueArray<int, object[,,,,,,,,,]>.this[int].get""
+  IL_0010:  ldc.i4.s   123
+  IL_0012:  stind.i4
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  ldc.i4.5
+  IL_0016:  call       ""ref int System.ValueArray<int, object[,,,,,,,,,]>.this[int].get""
+  IL_001b:  ldind.i4
+  IL_001c:  call       ""void System.Console.WriteLine(int)""
+  IL_0021:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ValueArrayField()
+        {
+            var text =
+@"
+using System;
+
+class C1
+{
+    public string[20] strings;
+}
+
+
+class Program
+{
+    static void Main()
+    {
+        var o = new C1();
+
+        o.strings[15] = ""hello"";
+        System.Console.WriteLine(o.strings[15]);
+    }
+}
+";
+
+            var comp = CreateCompilation(new string[] { text, mockValueArray }, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "hello");
+
+            verifier.VerifyIL("Program.Main",
+@"
+    {
+  // Code size       43 (0x2b)
+  .maxstack  3
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldflda     ""System.ValueArray<string, object[,,,,,,,,,,,,,,,,,,,]> C1.strings""
+  IL_000b:  ldc.i4.s   15
+  IL_000d:  call       ""ref string System.ValueArray<string, object[,,,,,,,,,,,,,,,,,,,]>.this[int].get""
+  IL_0012:  ldstr      ""hello""
+  IL_0017:  stind.ref
+  IL_0018:  ldflda     ""System.ValueArray<string, object[,,,,,,,,,,,,,,,,,,,]> C1.strings""
+  IL_001d:  ldc.i4.s   15
+  IL_001f:  call       ""ref string System.ValueArray<string, object[,,,,,,,,,,,,,,,,,,,]>.this[int].get""
+  IL_0024:  ldind.ref
+  IL_0025:  call       ""void System.Console.WriteLine(string)""
+  IL_002a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ValueArrayList()
+        {
+            var text =
+@"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var a4 = new List<int[3]>();
+
+        var item = default(int[3]);
+        item[0] = 123;
+
+        a4.Add(item);
+        System.Console.WriteLine(a4[0][0]);
+    }
+}
+";
+
+            var comp = CreateCompilation(new string[] { text, mockValueArray }, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "123");
+
+            verifier.VerifyIL("Program.Main",
+@"
+    {
+      // Code size       53 (0x35)
+      .maxstack  3
+      .locals init (System.ValueArray<int, object[,,]> V_0, //item
+                    System.ValueArray<int, object[,,]> V_1)
+      IL_0000:  newobj     ""System.Collections.Generic.List<System.ValueArray<int, object[,,]>>..ctor()""
+      IL_0005:  ldloca.s   V_0
+      IL_0007:  initobj    ""System.ValueArray<int, object[,,]>""
+      IL_000d:  ldloca.s   V_0
+      IL_000f:  ldc.i4.0
+      IL_0010:  call       ""ref int System.ValueArray<int, object[,,]>.this[int].get""
+      IL_0015:  ldc.i4.s   123
+      IL_0017:  stind.i4
+      IL_0018:  dup
+      IL_0019:  ldloc.0
+      IL_001a:  callvirt   ""void System.Collections.Generic.List<System.ValueArray<int, object[,,]>>.Add(System.ValueArray<int, object[,,]>)""
+      IL_001f:  ldc.i4.0
+      IL_0020:  callvirt   ""System.ValueArray<int, object[,,]> System.Collections.Generic.List<System.ValueArray<int, object[,,]>>.this[int].get""
+      IL_0025:  stloc.1
+      IL_0026:  ldloca.s   V_1
+      IL_0028:  ldc.i4.0
+      IL_0029:  call       ""ref int System.ValueArray<int, object[,,]>.this[int].get""
+      IL_002e:  ldind.i4
+      IL_002f:  call       ""void System.Console.WriteLine(int)""
+      IL_0034:  ret
+    }");
+        }
     }
 }

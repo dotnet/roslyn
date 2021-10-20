@@ -6786,6 +6786,21 @@ tryAgain:
                     case SyntaxKind.OpenBracketToken:
                         // Check for array types.
                         this.EatToken();
+
+                        if (this.CurrentToken.Kind == SyntaxKind.NumericLiteralToken ||
+                            this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+                        {
+                            if (this.PeekToken(1).Kind == SyntaxKind.CloseBracketToken)
+                            {
+                                // HACKATHON: we will allow trivial kinds of value array lengths.
+                                // [5]  or [ident]
+                                this.EatToken();
+                                this.EatToken();
+                                result = ScanTypeFlags.MustBeType;
+                                break;
+                            }
+                        }
+
                         while (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                         {
                             this.EatToken();

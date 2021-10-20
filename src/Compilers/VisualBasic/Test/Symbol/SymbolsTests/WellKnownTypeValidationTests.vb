@@ -454,11 +454,6 @@ End Namespace
                 Dim symbol = comp.GetSpecialType(special)
                 Assert.NotNull(symbol)
 
-                If special = SpecialType.System_ValueArray_TR Then
-                    ' HACKATHON: experimental Type
-                    Continue For
-                End If
-
                 If special = SpecialType.System_Runtime_CompilerServices_RuntimeFeature OrElse
                    special = SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute Then
                     Assert.Equal(SymbolKind.ErrorType, symbol.Kind) ' Not available
@@ -549,7 +544,8 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException,
                          WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsExternalInit,
-                         WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler
+                         WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler,
+                         WellKnownType.System_ValueArray_TR
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -615,7 +611,8 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException,
                          WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsExternalInit,
-                         WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler
+                         WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler,
+                         WellKnownType.System_ValueArray_TR
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel

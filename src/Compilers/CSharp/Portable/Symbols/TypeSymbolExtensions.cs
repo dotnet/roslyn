@@ -146,9 +146,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ((NamedTypeSymbol)type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
         }
 
-        public static bool IsValueArrayType(this TypeSymbol type)
+        public static bool IsValueArrayType(this TypeSymbol type, CSharpCompilation compilation)
         {
-            if (type.OriginalDefinition.SpecialType != SpecialType.System_ValueArray_TR)
+            if ((object)type.OriginalDefinition != compilation?.GetWellKnownType(WellKnownType.System_ValueArray_TR))
             {
                 return false;
             }
@@ -157,24 +157,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return markerType.IsArray() && ((ArrayTypeSymbol)markerType).ElementType.IsObjectType();
         }
 
-        public static TypeSymbol GetValueArrayElementType(this TypeSymbol type)
+        public static TypeSymbol GetValueArrayElementType(this TypeSymbol type, CSharpCompilation compilation)
         {
-            return type.GetValueArrayElementTypeWithAnnotations().Type;
+            return type.GetValueArrayElementTypeWithAnnotations(compilation).Type;
         }
 
-        public static TypeWithAnnotations GetValueArrayElementTypeWithAnnotations(this TypeSymbol type)
+        public static TypeWithAnnotations GetValueArrayElementTypeWithAnnotations(this TypeSymbol type, CSharpCompilation compilation)
         {
             RoslynDebug.Assert((object)type != null);
-            RoslynDebug.Assert(IsValueArrayType(type));
+            RoslynDebug.Assert(type.IsValueArrayType(compilation));
             RoslynDebug.Assert(type is NamedTypeSymbol);  //not testing Kind because it may be an ErrorType
 
             return ((NamedTypeSymbol)type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
         }
 
-        public static int GetValueArrayLength(this TypeSymbol type)
+        public static int GetValueArrayLength(this TypeSymbol type, CSharpCompilation compilation)
         {
             RoslynDebug.Assert((object)type != null);
-            RoslynDebug.Assert(IsValueArrayType(type));
+            RoslynDebug.Assert(type.IsValueArrayType(compilation));
             RoslynDebug.Assert(type is NamedTypeSymbol);  //not testing Kind because it may be an ErrorType
 
             return ((ArrayTypeSymbol)((NamedTypeSymbol)type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[1].Type).Rank;
