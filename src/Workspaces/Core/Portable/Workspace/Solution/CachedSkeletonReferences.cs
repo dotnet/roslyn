@@ -97,21 +97,46 @@ namespace Microsoft.CodeAnalysis
 
             public async Task<MetadataReference> GetOrBuildReferenceAsync(
                 Workspace workspace,
-                ProjectId projectId,
                 MetadataReferenceProperties properties,
                 Compilation finalCompilation,
                 VersionStamp version,
                 CancellationToken cancellationToken)
             {
-                // First see if we already have a cached reference for either finalCompilation or for projectReference.
-                // If we have one for the latter, we'll make sure that it's version matches what we're asking for before
-                // returning it.
-                workspace.LogTestMessage($"Looking to see if we already have a skeleton assembly for {projectId} before we build one...");
-                var reference = await TryGetReferenceAsync(properties, finalCompilation, version, cancellationToken).ConfigureAwait(false);
-                if (reference != null)
+                // first, check if we have a direct mapping from this compilation to a reference set. If so, use it.  This
+                // ensures the same compilations will get same metadata reference.
+                if (s_compilationToReferenceMap.TryGetValue(finalCompilation, out var referenceSet))
+                    return await referenceSet.GetMetadataReferenceAsync(properties, cancellationToken).ConfigureAwait(false);
+
+                // Didn't have a direct mapping to a reference set.  Compute one for ourselves.
+                referenceSet = await GetOrBuildReferenceSetAsync(workspace, version, finalCompilation, cancellationToken).ConfigureAwait(false);
+
+                // another thread may have come in and beaten us to computing this.  So attempt to actually cache this
+                // in the global map.  if it succeeds, use our computed version.  If it fails, use the one the other
+                // thread succeeded in storing.
+                var finalReferenceSet = s_compilationToReferenceMap.GetValue(finalCompilation, _ => referenceSet);
+
+                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    workspace.LogTestMessage($"A reference was found {projectId} so we're skipping the build.");
-                    return reference;
+                    // whoever one, still store this reference set against us with the provided version.
+                    _version = version;
+                    _skeletonReferenceSet = finalReferenceSet;
+                }
+
+                return await referenceSet.GetMetadataReferenceAsync(properties, cancellationToken).ConfigureAwait(false);
+            }
+
+            private async Task<SkeletonReferenceSet> GetOrBuildReferenceSetAsync(
+                Workspace workspace,
+                VersionStamp version,
+                Compilation finalCompilation,
+                CancellationToken cancellationToken)
+            {
+                // First see if we already have a reference set for this version.  if so, we're done and can return that.
+                var referenceSet = await TryGetReferenceSetAsync(version, cancellationToken).ConfigureAwait(false);
+                if (referenceSet != null)
+                {
+                    workspace.LogTestMessage($"Succeeded at finding reference set corresponding to requested version.");
+                    return referenceSet;
                 }
 
                 // okay, we don't have one. so create one now.
@@ -125,77 +150,30 @@ namespace Microsoft.CodeAnalysis
                 {
                     // unfortunately, we couldn't create one. see if we have one from previous compilation., it might be
                     // out-of-date big time, but better than nothing.
-                    reference = await TryGetReferenceAsync(properties, finalCompilation, version: null, cancellationToken).ConfigureAwait(false);
-                    if (reference != null)
+                    referenceSet = await TryGetReferenceSetAsync(version: null, cancellationToken).ConfigureAwait(false);
+                    if (referenceSet != null)
                     {
                         workspace.LogTestMessage($"We failed to create metadata so we're using the one we just found from an earlier version.");
-                        return reference;
+                        return referenceSet;
                     }
                 }
 
-                // We either had an image, or we didn't have an image and we didn't have a previous value we could reuse.
-                // Just store this image against this version for us, and any future ProjectStates that fork from us.
-                // note: this could be happening on multiple threads.  So we just all the first thread that successfully
-                // assigns the compilation to win here.
-
-                var referenceSet = s_compilationToReferenceMap.GetValue(finalCompilation, _ => new SkeletonReferenceSet(image));
-
-                // Store this for ourselves, and for any project states that clone from us from this point onwards.
-                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    _version = version;
-                    _skeletonReferenceSet = referenceSet;
-                }
-
-                return await referenceSet.GetMetadataReferenceAsync(
-                    properties, () => Task.FromResult(finalCompilation), cancellationToken).ConfigureAwait(false);
+                return new SkeletonReferenceSet(image, new DeferredDocumentationProvider(finalCompilation));
             }
 
             /// <summary>
-            /// Tries to get the <see cref="MetadataReference"/> with the given <paramref name="properties"/> for the 
-            /// <paramref name="finalCompilation"/>. <paramref name="version"/> is <see langword="null"/>, any
-            /// <see cref="MetadataReference"/> for that project may be returned, even if it doesn't correspond to that
-            /// compilation.  This is useful in error tolerance cases as building a skeleton assembly may easily fail.
-            /// In that case it's better to use the last successfully built skeleton than just have no semantic information
-            /// for that project at all.
+            /// Tries to get the <see cref="SkeletonReferenceSet"/> for this project matching <paramref name="version"/>.
+            /// if <paramref name="version"/> is <see langword="null"/>, any cached <see cref="SkeletonReferenceSet"/> 
+            /// can be returned, even if it doesn't correspond to that version.  This is useful in error tolerance cases
+            /// as building a skeleton assembly may easily fail. In that case it's better to use the last successfully 
+            /// built skeleton than just have no semantic information for that project at all.
             /// </summary>
-            private async Task<MetadataReference?> TryGetReferenceAsync(
-                MetadataReferenceProperties properties,
-                Compilation finalCompilation,
+            private async Task<SkeletonReferenceSet?> TryGetReferenceSetAsync(
                 VersionStamp? version,
                 CancellationToken cancellationToken)
             {
-                // first, check if we have a direct mapping from this compilation to a reference set. If so, use it.  This
-                // ensures the same compilations will get same metadata reference.
-                if (!s_compilationToReferenceMap.TryGetValue(finalCompilation, out var referenceSet))
-                {
-                    // Otherwise, we don't have a direct mapping stored.  Try to see if the cached reference we have is
-                    // applicable to this project semantic version.
-                    using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                    {
-                        // if we don't have a skeleton cached, then we have nothing to return.
-                        if (_skeletonReferenceSet == null)
-                            return null;
-
-                        // if the caller is requiring a particular semantic version, it much match what we have cached.
-                        if (version != null && version != _version)
-                            return null;
-
-                        referenceSet = _skeletonReferenceSet;
-                    }
-                }
-
-                return await referenceSet.GetMetadataReferenceAsync(
-                    properties, () => Task.FromResult(finalCompilation), cancellationToken).ConfigureAwait(false);
-            }
-
-            public async Task<MetadataReference?> TryGetReferenceAsync(
-                VersionStamp version,
-                MetadataReferenceProperties properties,
-                Func<Task<Compilation>> createCompilationAsync,
-                CancellationToken cancellationToken)
-            {
-                SkeletonReferenceSet referenceSet;
+                // Otherwise, we don't have a direct mapping stored.  Try to see if the cached reference we have is
+                // applicable to this project semantic version.
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
                     // if we don't have a skeleton cached, then we have nothing to return.
@@ -203,13 +181,28 @@ namespace Microsoft.CodeAnalysis
                         return null;
 
                     // if the caller is requiring a particular semantic version, it much match what we have cached.
-                    if (version != _version)
+                    if (version != null && version != _version)
                         return null;
 
-                    referenceSet = _skeletonReferenceSet;
+                    return _skeletonReferenceSet;
                 }
+            }
 
-                return await referenceSet.GetMetadataReferenceAsync(properties, createCompilationAsync, cancellationToken).ConfigureAwait(false);
+            /// <summary>
+            /// Return a metadata reference if we already have a reference-set computed for this particular <paramref name="version"/>.
+            /// If a reference already exists for the provided <paramref name="properties"/>, the same instance will be returned.  Otherwise,
+            /// a fresh instance will be returned.
+            /// </summary>
+            public async Task<MetadataReference?> TryGetReferenceAsync(
+                VersionStamp version,
+                MetadataReferenceProperties properties,
+                CancellationToken cancellationToken)
+            {
+                var referenceSet = await TryGetReferenceSetAsync(version, cancellationToken).ConfigureAwait(false);
+                if (referenceSet == null)
+                    return null;
+
+                return await referenceSet.GetMetadataReferenceAsync(properties, cancellationToken).ConfigureAwait(false);
             }
 
             private sealed class SkeletonReferenceSet
@@ -218,16 +211,26 @@ namespace Microsoft.CodeAnalysis
 
                 // use WeakReference so we don't keep MetadataReference's alive if they are not being consumed
                 private readonly Dictionary<MetadataReferenceProperties, WeakReference<MetadataReference>> _metadataReferences = new();
+
                 private readonly MetadataOnlyImage _image;
 
-                public SkeletonReferenceSet(MetadataOnlyImage image)
+                /// <summary>
+                /// The documentation provider used to lookup xml docs for any metadata reference we pass out.  See
+                /// docs on <see cref="DeferredDocumentationProvider"/> for why this is safe to hold onto despite it
+                /// rooting a compilation internally.
+                /// </summary>
+                private readonly DeferredDocumentationProvider _documentationProvider;
+
+                public SkeletonReferenceSet(
+                    MetadataOnlyImage image,
+                    DeferredDocumentationProvider documentationProvider)
                 {
                     _image = image;
+                    _documentationProvider = documentationProvider;
                 }
 
                 public async Task<MetadataReference> GetMetadataReferenceAsync(
                     MetadataReferenceProperties properties,
-                    Func<Task<Compilation>> createCompilationAsync,
                     CancellationToken cancellationToken)
                 {
                     // lookup first and eagerly return cached value if we have it.
@@ -239,15 +242,7 @@ namespace Microsoft.CodeAnalysis
 
                     // otherwise, create the metadata outside of the lock, and then try to assign it if no one else beat us
                     {
-                        // Create a declaration-only compilation passed in, and use that for any xml-doc-comment requests.
-                        // We do this as we don't want to hold onto the full compilation (which is potentially ver memory
-                        // expensive).  Xml doc comments only need to look up doc comment text using an xml doc comment id.
-                        // this only basically needs the decl table, syntax trees, and only a tiny handful of symbols
-                        // created as the doc comment is resolved against the compilation.
-
-                        var compilation = await createCompilationAsync().ConfigureAwait(false);
-                        var declarationOnlyCompilation = compilation.WithReferences();
-                        var metadataReference = _image.CreateReference(properties.Aliases, properties.EmbedInteropTypes, new DeferredDocumentationProvider(declarationOnlyCompilation));
+                        var metadataReference = _image.CreateReference(properties.Aliases, properties.EmbedInteropTypes, _documentationProvider);
                         var weakMetadata = new WeakReference<MetadataReference>(metadataReference);
 
                         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))

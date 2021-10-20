@@ -1017,13 +1017,9 @@ namespace Microsoft.CodeAnalysis
 
                         var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
 
-                        // Attempt to reuse an existing skeleton cached for this compilation tracker.  Note: if we have
-                        // cached a metadata reference with the same version+properties, then we can reuse directly.
-                        // however, if we have the same version, but different properties, 
+                        // Attempt to reuse an existing skeleton cached for this compilation tracker.
                         var reference = await _cachedSkeletonReferences.TryGetReferenceAsync(
-                            version, properties,
-                            () => this.GetOrBuildDeclarationCompilationAsync(solution.Services, cancellationToken),
-                            cancellationToken).ConfigureAwait(false);
+                            version, properties, cancellationToken).ConfigureAwait(false);
                         if (reference != null)
                         {
                             workspace.LogTestMessage($"Reusing the already cached skeleton assembly for {projectReference.ProjectId}");
@@ -1038,7 +1034,7 @@ namespace Microsoft.CodeAnalysis
                             // okay, we still don't have one. bring the compilation to final state since we are going to use it to create skeleton assembly
                             var compilationInfo = await this.GetOrBuildCompilationInfoAsync(solution, lockGate: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                             return await _cachedSkeletonReferences.GetOrBuildReferenceAsync(
-                                workspace, this.ProjectState.Id, properties, compilationInfo.Compilation, version, cancellationToken).ConfigureAwait(false);
+                                workspace, properties, compilationInfo.Compilation, version, cancellationToken).ConfigureAwait(false);
                         }
                     }
                 }
