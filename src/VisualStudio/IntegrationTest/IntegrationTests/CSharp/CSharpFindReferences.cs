@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -72,6 +74,12 @@ class SomeOtherClass
                         Assert.Equal(expected: 24, actual: reference.Column);
                     }
                 });
+
+            VisualStudio.FindReferencesWindow.NavigateTo(activeWindowCaption, results[0], isPreview: false);
+            // Assert we are in the right file now
+            VisualStudio.Editor.Activate();
+            Assert.Equal("Class1.cs", VisualStudio.Shell.GetActiveWindowCaption());
+            Assert.Equal("Program", VisualStudio.Editor.GetLineTextAfterCaret());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]

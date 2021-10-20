@@ -9,7 +9,6 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -23,6 +22,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     // Provides symbol completions in object and 'with' initializers:
+    // - new() { $$
     // - new C() { $$
     // - expr with { $$
     [ExportCompletionProvider(nameof(ObjectAndWithInitializerCompletionProvider), LanguageNames.CSharp)]
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // initializer. Since we don't know which the user will use, we'll be non-exclusive, so
             // the other providers can help the user write the collection initializer, if they want
             // to.
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
             if (tree.IsInNonUserCode(position, cancellationToken))
             {
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return false;
             }
 
-            if (!(token.Parent.Parent is ExpressionSyntax expression))
+            if (token.Parent.Parent is not ExpressionSyntax expression)
             {
                 return false;
             }
@@ -98,12 +98,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return true;
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) || text[characterPosition] == ' ';
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters.Add(' ');
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters.Add(' ');
 
-        protected override Tuple<ITypeSymbol, Location> GetInitializedType(
+        protected override Tuple<ITypeSymbol, Location>? GetInitializedType(
             Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             var tree = semanticModel.SyntaxTree;
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.Kind() != SyntaxKind.CommaToken && token.Kind() != SyntaxKind.OpenBraceToken)
+            if (token.Kind() is not SyntaxKind.CommaToken and not SyntaxKind.OpenBraceToken)
             {
                 return null;
             }
@@ -132,35 +132,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return null;
             }
 
-            // new Goo { bar = $$
-            if (token.Parent.Parent.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation))
+            var type = GetInitializedType(token, document, semanticModel, cancellationToken);
+            if (type is null)
             {
-                var type = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol as ITypeSymbol;
-                if (type is ITypeParameterSymbol typeParameterSymbol)
-                {
-                    return Tuple.Create<ITypeSymbol, Location>(typeParameterSymbol.GetNamedTypeSymbolConstraint(), token.GetLocation());
-                }
+                return null;
+            }
 
-                return Tuple.Create(type, token.GetLocation());
+            return Tuple.Create(type, token.GetLocation());
+        }
+
+        private static ITypeSymbol? GetInitializedType(SyntaxToken token, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            var parent = token.Parent?.Parent;
+
+            // new() { $$
+            // new Goo { $$
+            if (parent.IsKind(SyntaxKind.ObjectCreationExpression, SyntaxKind.ImplicitObjectCreationExpression))
+            {
+                return semanticModel.GetTypeInfo(parent, cancellationToken).Type;
             }
 
             // Nested: new Goo { bar = { $$
-            if (token.Parent.Parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
+            if (parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
             {
                 // Use the type inferrer to get the type being initialized.
-                var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
-                var parentInitializer = token.GetAncestor<InitializerExpressionSyntax>();
-                var expectedType = typeInferenceService.InferType(semanticModel, parentInitializer, objectAsDefault: false, cancellationToken: cancellationToken);
-                return Tuple.Create(expectedType, token.GetLocation());
+                var typeInferenceService = document.GetRequiredLanguageService<ITypeInferenceService>();
+                var parentInitializer = token.GetAncestor<InitializerExpressionSyntax>()!;
+                return typeInferenceService.InferType(semanticModel, parentInitializer, objectAsDefault: false, cancellationToken: cancellationToken);
             }
 
             // expr with { $$
-            if (token.Parent.Parent.IsKind(SyntaxKind.WithExpression, out WithExpressionSyntax withExpression))
+            if (parent.IsKind(SyntaxKind.WithExpression, out WithExpressionSyntax? withExpression))
             {
-                var type = semanticModel.GetTypeInfo(withExpression.Expression, cancellationToken).Type;
-                // Note: no special handling for type parameters since they can't be used in 'with' expressions ('with' is restricted to records at the moment)
-
-                return Tuple.Create(type, token.GetLocation());
+                return semanticModel.GetTypeInfo(withExpression.Expression, cancellationToken).Type;
             }
 
             return null;
@@ -172,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                             .GetPreviousTokenIfTouchingWord(position);
 
             // We should have gotten back a { or ,
-            if (token.Kind() == SyntaxKind.CommaToken || token.Kind() == SyntaxKind.OpenBraceToken)
+            if (token.Kind() is SyntaxKind.CommaToken or SyntaxKind.OpenBraceToken)
             {
                 if (token.Parent != null)
                 {

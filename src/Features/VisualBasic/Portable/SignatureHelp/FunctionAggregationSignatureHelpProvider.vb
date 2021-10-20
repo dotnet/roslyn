@@ -3,9 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.DocumentationComments
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Inherits AbstractVisualBasicSignatureHelpProvider
 
         <ImportingConstructor>
-        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -82,25 +82,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 Return Nothing
             End If
 
-            Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
+            Dim structuralTypeDisplayService = document.GetLanguageService(Of IStructuralTypeDisplayService)()
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
             Dim textSpan = CommonSignatureHelpUtilities.GetSignatureHelpSpan(functionAggregation, functionAggregation.SpanStart, Function(n) n.CloseParenToken)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
             Return CreateSignatureHelpItems(
-                accessibleMethods.Select(Function(m) Convert(m, functionAggregation, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService)).ToList(),
+                accessibleMethods.Select(Function(m) Convert(m, functionAggregation, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem:=Nothing)
         End Function
 
         Private Overloads Shared Function Convert(method As IMethodSymbol,
                                            functionAggregation As FunctionAggregationSyntax,
                                            semanticModel As SemanticModel,
-                                           anonymousTypeDisplayService As IAnonymousTypeDisplayService,
+                                           structuralTypeDisplayService As IStructuralTypeDisplayService,
                                            documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpItem
             Dim position = functionAggregation.SpanStart
             Dim item = CreateItem(
                 method, semanticModel, position,
-                anonymousTypeDisplayService,
+                structuralTypeDisplayService,
                 False,
                 method.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(method),

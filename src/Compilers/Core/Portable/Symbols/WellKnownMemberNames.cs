@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Runtime.CompilerServices;
 
@@ -347,6 +345,11 @@ namespace Microsoft.CodeAnalysis
         internal const string CloneMethodName = "<Clone>$";
 
         /// <summary>
+        /// The required name for the <c>PrintMembers</c> method that is synthesized in a record.
+        /// </summary>
+        public const string PrintMembersMethodName = "PrintMembers";
+
+        /// <summary>
         /// The name of an entry point method synthesized for top-level statements.
         /// </summary>
         public const string TopLevelStatementsEntryPointMethodName = "<Main>$";
@@ -354,6 +357,6 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The name of a type synthesized for a top-level statements entry point method.
         /// </summary>
-        public const string TopLevelStatementsEntryPointTypeName = "<Program>$";
+        public const string TopLevelStatementsEntryPointTypeName = "Program";
     }
 }

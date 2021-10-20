@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             {
                 var diagnosticNode = diagnostic.Location.FindNode(cancellationToken);
 
-                if (!(diagnosticNode is StructDeclarationSyntax structDeclaration))
+                if (diagnosticNode is not StructDeclarationSyntax structDeclaration)
                 {
                     continue;
                 }
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Make_readonly_fields_writable, createChangedDocument)
+                : base(CSharpAnalyzersResources.Make_readonly_fields_writable, createChangedDocument, nameof(CSharpAnalyzersResources.Make_readonly_fields_writable))
             {
             }
         }

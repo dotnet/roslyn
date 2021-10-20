@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -567,32 +569,35 @@ get
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
+        [WpfTheory]
         [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public async Task AccessorList9()
+        [InlineData("get")]
+        [InlineData("set")]
+        [InlineData("init")]
+        public async Task AccessorList9(string accessor)
         {
-            var code = @"class C
-{
+            var code = $@"class C
+{{
     int Prop
-    {
-set
-        {
+    {{
+{accessor}
+        {{
             ;
-        }$$
-    }
-}";
+        }}$$
+    }}
+}}";
 
-            var expected = @"class C
-{
+            var expected = $@"class C
+{{
     int Prop
-    {
-        set
-        {
+    {{
+        {accessor}
+        {{
             ;
-        }
-    }
-}";
+        }}
+    }}
+}}";
 
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
@@ -3109,6 +3114,66 @@ class Program{
     {
         using (null)
             fixed (void* ptr = &i)
+            {
+            }
+    }
+}";
+
+            AutoFormatToken(code, expected, useTabs);
+        }
+
+        [WpfTheory]
+        [CombinatorialData]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public void UsingStatementWithNestedCheckedStatement(bool useTabs)
+        {
+            var code = @"class C
+{
+    public void M()
+    {
+        using (null)
+        checked
+        {
+        }$$
+    }
+}";
+
+            var expected = @"class C
+{
+    public void M()
+    {
+        using (null)
+            checked
+            {
+            }
+    }
+}";
+
+            AutoFormatToken(code, expected, useTabs);
+        }
+
+        [WpfTheory]
+        [CombinatorialData]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public void UsingStatementWithNestedUncheckedStatement(bool useTabs)
+        {
+            var code = @"class C
+{
+    public void M()
+    {
+        using (null)
+        unchecked
+        {
+        }$$
+    }
+}";
+
+            var expected = @"class C
+{
+    public void M()
+    {
+        using (null)
+            unchecked
             {
             }
     }

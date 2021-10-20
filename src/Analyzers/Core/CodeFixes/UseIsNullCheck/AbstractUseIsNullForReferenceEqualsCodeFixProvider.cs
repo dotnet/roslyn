@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // Order in reverse so we process inner diagnostics before outer diagnostics.
             // Otherwise, we won't be able to find the nodes we want to replace if they're
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                     ? (TExpressionSyntax)syntaxFacts.GetExpressionOfArgument(arguments[1])
                     : (TExpressionSyntax)syntaxFacts.GetExpressionOfArgument(arguments[0]);
 
-                var toReplace = negate ? invocation.Parent : invocation;
+                var toReplace = negate ? invocation.GetRequiredParent() : invocation;
                 var replacement = negate
                     ? CreateNotNullCheck(argument)
                     : CreateNullCheck(argument, isUnconstrainedGeneric);

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -210,8 +208,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            if (node is AnonymousFunctionExpressionSyntax ||
-                node is LocalFunctionStatementSyntax)
+            if (node is AnonymousFunctionExpressionSyntax or
+                LocalFunctionStatementSyntax)
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list,
                     node.GetFirstToken(includeZeroWidth: true),
@@ -264,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private static void AddStatementExceptBlockSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
-            if (!(node is StatementSyntax statementNode) || statementNode.Kind() == SyntaxKind.Block)
+            if (node is not StatementSyntax statementNode || statementNode.Kind() == SyntaxKind.Block)
             {
                 return;
             }
@@ -316,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             static void ProcessStructuredTrivia(List<SuppressOperation> list, SyntaxNode structure)
             {
-                if (!(structure is PragmaWarningDirectiveTriviaSyntax pragmaWarningDirectiveTrivia))
+                if (structure is not PragmaWarningDirectiveTriviaSyntax pragmaWarningDirectiveTrivia)
                 {
                     return;
                 }
@@ -341,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private static bool IsFormatDirective(DirectiveTriviaSyntax? trivia, SyntaxKind disableOrRestoreKeyword)
         {
-            if (!(trivia is PragmaWarningDirectiveTriviaSyntax pragmaWarningDirectiveTrivia))
+            if (trivia is not PragmaWarningDirectiveTriviaSyntax pragmaWarningDirectiveTrivia)
             {
                 return false;
             }
@@ -353,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             foreach (var errorCode in pragmaWarningDirectiveTrivia.ErrorCodes)
             {
-                if (!(errorCode is IdentifierNameSyntax identifierName))
+                if (errorCode is not IdentifierNameSyntax identifierName)
                 {
                     continue;
                 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -691,7 +693,10 @@ oneMoreTime:
             _builder.OpenLocalScope(ScopeType.StateMachineVariable);
             foreach (var field in scope.Fields)
             {
-                _builder.DefineUserDefinedStateMachineHoistedLocal(field.SlotIndex);
+                if (field.SlotIndex >= 0)
+                {
+                    _builder.DefineUserDefinedStateMachineHoistedLocal(field.SlotIndex);
+                }
             }
 
             EmitStatement(scope.Statement);
@@ -1424,7 +1429,8 @@ oneMoreTime:
             // If named, add it to the local debug scope.
             if (localDef.Name != null &&
                 !(local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
-                    local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection)) // Visibility scope of such locals is represented by BoundScope node.
+                // Visibility scope of such locals is represented by BoundScope node.
+                (local.ScopeDesignatorOpt?.Kind() is SyntaxKind.SwitchSection or SyntaxKind.SwitchExpressionArm)))
             {
                 _builder.AddLocalToScope(localDef);
             }

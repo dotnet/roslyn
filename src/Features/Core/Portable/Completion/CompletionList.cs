@@ -49,13 +49,13 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The item specified determines the text displayed and the description associated with it unless a different item is manually selected.
         /// No text is ever inserted when this item is completed, leaving the text the user typed instead.
         /// </summary>
-        public CompletionItem SuggestionModeItem { get; }
+        public CompletionItem? SuggestionModeItem { get; }
 
         private CompletionList(
             TextSpan defaultSpan,
             ImmutableArray<CompletionItem> items,
-            CompletionRules rules,
-            CompletionItem suggestionModeItem,
+            CompletionRules? rules,
+            CompletionItem? suggestionModeItem,
             bool isExclusive)
         {
             Span = defaultSpan;
@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.Completion
         public static CompletionList Create(
             TextSpan defaultSpan,
             ImmutableArray<CompletionItem> items,
-            CompletionRules rules = null,
-            CompletionItem suggestionModeItem = null)
+            CompletionRules? rules = null,
+            CompletionItem? suggestionModeItem = null)
         {
             return Create(defaultSpan, items, rules, suggestionModeItem, isExclusive: false);
         }
@@ -91,8 +91,8 @@ namespace Microsoft.CodeAnalysis.Completion
         internal static CompletionList Create(
             TextSpan defaultSpan,
             ImmutableArray<CompletionItem> items,
-            CompletionRules rules,
-            CompletionItem suggestionModeItem,
+            CompletionRules? rules,
+            CompletionItem? suggestionModeItem,
             bool isExclusive)
         {
             return new CompletionList(defaultSpan, items, rules, suggestionModeItem, isExclusive);
@@ -153,12 +153,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// The default <see cref="CompletionList"/> returned when no items are found to populate the list.
         /// </summary>
-        public static readonly CompletionList Empty = new CompletionList(
+        public static readonly CompletionList Empty = new(
             default, default, CompletionRules.Default,
             suggestionModeItem: null, isExclusive: false);
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
     internal static class UseConditionalExpressionCodeFixHelpers
     {
-        public static readonly SyntaxAnnotation SpecializedFormattingAnnotation = new SyntaxAnnotation();
+        public static readonly SyntaxAnnotation SpecializedFormattingAnnotation = new();
 
         public static SyntaxRemoveOptions GetRemoveOptions(
             ISyntaxFactsService syntaxFacts, SyntaxNode syntax)

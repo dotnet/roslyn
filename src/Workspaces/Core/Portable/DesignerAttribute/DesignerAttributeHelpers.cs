@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,7 +34,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 return null;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var firstClassType = (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(firstClass, cancellationToken);
+            var firstClassType = (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(firstClass, cancellationToken);
             return TryGetDesignerCategory(firstClassType, designerCategoryType, cancellationToken);
         }
 
@@ -64,10 +62,10 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             foreach (var member in members)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if (syntaxFacts.IsNamespaceDeclaration(member))
+                if (syntaxFacts.IsBaseNamespaceDeclaration(member))
                 {
                     var firstClass = FindFirstNonNestedClass(
-                        syntaxFacts, syntaxFacts.GetMembersOfNamespaceDeclaration(member), cancellationToken);
+                        syntaxFacts, syntaxFacts.GetMembersOfBaseNamespaceDeclaration(member), cancellationToken);
                     if (firstClass != null)
                         return firstClass;
                 }
@@ -85,7 +83,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             if (argument.Type == null ||
                 argument.Type.SpecialType != SpecialType.System_String ||
                 argument.IsNull ||
-                !(argument.Value is string stringValue))
+                argument.Value is not string stringValue)
             {
                 return null;
             }

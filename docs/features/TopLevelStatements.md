@@ -15,7 +15,7 @@ static class Program
 }
 ```
 
-Proposal: https://github.com/dotnet/csharplang/blob/master/proposals/top-level-statements.md
+Proposal: https://github.com/dotnet/csharplang/blob/main/proposals/top-level-statements.md
 Open issues and TODOs are tracked at https://github.com/dotnet/roslyn/issues/41704.
 Test plan: https://github.com/dotnet/roslyn/issues/43563.
 See also https://github.com/dotnet/csharplang/issues/3117.

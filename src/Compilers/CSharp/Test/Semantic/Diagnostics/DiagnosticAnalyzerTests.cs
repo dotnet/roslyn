@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -292,8 +295,8 @@ public class C { }";
                     Diagnostic("XX0001", @"[Obsolete]
 public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true)); // class declaration
         }
-        [Fact]
 
+        [Fact]
         public void TestGetEffectiveDiagnostics()
         {
             var noneDiagDescriptor = new DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
@@ -431,8 +434,8 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             Assert.Equal(1, effectiveDiags.Count(d => d.Severity == DiagnosticSeverity.Error));
             Assert.Equal(1, effectiveDiags.Count(d => d.Severity == DiagnosticSeverity.Hidden));
         }
-        [Fact]
 
+        [Fact]
         public void TestDisabledDiagnostics()
         {
             var disabledDiagDescriptor = new DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: false);
@@ -1121,80 +1124,6 @@ SyntaxTree: ")}
                         .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithInvalidDiagnosticSpan", "System.ArgumentException", message, context)
                         .WithLocation(1, 1)
                 );
-        }
-
-        [Fact, WorkItem(13120, "https://github.com/dotnet/roslyn/issues/13120")]
-        public void TestRegisteringAsyncAnalyzerMethod()
-        {
-            string source = @"";
-            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithAsyncMethodRegistration() };
-            string message = new ArgumentException(string.Format(CodeAnalysisResources.AsyncAnalyzerActionCannotBeRegistered), "action").Message;
-            Exception analyzerException = null;
-            IFormattable context = $@"{new LazyToString(() => analyzerException)}
------
-
-{string.Format(CodeAnalysisResources.DisableAnalyzerDiagnosticsMessage, "ID")}";
-
-            EventHandler<FirstChanceExceptionEventArgs> firstChanceException = (sender, e) =>
-            {
-                if (e.Exception is ArgumentException
-                    && e.Exception.Message == message)
-                {
-                    analyzerException = e.Exception;
-                }
-            };
-
-            try
-            {
-                AppDomain.CurrentDomain.FirstChanceException += firstChanceException;
-
-                CreateCompilationWithMscorlib45(source)
-                    .VerifyDiagnostics()
-                    .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: Diagnostic("AD0001")
-                         .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithAsyncMethodRegistration", "System.ArgumentException", message, context)
-                         .WithLocation(1, 1));
-            }
-            finally
-            {
-                AppDomain.CurrentDomain.FirstChanceException -= firstChanceException;
-            }
-        }
-
-        [Fact, WorkItem(13120, "https://github.com/dotnet/roslyn/issues/13120")]
-        public void TestRegisteringAsyncAnalyzerLambda()
-        {
-            string source = @"";
-            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithAsyncLambdaRegistration() };
-            string message = new ArgumentException(string.Format(CodeAnalysisResources.AsyncAnalyzerActionCannotBeRegistered), "action").Message;
-            Exception analyzerException = null;
-            IFormattable context = $@"{new LazyToString(() => analyzerException)}
------
-
-{string.Format(CodeAnalysisResources.DisableAnalyzerDiagnosticsMessage, "ID")}";
-
-            EventHandler<FirstChanceExceptionEventArgs> firstChanceException = (sender, e) =>
-            {
-                if (e.Exception is ArgumentException
-                    && e.Exception.Message == message)
-                {
-                    analyzerException = e.Exception;
-                }
-            };
-
-            try
-            {
-                AppDomain.CurrentDomain.FirstChanceException += firstChanceException;
-
-                CreateCompilationWithMscorlib45(source)
-                    .VerifyDiagnostics()
-                    .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: Diagnostic("AD0001")
-                         .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithAsyncLambdaRegistration", "System.ArgumentException", message, context)
-                         .WithLocation(1, 1));
-            }
-            finally
-            {
-                AppDomain.CurrentDomain.FirstChanceException -= firstChanceException;
-            }
         }
 
         [Fact, WorkItem(1473, "https://github.com/dotnet/roslyn/issues/1473")]
@@ -2463,7 +2392,7 @@ internal class C : MyInterface
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib45(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
                 // (51,32): warning CS0067: The event 'C.MyEvent' is never used
                 //     public event Delegate<int> MyEvent;
@@ -2769,13 +2698,13 @@ Block[B2] - Exit
                 });
             verifyFlowGraphs(analyzer.GetControlFlowGraphs());
 
-            void verifyFlowGraphs(ImmutableArray<ControlFlowGraph> flowGraphs)
+            void verifyFlowGraphs(ImmutableArray<(ControlFlowGraph Graph, ISymbol AssociatedSymbol)> flowGraphs)
             {
                 for (int i = 0; i < expectedFlowGraphs.Length; i++)
                 {
                     string expectedFlowGraph = expectedFlowGraphs[i];
-                    ControlFlowGraph actualFlowGraph = flowGraphs[i];
-                    ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, actualFlowGraph);
+                    (ControlFlowGraph actualFlowGraph, ISymbol associatedSymbol) = flowGraphs[i];
+                    ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, actualFlowGraph, associatedSymbol);
                 }
             }
         }
@@ -3145,7 +3074,7 @@ class C
     int P2 { get; set; }
 }";
 
-            var compilation = CreateCompilation(new[] { source1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(new[] { source1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics();
 
             var symbolKinds = new[] { SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Method,
@@ -3298,9 +3227,9 @@ class C
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
             // Verify suppressed analyzer diagnostic and callback with suppression on second file.
-            var suppressingOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress);
-            tree2 = tree2.WithDiagnosticOptions(suppressingOptions);
-            compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 });
+            var options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(tree2, (NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress)));
+            compilation = CreateCompilation(new[] { tree1, tree2 }, options: options);
             compilation.VerifyDiagnostics();
 
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.Symbol);
@@ -3341,9 +3270,10 @@ class C
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
             // Verify same callbacks even with suppression on second file when using GeneratedCodeAnalysisFlags.Analyze.
-            var suppressingOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress);
-            tree2 = tree2.WithDiagnosticOptions(suppressingOptions);
-            compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 });
+            var options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(tree2, (NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress))
+            );
+            compilation = CreateCompilation(new[] { tree1, tree2 }, options: options);
             compilation.VerifyDiagnostics();
 
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.SymbolStartEnd, GeneratedCodeAnalysisFlags.Analyze);
@@ -3392,9 +3322,10 @@ class C
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
             // Verify same diagnostics and callbacks even with suppression on second file when using GeneratedCodeAnalysisFlags.Analyze.
-            var suppressingOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress);
-            tree2 = tree2.WithDiagnosticOptions(suppressingOptions);
-            compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 });
+            var options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(tree2, (NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress))
+            );
+            compilation = CreateCompilation(new[] { tree1, tree2 }, options: options);
             compilation.VerifyDiagnostics();
 
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.CompilationStartEnd, GeneratedCodeAnalysisFlags.Analyze);
@@ -3422,6 +3353,59 @@ class C
                 });
 
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
+        }
+
+        [Fact]
+        public void TestAnalyzerCallbacksWithGloballySuppressedFile_SymbolAction()
+        {
+            var tree1 = Parse("partial class A { }");
+            var tree2 = Parse("partial class A { private class B { } }");
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 });
+            compilation.VerifyDiagnostics();
+
+            // Verify analyzer diagnostics and callbacks without suppression.
+            var namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.Symbol);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
+                expected: new[] {
+                    Diagnostic(NamedTypeAnalyzer.RuleId, "A").WithArguments("A").WithLocation(1, 15),
+                    Diagnostic(NamedTypeAnalyzer.RuleId, "B").WithArguments("B").WithLocation(1, 33)
+                });
+
+            Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
+
+            // Verify suppressed analyzer diagnostic for both files when specified globally
+            var options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider((NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress)));
+            compilation = CreateCompilation(new[] { tree1, tree2 }, options: options);
+            compilation.VerifyDiagnostics();
+
+            namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.Symbol);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer });
+
+            Assert.Equal("", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
+
+            // Verify analyzer diagnostics and callbacks for non-configurable diagnostic even suppression on second file.
+            namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.Symbol, configurable: false);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
+                expected: new[] {
+                    Diagnostic(NamedTypeAnalyzer.RuleId, "A").WithArguments("A").WithLocation(1, 15),
+                    Diagnostic(NamedTypeAnalyzer.RuleId, "B").WithArguments("B").WithLocation(1, 33)
+                });
+
+            Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
+
+            // Verify analyzer diagnostics and callbacks for a single file when suppressed globally and un-suppressed for a single file
+            options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
+            new TestSyntaxTreeOptionsProvider((NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress), (tree1, new[] { (NamedTypeAnalyzer.RuleId, ReportDiagnostic.Default) })));
+            compilation = CreateCompilation(new[] { tree1, tree2 }, options: options);
+            compilation.VerifyDiagnostics();
+
+            namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.Symbol);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
+                expected: new[] {
+                    Diagnostic(NamedTypeAnalyzer.RuleId, "A").WithArguments("A").WithLocation(1, 15)
+                });
+            Assert.Equal("A", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
         }
 
         [Fact]
@@ -3743,6 +3727,39 @@ class C
 
                     return ImmutableArray<Diagnostic>.Empty;
                 }
+            }
+        }
+
+        [Fact]
+        public void TestSemanticModelProvider()
+        {
+            var tree = CSharpSyntaxTree.ParseText(@"class C { }");
+            Compilation compilation = CreateCompilation(new[] { tree });
+
+            var semanticModelProvider = new MySemanticModelProvider();
+            compilation = compilation.WithSemanticModelProvider(semanticModelProvider);
+
+            // Verify semantic model provider is used by Compilation.GetSemanticModel API
+            var model = compilation.GetSemanticModel(tree);
+            semanticModelProvider.VerifyCachedModel(tree, model);
+
+            // Verify semantic model provider is used by CSharpCompilation.GetSemanticModel API
+            model = ((CSharpCompilation)compilation).GetSemanticModel(tree, ignoreAccessibility: false);
+            semanticModelProvider.VerifyCachedModel(tree, model);
+        }
+
+        private sealed class MySemanticModelProvider : SemanticModelProvider
+        {
+            private readonly ConcurrentDictionary<SyntaxTree, SemanticModel> _cache = new ConcurrentDictionary<SyntaxTree, SemanticModel>();
+
+            public override SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, bool ignoreAccessibility = false)
+            {
+                return _cache.GetOrAdd(tree, compilation.CreateSemanticModel(tree, ignoreAccessibility));
+            }
+
+            public void VerifyCachedModel(SyntaxTree tree, SemanticModel model)
+            {
+                Assert.Same(model, _cache[tree]);
             }
         }
     }

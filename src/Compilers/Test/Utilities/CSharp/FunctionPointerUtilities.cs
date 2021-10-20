@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable
 
 using System;
 using System.Linq;
@@ -141,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CandidateReason expectedCandidateReason = CandidateReason.None,
             string[]? expectedSymbolCandidates = null)
         {
-            Assert.Equal(expectedSyntax, syntax.ToString());
+            AssertEx.Equal(expectedSyntax, syntax.ToString());
             var semanticInfo = model.GetSemanticInfoSummary(syntax);
             ITypeSymbol? exprType;
 
@@ -174,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             switch (syntax)
             {
-                case FunctionPointerTypeSyntax { Parameters: var paramSyntaxes }:
+                case FunctionPointerTypeSyntax { ParameterList: { Parameters: var paramSyntaxes } }:
                     verifyNestedFunctionPointerSyntaxSemanticInfo(model, (IFunctionPointerTypeSymbol)exprType, paramSyntaxes);
                     break;
 
@@ -232,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
             }
 
-            static void verifyNestedFunctionPointerSyntaxSemanticInfo(SemanticModel model, IFunctionPointerTypeSymbol ptrType, SeparatedSyntaxList<ParameterSyntax> paramSyntaxes)
+            static void verifyNestedFunctionPointerSyntaxSemanticInfo(SemanticModel model, IFunctionPointerTypeSymbol ptrType, SeparatedSyntaxList<FunctionPointerParameterSyntax> paramSyntaxes)
             {
                 // https://github.com/dotnet/roslyn/issues/43321 Nullability in type syntaxes that don't have an origin bound node
                 // can differ.
@@ -258,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.Equal(signatureType, semanticInfo.Type, SymbolEqualityComparer.Default);
                 Assert.Empty(semanticInfo.CandidateSymbols);
 
-                if (typeSyntax is FunctionPointerTypeSyntax { Parameters: var paramSyntaxes })
+                if (typeSyntax is FunctionPointerTypeSyntax { ParameterList: { Parameters: var paramSyntaxes } })
                 {
                     var paramPtrType = (IFunctionPointerTypeSymbol)semanticInfo.Type!;
                     CommonVerifyFunctionPointer(paramPtrType.GetSymbol());

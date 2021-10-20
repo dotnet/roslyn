@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -104,17 +106,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
                 return true;
             }
 
-            var navigationTool = _serviceProvider.GetService<SVsClassView, IVsNavigationTool>();
+            var navigationTool = IServiceProviderExtensions.GetService<SVsClassView, IVsNavigationTool>(_serviceProvider);
             navigationTool.NavigateToNavInfo(navInfo);
             return true;
         }
 
         private static bool IsValidSymbolToSynchronize(ISymbol symbol) =>
-            symbol.Kind == SymbolKind.Event ||
-            symbol.Kind == SymbolKind.Field ||
-            symbol.Kind == SymbolKind.Method ||
-            symbol.Kind == SymbolKind.NamedType ||
-            symbol.Kind == SymbolKind.Property;
+            symbol.Kind is SymbolKind.Event or
+            SymbolKind.Field or
+            SymbolKind.Method or
+            SymbolKind.NamedType or
+            SymbolKind.Property;
 
         public CommandState GetCommandState(SyncClassViewCommandArgs args)
             => Commanding.CommandState.Available;

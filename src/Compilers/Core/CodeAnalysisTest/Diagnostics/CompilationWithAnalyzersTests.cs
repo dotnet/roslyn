@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using KeyValuePairUtil = Roslyn.Utilities.KeyValuePairUtil;
@@ -21,6 +20,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
     public class CompilationWithAnalyzersTests : TestBase
     {
+        private static readonly CSharpCompilationOptions s_dllWithMaxWarningLevel = new(OutputKind.DynamicallyLinkedLibrary, warningLevel: CodeAnalysis.Diagnostic.MaxWarningLevel);
+
         [Fact]
         public void GetEffectiveDiagnostics_Errors()
         {
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         [Fact]
         public void GetEffectiveDiagnostics()
         {
-            var c = CSharpCompilation.Create("c", options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
+            var c = CSharpCompilation.Create("c", options: s_dllWithMaxWarningLevel.
                 WithSpecificDiagnosticOptions(
                     new[] { KeyValuePairUtil.Create($"CS{(int)ErrorCode.WRN_AlwaysNull:D4}", ReportDiagnostic.Suppress) }));
 
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         [Fact]
         public void GetAnalyzerTelemetry()
         {
-            var compilation = CSharpCompilation.Create("c", options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            var compilation = CSharpCompilation.Create("c", options: s_dllWithMaxWarningLevel);
             DiagnosticAnalyzer analyzer = new AnalyzerWithDisabledRules();
             var analyzers = ImmutableArray.Create(analyzer);
             var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty);
@@ -66,6 +67,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             // Even though the analyzer registers a symbol action, it should never be invoked because all of its rules are disabled.
             var analyzerTelemetry = compWithAnalyzers.GetAnalyzerTelemetryInfoAsync(analyzer, CancellationToken.None).Result;
             Assert.Equal(0, analyzerTelemetry.SymbolActionsCount);
+        }
+
+        [Fact]
+        public void TestIsDiagnosticAnalyzerSuppressedWithExceptionInSupportedDiagnostics()
+        {
+            // Verify IsDiagnosticAnalyzerSuppressed does not throw an exception when 'onAnalyzerException' is null.
+            var analyzer = new AnalyzerThatThrowsInSupportedDiagnostics();
+            _ = CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, s_dllWithMaxWarningLevel, onAnalyzerException: null);
         }
     }
 }

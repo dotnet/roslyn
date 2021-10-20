@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,8 +13,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 using Roslyn.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -3198,7 +3200,7 @@ class C
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
             var diagnostics = new DiagnosticBag();
-            var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
+            var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), new BindingDiagnosticBag(diagnostics));
             var tree = BoundTreeDumperNodeProducer.MakeTree(block);
             var results = string.Join("\n",
                 query(tree.PreorderTraversal())
@@ -3210,7 +3212,7 @@ class C
                 .Select(x => x.Substring(x.IndexOf("//-", StringComparison.Ordinal) + 3).Trim())
                 .ToArray());
 
-            Assert.Equal(expected, results);
+            AssertEx.Equal(expected, results);
         }
 
         private void TestOperatorKinds(string source)
@@ -3239,7 +3241,21 @@ class C
                                               child.Text == "isDynamic" ||
                                               child.Text == "leftConversion" ||
                                               child.Text == "finalConversion"
-                                        select child.Text + ": " + (child.Text == "@operator" ? ((BinaryOperatorSignature)child.Value).Kind.ToString() : child.Value.ToString())));
+                                        select child.Text + ": " +
+                                               (child.Text switch
+                                               {
+                                                   "@operator" => ((BinaryOperatorSignature)child.Value).Kind.ToString(),
+                                                   "leftConversion" or "finalConversion" => (child.Children.SingleOrDefault() is TreeDumperNode node ?
+                                                                                                (node.Text switch
+                                                                                                {
+                                                                                                    "conversion" => node.Children.ElementAt(1).Value,
+                                                                                                    "valuePlaceholder" => Conversion.Identity,
+                                                                                                    _ => throw ExceptionUtilities.UnexpectedValue(node.Text)
+                                                                                                }) :
+                                                                                                Conversion.NoConversion
+                                                                                            ).ToString(),
+                                                   _ => child.Value.ToString()
+                                               })));
         }
 
         private void TestTypes(string source)
@@ -4975,7 +4991,7 @@ struct A
             CreateCompilation(source).VerifyDiagnostics(
                 // (8,18): error CS0457: Ambiguous user defined conversions 'B.implicit operator A(B)' and 'A.implicit operator A(B)' when converting from 'B' to 'A'
                 //         var c2 = b2 ?? a2;
-                Diagnostic(ErrorCode.ERR_AmbigUDConv, "b2").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A"));
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "b2 ?? a2").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A").WithLocation(8, 18));
         }
 
         [WorkItem(541343, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541343")]
@@ -6050,7 +6066,7 @@ namespace System
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,41): error CS0555: User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type
+                // (6,41): error CS0555: User-defined operator cannot convert a type to itself
                 //         public static explicit operator (T1 fst, T2 snd)((T1 one, T2 two) s)
                 Diagnostic(ErrorCode.ERR_IdentityConversion, "(T1 fst, T2 snd)").WithLocation(6, 41));
         }
@@ -6071,7 +6087,7 @@ namespace System
 }
 ";
             CreateCompilation(text).GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify(
-                    // (6,41): error CS0553: '(T1, T2).explicit operator ValueType((T1, T2))': user-defined conversions to or from a base class are not allowed
+                    // (6,41): error CS0553: '(T1, T2).explicit operator ValueType((T1, T2))': user-defined conversions to or from a base type are not allowed
                     //         public static explicit operator ValueType(ValueTuple<T1, T2> s)
                     Diagnostic(ErrorCode.ERR_ConversionWithBase, "ValueType").WithArguments("(T1, T2).explicit operator System.ValueType((T1, T2))").WithLocation(6, 41));
         }
@@ -7119,7 +7135,7 @@ public class RubyTime
         F<decimal?>();
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -7176,8 +7192,8 @@ public class RubyTime
                 }
                 else
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    overloadResolution.BinaryOperatorOverloadResolution_NoEasyOut(kind, left, right, result, ref useSiteDiagnostics);
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    overloadResolution.BinaryOperatorOverloadResolution_NoEasyOut(kind, left, right, result, ref discardedUseSiteInfo);
                 }
                 var signature = result.Best.Signature.Kind;
                 result.Free();
@@ -7476,7 +7492,8 @@ public class RubyTime
             Assert.Null(symbol2);
         }
 
-        [Fact()]
+        [Fact]
+        [WorkItem(39975, "https://github.com/dotnet/roslyn/issues/39975")]
         public void CheckedUnaryIntrinsicSymbols()
         {
             var source =
@@ -7696,6 +7713,7 @@ class Module1
         }
 
         [ConditionalFact(typeof(NoIOperationValidation))]
+        [WorkItem(39975, "https://github.com/dotnet/roslyn/issues/39975")]
         public void BinaryIntrinsicSymbols2()
         {
             BinaryOperatorKind[] operators =
@@ -8566,7 +8584,7 @@ struct TestStr
             var op = visitor.FirstNode.Operator;
             Assert.Null(op.Method);
             // Equals and GetHashCode should support null Method.
-            Assert.Equal(op, new BinaryOperatorSignature(op.Kind, op.LeftType, op.RightType, op.ReturnType, op.Method));
+            Assert.Equal(op, new BinaryOperatorSignature(op.Kind, op.LeftType, op.RightType, op.ReturnType, op.Method, constrainedToTypeOpt: null));
             op.GetHashCode();
         }
 
@@ -11096,7 +11114,7 @@ public class C {
             // we produced a diagnostic.  However, the compiler still consumed O(n^2) memory for the
             // concatenation and this test used to consume so much memory that it would cause other tests running
             // in parallel to fail because they might not have enough memory to succeed.  So the test was
-            // disabled and eventually removed.  The compiler would still crash with programs constaining large
+            // disabled and eventually removed.  The compiler would still crash with programs containing large
             // string concatenations, so the underlying problem had not been addressed.  Now we have revised the
             // implementation of constant folding so that it requires O(n) memory. As a consequence this test now
             // runs very quickly and does not consume gobs of memory.

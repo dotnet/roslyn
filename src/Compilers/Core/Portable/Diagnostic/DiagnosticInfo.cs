@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -62,7 +60,7 @@ namespace Microsoft.CodeAnalysis
             _arguments = arguments;
         }
 
-        private DiagnosticInfo(DiagnosticInfo original, DiagnosticSeverity overriddenSeverity)
+        protected DiagnosticInfo(DiagnosticInfo original, DiagnosticSeverity overriddenSeverity)
         {
             _messageProvider = original.MessageProvider;
             _errorCode = original._errorCode;
@@ -137,7 +135,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // Create a copy of this instance with a explicit overridden severity
-        internal DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
+        internal virtual DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
         {
             return new DiagnosticInfo(this, severity);
         }

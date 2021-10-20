@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Threading;
@@ -63,6 +65,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public ImmutableArray<Location> Locations => _symbol.Locations;
 
             public string MetadataName => _symbol.MetadataName;
+
+            public int MetadataToken => _symbol.MetadataToken;
 
             public string Name => _symbol.Name;
 

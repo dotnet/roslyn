@@ -54,12 +54,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 var dte = GetDTE();
 
-                var activeVisualStudioWindow = (IntPtr)dte.ActiveWindow.HWnd;
+                var activeVisualStudioWindow = dte.ActiveWindow.HWnd;
                 Debug.WriteLine($"DTE.ActiveWindow.HWnd = {activeVisualStudioWindow}");
 
                 if (activeVisualStudioWindow == IntPtr.Zero)
                 {
-                    activeVisualStudioWindow = (IntPtr)dte.MainWindow.HWnd;
+                    activeVisualStudioWindow = dte.MainWindow.HWnd;
                     Debug.WriteLine($"DTE.MainWindow.HWnd = {activeVisualStudioWindow}");
                 }
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -249,6 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ErrorDirectiveTrivia:
                 case SyntaxKind.WarningDirectiveTrivia:
                 case SyntaxKind.LineDirectiveTrivia:
+                case SyntaxKind.LineSpanDirectiveTrivia:
                 case SyntaxKind.PragmaWarningDirectiveTrivia:
                 case SyntaxKind.PragmaChecksumDirectiveTrivia:
                 case SyntaxKind.ReferenceDirectiveTrivia:
@@ -346,6 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DelegateDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return true;
 
                 default:
@@ -354,7 +354,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public static bool IsNamespaceMemberDeclaration(SyntaxKind kind)
-            => IsTypeDeclaration(kind) || (kind == SyntaxKind.NamespaceDeclaration);
+            => IsTypeDeclaration(kind) ||
+               kind == SyntaxKind.NamespaceDeclaration ||
+               kind == SyntaxKind.FileScopedNamespaceDeclaration;
 
         public static bool IsAnyUnaryExpression(SyntaxKind token)
         {
@@ -1073,7 +1075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.InitKeyword; i++)
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.UnmanagedKeyword; i++)
             {
                 yield return (SyntaxKind)i;
             }
@@ -1121,10 +1123,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.OrKeyword:
                 case SyntaxKind.AndKeyword:
                 case SyntaxKind.NotKeyword:
-                case SyntaxKind.DataKeyword:
                 case SyntaxKind.WithKeyword:
                 case SyntaxKind.InitKeyword:
                 case SyntaxKind.RecordKeyword:
+                case SyntaxKind.ManagedKeyword:
+                case SyntaxKind.UnmanagedKeyword:
                     return true;
                 default:
                     return false;
@@ -1234,14 +1237,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.OrKeyword;
                 case "not":
                     return SyntaxKind.NotKeyword;
-                case "data":
-                    return SyntaxKind.DataKeyword;
                 case "with":
                     return SyntaxKind.WithKeyword;
                 case "init":
                     return SyntaxKind.InitKeyword;
                 case "record":
                     return SyntaxKind.RecordKeyword;
+                case "managed":
+                    return SyntaxKind.ManagedKeyword;
+                case "unmanaged":
+                    return SyntaxKind.UnmanagedKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1669,14 +1674,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "or";
                 case SyntaxKind.NotKeyword:
                     return "not";
-                case SyntaxKind.DataKeyword:
-                    return "data";
                 case SyntaxKind.WithKeyword:
                     return "with";
                 case SyntaxKind.InitKeyword:
                     return "init";
                 case SyntaxKind.RecordKeyword:
                     return "record";
+                case SyntaxKind.ManagedKeyword:
+                    return "managed";
+                case SyntaxKind.UnmanagedKeyword:
+                    return "unmanaged";
                 default:
                     return string.Empty;
             }

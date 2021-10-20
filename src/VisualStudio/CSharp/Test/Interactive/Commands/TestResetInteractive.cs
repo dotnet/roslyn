@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 extern alias InteractiveHost;
 
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -12,12 +15,14 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.InteractiveWindow;
 using System.Collections.Generic;
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+using Microsoft.VisualStudio.Utilities;
+using Microsoft.VisualStudio.Language.Intellisense.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
     internal class TestResetInteractive : ResetInteractive
     {
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 
         private readonly bool _buildSucceeds;
 
@@ -40,14 +45,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
         internal string ProjectDirectory { get; set; }
 
         public TestResetInteractive(
-            IWaitIndicator waitIndicator,
+            IUIThreadOperationExecutor uiThreadOperationExecutor,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             Func<string, string> createReference,
             Func<string, string> createImport,
             bool buildSucceeds)
             : base(editorOptionsFactoryService, createReference, createImport)
         {
-            _waitIndicator = waitIndicator;
+            _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _buildSucceeds = buildSucceeds;
         }
 
@@ -79,9 +84,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
             return true;
         }
 
-        protected override IWaitIndicator GetWaitIndicator()
+        protected override IUIThreadOperationExecutor GetUIThreadOperationExecutor()
         {
-            return _waitIndicator;
+            return _uiThreadOperationExecutor;
         }
 
         protected override Task<IEnumerable<string>> GetNamespacesToImportAsync(IEnumerable<string> namespacesToImport, IInteractiveWindow interactiveWindow)

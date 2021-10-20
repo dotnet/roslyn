@@ -127,10 +127,12 @@
     <value>Invert if</value>
   </data>
   <data name="Add_await" xml:space="preserve">
-    <value>Add await</value>
+    <value>Add 'await'</value>
+    <comment>{Locked="await"} "await" is a C# keyword and should not be localized.</comment>
   </data>
-  <data name="Add_Await_and_ConfigureAwaitFalse" xml:space="preserve">
-    <value>Add await and ConfigureAwait(false)</value>
+  <data name="Add_await_and_ConfigureAwaitFalse" xml:space="preserve">
+    <value>Add 'await' and 'ConfigureAwait(false)'</value>
+    <comment>{Locked="await"} "await" is a C# keyword and should not be localized.</comment>
   </data>
   <data name="Simplify_lambda_expression" xml:space="preserve">
     <value>Simplify lambda expression</value>
@@ -197,15 +199,6 @@
   </data>
   <data name="Invalid_selection" xml:space="preserve">
     <value>Invalid selection.</value>
-  </data>
-  <data name="Selection_does_not_contain_a_valid_token" xml:space="preserve">
-    <value>Selection does not contain a valid token.</value>
-  </data>
-  <data name="No_valid_selection_to_perform_extraction" xml:space="preserve">
-    <value>No valid selection to perform extraction.</value>
-  </data>
-  <data name="No_common_root_node_for_extraction" xml:space="preserve">
-    <value>No common root node for extraction.</value>
   </data>
   <data name="Contains_invalid_selection" xml:space="preserve">
     <value>Contains invalid selection.</value>
@@ -399,8 +392,8 @@
     <value>global statement</value>
     <comment>{Locked="global"} "global" is a C# keyword and should not be localized.</comment>
   </data>
-  <data name="using_namespace" xml:space="preserve">
-    <value>using namespace</value>
+  <data name="extern_alias" xml:space="preserve">
+    <value>extern alias</value>
   </data>
   <data name="using_directive" xml:space="preserve">
     <value>using directive</value>
@@ -493,6 +486,9 @@
   <data name="Convert_to_switch_expression" xml:space="preserve">
     <value>Convert to 'switch' expression</value>
   </data>
+  <data name="Use_recursive_patterns" xml:space="preserve">
+    <value>Use recursive patterns</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>&lt;Name&gt;</value>
   </data>
@@ -544,17 +540,8 @@
   <data name="Apply_inline_out_variable_preferences" xml:space="preserve">
     <value>Apply inline 'out' variables preferences</value>
   </data>
-  <data name="Apply_object_collection_initialization_preferences" xml:space="preserve">
-    <value>Apply object/collection initialization preferences</value>
-  </data>
   <data name="Make_private_field_readonly_when_possible" xml:space="preserve">
     <value>Make private fields readonly when possible</value>
-  </data>
-  <data name="Remove_unnecessary_casts" xml:space="preserve">
-    <value>Remove unnecessary casts</value>
-  </data>
-  <data name="Remove_unused_variables" xml:space="preserve">
-    <value>Remove unused variables</value>
   </data>
   <data name="Use_0" xml:space="preserve">
     <value>Use '{0}'</value>
@@ -618,5 +605,17 @@
   <data name="Remove_in_keyword" xml:space="preserve">
     <value>Remove 'in' keyword</value>
     <comment>{Locked="in"} "in" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Change_to_as_expression" xml:space="preserve">
+    <value>Change to 'as' expression</value>
+  </data>
+  <data name="Change_to_cast" xml:space="preserve">
+    <value>Change to cast</value>
+  </data>
+  <data name="record_" xml:space="preserve">
+    <value>record</value>
+  </data>
+  <data name="record_struct" xml:space="preserve">
+    <value>record struct</value>
   </data>
 </root>

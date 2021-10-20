@@ -275,6 +275,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         last.Kind <> SyntaxKind.ColonTrivia Then
                         Yield t
                     End If
+
                     last = t
                 Next
             End Function
@@ -290,6 +291,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         If colon Then
                             Continue For
                         End If
+
                         colon = True
                     End If
 
@@ -301,6 +303,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         If colon Then
                             Continue For
                         End If
+
                         colon = True
                     End If
 

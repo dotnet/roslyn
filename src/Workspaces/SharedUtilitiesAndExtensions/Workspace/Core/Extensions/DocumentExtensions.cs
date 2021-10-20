@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.SemanticModelReuse;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -32,15 +29,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static TLanguageService GetRequiredLanguageService<TLanguageService>(this Document document) where TLanguageService : class, ILanguageService
             => document.Project.GetRequiredLanguageService<TLanguageService>();
 
-        public static async Task<SemanticModel> GetRequiredSemanticModelAsync(this Document document, CancellationToken cancellationToken)
+        public static async ValueTask<SemanticModel> GetRequiredSemanticModelAsync(this Document document, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            if (document.TryGetSemanticModel(out var semanticModel))
+                return semanticModel;
+
+            semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return semanticModel ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
         }
 
-        public static async Task<SyntaxTree> GetRequiredSyntaxTreeAsync(this Document document, CancellationToken cancellationToken)
+        public static async ValueTask<SyntaxTree> GetRequiredSyntaxTreeAsync(this Document document, CancellationToken cancellationToken)
         {
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            if (document.TryGetSyntaxTree(out var syntaxTree))
+                return syntaxTree;
+
+            syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             return syntaxTree ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
         }
 
@@ -52,15 +55,26 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 #endif
 
-        public static async Task<SyntaxNode> GetRequiredSyntaxRootAsync(this Document document, CancellationToken cancellationToken)
+        public static async ValueTask<SyntaxNode> GetRequiredSyntaxRootAsync(this Document document, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (document.TryGetSyntaxRoot(out var root))
+                return root;
+
+            root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return root ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
         }
 
+#if !CODE_STYLE
+        public static SyntaxNode GetRequiredSyntaxRootSynchronously(this Document document, CancellationToken cancellationToken)
+        {
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            return root ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
+        }
+#endif
+
         public static bool IsOpen(this TextDocument document)
         {
-            var workspace = document.Project.Solution.Workspace as Workspace;
+            var workspace = document.Project.Solution.Workspace;
             return workspace != null && workspace.IsDocumentOpen(document.Id);
         }
 
@@ -78,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <para/>
         /// As a speculative semantic model may be returned, location based information provided by it may be innacurate.
         /// </summary>
-        public static Task<SemanticModel> ReuseExistingSpeculativeModelAsync(this Document document, int position, CancellationToken cancellationToken)
+        public static ValueTask<SemanticModel> ReuseExistingSpeculativeModelAsync(this Document document, int position, CancellationToken cancellationToken)
             => ReuseExistingSpeculativeModelAsync(document, new TextSpan(position, 0), cancellationToken);
 
         /// <summary>
@@ -95,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <para/>
         /// As a speculative semantic model may be returned, location based information provided by it may be innacurate.
         /// </summary>
-        public static async Task<SemanticModel> ReuseExistingSpeculativeModelAsync(this Document document, TextSpan span, CancellationToken cancellationToken)
+        public static async ValueTask<SemanticModel> ReuseExistingSpeculativeModelAsync(this Document document, TextSpan span, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(document.SupportsSemanticModel);
 
@@ -120,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <para/>
         /// As a speculative semantic model may be returned, location based information provided by it may be innacurate.
         /// </summary>
-        public static Task<SemanticModel> ReuseExistingSpeculativeModelAsync(this Document document, SyntaxNode? node, CancellationToken cancellationToken)
+        public static ValueTask<SemanticModel> ReuseExistingSpeculativeModelAsync(this Document document, SyntaxNode? node, CancellationToken cancellationToken)
         {
             if (node == null)
                 return document.GetRequiredSemanticModelAsync(cancellationToken);
@@ -188,6 +202,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 yield return solution.GetRequiredDocument(linkedDocumentId);
             }
+        }
+
+        public static bool CanAddImportsInHiddenRegions(this Document document)
+        {
+#if !CODE_STYLE
+            // Normally we don't allow generation into a hidden region in the file.  However, if we have a
+            // modern span mapper at our disposal, we do allow it as that host span mapper can handle mapping
+            // our edit to their domain appropriate.
+            var spanMapper = document.Services.GetService<ISpanMappingService>();
+            return spanMapper != null && spanMapper.SupportsMappingImportDirectives;
+#else
+            return false;
+#endif
         }
     }
 }

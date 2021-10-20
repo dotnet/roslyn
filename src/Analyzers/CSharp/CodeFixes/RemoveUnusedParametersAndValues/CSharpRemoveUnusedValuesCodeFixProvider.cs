@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
@@ -9,7 +11,6 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Shared.Lightup;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
                 case SyntaxKind.SingleVariableDesignation:
                     return newName.ValueText == AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName
                         ? SyntaxFactory.DiscardDesignation().WithTriviaFrom(node)
-                        : (SyntaxNode)SyntaxFactory.SingleVariableDesignation(newName).WithTriviaFrom(node);
+                        : SyntaxFactory.SingleVariableDesignation(newName).WithTriviaFrom(node);
 
                 case SyntaxKind.CatchDeclaration:
                     var catchDeclaration = (CatchDeclarationSyntax)node;
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
                     .AddRange(newNameNode.GetLeadingTrivia())
                     .AddRange(newNameNode.GetTrailingTrivia());
 
-                return SyntaxFactoryEx.TypePattern(declarationPattern.Type).WithTrailingTrivia(trailingTrivia);
+                return SyntaxFactory.TypePattern(declarationPattern.Type).WithTrailingTrivia(trailingTrivia);
             }
 
             return null;
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             // For example, "return x += MethodCall();" is replaced with "return x + MethodCall();"
             // and "return x ??= MethodCall();" is replaced with "return x ?? MethodCall();"
 
-            if (!(originalCompoundAssignment is AssignmentExpressionSyntax assignmentExpression))
+            if (originalCompoundAssignment is not AssignmentExpressionSyntax assignmentExpression)
             {
                 Debug.Fail($"Unexpected kind for originalCompoundAssignment: {originalCompoundAssignment.Kind()}");
                 return originalCompoundAssignment;

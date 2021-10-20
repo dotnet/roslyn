@@ -4931,7 +4931,7 @@ End Class
             Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource).VerifyDiagnostics()
 
             ' Dev10 errors:
-            ' error CS0268: Imported type 'E' is invalid. It contains a circular base class dependency.
+            ' error CS0268: Imported type 'E' is invalid. It contains a circular base type dependency.
             ' error CS0570: 'A.Goo' is not supported by the language
         End Sub
 
@@ -8197,23 +8197,23 @@ End Class
             Assert.Equal(interfacePropertyGetter, classPropertyGetter.ExplicitInterfaceImplementations.Single())
             Assert.Equal(interfacePropertySetter, classPropertySetter.ExplicitInterfaceImplementations.Single())
 
-            Dim typeDef = DirectCast([class], Cci.ITypeDefinition)
+            Dim typeDef = DirectCast([class].GetCciAdapter(), Cci.ITypeDefinition)
             Dim [module] = New PEAssemblyBuilder(DirectCast([class].ContainingAssembly, SourceAssemblySymbol), EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary, GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable(Of ResourceDescription)())
 
             Dim context = New EmitContext([module], Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
             Dim explicitOverrides = typeDef.GetExplicitImplementationOverrides(context)
             Assert.Equal(2, explicitOverrides.Count())
-            Assert.True(explicitOverrides.All(Function(override) [class] Is override.ContainingType))
+            Assert.True(explicitOverrides.All(Function(override) [class] Is override.ContainingType.GetInternalSymbol()))
 
             ' We're not actually asserting that the overrides are in this order - set comparison just seems like overkill for two elements
             Dim getterOverride = explicitOverrides.First()
-            Assert.Equal(classPropertyGetter, getterOverride.ImplementingMethod)
-            Assert.Equal(interfacePropertyGetter.ContainingType, getterOverride.ImplementedMethod.GetContainingType(context))
+            Assert.Equal(classPropertyGetter, getterOverride.ImplementingMethod.GetInternalSymbol())
+            Assert.Equal(interfacePropertyGetter.ContainingType, getterOverride.ImplementedMethod.GetContainingType(context).GetInternalSymbol())
             Assert.Equal(interfacePropertyGetter.Name, getterOverride.ImplementedMethod.Name)
 
             Dim setterOverride = explicitOverrides.Last()
-            Assert.Equal(classPropertySetter, setterOverride.ImplementingMethod)
-            Assert.Equal(interfacePropertySetter.ContainingType, setterOverride.ImplementedMethod.GetContainingType(context))
+            Assert.Equal(classPropertySetter, setterOverride.ImplementingMethod.GetInternalSymbol())
+            Assert.Equal(interfacePropertySetter.ContainingType, setterOverride.ImplementedMethod.GetContainingType(context).GetInternalSymbol())
             Assert.Equal(interfacePropertySetter.Name, setterOverride.ImplementedMethod.Name)
 
             context.Diagnostics.Verify()

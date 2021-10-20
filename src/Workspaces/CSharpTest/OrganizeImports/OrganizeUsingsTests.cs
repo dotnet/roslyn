@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests.OrganizeImports
             newOptions = newOptions.WithChangedOption(new OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups);
             document = document.WithSolutionOptions(newOptions);
 
-            var newRoot = await (await Formatter.OrganizeImportsAsync(document, CancellationToken.None)).GetSyntaxRootAsync();
+            var newRoot = await (await Formatter.OrganizeImportsAsync(document, CancellationToken.None)).GetRequiredSyntaxRootAsync(default);
             Assert.Equal(final.NormalizeLineEndings(), newRoot.ToFullString());
         }
 
@@ -172,6 +172,31 @@ namespace N3
     using N;
   } 
 }";
+            await CheckAsync(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task FileScopedNamespace()
+        {
+            var initial =
+@"using B;
+using A;
+
+namespace N;
+
+using D;
+using C;
+";
+
+            var final =
+@"using A;
+using B;
+
+namespace N;
+
+using C;
+using D;
+";
             await CheckAsync(initial, final);
         }
 

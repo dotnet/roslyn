@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     /// </summary>
     internal class CodeGenerationOptions
     {
-        public static readonly CodeGenerationOptions Default = new CodeGenerationOptions();
+        public static readonly CodeGenerationOptions Default = new();
 
         /// <summary>
         /// A location used to determine the best place to generate a member.  This is only used for
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// This option is not necessary if <see cref="AfterThisLocation"/> or <see cref="BeforeThisLocation"/> are
         /// provided.
         /// </summary>
-        public Location ContextLocation { get; }
+        public Location? ContextLocation { get; }
 
         /// <summary>
         /// A hint to the code generation service to specify where the generated code should be
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// If this option is provided, neither <see cref="ContextLocation"/> nor <see cref="BeforeThisLocation"/> are
         /// needed.
         /// </summary>
-        public Location AfterThisLocation { get; }
+        public Location? AfterThisLocation { get; }
 
         /// <summary>
         /// A hint to the code generation service to specify where the generated code should be
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// If this option is provided, neither <see cref="ContextLocation"/> nor <see cref="AfterThisLocation"/> are
         /// needed.
         /// </summary>
-        public Location BeforeThisLocation { get; }
+        public Location? BeforeThisLocation { get; }
 
         /// <summary>
         /// True if the code generation service should add <see cref="Simplifier.AddImportsAnnotation"/>,
@@ -57,12 +57,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// Defaults to true.
         /// </summary>
         public bool AddImports { get; }
-
-        /// <summary>
-        /// True if, when adding a System import, the import should be placed above non-System
-        /// imports.  Defaults to true.  Only used if <see cref="AddImports"/> is true.
-        /// </summary>
-        public bool PlaceSystemNamespaceFirst { get; }
 
         /// <summary>
         /// Contains additional imports to be automatically added.  This is useful for adding
@@ -134,17 +128,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         public bool ReuseSyntax { get; }
 
-        public OptionSet Options { get; }
+        public OptionSet? Options { get; }
 
-        public ParseOptions ParseOptions { get; }
+        public ParseOptions? ParseOptions { get; }
 
         public CodeGenerationOptions(
-            Location contextLocation = null,
-            Location afterThisLocation = null,
-            Location beforeThisLocation = null,
+            Location? contextLocation = null,
+            Location? afterThisLocation = null,
+            Location? beforeThisLocation = null,
             bool addImports = true,
-            bool placeSystemNamespaceFirst = true,
-            IEnumerable<INamespaceSymbol> additionalImports = null,
+            IEnumerable<INamespaceSymbol>? additionalImports = null,
             bool generateMembers = true,
             bool mergeNestedNamespaces = true,
             bool mergeAttributes = true,
@@ -154,8 +147,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             bool autoInsertionLocation = true,
             bool sortMembers = true,
             bool reuseSyntax = false,
-            OptionSet options = null,
-            ParseOptions parseOptions = null)
+            OptionSet? options = null,
+            ParseOptions? parseOptions = null)
         {
             CheckLocation(contextLocation, nameof(contextLocation));
             CheckLocation(afterThisLocation, nameof(afterThisLocation));
@@ -165,7 +158,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.AfterThisLocation = afterThisLocation;
             this.BeforeThisLocation = beforeThisLocation;
             this.AddImports = addImports;
-            this.PlaceSystemNamespaceFirst = placeSystemNamespaceFirst;
             this.AdditionalImports = additionalImports ?? SpecializedCollections.EmptyEnumerable<INamespaceSymbol>();
             this.GenerateMembers = generateMembers;
             this.MergeNestedNamespaces = mergeNestedNamespaces;
@@ -178,10 +170,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.ReuseSyntax = reuseSyntax;
 
             this.Options = options;
-            this.ParseOptions = parseOptions ?? this.BestLocation?.SourceTree.Options;
+            this.ParseOptions = parseOptions ?? this.BestLocation?.SourceTree?.Options;
         }
 
-        private static void CheckLocation(Location location, string name)
+        private static void CheckLocation(Location? location, string name)
         {
             if (location != null && !location.IsInSource)
             {
@@ -189,15 +181,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        internal Location BestLocation
+        internal Location? BestLocation
             => this.AfterThisLocation ?? this.BeforeThisLocation ?? this.ContextLocation;
 
         public CodeGenerationOptions With(
             Optional<Location> contextLocation = default,
-            Optional<Location> afterThisLocation = default,
-            Optional<Location> beforeThisLocation = default,
+            Optional<Location?> afterThisLocation = default,
+            Optional<Location?> beforeThisLocation = default,
             Optional<bool> addImports = default,
-            Optional<bool> placeSystemNamespaceFirst = default,
             Optional<IEnumerable<INamespaceSymbol>> additionalImports = default,
             Optional<bool> generateMembers = default,
             Optional<bool> mergeNestedNamespaces = default,
@@ -215,7 +206,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var newAfterThisLocation = afterThisLocation.HasValue ? afterThisLocation.Value : this.AfterThisLocation;
             var newBeforeThisLocation = beforeThisLocation.HasValue ? beforeThisLocation.Value : this.BeforeThisLocation;
             var newAddImports = addImports.HasValue ? addImports.Value : this.AddImports;
-            var newPlaceSystemNamespaceFirst = placeSystemNamespaceFirst.HasValue ? placeSystemNamespaceFirst.Value : this.PlaceSystemNamespaceFirst;
             var newAdditionalImports = additionalImports.HasValue ? additionalImports.Value : this.AdditionalImports;
             var newGenerateMembers = generateMembers.HasValue ? generateMembers.Value : this.GenerateMembers;
             var newMergeNestedNamespaces = mergeNestedNamespaces.HasValue ? mergeNestedNamespaces.Value : this.MergeNestedNamespaces;
@@ -234,7 +224,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 newAfterThisLocation,
                 newBeforeThisLocation,
                 newAddImports,
-                newPlaceSystemNamespaceFirst,
                 newAdditionalImports,
                 newGenerateMembers,
                 newMergeNestedNamespaces,

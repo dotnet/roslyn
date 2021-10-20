@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
@@ -15,7 +13,7 @@ using Microsoft.VisualStudio.Text.Classification;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
     [ExportWorkspaceService(typeof(IChangeSignatureOptionsService), ServiceLayer.Host), Shared]
-    internal class VisualStudioChangeSignatureOptionsService : IChangeSignatureOptionsService
+    internal class VisualStudioChangeSignatureOptionsService : ForegroundThreadAffinitizedObject, IChangeSignatureOptionsService
     {
         private readonly IClassificationFormatMap _classificationFormatMap;
         private readonly ClassificationTypeMap _classificationTypeMap;
@@ -24,7 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioChangeSignatureOptionsService(
             IClassificationFormatMapService classificationFormatMapService,
-            ClassificationTypeMap classificationTypeMap)
+            ClassificationTypeMap classificationTypeMap,
+            IThreadingContext threadingContext) : base(threadingContext)
         {
             _classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
             _classificationTypeMap = classificationTypeMap;
@@ -36,6 +35,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             ISymbol symbol,
             ParameterConfiguration parameters)
         {
+            this.AssertIsForeground();
+
             var viewModel = new ChangeSignatureDialogViewModel(
                 parameters,
                 symbol,

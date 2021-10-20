@@ -2,14 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Options;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultDiagnosticAnalyzerService(
             IDiagnosticUpdateSourceRegistrationService registrationService)
         {
@@ -34,14 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-        {
-            if (!workspace.Options.GetOption(ServiceComponentOnOffOptions.DiagnosticProvider))
-            {
-                return null;
-            }
-
-            return new DefaultDiagnosticIncrementalAnalyzer(this, workspace);
-        }
+            => new DefaultDiagnosticIncrementalAnalyzer(this, workspace);
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
         public event EventHandler DiagnosticsCleared { add { } remove { } }
@@ -49,10 +44,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // this only support push model, pull model will be provided by DiagnosticService by caching everything this one pushed
         public bool SupportGetDiagnostics => false;
 
-        public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+        public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
             // pull model not supported
-            return ImmutableArray<DiagnosticData>.Empty;
+            return new ValueTask<ImmutableArray<DiagnosticData>>(ImmutableArray<DiagnosticData>.Empty);
         }
 
         internal void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs state)
@@ -62,11 +57,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             private readonly DefaultDiagnosticAnalyzerService _service;
             private readonly Workspace _workspace;
+            private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
 
             public DefaultDiagnosticIncrementalAnalyzer(DefaultDiagnosticAnalyzerService service, Workspace workspace)
             {
                 _service = service;
                 _workspace = workspace;
+                _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(service._analyzerInfoCache);
             }
 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
@@ -145,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// 
             /// The intended audience for this API is for ones that pefer simplicity over performance such as document that belong to misc project.
             /// this doesn't cache nor use cache for anything. it will re-caculate new diagnostics every time for the given document.
-            /// it will not persist any data on disk nor use OOP to calcuate the data.
+            /// it will not persist any data on disk nor use OOP to calculate the data.
             /// 
             /// This should never be used when performance is a big concern. for such context, use much complex API from IDiagnosticAnalyzerService
             /// that provide all kinds of knobs/cache/persistency/OOP to get better perf over simplicity.
@@ -155,29 +152,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var loadDiagnostic = await document.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
                 if (loadDiagnostic != null)
-                {
                     return ImmutableArray.Create(DiagnosticData.Create(loadDiagnostic, document));
-                }
 
                 var project = document.Project;
                 var analyzers = GetAnalyzers(project.Solution.State.Analyzers, project);
                 if (analyzers.IsEmpty)
-                {
                     return ImmutableArray<DiagnosticData>.Empty;
-                }
 
                 var compilationWithAnalyzers = await AnalyzerHelper.CreateCompilationWithAnalyzersAsync(
                     project, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
                 var analysisScope = new DocumentAnalysisScope(document, span: null, analyzers, kind);
-                var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _service._analyzerInfoCache);
+                var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true);
 
-                var builder = ArrayBuilder<DiagnosticData>.GetInstance();
+                using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
                 foreach (var analyzer in analyzers)
-                {
                     builder.AddRange(await executor.ComputeDiagnosticsAsync(analyzer, cancellationToken).ConfigureAwait(false));
-                }
 
-                return builder.ToImmutableAndFree();
+                return builder.ToImmutable();
             }
 
             private static ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(HostDiagnosticAnalyzers hostAnalyzers, Project project)
@@ -257,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 public override bool Equals(object obj)
                 {
-                    if (!(obj is DefaultUpdateArgsId other))
+                    if (obj is not DefaultUpdateArgsId other)
                     {
                         return false;
                     }

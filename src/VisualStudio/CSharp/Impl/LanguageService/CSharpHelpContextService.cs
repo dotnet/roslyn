@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -11,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -114,17 +117,44 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private string TryGetText(SyntaxToken token, SemanticModel semanticModel, Document document, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
-            if (TryGetTextForContextualKeyword(token, out var text) ||
+            if (TryGetTextForSpecialCharacters(token, out var text) ||
+                TryGetTextForContextualKeyword(token, out text) ||
                 TryGetTextForCombinationKeyword(token, syntaxFacts, out text) ||
-                TryGetTextForKeyword(token, syntaxFacts, out text) ||
+                TryGetTextForKeyword(token, out text) ||
                 TryGetTextForPreProcessor(token, syntaxFacts, out text) ||
-                TryGetTextForSymbol(token, semanticModel, document, cancellationToken, out text) ||
-                TryGetTextForOperator(token, document, out text))
+                TryGetTextForOperator(token, document, out text) ||
+                TryGetTextForSymbol(token, semanticModel, document, cancellationToken, out text))
             {
                 return text;
             }
 
             return string.Empty;
+        }
+
+        private bool TryGetTextForSpecialCharacters(SyntaxToken token, out string text)
+        {
+            if (token.IsKind(SyntaxKind.InterpolatedStringStartToken) ||
+                token.IsKind(SyntaxKind.InterpolatedStringEndToken) ||
+                token.IsKind(SyntaxKind.InterpolatedStringTextToken))
+            {
+                text = "$_CSharpKeyword";
+                return true;
+            }
+
+            if (token.IsVerbatimStringLiteral())
+            {
+                text = "@_CSharpKeyword";
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken))
+            {
+                text = "@$_CSharpKeyword";
+                return true;
+            }
+
+            text = null;
+            return false;
         }
 
         private bool TryGetTextForSymbol(SyntaxToken token, SemanticModel semanticModel, Document document, CancellationToken cancellationToken, out string text)
@@ -179,6 +209,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private static bool TryGetTextForOperator(SyntaxToken token, Document document, out string text)
         {
+            if (token.IsKind(SyntaxKind.ExclamationToken) &&
+                token.Parent.IsKind(SyntaxKind.SuppressNullableWarningExpression))
+            {
+                text = Keyword("nullForgiving");
+                return true;
+            }
+
+            // Workaround IsPredefinedOperator returning true for '<' in generics.
+            if (token is { RawKind: (int)SyntaxKind.LessThanToken, Parent: not BinaryExpressionSyntax })
+            {
+                text = null;
+                return false;
+            }
+
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             if (syntaxFacts.IsOperator(token) || syntaxFacts.IsPredefinedOperator(token) || SyntaxFacts.IsAssignmentExpressionOperatorToken(token.Kind()))
             {
@@ -192,9 +236,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
-            if (token.Kind() == SyntaxKind.ColonToken && token.Parent is NameColonSyntax)
+            if (token.IsKind(SyntaxKind.ColonToken) && token.Parent is NameColonSyntax)
             {
-                text = "cs_namedParameter";
+                text = "namedParameter_CSharpKeyword";
                 return true;
             }
 
@@ -207,18 +251,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             if (token.IsKind(SyntaxKind.EqualsGreaterThanToken))
             {
                 text = "=>_CSharpKeyword";
-                return true;
-            }
-
-            if (token.IsKind(SyntaxKind.PlusEqualsToken))
-            {
-                text = "+=_CSharpKeyword";
-                return true;
-            }
-
-            if (token.IsKind(SyntaxKind.MinusEqualsToken))
-            {
-                text = "-=_CSharpKeyword";
                 return true;
             }
 
@@ -262,7 +294,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                             text = "partialmethod_CSharpKeyword";
                             return true;
                         }
-                        else if (token.Parent.GetAncestorOrThis<ClassDeclarationSyntax>() != null)
+                        else if (token.Parent.GetAncestorOrThis<TypeDeclarationSyntax>() != null)
                         {
                             text = "partialtype_CSharpKeyword";
                             return true;
@@ -300,6 +332,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 case SyntaxKind.InternalKeyword when ModifiersContains(token, syntaxFacts, SyntaxKind.ProtectedKeyword):
                     text = "protectedinternal_CSharpKeyword";
                     return true;
+
+                case SyntaxKind.UsingKeyword when token.Parent is UsingDirectiveSyntax:
+                    text = token.GetNextToken().IsKind(SyntaxKind.StaticKeyword)
+                        ? "using-static_CSharpKeyword"
+                        : "using_CSharpKeyword";
+                    return true;
+                case SyntaxKind.StaticKeyword when token.Parent is UsingDirectiveSyntax:
+                    text = "using-static_CSharpKeyword";
+                    return true;
             }
 
             text = null;
@@ -311,9 +352,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
         }
 
-        private static bool TryGetTextForKeyword(SyntaxToken token, ISyntaxFactsService syntaxFacts, out string text)
+        private static bool TryGetTextForKeyword(SyntaxToken token, out string text)
         {
-            if (token.Kind() == SyntaxKind.InKeyword)
+            if (token.IsKind(SyntaxKind.InKeyword))
             {
                 if (token.GetAncestor<FromClauseSyntax>() != null)
                 {
@@ -326,6 +367,30 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                     text = "join_CSharpKeyword";
                     return true;
                 }
+            }
+
+            if (token.IsKind(SyntaxKind.DefaultKeyword) && token.Parent is DefaultSwitchLabelSyntax)
+            {
+                text = Keyword("defaultcase");
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.ClassKeyword) && token.Parent is ClassOrStructConstraintSyntax)
+            {
+                text = Keyword("classconstraint");
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.StructKeyword) && token.Parent is ClassOrStructConstraintSyntax)
+            {
+                text = Keyword("structconstraint");
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.UsingKeyword) && token.Parent is UsingStatementSyntax or LocalDeclarationStatementSyntax)
+            {
+                text = Keyword("using-statement");
+                return true;
             }
 
             if (token.IsKeyword())
@@ -341,7 +406,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
-            if (syntaxFacts.IsTypeNamedDynamic(token, token.Parent))
+            if (token.IsTypeNamedDynamic())
             {
                 text = "dynamic_CSharpKeyword";
                 return true;
@@ -370,7 +435,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         public override string FormatSymbol(ISymbol symbol)
         {
-            if (symbol is ITypeSymbol || symbol is INamespaceSymbol)
+            if (symbol is ITypeSymbol or INamespaceSymbol)
             {
                 return FormatNamespaceOrTypeSymbol((INamespaceOrTypeSymbol)symbol);
             }

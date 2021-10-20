@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Runtime.InteropServices;
 using System.Reflection;
@@ -12,7 +14,7 @@ namespace Microsoft.DiaSymReader
     /// <summary>
     /// Minimal implementation of IMetadataImport that implements APIs used by SymReader and SymWriter.
     /// </summary>
-    internal unsafe sealed class SymWriterMetadataAdapter : MetadataAdapterBase
+    internal sealed unsafe class SymWriterMetadataAdapter : MetadataAdapterBase
     {
         private readonly ISymWriterMetadataProvider _metadataProvider;
 

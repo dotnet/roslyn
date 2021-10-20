@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.EditorUtilities;
 using Xunit;
@@ -184,12 +187,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 
         private static string GetLeadingWhitespaceOfLineAtPosition(string code, int position)
         {
-            var snapshot = EditorFactory.CreateBuffer(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, code).CurrentSnapshot;
+            var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
+            var snapshot = EditorFactory.CreateBuffer(exportProvider, code).CurrentSnapshot;
             return snapshot.GetLeadingWhitespaceOfLineAtPosition(position);
         }
 
         private static ITextSnapshot GetSampleCodeSnapshot()
         {
+            var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
+
             // to make verification simpler, each line of code is 4 characters and will be joined to other lines
             // with a single newline character making the formula to calculate the offset from a given line and
             // column thus:
@@ -204,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                 "bar3",
             };
             var code = string.Join("\n", lines);
-            var snapshot = EditorFactory.CreateBuffer(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, code).CurrentSnapshot;
+            var snapshot = EditorFactory.CreateBuffer(exportProvider, code).CurrentSnapshot;
             return snapshot;
         }
     }

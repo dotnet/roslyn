@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.  
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
@@ -32,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         {
             private readonly ImmutableHashSet<ISymbol> _membersInType;
             private readonly Project _project;
+            private readonly ISymbolDeclarationService _declarationService;
             private readonly HashSet<ISymbol> _dependents;
             private readonly ISymbol _member;
             private readonly CancellationToken _cancellationToken;
@@ -43,6 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                 CancellationToken cancellationToken)
             {
                 _project = project;
+                _declarationService = project.LanguageServices.GetRequiredService<ISymbolDeclarationService>();
                 _membersInType = membersInType.ToImmutableHashSet();
                 _dependents = new HashSet<ISymbol>();
                 _member = member;
@@ -51,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
             public async Task<ImmutableArray<ISymbol>> FindMemberDependentsAsync()
             {
-                var tasks = _member.DeclaringSyntaxReferences.Select(@ref => @ref.GetSyntaxAsync(_cancellationToken));
+                var tasks = _declarationService.GetDeclarations(_member).Select(@ref => @ref.GetSyntaxAsync(_cancellationToken));
                 var syntaxes = await Task.WhenAll(tasks).ConfigureAwait(false);
                 var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
                 foreach (var syntax in syntaxes)

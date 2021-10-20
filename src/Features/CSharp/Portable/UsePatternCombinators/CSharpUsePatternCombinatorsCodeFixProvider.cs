@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -20,6 +19,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
@@ -27,9 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
     using static SyntaxFactory;
     using static AnalyzedPattern;
 
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UsePatternCombinators), Shared]
     internal class CSharpUsePatternCombinatorsCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        private const string SafeEquivalenceKey = nameof(CSharpUsePatternCombinatorsCodeFixProvider) + "_safe";
+        private const string UnsafeEquivalenceKey = nameof(CSharpUsePatternCombinatorsCodeFixProvider) + "_unsafe";
+
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpUsePatternCombinatorsCodeFixProvider()
@@ -53,11 +56,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
+        protected override bool IncludeDiagnosticDuringFixAll(
+            Diagnostic diagnostic, Document document, string? equivalenceKey, CancellationToken cancellationToken)
+        {
+            var isSafe = CSharpUsePatternCombinatorsDiagnosticAnalyzer.IsSafe(diagnostic);
+            return isSafe == (equivalenceKey == SafeEquivalenceKey);
+        }
+
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
+            var diagnostic = context.Diagnostics.First();
+            var isSafe = CSharpUsePatternCombinatorsDiagnosticAnalyzer.IsSafe(diagnostic);
+
             context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+                new MyCodeAction(
+                    isSafe ? CSharpAnalyzersResources.Use_pattern_matching : CSharpAnalyzersResources.Use_pattern_matching_may_change_code_meaning,
+                    c => FixAsync(context.Document, diagnostic, c),
+                    isSafe ? SafeEquivalenceKey : UnsafeEquivalenceKey),
                 context.Diagnostics);
+
             return Task.CompletedTask;
         }
 
@@ -89,35 +106,45 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                     Token(p.Token.LeadingTrivia, p.IsDisjunctive ? SyntaxKind.OrKeyword : SyntaxKind.AndKeyword,
                         TriviaList(p.Token.GetAllTrailingTrivia())),
                     AsPatternSyntax(p.Right).Parenthesize()),
-                Constant p => ConstantPattern(AsExpressionSyntax(p)),
+                Constant p => ConstantPattern(AsExpressionSyntax(p.ExpressionSyntax, p)),
                 Source p => p.PatternSyntax,
                 Type p => TypePattern(p.TypeSyntax),
-                Relational p => RelationalPattern(Token(MapToSyntaxKind(p.OperatorKind)), p.Value.Parenthesize()),
+                Relational p => RelationalPattern(Token(MapToSyntaxKind(p.OperatorKind)), AsExpressionSyntax(p.Value, p)),
                 Not p => UnaryPattern(AsPatternSyntax(p.Pattern).Parenthesize()),
                 var p => throw ExceptionUtilities.UnexpectedValue(p)
             };
         }
 
-        private static ExpressionSyntax AsExpressionSyntax(Constant constant)
+        private static ExpressionSyntax AsExpressionSyntax(ExpressionSyntax expr, AnalyzedPattern p)
         {
-            var expr = constant.ExpressionSyntax;
-            if (expr.IsKind(SyntaxKind.DefaultLiteralExpression))
+            var semanticModel = p.Target.SemanticModel;
+            Debug.Assert(semanticModel != null);
+            var type = semanticModel.GetTypeInfo(expr).Type;
+            if (type != null)
             {
                 // default literals are not permitted in patterns
-                var convertedType = constant.Target.SemanticModel.GetTypeInfo(expr).ConvertedType;
-                if (convertedType != null)
-                {
-                    return DefaultExpression(convertedType.GenerateTypeSyntax());
-                }
+                if (expr.IsKind(SyntaxKind.DefaultLiteralExpression))
+                    return DefaultExpression(type.GenerateTypeSyntax());
+
+                // 'null' is already the right form in a pattern, it does not need to be casted to anything else.
+                if (expr.IsKind(SyntaxKind.NullLiteralExpression))
+                    return expr;
+
+                // if we have a nullable value type, only cast to the underlying type.
+                //
+                // `x is (long?)0` is not legal, only `x is (long)0` is.
+                var governingType = semanticModel.GetTypeInfo(p.Target.Syntax).Type.RemoveNullableIfPresent();
+                if (governingType != null && !governingType.Equals(type))
+                    return CastExpression(governingType.GenerateTypeSyntax(), expr.Parenthesize()).WithAdditionalAnnotations(Simplifier.Annotation);
             }
 
             return expr.Parenthesize();
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_pattern_matching, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+                : base(title, createChangedDocument, equivalenceKey)
             {
             }
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class SymbolDisplayFormats
@@ -15,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// No return type.
         /// </remarks>
         public static readonly SymbolDisplayFormat NameFormat =
-            new SymbolDisplayFormat(
+            new(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// Contains enough information to determine whether two symbols have the same signature.
         /// </summary>
         public static readonly SymbolDisplayFormat SignatureFormat =
-            new SymbolDisplayFormat(
+            new(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 propertyStyle: SymbolDisplayPropertyStyle.NameOnly,

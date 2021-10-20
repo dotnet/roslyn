@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis
 {
     // Members of well known types
@@ -152,6 +150,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle,
         System_Runtime_CompilerServices_RuntimeHelpers__get_OffsetToStringData,
         System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
+        System_Runtime_CompilerServices_RuntimeHelpers__EnsureSufficientExecutionStack,
 
         System_Runtime_ExceptionServices_ExceptionDispatchInfo__Capture,
         System_Runtime_ExceptionServices_ExceptionDispatchInfo__Throw,
@@ -510,6 +509,17 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
         System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags,
+<<<<<<< HEAD
+=======
+
+        System_Text_StringBuilder__AppendString,
+        System_Text_StringBuilder__AppendChar,
+        System_Text_StringBuilder__AppendObject,
+        System_Text_StringBuilder__ctor,
+
+        System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear,
+
+>>>>>>> upstream/main
         Count
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

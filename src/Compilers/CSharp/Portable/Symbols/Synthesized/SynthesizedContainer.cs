@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            if (ContainingSymbol.Kind == SymbolKind.NamedType && (ContainingSymbol.IsImplicitlyDeclared || ContainingSymbol is SimpleProgramNamedTypeSymbol))
+            if (ContainingSymbol.Kind == SymbolKind.NamedType && ContainingSymbol.IsImplicitlyDeclared)
             {
                 return;
             }
@@ -127,6 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
+
+        internal sealed override bool IsInterpolatedStringHandlerType => false;
 
         public override ImmutableArray<Symbol> GetMembers()
         {
@@ -219,5 +223,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
 
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
+
+        internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+        }
     }
 }

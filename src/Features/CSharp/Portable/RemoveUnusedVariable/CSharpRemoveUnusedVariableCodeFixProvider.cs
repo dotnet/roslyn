@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -67,5 +69,20 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable
 
         protected override SeparatedSyntaxList<SyntaxNode> GetVariables(LocalDeclarationStatementSyntax localDeclarationStatement)
             => localDeclarationStatement.Declaration.Variables;
+
+        protected override bool ShouldOfferFixForLocalDeclaration(ISyntaxFactsService syntaxFacts, SyntaxNode node)
+        {
+            var localDeclaration = node.Parent?.Parent as LocalDeclarationStatementSyntax;
+
+            // If the fix location is not for a local declaration then we can allow it (eg, when inside a for
+            // or catch).
+            if (localDeclaration is null)
+                return true;
+
+            // Local declarations must be parented by an executable block, or global statement, otherwise
+            // removing them would be invalid (and more than likely crash the fixer)
+            return localDeclaration.Parent is GlobalStatementSyntax ||
+                syntaxFacts.IsExecutableBlock(localDeclaration.Parent);
+        }
     }
 }

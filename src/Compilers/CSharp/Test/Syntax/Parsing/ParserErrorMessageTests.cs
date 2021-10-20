@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Text;
@@ -50,7 +52,7 @@ class Test : Itest
                 // (9,20): error CS8124: Tuple must contain at least two elements.
                 //    event D ITest.E()   // CS0071
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(9, 20),
-                // (10,4): error CS1519: Invalid token '{' in class, struct, or interface member declaration
+                // (10,4): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
                 //    {
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(10, 4),
                 // (12,4): error CS8803: Top-level statements must precede namespace and type declarations.
@@ -237,12 +239,12 @@ public class mine {
                 // (2,7): error CS1041: Identifier expected; 'namespace' is a keyword
                 // using namespace System;
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "namespace").WithArguments("", "namespace").WithLocation(2, 7),
-                // (2,23): error CS1514: { expected
-                // using namespace System;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(2, 23),
                 // (4,42): error CS0150: A constant value is expected
                 //     public enum e1 {one=1, two=2, three= };
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "}").WithLocation(4, 42));
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "}").WithLocation(4, 42),
+                // (10,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(10, 1));
         }
 
         [WorkItem(862028, "DevDiv/Personal")]
@@ -607,7 +609,7 @@ public class Test
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial public class C  // CS0267
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
         }
@@ -620,10 +622,10 @@ partial enum E { }
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial enum E { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
-                // (2,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (2,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial enum E { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(2, 14));
         }
@@ -636,8 +638,8 @@ partial delegate E { }
 ";
 
             // Extra errors
-            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
                 // (2,20): error CS1001: Identifier expected
@@ -655,7 +657,7 @@ partial delegate E { }
                 // (2,20): error CS8803: Top-level statements must precede namespace and type declarations.
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "{ }").WithLocation(2, 20),
-                // (2,20): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (2,20): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "").WithLocation(2, 20),
                 // (2,18): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
@@ -672,10 +674,10 @@ partial delegate void E();
 
             // Extra errors
             CreateCompilation(test).VerifyDiagnostics(
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial delegate void E();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
-                // (2,23): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (2,23): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial delegate void E();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(2, 23));
         }
@@ -2439,7 +2441,7 @@ Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
         {
             var test = @" > Roslyn.Utilities.dll!  Basic";
 
-            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (1,2): error CS1525: Invalid expression term '>'
                 //  > Roslyn.Utilities.dll!  Basic
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(1, 2),
@@ -2726,10 +2728,10 @@ namespace x
 }
 ";
 
-            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (7,21): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (7,21): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(7, 21));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(7, 21));
         }
 
         [Fact]
@@ -2778,9 +2780,9 @@ namespace x
 }
 ";
             CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-                // (7,21): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,21): error CS8059: Feature 'target-typed object creation' is not available in C# 6. Please use language version 9.0 or greater.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(7, 21));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "new").WithArguments("target-typed object creation", "9.0").WithLocation(7, 21));
         }
 
         [Fact]
@@ -2798,9 +2800,9 @@ namespace x
 }
 ";
             CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
-                // (7,21): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,21): error CS8107: Feature 'target-typed object creation' is not available in C# 7.0. Please use language version 9.0 or greater.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(7, 21));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "new").WithArguments("target-typed object creation", "9.0").WithLocation(7, 21));
         }
 
         [WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
@@ -2884,12 +2886,9 @@ class A
                 // (4,43): error CS1003: Syntax error, ',' expected
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",", "{").WithLocation(4, 43),
-                // (6,18): error CS1026: ) expected
+                // (6,17): error CS1026: ) expected
                 //         return 0;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 18),
-                // (6,18): error CS1002: ; expected
-                //         return 0;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(6, 17),
                 // (8,30): error CS1037: Overloadable operator expected
                 //     public static A operator ()
                 Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "(").WithLocation(8, 30),
@@ -2945,12 +2944,9 @@ class A
                 // (4,43): error CS1003: Syntax error, ',' expected
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",", "{").WithLocation(4, 43),
-                // (6,18): error CS1026: ) expected
+                // (6,17): error CS1026: ) expected
                 //         return 0;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 18),
-                // (6,18): error CS1002: ; expected
-                //         return 0;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(6, 17),
                 // (8,30): error CS1037: Overloadable operator expected
                 //     public static A operator ()
                 Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "(").WithLocation(8, 30),
@@ -3291,6 +3287,9 @@ class Program
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
+                // (8,22): warning CS0219: The variable 'message' is assigned but its value is never used
+                //         const string message = "the parameter is obsolete";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "message").WithArguments("message").WithLocation(8, 22),
                 // (10,13): error CS7014: Attributes are not valid in this context.
                 //             [ObsoleteAttribute(message)] [ObsoleteAttribute(message)] int x,
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(10, 13),
@@ -3299,10 +3298,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(10, 42),
                 // (11,13): error CS7014: Attributes are not valid in this context.
                 //             [ObsoleteAttribute(message)] int y
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(11, 13),
-                // (8,22): warning CS0219: The variable 'message' is assigned but its value is never used
-                //         const string message = "the parameter is obsolete";
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "message").WithArguments("message").WithLocation(8, 22));
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(11, 13));
         }
 
         [Fact]
@@ -4037,19 +4033,19 @@ struct s1
 ";
             // Extra errors
             ParseAndValidate(test,
-    // (4,5): error CS1519: Invalid token 'goto' in class, struct, or interface member declaration
+    // (4,5): error CS1519: Invalid token 'goto' in class, record, struct, or interface member declaration
     //     goto Labl; // Invalid
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "goto").WithArguments("goto"),
-    // (4,14): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+    // (4,14): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
     //     goto Labl; // Invalid
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";"),
-    // (4,14): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+    // (4,14): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
     //     goto Labl; // Invalid
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";"),
-    // (6,9): error CS1519: Invalid token ':' in class, struct, or interface member declaration
+    // (6,9): error CS1519: Invalid token ':' in class, record, struct, or interface member declaration
     //     Lab1:
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ":").WithArguments(":"),
-    // (6,9): error CS1519: Invalid token ':' in class, struct, or interface member declaration
+    // (6,9): error CS1519: Invalid token ':' in class, record, struct, or interface member declaration
     //     Lab1:
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ":").WithArguments(":"));
         }
@@ -4648,12 +4644,9 @@ public class MainClass
                 // (3,49): error CS1003: Syntax error, ',' expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(3, 49),
-                // (3,61): error CS1026: ) expected
+                // (3,59): error CS1026: ) expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(3, 61),
-                // (3,61): error CS1002: ; expected
-                //     public static int implicit operator (goo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(3, 61),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(3, 59),
                 // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
@@ -4705,12 +4698,9 @@ public class MainClass
                 // (3,49): error CS1003: Syntax error, ',' expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(3, 49),
-                // (3,61): error CS1026: ) expected
+                // (3,59): error CS1026: ) expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(3, 61),
-                // (3,61): error CS1002: ; expected
-                //     public static int implicit operator (goo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(3, 61),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(3, 59),
                 // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
@@ -4819,7 +4809,7 @@ unsafe public class Test
     }
 }
 ";
-            CreateCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+            CreateCompilation(test, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (6,15): error CS0283: The type 'int*' cannot be declared const
                 //         const int* p = stackalloc int[1];
                 Diagnostic(ErrorCode.ERR_BadConstType, "int*").WithArguments("int*").WithLocation(6, 15)
@@ -5911,7 +5901,7 @@ class MyClass
                 // (6,15): error CS1513: } expected
                 //         if (b)
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(6, 15),
-                // (9,1): error CS1519: Invalid token '' in class, struct, or interface member declaration
+                // (9,1): error CS1519: Invalid token '' in class, record, struct, or interface member declaration
                 // 
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(9, 1),
                 // (8,11): error CS1513: } expected

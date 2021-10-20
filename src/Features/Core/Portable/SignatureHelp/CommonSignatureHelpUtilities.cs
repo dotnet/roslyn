@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -117,7 +119,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             out TSyntax expression)
             where TSyntax : SyntaxNode
         {
-            var token = syntaxFacts.FindTokenOnLeftOfPosition(root, position);
+            var token = root.FindTokenOnLeftOfPosition(position);
             if (triggerReason == SignatureHelpTriggerReason.TypeCharCommand)
             {
                 if (isTriggerToken(token) &&
@@ -138,7 +140,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                     syntaxFacts.IsEntirelyWithinStringOrCharOrNumericLiteral(root.SyntaxTree, position, cancellationToken))
                 {
                     expression = token.Parent?.AncestorsAndSelf()
-                        .TakeWhile(n => !syntaxFacts.IsAnonymousFunction(n))
+                        .TakeWhile(n => !syntaxFacts.IsAnonymousFunctionExpression(n))
                         .OfType<TSyntax>()
                         .SkipWhile(syntax => !isArgumentListToken(syntax, token))
                         .FirstOrDefault();

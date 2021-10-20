@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable;
@@ -11,11 +13,17 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedVariable
 {
     public partial class RemoveUnusedVariableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public RemoveUnusedVariableTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpRemoveUnusedVariableCodeFixProvider());
 
@@ -714,6 +722,79 @@ class C
 ",
 @"
 ", TestOptions.Regular);
+        }
+
+        [WorkItem(49827, "https://github.com/dotnet/roslyn/issues/49827")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveUnusedVariableJointDeclaredInForStatementInsideIfStatement()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        if (true)
+            for(int i = 0[|, j = 0|]; i < 1; i++)
+            {
+
+            }
+    }
+}",
+@"class Class
+{
+    void Method()
+    {
+        if (true)
+            for(int i = 0; i < 1; i++)
+            {
+
+            }
+    }
+}");
+        }
+
+        [WorkItem(49827, "https://github.com/dotnet/roslyn/issues/49827")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task DontCrashOnDeclarationInsideIfStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    void Method(bool test)
+    {
+        if (test [|and test|])
+        {
+
+        }
+    }
+}");
+        }
+
+        [WorkItem(56924, "https://github.com/dotnet/roslyn/issues/56924")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveUnusedVariableInCatchInsideBadLocalDeclaration()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method(bool test)
+    {
+        if (test) var x = () => {
+            try { }
+            catch (Exception [|ex|]) { }
+        };
+    }
+}",
+@"class Class
+{
+    void Method(bool test)
+    {
+        if (test) var x = () => {
+            try { }
+            catch (Exception) { }
+        };
+    }
+}");
         }
     }
 }

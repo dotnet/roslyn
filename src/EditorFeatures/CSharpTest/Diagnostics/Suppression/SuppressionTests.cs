@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -16,7 +18,6 @@ using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ErrorLogger;
@@ -34,9 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
         protected override ParseOptions GetScriptOptions() => Options.Script;
 
         protected internal override string GetLanguage() => LanguageNames.CSharp;
-
-        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
 
         #region "Pragma disable tests"
 
@@ -103,6 +101,45 @@ line"";
 }}");
                 }
 
+                [WorkItem(56165, "https://github.com/dotnet/roslyn/issues/56165")]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestPragmaWarningDirectiveAroundMultiLineInterpolatedString()
+                {
+                    await TestAsync(
+            @"
+using System;
+
+[Obsolete]
+class Session { }
+
+class Class
+{
+    void Method()
+    {
+        var s = $@""
+hi {[|new Session()|]}
+"";
+    }
+}",
+            $@"
+using System;
+
+[Obsolete]
+class Session {{ }}
+
+class Class
+{{
+    void Method()
+    {{
+#pragma warning disable CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
+        var s = $@""
+hi {{new Session()}}
+"";
+#pragma warning restore CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
+    }}
+}}");
+                }
+
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestMultilineStatementPragmaWarningDirective()
                 {
@@ -123,8 +160,34 @@ class Class
     {{
 #pragma warning disable CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
         int x = 0
-#pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
               + 1;
+#pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
+    }}
+}}");
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestMultilineStatementPragmaWarningDirective2()
+                {
+                    await TestAsync(
+        @"
+class Class
+{
+    void Method()
+    {
+        [|int x = 0,
+            y = 1;|]
+    }
+}",
+        $@"
+class Class
+{{
+    void Method()
+    {{
+#pragma warning disable CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
+        int x = 0,
+            y = 1;
+#pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
     }}
 }}");
                 }
@@ -179,6 +242,138 @@ sealed class Class
     protected void Method()
 #pragma warning restore CS0628 // {CSharpResources.WRN_ProtectedInSealed_Title}
     {{
+    }}
+}}");
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestPragmaWarningExpressionBodiedMember1()
+                {
+                    await TestAsync(
+        @"
+sealed class Class
+{
+    [|protected int Method()|] => 1;
+}",
+        $@"
+sealed class Class
+{{
+#pragma warning disable CS0628 // {CSharpResources.WRN_ProtectedInSealed_Title}
+    protected int Method() => 1;
+#pragma warning restore CS0628 // {CSharpResources.WRN_ProtectedInSealed_Title}
+}}");
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestPragmaWarningExpressionBodiedMember2()
+                {
+                    await TestAsync(
+            @"
+using System;
+
+[Obsolete]
+class Session { }
+
+class Class
+{
+    string Method()
+        => @$""hi
+        {[|new Session()|]}
+        "";
+}",
+            $@"
+using System;
+
+[Obsolete]
+class Session {{ }}
+
+class Class
+{{
+    string Method()
+#pragma warning disable CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
+        => @$""hi
+        {{new Session()}}
+        "";
+#pragma warning restore CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
+}}");
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestPragmaWarningExpressionBodiedLocalFunction()
+                {
+                    await TestAsync(
+            @"
+using System;
+
+[Obsolete]
+class Session { }
+
+class Class
+{
+    void M()
+    {
+        string Method()
+            => @$""hi
+            {[|new Session()|]}
+            "";
+    }
+}",
+            $@"
+using System;
+
+[Obsolete]
+class Session {{ }}
+
+class Class
+{{
+    void M()
+    {{
+#pragma warning disable CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
+        string Method()
+            => @$""hi
+            {{new Session()}}
+            "";
+#pragma warning restore CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
+    }}
+}}");
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestPragmaWarningExpressionBodiedLambda()
+                {
+                    await TestAsync(
+            @"
+using System;
+
+[Obsolete]
+class Session { }
+
+class Class
+{
+    void M()
+    {
+        new Func<string>(()
+            => @$""hi
+            {[|new Session()|]}
+            "");
+    }
+}",
+            $@"
+using System;
+
+[Obsolete]
+class Session {{ }}
+
+class Class
+{{
+    void M()
+    {{
+#pragma warning disable CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
+        new Func<string>(()
+            => @$""hi
+            {{new Session()}}
+            "");
+#pragma warning restore CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
     }}
 }}");
                 }
@@ -257,13 +452,13 @@ class Class
                     var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer()));
                     workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
-                    var diagnosticService = new TestDiagnosticAnalyzerService();
+                    Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(workspace.ExportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
+                    var diagnosticService = Assert.IsType<DiagnosticAnalyzerService>(workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
                     var incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace);
                     var suppressionProvider = CreateDiagnosticProviderAndFixer(workspace).Item2;
                     var suppressionProviderFactory = new Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>(() => suppressionProvider,
                         new CodeChangeProviderMetadata("SuppressionProvider", languages: new[] { LanguageNames.CSharp }));
                     var fixService = new CodeFixService(
-                        workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                         diagnosticService,
                         SpecializedCollections.EmptyEnumerable<Lazy<IErrorLoggerService>>(),
                         SpecializedCollections.EmptyEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>(),
@@ -383,11 +578,11 @@ class Class
 class Class
 {{
     void Method()
+#pragma warning disable CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
     {{
 
-        // Comment
-        // Comment
-#pragma warning disable CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
+// Comment
+// Comment
 #pragma abcde
 
     }}    // Comment   
@@ -925,10 +1120,11 @@ class Class
 
                             case SyntaxKind.EnumDeclaration:
                                 // Report diagnostic on each descendant comment trivia
-                                foreach (var trivia in context.Node.DescendantTrivia().Where(t => t.Kind() == SyntaxKind.SingleLineCommentTrivia || t.Kind() == SyntaxKind.MultiLineCommentTrivia))
+                                foreach (var trivia in context.Node.DescendantTrivia().Where(t => t.Kind() is SyntaxKind.SingleLineCommentTrivia or SyntaxKind.MultiLineCommentTrivia))
                                 {
                                     context.ReportDiagnostic(Diagnostic.Create(Descriptor, trivia.GetLocation()));
                                 }
+
                                 break;
                         }
                     }

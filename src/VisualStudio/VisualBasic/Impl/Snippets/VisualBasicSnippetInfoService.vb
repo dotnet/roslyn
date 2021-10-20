@@ -12,9 +12,6 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.Shell
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
-    ' HACK: The Export attribute (As ISnippetInfoService) is used by EditorTestApp to create this
-    ' SnippetInfoService on the UI thread.
-    <Export(GetType(ISnippetInfoService))>
     <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicSnippetInfoService
         Inherits AbstractSnippetInfoService
@@ -22,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(threadingContext As IThreadingContext, serviceProvider As SVsServiceProvider, listenerProvider As IAsynchronousOperationListenerProvider)
-            MyBase.New(threadingContext, serviceProvider, Guids.VisualBasicDebuggerLanguageId, listenerProvider)
+            MyBase.New(threadingContext, DirectCast(serviceProvider, IAsyncServiceProvider), Guids.VisualBasicDebuggerLanguageId, listenerProvider)
         End Sub
     End Class
 End Namespace

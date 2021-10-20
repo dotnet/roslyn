@@ -40,16 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
                 Dim conditionalAccess As ExpressionSyntax = Nothing
                 If expression.IsRightSideOfDotOrBang() Then
                     expression = DirectCast(expression.Parent, ExpressionSyntax)
-
-                    Dim curr = expression
-                    While True
-                        curr = curr.GetCorrespondingConditionalAccessExpression()
-                        If curr Is Nothing Then
-                            Exit While
-                        End If
-
-                        conditionalAccess = curr
-                    End While
+                    conditionalAccess = If(expression.GetRootConditionalAccessExpression(), expression)
                 End If
 
                 If expression.Parent.IsKind(SyntaxKind.InvocationExpression) Then

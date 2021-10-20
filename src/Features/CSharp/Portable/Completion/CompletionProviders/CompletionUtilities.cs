@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -26,6 +29,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public static bool IsCompletionItemStartCharacter(char ch)
             => ch == '@' || IsWordCharacter(ch);
+
+        public static bool TreatAsDot(SyntaxToken token, int characterPosition)
+        {
+            if (token.Kind() == SyntaxKind.DotToken)
+                return true;
+
+            // if we're right after the first dot in .. then that's considered completion on dot.
+            if (token.Kind() == SyntaxKind.DotDotToken && token.SpanStart == characterPosition)
+                return true;
+
+            return false;
+        }
+
+        public static SyntaxToken? GetDotTokenLeftOfPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            var tokenOnLeft = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeSkipped: true);
+            var dotToken = tokenOnLeft.GetPreviousTokenIfTouchingWord(position);
+
+            // Has to be a . or a .. token
+            if (!TreatAsDot(dotToken, position - 1))
+                return null;
+
+            // don't want to trigger after a number. All other cases after dot are ok.
+            if (dotToken.GetPreviousToken().Kind() == SyntaxKind.NumericLiteralToken)
+                return null;
+
+            return dotToken;
+        }
 
         internal static bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
@@ -72,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             => IsArgumentListCharacter(text[characterPosition]);
 
         internal static bool IsArgumentListCharacter(char ch)
-            => ch == '(' || ch == '[' || ch == ' ';
+            => ch is '(' or '[' or ' ';
 
         internal static bool IsTriggerAfterSpaceOrStartOfWordCharacter(SourceText text, int characterPosition, OptionSet options)
         {

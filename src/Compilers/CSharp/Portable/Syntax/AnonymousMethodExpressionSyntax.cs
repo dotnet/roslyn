@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             => this.Update(asyncKeyword, this.DelegateKeyword, this.ParameterList, this.Block, this.ExpressionBody);
 
         public AnonymousMethodExpressionSyntax Update(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, BlockSyntax block, ExpressionSyntax expressionBody)
-            => Update(SyntaxFactory.TokenList(asyncKeyword), delegateKeyword, parameterList, block, expressionBody);
+            => Update(UpdateAsyncKeyword(asyncKeyword), delegateKeyword, parameterList, block, expressionBody);
     }
 }
 

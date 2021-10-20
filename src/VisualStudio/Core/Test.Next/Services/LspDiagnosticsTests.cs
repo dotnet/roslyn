@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,14 +9,18 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
+using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient;
 using Microsoft.VisualStudio.Threading;
 using Moq;
 using Nerdbank.Streams;
@@ -37,7 +39,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         [Fact]
         public async Task AddDiagnosticTestAsync()
         {
-            using var workspace = CreateTestWorkspace("", out _);
+            using var workspace = CreateTestLspServer("", out _).TestWorkspace;
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
             var diagnosticsMock = new Mock<IDiagnosticService>(MockBehavior.Strict);
@@ -57,9 +59,26 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         }
 
         [Fact]
+        public async Task NoDiagnosticsWhenInPullMode()
+        {
+            using var workspace = CreateTestLspServer("", out _).TestWorkspace;
+            workspace.SetOptions(workspace.Options.WithChangedOption(
+                InternalDiagnosticsOptions.NormalDiagnosticMode, DiagnosticMode.Pull));
+
+            var document = workspace.CurrentSolution.Projects.First().Documents.First();
+
+            var diagnosticsMock = new Mock<IDiagnosticService>(MockBehavior.Strict);
+            // Create a mock that returns a diagnostic for the document.
+            SetupMockWithDiagnostics(diagnosticsMock, document.Id, await CreateMockDiagnosticDataAsync(document, "id").ConfigureAwait(false));
+
+            var (testAccessor, results) = await RunPublishDiagnosticsAsync(workspace, diagnosticsMock.Object, 0, document).ConfigureAwait(false);
+            Assert.Empty(results);
+        }
+
+        [Fact]
         public async Task AddDiagnosticWithMappedFilesTestAsync()
         {
-            using var workspace = CreateTestWorkspace("", out _);
+            using var workspace = CreateTestLspServer("", out _).TestWorkspace;
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
             var diagnosticsMock = new Mock<IDiagnosticService>(MockBehavior.Strict);
@@ -86,7 +105,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         [Fact]
         public async Task AddDiagnosticWithMappedFileToManyDocumentsTestAsync()
         {
-            using var workspace = CreateTestWorkspace(new string[] { "", "" }, out _);
+            using var workspace = CreateTestLspServer(new string[] { "", "" }, out _).TestWorkspace;
             var documents = workspace.CurrentSolution.Projects.First().Documents.ToImmutableArray();
 
             var diagnosticsMock = new Mock<IDiagnosticService>(MockBehavior.Strict);
@@ -122,7 +141,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         [Fact]
         public async Task RemoveDiagnosticTestAsync()
         {
-            using var workspace = CreateTestWorkspace("", out _);
+            using var workspace = CreateTestLspServer("", out _).TestWorkspace;
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
             var diagnosticsMock = new Mock<IDiagnosticService>(MockBehavior.Strict);
@@ -154,7 +173,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         [Fact]
         public async Task RemoveDiagnosticForMappedFilesTestAsync()
         {
-            using var workspace = CreateTestWorkspace("", out _);
+            using var workspace = CreateTestLspServer("", out _).TestWorkspace;
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
             var diagnosticsMock = new Mock<IDiagnosticService>(MockBehavior.Strict);
@@ -205,7 +224,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         [Fact]
         public async Task RemoveDiagnosticForMappedFileToManyDocumentsTestAsync()
         {
-            using var workspace = CreateTestWorkspace(new string[] { "", "" }, out _);
+            using var workspace = CreateTestLspServer(new string[] { "", "" }, out _).TestWorkspace;
             var documents = workspace.CurrentSolution.Projects.First().Documents.ToImmutableArray();
 
             var diagnosticsMock = new Mock<IDiagnosticService>(MockBehavior.Strict);
@@ -226,7 +245,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             // 3.  doc1 with empty.
             //
             // We expect three publish diagnostics ->
-            // 1.  from m1 with with doc1Diagnostic (triggered by 1 above to add doc1Diagnostic).
+            // 1.  from m1 with doc1Diagnostic (triggered by 1 above to add doc1Diagnostic).
             // 2.  from m1 with doc1Diagnostic and doc2Diagnostic (triggered by 2 above to add doc2Diagnostic).
             // 3.  from m1 with just doc2Diagnostic (triggered by 3 above to remove doc1Diagnostic).
             var (testAccessor, results) = await RunPublishDiagnosticsAsync(workspace, diagnosticsMock.Object, 3, documents[0], documents[1], documents[0]).ConfigureAwait(false);
@@ -253,7 +272,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         [Fact]
         public async Task ClearAllDiagnosticsForMappedFilesTestAsync()
         {
-            using var workspace = CreateTestWorkspace("", out _);
+            using var workspace = CreateTestLspServer("", out _).TestWorkspace;
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
             var diagnosticsMock = new Mock<IDiagnosticService>(MockBehavior.Strict);
@@ -299,7 +318,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         [Fact]
         public async Task ClearAllDiagnosticsForMappedFileToManyDocumentsTestAsync()
         {
-            using var workspace = CreateTestWorkspace(new string[] { "", "" }, out _);
+            using var workspace = CreateTestLspServer(new string[] { "", "" }, out _).TestWorkspace;
             var documents = workspace.CurrentSolution.Projects.First().Documents.ToImmutableArray();
 
             var diagnosticsMock = new Mock<IDiagnosticService>(MockBehavior.Strict);
@@ -347,15 +366,21 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.Empty(testAccessor.GetFileUrisInPublishDiagnostics());
         }
 
-        private async Task<(InProcLanguageServer.TestAccessor, List<LSP.PublishDiagnosticParams>)> RunPublishDiagnosticsAsync(Workspace workspace, IDiagnosticService diagnosticService,
-            int expectedNumberOfCallbacks, params Document[] documentsToPublish)
+        private async Task<(VisualStudioInProcLanguageServer.TestAccessor, List<LSP.PublishDiagnosticParams>)> RunPublishDiagnosticsAsync(
+            TestWorkspace workspace,
+            IDiagnosticService diagnosticService,
+            int expectedNumberOfCallbacks,
+            params Document[] documentsToPublish)
         {
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
             var languageServer = CreateLanguageServer(serverStream, serverStream, workspace, diagnosticService);
 
-            // Notification target for tests to recieve the notification details
+            // Notification target for tests to receive the notification details
             var callback = new Callback(expectedNumberOfCallbacks);
-            using var jsonRpc = new JsonRpc(clientStream, clientStream, callback);
+            using var jsonRpc = new JsonRpc(clientStream, clientStream, callback)
+            {
+                ExceptionStrategy = ExceptionProcessing.ISerializable,
+            };
 
             // The json rpc messages won't necessarily come back in order by default.
             // So use a synchronization context to preserve the original ordering.
@@ -364,46 +389,79 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             jsonRpc.StartListening();
 
             // Triggers language server to send notifications.
-            foreach (var document in documentsToPublish)
-            {
-                await languageServer.PublishDiagnosticsAsync(document).ConfigureAwait(false);
-            }
+            await languageServer.ProcessDiagnosticUpdatedBatchAsync(
+                diagnosticService, documentsToPublish.SelectAsArray(d => d.Id), CancellationToken.None);
 
-            // Waits for all notifications to be recieved.
-            await callback.CallbackCompletedTask.Task.ConfigureAwait(false);
+            // Waits for all notifications to be received.
+            await callback.CallbackCompletedTask.ConfigureAwait(false);
 
             return (languageServer.GetTestAccessor(), callback.Results);
 
-            static InProcLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, Workspace workspace, IDiagnosticService mockDiagnosticService)
+            static VisualStudioInProcLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace, IDiagnosticService mockDiagnosticService)
             {
-                var protocol = ((TestWorkspace)workspace).ExportProvider.GetExportedValue<LanguageServerProtocol>();
+                var dispatcherFactory = workspace.ExportProvider.GetExportedValue<RequestDispatcherFactory>();
+                var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+                var lspWorkspaceRegistrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
+                var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<DefaultCapabilitiesProvider>();
 
-                var languageServer = new InProcLanguageServer(inputStream, outputStream, protocol, workspace, mockDiagnosticService, clientName: null);
+                var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream))
+                {
+                    ExceptionStrategy = ExceptionProcessing.ISerializable,
+                };
+
+                var globalOptions = workspace.GetService<IGlobalOptionService>();
+
+                var languageServer = new VisualStudioInProcLanguageServer(
+                    dispatcherFactory,
+                    jsonRpc,
+                    capabilitiesProvider,
+                    lspWorkspaceRegistrationService,
+                    globalOptions,
+                    listenerProvider,
+                    NoOpLspLogger.Instance,
+                    mockDiagnosticService,
+                    ProtocolConstants.RoslynLspLanguages,
+                    clientName: null,
+                    userVisibleServerName: string.Empty,
+                    telemetryServerTypeName: string.Empty);
+
+                jsonRpc.StartListening();
                 return languageServer;
             }
         }
 
-        private void SetupMockWithDiagnostics(Mock<IDiagnosticService> diagnosticServiceMock, DocumentId documentId, IEnumerable<DiagnosticData> diagnostics)
+        private void SetupMockWithDiagnostics(Mock<IDiagnosticService> diagnosticServiceMock, DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
         {
-            diagnosticServiceMock.Setup(d => d.GetDiagnostics(It.IsAny<Workspace>(), It.IsAny<ProjectId>(), documentId,
-                    It.IsAny<object>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-                .Returns(diagnostics);
+            diagnosticServiceMock.Setup(d => d.GetPushDiagnosticsAsync(
+                It.IsAny<Workspace>(),
+                It.IsAny<ProjectId>(),
+                documentId,
+                It.IsAny<object>(),
+                It.IsAny<bool>(),
+                It.IsAny<Option2<DiagnosticMode>>(),
+                It.IsAny<CancellationToken>())).Returns(new ValueTask<ImmutableArray<DiagnosticData>>(diagnostics));
         }
 
         private void SetupMockDiagnosticSequence(Mock<IDiagnosticService> diagnosticServiceMock, DocumentId documentId,
-            IEnumerable<DiagnosticData> firstDiagnostics, IEnumerable<DiagnosticData> secondDiagnostics)
+            ImmutableArray<DiagnosticData> firstDiagnostics, ImmutableArray<DiagnosticData> secondDiagnostics)
         {
-            diagnosticServiceMock.SetupSequence(d => d.GetDiagnostics(It.IsAny<Workspace>(), It.IsAny<ProjectId>(), documentId,
-                    It.IsAny<object>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-                .Returns(firstDiagnostics)
-                .Returns(secondDiagnostics);
+            diagnosticServiceMock.SetupSequence(d => d.GetPushDiagnosticsAsync(
+                It.IsAny<Workspace>(),
+                It.IsAny<ProjectId>(),
+                documentId,
+                It.IsAny<object>(),
+                It.IsAny<bool>(),
+                It.IsAny<Option2<DiagnosticMode>>(),
+                It.IsAny<CancellationToken>()))
+                .Returns(new ValueTask<ImmutableArray<DiagnosticData>>(firstDiagnostics))
+                .Returns(new ValueTask<ImmutableArray<DiagnosticData>>(secondDiagnostics));
         }
 
-        private async Task<IEnumerable<DiagnosticData>> CreateMockDiagnosticDataAsync(Document document, string id)
+        private async Task<ImmutableArray<DiagnosticData>> CreateMockDiagnosticDataAsync(Document document, string id)
         {
             var descriptor = new DiagnosticDescriptor(id, "", "", "", DiagnosticSeverity.Error, true);
             var location = Location.Create(await document.GetRequiredSyntaxTreeAsync(CancellationToken.None).ConfigureAwait(false), new TextSpan());
-            return new DiagnosticData[] { DiagnosticData.Create(Diagnostic.Create(descriptor, location), document) };
+            return ImmutableArray.Create(DiagnosticData.Create(Diagnostic.Create(descriptor, location), document));
         }
 
         private async Task<ImmutableArray<DiagnosticData>> CreateMockDiagnosticDatasWithMappedLocationAsync(Document document, params (string diagnosticId, string mappedFilePath)[] diagnostics)
@@ -426,11 +484,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     diagnostic.DefaultSeverity,
                     diagnostic.Descriptor.IsEnabledByDefault,
                     diagnostic.WarningLevel,
-                    diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
+                    diagnostic.Descriptor.ImmutableCustomTags(),
                     diagnostic.Properties,
                     document.Project.Id,
                     GetDataLocation(document, mappedFilePath),
-                    null,
+                    additionalLocations: default,
                     document.Project.Language,
                     diagnostic.Descriptor.Title.ToString(),
                     diagnostic.Descriptor.Description.ToString(),
@@ -473,7 +531,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             public void Dispose() => this._queue.Complete();
 
             /// <summary>
-            /// Executes queued work on the threadpool, one at a time.
+            /// Executes queued work on the thread-pool, one at a time.
             /// Don't catch exceptions - let them bubble up to fail the test.
             /// </summary>
             private async Task ProcessQueueAsync()
@@ -488,20 +546,21 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
         private class Callback
         {
+            private readonly TaskCompletionSource<object?> _callbackCompletedTaskSource = new();
             /// <summary>
             /// Task that can be awaited for the all callbacks to complete.
             /// </summary>
-            public TaskCompletionSource<object> CallbackCompletedTask { get; }
+            public Task CallbackCompletedTask => _callbackCompletedTaskSource.Task;
 
             /// <summary>
-            /// Serialized results of all publish diagnostic notifications recieved by this callback.
+            /// Serialized results of all publish diagnostic notifications received by this callback.
             /// </summary>
             public List<LSP.PublishDiagnosticParams> Results { get; }
 
             /// <summary>
             /// Lock to guard concurrent callbacks.
             /// </summary>
-            private readonly object _lock = new object();
+            private readonly object _lock = new();
 
             /// <summary>
             /// The expected number of times this callback should be hit.
@@ -517,10 +576,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             public Callback(int expectedNumberOfCallbacks)
             {
-                CallbackCompletedTask = new TaskCompletionSource<object>();
                 Results = new List<LSP.PublishDiagnosticParams>();
                 _expectedNumberOfCallbacks = expectedNumberOfCallbacks;
                 _currentNumberOfCallbacks = 0;
+
+                if (expectedNumberOfCallbacks == 0)
+                    _callbackCompletedTaskSource.SetResult(null);
             }
 
             [JsonRpcMethod(LSP.Methods.TextDocumentPublishDiagnosticsName)]
@@ -532,16 +593,32 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     Contract.ThrowIfTrue(_currentNumberOfCallbacks > _expectedNumberOfCallbacks, "received too many callbacks");
 
                     var diagnosticParams = input.ToObject<LSP.PublishDiagnosticParams>();
+                    Assumes.Present(diagnosticParams);
+
                     Results.Add(diagnosticParams);
 
                     if (_currentNumberOfCallbacks == _expectedNumberOfCallbacks)
-                    {
-                        CallbackCompletedTask.SetResult(new object());
-                    }
+                        _callbackCompletedTaskSource.SetResult(null);
 
                     return Task.CompletedTask;
                 }
             }
+        }
+
+        private class TestLanguageClient : AbstractInProcLanguageClient
+        {
+            public TestLanguageClient()
+                : base(null!, null!, null, null!, null!, null!, null!, null)
+            {
+            }
+
+            protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
+
+            public override string Name => nameof(LspDiagnosticsTests);
+
+            public override bool ShowNotificationOnInitializeFailed => false;
+
+            public override LSP.ServerCapabilities GetCapabilities(LSP.ClientCapabilities clientCapabilities) => new();
         }
     }
 }

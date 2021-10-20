@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -13,7 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 {
-    public partial class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
+    public class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
     {
         private const int SingleMember = 0;
         private const int SameInterface = 1;

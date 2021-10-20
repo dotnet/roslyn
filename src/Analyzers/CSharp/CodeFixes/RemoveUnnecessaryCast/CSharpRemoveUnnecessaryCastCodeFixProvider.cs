@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -43,7 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(new MyCodeAction(
-                AnalyzersResources.Remove_Unnecessary_Cast,
                 c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
             return Task.CompletedTask;
@@ -100,8 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(AnalyzersResources.Remove_Unnecessary_Cast, createChangedDocument, nameof(AnalyzersResources.Remove_Unnecessary_Cast))
             {
             }
         }

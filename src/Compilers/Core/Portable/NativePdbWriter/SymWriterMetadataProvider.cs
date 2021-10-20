@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Reflection;
 using System.Reflection.Metadata.Ecma335;
@@ -42,7 +44,8 @@ namespace Microsoft.Cci
             }
             else
             {
-                typeName = MetadataWriter.GetMangledName((INamedTypeReference)t);
+                int generation = (t is INamedTypeDefinition namedType) ? _writer.Module.GetTypeDefinitionGeneration(namedType) : 0;
+                typeName = MetadataWriter.GetMangledName((INamedTypeReference)t, generation);
 
                 INamespaceTypeDefinition namespaceTypeDef;
                 if ((namespaceTypeDef = t.AsNamespaceTypeDefinition(_writer.Context)) != null)

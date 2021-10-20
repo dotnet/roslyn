@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -1398,7 +1400,7 @@ class X
     }
 }
 ";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                     // (11,24): error CS7055: Unmanaged type 'ByValArray' is only valid for fields.
                     //             [MarshalAs(UnmanagedType.ByValArray)]
                     Diagnostic(ErrorCode.ERR_MarshalUnmanagedTypeOnlyValidForFields, "UnmanagedType.ByValArray").WithArguments("ByValArray").WithLocation(11, 24),

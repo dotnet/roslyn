@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
@@ -27,10 +27,16 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
         }
 
-        internal virtual bool TryApply(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        /// <summary>
+        /// Called by the host environment to apply the effect of the operation.
+        /// This method is guaranteed to be called on the UI thread.
+        /// </summary>
+        internal virtual Task<bool> TryApplyAsync(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
+            // It is a requirement that this method be called on the UI thread.  So it's safe for us to call
+            // into .Apply without any threading operations here.
             this.Apply(workspace, cancellationToken);
-            return true;
+            return SpecializedTasks.True;
         }
 
         /// <summary>

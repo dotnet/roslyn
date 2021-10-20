@@ -2,45 +2,45 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal abstract class AbstractGoToDefinitionHandler<RequestType, ResponseType> : AbstractRequestHandler<RequestType, ResponseType>
+    internal abstract class AbstractGoToDefinitionHandler : AbstractStatelessRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]?>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
-        public AbstractGoToDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService, ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public AbstractGoToDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService)
             => _metadataAsSourceFileService = metadataAsSourceFileService;
 
-        protected async Task<LSP.Location[]> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool typeOnly, string? clientName, CancellationToken cancellationToken)
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
+        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
+
+        protected async Task<LSP.Location[]?> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool typeOnly, RequestContext context, CancellationToken cancellationToken)
         {
-            var locations = ArrayBuilder<LSP.Location>.GetInstance();
-
-            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
+            var document = context.Document;
             if (document == null)
-            {
-                return locations.ToArrayAndFree();
-            }
+                return null;
 
+            var locations = ArrayBuilder<LSP.Location>.GetInstance();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-            var definitionService = document.Project.LanguageServices.GetRequiredService<IGoToDefinitionService>();
-            var definitions = await definitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
-            if (definitions != null && definitions.Count() > 0)
+            var findDefinitionService = document.GetRequiredLanguageService<IFindDefinitionService>();
+
+            var definitions = await findDefinitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
+            if (definitions.Any())
             {
                 foreach (var definition in definitions)
                 {
@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         continue;
                     }
 
-                    var location = await ProtocolConversions.TextSpanToLocationAsync(definition.Document, definition.SourceSpan, cancellationToken).ConfigureAwait(false);
+                    var location = await ProtocolConversions.TextSpanToLocationAsync(
+                        definition.Document, definition.SourceSpan, definition.IsStale, cancellationToken).ConfigureAwait(false);
                     locations.AddIfNotNull(location);
                 }
             }
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 // No definition found - see if we can get metadata as source but that's only applicable for C#\VB.
                 var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
-                if (symbol != null && symbol.Locations != null && !symbol.Locations.IsEmpty && symbol.Locations.First().IsInMetadata)
+                if (symbol != null && _metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
                 {
                     if (!typeOnly || symbol is ITypeSymbol)
                     {
@@ -78,6 +79,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // local functions
             static bool ShouldInclude(INavigableItem item, bool typeOnly)
             {
+                if (item.Glyph is Glyph.Namespace)
+                {
+                    // Never return namespace symbols as part of the go to definition result.
+                    return false;
+                }
+
                 if (!typeOnly)
                 {
                     return true;

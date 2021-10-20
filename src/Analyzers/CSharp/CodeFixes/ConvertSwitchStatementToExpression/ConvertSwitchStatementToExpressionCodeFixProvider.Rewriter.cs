@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -35,6 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 bool shouldMoveNextStatementToSwitchExpression,
                 bool generateDeclaration)
             {
+                if (switchStatement.ContainsDirectives)
+                {
+                    // Do not rewrite statements with preprocessor directives
+                    return switchStatement;
+                }
+
                 var rewriter = new Rewriter(isAllThrowStatements: nodeToGenerate == SyntaxKind.ThrowStatement);
 
                 // Rewrite the switch statement as a switch expression.
@@ -129,8 +137,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 var totalPattern = GetPattern(switchLabels[0], out var whenClauseUnused);
                 Debug.Assert(whenClauseUnused == null, "We should not have offered to convert multiple cases if any have a when clause");
 
-#if !CODE_STYLE
-
                 for (var i = 1; i < switchLabels.Count; i++)
                 {
                     var nextPatternPart = GetPattern(switchLabels[i], out whenClauseUnused);
@@ -138,8 +144,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
                     totalPattern = BinaryPattern(SyntaxKind.OrPattern, totalPattern.Parenthesize(), nextPatternPart.Parenthesize());
                 }
-
-#endif
 
                 whenClauseOpt = null;
                 return totalPattern;
@@ -175,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             private ExpressionSyntax RewriteStatements(SyntaxList<StatementSyntax> statements)
             {
-                Debug.Assert(statements.Count == 1 || statements.Count == 2);
+                Debug.Assert(statements.Count is 1 or 2);
                 Debug.Assert(!statements[0].IsKind(SyntaxKind.BreakStatement));
                 return Visit(statements[0]);
             }
@@ -212,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 return SwitchExpression(
                     switchStatement.Expression.Parenthesize(),
                     Token(leading: default, SyntaxKind.SwitchKeyword, node.CloseParenToken.TrailingTrivia),
-                    Token(SyntaxKind.OpenBraceToken),
+                    Token(leading: default, SyntaxKind.OpenBraceToken, node.OpenBraceToken.TrailingTrivia),
                     SeparatedList(
                         switchArms.Select(t => t.armExpression.WithLeadingTrivia(t.tokensForLeadingTrivia.GetTrivia().FilterComments(addElasticMarker: false))),
                         switchArms.Select(t => Token(SyntaxKind.CommaToken).WithTrailingTrivia(t.tokensForTrailingTrivia.GetTrivia().FilterComments(addElasticMarker: true)))),

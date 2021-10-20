@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
@@ -322,6 +324,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => UnderlyingMethod.ReturnNotNullIfParameterNotNull;
 
         public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => UnderlyingMethod.FlowAnalysisAnnotations;
+
+        internal sealed override ImmutableArray<string> NotNullMembers => UnderlyingMethod.NotNullMembers;
+
+        internal sealed override ImmutableArray<string> NotNullWhenTrueMembers => UnderlyingMethod.NotNullWhenTrueMembers;
+
+        internal sealed override ImmutableArray<string> NotNullWhenFalseMembers => UnderlyingMethod.NotNullWhenFalseMembers;
 
         internal override bool ReturnValueIsMarshalledExplicitly
         {

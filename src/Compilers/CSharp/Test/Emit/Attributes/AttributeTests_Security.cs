@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -34,7 +36,7 @@ public struct EventDescriptor
             Func<bool, Action<ModuleSymbol>> attributeValidator = isFromSource => (ModuleSymbol module) =>
             {
                 var assembly = module.ContainingAssembly;
-                var type = (Cci.ITypeDefinition)module.GlobalNamespace.GetMember("EventDescriptor");
+                var type = (Cci.ITypeDefinition)module.GlobalNamespace.GetMember("EventDescriptor").GetCciAdapter();
 
                 if (isFromSource)
                 {
@@ -759,7 +761,7 @@ namespace N
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular9);
             CompileAndVerify(compilation, symbolValidator: module =>
             {
                 ValidateDeclSecurity(module, new DeclSecurityEntry
@@ -767,6 +769,44 @@ namespace N
                     ActionFlags = DeclarativeSecurityAction.Demand,
                     ParentKind = SymbolKind.Method,
                     ParentNameOpt = @"<M>g__local1|0_0",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User1", // argument value (@"User1")
+                });
+            });
+        }
+
+        [Fact]
+        public void CheckSecurityAttributeOnLambda()
+        {
+            string source =
+@"using System;
+using System.Security.Permissions;
+class Program
+{
+    static void Main()
+    {
+        Action a = [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")] () => { };
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                ValidateDeclSecurity(module, new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Demand,
+                    ParentKind = SymbolKind.Method,
+                    ParentNameOpt = @"<Main>b__0_0",
                     PermissionSet =
                         "." + // always start with a dot
                         "\u0001" + // number of attributes (small enough to fit in 1 byte)

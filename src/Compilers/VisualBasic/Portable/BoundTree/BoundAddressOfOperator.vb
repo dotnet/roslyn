@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundAddressOfOperator
+    Partial Friend Class BoundAddressOfOperator
 
         Private ReadOnly _delegateResolutionResultCache As New ConcurrentDictionary(Of TypeSymbol, Binder.DelegateResolutionResult)()
 

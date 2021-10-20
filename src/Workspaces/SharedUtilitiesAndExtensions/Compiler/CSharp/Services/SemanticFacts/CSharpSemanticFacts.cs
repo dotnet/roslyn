@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,15 +15,15 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class CSharpSemanticFacts : ISemanticFacts
+    internal sealed partial class CSharpSemanticFacts : ISemanticFacts
     {
-        internal static readonly CSharpSemanticFacts Instance = new CSharpSemanticFacts();
+        internal static readonly CSharpSemanticFacts Instance = new();
 
         private CSharpSemanticFacts()
         {
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool ExposesAnonymousFunctionParameterNames => false;
 
         public bool IsWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
-            => (node as ExpressionSyntax).IsWrittenTo();
+            => (node as ExpressionSyntax).IsWrittenTo(semanticModel, cancellationToken);
 
         public bool IsOnlyWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
             => (node as ExpressionSyntax).IsOnlyWrittenTo();
@@ -49,9 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken)
             => (expression as ExpressionSyntax).CanReplaceWithRValue(semanticModel, cancellationToken);
 
-        public string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken)
-            => semanticModel.GenerateNameForExpression((ExpressionSyntax)expression, capitalize, cancellationToken);
-
         public ISymbol GetDeclaredSymbol(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
         {
             var location = token.GetLocation();
@@ -59,12 +58,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var ancestor in token.GetAncestors<SyntaxNode>())
             {
                 var symbol = semanticModel.GetDeclaredSymbol(ancestor, cancellationToken);
-
                 if (symbol != null)
                 {
-                    if (symbol.Locations.Contains(location))
+                    if (symbol is IMethodSymbol { MethodKind: MethodKind.Conversion })
                     {
-                        return symbol;
+                        // The token may be part of a larger name (for example, `int` in `public static operator int[](Goo g);`.
+                        // So check if the symbol's location encompasses the span of the token we're asking about.
+                        if (symbol.Locations.Any(loc => loc.SourceTree == location.SourceTree && loc.SourceSpan.Contains(location.SourceSpan)))
+                            return symbol;
+                    }
+                    else
+                    {
+                        // For any other symbols, we only care if the name directly matches the span of the token
+                        if (symbol.Locations.Contains(location))
+                            return symbol;
                     }
 
                     // We found some symbol, but it defined something else. We're not going to have a higher node defining _another_ symbol with this token, so we can stop now.
@@ -103,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(oldNode.Kind() == newNode.Kind());
 
             var model = oldSemanticModel;
-            if (!(oldNode is BaseMethodDeclarationSyntax oldMethod) || !(newNode is BaseMethodDeclarationSyntax newMethod) || oldMethod.Body == null)
+            if (oldNode is not BaseMethodDeclarationSyntax oldMethod || newNode is not BaseMethodDeclarationSyntax newMethod || oldMethod.Body == null)
             {
                 speculativeModel = null;
                 return false;
@@ -126,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ImmutableHashSet.CreateBuilder<string>(StringComparer.Ordinal);
 
             AppendAliasNames(root.Usings, builder);
-            AppendAliasNames(root.Members.OfType<NamespaceDeclarationSyntax>(), builder, cancellationToken);
+            AppendAliasNames(root.Members.OfType<BaseNamespaceDeclarationSyntax>(), builder, cancellationToken);
 
             return builder.ToImmutable();
         }
@@ -144,14 +151,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AppendAliasNames(IEnumerable<NamespaceDeclarationSyntax> namespaces, ImmutableHashSet<string>.Builder builder, CancellationToken cancellationToken)
+        private void AppendAliasNames(IEnumerable<BaseNamespaceDeclarationSyntax> namespaces, ImmutableHashSet<string>.Builder builder, CancellationToken cancellationToken)
         {
             foreach (var @namespace in namespaces)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 AppendAliasNames(@namespace.Usings, builder);
-                AppendAliasNames(@namespace.Members.OfType<NamespaceDeclarationSyntax>(), builder, cancellationToken);
+                AppendAliasNames(@namespace.Members.OfType<BaseNamespaceDeclarationSyntax>(), builder, cancellationToken);
             }
         }
 
@@ -188,9 +195,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node is AssignmentExpressionSyntax assignment && assignment.IsDeconstruction())
             {
-                var builder = ArrayBuilder<IMethodSymbol>.GetInstance();
-                FlattenDeconstructionMethods(semanticModel.GetDeconstructionInfo(assignment), builder);
-                return builder.ToImmutableAndFree();
+                using var builder = TemporaryArray<IMethodSymbol>.Empty;
+                FlattenDeconstructionMethods(semanticModel.GetDeconstructionInfo(assignment), ref builder.AsRef());
+                return builder.ToImmutableAndClear();
             }
 
             return ImmutableArray<IMethodSymbol>.Empty;
@@ -200,15 +207,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node is ForEachVariableStatementSyntax @foreach)
             {
-                var builder = ArrayBuilder<IMethodSymbol>.GetInstance();
-                FlattenDeconstructionMethods(semanticModel.GetDeconstructionInfo(@foreach), builder);
-                return builder.ToImmutableAndFree();
+                using var builder = TemporaryArray<IMethodSymbol>.Empty;
+                FlattenDeconstructionMethods(semanticModel.GetDeconstructionInfo(@foreach), ref builder.AsRef());
+                return builder.ToImmutableAndClear();
             }
 
             return ImmutableArray<IMethodSymbol>.Empty;
         }
 
-        private static void FlattenDeconstructionMethods(DeconstructionInfo deconstruction, ArrayBuilder<IMethodSymbol> builder)
+        private static void FlattenDeconstructionMethods(DeconstructionInfo deconstruction, ref TemporaryArray<IMethodSymbol> builder)
         {
             var method = deconstruction.Method;
             if (method != null)
@@ -218,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var nested in deconstruction.Nested)
             {
-                FlattenDeconstructionMethods(nested, builder);
+                FlattenDeconstructionMethods(nested, ref builder);
             }
         }
 
@@ -311,6 +318,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return queryInfo.OperationInfo;
+                case IdentifierNameSyntax { Parent: PrimaryConstructorBaseTypeSyntax baseType }:
+                    return semanticModel.GetSymbolInfo(baseType, cancellationToken);
             }
 
             //Only in the orderby clause a comma can bind to a symbol.

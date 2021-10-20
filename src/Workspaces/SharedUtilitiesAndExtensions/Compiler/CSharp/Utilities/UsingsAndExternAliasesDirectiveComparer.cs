@@ -5,10 +5,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
-    internal class UsingsAndExternAliasesDirectiveComparer : IComparer<SyntaxNode>
+    internal class UsingsAndExternAliasesDirectiveComparer : IComparer<SyntaxNode?>
     {
         public static readonly IComparer<SyntaxNode> NormalInstance = new UsingsAndExternAliasesDirectiveComparer(
             NameSyntaxComparer.Create(TokenComparer.NormalInstance),
@@ -25,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             IComparer<NameSyntax> nameComparer,
             IComparer<SyntaxToken> tokenComparer)
         {
-            Debug.Assert(nameComparer != null);
-            Debug.Assert(tokenComparer != null);
+            RoslynDebug.AssertNotNull(nameComparer);
+            RoslynDebug.AssertNotNull(tokenComparer);
             _nameComparer = nameComparer;
             _tokenComparer = tokenComparer;
         }
@@ -34,34 +35,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         private enum UsingKind
         {
             Extern,
+            GlobalNamespace,
+            GlobalUsingStatic,
+            GlobalAlias,
             Namespace,
             UsingStatic,
             Alias
         }
 
-        private static UsingKind GetUsingKind(UsingDirectiveSyntax usingDirective, ExternAliasDirectiveSyntax externDirective)
+        private static UsingKind GetUsingKind(UsingDirectiveSyntax? usingDirective, ExternAliasDirectiveSyntax? externDirective)
         {
             if (externDirective != null)
             {
                 return UsingKind.Extern;
             }
-            if (usingDirective.Alias != null)
+            else
             {
-                return UsingKind.Alias;
+                RoslynDebug.AssertNotNull(usingDirective);
             }
-            if (usingDirective.StaticKeyword != default)
+
+            if (usingDirective.GlobalKeyword != default)
             {
-                return UsingKind.UsingStatic;
+                if (usingDirective.Alias != null)
+                    return UsingKind.GlobalAlias;
+
+                if (usingDirective.StaticKeyword != default)
+                    return UsingKind.GlobalUsingStatic;
+
+                return UsingKind.GlobalNamespace;
             }
-            return UsingKind.Namespace;
+            else
+            {
+                if (usingDirective.Alias != null)
+                    return UsingKind.Alias;
+
+                if (usingDirective.StaticKeyword != default)
+                    return UsingKind.UsingStatic;
+
+                return UsingKind.Namespace;
+            }
         }
 
-        public int Compare(SyntaxNode directive1, SyntaxNode directive2)
+        public int Compare(SyntaxNode? directive1, SyntaxNode? directive2)
         {
+            if (directive1 is null)
+                return directive2 is null ? 0 : -1;
+            else if (directive2 is null)
+                return 1;
+
             if (directive1 == directive2)
-            {
                 return 0;
-            }
 
             var using1 = directive1 as UsingDirectiveSyntax;
             var using2 = directive2 as UsingDirectiveSyntax;
@@ -88,10 +111,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 case UsingKind.Extern:
                     // they're externs, sort by the alias
-                    return _tokenComparer.Compare(extern1.Identifier, extern2.Identifier);
+                    return _tokenComparer.Compare(extern1!.Identifier, extern2!.Identifier);
 
                 case UsingKind.Alias:
-                    var aliasComparisonResult = _tokenComparer.Compare(using1.Alias.Name.Identifier, using2.Alias.Name.Identifier);
+                    var aliasComparisonResult = _tokenComparer.Compare(using1!.Alias!.Name.Identifier, using2!.Alias!.Name.Identifier);
 
                     if (aliasComparisonResult == 0)
                     {
@@ -100,9 +123,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     }
 
                     return aliasComparisonResult;
-            }
 
-            return _nameComparer.Compare(using1.Name, using2.Name);
+                default:
+                    return _nameComparer.Compare(using1!.Name, using2!.Name);
+            }
         }
     }
 }

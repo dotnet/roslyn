@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -71,8 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            if (symbolInfo.CandidateReason == CandidateReason.Ambiguous ||
-                symbolInfo.CandidateReason == CandidateReason.MemberGroup)
+            if (symbolInfo.CandidateReason is CandidateReason.Ambiguous or
+                CandidateReason.MemberGroup)
             {
                 return TryClassifyAmbiguousSymbol(name, symbolInfo, semanticModel, result, cancellationToken);
             }
@@ -214,6 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                         classifiedSpan = new ClassifiedSpan(token.Span, classification);
                         return true;
                     }
+
                     break;
 
                 case IFieldSymbol fieldSymbol:

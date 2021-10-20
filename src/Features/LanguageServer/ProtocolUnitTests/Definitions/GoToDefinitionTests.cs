@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -27,9 +29,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         var len = {|caret:|}aString.Length;
     }
 }";
-            using var workspace = CreateTestWorkspace(markup, out var locations);
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
 
-            var results = await RunGotoDefinitionAsync(workspace.CurrentSolution, locations["caret"].Single());
+            var results = await RunGotoDefinitionAsync(testLspServer, locations["caret"].Single());
             AssertLocationsEqual(locations["definition"], results);
         }
 
@@ -54,9 +56,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
 }"
             };
 
-            using var workspace = CreateTestWorkspace(markups, out var locations);
+            using var testLspServer = CreateTestLspServer(markups, out var locations);
 
-            var results = await RunGotoDefinitionAsync(workspace.CurrentSolution, locations["caret"].Single());
+            var results = await RunGotoDefinitionAsync(testLspServer, locations["caret"].Single());
             AssertLocationsEqual(locations["definition"], results);
         }
 
@@ -72,12 +74,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         var len = aString.Length;
     }
 }";
-            using var workspace = CreateTestWorkspace(string.Empty, out var _);
+            using var testLspServer = CreateTestLspServer(string.Empty, out var _);
 
-            AddMappedDocument(workspace, markup);
+            AddMappedDocument(testLspServer.TestWorkspace, markup);
 
             var position = new LSP.Position { Line = 5, Character = 18 };
-            var results = await RunGotoDefinitionAsync(workspace.CurrentSolution, new LSP.Location
+            var results = await RunGotoDefinitionAsync(testLspServer, new LSP.Location
             {
                 Uri = new Uri($"C:\\{TestSpanMapper.GeneratedFileName}"),
                 Range = new LSP.Range { Start = position, End = position }
@@ -96,14 +98,59 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         var len = aString.Length;
     }
 }";
-            using var workspace = CreateTestWorkspace(markup, out var locations);
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
 
-            var results = await RunGotoDefinitionAsync(workspace.CurrentSolution, locations["caret"].Single());
+            var results = await RunGotoDefinitionAsync(testLspServer, locations["caret"].Single());
             Assert.Empty(results);
         }
 
-        private static async Task<LSP.Location[]> RunGotoDefinitionAsync(Solution solution, LSP.Location caret)
-            => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentDefinitionName,
-                CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
+        [Fact, WorkItem(1264627, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1264627")]
+        public async Task TestGotoDefinitionAsync_NoResultsOnNamespace()
+        {
+            var markup =
+@"namespace {|caret:M|}
+{
+    class A
+    {
+    }
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+
+            var results = await RunGotoDefinitionAsync(testLspServer, locations["caret"].Single());
+            Assert.Empty(results);
+        }
+
+        [Fact]
+        public async Task TestGotoDefinitionCrossLanguage()
+        {
+            var markup =
+@"<Workspace>
+    <Project Language=""C#"" Name=""Definition"" CommonReferences=""true"">
+        <Document>
+            public class {|definition:A|}
+            {
+            }
+        </Document>
+    </Project>
+    <Project Language=""Visual Basic"" CommonReferences=""true"">
+        <ProjectReference>Definition</ProjectReference>
+        <Document>
+            Class C
+                Dim a As {|caret:A|}
+            End Class
+        </Document>
+    </Project>
+</Workspace>";
+            using var testLspServer = CreateMultiProjectLspServer(markup, out var locations);
+
+            var results = await RunGotoDefinitionAsync(testLspServer, locations["caret"].Single());
+            AssertLocationsEqual(locations["definition"], results);
+        }
+
+        private static async Task<LSP.Location[]> RunGotoDefinitionAsync(TestLspServer testLspServer, LSP.Location caret)
+        {
+            return await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentDefinitionName,
+                           CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
+        }
     }
 }

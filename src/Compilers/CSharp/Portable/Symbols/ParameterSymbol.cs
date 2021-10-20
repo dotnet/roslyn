@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override sealed Symbol OriginalSymbolDefinition
+        protected sealed override Symbol OriginalSymbolDefinition
         {
             get
             {
@@ -129,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns true if the parameter is semantically optional.
         /// </summary>
         /// <remarks>
-        /// True iff the parameter has a default argument syntax, 
+        /// True if and only if the parameter has a default argument syntax, 
         /// or the parameter is not a params-array and Optional metadata flag is set.
         /// </remarks>
         public bool IsOptional
@@ -235,6 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
         /// <summary>
         /// Returns the default value constant of the parameter, 
         /// or null if the parameter doesn't have a default value or 
@@ -246,7 +249,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// This is used for emitting.  It does not reflect the language semantics
         /// (i.e. even non-optional parameters can have default values).
         /// </remarks>
-        internal abstract ConstantValue ExplicitDefaultConstantValue { get; }
+        internal abstract ConstantValue? ExplicitDefaultConstantValue { get; }
+#nullable disable
 
         /// <summary>
         /// Gets the kind of this symbol.
@@ -396,9 +400,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool IsCallerMemberName { get; }
 
+        internal abstract int CallerArgumentExpressionParameterIndex { get; }
+
         internal abstract FlowAnalysisAnnotations FlowAnalysisAnnotations { get; }
 
         internal abstract ImmutableHashSet<string> NotNullIfParameterNotNull { get; }
+
+        /// <summary>
+        /// Indexes of the parameters that will be passed to the constructor of the interpolated string handler type
+        /// when an interpolated string handler conversion occurs. These indexes are ordered in the order to be passed
+        /// to the constructor.
+        /// <para/>
+        /// Indexes greater than or equal to 0 are references to parameters defined on the containing method or indexer.
+        /// Indexes less than 0 are constants defined on <see cref="BoundInterpolatedStringArgumentPlaceholder"/>.
+        /// </summary>
+        internal abstract ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes { get; }
+
+        /// <summary>
+        /// True if the parameter is attributed with <c>InterpolatedStringHandlerArgumentAttribute</c> and the attribute
+        /// has some error (such as invalid names).
+        /// </summary>
+        internal abstract bool HasInterpolatedStringHandlerArgumentError { get; }
 
         protected sealed override int HighestPriorityUseSiteError
         {
@@ -412,9 +434,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                DiagnosticInfo info = null;
-                DeriveUseSiteDiagnosticFromParameter(ref info, this);
-                return (object)info != null && info.Code == (int)ErrorCode.ERR_BogusType;
+                UseSiteInfo<AssemblySymbol> info = default;
+                DeriveUseSiteInfoFromParameter(ref info, this);
+                return info.DiagnosticInfo?.Code == (int)ErrorCode.ERR_BogusType;
             }
         }
 

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
     public class InlineTemporaryTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new InlineTemporaryCodeRefactoringProvider();
+            => new CSharpInlineTemporaryCodeRefactoringProvider();
 
         private async Task TestFixOneAsync(string initial, string expected)
             => await TestInRegularAndScript1Async(GetTreeText(initial), GetTreeText(expected));
@@ -339,6 +338,62 @@ class C
 ");
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.CSharp9)]
+        public async Task Conversion_NonTargetTypedConditionalExpression(LanguageVersion languageVersion)
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void F()
+    {
+        int? [||]x = 42;
+        var y = true ? x : null;
+    }
+}
+",
+
+@"
+class C
+{
+    void F()
+    {
+        var y = true ? (int?)42 : null;
+    }
+}
+", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [InlineData(LanguageVersion.CSharp8, "(int?)42")]
+        [InlineData(LanguageVersion.CSharp9, "42")] // In C# 9, target-typed conditionals makes this work
+        public async Task Conversion_TargetTypedConditionalExpression(LanguageVersion languageVersion, string expectedSubstitution)
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void F()
+    {
+        int? [||]x = 42;
+        int? y = true ? x : null;
+    }
+}
+",
+
+@"
+class C
+{
+    void F()
+    {
+        int? y = true ? " + expectedSubstitution + @" : null;
+    }
+}
+", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NoCastOnVar()
         {
@@ -363,16 +418,7 @@ class C
     }
 }";
 
-            var expected = @"
-class C
-{
-    void M()
-    {
-        int y = 1;
-    }
-}";
-
-            await TestInRegularAndScriptAsync(code, expected);
+            await TestMissingAsync(code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -585,7 +631,7 @@ class Program
     static void Main()
     {
         int x = 2;
-        Bar(x < x, (x > (1 + 2)));
+        Bar(x < x, x > 1 + 2);
     }
 
     static void Bar(object a, object b)
@@ -615,7 +661,7 @@ class Program
     static void Main()
     {
         int x = 2;
-        var z = new[] { x < x, (x > (1 + 2)) };
+        var z = new[] { x < x, x > 1 + 2 };
     }
 }");
         }
@@ -857,20 +903,7 @@ class C
     }
 }";
 
-            var expected =
-@"using System;
-class C
-{
-    static int x;
-
-    static void M()
-    {
-        int x = ({|Conflict:x|} = 0) + ({|Conflict:x|} += 1);
-        int y = 0 + ({|Conflict:x|} += 1);
-    }
-}";
-
-            await TestInRegularAndScriptAsync(initial, expected);
+            await TestMissingAsync(initial);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -2076,7 +2109,7 @@ class C
     static void Main()
     {
         Action<string> g = null;
-        var h = Goo + g;
+        var h = (Goo<string>) + g;
     }
 
     static void Goo<T>(T y) { }
@@ -2234,7 +2267,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine((Func<int?, int?>)((int? s) => { return s; }));
+        Console.WriteLine((int? s) => { return s; });
     }
 }");
         }
@@ -2313,7 +2346,7 @@ class C
 {
     static void Main()
     {
-        Goo((Action<int[]>)(x => { x[1] = x[0]; }));
+        Goo(x => { x[1] = (int)x[0]; });
     }
  
     static void Goo(Action<int[]> x) { }
@@ -2509,7 +2542,7 @@ class A<T>
         }
 
         [WorkItem(545170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545170")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCorrectCastForDelegateCreationExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -2595,7 +2628,7 @@ class Program
 {
     static void Main()
     {
-        foreach (var x in ""abc"")
+        foreach (var x in (IEnumerable<char>)""abc"")
             Console.WriteLine(x);
     }
 }
@@ -2792,7 +2825,7 @@ class C
 {
     static void M()
     {
-        Goo(() => { return 42; }, (Func<long>)(() => { return 42; }));
+        Goo(() => { return 42; }, () => { return (long)42; });
     }
 
     static void Goo(Func<int> x, Func<int> y) { }
@@ -2843,7 +2876,7 @@ class C
 
     void M()
     {
-        Console.WriteLine(42 + (C)42);
+        Console.WriteLine((C)42 + (C)42);
     }
 
     public static int operator +(C x, C y)
@@ -2902,7 +2935,7 @@ class X
     {
         unchecked
         {
-            Console.WriteLine(Goo(X => (byte)X.Value, (object)null));
+            Console.WriteLine(Goo(X => (byte)X.Value, null));
         }
     }
 }");
@@ -2949,7 +2982,7 @@ static class C
     {
         unsafe
         {
-            Console.WriteLine(Outer(x => Inner(x, null), (object)null));
+            Console.WriteLine(Outer(x => Inner(x, null), null));
         }
     }
 }");
@@ -2988,10 +3021,10 @@ class C
 
     static void Main()
     {
-        Goo((Action<string>)(x =>
+        Goo(x =>
         {
-            var y = x;
-        }));
+            var y = (string)x;
+        });
     }
 }");
         }
@@ -3289,7 +3322,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InlineTempDoesNotInsertUnnecessaryExplicitTypeInLambdaParameter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
             @"
 using System;
 
@@ -3323,7 +3356,7 @@ static class C
 
     static void Main()
     {
-        Outer(y => Inner(x => { Action a = () => x.GetType(); }, y), null);
+        Outer(y => Inner(x => { Action a = () => ((string)x).GetType(); }, y), null);
     }
 }
 ");
@@ -3727,8 +3760,6 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task CastInterpolatedStringWhenInliningIntoInvalidCall()
         {
-            // Note: This is an error case.  This test just demonstrates our current behavior.  It
-            // is ok if this behavior changes in the future in response to an implementation change.
             await TestInRegularAndScriptAsync(
 @"class C
 {
@@ -3742,7 +3773,7 @@ class C
 {
     public void M()
     {
-        var s2 = string.Replace((string)$""hello"", ""world"");
+        var s2 = string.Replace($""hello"", ""world"");
     }
 }");
         }
@@ -4279,7 +4310,7 @@ class C
     void M()
     {
         int i = C.y;
-        var t = (({|Conflict:(int)C.y|}, ({|Conflict:(int)C.y|}, _)) = (1, (C.y, 3)));
+        var t = (({|Conflict:i|}, ({|Conflict:i|}, _)) = (1, (i: C.y, 3)));
     }
 }";
             await TestInRegularAndScriptAsync(code, expected);
@@ -4306,7 +4337,7 @@ class C
     void M()
     {
         int i = C.y;
-        var t = (({|Conflict:(int)C.y|}, _) = (1, 2));
+        var t = (({|Conflict:i|}, _) = (1, 2));
     }
 }";
             await TestInRegularAndScriptAsync(code, expected);
@@ -4385,7 +4416,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public async Task ExplicitTupleNameAdded_DoNotEscapeContextualKeywords()
+        public async Task ExplicitTupleNameAdded_KeepEscapedName()
         {
             var code = @"
 class C
@@ -4402,7 +4433,7 @@ class C
 {
     void M()
     {
-        var t = (where: 1 + 2, 3);
+        var t = (@where: 1 + 2, 3);
     }
 }";
             await TestInRegularAndScriptAsync(code, expected);
@@ -5063,8 +5094,8 @@ class C
 
     void M()
     {
-        {|Warning:(new C()).P = 1|};
-        var c2 = (new C());
+        {|Warning:new C().P = 1|};
+        var c2 = new C();
     }
 }");
         }
@@ -5250,7 +5281,7 @@ namespace System.Runtime.CompilerServices
     public sealed class IsExternalInit
     {
     }
-}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -5290,7 +5321,7 @@ System.Console.WriteLine(val2);
 
             var expected = @"
 int val = 0;
-global::System.Console.WriteLine(val + 1);
+System.Console.WriteLine((int)(val + 1));
 ";
 
             // Global statements in regular code are local variables, so Inline Temporary works. Script code is not
@@ -5315,10 +5346,87 @@ global::System.Console.WriteLine(val + 1);
 @"
 {
     int val = 0;
-    global::System.Console.WriteLine(val + 1);
+    System.Console.WriteLine((int)(val + 1));
 }
 ",
                 TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestWithLinkedFile()
+        {
+            await TestInRegularAndScript1Async(
+@"<Workspace>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>
+        <Document FilePath='C.cs'>
+using System.Collections.Generic;
+namespace Whatever
+{
+    public class Goo
+    {
+        public void Bar()
+        {
+            var target = new List&lt;object;gt>();
+            var [||]newItems = new List&lt;Goo&gt;();
+            target.AddRange(newItems);
+        }
+    }
+}
+        </Document>
+    </Project>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.2'>
+        <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C.cs'/>
+    </Project>
+</Workspace>",
+@"<Workspace>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>
+        <Document FilePath='C.cs'>
+using System.Collections.Generic;
+namespace Whatever
+{
+    public class Goo
+    {
+        public void Bar()
+        {
+            var target = new List&lt;object;gt>();
+            target.AddRange(new List&lt;Goo&gt;());
+        }
+    }
+}
+        </Document>
+    </Project>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.2'>
+        <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C.cs'/>
+    </Project>
+</Workspace>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(50207, "https://github.com/dotnet/roslyn/issues/50207")]
+        public async Task TestImplicitObjectCreation()
+        {
+            var code = @"
+class MyClass
+{
+    void Test()
+    {
+        MyClass [||]myClass = new();
+        myClass.ToString();
+    }
+}
+";
+
+            var expected = @"
+class MyClass
+{
+    void Test()
+    {
+        new MyClass().ToString();
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
     }
 }

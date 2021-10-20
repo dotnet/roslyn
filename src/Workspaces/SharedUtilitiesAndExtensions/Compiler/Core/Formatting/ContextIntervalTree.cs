@@ -2,11 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -32,16 +29,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             _containPredicate = (value, start, end) => Contains(value, start, end, in Introspector);
         }
 
-        [return: MaybeNull]
-        public T GetSmallestEdgeExclusivelyContainingInterval(int start, int length)
+        public T? GetSmallestEdgeExclusivelyContainingInterval(int start, int length)
             => GetSmallestContainingIntervalWorker(start, length, _edgeExclusivePredicate);
 
-        [return: MaybeNull]
-        public T GetSmallestEdgeInclusivelyContainingInterval(int start, int length)
+        public T? GetSmallestEdgeInclusivelyContainingInterval(int start, int length)
             => GetSmallestContainingIntervalWorker(start, length, _edgeInclusivePredicate);
 
-        [return: MaybeNull]
-        public T GetSmallestContainingInterval(int start, int length)
+        public T? GetSmallestContainingInterval(int start, int length)
             => GetSmallestContainingIntervalWorker(start, length, _containPredicate);
 
         private bool ContainsEdgeExclusive(T value, int start, int length)
@@ -66,8 +60,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return thisStart <= otherStart && otherEnd <= thisEnd;
         }
 
-        [return: MaybeNull]
-        private T GetSmallestContainingIntervalWorker(int start, int length, Func<T, int, int, bool> predicate)
+        private T? GetSmallestContainingIntervalWorker(int start, int length, Func<T, int, int, bool> predicate)
         {
             var result = default(T);
             if (root == null || MaxEndValue(root) < start)

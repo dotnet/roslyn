@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -72,8 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Assert.True(cs != null || csSimple != null || vb != null || vbSimple != null,
                 $"At least one of {nameof(cs)}, {nameof(csSimple)}, {nameof(vb)}, {nameof(vbSimple)} must be provided");
 
-            var hostServices = VisualStudioMefHostServices.Create(TestExportProvider.ExportProviderWithCSharpAndVisualBasic);
-            var workspace = new AdhocWorkspace(hostServices);
+            using var workspace = new AdhocWorkspace();
 
             if (cs != null || csSimple != null)
             {

@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
+Imports System.Linq
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
 Imports System.Security.Cryptography
@@ -12,7 +13,6 @@ Imports System.Threading
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Emit
-Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -27,6 +27,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CompilationAPITests
         Inherits BasicTestBase
 
+        Private Function WithDiagnosticOptions(
+            tree As SyntaxTree,
+            ParamArray options As (string, ReportDiagnostic)()) As VisualBasicCompilationOptions
+
+            Return TestOptions.DebugDll.
+                WithSyntaxTreeOptionsProvider(new TestSyntaxTreeOptionsProvider(tree, options))
+        End Function
+
         <Fact>
         Public Sub PerTreeVsGlobalSuppress()
             Dim tree = SyntaxFactory.ParseSyntaxTree("
@@ -40,7 +48,8 @@ End Class")
             Dim comp = CreateCompilationWithMscorlib45({tree}, options:=options)
             comp.AssertNoDiagnostics()
 
-            tree = tree.WithDiagnosticOptions(CreateImmutableDictionary(("BC42024", ReportDiagnostic.Warn)))
+            options = options.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(tree, ("BC42024", ReportDiagnostic.Warn)))
             comp = CreateCompilationWithMscorlib45({tree}, options:=options)
             ' Global options override syntax tree options. This is the opposite of C# behavior
             comp.AssertNoDiagnostics()
@@ -55,7 +64,7 @@ Class C
     End Sub
 End Class")
 
-            Dim comp = CreateCompilationWithMscorlib45({tree}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilation({tree}, options:=TestOptions.DebugDll)
             comp.AssertTheseDiagnostics(
                 <errors>
 BC42024: Unused local variable: 'x'.
@@ -63,8 +72,9 @@ BC42024: Unused local variable: 'x'.
             ~
                 </errors>)
 
-            Dim newTree = tree.WithDiagnosticOptions(CreateImmutableDictionary(("BC42024", ReportDiagnostic.Suppress)))
-            Dim comp2 = CreateCompilationWithMscorlib45({newTree}, options:=TestOptions.DebugDll)
+
+            Dim options = WithDiagnosticOptions(tree, ("BC42024", ReportDiagnostic.Suppress))
+            Dim comp2 = CreateCompilation({tree}, options:=options)
             comp2.AssertNoDiagnostics()
         End Sub
 
@@ -79,11 +89,11 @@ Class C
     End Sub
 End Class")
 
-            Dim comp = CreateCompilationWithMscorlib45({tree}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilation({tree}, options:=TestOptions.DebugDll)
             comp.AssertNoDiagnostics()
 
-            Dim newTree = tree.WithDiagnosticOptions(CreateImmutableDictionary(("BC42024", ReportDiagnostic.Error)))
-            Dim comp2 = CreateCompilationWithMscorlib45({newTree}, options:=TestOptions.DebugDll)
+            Dim options = WithDiagnosticOptions(tree, ("BC42024", ReportDiagnostic.Warn))
+            Dim comp2 = CreateCompilation({tree}, options:=options)
             ' Pragma should have precedence over per-tree options
             comp2.AssertNoDiagnostics()
         End Sub
@@ -102,16 +112,11 @@ End Class")
             Dim comp = CreateCompilationWithMscorlib45({tree}, options:=options)
             comp.AssertNoDiagnostics()
 
-            Dim newTree = tree.WithDiagnosticOptions(
-                CreateImmutableDictionary(("BC42024", ReportDiagnostic.Error)))
-            Dim comp2 = CreateCompilationWithMscorlib45({newTree}, options:=options)
-            ' Tree options should have precedence over specific diagnostic options
-            comp2.AssertTheseDiagnostics(
-                <errors>
-BC42024: Unused local variable: 'x'.
-        Dim x As Integer
-            ~
-                </errors>)
+            options = options.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(tree, ("BC42024", ReportDiagnostic.Error)))
+            Dim comp2 = CreateCompilationWithMscorlib45({tree}, options:=options)
+            ' Specific diagnostic options should have precedence over tree options
+            comp2.AssertNoDiagnostics()
         End Sub
 
         <Fact>
@@ -121,15 +126,19 @@ Class C
      Sub M()
         Dim x As Integer
     End Sub
-End Class").WithDiagnosticOptions(CreateImmutableDictionary(("BC42024", ReportDiagnostic.Suppress)))
+End Class")
             Dim newTree = SyntaxFactory.ParseSyntaxTree("
 Class D
      Sub M()
         Dim y As Integer
     End Sub
-End Class").WithDiagnosticOptions(CreateImmutableDictionary(("BC4024", ReportDiagnostic.Error)))
+End Class")
 
-            Dim comp = CreateCompilationWithMscorlib45({tree, newTree}, options:=TestOptions.DebugDll)
+            Dim options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
+                New TestSyntaxTreeOptionsProvider(
+                    (tree, {("BC42024", ReportDiagnostic.Suppress)}),
+                    (newTree, {("BC4024", ReportDiagnostic.Error)})))
+            Dim comp = CreateCompilationWithMscorlib45({tree, newTree}, options:=options)
             comp.AssertTheseDiagnostics(
                 <errors>
 BC42024: Unused local variable: 'y'.
@@ -140,23 +149,26 @@ BC42024: Unused local variable: 'y'.
 
         <Fact>
         Public Sub TreeOptionsComparerRespected()
-            Dim options = CreateImmutableDictionary(StringOrdinalComparer.Instance, ("bc42024", ReportDiagnostic.Suppress))
-
             Dim tree = SyntaxFactory.ParseSyntaxTree("
 Class C
      Sub M()
         Dim x As Integer
     End Sub
-End Class").WithDiagnosticOptions(options)
+End Class")
+            ' Default provider is case insensitive
+            Dim options = WithDiagnosticOptions(tree, ("bc42024", ReportDiagnostic.Suppress))
 
-            Dim newTree = SyntaxFactory.ParseSyntaxTree("
-Class D
-     Sub M()
-        Dim y As Integer
-    End Sub
-End Class").WithDiagnosticOptions(options.WithComparers(CaseInsensitiveComparison.Comparer))
+            Dim comp = CreateCompilation(tree, options:=options)
+            comp.AssertNoDiagnostics()
 
-            Dim comp = CreateCompilationWithMscorlib45({tree, newTree}, options:=TestOptions.DebugDll)
+            options = options.WithSyntaxTreeOptionsProvider(
+                New TestSyntaxTreeOptionsProvider(
+                    StringComparer.Ordinal,
+                    Nothing,
+                    (tree, {("bc42024", ReportDiagnostic.Suppress)}))
+            )
+
+            comp = CreateCompilation(tree, options:=options)
             comp.AssertTheseDiagnostics(
                 <errors>
 BC42024: Unused local variable: 'x'.
@@ -794,9 +806,7 @@ End Namespace
             Assert.Equal(Of Boolean)(True, b1)
 
             Dim xt As SyntaxTree = Nothing
-            Assert.Throws(Of ArgumentNullException)(Sub()
-                                                        b1 = comp.ContainsSyntaxTree(xt)
-                                                    End Sub)
+            Assert.Equal(Of Boolean)(False, comp.ContainsSyntaxTree(xt))
 
             comp = comp.RemoveSyntaxTrees({t2})
             Assert.Equal(1, comp.SyntaxTrees.Length)
@@ -1462,7 +1472,7 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             Dim compilation = VisualBasicCompilation.Create("HelloWorld")
             Assert.Throws(Of NotSupportedException)(Function() compilation.DynamicType)
             Assert.Throws(Of NotSupportedException)(Function() compilation.CreatePointerTypeSymbol(Nothing))
-            Assert.Throws(Of NotSupportedException)(Function() compilation.CreateFunctionPointerTypeSymbol(Nothing, Nothing, Nothing, Nothing))
+            Assert.Throws(Of NotSupportedException)(Function() compilation.CreateFunctionPointerTypeSymbol(Nothing, Nothing, Nothing, Nothing, Nothing, Nothing))
         End Sub
 
         <Fact>
@@ -2234,7 +2244,7 @@ End Class
             End Function
         End Class
 
-        <ConditionalFact(GetType(NoIOperationValidation))>
+        <ConditionalFact(GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation))>
         Public Sub MetadataConsistencyWhileEvolvingCompilation()
             Dim md1 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib40({"Public Class C : End Class"}, options:=TestOptions.ReleaseDll).EmitToArray())
             Dim md2 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib40({"Public Class D : End Class"}, options:=TestOptions.ReleaseDll).EmitToArray())
@@ -2515,6 +2525,142 @@ End Module
 
             compilation2.VerifyDiagnostics()
             CompileAndVerify(compilation2, expectedOutput:="1")
+        End Sub
+
+        <Fact, WorkItem(50696, "https://github.com/dotnet/roslyn/issues/50696")>
+        Public Sub GetWellKnownType()
+
+            Dim corlib = "
+Namespace System
+    Public Class [Object]
+    End Class
+    Public Class ValueType
+    End Class
+    Public Structure Void
+    End Structure
+End Namespace
+"
+
+
+            Dim tuple = "
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Dim Item1 As T1
+        Public Dim Item2 As T2
+
+        Public Sub New(item1 As T1, item2 As T2)
+            me.Item1 = item1
+            me.Item2 = item2
+        End Sub
+    End Structure
+End Namespace
+"
+
+            Dim corlibWithoutValueTupleRef = CreateEmptyCompilation(corlib, assemblyName:="corlibWithoutValueTupleRef").EmitToImageReference()
+            Dim corlibWithValueTupleRef = CreateEmptyCompilation(corlib + tuple, assemblyName:="corlibWithValueTupleRef").EmitToImageReference()
+
+            Dim libWithIsExternalInitRef = CreateEmptyCompilation(tuple, references:={corlibWithoutValueTupleRef}, assemblyName:="libWithIsExternalInit").EmitToImageReference()
+            Dim libWithIsExternalInitRef2 = CreateEmptyCompilation(tuple, references:={corlibWithoutValueTupleRef}, assemblyName:="libWithIsExternalInit2").EmitToImageReference()
+
+            If True Then
+                ' type in source
+                Dim comp = CreateEmptyCompilation(tuple, references:={corlibWithoutValueTupleRef}, assemblyName:="source")
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "source")
+            End If
+
+            If True Then
+                ' type in library
+                Dim comp = CreateEmptyCompilation("", references:={corlibWithoutValueTupleRef, libWithIsExternalInitRef}, assemblyName:="source")
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "libWithIsExternalInit")
+            End If
+
+            If True Then
+                ' type in corlib and in source
+                Dim comp = CreateEmptyCompilation(tuple, references:={corlibWithValueTupleRef}, assemblyName:="source")
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "source")
+            End If
+
+            If True Then
+                ' type in corlib, in library and in source
+                Dim comp = CreateEmptyCompilation(tuple, references:={corlibWithValueTupleRef, libWithIsExternalInitRef}, assemblyName:="source")
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "source")
+            End If
+
+            If True Then
+                ' type in corlib and in two libraries
+                Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef, libWithIsExternalInitRef2})
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
+            End If
+
+            If True Then
+                ' type in corlib and in two libraries (corlib in middle)
+                Dim comp = CreateEmptyCompilation("", references:={libWithIsExternalInitRef, corlibWithValueTupleRef, libWithIsExternalInitRef2})
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
+            End If
+
+            If True Then
+                ' type in corlib and in two libraries (corlib last)
+                Dim comp = CreateEmptyCompilation("", references:={libWithIsExternalInitRef, libWithIsExternalInitRef2, corlibWithValueTupleRef})
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
+            End If
+
+            If True Then
+                ' type in corlib and in two libraries, but flag is set
+                Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef, libWithIsExternalInitRef2},
+                    options:=TestOptions.DebugDll.WithIgnoreCorLibraryDuplicatedTypes(True))
+                AssertNoDeclarationDiagnostics(comp)
+                Assert.True(comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).IsErrorType)
+            End If
+
+            If True Then
+                ' type in two libraries
+                Dim comp = CreateEmptyCompilation("", references:={libWithIsExternalInitRef, libWithIsExternalInitRef2})
+                AssertNoDeclarationDiagnostics(comp)
+                Assert.True(comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).IsErrorType)
+            End If
+
+            If True Then
+                ' type in two libraries, but flag is set
+                Dim comp = CreateEmptyCompilation("", references:={libWithIsExternalInitRef, libWithIsExternalInitRef2},
+                    options:=TestOptions.DebugDll.WithIgnoreCorLibraryDuplicatedTypes(True))
+                AssertNoDeclarationDiagnostics(comp)
+                Assert.True(comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).IsErrorType)
+            End If
+
+            If True Then
+                ' type in corlib and in a library
+                Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef})
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
+            End If
+
+            If True Then
+                ' type in corlib and in a library (reverse order)
+                Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef})
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
+            End If
+
+            If True Then
+                ' type in corlib and in a library, but flag is set
+                Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef},
+                    options:=TestOptions.DebugDll.WithIgnoreCorLibraryDuplicatedTypes(True))
+                AssertNoDeclarationDiagnostics(comp)
+                Assert.Equal("libWithIsExternalInit", comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).ContainingAssembly.Name)
+                Assert.Equal("corlibWithValueTupleRef", comp.GetTypeByMetadataName("System.ValueTuple`2").ContainingAssembly.Name)
+            End If
+        End Sub
+
+        Private Shared Sub GetWellKnownType_Verify(comp As VisualBasicCompilation, expectedAssemblyName As String)
+            Assert.Equal(expectedAssemblyName, comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).ContainingAssembly.Name)
+            Assert.Equal(expectedAssemblyName, comp.GetTypeByMetadataName("System.ValueTuple`2").ContainingAssembly.Name)
         End Sub
 
     End Class

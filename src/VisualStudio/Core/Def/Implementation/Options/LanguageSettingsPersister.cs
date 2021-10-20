@@ -2,31 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using System.ComponentModel.Composition;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
+using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
-using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     /// <summary>
     /// An <see cref="IOptionPersister"/> that syncs core language settings against the settings that exist for all languages
     /// in Visual Studio and whose backing store is provided by the shell. This includes things like default tab size, tabs vs. spaces, etc.
+    /// 
+    /// TODO: replace with free-threaded impl: https://github.com/dotnet/roslyn/issues/56815
     /// </summary>
-    [Export(typeof(IOptionPersister))]
     internal sealed class LanguageSettingsPersister : ForegroundThreadAffinitizedObject, IVsTextManagerEvents4, IOptionPersister
     {
         private readonly IVsTextManager4 _textManager;
@@ -46,23 +45,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private readonly IBidirectionalMap<string, Tuple<Guid>> _languageMap;
 
         /// <remarks>
-        /// We make sure this code is from the UI by asking for all serializers on the UI thread in <see cref="HACK_AbstractCreateServicesOnUiThread"/>.
+        /// We make sure this code is from the UI by asking for all <see cref="IOptionPersister"/> in <see cref="RoslynPackage.InitializeAsync"/>
         /// </remarks>
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LanguageSettingsPersister(
             IThreadingContext threadingContext,
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            IVsTextManager4 textManager,
             IGlobalOptionService optionService)
             : base(threadingContext, assertIsForeground: true)
         {
-            _textManager = (IVsTextManager4)serviceProvider.GetService(typeof(SVsTextManager));
+            _textManager = textManager;
             _optionService = optionService;
 
             // TODO: make this configurable
             _languageMap = BidirectionalMap<string, Tuple<Guid>>.Empty.Add(LanguageNames.CSharp, Tuple.Create(Guids.CSharpLanguageServiceId))
                                                                .Add(LanguageNames.VisualBasic, Tuple.Create(Guids.VisualBasicLanguageServiceId))
-                                                               .Add("TypeScript", Tuple.Create(new Guid("4a0dddb5-7a95-4fbf-97cc-616d07737a77")))
+                                                               .Add(InternalLanguageNames.TypeScript, Tuple.Create(new Guid("4a0dddb5-7a95-4fbf-97cc-616d07737a77")))
                                                                .Add("F#", Tuple.Create(new Guid("BC6DD5A5-D4D6-4dab-A00D-A51242DBAF1B")))
                                                                .Add("Xaml", Tuple.Create(new Guid("CD53C9A1-6BC2-412B-BE36-CC715ED8DD41")));
 

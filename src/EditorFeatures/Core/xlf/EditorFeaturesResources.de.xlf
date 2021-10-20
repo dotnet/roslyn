@@ -27,6 +27,11 @@
         <target state="translated">Jetzt konfigurieren</target>
         <note />
       </trans-unit>
+      <trans-unit id="Do_not_prefer_this_or_Me">
+        <source>Do not prefer 'this.' or 'Me.'</source>
+        <target state="translated">"this." oder "Me." nicht bevorzugen</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Do_not_show_this_message_again">
         <source>Do not show this message again</source>
         <target state="translated">Diese Meldung nicht mehr anzeigen</target>
@@ -37,29 +42,9 @@
         <target state="translated">Möchten Sie dennoch fortfahren? Möglicherweise wird fehlerhafter Code generiert.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Downloading_IntelliSense_index_for_0">
-        <source>Downloading IntelliSense index for {0}</source>
-        <target state="new">Downloading IntelliSense index for {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Downloading_index_failed">
-        <source>Downloading index failed</source>
-        <target state="new">Downloading index failed</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Downloading_index_failed_0">
-        <source>Downloading index failed:{0}</source>
-        <target state="new">Downloading index failed:{0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_creating_instance_of_CodeFixProvider">
-        <source>Error creating instance of CodeFixProvider</source>
-        <target state="new">Error creating instance of CodeFixProvider</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
-        <source>Error creating instance of CodeFixProvider '{0}'</source>
-        <target state="new">Error creating instance of CodeFixProvider '{0}'</target>
+      <trans-unit id="Execute_Suggested_Action">
+        <source>Execute Suggested Action</source>
+        <target state="new">Execute Suggested Action</target>
         <note />
       </trans-unit>
       <trans-unit id="Expander_display_text">
@@ -87,14 +72,74 @@
         <target state="translated">Bei der Dokumentformatierung wurde eine zusätzliche Bereinigung durchgeführt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Get_help_for_0">
+        <source>Get help for '{0}'</source>
+        <target state="translated">Hilfe zu "{0}" abrufen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Get_help_for_0_from_Bing">
+        <source>Get help for '{0}' from Bing</source>
+        <target state="translated">Hilfe zu "{0}" von Bing abrufen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Gathering_Suggestions_0">
+        <source>Gathering Suggestions - '{0}'</source>
+        <target state="translated">Vorschläge werden gesammelt: "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load">
+        <source>Gathering Suggestions - Waiting for the solution to fully load</source>
+        <target state="translated">Vorschläge werden gesammelt. Es wird darauf gewartet, dass die Lösung vollständig geladen wird.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Go_To_Base">
         <source>Go To Base</source>
         <target state="translated">Zu Basis wechseln</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Parameter_Name_Hints">
-        <source>Inline Parameter Name Hints</source>
-        <target state="new">Inline Parameter Name Hints</target>
+      <trans-unit id="In_arithmetic_binary_operators">
+        <source>In arithmetic operators</source>
+        <target state="translated">In arithmetischen Operatoren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_binary_operators">
+        <source>In other binary operators</source>
+        <target state="translated">In anderen binären Operatoren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_relational_binary_operators">
+        <source>In relational operators</source>
+        <target state="translated">In relationalen Operatoren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_Size">
+        <source>Indentation Size</source>
+        <target state="translated">Einzugsgröße</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_Error">
+        <source>Inline Diagnostics - Error</source>
+        <target state="new">Inline Diagnostics - Error</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_Rude_Edit">
+        <source>Inline Diagnostics - Rude Edit</source>
+        <target state="new">Inline Diagnostics - Rude Edit</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_Warning">
+        <source>Inline Diagnostics - Warning</source>
+        <target state="new">Inline Diagnostics - Warning</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="translated">Inlinehinweise</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_Final_Newline">
+        <source>Insert Final Newline</source>
+        <target state="translated">Abschließenden Zeilenumbruch einfügen</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -112,9 +157,24 @@
         <target state="translated">Schlüsselwort – Steuerung</target>
         <note />
       </trans-unit>
+      <trans-unit id="Language_client_initialization_failed">
+        <source>{0} failed to initialize. Status = {1}. Exception = {2}</source>
+        <target state="new">{0} failed to initialize. Status = {1}. Exception = {2}</target>
+        <note>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</note>
+      </trans-unit>
       <trans-unit id="Locating_bases">
         <source>Locating bases...</source>
         <target state="translated">Basen werden gesucht...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_Line">
+        <source>New Line</source>
+        <target state="translated">Zeilenumbruch</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No">
+        <source>No</source>
+        <target state="translated">Nein</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -127,6 +187,16 @@
         <target state="translated">Nachverfolgung von Einfügevorgängen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
+        <source>Prefer 'is null' for reference equality checks</source>
+        <target state="translated">"is null" für Verweisübereinstimmungsprüfungen vorziehen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_this_or_Me">
+        <source>Prefer 'this.' or 'Me.'</source>
+        <target state="translated">"this." oder "Me." bevorzugen</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Preprocessor_Text">
         <source>Preprocessor Text</source>
         <target state="translated">Präprozessortext</target>
@@ -137,9 +207,29 @@
         <target state="translated">Interpunktion</target>
         <note />
       </trans-unit>
-      <trans-unit id="Removal_of_document_not_supported">
-        <source>Removal of document not supported</source>
-        <target state="translated">Das Entfernen des Dokuments wird nicht unterstützt.</target>
+      <trans-unit id="Qualify_event_access_with_this_or_Me">
+        <source>Qualify event access with 'this' or 'Me'</source>
+        <target state="translated">Ereigniszugriff mit "this" oder "Me" qualifizieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_field_access_with_this_or_Me">
+        <source>Qualify field access with 'this' or 'Me'</source>
+        <target state="translated">Feldzugriff mit "this" oder "Me" qualifizieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_method_access_with_this_or_Me">
+        <source>Qualify method access with 'this' or 'Me'</source>
+        <target state="translated">Methodenzugriff mit "this" oder "Me" qualifizieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_property_access_with_this_or_Me">
+        <source>Qualify property access with 'this' or 'Me'</source>
+        <target state="translated">Eigenschaftenzugriff mit "this" oder "Me" qualifizieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reassigned_variable">
+        <source>Reassigned variable</source>
+        <target state="translated">Neu zugewiesene Variable</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
@@ -157,6 +247,11 @@
         <target state="translated">_Datei des Symbols umbenennen</target>
         <note>Indicates that the file a symbol is defined in will also be renamed</note>
       </trans-unit>
+      <trans-unit id="Split_comment">
+        <source>Split comment</source>
+        <target state="translated">Kommentar teilen</target>
+        <note />
+      </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
         <target state="translated">Zeichenfolge - Escape-Zeichen</target>
@@ -165,6 +260,11 @@
       <trans-unit id="Symbol_Static">
         <source>Symbol - Static</source>
         <target state="translated">Symbol – statisch</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Tab_Size">
+        <source>Tab Size</source>
+        <target state="translated">Tabstoppgröße</target>
         <note />
       </trans-unit>
       <trans-unit id="The_symbol_has_no_base">
@@ -190,6 +290,11 @@
       <trans-unit id="Toggling_line_comment">
         <source>Toggling line comment...</source>
         <target state="translated">Kommentarzeile wird ein-/ausgeschaltet...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_Tabs">
+        <source>Use Tabs</source>
+        <target state="translated">Tabstopps verwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">
@@ -265,6 +370,16 @@
       <trans-unit id="User_Types_Interfaces">
         <source>User Types - Interfaces</source>
         <target state="translated">Benutzertypen - Schnittstellen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Record_Structs">
+        <source>User Types - Record Structs</source>
+        <target state="translated">Benutzertypen: Datensatzstrukturen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Records">
+        <source>User Types - Records</source>
+        <target state="translated">Benutzertypen – Datensätze</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Structures">
@@ -412,6 +527,11 @@
         <target state="translated">Durch das Umbenennen werden {0} Verweise in {1} Dateien aktualisiert.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Yes">
+        <source>Yes</source>
+        <target state="translated">Ja</target>
+        <note />
+      </trans-unit>
       <trans-unit id="You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file">
         <source>You cannot rename this element because it is contained in a read-only file.</source>
         <target state="translated">Dieses Element kann nicht umbenannt werden, weil es in einer schreibgeschützten Datei enthalten ist.</target>
@@ -439,7 +559,7 @@
       </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
         <source>{0} unresolvable conflict(s)</source>
-        <target state="translated">{0} nicht lösbare Konflikt(s)</target>
+        <target state="translated">{0} nicht lösbare(r) Konflikt(e)</target>
         <note />
       </trans-unit>
       <trans-unit id="Applying_0">
@@ -755,11 +875,6 @@
       <trans-unit id="Format_Token">
         <source>Format Token</source>
         <target state="translated">Token formatieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Smart_Indenting">
-        <source>Smart Indenting</source>
-        <target state="translated">Intelligenter Einzug</target>
         <note />
       </trans-unit>
       <trans-unit id="Find_References">
@@ -1224,11 +1339,6 @@ Möchten Sie fortfahren?</target>
         <target state="translated">Klammerabschluss</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_all_occurrences_in">
-        <source>Fix all occurrences in</source>
-        <target state="translated">Alle Vorkommen korrigieren in</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cannot_apply_operation_while_a_rename_session_is_active">
         <source>Cannot apply operation while a rename session is active.</source>
         <target state="translated">Der Vorgang kann nicht angewendet werden, während eine Umbenennungssitzung aktiv ist.</target>
@@ -1296,17 +1406,17 @@ Möchten Sie fortfahren?</target>
       </trans-unit>
       <trans-unit id="_0_references">
         <source>'{0}' references</source>
-        <target state="translated">'"{0}"-Verweise</target>
+        <target state="translated">"{0}"-Verweise</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_implementations">
         <source>'{0}' implementations</source>
-        <target state="translated">'"{0}"-Implementierungen</target>
+        <target state="translated">"{0}"-Implementierungen</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_declarations">
         <source>'{0}' declarations</source>
-        <target state="translated">'"{0}"-Deklarationen</target>
+        <target state="translated">"{0}"-Deklarationen</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Rename_Conflict">
@@ -1372,6 +1482,51 @@ Möchten Sie fortfahren?</target>
       <trans-unit id="Outlining">
         <source>Outlining</source>
         <target state="translated">Gliederung</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Comment">
+        <source>Regex - Comment</source>
+        <target state="translated">RegEx - Kommentar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Character_Class">
+        <source>Regex - Character Class</source>
+        <target state="translated">RegEx - Zeichenklasse</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Alternation">
+        <source>Regex - Alternation</source>
+        <target state="translated">RegEx - Wechsel</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Anchor">
+        <source>Regex - Anchor</source>
+        <target state="translated">RegEx - Anker</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Quantifier">
+        <source>Regex - Quantifier</source>
+        <target state="translated">RegEx - Quantifizierer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_SelfEscapedCharacter">
+        <source>Regex - Self Escaped Character</source>
+        <target state="translated">RegEx - Selbstständiges Escapezeichen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Grouping">
+        <source>Regex - Grouping</source>
+        <target state="translated">RegEx - Gruppierung</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Text">
+        <source>Regex - Text</source>
+        <target state="translated">RegEx - Text</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_OtherEscape">
+        <source>Regex - Other Escape</source>
+        <target state="translated">RegEx - Anderes Escapezeichen</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_Tracking_Cancellation">

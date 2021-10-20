@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -15,6 +14,9 @@ namespace Microsoft.CodeAnalysis
     {
         [DebuggerHidden]
         [DoesNotReturn]
+#if !NETSTANDARD1_3
+        [MethodImpl(MethodImplOptions.Synchronized)]
+#endif
         internal static void OnFatalException(Exception exception)
         {
             // EDMAURER Now using the managed API to fail fast so as to default
@@ -41,6 +43,9 @@ namespace Microsoft.CodeAnalysis
 
         [DebuggerHidden]
         [DoesNotReturn]
+#if !NETSTANDARD1_3
+        [MethodImpl(MethodImplOptions.Synchronized)]
+#endif
         internal static void Fail(string message)
         {
             DumpStackTrace(message: message);
@@ -102,8 +107,7 @@ namespace Microsoft.CodeAnalysis
                 Debugger.Break();
             }
 
-            DumpStackTrace(message: message);
-            Environment.FailFast("ASSERT FAILED" + Environment.NewLine + message);
+            Fail("ASSERT FAILED" + Environment.NewLine + message);
         }
     }
 }

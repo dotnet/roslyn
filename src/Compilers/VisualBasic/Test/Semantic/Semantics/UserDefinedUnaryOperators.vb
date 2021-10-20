@@ -5,7 +5,6 @@
 Imports System.IO
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.SpecialType
-Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -735,6 +734,45 @@ S1_TakeWhileSpecific S1_Select|
 S4_TakeWhileBaseClass S4_Select
 ]]>)
 
+        End Sub
+
+        <WorkItem(56376, "https://github.com/dotnet/roslyn/issues/56376")>
+        <Fact>
+        Public Sub UserDefinedUnaryOperatorInGenericExpressionTree()
+            Dim compilationDef =
+<compilation name="OperatorsWithDefaultValuesAreNotBound">
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+Public Class Program
+    Public Shared Sub Main()
+        GenericMethod(Of String)()
+    End Sub
+    
+    Private Shared Sub GenericMethod(Of T)()
+        Dim func As Func(Of Expression(Of Func(Of C(Of T), C(Of T)))) =
+            Function ()
+                Return Function(x) +x 
+            End Function
+            
+        func().Compile()(Nothing)
+    End Sub
+End Class
+
+Class C(Of T)
+    Public Shared Operator +(c1 As C(Of T)) As C(Of T)
+        Console.Write("Run")
+        Return c1
+    End Operator
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilation(compilationDef, options:=TestOptions.ReleaseExe)
+
+            compilation.AssertTheseDiagnostics()
+
+            CompileAndVerify(compilation, expectedOutput:="Run")
         End Sub
 
     End Class

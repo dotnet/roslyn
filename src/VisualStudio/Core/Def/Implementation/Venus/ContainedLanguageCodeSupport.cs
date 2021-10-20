@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -62,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var tree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var typeNode = type.DeclaringSyntaxReferences.Where(r => r.SyntaxTree == tree).Select(r => r.GetSyntax(cancellationToken)).First();
-            var codeModel = document.GetLanguageService<ICodeModelNavigationPointService>();
+            var codeModel = document.GetRequiredLanguageService<ICodeModelNavigationPointService>();
             var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
             var point = codeModel.GetStartPoint(typeNode, options, EnvDTE.vsCMPart.vsCMPartBody);
             var reservedNames = semanticModel.LookupSymbols(point.Value.Position, type).Select(m => m.Name);
@@ -200,8 +202,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var annotation = new SyntaxAnnotation();
             newMethod = annotation.AddAnnotationToSymbol(newMethod);
-            var codeModel = targetDocument.Project.LanguageServices.GetService<ICodeModelNavigationPointService>();
-            var syntaxFacts = targetDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var codeModel = targetDocument.Project.LanguageServices.GetRequiredService<ICodeModelNavigationPointService>();
+            var syntaxFacts = targetDocument.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
 
             var targetSyntaxTree = targetDocument.GetSyntaxTreeSynchronously(cancellationToken);
 

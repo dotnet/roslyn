@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,6 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public GeneratedLabelSymbol(string name)
         {
             _name = LabelName(name);
+#if DEBUG
+            NameNoSequence = $"<{name}>";
+#endif
         }
 
         public override string Name
@@ -29,6 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #if DEBUG
+        internal string NameNoSequence { get; }
+
         private static int s_sequence = 1;
 #endif
         private static string LabelName(string name)

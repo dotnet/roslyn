@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Option Strict Off
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -25,11 +24,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
             Return actions(0).NestedCodeActions
         End Function
 
-        Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(
-                initialMarkup,
-                parameters.parseOptions,
-                If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
+        Protected Overrides Function SetParameterDefaults(parameters As TestParameters) As TestParameters
+            Return parameters.WithCompilationOptions(If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
         End Function
 
         Protected Overrides Function GetLanguage() As String
@@ -374,6 +370,101 @@ Class C
 #Enable Warning BC42025 ' Access of shared member, constant member, enum member or nested type through an instance
     End Sub
 End Class]]>
+
+                    Await TestMissingAsync(fixedSource.Value)
+                End Function
+
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                Public Async Function TestMultilineStatementPragmaWarningDirective8() As Task
+                    Dim source = <![CDATA[
+Imports System
+Class C
+    Sub Method()
+        [|Dim x _
+            As Integer|] _
+        : Return
+    End Sub
+End Class]]>
+                    Dim expected = $"
+Imports System
+Class C
+    Sub Method()
+#Disable Warning BC42024 ' {VBResources.WRN_UnusedLocal_Title}
+        Dim x _
+            As Integer _
+        : Return
+#Enable Warning BC42024 ' {VBResources.WRN_UnusedLocal_Title}
+    End Sub
+End Class"
+
+                    Await TestAsync(source.Value, expected)
+
+                    ' Also verify that the added directive does indeed suppress the diagnostic.
+                    Dim fixedSource = <![CDATA[
+Imports System
+Class C
+    Sub Method()
+#Disable Warning BC42024 ' Unused local variable
+        [|Dim x _
+            As Integer|] _
+        : Return
+#Enable Warning BC42024 ' Unused local variable
+    End Sub
+End Class]]>
+
+                    Await TestMissingAsync(fixedSource.Value)
+                End Function
+
+                <WorkItem(56165, "https://github.com/dotnet/roslyn/issues/56165")>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                Public Async Function TestMultilineInterpolatedString() As Task
+                    Dim source = <![CDATA[
+Imports System
+<Obsolete>
+Class C
+End Class
+
+Module Module1
+    Sub Main
+        Dim s = $"
+Hi {[|new C()|]}
+"
+    End Sub
+End Module]]>
+                    Dim expected = $"
+Imports System
+<Obsolete>
+Class C
+End Class
+
+Module Module1
+    Sub Main
+#Disable Warning BC40008 ' {VBResources.WRN_UseOfObsoleteSymbolNoMessage1_Title}
+        Dim s = $""
+Hi {{new C()}}
+""
+#Enable Warning BC40008 ' {VBResources.WRN_UseOfObsoleteSymbolNoMessage1_Title}
+    End Sub
+End Module"
+
+                    Await TestAsync(source.Value, expected)
+
+                    ' Also verify that the added directive does indeed suppress the diagnostic.
+                    Dim fixedSource = <![CDATA[
+Imports System
+<Obsolete>
+Class C
+End Class
+
+Module Module1
+    Sub Main
+#Disable Warning BC40008 ' Type or member is obsolete
+        Dim s = $"
+Hi {[|new C()|]}
+"
+#Enable Warning BC40008 ' Type or member is obsolete
+    End Sub
+End Module]]>
 
                     Await TestMissingAsync(fixedSource.Value)
                 End Function

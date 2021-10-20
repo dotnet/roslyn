@@ -2,15 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryParentheses), Shared]
     internal class CSharpRemoveUnnecessaryParenthesesCodeFixProvider :
         AbstractRemoveUnnecessaryParenthesesCodeFixProvider<SyntaxNode>
     {
@@ -20,13 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
         {
         }
 
-        protected override bool CanRemoveParentheses(SyntaxNode current, SemanticModel semanticModel)
+        protected override bool CanRemoveParentheses(SyntaxNode current, SemanticModel semanticModel, CancellationToken cancellationToken)
             => current switch
             {
-                ParenthesizedExpressionSyntax p => CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(p, semanticModel, out _, out _),
-#if !CODE_STYLE
+                ParenthesizedExpressionSyntax p => CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(p, semanticModel, cancellationToken, out _, out _),
                 ParenthesizedPatternSyntax p => CSharpRemoveUnnecessaryPatternParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(p, out _, out _),
-#endif
                 _ => false,
             };
     }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
@@ -48,7 +50,7 @@ class Program
             // TODO: Validate build works as expected
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Build)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18204"), Trait(Traits.Feature, Traits.Features.Build)]
         public void BuildWithCommandLine()
         {
             VisualStudio.SolutionExplorer.SaveAll();

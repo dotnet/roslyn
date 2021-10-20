@@ -6,14 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
@@ -58,10 +56,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly CSharpCompilation _compilation;
         private readonly Conversions _conversions;
-        private readonly DiagnosticBag _diagnostics;
+        private readonly BindingDiagnosticBag _diagnostics;
         private readonly LabelSymbol _defaultLabel;
 
-        private DecisionDagBuilder(CSharpCompilation compilation, LabelSymbol defaultLabel, DiagnosticBag diagnostics)
+        private DecisionDagBuilder(CSharpCompilation compilation, LabelSymbol defaultLabel, BindingDiagnosticBag diagnostics)
         {
             this._compilation = compilation;
             this._conversions = compilation.Conversions;
@@ -78,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression switchGoverningExpression,
             ImmutableArray<BoundSwitchSection> switchSections,
             LabelSymbol defaultLabel,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             var builder = new DecisionDagBuilder(compilation, defaultLabel, diagnostics);
             return builder.CreateDecisionDagForSwitchStatement(syntax, switchGoverningExpression, switchSections);
@@ -93,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression switchExpressionInput,
             ImmutableArray<BoundSwitchExpressionArm> switchArms,
             LabelSymbol defaultLabel,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             var builder = new DecisionDagBuilder(compilation, defaultLabel, diagnostics);
             return builder.CreateDecisionDagForSwitchExpression(syntax, switchExpressionInput, switchArms);
@@ -109,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPattern pattern,
             LabelSymbol whenTrueLabel,
             LabelSymbol whenFalseLabel,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             var builder = new DecisionDagBuilder(compilation, defaultLabel: whenFalseLabel, diagnostics);
             return builder.CreateDecisionDagForIsPattern(syntax, inputExpression, pattern, whenTrueLabel);
@@ -356,8 +354,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         bool IsDerivedType(TypeSymbol possibleDerived, TypeSymbol possibleBase)
         {
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-            return this._conversions.HasIdentityOrImplicitReferenceConversion(possibleDerived, possibleBase, ref useSiteDiagnostics);
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            return this._conversions.HasIdentityOrImplicitReferenceConversion(possibleDerived, possibleBase, ref discardedUseSiteInfo);
         }
 
         private Tests MakeTestsAndBindingsForDeclarationPattern(
@@ -424,9 +422,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!input.Type.Equals(type, TypeCompareKind.AllIgnoreOptions))
             {
                 TypeSymbol inputType = input.Type.StrippedType(); // since a null check has already been done
-                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-                Conversion conversion = _conversions.ClassifyBuiltInConversion(inputType, type, ref useSiteDiagnostics);
-                _diagnostics.Add(syntax, useSiteDiagnostics);
+                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
+                Conversion conversion = _conversions.ClassifyBuiltInConversion(inputType, type, ref useSiteInfo);
+                _diagnostics.Add(syntax, useSiteInfo);
                 if (input.Type.IsDynamic() ? type.SpecialType == SpecialType.System_Object : conversion.IsImplicit)
                 {
                     // type test not needed, only the type cast
@@ -458,7 +456,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var tests = ArrayBuilder<Tests>.GetInstance(2);
-                var convertedInput = MakeConvertToType(input, constant.Syntax, constant.Value.Type!, isExplicitTest: false, tests);
+                Debug.Assert(constant.Value.Type is not null || constant.HasErrors);
+                var convertedInput = constant.Value.Type is { } type ? MakeConvertToType(input, constant.Syntax, type, isExplicitTest: false, tests) : input;
                 output = convertedInput;
                 tests.Add(new Tests.One(new BoundDagValueTest(constant.Syntax, constant.ConstantValue, convertedInput)));
                 return Tests.AndSequence.Create(tests);
@@ -530,29 +529,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!recursive.Properties.IsDefault)
             {
                 // we have a "property" form
-                for (int i = 0; i < recursive.Properties.Length; i++)
+                foreach (var subpattern in recursive.Properties)
                 {
-                    var subPattern = recursive.Properties[i];
-                    Symbol? symbol = subPattern.Symbol;
-                    BoundPattern pattern = subPattern.Pattern;
-                    BoundDagEvaluation evaluation;
-                    switch (symbol)
+                    BoundPattern pattern = subpattern.Pattern;
+                    BoundDagTemp currentInput = input;
+                    if (!tryMakeSubpatternMemberTests(subpattern.Member, ref currentInput))
                     {
-                        case PropertySymbol property:
-                            evaluation = new BoundDagPropertyEvaluation(pattern.Syntax, property, OriginalInput(input, property));
-                            break;
-                        case FieldSymbol field:
-                            evaluation = new BoundDagFieldEvaluation(pattern.Syntax, field, OriginalInput(input, field));
-                            break;
-                        default:
-                            RoslynDebug.Assert(recursive.HasAnyErrors);
-                            tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
-                            continue;
+                        Debug.Assert(recursive.HasAnyErrors);
+                        tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
                     }
-
-                    tests.Add(new Tests.One(evaluation));
-                    var element = new BoundDagTemp(pattern.Syntax, symbol.GetTypeOrReturnType().Type, evaluation);
-                    tests.Add(MakeTestsAndBindings(element, pattern, bindings));
+                    else
+                    {
+                        tests.Add(MakeTestsAndBindings(currentInput, pattern, bindings));
+                    }
                 }
             }
 
@@ -563,6 +552,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return Tests.AndSequence.Create(tests);
+
+            bool tryMakeSubpatternMemberTests([NotNullWhen(true)] BoundPropertySubpatternMember? member, ref BoundDagTemp input)
+            {
+                if (member is null)
+                    return false;
+
+                if (tryMakeSubpatternMemberTests(member.Receiver, ref input))
+                {
+                    // If this is not the first member, add null test, unwrap nullables, and continue.
+                    input = MakeConvertToType(input, member.Syntax, member.Receiver.Type.StrippedType(), isExplicitTest: false, tests);
+                }
+
+                BoundDagEvaluation evaluation;
+                switch (member.Symbol)
+                {
+                    case PropertySymbol property:
+                        evaluation = new BoundDagPropertyEvaluation(member.Syntax, property, OriginalInput(input, property));
+                        break;
+                    case FieldSymbol field:
+                        evaluation = new BoundDagFieldEvaluation(member.Syntax, field, OriginalInput(input, field));
+                        break;
+                    default:
+                        return false;
+                }
+
+                tests.Add(new Tests.One(evaluation));
+                input = new BoundDagTemp(member.Syntax, member.Type, evaluation);
+                return true;
+            }
         }
 
         private Tests MakeTestsAndBindingsForNegatedPattern(BoundDagTemp input, BoundNegatedPattern neg, ArrayBuilder<BoundPatternBinding> bindings)
@@ -611,10 +629,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundRelationalPattern rel,
             out BoundDagTemp output)
         {
+            Debug.Assert(rel.Value.Type is not null);
             // check if the test is always true or always false
             var tests = ArrayBuilder<Tests>.GetInstance(2);
-            output = MakeConvertToType(input, rel.Syntax, rel.Value.Type!, isExplicitTest: false, tests);
-            var fac = ValueSetFactory.ForType(input.Type);
+            output = MakeConvertToType(input, rel.Syntax, rel.Value.Type, isExplicitTest: false, tests);
+            var fac = ValueSetFactory.ForType(rel.Value.Type);
             var values = fac?.Related(rel.Relation.Operator(), rel.ConstantValue);
             if (values?.IsEmpty == true)
             {
@@ -640,20 +659,61 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundDecisionDag MakeBoundDecisionDag(SyntaxNode syntax, ImmutableArray<StateForCase> cases)
         {
-            var defaultDecision = new BoundLeafDecisionDagNode(syntax, _defaultLabel);
-
             // Build the state machine underlying the decision dag
             DecisionDag decisionDag = MakeDecisionDag(cases);
 
-            // Note: It is useful for debugging the dag state table construction to view `decisionDag.Dump()` here.
+            // Note: It is useful for debugging the dag state table construction to set a breakpoint
+            // here and view `decisionDag.Dump()`.
+            ;
 
             // Compute the bound decision dag corresponding to each node of decisionDag, and store
             // it in node.Dag.
+            var defaultDecision = new BoundLeafDecisionDagNode(syntax, _defaultLabel);
             ComputeBoundDecisionDagNodes(decisionDag, defaultDecision);
 
             var rootDecisionDagNode = decisionDag.RootNode.Dag;
             RoslynDebug.Assert(rootDecisionDagNode != null);
-            return new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode);
+            var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode);
+#if DEBUG
+            // Note that this uses the custom equality in `BoundDagEvaluation`
+            // to make "equivalent" evaluation nodes share the same ID.
+            var nextTempNumber = 0;
+            var tempIdentifierMap = PooledDictionary<BoundDagEvaluation, int>.GetInstance();
+
+            var sortedBoundDagNodes = boundDecisionDag.TopologicallySortedNodes;
+            for (int i = 0; i < sortedBoundDagNodes.Length; i++)
+            {
+                var node = sortedBoundDagNodes[i];
+                node.Id = i;
+                switch (node)
+                {
+                    case BoundEvaluationDecisionDagNode { Evaluation: { Id: -1 } evaluation }:
+                        evaluation.Id = tempIdentifier(evaluation);
+                        // Note that "equivalent" evaluations may be different object instances.
+                        // Therefore we have to dig into the Input.Source of evaluations and tests to set their IDs.
+                        if (evaluation.Input.Source is { Id: -1 } source)
+                        {
+                            source.Id = tempIdentifier(source);
+                        }
+                        break;
+                    case BoundTestDecisionDagNode { Test: var test }:
+                        if (test.Input.Source is { Id: -1 } testSource)
+                        {
+                            testSource.Id = tempIdentifier(testSource);
+                        }
+                        break;
+                }
+            }
+            tempIdentifierMap.Free();
+
+            int tempIdentifier(BoundDagEvaluation e)
+            {
+                return tempIdentifierMap.TryGetValue(e, out int value)
+                    ? value
+                    : tempIdentifierMap[e] = ++nextTempNumber;
+            }
+#endif
+            return boundDecisionDag;
         }
 
         /// <summary>
@@ -679,29 +739,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var state = new DagState(cases, remainingValues);
                 if (uniqueState.TryGetValue(state, out DagState? existingState))
                 {
-                    var newRemainingValues = existingState.RemainingValues;
-                    bool changed = false;
+                    // We found an existing state that matches.  Update its set of possible remaining values
+                    // of each temp by taking the union of the sets on each incoming edge.
+                    var newRemainingValues = ImmutableDictionary.CreateBuilder<BoundDagTemp, IValueSet>();
                     foreach (var (dagTemp, valuesForTemp) in remainingValues)
                     {
-                        if (newRemainingValues.TryGetValue(dagTemp, out var existingValuesForTemp))
+                        // If one incoming edge does not have a set of possible values for the temp,
+                        // that means the temp can take on any value of its type.
+                        if (existingState.RemainingValues.TryGetValue(dagTemp, out var existingValuesForTemp))
                         {
                             var newExistingValuesForTemp = existingValuesForTemp.Union(valuesForTemp);
-                            if (!newExistingValuesForTemp.Equals(existingValuesForTemp))
-                            {
-                                newRemainingValues = newRemainingValues.SetItem(dagTemp, newExistingValuesForTemp);
-                                changed = true;
-                            }
-                        }
-                        else
-                        {
-                            newRemainingValues = newRemainingValues.Add(dagTemp, valuesForTemp);
-                            changed = true;
+                            newRemainingValues.Add(dagTemp, newExistingValuesForTemp);
                         }
                     }
 
-                    if (changed)
+                    if (existingState.RemainingValues.Count != newRemainingValues.Count ||
+                        !existingState.RemainingValues.All(kv => newRemainingValues.TryGetValue(kv.Key, out IValueSet? values) && kv.Value.Equals(values)))
                     {
-                        existingState.UpdateRemainingValues(newRemainingValues);
+                        existingState.UpdateRemainingValues(newRemainingValues.ToImmutable());
                         if (!workList.Contains(existingState))
                             workList.Push(existingState);
                     }
@@ -862,6 +917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundDecisionDagNode whenTrue = finalState(first.Syntax, first.CaseLabel, default);
                         BoundDecisionDagNode? whenFalse = state.FalseBranch.Dag;
                         RoslynDebug.Assert(whenFalse is { });
+                        // Note: we may share `when` clauses between multiple DAG nodes, but we deal with that safely during lowering
                         state.Dag = uniqifyDagNode(new BoundWhenDecisionDagNode(first.Syntax, first.Bindings, first.WhenClause, whenTrue, whenFalse));
                     }
 
@@ -1114,8 +1170,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         case BoundDagTypeTest t2:
                             {
-                                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-                                bool? matches = ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(t1.Type, t2.Type, ref useSiteDiagnostics);
+                                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
+                                bool? matches = ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(t1.Type, t2.Type, ref useSiteInfo);
                                 if (matches == false)
                                 {
                                     // If T1 could never be T2
@@ -1130,8 +1186,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
 
                                 // If every T2 is a T1, then failure of T1 implies failure of T2.
-                                matches = Binder.ExpressionOfTypeMatchesPatternType(_conversions, t2.Type, t1.Type, ref useSiteDiagnostics, out _);
-                                _diagnostics.Add(syntax, useSiteDiagnostics);
+                                matches = Binder.ExpressionOfTypeMatchesPatternType(_conversions, t2.Type, t1.Type, ref useSiteInfo, out _);
+                                _diagnostics.Add(syntax, useSiteInfo);
                                 if (matches == true)
                                 {
                                     // If T2: T1
@@ -1241,9 +1297,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool? ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(
             TypeSymbol expressionType,
             TypeSymbol patternType,
-            ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            bool? result = Binder.ExpressionOfTypeMatchesPatternType(_conversions, expressionType, patternType, ref useSiteDiagnostics, out Conversion conversion);
+            bool? result = Binder.ExpressionOfTypeMatchesPatternType(_conversions, expressionType, patternType, ref useSiteInfo, out Conversion conversion);
             return (!conversion.Exists && isRuntimeSimilar(expressionType, patternType))
                 ? null // runtime and compile-time test behavior differ. Pretend we don't know what happens.
                 : result;
@@ -1453,6 +1509,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return $"t{tempIdentifier(a)}={a.Kind}({tempName(a.Input)} as {a.Type})";
                         case BoundDagFieldEvaluation e:
                             return $"t{tempIdentifier(e)}={e.Kind}({tempName(e.Input)}.{e.Field.Name})";
+                        case BoundDagPropertyEvaluation e:
+                            return $"t{tempIdentifier(e)}={e.Kind}({tempName(e.Input)}.{e.Property.Name})";
                         case BoundDagEvaluation e:
                             return $"t{tempIdentifier(e)}={e.Kind}({tempName(e.Input)})";
                         case BoundDagTypeTest b:

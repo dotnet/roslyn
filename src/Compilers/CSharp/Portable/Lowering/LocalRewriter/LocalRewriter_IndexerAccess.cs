@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -43,6 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
         {
             var loweredReceiver = VisitExpression(node.Receiver);
+            // There are no target types for dynamic expression.
+            AssertNoImplicitInterpolatedStringHandlerConversions(node.Arguments);
             var loweredArguments = VisitList(node.Arguments);
 
             return MakeDynamicGetIndex(node, loweredReceiver, loweredArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt);
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitIndexerAccess(BoundIndexerAccess node)
         {
             Debug.Assert(node.Indexer.IsIndexer || node.Indexer.IsIndexedProperty);
-            Debug.Assert((object)node.Indexer.GetOwnOrInheritedGetMethod() != null);
+            Debug.Assert((object?)node.Indexer.GetOwnOrInheritedGetMethod() != null);
 
             return VisitIndexerAccess(node, isLeftOfAssignment: false);
         }
@@ -83,20 +83,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
             Debug.Assert(rewrittenReceiver is { });
 
-            // Rewrite the arguments.
-            // NOTE: We may need additional argument rewriting such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
-            // NOTE: This is done later by MakeArguments, for now we just lower each argument.
-            ImmutableArray<BoundExpression> rewrittenArguments = VisitList(node.Arguments);
-
             return MakeIndexerAccess(
                 node.Syntax,
                 rewrittenReceiver,
                 indexer,
-                rewrittenArguments,
+                node.Arguments,
                 node.ArgumentNamesOpt,
                 node.ArgumentRefKindsOpt,
                 node.Expanded,
                 node.ArgsToParamsOpt,
+                node.DefaultArguments,
                 node.Type,
                 node,
                 isLeftOfAssignment);
@@ -106,11 +102,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             BoundExpression rewrittenReceiver,
             PropertySymbol indexer,
-            ImmutableArray<BoundExpression> rewrittenArguments,
+            ImmutableArray<BoundExpression> arguments,
             ImmutableArray<string> argumentNamesOpt,
             ImmutableArray<RefKind> argumentRefKindsOpt,
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
+            BitVector defaultArguments,
             TypeSymbol type,
             BoundIndexerAccess? oldNodeOpt,
             bool isLeftOfAssignment)
@@ -121,39 +118,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
 
                 return oldNodeOpt != null ?
-                    oldNodeOpt.Update(rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, null, isLeftOfAssignment, type) :
-                    new BoundIndexerAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, null, isLeftOfAssignment, type);
+                    oldNodeOpt.Update(rewrittenReceiver, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type) :
+                    new BoundIndexerAccess(syntax, rewrittenReceiver, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type);
             }
             else
             {
                 var getMethod = indexer.GetOwnOrInheritedGetMethod();
-                Debug.Assert((object)getMethod != null);
+                Debug.Assert(getMethod is not null);
 
-                // We have already lowered each argument, but we may need some additional rewriting for the arguments,
-                // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
-                ImmutableArray<LocalSymbol> temps;
+                ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
+                    arguments,
+                    indexer,
+                    argsToParamsOpt,
+                    argumentRefKindsOpt,
+                    ref rewrittenReceiver!,
+                    out ArrayBuilder<LocalSymbol>? temps);
+
                 rewrittenArguments = MakeArguments(
                     syntax,
                     rewrittenArguments,
                     indexer,
-                    getMethod,
                     expanded,
                     argsToParamsOpt,
                     ref argumentRefKindsOpt,
-                    out temps,
+                    ref temps,
                     enableCallerInfo: ThreeState.True);
 
                 BoundExpression call = MakePropertyGetAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, getMethod);
 
-                if (temps.IsDefaultOrEmpty)
+                if (temps.Count == 0)
                 {
+                    temps.Free();
                     return call;
                 }
                 else
                 {
                     return new BoundSequence(
                         syntax,
-                        temps,
+                        temps.ToImmutableAndFree(),
                         ImmutableArray<BoundExpression>.Empty,
                         call,
                         type);
@@ -204,12 +206,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression argument,
             bool isLeftOfAssignment)
         {
-            // Lowered code:
-            // ref var receiver = receiverExpr;
-            // int length = receiver.length;
-            // int index = argument.GetOffset(length);
-            // receiver[index];
-
             var F = _factory;
 
             Debug.Assert(receiver.Type is { });
@@ -218,41 +214,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out var receiverStore,
                 // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
                 receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
-            var lengthLocal = F.StoreToTemp(F.Property(receiverLocal, lengthOrCountProperty), out var lengthStore);
-            var indexLocal = F.StoreToTemp(
-                MakePatternIndexOffsetExpression(argument, lengthLocal, out bool usedLength),
-                out var indexStore);
-
-            // Hint the array size here because the only case when the length is not needed is if the
-            // user writes code like receiver[(Index)offset], as opposed to just receiver[offset]
-            // and that will probably be very rare.
-            var locals = ArrayBuilder<LocalSymbol>.GetInstance(3);
-            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(3);
-
-            locals.Add(receiverLocal.LocalSymbol);
-            sideEffects.Add(receiverStore);
-
-            if (usedLength)
-            {
-                locals.Add(lengthLocal.LocalSymbol);
-                sideEffects.Add(lengthStore);
-            }
-
-            locals.Add(indexLocal.LocalSymbol);
-            sideEffects.Add(indexStore);
+            var indexAccess = MakePatternIndexOffsetExpression(argument, F.Property(receiverLocal, lengthOrCountProperty), out _);
 
             return (BoundSequence)F.Sequence(
-                locals.ToImmutable(),
-                sideEffects.ToImmutable(),
+                ImmutableArray.Create<LocalSymbol>(receiverLocal.LocalSymbol),
+                ImmutableArray.Create<BoundExpression>(receiverStore),
                 MakeIndexerAccess(
                     syntax,
                     receiverLocal,
                     intIndexer,
-                    ImmutableArray.Create<BoundExpression>(indexLocal),
+                    ImmutableArray.Create<BoundExpression>(indexAccess),
                     default,
                     default,
                     expanded: false,
                     argsToParamsOpt: default,
+                    defaultArguments: default,
                     intIndexer.Type,
                     oldNodeOpt: null,
                     isLeftOfAssignment));

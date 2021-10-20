@@ -44,7 +44,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         <HandleProcessCorruptedStateExceptions()>
         Public Function CreateCodeModelTestState(definition As XElement) As CodeModelTestState
-            Dim workspace = TestWorkspace.Create(definition, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+            Dim workspace = TestWorkspace.Create(definition, composition:=VisualStudioTestCompositions.LanguageServices)
 
             Dim result As CodeModelTestState = Nothing
             Try
@@ -58,7 +58,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
-                Dim notificationService = workspace.ExportProvider.GetExportedValue(Of IForegroundNotificationService)
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)()
 
                 Dim state = New CodeModelState(
@@ -70,7 +69,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                         mockVisualStudioWorkspace,
                         mockServiceProvider,
                         threadingContext,
-                        notificationService,
                         listenerProvider))
 
                 Dim projectCodeModel = DirectCast(state.ProjectCodeModelFactory.CreateProjectCodeModel(project.Id, Nothing), ProjectCodeModel)
@@ -139,7 +137,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                         End Try
 
                         Dim wrapperRCW = Marshal.GetObjectForIUnknown(wrapperUnknown)
-                        Return CType(wrapperRCW, IComWrapper)
+                        Return CType(wrapperRCW, IComWrapperFixed)
                     Finally
                         Marshal.Release(innerUnknown)
                     End Try

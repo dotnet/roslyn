@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,12 +16,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Completion
 {
     internal sealed class FSharpInternalCommonCompletionProvider : CommonCompletionProvider
     {
+#pragma warning disable CS0612 // Switch to FSharpCommonCompletionProviderBase after F# switches
         private readonly IFSharpCommonCompletionProvider _provider;
 
         public FSharpInternalCommonCompletionProvider(IFSharpCommonCompletionProvider provider)
         {
             _provider = provider;
         }
+#pragma warning restore CS0612 // Type or member is obsolete
 
         public override Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -31,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Completion
             return _provider.GetTextChangeAsync(base.GetTextChangeAsync, selectedItem, ch, cancellationToken);
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
         {
             return _provider.IsInsertionTrigger(text, insertedCharacterPosition, options);
         }

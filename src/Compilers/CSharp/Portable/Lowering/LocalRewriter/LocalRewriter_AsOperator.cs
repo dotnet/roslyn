@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenTargetType = (BoundTypeExpression)VisitTypeExpression(node.TargetType);
             TypeSymbol rewrittenType = VisitType(node.Type);
 
-            return MakeAsOperator(node, node.Syntax, rewrittenOperand, rewrittenTargetType, node.Conversion, rewrittenType);
+            return MakeAsOperator(node, node.Syntax, rewrittenOperand, rewrittenTargetType, node.OperandPlaceholder, node.OperandConversion, rewrittenType);
         }
 
         public override BoundNode VisitTypeExpression(BoundTypeExpression node)
@@ -35,7 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             BoundExpression rewrittenOperand,
             BoundTypeExpression rewrittenTargetType,
-            Conversion conversion,
+            BoundValuePlaceholder? operandPlaceholder,
+            BoundExpression? operandConversion,
             TypeSymbol rewrittenType)
         {
             // TODO: Handle dynamic operand type and target type
@@ -46,6 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!_inExpressionLambda)
             {
+                var conversion = BoundNode.GetConversion(operandConversion, operandPlaceholder);
+
                 ConstantValue constantValue = Binder.GetAsOperatorConstantResult(rewrittenOperand.Type, rewrittenType, conversion.Kind, rewrittenOperand.ConstantValue);
 
                 if (constantValue != null)
@@ -73,11 +74,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Operand with bound implicit conversion to target type.
                     // We don't need a runtime check, generate a conversion for the operand instead.
-                    return MakeConversionNode(syntax, rewrittenOperand, conversion, rewrittenType, @checked: false);
+                    Debug.Assert(operandPlaceholder is not null);
+                    Debug.Assert(operandConversion is not null);
+
+                    AddPlaceholderReplacement(operandPlaceholder, rewrittenOperand);
+                    BoundExpression result = VisitExpression(operandConversion);
+                    Debug.Assert(result.Type!.Equals(rewrittenType, TypeCompareKind.ConsiderEverything));
+                    RemovePlaceholderReplacement(operandPlaceholder);
+
+                    return result;
                 }
             }
 
-            return oldNode.Update(rewrittenOperand, rewrittenTargetType, conversion, rewrittenType);
+            return oldNode.Update(rewrittenOperand, rewrittenTargetType, operandPlaceholder: null, operandConversion: null, rewrittenType);
         }
     }
 }

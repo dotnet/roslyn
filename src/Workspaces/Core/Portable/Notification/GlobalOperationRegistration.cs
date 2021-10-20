@@ -28,24 +28,26 @@ namespace Microsoft.CodeAnalysis.Notification
 
         public string Operation { get; }
 
+        /// <summary>
+        /// Used to indicate that the global operation completed fully.  The only effect this has is how this operation
+        /// will be logged when <see cref="Dispose"/> is called. If this has been called, then <see cref="Dispose"/>
+        /// will log that we completed without cancellation.  If this has not been called, then <see cref="Dispose"/>
+        /// will log that we were canceled.
+        /// </summary>
         public void Done()
             => _done = true;
 
         public void Dispose()
         {
-            if (_done)
-            {
-                _service.Done(this);
+            // Inform any listeners that we're finished.
+            _service.Done(this);
 
-                _logging.Dispose();
-            }
-            else
-            {
-                _service.Cancel(this);
-
+            // If 'Done' wasn't called, cancel our cancellation-source so that our logging block will record that we
+            // didn't finish
+            if (!_done)
                 _source.Cancel();
-                _logging.Dispose();
-            }
+
+            _logging.Dispose();
         }
     }
 }

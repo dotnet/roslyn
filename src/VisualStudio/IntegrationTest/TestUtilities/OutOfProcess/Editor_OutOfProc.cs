@@ -86,6 +86,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return builder.ToImmutableAndFree();
         }
 
+        public void InvokeNavigateToNextHighlightedReference()
+        {
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.ReferenceHighlighting);
+            _instance.ExecuteCommand(WellKnownCommandNames.Edit_NextHighlightedReference);
+        }
+
         public string GetCurrentCompletionItem()
         {
             WaitForCompletionSet();
@@ -157,13 +163,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void DeleteWinFormButton(string buttonName)
             => _editorInProc.DeleteWinFormButton(buttonName);
 
-        public void EditWinFormButtonProperty(string buttonName, string propertyName, string propertyValue, string propertyTypeName = null)
+        public void EditWinFormButtonProperty(string buttonName, string propertyName, string propertyValue, string? propertyTypeName = null)
             => _editorInProc.EditWinFormButtonProperty(buttonName, propertyName, propertyValue, propertyTypeName);
 
         public void EditWinFormButtonEvent(string buttonName, string eventName, string eventHandlerName)
             => _editorInProc.EditWinFormButtonEvent(buttonName, eventName, eventHandlerName);
 
-        public string GetWinFormButtonPropertyValue(string buttonName, string propertyName)
+        public string? GetWinFormButtonPropertyValue(string buttonName, string propertyName)
             => _editorInProc.GetWinFormButtonPropertyValue(buttonName, propertyName);
 
         /// <summary>
@@ -247,6 +253,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void WaitForActiveView(string viewName)
             => _editorInProc.WaitForActiveView(viewName);
 
+        public void WaitForActiveWindow(string windowName)
+            => _editorInProc.WaitForActiveWindow(windowName);
+
         public string[] GetErrorTags()
             => _editorInProc.GetErrorTags();
 
@@ -289,19 +298,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _editorInProc.GetNavBarItems(2);
         }
 
-        public string GetProjectNavBarSelection()
+        public string? GetProjectNavBarSelection()
         {
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
             return _editorInProc.GetSelectedNavBarItem(0);
         }
 
-        public string GetTypeNavBarSelection()
+        public string? GetTypeNavBarSelection()
         {
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
             return _editorInProc.GetSelectedNavBarItem(1);
         }
 
-        public string GetMemberNavBarSelection()
+        public string? GetMemberNavBarSelection()
         {
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
             return _editorInProc.GetSelectedNavBarItem(2);
@@ -354,11 +363,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             }).ToArray();
         }
 
-        public void GoToDefinition()
-            => _editorInProc.GoToDefinition();
+        public void GoToDefinition(string expectedWindowName)
+        {
+            _editorInProc.GoToDefinition();
+            _editorInProc.WaitForActiveWindow(expectedWindowName);
+        }
 
-        public void GoToImplementation()
-            => _editorInProc.GoToImplementation();
+        public void GoToImplementation(string expectedWindowName)
+        {
+            _editorInProc.GoToImplementation();
+            _editorInProc.WaitForActiveWindow(expectedWindowName);
+        }
 
         public void SendExplicitFocus()
             => _editorInProc.SendExplicitFocus();

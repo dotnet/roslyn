@@ -4,49 +4,50 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class TryKeywordRecommenderTests
+        Inherits RecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TryInMethodBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "Try")
-        End Function
+        Public Sub TryInMethodBodyTest()
+            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Try")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TryInMultiLineLambdaTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
+        Public Sub TryInMultiLineLambdaTest()
+            VerifyRecommendationsContain(<ClassDeclaration>
 Private _member = Sub()
 |
 End Sub
                                          </ClassDeclaration>, "Try")
 
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TryInSingleLineLambdaTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>
+        Public Sub TryInSingleLineLambdaTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>
 Private _member = Sub() |
                                          </ClassDeclaration>, "Try")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TryInSingleLineFunctionLambdaTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>
+        Public Sub TryInSingleLineFunctionLambdaTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>
 Private _member = Function() |
                                          </ClassDeclaration>, "Try")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExitInTryBlockTest() As Task
+        Public Sub AfterExitInTryBlockTest()
             Dim code =
 <MethodBody>
 Try
     Exit |
 </MethodBody>
 
-            Await VerifyRecommendationsContainAsync(code, "Try")
-        End Function
+            VerifyRecommendationsContain(code, "Try")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterExitInFinallyBlockTest() As Task
+        Public Sub NotAfterExitInFinallyBlockTest()
             Dim code =
 <MethodBody>
 Try
@@ -54,11 +55,11 @@ Finally
     Exit |
 </MethodBody>
 
-            Await VerifyRecommendationsMissingAsync(code, "Try")
-        End Function
+            VerifyRecommendationsMissing(code, "Try")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExitInCatchBlockTest() As Task
+        Public Sub AfterExitInCatchBlockTest()
             Dim code =
 <MethodBody>
 Try
@@ -66,7 +67,7 @@ Catch
     Exit |
 </MethodBody>
 
-            Await VerifyRecommendationsContainAsync(code, "Try")
-        End Function
+            VerifyRecommendationsContain(code, "Try")
+        End Sub
     End Class
 End Namespace

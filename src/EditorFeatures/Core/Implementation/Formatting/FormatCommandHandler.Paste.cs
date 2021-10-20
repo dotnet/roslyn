@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -25,24 +24,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         public void ExecuteCommand(PasteCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
-            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_pasted_text))
-            {
-                ExecuteCommandWorker(args, nextHandler, context.OperationContext.UserCancellationToken);
-            }
-        }
-
-        private static void ExecuteCommandWorker(PasteCommandArgs args, Action nextHandler, CancellationToken cancellationToken)
-        {
+            using var _ = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_pasted_text);
             var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer);
 
             nextHandler();
 
+            var cancellationToken = context.OperationContext.UserCancellationToken;
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
+            try
+            {
+                ExecuteCommandWorker(args, caretPosition, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // According to Editor command handler API guidelines, it's best if we return early if cancellation
+                // is requested instead of throwing. Otherwise, we could end up in an invalid state due to already
+                // calling nextHandler().
+            }
+        }
+
+        private static void ExecuteCommandWorker(PasteCommandArgs args, SnapshotPoint? caretPosition, CancellationToken cancellationToken)
+        {
             if (!args.SubjectBuffer.CanApplyChangeDocumentToWorkspace())
             {
                 return;
             }
 
-            if (!args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.FormatOnPaste) ||
+            if (!args.SubjectBuffer.GetFeatureOnOffOption(FormattingBehaviorOptions.FormatOnPaste) ||
                 !caretPosition.HasValue)
             {
                 return;
@@ -62,15 +74,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return;
             }
 
-            var formattingService = document.GetLanguageService<IEditorFormattingService>();
+            var formattingService = document.GetLanguageService<IFormattingInteractionService>();
             if (formattingService == null || !formattingService.SupportsFormatOnPaste)
             {
                 return;
             }
 
             var span = trackingSpan.GetSpan(args.SubjectBuffer.CurrentSnapshot).Span.ToTextSpan();
-            var changes = formattingService.GetFormattingChangesOnPasteAsync(document, span, cancellationToken).WaitAndGetResult(cancellationToken);
-            if (changes.Count == 0)
+            var changes = formattingService.GetFormattingChangesOnPasteAsync(
+                document, span, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
+            if (changes.IsEmpty)
             {
                 return;
             }

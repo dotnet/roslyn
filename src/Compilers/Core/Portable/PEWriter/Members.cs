@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -57,6 +55,12 @@ namespace Microsoft.Cci
         ThisCall = SignatureCallingConvention.ThisCall,
 
         /// <summary>
+        /// Extensible calling convention protocol. This represents either the union of calling convention modopts after the paramcount specifier
+        /// in IL, or platform default if none are present
+        /// </summary>
+        Unmanaged = SignatureCallingConvention.Unmanaged,
+
+        /// <summary>
         /// The convention for calling a generic method.
         /// </summary>
         Generic = SignatureAttributes.Generic,
@@ -80,23 +84,26 @@ namespace Microsoft.Cci
             | SignatureCallingConvention.StdCall
             | SignatureCallingConvention.ThisCall
             | SignatureCallingConvention.FastCall
-            | SignatureCallingConvention.VarArgs;
+            | SignatureCallingConvention.VarArgs
+            | SignatureCallingConvention.Unmanaged;
 
         private const SignatureAttributes SignatureAttributesMask =
             SignatureAttributes.Generic
             | SignatureAttributes.Instance
             | SignatureAttributes.ExplicitThis;
 
-        internal static CallingConvention FromSignatureConvention(this SignatureCallingConvention convention, bool throwOnInvalidConvention = false)
+        internal static CallingConvention FromSignatureConvention(this SignatureCallingConvention convention)
         {
-            var callingConvention = (CallingConvention)(convention & SignatureCallingConventionMask);
-            if (throwOnInvalidConvention && callingConvention != (CallingConvention)convention)
+            if (!convention.IsValid())
             {
                 throw new UnsupportedSignatureContent();
             }
 
-            return callingConvention;
+            return (CallingConvention)(convention & SignatureCallingConventionMask);
         }
+
+        internal static bool IsValid(this SignatureCallingConvention convention)
+            => convention <= SignatureCallingConvention.VarArgs || convention == SignatureCallingConvention.Unmanaged;
 
         internal static SignatureCallingConvention ToSignatureConvention(this CallingConvention convention)
             => (SignatureCallingConvention)convention & SignatureCallingConventionMask;
@@ -464,7 +471,7 @@ namespace Microsoft.Cci
         /// Returns types of awaiter slots allocated on the state machine,
         /// or null if the method isn't the kickoff method of a state machine.
         /// </summary>
-        ImmutableArray<ITypeReference> StateMachineAwaiterSlots { get; }
+        ImmutableArray<ITypeReference?> StateMachineAwaiterSlots { get; }
 
         ImmutableArray<ClosureDebugInfo> ClosureDebugInfo { get; }
         ImmutableArray<LambdaDebugInfo> LambdaDebugInfo { get; }
@@ -493,12 +500,6 @@ namespace Microsoft.Cci
             get;
             // ^ requires this.IsGeneric;
         }
-
-        /// <summary>
-        /// Returns true if this symbol was automatically created by the compiler, and does not have
-        /// an explicit corresponding source code declaration. 
-        /// </summary> 
-        bool IsImplicitlyDeclared { get; }
 
         /// <summary>
         /// True if this method has a non empty collection of SecurityAttributes or the System.Security.SuppressUnmanagedCodeSecurityAttribute.
@@ -991,15 +992,36 @@ namespace Microsoft.Cci
                 return true;
             }
 
+            bool acceptBasedOnVisibility = true;
+
             switch (member.Visibility)
             {
                 case TypeMemberVisibility.Private:
-                    return context.IncludePrivateMembers;
+                    acceptBasedOnVisibility = context.IncludePrivateMembers;
+                    break;
                 case TypeMemberVisibility.Assembly:
                 case TypeMemberVisibility.FamilyAndAssembly:
-                    return context.IncludePrivateMembers || context.Module.SourceAssemblyOpt?.InternalsAreVisible == true;
+                    acceptBasedOnVisibility = context.IncludePrivateMembers || context.Module.SourceAssemblyOpt?.InternalsAreVisible == true;
+                    break;
             }
-            return true;
+
+            if (acceptBasedOnVisibility)
+            {
+                return true;
+            }
+
+            if (method?.IsStatic == true)
+            {
+                foreach (var methodImplementation in method.ContainingTypeDefinition.GetExplicitImplementationOverrides(context))
+                {
+                    if (methodImplementation.ImplementingMethod == method)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

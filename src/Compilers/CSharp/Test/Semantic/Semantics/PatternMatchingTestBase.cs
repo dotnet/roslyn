@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +14,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -430,7 +433,12 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
-
+        protected static void AssertEmpty(SymbolInfo info)
+        {
+            Assert.NotEqual(default, info);
+            Assert.Null(info.Symbol);
+            Assert.Equal(CandidateReason.None, info.CandidateReason);
+        }
         #endregion helpers
     }
 }

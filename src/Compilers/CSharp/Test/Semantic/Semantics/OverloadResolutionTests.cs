@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -383,7 +384,13 @@ class P
   }
 }";
 
-            CompileAndVerify(source2, expectedOutput: @"2");
+            CompileAndVerify(source2, parseOptions: TestOptions.Regular9, expectedOutput: @"2");
+
+            var comp = CreateCompilation(source2);
+            comp.VerifyDiagnostics(
+                // (15,5): error CS0121: The call is ambiguous between the following methods or properties: 'P.M1(P.DA, object)' and 'P.M1(P.DB, int)'
+                //     M1(() => () => i, i);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("P.M1(P.DA, object)", "P.M1(P.DB, int)").WithLocation(15, 5));
         }
 
         [Fact]
@@ -868,7 +875,7 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics();
 
             assert("F0", "delegate*<System.Int32, System.Int32, C<MyTask<System.Int32>>>", "delegate*<System.Int32, System.Int32, C<System.Threading.Tasks.Task<System.Int32>>>");
@@ -8985,7 +8992,7 @@ public interface IDetail<T>
 
 }
 
-public interface IMaster<T>
+public interface IMain<T>
 {
 
 }
@@ -9016,15 +9023,15 @@ public class Permission : IDetail<Principal>
 
 }
 
-public class Principal : IMaster<Permission>
+public class Principal : IMain<Permission>
 {
 }
 
 public static class Class
 {
-    public static void RemoveDetail<TMaster, TChild>(this TMaster master, TChild child)
-        where TMaster : class, IMaster<TChild>
-        where TChild : class, IDetail<TMaster>
+    public static void RemoveDetail<TMain, TChild>(this TMain main, TChild child)
+        where TMain : class, IMain<TChild>
+        where TChild : class, IDetail<TMain>
     {
         System.Console.WriteLine(""RemoveDetail"");
     }
@@ -10994,6 +11001,30 @@ class Program
         }
 
         [Fact]
+        public void GenericInferenceErrorRecovery()
+        {
+            var code = @"
+class Program
+{
+    public static void Method<T>(in T p)
+    {
+        System.Console.WriteLine(typeof(T).ToString());
+    }
+
+    static void Main()
+    {
+        Method((null, 1));
+    }
+}
+";
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0411: The type arguments for method 'Program.Method<T>(in T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Method((null, 1));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("Program.Method<T>(in T)").WithLocation(11, 9));
+        }
+
+        [Fact]
         public void GenericInferenceLambdaVariance()
         {
             var code = @"
@@ -11262,6 +11293,209 @@ public static class Extensions
 }";
 
             CompileAndVerify(code, expectedOutput: @"2");
+        }
+
+        [Fact]
+        public void GenericTypeOverriddenMethod()
+        {
+            var source0 =
+@"public class Base<TKey, TValue>
+    where TKey : class
+    where TValue : class
+{
+    public virtual TValue F(TKey key) => throw null;
+}";
+            var source1 =
+@"public class A { }
+public class Derived<TValue> : Base<A, TValue>
+    where TValue : class
+{
+    public override TValue F(A key) => throw null;
+}";
+            var source2 =
+@"class B { }
+class Program
+{
+    static void M(Derived<B> d, A a)
+    {
+        _ = d.F(a);
+    }
+}";
+
+            var comp = CreateCompilation(new[] { source0, source1, source2 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[2]);
+
+            var ref0 = CreateCompilation(source0).EmitToImageReference();
+            var ref1 = CreateCompilation(source1, references: new[] { ref0 }).EmitToImageReference();
+            comp = CreateCompilation(source2, references: new[] { ref0, ref1 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[0]);
+
+            static void verify(CSharpCompilation comp, SyntaxTree tree)
+            {
+                var model = comp.GetSemanticModel(tree);
+                var expr = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+                var symbol = model.GetSymbolInfo(expr).Symbol.GetSymbol<MethodSymbol>();
+                Assert.Equal("B Derived<B>.F(A key)", symbol.ToTestDisplayString());
+                symbol = symbol.GetLeastOverriddenMethod(accessingTypeOpt: null);
+                Assert.Equal("B Base<A, B>.F(A key)", symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        [WorkItem(46549, "https://github.com/dotnet/roslyn/issues/46549")]
+        public void GenericTypeOverriddenProperty()
+        {
+            var source0 =
+@"public class Base<TKey, TValue>
+    where TKey : class
+    where TValue : class
+{
+    public virtual TValue this[TKey key] => throw null;
+}";
+            var source1 =
+@"public class A { }
+public class Derived<TValue> : Base<A, TValue>
+    where TValue : class
+{
+    public override TValue this[A key] => throw null;
+}";
+            var source2 =
+@"class B { }
+class Program
+{
+    static void M(Derived<B> d, A a)
+    {
+        _ = d[a];
+    }
+}";
+
+            var comp = CreateCompilation(new[] { source0, source1, source2 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[2]);
+
+            var ref0 = CreateCompilation(source0).EmitToImageReference();
+            var ref1 = CreateCompilation(source1, references: new[] { ref0 }).EmitToImageReference();
+            comp = CreateCompilation(source2, references: new[] { ref0, ref1 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[0]);
+
+            static void verify(CSharpCompilation comp, SyntaxTree tree)
+            {
+                var model = comp.GetSemanticModel(tree);
+                var expr = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
+                var symbol = model.GetSymbolInfo(expr).Symbol.GetSymbol<PropertySymbol>();
+                Assert.Equal("B Derived<B>.this[A key] { get; }", symbol.ToTestDisplayString());
+                symbol = symbol.GetLeastOverriddenProperty(accessingTypeOpt: null);
+                Assert.Equal("B Base<A, B>.this[A key] { get; }", symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        [WorkItem(46549, "https://github.com/dotnet/roslyn/issues/46549")]
+        public void GenericTypeOverriddenEvent()
+        {
+            var source0 =
+@"public delegate TValue D<TKey, TValue>(TKey key);
+public abstract class Base<TKey, TValue>
+    where TKey : class
+    where TValue : class
+{
+    public abstract event D<TKey, TValue> E;
+}";
+            var source1 =
+@"public class A { }
+public class Derived<TValue> : Base<A, TValue>
+    where TValue : class
+{
+    public override event D<A, TValue> E { add { } remove { } }
+}";
+            var source2 =
+@"class B { }
+class Program
+{
+    static void M(Derived<B> d, A a)
+    {
+        d.E += (A a) => default(B);
+    }
+}";
+
+            var comp = CreateCompilation(new[] { source0, source1, source2 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[2]);
+
+            var ref0 = CreateCompilation(source0).EmitToImageReference();
+            var ref1 = CreateCompilation(source1, references: new[] { ref0 }).EmitToImageReference();
+            comp = CreateCompilation(source2, references: new[] { ref0, ref1 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[0]);
+
+            static void verify(CSharpCompilation comp, SyntaxTree tree)
+            {
+                var model = comp.GetSemanticModel(tree);
+                var expr = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+                var symbol = model.GetSymbolInfo(expr).Symbol.GetSymbol<EventSymbol>();
+                Assert.Equal("event D<A, B> Derived<B>.E", symbol.ToTestDisplayString());
+                symbol = symbol.GetLeastOverriddenEvent(accessingTypeOpt: null);
+                Assert.Equal("event D<A, B> Base<A, B>.E", symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        [WorkItem(52701, "https://github.com/dotnet/roslyn/issues/52701")]
+        public void Issue52701_01()
+        {
+            var source =
+@"
+class A
+{
+    internal void F<T>(T t) where T : class {}
+}
+class B : A
+{
+    internal new void F<T>(T t) where T : struct { }
+    void M()
+    {
+        System.Action<object> d = F<object>;
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,35): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'B.F<T>(T)'
+                //         System.Action<object> d = F<object>;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>").WithArguments("B.F<T>(T)", "T", "object").WithLocation(11, 35)
+                );
+        }
+
+        [Fact]
+        [WorkItem(52701, "https://github.com/dotnet/roslyn/issues/52701")]
+        public void Issue52701_02()
+        {
+            var source =
+@"
+class A
+{
+    internal void F<T>(T t) where T : class {}
+}
+class B : A
+{
+    internal new void F<T>(T t) where T : struct { }
+    void M()
+    {
+        F<object>(default);
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'B.F<T>(T)'
+                //         F<object>(default);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>").WithArguments("B.F<T>(T)", "T", "object").WithLocation(11, 9)
+                );
         }
     }
 }

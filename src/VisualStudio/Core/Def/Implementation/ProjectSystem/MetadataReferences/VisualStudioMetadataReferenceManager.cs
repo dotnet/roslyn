@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -33,12 +31,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// </remarks>
     internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceService
     {
-        private static readonly Guid s_IID_IMetaDataImport = new Guid("7DAC8207-D3AE-4c75-9B67-92801A497D44");
-        private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new ConditionalWeakTable<Metadata, object>();
+        private static readonly Guid s_IID_IMetaDataImport = new("7DAC8207-D3AE-4c75-9B67-92801A497D44");
+        private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new();
 
         private readonly MetadataCache _metadataCache;
         private readonly ImmutableArray<string> _runtimeDirectories;
-
+        private readonly Workspace _workspace;
         private readonly ITemporaryStorageService _temporaryStorageService;
 
         internal IVsXMLMemberIndexService XmlMemberIndexService { get; }
@@ -52,9 +50,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal IVsFileChangeEx FileChangeService { get; }
 
-        private readonly ReaderWriterLockSlim _readerWriterLock = new ReaderWriterLockSlim();
+        private readonly ReaderWriterLockSlim _readerWriterLock = new();
 
-        internal VisualStudioMetadataReferenceManager(IServiceProvider serviceProvider, ITemporaryStorageService temporaryStorageService)
+        internal VisualStudioMetadataReferenceManager(
+            Workspace workspace,
+            IServiceProvider serviceProvider,
+            ITemporaryStorageService temporaryStorageService)
         {
             _metadataCache = new MetadataCache();
             _runtimeDirectories = GetRuntimeDirectories();
@@ -67,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             FileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
             Assumes.Present(FileChangeService);
-
+            _workspace = workspace;
             _temporaryStorageService = temporaryStorageService;
             Assumes.Present(_temporaryStorageService);
         }
@@ -129,7 +130,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (VsSmartScopeCandidate(key.FullPath) && TryCreateAssemblyMetadataFromMetadataImporter(key, out var newMetadata))
             {
-                if (!_metadataCache.GetOrAddMetadata(key, new WeakValueSource<AssemblyMetadata>(newMetadata), out metadata))
+                ValueSource<Optional<AssemblyMetadata>> metadataValueSource = _workspace.Options.GetOption(WorkspaceConfigurationOptions.DisableReferenceManagerWeakRuntimeReferences)
+                    ? new ConstantValueSource<Optional<AssemblyMetadata>>(newMetadata)
+                    : new WeakValueSource<AssemblyMetadata>(newMetadata);
+
+                if (!_metadataCache.GetOrAddMetadata(key, metadataValueSource, out metadata))
                 {
                     newMetadata.Dispose();
                 }

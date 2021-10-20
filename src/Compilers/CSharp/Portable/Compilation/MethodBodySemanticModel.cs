@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -21,14 +23,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             internal readonly CSharpSyntaxNode Syntax;
             internal readonly BoundNode? Body;
-            internal readonly ExecutableCodeBinder? Binder;
+            internal readonly Binder? Binder;
             internal readonly NullableWalker.SnapshotManager? SnapshotManager;
             internal readonly ImmutableDictionary<Symbol, Symbol>? RemappedSymbols;
 
             internal InitialState(
                 CSharpSyntaxNode syntax,
                 BoundNode? bodyOpt = null,
-                ExecutableCodeBinder? binder = null,
+                Binder? binder = null,
                 NullableWalker.SnapshotManager? snapshotManager = null,
                 ImmutableDictionary<Symbol, Symbol>? remappedSymbols = null)
             {
@@ -39,10 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RemappedSymbols = remappedSymbols;
             }
         }
-#nullable restore
+#nullable disable
 
         private MethodBodySemanticModel(
-            Symbol owner,
+            MethodSymbol owner,
             Binder rootBinder,
             CSharpSyntaxNode syntax,
             SyntaxTreeSemanticModel containingSemanticModelOpt = null,
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
         {
             switch (node.Kind())
             {
@@ -268,15 +270,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out SemanticModel speculativeModel)
         {
             if (MemberSymbol is SynthesizedRecordConstructor primaryCtor &&
-                Root.FindToken(position).Parent?.AncestorsAndSelf().OfType<PrimaryConstructorBaseTypeSyntax>().FirstOrDefault() == primaryCtor.GetSyntax().PrimaryConstructorBaseType)
+                primaryCtor.GetSyntax() is RecordDeclarationSyntax recordDecl)
             {
-                var binder = this.GetEnclosingBinder(position);
-                if (binder != null)
+                Debug.Assert(recordDecl.Kind() == SyntaxKind.RecordDeclaration);
+                if (Root.FindToken(position).Parent?.AncestorsAndSelf().OfType<PrimaryConstructorBaseTypeSyntax>().FirstOrDefault() == recordDecl.PrimaryConstructorBaseTypeIfClass)
                 {
-                    binder = new WithNullableContextBinder(SyntaxTree, position, binder);
-                    binder = new ExecutableCodeBinder(constructorInitializer, primaryCtor, binder);
-                    speculativeModel = CreateSpeculative(parentModel, primaryCtor, constructorInitializer, binder, position);
-                    return true;
+                    var binder = this.GetEnclosingBinder(position);
+                    if (binder != null)
+                    {
+                        binder = new WithNullableContextBinder(SyntaxTree, position, binder);
+                        binder = new ExecutableCodeBinder(constructorInitializer, primaryCtor, binder);
+                        speculativeModel = CreateSpeculative(parentModel, primaryCtor, constructorInitializer, binder, position);
+                        return true;
+                    }
                 }
             }
 
@@ -298,14 +304,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             out NullableWalker.SnapshotManager snapshotManager,
             ref ImmutableDictionary<Symbol, Symbol> remappedSymbols)
         {
-            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
+            var afterInitializersState = NullableWalker.GetAfterInitializersState(Compilation, MemberSymbol);
+            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, afterInitializersState, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
         }
 
-#if DEBUG
         protected override void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots)
         {
             NullableWalker.AnalyzeWithoutRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots);
         }
-#endif
+
+        protected override bool IsNullableAnalysisEnabled()
+        {
+            return Compilation.IsNullableAnalysisEnabledIn((MethodSymbol)MemberSymbol);
+        }
     }
 }

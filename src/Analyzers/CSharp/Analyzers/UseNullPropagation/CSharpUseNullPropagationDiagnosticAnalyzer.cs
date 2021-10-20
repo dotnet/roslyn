@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -27,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
             ConditionalAccessExpressionSyntax,
             ElementAccessExpressionSyntax>
     {
-        protected override bool ShouldAnalyze(ParseOptions options)
-            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp6;
+        protected override bool ShouldAnalyze(Compilation compilation)
+            => ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp6;
 
         protected override ISyntaxFacts GetSyntaxFacts()
             => CSharpSyntaxFacts.Instance;
@@ -43,12 +41,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
             conditionPartToCheck = null;
             isEquals = true;
 
-            if (!(conditionNode is IsPatternExpressionSyntax patternExpression))
+            if (conditionNode is not IsPatternExpressionSyntax patternExpression)
             {
                 return false;
             }
 
-            if (!(patternExpression.Pattern is ConstantPatternSyntax constantPattern))
+            if (patternExpression.Pattern is not ConstantPatternSyntax constantPattern)
             {
                 return false;
             }

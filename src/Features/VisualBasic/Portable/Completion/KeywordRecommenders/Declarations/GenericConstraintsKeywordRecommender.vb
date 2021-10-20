@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -12,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
     Friend Class GenericConstraintsKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.FollowsEndOfStatement Then
-                Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 
             Dim targetToken = context.TargetToken
@@ -25,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             recommendations.Add(New RecommendedKeyword("New", VBFeaturesResources.Specifies_a_constructor_constraint_on_a_generic_type_parameter))
 
             If targetToken.IsChildToken(Of TypeParameterSingleConstraintClauseSyntax)(Function(constraint) constraint.AsKeyword) Then
-                Return recommendations
+                Return recommendations.ToImmutableArray()
             ElseIf TypeOf targetToken.Parent Is TypeParameterMultipleConstraintClauseSyntax Then
                 Dim multipleConstraint = DirectCast(targetToken.Parent, TypeParameterMultipleConstraintClauseSyntax)
                 If targetToken = multipleConstraint.OpenBraceToken OrElse targetToken.Kind = SyntaxKind.CommaToken Then
@@ -36,18 +37,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                     If previousConstraints.Any(Function(constraint) Not constraint.IsKind(SyntaxKind.TypeConstraint)) Then
                         recommendations.RemoveAll(Function(k) k.Keyword = "Structure")
                     End If
+
                     If previousConstraints.Any(Function(constraint) constraint.IsKind(SyntaxKind.ClassConstraint, SyntaxKind.StructureConstraint)) Then
                         recommendations.RemoveAll(Function(k) k.Keyword = "Class")
                     End If
+
                     If previousConstraints.Any(Function(constraint) constraint.IsKind(SyntaxKind.NewConstraint, SyntaxKind.StructureConstraint)) Then
                         recommendations.RemoveAll(Function(k) k.Keyword = "New")
                     End If
 
-                    Return recommendations
+                    Return recommendations.ToImmutableArray()
                 End If
             End If
 
-            Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+            Return ImmutableArray(Of RecommendedKeyword).Empty
         End Function
     End Class
 End Namespace

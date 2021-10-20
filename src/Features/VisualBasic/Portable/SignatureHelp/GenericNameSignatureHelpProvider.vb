@@ -3,9 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.DocumentationComments
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Inherits AbstractVisualBasicSignatureHelpProvider
 
         <ImportingConstructor>
-        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -104,24 +104,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 Return Nothing
             End If
 
-            Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
+            Dim structuralTypeDisplayService = document.GetLanguageService(Of IStructuralTypeDisplayService)()
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
             Dim textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(genericName.TypeArgumentList)
             Dim _syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
             Return CreateSignatureHelpItems(
-                accessibleSymbols.Select(Function(s) Convert(s, genericName, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService)).ToList(),
+                accessibleSymbols.Select(Function(s) Convert(s, genericName, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, _syntaxFacts, textSpan, cancellationToken), selectedItem:=Nothing)
         End Function
 
-        Private Overloads Shared Function Convert(symbol As ISymbol, genericName As GenericNameSyntax, semanticModel As SemanticModel, anonymousTypeDisplayService As IAnonymousTypeDisplayService, documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpItem
+        Private Overloads Shared Function Convert(symbol As ISymbol, genericName As GenericNameSyntax, semanticModel As SemanticModel, structuralTypeDisplayService As IStructuralTypeDisplayService, documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpItem
             Dim position = genericName.SpanStart
             Dim item As SignatureHelpItem
             If TypeOf symbol Is INamedTypeSymbol Then
                 Dim namedType = DirectCast(symbol, INamedTypeSymbol)
                 item = CreateItem(
                     symbol, semanticModel, position,
-                    anonymousTypeDisplayService,
+                    structuralTypeDisplayService,
                     False,
                     symbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                     GetPreambleParts(namedType, semanticModel, position),
@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 Dim method = DirectCast(symbol, IMethodSymbol)
                 item = CreateItem(
                     symbol, semanticModel, position,
-                    anonymousTypeDisplayService,
+                    structuralTypeDisplayService,
                     False,
                     symbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                     GetPreambleParts(method, semanticModel, position),
@@ -198,6 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                         parts.Add(Punctuation(SyntaxKind.CommaToken))
                         parts.Add(Space())
                     End If
+
                     parts.Add(Keyword(SyntaxKind.NewKeyword))
                 End If
 

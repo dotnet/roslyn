@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -24,7 +26,6 @@ using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
-using Microsoft.VisualStudio.Text.Editor;
 using Moq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -34,24 +35,32 @@ using RoslynCompletion = Microsoft.CodeAnalysis.Completion;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 {
     [UseExportProvider]
-    public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestBase, IClassFixture<TWorkspaceFixture>
+    public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestBase
         where TWorkspaceFixture : TestWorkspaceFixture, new()
     {
-        protected readonly Mock<ICompletionSession> MockCompletionSession;
-        protected TWorkspaceFixture WorkspaceFixture;
+        private static readonly TestComposition s_baseComposition = EditorTestCompositions.EditorFeatures.AddExcludedPartTypes(typeof(CompletionProvider));
 
-        protected AbstractCompletionProviderTests(TWorkspaceFixture workspaceFixture)
+        private readonly TestFixtureHelper<TWorkspaceFixture> _fixtureHelper = new();
+
+        protected readonly Mock<ICompletionSession> MockCompletionSession;
+        private ExportProvider _lazyExportProvider;
+
+        protected bool? TargetTypedCompletionFilterFeatureFlag { get; set; }
+        protected bool? TypeImportCompletionFeatureFlag { get; set; }
+
+        protected AbstractCompletionProviderTests()
         {
             MockCompletionSession = new Mock<ICompletionSession>(MockBehavior.Strict);
-
-            this.WorkspaceFixture = workspaceFixture;
         }
 
-        public override void Dispose()
-        {
-            this.WorkspaceFixture.DisposeAfterTest();
-            base.Dispose();
-        }
+        protected ExportProvider ExportProvider
+            => _lazyExportProvider ??= GetComposition().ExportProviderFactory.CreateExportProvider();
+
+        protected virtual TestComposition GetComposition()
+            => s_baseComposition.AddParts(GetCompletionProviderType());
+
+        private protected ReferenceCountedDisposable<TWorkspaceFixture> GetOrCreateWorkspaceFixture()
+            => _fixtureHelper.GetOrCreateFixture();
 
         protected static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
         {
@@ -85,7 +94,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription, List<CompletionFilter> matchingFilters, CompletionItemFlags? flags);
+            string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit,
+            List<CompletionFilter> matchingFilters, CompletionItemFlags? flags);
 
         internal static Task<RoslynCompletion.CompletionList> GetCompletionListAsync(
             CompletionService service,
@@ -101,7 +111,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             Document document, int position, string expectedItemOrNull,
             string expectedDescriptionOrNull, bool usePreviousCharAsTrigger,
             bool checkForAbsence, int? glyph, int? matchPriority,
-            bool? hasSuggestionModeItem, string displayTextSuffix, string inlineDescription,
+            bool? hasSuggestionModeItem, string displayTextSuffix,
+            string displayTextPrefix, string inlineDescription,
+            bool? isComplexTextEdit,
             List<CompletionFilter> matchingFilters, CompletionItemFlags? flags)
         {
             var code = (await document.GetTextAsync()).ToString();
@@ -139,6 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                         items,
                         c => CompareItems(c.DisplayText, expectedItemOrNull)
                                 && CompareItems(c.DisplayTextSuffix, displayTextSuffix ?? "")
+                                && CompareItems(c.DisplayTextPrefix, displayTextPrefix ?? "")
                                 && CompareItems(c.InlineDescription, inlineDescription ?? "")
                                 && (expectedDescriptionOrNull != null ? completionService.GetDescriptionAsync(document, c).Result.Text == expectedDescriptionOrNull : true));
                 }
@@ -151,56 +164,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 }
                 else
                 {
-                    Func<RoslynCompletion.CompletionItem, bool> predicate = c
-                        => CompareItems(c.DisplayText, expectedItemOrNull)
-                              && CompareItems(c.DisplayTextSuffix, displayTextSuffix ?? "")
-                              && CompareItems(c.InlineDescription, inlineDescription ?? "")
-                              && (expectedDescriptionOrNull != null ? completionService.GetDescriptionAsync(document, c).Result.Text == expectedDescriptionOrNull : true)
-                              && (glyph.HasValue ? c.Tags.SequenceEqual(GlyphTags.GetTags((Glyph)glyph.Value)) : true)
-                              && (matchPriority.HasValue ? (int)c.Rules.MatchPriority == matchPriority.Value : true)
-                              && (matchingFilters != null ? FiltersMatch(matchingFilters, c) : true)
-                              && (flags != null ? flags.Value == c.Flags : true);
-
-                    AssertEx.Any(items, predicate);
+                    AssertEx.Any(items, Predicate);
                 }
             }
-        }
 
-        private static readonly Dictionary<Type, IExportProviderFactory> _specificCompletionExportProviderFactories = new Dictionary<Type, IExportProviderFactory>();
-        private ExportProvider _exportProvider = null;
-
-        protected ExportProvider ExportProvider
-        {
-            get
+            bool Predicate(RoslynCompletion.CompletionItem c)
             {
-                return _exportProvider ??= GetExportProvider(this);
+                if (!CompareItems(c.DisplayText, expectedItemOrNull))
+                    return false;
+                if (!CompareItems(c.DisplayTextSuffix, displayTextSuffix ?? ""))
+                    return false;
+                if (!CompareItems(c.DisplayTextPrefix, displayTextPrefix ?? ""))
+                    return false;
+                if (!CompareItems(c.InlineDescription, inlineDescription ?? ""))
+                    return false;
+                if (expectedDescriptionOrNull != null && completionService.GetDescriptionAsync(document, c).Result.Text != expectedDescriptionOrNull)
+                    return false;
+                if (glyph.HasValue && !c.Tags.SequenceEqual(GlyphTags.GetTags((Glyph)glyph.Value)))
+                    return false;
+                if (matchPriority.HasValue && c.Rules.MatchPriority != matchPriority.Value)
+                    return false;
+                if (matchingFilters != null && !FiltersMatch(matchingFilters, c))
+                    return false;
+                if (flags != null && flags.Value != c.Flags)
+                    return false;
+                if (isComplexTextEdit is bool textEdit && textEdit != c.IsComplexTextEdit)
+                    return false;
 
-                static ExportProvider GetExportProvider(AbstractCompletionProviderTests<TWorkspaceFixture> self)
-                {
-                    IExportProviderFactory factory;
-                    lock (_specificCompletionExportProviderFactories)
-                    {
-                        factory = _specificCompletionExportProviderFactories.GetOrAdd(
-                            self.GetType(),
-                            type => ExportProviderCache.GetOrCreateExportProviderFactory(self.GetExportCatalog()));
-                    }
-
-                    return factory.CreateExportProvider();
-                }
+                return true;
             }
-        }
-
-        protected void SetExperimentOption(string experimentName, bool enabled)
-        {
-            var mockExperimentService = ExportProvider.GetExportedValue<TestExperimentationService>();
-            mockExperimentService.SetExperimentOption(experimentName, enabled);
-        }
-
-        protected virtual ComposableCatalog GetExportCatalog()
-        {
-            var catalogWithoutCompletion = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(typeof(CompletionProvider));
-            var catalog = catalogWithoutCompletion.WithPart(GetCompletionProviderType());
-            return catalog;
         }
 
         private static bool FiltersMatch(List<CompletionFilter> expectedMatchingFilters, RoslynCompletion.CompletionItem item)
@@ -212,30 +204,49 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return expectedMatchingFilters.SetEquals(matchingFilters);
         }
 
-        private Task VerifyAsync(
+        private async Task VerifyAsync(
             string markup, string expectedItemOrNull, string expectedDescriptionOrNull,
-            SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
+            SourceCodeKind? sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionModeItem, string displayTextSuffix,
-            string inlineDescription, List<CompletionFilter> matchingFilters, CompletionItemFlags? flags)
+            string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit,
+            List<CompletionFilter> matchingFilters, CompletionItemFlags? flags)
         {
-            var workspace = WorkspaceFixture.GetWorkspace(markup, ExportProvider);
-            var code = WorkspaceFixture.Code;
-            var position = WorkspaceFixture.Position;
+            foreach (var sourceKind in sourceCodeKind.HasValue ? new[] { sourceCodeKind.Value } : new[] { SourceCodeKind.Regular, SourceCodeKind.Script })
+            {
+                using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
-            workspace.SetOptions(WithChangedOptions(workspace.Options));
+                var workspace = workspaceFixture.Target.GetWorkspace(markup, ExportProvider);
+                var code = workspaceFixture.Target.Code;
+                var position = workspaceFixture.Target.Position;
 
-            return VerifyWorkerAsync(
-                code, position, expectedItemOrNull, expectedDescriptionOrNull,
-                sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph,
-                matchPriority, hasSuggestionModeItem, displayTextSuffix, inlineDescription,
-                matchingFilters, flags);
+                var newOptions = WithChangedOptions(workspace.Options);
+
+                if (TargetTypedCompletionFilterFeatureFlag.HasValue)
+                {
+                    newOptions = newOptions.WithChangedOption(CompletionOptions.TargetTypedCompletionFilterFeatureFlag, TargetTypedCompletionFilterFeatureFlag.Value);
+                }
+
+                if (TypeImportCompletionFeatureFlag.HasValue)
+                {
+                    newOptions = newOptions.WithChangedOption(CompletionOptions.TypeImportCompletionFeatureFlag, TypeImportCompletionFeatureFlag.Value);
+                }
+
+                workspace.SetOptions(newOptions);
+
+                await VerifyWorkerAsync(
+                    code, position, expectedItemOrNull, expectedDescriptionOrNull,
+                    sourceKind, usePreviousCharAsTrigger, checkForAbsence, glyph,
+                    matchPriority, hasSuggestionModeItem, displayTextSuffix, displayTextPrefix,
+                    inlineDescription, isComplexTextEdit, matchingFilters, flags).ConfigureAwait(false);
+            }
         }
 
         protected async Task<CompletionList> GetCompletionListAsync(string markup, string workspaceKind = null)
         {
-            var workspace = WorkspaceFixture.GetWorkspace(markup, ExportProvider, workspaceKind: workspaceKind);
-            var currentDocument = workspace.CurrentSolution.GetDocument(WorkspaceFixture.CurrentDocument.Id);
-            var position = WorkspaceFixture.Position;
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+            var workspace = workspaceFixture.Target.GetWorkspace(markup, ExportProvider, workspaceKind: workspaceKind);
+            var currentDocument = workspace.CurrentSolution.GetDocument(workspaceFixture.Target.CurrentDocument.Id);
+            var position = workspaceFixture.Target.Position;
             currentDocument = WithChangedOptions(currentDocument);
 
             return await GetCompletionListAsync(GetCompletionService(currentDocument.Project), currentDocument, position, RoslynCompletion.CompletionTrigger.Invoke, options: workspace.Options).ConfigureAwait(false);
@@ -243,10 +254,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         protected async Task VerifyCustomCommitProviderAsync(string markupBeforeCommit, string itemToCommit, string expectedCodeAfterCommit, SourceCodeKind? sourceCodeKind = null, char? commitChar = null)
         {
-            using (WorkspaceFixture.GetWorkspace(markupBeforeCommit, ExportProvider))
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+            using (workspaceFixture.Target.GetWorkspace(markupBeforeCommit, ExportProvider))
             {
-                var code = WorkspaceFixture.Code;
-                var position = WorkspaceFixture.Position;
+                var code = workspaceFixture.Target.Code;
+                var position = workspaceFixture.Target.Position;
 
                 if (sourceCodeKind.HasValue)
                 {
@@ -265,23 +277,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string itemToCommit,
             string expectedCodeAfterCommit,
             char? commitChar,
-            string textTypedSoFar,
             SourceCodeKind? sourceCodeKind = null)
         {
-            WorkspaceFixture.GetWorkspace(markupBeforeCommit, ExportProvider);
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
-            var code = WorkspaceFixture.Code;
-            var position = WorkspaceFixture.Position;
+            workspaceFixture.Target.GetWorkspace(markupBeforeCommit, ExportProvider);
+
+            var code = workspaceFixture.Target.Code;
+            var position = workspaceFixture.Target.Position;
 
             expectedCodeAfterCommit = expectedCodeAfterCommit.NormalizeLineEndings();
             if (sourceCodeKind.HasValue)
             {
-                await VerifyProviderCommitWorkerAsync(code, position, itemToCommit, expectedCodeAfterCommit, commitChar, textTypedSoFar, sourceCodeKind.Value);
+                await VerifyProviderCommitWorkerAsync(code, position, itemToCommit, expectedCodeAfterCommit, commitChar, sourceCodeKind.Value);
             }
             else
             {
-                await VerifyProviderCommitWorkerAsync(code, position, itemToCommit, expectedCodeAfterCommit, commitChar, textTypedSoFar, SourceCodeKind.Regular);
-                await VerifyProviderCommitWorkerAsync(code, position, itemToCommit, expectedCodeAfterCommit, commitChar, textTypedSoFar, SourceCodeKind.Script);
+                await VerifyProviderCommitWorkerAsync(code, position, itemToCommit, expectedCodeAfterCommit, commitChar, SourceCodeKind.Regular);
+                await VerifyProviderCommitWorkerAsync(code, position, itemToCommit, expectedCodeAfterCommit, commitChar, SourceCodeKind.Script);
             }
         }
 
@@ -295,63 +308,42 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string markup, string expectedItem, string expectedDescriptionOrNull = null,
             SourceCodeKind? sourceCodeKind = null, bool usePreviousCharAsTrigger = false,
             int? glyph = null, int? matchPriority = null, bool? hasSuggestionModeItem = null,
-            string displayTextSuffix = null, string inlineDescription = null,
-            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
+            string displayTextSuffix = null, string displayTextPrefix = null, string inlineDescription = null,
+            bool? isComplexTextEdit = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
         {
-            if (sourceCodeKind.HasValue)
-            {
-                await VerifyAsync(markup, expectedItem, expectedDescriptionOrNull,
-                    sourceCodeKind.Value, usePreviousCharAsTrigger, checkForAbsence: false,
-                    glyph: glyph, matchPriority: matchPriority,
-                    hasSuggestionModeItem: hasSuggestionModeItem, displayTextSuffix: displayTextSuffix,
-                    inlineDescription: inlineDescription, matchingFilters: matchingFilters, flags: flags);
-            }
-            else
-            {
-                await VerifyAsync(
-                    markup, expectedItem, expectedDescriptionOrNull, SourceCodeKind.Regular, usePreviousCharAsTrigger,
-                    checkForAbsence: false, glyph: glyph, matchPriority: matchPriority,
-                    hasSuggestionModeItem: hasSuggestionModeItem, displayTextSuffix: displayTextSuffix,
-                    inlineDescription: inlineDescription, matchingFilters: matchingFilters, flags: flags);
-
-                await VerifyAsync(
-                    markup, expectedItem, expectedDescriptionOrNull, SourceCodeKind.Script, usePreviousCharAsTrigger,
-                    checkForAbsence: false, glyph: glyph, matchPriority: matchPriority,
-                    hasSuggestionModeItem: hasSuggestionModeItem, displayTextSuffix: displayTextSuffix,
-                    inlineDescription: inlineDescription, matchingFilters: matchingFilters, flags: flags);
-            }
+            await VerifyAsync(markup, expectedItem, expectedDescriptionOrNull,
+                sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence: false,
+                glyph: glyph, matchPriority: matchPriority,
+                hasSuggestionModeItem: hasSuggestionModeItem, displayTextSuffix: displayTextSuffix,
+                displayTextPrefix: displayTextPrefix, inlineDescription: inlineDescription,
+                isComplexTextEdit: isComplexTextEdit, matchingFilters: matchingFilters, flags: flags);
         }
 
         private protected async Task VerifyItemIsAbsentAsync(
             string markup, string expectedItem, string expectedDescriptionOrNull = null,
             SourceCodeKind? sourceCodeKind = null, bool usePreviousCharAsTrigger = false,
-            bool? hasSuggestionModeItem = null, string displayTextSuffix = null, string inlineDescription = null,
-            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
+            bool? hasSuggestionModeItem = null, string displayTextSuffix = null,
+            string displayTextPrefix = null, string inlineDescription = null,
+            bool? isComplexTextEdit = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
         {
-            if (sourceCodeKind.HasValue)
-            {
-                await VerifyAsync(markup, expectedItem, expectedDescriptionOrNull, sourceCodeKind.Value, usePreviousCharAsTrigger, checkForAbsence: true, glyph: null, matchPriority: null, hasSuggestionModeItem: hasSuggestionModeItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription, matchingFilters: matchingFilters, flags: flags);
-            }
-            else
-            {
-                await VerifyAsync(markup, expectedItem, expectedDescriptionOrNull, SourceCodeKind.Regular, usePreviousCharAsTrigger, checkForAbsence: true, glyph: null, matchPriority: null, hasSuggestionModeItem: hasSuggestionModeItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription, matchingFilters: matchingFilters, flags: flags);
-                await VerifyAsync(markup, expectedItem, expectedDescriptionOrNull, SourceCodeKind.Script, usePreviousCharAsTrigger, checkForAbsence: true, glyph: null, matchPriority: null, hasSuggestionModeItem: hasSuggestionModeItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription, matchingFilters: matchingFilters, flags: flags);
-            }
+            await VerifyAsync(markup, expectedItem, expectedDescriptionOrNull, sourceCodeKind,
+                usePreviousCharAsTrigger, checkForAbsence: true, glyph: null, matchPriority: null,
+                hasSuggestionModeItem: hasSuggestionModeItem, displayTextSuffix: displayTextSuffix,
+                displayTextPrefix: displayTextPrefix, inlineDescription: inlineDescription,
+                isComplexTextEdit: isComplexTextEdit, matchingFilters: matchingFilters, flags: flags);
         }
 
         protected async Task VerifyAnyItemExistsAsync(
             string markup, SourceCodeKind? sourceCodeKind = null, bool usePreviousCharAsTrigger = false,
-            bool? hasSuggestionModeItem = null, string displayTextSuffix = null, string inlineDescription = null)
+            bool? hasSuggestionModeItem = null, string displayTextSuffix = null, string displayTextPrefix = null,
+            string inlineDescription = null)
         {
-            if (sourceCodeKind.HasValue)
-            {
-                await VerifyAsync(markup, expectedItemOrNull: null, expectedDescriptionOrNull: null, sourceCodeKind: sourceCodeKind.Value, usePreviousCharAsTrigger: usePreviousCharAsTrigger, checkForAbsence: false, glyph: null, matchPriority: null, hasSuggestionModeItem: hasSuggestionModeItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription, matchingFilters: null, flags: null);
-            }
-            else
-            {
-                await VerifyAsync(markup, expectedItemOrNull: null, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Regular, usePreviousCharAsTrigger: usePreviousCharAsTrigger, checkForAbsence: false, glyph: null, matchPriority: null, hasSuggestionModeItem: hasSuggestionModeItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription, matchingFilters: null, flags: null);
-                await VerifyAsync(markup, expectedItemOrNull: null, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script, usePreviousCharAsTrigger: usePreviousCharAsTrigger, checkForAbsence: false, glyph: null, matchPriority: null, hasSuggestionModeItem: hasSuggestionModeItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription, matchingFilters: null, flags: null);
-            }
+            await VerifyAsync(markup, expectedItemOrNull: null, expectedDescriptionOrNull: null,
+                sourceCodeKind, usePreviousCharAsTrigger: usePreviousCharAsTrigger,
+                checkForAbsence: false, glyph: null, matchPriority: null,
+                hasSuggestionModeItem: hasSuggestionModeItem, displayTextSuffix: displayTextSuffix,
+                displayTextPrefix: displayTextPrefix, inlineDescription: inlineDescription,
+                isComplexTextEdit: null, matchingFilters: null, flags: null);
         }
 
         protected async Task VerifyNoItemsExistAsync(
@@ -359,15 +351,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             bool usePreviousCharAsTrigger = false, bool? hasSuggestionModeItem = null,
             string displayTextSuffix = null, string inlineDescription = null)
         {
-            if (sourceCodeKind.HasValue)
-            {
-                await VerifyAsync(markup, expectedItemOrNull: null, expectedDescriptionOrNull: null, sourceCodeKind: sourceCodeKind.Value, usePreviousCharAsTrigger: usePreviousCharAsTrigger, checkForAbsence: true, glyph: null, matchPriority: null, hasSuggestionModeItem: hasSuggestionModeItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription, matchingFilters: null, flags: null);
-            }
-            else
-            {
-                await VerifyAsync(markup, expectedItemOrNull: null, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Regular, usePreviousCharAsTrigger: usePreviousCharAsTrigger, checkForAbsence: true, glyph: null, matchPriority: null, hasSuggestionModeItem: hasSuggestionModeItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription, matchingFilters: null, flags: null);
-                await VerifyAsync(markup, expectedItemOrNull: null, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script, usePreviousCharAsTrigger: usePreviousCharAsTrigger, checkForAbsence: true, glyph: null, matchPriority: null, hasSuggestionModeItem: hasSuggestionModeItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription, matchingFilters: null, flags: null);
-            }
+            await VerifyAsync(
+                markup, expectedItemOrNull: null, expectedDescriptionOrNull: null,
+                sourceCodeKind, usePreviousCharAsTrigger: usePreviousCharAsTrigger,
+                checkForAbsence: true, glyph: null, matchPriority: null,
+                hasSuggestionModeItem: hasSuggestionModeItem, displayTextSuffix: displayTextSuffix,
+                displayTextPrefix: null, inlineDescription: inlineDescription,
+                isComplexTextEdit: null, matchingFilters: null, flags: null);
         }
 
         internal abstract Type GetCompletionProviderType();
@@ -386,28 +376,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             SourceCodeKind sourceCodeKind,
             bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionModeItem,
-            string displayTextSuffix,
-            string inlineDescription,
+            string displayTextSuffix, string displayTextPrefix,
+            string inlineDescription, bool? isComplexTextEdit,
             List<CompletionFilter> matchingFilters, CompletionItemFlags? flags)
         {
-            WorkspaceFixture.GetWorkspace(ExportProvider);
-            var document1 = WorkspaceFixture.UpdateDocument(code, sourceCodeKind);
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
+            workspaceFixture.Target.GetWorkspace(ExportProvider);
+            var document1 = workspaceFixture.Target.UpdateDocument(code, sourceCodeKind);
 
             await CheckResultsAsync(
                 document1, position, expectedItemOrNull,
                 expectedDescriptionOrNull, usePreviousCharAsTrigger,
                 checkForAbsence, glyph, matchPriority,
-                hasSuggestionModeItem, displayTextSuffix, inlineDescription,
-                matchingFilters, flags);
+                hasSuggestionModeItem, displayTextSuffix, displayTextPrefix,
+                inlineDescription, isComplexTextEdit, matchingFilters, flags);
 
             if (await CanUseSpeculativeSemanticModelAsync(document1, position))
             {
-                var document2 = WorkspaceFixture.UpdateDocument(code, sourceCodeKind, cleanBeforeUpdate: false);
+                var document2 = workspaceFixture.Target.UpdateDocument(code, sourceCodeKind, cleanBeforeUpdate: false);
                 await CheckResultsAsync(
                     document2, position, expectedItemOrNull, expectedDescriptionOrNull,
                     usePreviousCharAsTrigger, checkForAbsence, glyph, matchPriority,
-                    hasSuggestionModeItem, displayTextSuffix, inlineDescription,
-                    matchingFilters, flags);
+                    hasSuggestionModeItem, displayTextSuffix, displayTextPrefix,
+                    inlineDescription, isComplexTextEdit, matchingFilters, flags);
             }
         }
 
@@ -420,24 +412,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         /// <param name="expectedCodeAfterCommit">The expected code after commit.</param>
         protected virtual async Task VerifyCustomCommitProviderWorkerAsync(string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit, SourceCodeKind sourceCodeKind, char? commitChar = null)
         {
-            var document1 = WorkspaceFixture.UpdateDocument(codeBeforeCommit, sourceCodeKind);
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
+            var document1 = workspaceFixture.Target.UpdateDocument(codeBeforeCommit, sourceCodeKind);
             await VerifyCustomCommitProviderCheckResultsAsync(document1, codeBeforeCommit, position, itemToCommit, expectedCodeAfterCommit, commitChar);
 
             if (await CanUseSpeculativeSemanticModelAsync(document1, position))
             {
-                var document2 = WorkspaceFixture.UpdateDocument(codeBeforeCommit, sourceCodeKind, cleanBeforeUpdate: false);
+                var document2 = workspaceFixture.Target.UpdateDocument(codeBeforeCommit, sourceCodeKind, cleanBeforeUpdate: false);
                 await VerifyCustomCommitProviderCheckResultsAsync(document2, codeBeforeCommit, position, itemToCommit, expectedCodeAfterCommit, commitChar);
             }
         }
 
         private async Task VerifyCustomCommitProviderCheckResultsAsync(Document document, string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitChar)
         {
-            var workspace = WorkspaceFixture.GetWorkspace();
             document = WithChangedOptions(document);
 
             var service = GetCompletionService(document.Project);
-            var completionLlist = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
-            var items = completionLlist.Items;
+            var completionList = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
+            var items = completionList.Items;
 
             Assert.Contains(itemToCommit, items.Select(x => x.DisplayText), GetStringComparer());
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
@@ -448,11 +441,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
             else
             {
-                await VerifyCustomCommitWorkerAsync(service, document, firstItem, completionLlist.Span, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
+                await VerifyCustomCommitWorkerAsync(service, document, firstItem, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
             }
         }
 
-        protected virtual OptionSet WithChangedOptions(OptionSet options) => options;
+        protected virtual OptionSet WithChangedOptions(OptionSet options)
+            => options;
+
         private Document WithChangedOptions(Document document)
         {
             var workspace = document.Project.Solution.Workspace;
@@ -469,19 +464,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return workspace.CurrentSolution.GetDocument(document.Id);
         }
 
-        internal async Task VerifyCustomCommitWorkerAsync(
+        private async Task VerifyCustomCommitWorkerAsync(
             CompletionServiceWithProviders service,
             Document document,
             RoslynCompletion.CompletionItem completionItem,
-            TextSpan completionListSpan,
             string codeBeforeCommit,
             string expectedCodeAfterCommit,
             char? commitChar = null)
         {
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
             MarkupTestFile.GetPosition(expectedCodeAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
             if (commitChar.HasValue &&
-                !CommitManager.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value, commitChar.Value.ToString()))
+                !CommitManager.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value))
             {
                 Assert.Equal(codeBeforeCommit, actualExpectedCode);
                 return;
@@ -489,16 +485,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             // textview is created lazily, so need to access it before making 
             // changes to document, so the cursor position is tracked correctly.
-            var textView = WorkspaceFixture.CurrentDocument.GetTextView();
+            var textView = workspaceFixture.Target.CurrentDocument.GetTextView();
 
-            var commit = await service.GetChangeAsync(document, completionItem, completionListSpan, commitChar, CancellationToken.None);
+            var options = await document.GetOptionsAsync().ConfigureAwait(false);
+
+            var commit = await service.GetChangeAsync(document, completionItem, commitChar, CancellationToken.None);
 
             var text = await document.GetTextAsync();
             var newText = text.WithChanges(commit.TextChange);
             var newDoc = document.WithText(newText);
             document.Project.Solution.Workspace.TryApplyChanges(newDoc.Project.Solution);
 
-            var textBuffer = WorkspaceFixture.CurrentDocument.GetTextBuffer();
+            var textBuffer = workspaceFixture.Target.CurrentDocument.GetTextBuffer();
 
             var actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
             var caretPosition = commit.NewPosition ?? textView.Caret.Position.BufferPosition.Position;
@@ -507,7 +505,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             Assert.Equal(expectedCaretPosition, caretPosition);
         }
 
-        internal virtual void VerifyCustomCommitWorker(
+        private void VerifyCustomCommitWorker(
             CompletionService service,
             ICustomCommitCompletionProvider customCommitCompletionProvider,
             RoslynCompletion.CompletionItem completionItem,
@@ -515,10 +513,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string expectedCodeAfterCommit,
             char? commitChar = null)
         {
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
             MarkupTestFile.GetPosition(expectedCodeAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
             if (commitChar.HasValue &&
-                !CommitManager.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value, commitChar.Value.ToString()))
+                !CommitManager.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value))
             {
                 Assert.Equal(codeBeforeCommit, actualExpectedCode);
                 return;
@@ -526,8 +526,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             // textview is created lazily, so need to access it before making 
             // changes to document, so the cursor position is tracked correctly.
-            var textView = WorkspaceFixture.CurrentDocument.GetTextView();
-            var textBuffer = WorkspaceFixture.CurrentDocument.GetTextBuffer();
+            var textView = workspaceFixture.Target.CurrentDocument.GetTextView();
+            var textBuffer = workspaceFixture.Target.CurrentDocument.GetTextBuffer();
 
             customCommitCompletionProvider.Commit(completionItem, textView, textBuffer, textView.TextSnapshot, commitChar);
 
@@ -545,22 +545,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         /// <param name="position">Position where intellisense is invoked.</param>
         /// <param name="itemToCommit">The item to commit from the completion provider.</param>
         /// <param name="expectedCodeAfterCommit">The expected code after commit.</param>
-        protected virtual async Task VerifyProviderCommitWorkerAsync(string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit,
-            char? commitChar, string textTypedSoFar, SourceCodeKind sourceCodeKind)
+        private async Task VerifyProviderCommitWorkerAsync(string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit,
+            char? commitChar, SourceCodeKind sourceCodeKind)
         {
-            var document1 = WorkspaceFixture.UpdateDocument(codeBeforeCommit, sourceCodeKind);
-            await VerifyProviderCommitCheckResultsAsync(document1, position, itemToCommit, expectedCodeAfterCommit, commitChar, textTypedSoFar);
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
+            var document1 = workspaceFixture.Target.UpdateDocument(codeBeforeCommit, sourceCodeKind);
+            await VerifyProviderCommitCheckResultsAsync(document1, position, itemToCommit, expectedCodeAfterCommit, commitChar);
 
             if (await CanUseSpeculativeSemanticModelAsync(document1, position))
             {
-                var document2 = WorkspaceFixture.UpdateDocument(codeBeforeCommit, sourceCodeKind, cleanBeforeUpdate: false);
-                await VerifyProviderCommitCheckResultsAsync(document2, position, itemToCommit, expectedCodeAfterCommit, commitChar, textTypedSoFar);
+                var document2 = workspaceFixture.Target.UpdateDocument(codeBeforeCommit, sourceCodeKind, cleanBeforeUpdate: false);
+                await VerifyProviderCommitCheckResultsAsync(document2, position, itemToCommit, expectedCodeAfterCommit, commitChar);
             }
         }
 
         private async Task VerifyProviderCommitCheckResultsAsync(
-            Document document, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitCharOpt, string textTypedSoFar)
+            Document document, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitCharOpt)
         {
+            document = WithChangedOptions(document);
             var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
             var items = completionList.Items;
@@ -571,9 +574,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var text = await document.GetTextAsync();
 
             if (commitChar == '\t' ||
-                CommitManager.IsCommitCharacter(service.GetRules(), firstItem, commitChar, textTypedSoFar + commitChar))
+                CommitManager.IsCommitCharacter(service.GetRules(), firstItem, commitChar))
             {
-                var textChange = (await service.GetChangeAsync(document, firstItem, completionList.Span, commitChar, CancellationToken.None)).TextChange;
+                var textChange = (await service.GetChangeAsync(document, firstItem, commitChar, CancellationToken.None)).TextChange;
 
                 // Adjust TextChange to include commit character, so long as it isn't TAB.
                 if (commitChar != '\t')
@@ -607,12 +610,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        protected Task VerifyItemWithMetadataReferenceAsync(string markup, string metadataReferenceCode, string expectedItem, int expectedSymbols,
+        protected async Task VerifyItemWithMetadataReferenceAsync(string markup, string metadataReferenceCode, string expectedItem, int expectedSymbols,
                                                            string sourceLanguage, string referencedLanguage, bool hideAdvancedMembers)
         {
             var xmlString = CreateMarkupForProjectWithMetadataReference(markup, metadataReferenceCode, sourceLanguage, referencedLanguage);
 
-            return VerifyItemWithReferenceWorkerAsync(xmlString, expectedItem, expectedSymbols, hideAdvancedMembers);
+            await VerifyItemWithReferenceWorkerAsync(xmlString, expectedItem, expectedSymbols, hideAdvancedMembers);
         }
 
         protected static string GetMarkupWithReference(string currentFile, string referencedFile, string sourceLanguage, string referenceLanguage, bool isProjectReference)
@@ -635,12 +638,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 </Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(metadataReferenceCode));
         }
 
-        protected Task VerifyItemWithAliasedMetadataReferencesAsync(string markup, string metadataAlias, string expectedItem, int expectedSymbols,
-                                                   string sourceLanguage, string referencedLanguage, bool hideAdvancedMembers)
+        protected async Task VerifyItemWithAliasedMetadataReferencesAsync(string markup, string metadataAlias, string expectedItem, int expectedSymbols,
+            string sourceLanguage, string referencedLanguage, bool hideAdvancedMembers)
         {
             var xmlString = CreateMarkupForProjectWithAliasedMetadataReference(markup, metadataAlias, "", sourceLanguage, referencedLanguage);
 
-            return VerifyItemWithReferenceWorkerAsync(xmlString, expectedItem, expectedSymbols, hideAdvancedMembers);
+            await VerifyItemWithReferenceWorkerAsync(xmlString, expectedItem, expectedSymbols, hideAdvancedMembers);
         }
 
         protected static string CreateMarkupForProjectWithAliasedMetadataReference(string markup, string metadataAlias, string referencedCode, string sourceLanguage, string referencedLanguage, bool hasGlobalAlias = true)
@@ -657,11 +660,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 </Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(aliases), SecurityElement.Escape(referencedCode));
         }
 
-        protected Task VerifyItemWithProjectReferenceAsync(string markup, string referencedCode, string expectedItem, int expectedSymbols, string sourceLanguage, string referencedLanguage, bool hideAdvancedMembers)
+        protected async Task VerifyItemWithProjectReferenceAsync(string markup, string referencedCode, string expectedItem, int expectedSymbols, string sourceLanguage, string referencedLanguage, bool hideAdvancedMembers)
         {
             var xmlString = CreateMarkupForProjectWithProjectReference(markup, referencedCode, sourceLanguage, referencedLanguage);
 
-            return VerifyItemWithReferenceWorkerAsync(xmlString, expectedItem, expectedSymbols, hideAdvancedMembers);
+            await VerifyItemWithReferenceWorkerAsync(xmlString, expectedItem, expectedSymbols, hideAdvancedMembers);
         }
 
         protected static string CreateMarkupForProjectWithAliasedProjectReference(string markup, string projectAlias, string referencedCode, string sourceLanguage, string referencedLanguage)
@@ -810,7 +813,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        protected Task VerifyItemWithMscorlib45Async(string markup, string expectedItem, string expectedDescription, string sourceLanguage)
+        protected async Task VerifyItemWithMscorlib45Async(string markup, string expectedItem, string expectedDescription, string sourceLanguage)
         {
             var xmlString = string.Format(@"
 <Workspace>
@@ -821,7 +824,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
     </Project>
 </Workspace>", sourceLanguage, SecurityElement.Escape(markup));
 
-            return VerifyItemWithMscorlib45WorkerAsync(xmlString, expectedItem, expectedDescription);
+            await VerifyItemWithMscorlib45WorkerAsync(xmlString, expectedItem, expectedDescription);
         }
 
         private async Task VerifyItemWithMscorlib45WorkerAsync(
@@ -879,36 +882,37 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        private protected Task VerifyAtPositionAsync(
+        private protected async Task VerifyAtPositionAsync(
             string code, int position, string insertText, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem,
-            string displayTextSuffix, string inlineDescription = null,
-            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
+            string displayTextSuffix, string displayTextPrefix, string inlineDescription = null,
+            bool? isComplexTextEdit = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
         {
             code = code.Substring(0, position) + insertText + code.Substring(position);
             position += insertText.Length;
 
-            return BaseVerifyWorkerAsync(code, position,
+            await BaseVerifyWorkerAsync(code, position,
                 expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
                 glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                inlineDescription, matchingFilters, flags);
+                displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags);
         }
 
-        private protected Task VerifyAtPositionAsync(
+        private protected async Task VerifyAtPositionAsync(
             string code, int position, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
             int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
+            string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
+            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
         {
-            return VerifyAtPositionAsync(
+            await VerifyAtPositionAsync(
                 code, position, string.Empty, usePreviousCharAsTrigger,
                 expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence,
-                glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                inlineDescription, matchingFilters, flags);
+                glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix,
+                inlineDescription, isComplexTextEdit, matchingFilters, flags);
         }
 
         private protected async Task VerifyAtEndOfFileAsync(
@@ -916,7 +920,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
             int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
+            string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
+            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
         {
             // only do this if the placeholder was at the end of the text.
             if (code.Length != position)
@@ -930,49 +935,52 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             await BaseVerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph,
-                matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
-                matchingFilters, flags);
+                matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix,
+                inlineDescription, isComplexTextEdit, matchingFilters, flags);
         }
 
-        private protected Task VerifyAtPosition_ItemPartiallyWrittenAsync(
+        private protected async Task VerifyAtPosition_ItemPartiallyWrittenAsync(
             string code, int position, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
             int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
+            string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
+            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
         {
-            return VerifyAtPositionAsync(
+            await VerifyAtPositionAsync(
                 code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger,
-                expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
-                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
-                matchingFilters, flags);
-        }
-
-        private protected Task VerifyAtEndOfFileAsync(
-            string code, int position, bool usePreviousCharAsTrigger,
-            string expectedItemOrNull, string expectedDescriptionOrNull,
-            SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
-            int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
-        {
-            return VerifyAtEndOfFileAsync(code, position, string.Empty, usePreviousCharAsTrigger,
                 expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
                 checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                inlineDescription, matchingFilters, flags);
+                displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags);
         }
 
-        private protected Task VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
+        private protected async Task VerifyAtEndOfFileAsync(
             string code, int position, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
             int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
+            string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
+            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
         {
-            return VerifyAtEndOfFileAsync(
+            await VerifyAtEndOfFileAsync(code, position, string.Empty, usePreviousCharAsTrigger,
+                expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
+                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
+                displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags);
+        }
+
+        private protected async Task VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
+            string code, int position, bool usePreviousCharAsTrigger,
+            string expectedItemOrNull, string expectedDescriptionOrNull,
+            SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
+            int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
+            string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
+            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
+        {
+            await VerifyAtEndOfFileAsync(
                 code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger,
                 expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence,
-                glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
-                matchingFilters, flags);
+                glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription,
+                isComplexTextEdit, matchingFilters, flags);
         }
 
         protected void VerifyTextualTriggerCharacter(
@@ -1056,13 +1064,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 foreach (var ch in validChars)
                 {
                     Assert.True(CommitManager.IsCommitCharacter(
-                        service.GetRules(), item, ch, textTypedSoFar + ch), $"Expected '{ch}' to be a commit character");
+                        service.GetRules(), item, ch), $"Expected '{ch}' to be a commit character");
                 }
 
                 foreach (var ch in invalidChars)
                 {
                     Assert.False(CommitManager.IsCommitCharacter(
-                        service.GetRules(), item, ch, textTypedSoFar + ch), $"Expected '{ch}' NOT to be a commit character");
+                        service.GetRules(), item, ch), $"Expected '{ch}' NOT to be a commit character");
                 }
             }
         }
@@ -1070,10 +1078,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected async Task<ImmutableArray<RoslynCompletion.CompletionItem>> GetCompletionItemsAsync(
             string markup, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger = false)
         {
-            WorkspaceFixture.GetWorkspace(markup, ExportProvider);
-            var code = WorkspaceFixture.Code;
-            var position = WorkspaceFixture.Position;
-            var document = WorkspaceFixture.UpdateDocument(code, sourceCodeKind);
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
+            workspaceFixture.Target.GetWorkspace(markup, ExportProvider);
+            var code = workspaceFixture.Target.Code;
+            var position = workspaceFixture.Target.Position;
+            var document = workspaceFixture.Target.UpdateDocument(code, sourceCodeKind);
 
             var trigger = usePreviousCharAsTrigger
                 ? RoslynCompletion.CompletionTrigger.CreateInsertionTrigger(insertedCharacter: code.ElementAt(position - 1))

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -30,7 +32,7 @@ namespace BuildBoss
         public bool Check(TextWriter textWriter)
         {
             var allGood = true;
-            if (ProjectType == ProjectFileType.CSharp || ProjectType == ProjectFileType.Basic)
+            if (ProjectType is ProjectFileType.CSharp or ProjectFileType.Basic)
             {
                 if (!_projectUtil.IsNewSdk)
                 {
@@ -126,23 +128,36 @@ namespace BuildBoss
             var allGood = true;
             foreach (var packageRef in _projectUtil.GetPackageReferences())
             {
-                var name = packageRef.Name.Replace(".", "").Replace("-", "");
-                var floatingName = $"$({name}Version)";
-                var fixedName = $"$({name}FixedVersion)";
-                if (packageRef.Version != floatingName && packageRef.Version != fixedName &&
-                   !IsAllowedFloatingVersion(packageRef, ProjectFilePath))
+                var allowedPackageVersions = GetAllowedPackageReferenceVersions(packageRef).ToList();
+
+                if (!allowedPackageVersions.Contains(packageRef.Version))
                 {
                     textWriter.WriteLine($"PackageReference {packageRef.Name} has incorrect version {packageRef.Version}");
-                    textWriter.WriteLine($"Allowed values are {floatingName} or {fixedName}");
+                    textWriter.WriteLine($"Allowed values are " + string.Join(" or", allowedPackageVersions));
                     allGood = false;
                 }
             }
 
             return allGood;
+        }
 
-            static bool IsAllowedFloatingVersion(PackageReference packageReference, string projectFilePath)
-                => packageReference.Name == "Microsoft.Build.Framework" &&
-                   Path.GetFileName(projectFilePath) == "Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj";
+        private IEnumerable<string> GetAllowedPackageReferenceVersions(PackageReference packageReference)
+        {
+            // If this is a generator project, if it has a reference to Microsoft.CodeAnalysis.Common, that means it's
+            // a source generator. In that case, we require the version of the API being built against to match the toolset
+            // version, so that way the source generator can actually be loaded by the toolset. We don't apply this rule to
+            // any other project, as any other project having a reason to reference a version of Roslyn via a PackageReference
+            // probably doesn't fall under this rule.
+            if (ProjectFilePath.Contains("CompilerGeneratorTools") && packageReference.Name == "Microsoft.CodeAnalysis.Common")
+            {
+                yield return "$(SourceGeneratorMicrosoftCodeAnalysisVersion)";
+            }
+            else
+            {
+                var name = packageReference.Name.Replace(".", "").Replace("-", "");
+                yield return $"$({name}Version)";
+                yield return $"$({name}FixedVersion)";
+            }
         }
 
         private bool CheckInternalsVisibleTo(TextWriter textWriter)
@@ -274,7 +289,8 @@ namespace BuildBoss
                     case "net20":
                     case "net472":
                     case "netcoreapp3.1":
-                    case "net5.0":
+                    case "net6.0":
+                    case "net6.0-windows":
                         continue;
                 }
 

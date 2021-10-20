@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -15,6 +13,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Inter
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -27,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// The text buffer. null if the object has been disposed.
         /// </summary>
-        private ITextBuffer _buffer;
+        private ITextBuffer? _buffer;
         private IVsTextLines _vsTextLines;
         private IVsInvisibleEditor _invisibleEditor;
         private OLE.Interop.IOleUndoManager? _manager;
@@ -48,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _needsSave = needsSave;
 
             var invisibleEditorManager = (IIntPtrReturningVsInvisibleEditorManager)serviceProvider.GetService(typeof(SVsInvisibleEditorManager));
-            var vsProject = TryGetProjectOfHierarchy(hierarchy);
+            var vsProject = hierarchy as IVsProject;
             Marshal.ThrowExceptionForHR(invisibleEditorManager.RegisterInvisibleEditor(filePath, vsProject, 0, null, out var invisibleEditorPtr));
 
             try
@@ -88,34 +87,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private IVsProject? TryGetProjectOfHierarchy(IVsHierarchy? hierarchy)
-        {
-            // The invisible editor manager will fail in cases where the IVsProject passed to it is not consistent with
-            // the IVsProject known to IVsSolution (e.g. if the object is a wrapper like AbstractHostObject created by
-            // the CPS-based project system). This method returns an IVsProject instance known to the solution, or null
-            // if the project could not be determined.
-            if (hierarchy == null)
-            {
-                return null;
-            }
-
-            if (!ErrorHandler.Succeeded(hierarchy.GetGuidProperty(
-                (uint)VSConstants.VSITEMID.Root,
-                (int)__VSHPROPID.VSHPROPID_ProjectIDGuid,
-                out var projectId)))
-            {
-                return null;
-            }
-
-            var solution = (IVsSolution)_serviceProvider.GetService(typeof(SVsSolution));
-            if (!ErrorHandler.Succeeded(solution.GetProjectOfGuid(projectId, out var projectHierarchy)))
-            {
-                return null;
-            }
-
-            return projectHierarchy as IVsProject;
-        }
-
         public IVsTextLines VsTextLines
         {
             get
@@ -144,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            _buffer = null!;
+            _buffer = null;
             _vsTextLines = null!;
 
             try
@@ -182,16 +153,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 GC.SuppressFinalize(this);
             }
-            catch (Exception ex) when (FatalError.Report(ex))
+            catch (Exception ex) when (FatalError.ReportAndPropagate(ex))
             {
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
-#pragma warning disable CA1821 // Remove empty Finalizers
 #if DEBUG
         ~InvisibleEditor()
             => Debug.Assert(Environment.HasShutdownStarted, GetType().Name + " was leaked without Dispose being called.");
 #endif
-#pragma warning restore CA1821 // Remove empty Finalizers
     }
 }

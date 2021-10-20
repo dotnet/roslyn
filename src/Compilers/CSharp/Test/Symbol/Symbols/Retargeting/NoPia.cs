@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -644,12 +646,12 @@ public class LocalTypes3
         public void LocalTypeSubstitution1_2()
         {
             var LocalTypes1 = CreateCompilation(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
-                                        targetFramework: TargetFramework.StandardCompat,
+                                        targetFramework: TargetFramework.Standard,
                                         references: new[] { TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(true) });
             CompileAndVerify(LocalTypes1);
 
             var LocalTypes2 = CreateCompilation(s_sourceLocalTypes2, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2",
-                                        targetFramework: TargetFramework.StandardCompat,
+                                        targetFramework: TargetFramework.Standard,
                                         references: new[] { TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(true) });
             CompileAndVerify(LocalTypes2);
 
@@ -944,16 +946,16 @@ public class LocalTypes3
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void LocalTypeSubstitution1_3()
         {
-            var Pia1 = CreateCompilation(s_sourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1", targetFramework: TargetFramework.StandardCompat);
+            var Pia1 = CreateCompilation(s_sourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1", targetFramework: TargetFramework.Standard);
             CompileAndVerify(Pia1);
 
             var LocalTypes1 = CreateCompilation(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
-                                        targetFramework: TargetFramework.StandardCompat,
+                                        targetFramework: TargetFramework.Standard,
                                         references: new MetadataReference[] { new CSharpCompilationReference(Pia1, embedInteropTypes: true) });
             CompileAndVerify(LocalTypes1);
 
             var LocalTypes2 = CreateCompilation(s_sourceLocalTypes2, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2",
-                                        targetFramework: TargetFramework.StandardCompat,
+                                        targetFramework: TargetFramework.Standard,
                                         references: new MetadataReference[] { new CSharpCompilationReference(Pia1, embedInteropTypes: true) });
             CompileAndVerify(LocalTypes2);
 

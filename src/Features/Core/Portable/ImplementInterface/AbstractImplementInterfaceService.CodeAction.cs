@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -206,7 +208,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     new CodeGenerationOptions(
                         contextLocation: classOrStructDecl.GetLocation(),
                         autoInsertionLocation: groupMembers,
-                        sortMembers: groupMembers),
+                        sortMembers: groupMembers,
+                        options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)),
                     cancellationToken).ConfigureAwait(false);
             }
 
@@ -306,7 +309,9 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var generateInvisibleMember = GenerateInvisibleMember(member, memberName);
                 memberName = generateInvisibleMember ? member.Name : memberName;
 
-                var generateAbstractly = !generateInvisibleMember && Abstractly;
+                // The language doesn't allow static abstract implementations of interface methods. i.e,
+                // Only interface member is declared abstract static, but implementation should be only static.
+                var generateAbstractly = !member.IsStatic && !generateInvisibleMember && Abstractly;
 
                 // Check if we need to add 'new' to the signature we're adding.  We only need to do this
                 // if we're not generating something explicit and we have a naming conflict with
@@ -390,7 +395,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 var factory = Document.GetLanguageService<SyntaxGenerator>();
-                var modifiers = new DeclarationModifiers(isAbstract: generateAbstractly, isNew: addNew, isUnsafe: addUnsafe);
+                var modifiers = new DeclarationModifiers(isStatic: member.IsStatic, isAbstract: generateAbstractly, isNew: addNew, isUnsafe: addUnsafe);
 
                 var useExplicitInterfaceSymbol = generateInvisibly || !Service.CanImplementImplicitly;
                 var accessibility = member.Name == memberName || generateAbstractly

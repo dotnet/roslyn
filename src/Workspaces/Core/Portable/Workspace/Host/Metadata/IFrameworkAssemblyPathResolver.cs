@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// exist in the assembly.</param>
         /// <param name="projectId">The project context to search within.</param>
         /// <param name="assemblyName">The name of the assembly to try to resolve.</param>
-        string ResolveAssemblyPath(ProjectId projectId, string assemblyName, string fullyQualifiedName = null);
+        string? ResolveAssemblyPath(ProjectId projectId, string assemblyName, string? fullyQualifiedName);
 
         // bool CanResolveType(ProjectId projectId, string assemblyName, string fullyQualifiedTypeName);
     }

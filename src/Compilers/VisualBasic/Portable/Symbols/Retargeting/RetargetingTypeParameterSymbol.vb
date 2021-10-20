@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
     ''' It can retarget symbols for multiple assemblies at the same time.
     ''' </summary>
     Friend NotInheritable Class RetargetingTypeParameterSymbol
-        Inherits TypeParameterSymbol
+        Inherits SubstitutableTypeParameterSymbol
 
         ''' <summary>
         ''' Owning RetargetingModuleSymbol.

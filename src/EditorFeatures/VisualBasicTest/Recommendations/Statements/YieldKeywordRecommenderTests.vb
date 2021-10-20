@@ -4,14 +4,15 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class YieldKeywordRecommenderTests
+        Inherits RecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function InMethodBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "Yield")
-        End Function
+        Public Sub InMethodBodyTest()
+            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Yield")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function InLambdaBodyTest() As Task
+        Public Sub InLambdaBodyTest()
             Dim code =
 <MethodBody>
 Dim f = Function()
@@ -19,17 +20,17 @@ Dim f = Function()
         End Function
 </MethodBody>
 
-            Await VerifyRecommendationsContainAsync(code, "Yield")
-        End Function
+            VerifyRecommendationsContain(code, "Yield")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotInExpressionTest() As Task
+        Public Sub NotInExpressionTest()
             Dim code =
 <MethodBody>
 Dim f = |
 </MethodBody>
 
-            Await VerifyRecommendationsMissingAsync(code, "Yield")
-        End Function
+            VerifyRecommendationsMissing(code, "Yield")
+        End Sub
     End Class
 End Namespace

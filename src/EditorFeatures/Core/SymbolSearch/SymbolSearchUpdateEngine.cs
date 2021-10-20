@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -9,6 +11,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Elfie.Model.Structures;
 using Microsoft.CodeAnalysis.Elfie.Model.Tree;
@@ -28,23 +31,19 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     internal partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngine
     {
         private readonly ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase =
-            new ConcurrentDictionary<string, IAddReferenceDatabaseWrapper>();
+            new();
 
         /// <summary>
         /// Don't call directly. Use <see cref="SymbolSearchUpdateEngineFactory"/> instead.
         /// </summary>
-        public SymbolSearchUpdateEngine(
-            ISymbolSearchLogService logService,
-            ISymbolSearchProgressService progressService)
-            : this(logService,
-                   progressService,
-                   new RemoteControlService(),
+        public SymbolSearchUpdateEngine()
+            : this(new RemoteControlService(),
                    new DelayService(),
                    new IOService(),
                    new PatchService(),
                    new DatabaseFactoryService(),
-                   // Report all exceptions we encounter, but don't crash on them.
-                   FatalError.ReportWithoutCrash)
+                   // Report all exceptions we encounter, but don't crash on them. Propagate expected cancellation.
+                   FatalError.ReportAndCatchUnlessCanceled)
         {
         }
 
@@ -52,39 +51,35 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         /// For testing purposes only.
         /// </summary>
         internal SymbolSearchUpdateEngine(
-            ISymbolSearchLogService logService,
-            ISymbolSearchProgressService progressService,
             IRemoteControlService remoteControlService,
             IDelayService delayService,
             IIOService ioService,
             IPatchService patchService,
             IDatabaseFactoryService databaseFactoryService,
-            Func<Exception, bool> reportAndSwallowException)
+            Func<Exception, CancellationToken, bool> reportAndSwallowExceptionUnlessCanceled)
         {
             _delayService = delayService;
             _ioService = ioService;
-            _logService = logService;
-            _progressService = progressService;
             _remoteControlService = remoteControlService;
             _patchService = patchService;
             _databaseFactoryService = databaseFactoryService;
-            _reportAndSwallowException = reportAndSwallowException;
+            _reportAndSwallowExceptionUnlessCanceled = reportAndSwallowExceptionUnlessCanceled;
         }
 
-        public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
+        public ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity, CancellationToken cancellationToken)
         {
             if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
             {
                 // Don't have a database to search.  
-                return SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
+                return ValueTaskFactory.FromResult(ImmutableArray<PackageWithTypeResult>.Empty);
             }
 
             var database = databaseWrapper.Database;
             if (name == "var")
             {
                 // never find anything named 'var'.
-                return SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
+                return ValueTaskFactory.FromResult(ImmutableArray<PackageWithTypeResult>.Empty);
             }
 
             var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
@@ -107,16 +102,16 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
             }
 
-            return Task.FromResult(result.ToImmutableAndFree());
+            return ValueTaskFactory.FromResult(result.ToImmutableAndFree());
         }
 
-        public Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+        public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
             string source, string assemblyName, CancellationToken cancellationToken)
         {
             if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
             {
                 // Don't have a database to search.  
-                return SpecializedTasks.EmptyImmutableArray<PackageWithAssemblyResult>();
+                return ValueTaskFactory.FromResult(ImmutableArray<PackageWithAssemblyResult>.Empty);
             }
 
             var result = ArrayBuilder<PackageWithAssemblyResult>.GetInstance();
@@ -137,33 +132,35 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                         // Ignore any reference assembly results.
                         if (symbol.PackageName.ToString() != MicrosoftAssemblyReferencesName)
                         {
+                            var version = database.GetPackageVersion(symbol.Index).ToString();
+
                             result.Add(new PackageWithAssemblyResult(
                                 symbol.PackageName.ToString(),
-                                database.GetPackageVersion(symbol.Index).ToString(),
-                                GetRank(symbol)));
+                                GetRank(symbol),
+                                string.IsNullOrWhiteSpace(version) ? null : version));
                         }
                     }
                 }
             }
 
-            return Task.FromResult(result.ToImmutableAndFree());
+            return ValueTaskFactory.FromResult(result.ToImmutableAndFree());
         }
 
-        public Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+        public ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity, CancellationToken cancellationToken)
         {
             // Our reference assembly data is stored in the nuget.org DB.
-            if (!_sourceToDatabase.TryGetValue(NugetOrgSource, out var databaseWrapper))
+            if (!_sourceToDatabase.TryGetValue(PackageSourceHelper.NugetOrgSourceName, out var databaseWrapper))
             {
                 // Don't have a database to search.  
-                return SpecializedTasks.EmptyImmutableArray<ReferenceAssemblyWithTypeResult>();
+                return ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
             }
 
             var database = databaseWrapper.Database;
             if (name == "var")
             {
                 // never find anything named 'var'.
-                return SpecializedTasks.EmptyImmutableArray<ReferenceAssemblyWithTypeResult>();
+                return ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
             }
 
             var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
@@ -191,7 +188,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
             }
 
-            return Task.FromResult(results.ToImmutableAndFree());
+            return ValueTaskFactory.FromResult(results.ToImmutableAndFree());
         }
 
         private static List<Symbol> FilterToViableTypes(PartialArray<Symbol> symbols)
@@ -216,9 +213,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
             return new PackageWithTypeResult(
                 packageName: packageName,
-                typeName: type.Name.ToString(),
-                version: version,
                 rank: GetRank(type),
+                typeName: type.Name.ToString(),
+                version: string.IsNullOrWhiteSpace(version) ? null : version,
                 containingNamespaceNames: nameParts.ToImmutableAndFree());
         }
 
@@ -237,7 +234,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         {
             for (var current = symbol; current.IsValid; current = current.Parent())
             {
-                if (current.Type == SymbolType.Package || current.Type == SymbolType.Version)
+                if (current.Type is SymbolType.Package or SymbolType.Version)
                 {
                     return TryGetRankingSymbolForPackage(current, out rankingSymbol);
                 }
