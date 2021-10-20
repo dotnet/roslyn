@@ -276,14 +276,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var lengthTemp = new BoundDagTemp(lengthOrCount.Syntax, lengthOrCount.Property.Type, lengthOrCount);
                     var lengthValues = (IValueSet<int>)computeRemainingValues(ValueSetFactory.ForLength, getArray(constraintMap, lengthTemp));
                     int lengthValue = lengthValues.Sample.Int32Value;
-                    var subpatterns = new ArrayBuilder<string>(lengthValue);
-                    subpatterns.AddMany("_", lengthValue);
                     if (slice != null && lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
                     {
                         // Bail if there's a slice but only one length value is remained.
                         return null;
                     }
 
+                    var subpatterns = new ArrayBuilder<string>(lengthValue);
+                    subpatterns.AddMany("_", lengthValue);
                     for (int i = 1; i < evaluations.Length; i++)
                     {
                         switch (evaluations[i])
