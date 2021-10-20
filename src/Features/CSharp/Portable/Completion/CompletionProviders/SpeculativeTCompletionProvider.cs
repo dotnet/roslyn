@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -65,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static async Task<bool> ShouldShowSpeculativeTCompletionItemAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (syntaxTree.IsInNonUserCode(position, cancellationToken) ||
                 syntaxTree.IsPreProcessorDirectiveContext(position, cancellationToken))
             {
@@ -156,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if (prevToken.IsPossibleTupleOpenParenOrComma())
             {
-                return prevToken.Parent.SpanStart;
+                return prevToken.Parent!.SpanStart;
             }
 
             return position;

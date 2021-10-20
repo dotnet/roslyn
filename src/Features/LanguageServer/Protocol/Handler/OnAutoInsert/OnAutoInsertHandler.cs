@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Completion.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -53,9 +54,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             var document = context.Document;
             if (document == null)
-            {
                 return null;
-            }
 
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
 

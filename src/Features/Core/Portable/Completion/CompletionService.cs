@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Globalization;
@@ -24,10 +22,15 @@ namespace Microsoft.CodeAnalysis.Completion
     /// </summary>
     public abstract class CompletionService : ILanguageService
     {
+        // Prevent inheritance outside of Roslyn.
+        internal CompletionService()
+        {
+        }
+
         /// <summary>
         /// Gets the service corresponding to the specified document.
         /// </summary>
-        public static CompletionService GetService(Document document)
+        public static CompletionService? GetService(Document? document)
             => document?.GetLanguageService<CompletionService>();
 
         /// <summary>
@@ -55,8 +58,8 @@ namespace Microsoft.CodeAnalysis.Completion
             SourceText text,
             int caretPosition,
             CompletionTrigger trigger,
-            ImmutableHashSet<string> roles = null,
-            OptionSet options = null)
+            ImmutableHashSet<string>? roles = null,
+            OptionSet? options = null)
         {
             return false;
         }
@@ -65,23 +68,25 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Returns true if the character recently inserted or deleted in the text should trigger completion.
         /// </summary>
         /// <param name="project">The project containing the document and text</param>
+        /// <param name="languageServices">Language services</param>
         /// <param name="text">The document text to trigger completion within </param>
         /// <param name="caretPosition">The position of the caret after the triggering action.</param>
         /// <param name="trigger">The potential triggering action.</param>
+        /// <param name="options">Options.</param>
         /// <param name="roles">Optional set of roles associated with the editor state.</param>
-        /// <param name="options">Optional options that override the default options.</param>
         /// <remarks>
         /// We pass the project here to retrieve information about the <see cref="Project.AnalyzerReferences"/>,
         /// <see cref="WorkspaceKind"/> and <see cref="Project.Language"/> which are fast operations.
         /// It should not be used for syntactic or semantic operations.
         /// </remarks>
         internal virtual bool ShouldTriggerCompletion(
-            Project project,
+            Project? project,
+            HostLanguageServices languageServices,
             SourceText text,
             int caretPosition,
             CompletionTrigger trigger,
-            ImmutableHashSet<string> roles = null,
-            OptionSet options = null)
+            OptionSet options,
+            ImmutableHashSet<string>? roles = null)
         {
             return ShouldTriggerCompletion(text, caretPosition, trigger, roles, options);
         }
@@ -111,12 +116,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="roles">Optional set of roles associated with the editor state.</param>
         /// <param name="options">Optional options that override the default options.</param>
         /// <param name="cancellationToken"></param>
-        public abstract Task<CompletionList> GetCompletionsAsync(
+        public abstract Task<CompletionList?> GetCompletionsAsync(
             Document document,
             int caretPosition,
             CompletionTrigger trigger = default,
-            ImmutableHashSet<string> roles = null,
-            OptionSet options = null,
+            ImmutableHashSet<string>? roles = null,
+            OptionSet? options = null,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -126,12 +131,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <remarks>
         /// expandItemsAvailable is true when expanded items are returned or can be provided upon request.
         /// </remarks>
-        internal virtual async Task<(CompletionList completionList, bool expandItemsAvailable)> GetCompletionsInternalAsync(
+        internal virtual async Task<(CompletionList? completionList, bool expandItemsAvailable)> GetCompletionsInternalAsync(
              Document document,
              int caretPosition,
              CompletionTrigger trigger = default,
-             ImmutableHashSet<string> roles = null,
-             OptionSet options = null,
+             ImmutableHashSet<string>? roles = null,
+             OptionSet? options = null,
              CancellationToken cancellationToken = default)
         {
             var completionList = await GetCompletionsAsync(document, caretPosition, trigger, roles, options, cancellationToken).ConfigureAwait(false);
@@ -145,12 +150,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <paramref name="item"/> was created against.</param>
         /// <param name="item">The item to get the description for.</param>
         /// <param name="cancellationToken"></param>
-        public virtual Task<CompletionDescription> GetDescriptionAsync(
+        public virtual Task<CompletionDescription?> GetDescriptionAsync(
             Document document,
             CompletionItem item,
             CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(CompletionDescription.Empty);
+            return Task.FromResult<CompletionDescription?>(CompletionDescription.Empty);
         }
 
         /// <summary>

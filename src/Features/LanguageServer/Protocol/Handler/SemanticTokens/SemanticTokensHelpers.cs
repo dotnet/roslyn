@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,8 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     internal class SemanticTokensHelpers
     {
-        internal static readonly string[] RoslynCustomTokenTypes =
-        {
+        public static readonly ImmutableArray<string> RoslynCustomTokenTypes = ImmutableArray.Create(
             ClassificationTypeNames.ClassName,
             ClassificationTypeNames.ConstantName,
             ClassificationTypeNames.ControlKeyword,
@@ -87,8 +87,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             ClassificationTypeNames.XmlLiteralEntityReference,
             ClassificationTypeNames.XmlLiteralName,
             ClassificationTypeNames.XmlLiteralProcessingInstruction,
-            ClassificationTypeNames.XmlLiteralText
-        };
+            ClassificationTypeNames.XmlLiteralText);
 
         // TO-DO: Expand this mapping once support for custom token types is added:
         // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1085998

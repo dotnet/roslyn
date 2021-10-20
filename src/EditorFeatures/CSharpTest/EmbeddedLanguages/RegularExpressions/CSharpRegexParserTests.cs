@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             }
 
             Assert.True(regex.GetGroupNumbers().OrderBy(v => v).SequenceEqual(
-                tree.CaptureNumbersToSpan.Keys.OrderBy(v => v).Select(v => (int)v)));
+                tree.CaptureNumbersToSpan.Keys.OrderBy(v => v)));
 
             Assert.True(regex.GetGroupNames().Where(v => !int.TryParse(v, out _)).OrderBy(v => v).SequenceEqual(
                 tree.CaptureNamesToSpan.Keys.OrderBy(v => v)));
@@ -346,6 +346,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             Assert.False(token.IsMissing);
             Assert.False(chars.IsDefaultOrEmpty);
             Assert.Null(tree);
+        }
+
+        [Fact]
+        public void TestNoStackOverflow()
+        {
+            for (var i = 1; i < 1200; i++)
+            {
+                var text = new string('(', i);
+                var (token, _, chars) = JustParseTree($@"@""{text}""", RegexOptions.None, conversionFailureOk: false);
+                Assert.False(token.IsMissing);
+                Assert.False(chars.IsDefaultOrEmpty);
+            }
         }
     }
 }

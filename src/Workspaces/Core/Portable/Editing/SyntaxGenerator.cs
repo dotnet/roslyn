@@ -1434,7 +1434,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a statement that declares a single local variable.
         /// </summary>
         internal SyntaxNode LocalDeclarationStatement(SyntaxToken name, SyntaxNode initializer)
-            => LocalDeclarationStatement((SyntaxNode)null, name, initializer);
+            => LocalDeclarationStatement(null, name, initializer);
 
         /// <summary>
         /// Creates an if-statement

@@ -197,24 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var declarations = (BoundMultipleLocalDeclarations?)this.Visit(node.DeclarationsOpt);
             var expression = (BoundExpression?)this.Visit(node.ExpressionOpt);
             var body = (BoundStatement)this.Visit(node.Body);
-            Conversion disposableConversion = RewriteConversion(node.IDisposableConversion);
-            return node.Update(newLocals, declarations, expression, disposableConversion, body, node.AwaitOpt, node.PatternDisposeInfoOpt);
-        }
-
-        private Conversion RewriteConversion(Conversion conversion)
-        {
-            switch (conversion.Kind)
-            {
-                case ConversionKind.ExplicitUserDefined:
-                case ConversionKind.ImplicitUserDefined:
-                    Debug.Assert(conversion.ConstrainedToTypeOpt is null);
-                    Debug.Assert(conversion.Method is not null);
-                    return new Conversion(conversion.Kind, VisitMethodSymbol(conversion.Method), conversion.IsExtensionMethod);
-                case ConversionKind.MethodGroup:
-                    throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
-                default:
-                    return conversion;
-            }
+            return node.Update(newLocals, declarations, expression, body, node.AwaitOpt, node.PatternDisposeInfoOpt);
         }
 
         [return: NotNullIfNotNull("type")]

@@ -771,7 +771,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     else if (TextWindow.PeekChar(1) == '$' && TextWindow.PeekChar(2) == '"')
                     {
                         this.ScanInterpolatedStringLiteral(isVerbatim: true, ref info);
-                        CheckFeatureAvailability(MessageID.IDS_FeatureAltInterpolatedVerbatimStrings);
                         break;
                     }
                     else if (!this.ScanIdentifierOrKeyword(ref info))

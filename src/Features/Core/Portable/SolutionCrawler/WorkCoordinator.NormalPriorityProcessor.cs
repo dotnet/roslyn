@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             if (textDocument is Document document)
                             {
-                                await analyzer.AnalyzeSyntaxAsync((Document)document, reasons, cancellationToken).ConfigureAwait(false);
+                                await analyzer.AnalyzeSyntaxAsync(document, reasons, cancellationToken).ConfigureAwait(false);
                             }
                             else if (analyzer is IIncrementalAnalyzer2 analyzer2)
                             {

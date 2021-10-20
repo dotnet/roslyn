@@ -4706,7 +4706,7 @@ class Program
                 Await state.AssertSelectedCompletionItem(description:=
 $"({ CSharpFeaturesResources.extension }) 'a[] System.Collections.Generic.IEnumerable<'a>.ToArray<'a>()
 
-{ FeaturesResources.Anonymous_Types_colon }
+{ FeaturesResources.Types_colon }
     'a { FeaturesResources.is_ } new {{ int x }}")
             End Using
         End Function
@@ -4944,7 +4944,7 @@ class C
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.BlockForCompletionItems2, LanguageNames.CSharp, False)))
+                    .WithChangedOption(CompletionGlobalOptions.BlockForCompletionItems, LanguageNames.CSharp, False)))
 
                 state.SendTypeChars("Sys.")
                 Await state.AssertNoCompletionSession()
@@ -4964,9 +4964,8 @@ class C
                               extraExportedTypes:={GetType(CompletedTaskControlledCompletionProvider)}.ToList(),
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
-                Dim workspace = state.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.BlockForCompletionItems2, LanguageNames.CSharp, False)))
+                Dim globalOptions = state.Workspace.GetService(Of IGlobalOptionService)
+                globalOptions.SetGlobalOption(New OptionKey(CompletionGlobalOptions.BlockForCompletionItems, LanguageNames.CSharp), False)
 
                 state.SendTypeChars("Sys")
                 Await state.AssertSelectedCompletionItem(displayText:="System")
@@ -4999,9 +4998,8 @@ class C
                 Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
                 Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
 
-                Dim workspace = state.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.BlockForCompletionItems2, LanguageNames.CSharp, False)))
+                Dim globalOptions = state.Workspace.GetService(Of IGlobalOptionService)
+                globalOptions.SetGlobalOption(New OptionKey(CompletionGlobalOptions.BlockForCompletionItems, LanguageNames.CSharp), False)
 
                 state.SendTypeChars("Sys")
 
@@ -5078,9 +5076,8 @@ class C
                 Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
                 Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
 
-                Dim workspace = state.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.BlockForCompletionItems2, LanguageNames.CSharp, False)))
+                Dim globalOptions = state.Workspace.GetService(Of IGlobalOptionService)
+                globalOptions.SetGlobalOption(New OptionKey(CompletionGlobalOptions.BlockForCompletionItems, LanguageNames.CSharp), False)
 
                 state.SendTypeChars("Sys")
                 Dim task1 As Task = Nothing
@@ -5144,6 +5141,7 @@ class C
                               extraExportedTypes:={GetType(BooleanTaskControlledCompletionProvider)}.ToList(),
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
+                Dim globalOptions = state.Workspace.GetService(Of IGlobalOptionService)
                 Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
                 Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
 
@@ -5171,9 +5169,7 @@ class C
                 provider.Reset()
 
                 ' Switch to the non-blocking mode
-                Dim workspace = state.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.BlockForCompletionItems2, LanguageNames.CSharp, False)))
+                globalOptions.SetGlobalOption(New OptionKey(CompletionGlobalOptions.BlockForCompletionItems, LanguageNames.CSharp), False)
 
                 ' re-use of TestNoBlockOnCompletionItems1
                 state.SendTypeChars("Sys.")
@@ -5193,8 +5189,7 @@ class C
                 provider.Reset()
 
                 ' Switch to the blocking mode
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.BlockForCompletionItems2, LanguageNames.CSharp, True)))
+                globalOptions.SetGlobalOption(New OptionKey(CompletionGlobalOptions.BlockForCompletionItems, LanguageNames.CSharp), True)
 
 #Disable Warning BC42358 ' Because this call is not awaited, execution of the current method continues before the call is completed
                 Task.Run(Function()
@@ -6681,15 +6676,18 @@ namespace NS2
                     </Project>
                 </Workspace>)
 
+                Dim document = state.Workspace.CurrentSolution.GetDocument(state.Workspace.Documents.Single(Function(d) d.Name = "C.cs").Id)
+
                 If populateCache Then
                     Dim service = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of ITypeImportCompletionService)()
-                    Dim document = state.Workspace.CurrentSolution.GetDocument(state.Workspace.Documents.Single(Function(d) d.Name = "C.cs").Id)
                     Await service.WarmUpCacheAsync(document.Project, CancellationToken.None)
                 End If
 
+                Dim completionService = CType(document.GetLanguageService(Of CompletionService)(), CompletionServiceWithProviders)
+                completionService.GetTestAccessor().SuppressPartialSemantics()
+
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionServiceOptions.UsePartialSemanticForCompletion, False) _
                     .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
                 state.SendInvokeCompletionList()
@@ -6737,15 +6735,18 @@ namespace NS2
                     </Project>
                 </Workspace>)
 
+                Dim document = state.Workspace.CurrentSolution.GetDocument(state.Workspace.Documents.Single(Function(d) d.Name = "C.cs").Id)
+
                 If populateCache Then
-                    Dim service = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of ITypeImportCompletionService)()
-                    Dim document = state.Workspace.CurrentSolution.GetDocument(state.Workspace.Documents.Single(Function(d) d.Name = "C.cs").Id)
+                    Dim importCompletionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of ITypeImportCompletionService)()
                     Await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document, CancellationToken.None)
                 End If
 
+                Dim completionService = CType(document.GetLanguageService(Of CompletionService)(), CompletionServiceWithProviders)
+                completionService.GetTestAccessor().SuppressPartialSemantics()
+
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionServiceOptions.UsePartialSemanticForCompletion, False) _
                     .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion, -1) _
                     .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
