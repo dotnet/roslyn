@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -49,10 +50,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
                 return;
 
             context.RegisterRefactoring(
-                new MyCodeAction(cancellationToken => EnableNullableReferenceTypesAsync(document.Project, cancellationToken)));
+                new MyCodeAction((purpose, cancellationToken) => EnableNullableReferenceTypesAsync(document.Project, purpose, cancellationToken)));
         }
 
-        public static async Task<Solution> EnableNullableReferenceTypesAsync(Project project, CancellationToken cancellationToken)
+        private static async Task<Solution> EnableNullableReferenceTypesAsync(Project project, CodeActionPurpose purpose, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
             foreach (var document in project.Documents)
@@ -64,8 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
                 solution = solution.WithDocumentSyntaxRoot(document.Id, updatedDocumentRoot);
             }
 
-            var compilationOptions = (CSharpCompilationOptions)project.CompilationOptions!;
-            solution = solution.WithProjectCompilationOptions(project.Id, compilationOptions.WithNullableContextOptions(NullableContextOptions.Enable));
+            if (purpose is CodeActionPurpose.Apply)
+            {
+                var compilationOptions = (CSharpCompilationOptions)project.CompilationOptions!;
+                solution = solution.WithProjectCompilationOptions(project.Id, compilationOptions.WithNullableContextOptions(NullableContextOptions.Enable));
+            }
+
             return solution;
         }
 
@@ -232,11 +237,32 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             return false;
         }
 
-        private sealed class MyCodeAction : CodeActions.CodeAction.SolutionChangeAction
+        private enum CodeActionPurpose
         {
-            public MyCodeAction(Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(CSharpFeaturesResources.Enable_nullable_reference_types_in_project, createChangedSolution, nameof(CSharpFeaturesResources.Enable_nullable_reference_types_in_project))
+            Preview,
+            Apply,
+        }
+
+        private sealed class MyCodeAction : CodeAction.SolutionChangeAction
+        {
+            private readonly Func<CodeActionPurpose, CancellationToken, Task<Solution>> _createChangedSolution;
+
+            public MyCodeAction(Func<CodeActionPurpose, CancellationToken, Task<Solution>> createChangedSolution)
+                : base(
+                    CSharpFeaturesResources.Enable_nullable_reference_types_in_project,
+                    cancellationToken => createChangedSolution(CodeActionPurpose.Apply, cancellationToken),
+                    nameof(CSharpFeaturesResources.Enable_nullable_reference_types_in_project))
             {
+                _createChangedSolution = createChangedSolution;
+            }
+
+            protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
+            {
+                var changedSolution = await _createChangedSolution(CodeActionPurpose.Preview, cancellationToken).ConfigureAwait(false);
+                if (changedSolution is null)
+                    return Array.Empty<CodeActionOperation>();
+
+                return new CodeActionOperation[] { new ApplyChangesOperation(changedSolution) };
             }
         }
     }
