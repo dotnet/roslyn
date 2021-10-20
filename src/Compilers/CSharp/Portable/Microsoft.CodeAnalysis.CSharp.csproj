@@ -89,7 +89,9 @@
     <InternalsVisibleTo Include="CompilerBenchmarks" />
     <InternalsVisibleTo Include="Microsoft.Build.Tasks.CodeAnalysis.UnitTests" />
     <InternalsVisibleTo Include="Roslyn.Test.PdbUtilities" />
-    <InternalsVisibleTo Include="Caravela.Compiler.UnitTests" />
+    <!-- <Caravela> -->
+    <InternalsVisibleTo Include="Caravela.Compiler.UnitTests" Key="$(MetalamaKey)" />
+    <!-- </Caravela> -->
   </ItemGroup>
   <Import Project="..\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
 </Project>

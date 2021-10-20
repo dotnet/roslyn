@@ -20,11 +20,13 @@
       Do not install this package manually, it will be added as a prerequisite by other packages that require it.
     </PackageDescription>
   </PropertyGroup>
+  <!-- <Caravela> -->
   <ItemGroup>
     <AssemblyAttribute Include="Caravela.Compiler.TimeBomb.AssemblyBuildDate">
       <_Parameter1>$([System.DateTime]::UtcNow.ToString(o))</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
+  <!-- </Caravela> -->
   <ItemGroup>
     <None Include="Operations\OperationInterfaces.xml" />
   </ItemGroup>
@@ -97,7 +99,9 @@
     <InternalsVisibleTo Include="VBCSCompiler.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
     <InternalsVisibleTo Include="CompilerBenchmarks" />
-    <InternalsVisibleTo Include="Caravela.Compiler.UnitTests" />
+    <!-- <Caravela> -->
+    <InternalsVisibleTo Include="Caravela.Compiler.UnitTests" Key="$(MetalamaKey)" />
+    <!-- </Caravela> -->
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="CodeAnalysisResources.resx" GenerateSource="true" />
