@@ -30,16 +30,15 @@ namespace Microsoft.CodeAnalysis
             [DisallowNull]
             private Compilation? _compilationWithReplacement;
 
-            private readonly CachedSkeletonReferences _cachedSkeletonReferences;
+            public CachedSkeletonReferences CachedSkeletonReferences { get; }
 
             public GeneratedFileReplacingCompilationTracker(
                 ICompilationTracker underlyingTracker,
-                SourceGeneratedDocumentState replacementDocumentState,
-                CachedSkeletonReferences cachedSkeletonReferences)
+                SourceGeneratedDocumentState replacementDocumentState)
             {
                 _underlyingTracker = underlyingTracker;
                 _replacedGeneratedDocumentState = replacementDocumentState;
-                _cachedSkeletonReferences = cachedSkeletonReferences;
+                CachedSkeletonReferences = underlyingTracker.CachedSkeletonReferences.Clone();
             }
 
             public ProjectState ProjectState => _underlyingTracker.ProjectState;
@@ -147,8 +146,7 @@ namespace Microsoft.CodeAnalysis
                 // one, or create a new one when we can't.
                 var version = await GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
                 var properties = new MetadataReferenceProperties(MetadataImageKind.Assembly, projectReference.Aliases, projectReference.EmbedInteropTypes);
-                return await _cachedSkeletonReferences.GetOrBuildReferenceAsync(
-                    solution.Workspace, this.ProjectState.Id, properties, compilation, version, cancellationToken).ConfigureAwait(false);
+                return this.CachedSkeletonReferences.GetOrBuildReference(solution.Workspace, properties, compilation, version, cancellationToken);
             }
 
             public CompilationReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)

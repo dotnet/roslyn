@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
             // guarantees only one thread is building at a time
             private readonly SemaphoreSlim _buildLock = new(initialCount: 1);
 
-            private readonly CachedSkeletonReferences _cachedSkeletonReferences;
+            public CachedSkeletonReferences CachedSkeletonReferences { get; }
 
             private CompilationTracker(
                 ProjectState project,
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
 
                 this.ProjectState = project;
                 _stateDoNotAccessDirectly = state;
-                _cachedSkeletonReferences = cachedSkeletonReferences;
+                this.CachedSkeletonReferences = cachedSkeletonReferences;
             }
 
             /// <summary>
@@ -147,13 +147,13 @@ namespace Microsoft.CodeAnalysis
                     var newState = CompilationTrackerState.Create(
                         solutionServices, baseCompilation, state.GeneratorInfo, state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken), intermediateProjects);
 
-                    return new CompilationTracker(newProject, newState, _cachedSkeletonReferences.Clone());
+                    return new CompilationTracker(newProject, newState, this.CachedSkeletonReferences.Clone());
                 }
                 else
                 {
                     // We have no compilation, but we might have information about generated docs.
                     var newState = new NoCompilationState(state.GeneratorInfo.WithDocumentsAreFinal(false));
-                    return new CompilationTracker(newProject, newState, _cachedSkeletonReferences.Clone());
+                    return new CompilationTracker(newProject, newState, this.CachedSkeletonReferences.Clone());
                 }
             }
 
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis
                     this.ProjectState.Id,
                     metadataReferenceToProjectId);
 
-                return new CompilationTracker(inProgressProject, finalState, _cachedSkeletonReferences.Clone());
+                return new CompilationTracker(inProgressProject, finalState, this.CachedSkeletonReferences.Clone());
             }
 
             /// <summary>
@@ -1018,8 +1018,7 @@ namespace Microsoft.CodeAnalysis
                         var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
 
                         // Attempt to reuse an existing skeleton cached for this compilation tracker.
-                        var reference = await _cachedSkeletonReferences.TryGetReferenceAsync(
-                            version, properties, cancellationToken).ConfigureAwait(false);
+                        var reference = this.CachedSkeletonReferences.TryGetReference(version, properties);
                         if (reference != null)
                         {
                             workspace.LogTestMessage($"Reusing the already cached skeleton assembly for {projectReference.ProjectId}");
@@ -1033,8 +1032,8 @@ namespace Microsoft.CodeAnalysis
 
                             // okay, we still don't have one. bring the compilation to final state since we are going to use it to create skeleton assembly
                             var compilationInfo = await this.GetOrBuildCompilationInfoAsync(solution, lockGate: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                            return await _cachedSkeletonReferences.GetOrBuildReferenceAsync(
-                                workspace, properties, compilationInfo.Compilation, version, cancellationToken).ConfigureAwait(false);
+                            return this.CachedSkeletonReferences.GetOrBuildReference(
+                                workspace, properties, compilationInfo.Compilation, version, cancellationToken);
                         }
                     }
                 }
