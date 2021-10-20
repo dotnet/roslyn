@@ -111,7 +111,7 @@ private class CachedSkeletonReferences
         // another thread may have come in and beaten us to computing this.  So attempt to actually cache this
         // in the global map.  if it succeeds, use our computed version.  If it fails, use the one the other
         // thread succeeded in storing.
-        var finalReferenceSet = s_compilationToReferenceMap.GetValue(finalCompilation, _ => referenceSet);
+        referenceSet = s_compilationToReferenceMap.GetValue(finalCompilation, _ => referenceSet);
 
         lock (_gate)
         {
