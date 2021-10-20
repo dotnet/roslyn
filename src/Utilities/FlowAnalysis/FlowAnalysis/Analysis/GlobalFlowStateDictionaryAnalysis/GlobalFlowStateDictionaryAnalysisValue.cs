@@ -85,7 +85,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.GlobalFlowStateDictionaryAnal
         }
 
         /// <summary>
-        /// Interset the state of the analysisEntity in <param name="value1"/> and <param name="value2"/>.
+        /// Intersect the state of the analysisEntity in <param name="value1"/> and <param name="value2"/>.
         /// </summary>
         /// <remarks>
         /// This will only intersect the value of the common analysisEntity of value1 and value2.
