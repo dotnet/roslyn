@@ -65,13 +65,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             if (openDocument == null)
                 return false;
 
-            var workspace = openDocument.Project.Solution.Workspace;
-            if (!workspace.Options.GetOption(FeatureOnOffOptions.Outlining, openDocument.Project.Language))
+            if (!GlobalOptions.GetOption(FeatureOnOffOptions.Outlining, openDocument.Project.Language))
                 return false;
 
             // If we're a metadata-as-source doc, we need to compute the initial set of tags synchronously
             // so that we can collapse all the .IsImplementation tags to keep the UI clean and condensed.
-            var isMetadataAsSource = workspace.Kind == WorkspaceKind.MetadataAsSource;
+            var isMetadataAsSource = openDocument.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
             if (isMetadataAsSource)
                 return true;
 

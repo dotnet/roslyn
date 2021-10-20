@@ -19,11 +19,11 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -100,10 +100,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             notificationService.NotificationCallback = callback;
 
             var tracker = new RenameTrackingTaggerProvider(
-                Workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                Workspace.ExportProvider.GetExport<IInlineRenameService>().Value,
-                Workspace.ExportProvider.GetExport<IDiagnosticAnalyzerService>().Value,
-                Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
+                Workspace.GetService<IThreadingContext>(),
+                Workspace.GetService<IInlineRenameService>(),
+                Workspace.GetService<IDiagnosticAnalyzerService>(),
+                Workspace.GetService<IGlobalOptionService>(),
+                Workspace.GetService<IAsynchronousOperationListenerProvider>());
 
             _tagger = tracker.CreateTagger<RenameTrackingTag>(_hostDocument.GetTextBuffer());
 

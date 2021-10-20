@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -55,8 +56,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AutomaticLineEnderCommandHandler(
             ITextUndoHistoryRegistry undoRegistry,
-            IEditorOperationsFactoryService editorOperations)
-            : base(undoRegistry, editorOperations)
+            IEditorOperationsFactoryService editorOperations,
+            IGlobalOptionService globalOptions)
+            : base(undoRegistry, editorOperations, globalOptions)
         {
         }
 

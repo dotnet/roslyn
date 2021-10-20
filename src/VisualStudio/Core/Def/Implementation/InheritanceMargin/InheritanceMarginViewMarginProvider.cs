@@ -35,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IUIThreadOperationExecutor _operationExecutor;
         private readonly IEditorFormatMapService _editorFormatMapService;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -46,6 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IUIThreadOperationExecutor operationExecutor,
             IViewTagAggregatorFactoryService tagAggregatorFactoryService,
             IEditorFormatMapService editorFormatMapService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _threadingContext = threadingContext;
@@ -55,6 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _operationExecutor = operationExecutor;
             _tagAggregatorFactoryService = tagAggregatorFactoryService;
             _editorFormatMapService = editorFormatMapService;
+            _globalOptions = globalOptions;
             _listenerProvider = listenerProvider;
         }
 
@@ -70,7 +73,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 return null;
             }
 
-            var optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
             var listener = _listenerProvider.GetListener(FeatureAttribute.InheritanceMargin);
             return new InheritanceMarginViewMargin(
                 textView,
@@ -81,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 _classificationTypeMap,
                 tagAggregator,
                 editorFormatMap,
-                optionService,
+                _globalOptions,
                 listener,
                 document.Project.Language);
         }

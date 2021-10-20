@@ -80,8 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
                 return;
             }
 
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            if (!documentOptions.GetOption(FeatureOnOffOptions.KeywordHighlighting))
+            if (!GlobalOptions.GetOption(FeatureOnOffOptions.KeywordHighlighting, document.Project.Language))
             {
                 return;
             }

@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
@@ -32,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         // low vm more info page link
         private const string LowVMMoreInfoLink = "https://go.microsoft.com/fwlink/?LinkID=799402&clcid=0x409";
-
+        private readonly IGlobalOptionService _globalOptions;
         private readonly VisualStudioWorkspace _workspace;
         private readonly WorkspaceCacheService? _workspaceCacheService;
 
@@ -41,9 +42,11 @@ namespace Microsoft.VisualStudio.LanguageServices
         private VirtualMemoryNotificationListener(
             IThreadingContext threadingContext,
             IVsShell shell,
+            IGlobalOptionService globalOptions,
             VisualStudioWorkspace workspace)
             : base(threadingContext, assertIsForeground: true)
         {
+            _globalOptions = globalOptions;
             _workspace = workspace;
             _workspaceCacheService = workspace.Services.GetService<IWorkspaceCacheService>() as WorkspaceCacheService;
 
@@ -60,14 +63,19 @@ namespace Microsoft.VisualStudio.LanguageServices
             ErrorHandler.ThrowOnFailure(shell.AdviseBroadcastMessages(this, out var cookie));
         }
 
-        public static async Task<VirtualMemoryNotificationListener> CreateAsync(VisualStudioWorkspace workspace, IThreadingContext threadingContext, IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
+        public static async Task<VirtualMemoryNotificationListener> CreateAsync(
+            VisualStudioWorkspace workspace,
+            IThreadingContext threadingContext,
+            IAsyncServiceProvider serviceProvider,
+            IGlobalOptionService globalOptions,
+            CancellationToken cancellationToken)
         {
             await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var shell = (IVsShell?)await serviceProvider.GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
             Assumes.Present(shell);
 
-            return new VirtualMemoryNotificationListener(threadingContext, shell, workspace);
+            return new VirtualMemoryNotificationListener(threadingContext, shell, globalOptions, workspace);
         }
 
         /// <summary>
@@ -129,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             return availableMemory < MemoryThreshold &&
                 !SolutionCrawlerOptions.LowMemoryForcedMinimalBackgroundAnalysis &&
-                _workspace.Options.GetOption(InternalFeatureOnOffOptions.BackgroundAnalysisMemoryMonitor);
+                _globalOptions.GetOption(InternalFeatureOnOffOptions.BackgroundAnalysisMemoryMonitor);
         }
 
         private void DisableBackgroundAnalysis()

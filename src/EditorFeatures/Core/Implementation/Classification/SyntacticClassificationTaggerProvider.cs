@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     {
         private readonly IAsynchronousOperationListener _listener;
         private readonly SyntacticClassificationTypeMap _typeMap;
+        private readonly IGlobalOptionService _globalOptions;
 
         private readonly ConditionalWeakTable<ITextBuffer, TagComputer> _tagComputers = new();
 
@@ -34,17 +36,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         public SyntacticClassificationTaggerProvider(
             IThreadingContext threadingContext,
             SyntacticClassificationTypeMap typeMap,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext, assertIsForeground: false)
         {
             _typeMap = typeMap;
+            _globalOptions = globalOptions;
             _listener = listenerProvider.GetListener(FeatureAttribute.Classification);
         }
 
         public ITagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
             this.AssertIsForeground();
-            if (!buffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.SyntacticColorizer))
+            if (!_globalOptions.GetOption(InternalFeatureOnOffOptions.SyntacticColorizer))
                 return null;
 
             if (!_tagComputers.TryGetValue(buffer, out var tagComputer))

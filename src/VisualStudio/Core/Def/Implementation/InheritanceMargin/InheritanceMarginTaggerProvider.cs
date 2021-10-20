@@ -90,11 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 return;
             }
 
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var optionValue = optionSet.GetOption(FeatureOnOffOptions.ShowInheritanceMargin);
-
-            var shouldDisableFeature = optionValue == false;
-            if (shouldDisableFeature)
+            if (GlobalOptions.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, document.Project.Language) == false)
             {
                 return;
             }

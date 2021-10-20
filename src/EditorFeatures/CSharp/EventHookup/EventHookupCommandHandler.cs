@@ -8,6 +8,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Utilities;
@@ -41,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
     {
         private readonly IInlineRenameService _inlineRenameService;
         private readonly IAsynchronousOperationListener _asyncListener;
+        private readonly IGlobalOptionService _globalOptions;
 
         internal readonly EventHookupSessionManager EventHookupSessionManager;
 
@@ -52,12 +54,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         public EventHookupCommandHandler(
             IThreadingContext threadingContext,
             IInlineRenameService inlineRenameService,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            EventHookupSessionManager eventHookupSessionManager)
+            EventHookupSessionManager eventHookupSessionManager,
+            IGlobalOptionService globalOptions,
+            IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext)
         {
             _inlineRenameService = inlineRenameService;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.EventHookup);
+            _globalOptions = globalOptions;
 
             this.EventHookupSessionManager = eventHookupSessionManager;
         }

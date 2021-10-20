@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -42,8 +43,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 
             var tagComputer = new SyntacticClassificationTaggerProvider.TagComputer(
                 new SyntacticClassificationTaggerProvider(
-                    workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                    workspace.GetService<IThreadingContext>(),
                     typeMap: null,
+                    workspace.GetService<IGlobalOptionService>(),
                     AsynchronousOperationListenerProvider.NullProvider),
                 subjectBuffer,
                 AsynchronousOperationListenerProvider.NullListener,
@@ -99,8 +101,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 
             var tagComputer = new SyntacticClassificationTaggerProvider.TagComputer(
                 new SyntacticClassificationTaggerProvider(
-                    workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                    workspace.GetService<IThreadingContext>(),
                     typeMap,
+                    workspace.GetService<IGlobalOptionService>(),
                     AsynchronousOperationListenerProvider.NullProvider),
                 subjectBuffer,
                 AsynchronousOperationListenerProvider.NullListener,
