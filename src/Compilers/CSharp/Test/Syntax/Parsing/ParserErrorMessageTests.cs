@@ -707,21 +707,21 @@ public class MyClass
 }
 ";
             CreateCompilation(test).VerifyDiagnostics(
-                // (7,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                // (7,9): error CS0518: Predefined type 'System.ValueArray`2' is not defined or imported
                 //         int[2] myarray;
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[2]").WithLocation(7, 12),
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int[2]").WithArguments("System.ValueArray`2").WithLocation(7, 9),
                 // (7,16): warning CS0168: The variable 'myarray' is declared but never used
                 //         int[2] myarray;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "myarray").WithArguments("myarray").WithLocation(7, 16),
-                // (8,9): error CS0119: 'MyClass' is a type, which is not valid in the given context
+                // (8,9): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         MyClass[0] m;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "MyClass").WithArguments("MyClass", "type").WithLocation(8, 9),
-                // (8,20): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "MyClass").WithArguments("MyClass").WithLocation(8, 9),
+                // (8,9): error CS0518: Predefined type 'System.ValueArray`2' is not defined or imported
                 //         MyClass[0] m;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "m").WithLocation(8, 20),
-                // (8,20): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "MyClass[0]").WithArguments("System.ValueArray`2").WithLocation(8, 9),
+                // (8,20): warning CS0168: The variable 'm' is declared but never used
                 //         MyClass[0] m;
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "m").WithLocation(8, 20),
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "m").WithArguments("m").WithLocation(8, 20),
                 // (9,13): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         byte[13,5] b;
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[13,5]").WithLocation(9, 13),
@@ -746,18 +746,21 @@ public class MyClass
                 // (11,16): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         E[,50] e;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "e").WithLocation(11, 16),
-                // (14,15): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                // (14,12): error CS0518: Predefined type 'System.ValueArray`2' is not defined or imported
                 //     static int[2] myarray;
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[2]").WithLocation(14, 15),
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int[2]").WithArguments("System.ValueArray`2").WithLocation(14, 12),
                 // (14,19): warning CS0169: The field 'MyClass.myarray' is never used
                 //     static int[2] myarray;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "myarray").WithArguments("MyClass.myarray").WithLocation(14, 19),
-                // (15,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                // (15,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //     static MyClass[0] m;
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[0]").WithLocation(15, 19),
-                // (15,23): warning CS0649: Field 'MyClass.m' is never assigned to, and will always have its default value null
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "MyClass").WithArguments("MyClass").WithLocation(15, 12),
+                // (15,12): error CS0518: Predefined type 'System.ValueArray`2' is not defined or imported
                 //     static MyClass[0] m;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "m").WithArguments("MyClass.m", "null").WithLocation(15, 23),
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "MyClass[0]").WithArguments("System.ValueArray`2").WithLocation(15, 12),
+                // (15,23): warning CS0169: The field 'MyClass.m' is never used
+                //     static MyClass[0] m;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "m").WithArguments("MyClass.m").WithLocation(15, 23),
                 // (16,16): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //     static byte[13,5] b;
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[13,5]").WithLocation(16, 16),
@@ -5433,72 +5436,60 @@ public class QueryExpressionTest
             // error CS1031: Type expected
             // error CS1525: Invalid expression term 'in' ... ...
             ParseAndValidate(text,
-              // (12,29): error CS1002: ; expected
-              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
-              Diagnostic(ErrorCode.ERR_SemicolonExpected, "const"),
-              // (12,35): error CS1031: Type expected
-              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
-              Diagnostic(ErrorCode.ERR_TypeExpected, "in"),
-              // (12,35): error CS1001: Identifier expected
-              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
-              Diagnostic(ErrorCode.ERR_IdentifierExpected, "in"),
-              // (12,35): error CS0145: A const field requires a value to be provided
-              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
-              Diagnostic(ErrorCode.ERR_ConstValueRequired, "in"),
-              // (12,35): error CS1003: Syntax error, ',' expected
-              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
-              Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",", "in"),
-              // (12,38): error CS1002: ; expected
-              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
-              Diagnostic(ErrorCode.ERR_SemicolonExpected, "expr1"),
-              // (12,50): error CS1002: ; expected
-              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
-              Diagnostic(ErrorCode.ERR_SemicolonExpected, "i"),
-              // (12,52): error CS1002: ; expected
-              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
-              Diagnostic(ErrorCode.ERR_SemicolonExpected, "in"),
-              // (12,52): error CS1513: } expected
-              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
-              Diagnostic(ErrorCode.ERR_RbraceExpected, "in"),
-              // (12,64): error CS1002: ; expected
-              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
-              Diagnostic(ErrorCode.ERR_SemicolonExpected, "const"),
-              // (12,77): error CS0145: A const field requires a value to be provided
-              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
-              Diagnostic(ErrorCode.ERR_ConstValueRequired, "i"),
-              // (12,79): error CS1002: ; expected
-              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
-              Diagnostic(ErrorCode.ERR_SemicolonExpected, "select"),
-              // (12,86): error CS1002: ; expected
-              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
-              Diagnostic(ErrorCode.ERR_SemicolonExpected, "new"),
-              // (12,92): error CS1513: } expected
-              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
-              Diagnostic(ErrorCode.ERR_RbraceExpected, "const"),
-              // (12,92): error CS1002: ; expected
-              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
-              Diagnostic(ErrorCode.ERR_SemicolonExpected, "const"),
-              // (12,97): error CS1031: Type expected
-              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
-              Diagnostic(ErrorCode.ERR_TypeExpected, ","),
-              // (12,97): error CS1001: Identifier expected
-              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
-              Diagnostic(ErrorCode.ERR_IdentifierExpected, ","),
-              // (12,97): error CS0145: A const field requires a value to be provided
-              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
-              Diagnostic(ErrorCode.ERR_ConstValueRequired, ","),
-              // (12,99): error CS0145: A const field requires a value to be provided
-              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
-              Diagnostic(ErrorCode.ERR_ConstValueRequired, "i"),
-              // (12,101): error CS1002: ; expected
-              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
-              Diagnostic(ErrorCode.ERR_SemicolonExpected, "}"),
-              // (12,102): error CS1597: Semicolon after method or accessor block is not valid
-              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
-              Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";"),
-              // (14,1): error CS1022: Type or namespace definition, or end-of-file expected
-              // }
-              Diagnostic(ErrorCode.ERR_EOFExpected, "}")
+                // (12,29): error CS1002: ; expected
+                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "const").WithLocation(12, 29),
+                // (12,44): error CS0145: A const field requires a value to be provided
+                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+                Diagnostic(ErrorCode.ERR_ConstValueRequired, "join").WithLocation(12, 44),
+                // (12,50): error CS1002: ; expected
+                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "i").WithLocation(12, 50),
+                // (12,52): error CS1002: ; expected
+                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "in").WithLocation(12, 52),
+                // (12,52): error CS1513: } expected
+                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "in").WithLocation(12, 52),
+                // (12,64): error CS1002: ; expected
+                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "const").WithLocation(12, 64),
+                // (12,77): error CS0145: A const field requires a value to be provided
+                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+                Diagnostic(ErrorCode.ERR_ConstValueRequired, "i").WithLocation(12, 77),
+                // (12,79): error CS1002: ; expected
+                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "select").WithLocation(12, 79),
+                // (12,86): error CS1002: ; expected
+                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "new").WithLocation(12, 86),
+                // (12,92): error CS1513: } expected
+                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "const").WithLocation(12, 92),
+                // (12,92): error CS1002: ; expected
+                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "const").WithLocation(12, 92),
+                // (12,97): error CS1031: Type expected
+                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(12, 97),
+                // (12,97): error CS1001: Identifier expected
+                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(12, 97),
+                // (12,97): error CS0145: A const field requires a value to be provided
+                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+                Diagnostic(ErrorCode.ERR_ConstValueRequired, ",").WithLocation(12, 97),
+                // (12,99): error CS0145: A const field requires a value to be provided
+                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+                Diagnostic(ErrorCode.ERR_ConstValueRequired, "i").WithLocation(12, 99),
+                // (12,101): error CS1002: ; expected
+                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(12, 101),
+                // (12,102): error CS1597: Semicolon after method or accessor block is not valid
+                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+                Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(12, 102),
+                // (14,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(14, 1)
                 );
         }
 

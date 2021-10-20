@@ -1350,5 +1350,106 @@ class Program
       IL_0034:  ret
     }");
         }
+
+        [Fact]
+        public void ValueArrayArray()
+        {
+            var text =
+@"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static T[] Create<T>(int size)
+    {
+        return new T[size];
+    }
+
+    static void Main()
+    {
+        int[][5] arrOfVarr = Create<int[5]>(10);
+        arrOfVarr[2][3] = 222;
+        Console.Write(arrOfVarr[2][3]);
+
+        int[5][] varrOfarr = default;
+        varrOfarr[2] = new int[5];
+        varrOfarr[2][3] = 333;
+        Console.Write(varrOfarr[2][3]);
+
+        int[5][5] varrOfVarr = default;
+        varrOfVarr[2][3] = 444;
+        Console.Write(varrOfVarr[2][3]);
+    }
+}
+";
+
+            var comp = CreateCompilation(new string[] { text, mockValueArray }, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "222333444");
+
+            verifier.VerifyIL("Program.Main",
+@"
+    {
+  // Code size      148 (0x94)
+  .maxstack  3
+  .locals init (System.ValueArray<int[], object[,,,,]> V_0, //varrOfarr
+                System.ValueArray<System.ValueArray<int, object[,,,,]>, object[,,,,]> V_1) //varrOfVarr
+  IL_0000:  ldc.i4.s   10
+  IL_0002:  call       ""System.ValueArray<int, object[,,,,]>[] Program.Create<System.ValueArray<int, object[,,,,]>>(int)""
+  IL_0007:  dup
+  IL_0008:  ldc.i4.2
+  IL_0009:  ldelema    ""System.ValueArray<int, object[,,,,]>""
+  IL_000e:  ldc.i4.3
+  IL_000f:  call       ""ref int System.ValueArray<int, object[,,,,]>.this[int].get""
+  IL_0014:  ldc.i4     0xde
+  IL_0019:  stind.i4
+  IL_001a:  ldc.i4.2
+  IL_001b:  ldelema    ""System.ValueArray<int, object[,,,,]>""
+  IL_0020:  ldc.i4.3
+  IL_0021:  call       ""ref int System.ValueArray<int, object[,,,,]>.this[int].get""
+  IL_0026:  ldind.i4
+  IL_0027:  call       ""void System.Console.Write(int)""
+  IL_002c:  ldloca.s   V_0
+  IL_002e:  initobj    ""System.ValueArray<int[], object[,,,,]>""
+  IL_0034:  ldloca.s   V_0
+  IL_0036:  ldc.i4.2
+  IL_0037:  call       ""ref int[] System.ValueArray<int[], object[,,,,]>.this[int].get""
+  IL_003c:  ldc.i4.5
+  IL_003d:  newarr     ""int""
+  IL_0042:  stind.ref
+  IL_0043:  ldloca.s   V_0
+  IL_0045:  ldc.i4.2
+  IL_0046:  call       ""ref int[] System.ValueArray<int[], object[,,,,]>.this[int].get""
+  IL_004b:  ldind.ref
+  IL_004c:  ldc.i4.3
+  IL_004d:  ldc.i4     0x14d
+  IL_0052:  stelem.i4
+  IL_0053:  ldloca.s   V_0
+  IL_0055:  ldc.i4.2
+  IL_0056:  call       ""ref int[] System.ValueArray<int[], object[,,,,]>.this[int].get""
+  IL_005b:  ldind.ref
+  IL_005c:  ldc.i4.3
+  IL_005d:  ldelem.i4
+  IL_005e:  call       ""void System.Console.Write(int)""
+  IL_0063:  ldloca.s   V_1
+  IL_0065:  initobj    ""System.ValueArray<System.ValueArray<int, object[,,,,]>, object[,,,,]>""
+  IL_006b:  ldloca.s   V_1
+  IL_006d:  ldc.i4.2
+  IL_006e:  call       ""ref System.ValueArray<int, object[,,,,]> System.ValueArray<System.ValueArray<int, object[,,,,]>, object[,,,,]>.this[int].get""
+  IL_0073:  ldc.i4.3
+  IL_0074:  call       ""ref int System.ValueArray<int, object[,,,,]>.this[int].get""
+  IL_0079:  ldc.i4     0x1bc
+  IL_007e:  stind.i4
+  IL_007f:  ldloca.s   V_1
+  IL_0081:  ldc.i4.2
+  IL_0082:  call       ""ref System.ValueArray<int, object[,,,,]> System.ValueArray<System.ValueArray<int, object[,,,,]>, object[,,,,]>.this[int].get""
+  IL_0087:  ldc.i4.3
+  IL_0088:  call       ""ref int System.ValueArray<int, object[,,,,]>.this[int].get""
+  IL_008d:  ldind.i4
+  IL_008e:  call       ""void System.Console.Write(int)""
+  IL_0093:  ret
+}");
+        }
     }
 }

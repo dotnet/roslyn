@@ -2561,6 +2561,11 @@ End Class
             Dim integerType = helper.GetSpecialType(SpecialType.System_Int32)
 
             For Each st As SpecialType In [Enum].GetValues(GetType(SpecialType))
+                Select Case (st)
+                    Case SpecialType.None, SpecialType.System_Void, SpecialType.System_Runtime_CompilerServices_IsVolatile
+                        Continue For
+                End Select
+
                 Dim type = helper.GetSpecialType(st)
                 If type.Arity > 0 Then
                     type = type.Construct(ArrayBuilder(Of TypeSymbol).GetInstance(type.Arity, integerType).ToImmutableAndFree())

@@ -9273,11 +9273,14 @@ class C
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         int[o];
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[o]").WithLocation(6, 12),
+                // (6,9): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         int[o] x;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "int").WithArguments("int").WithLocation(6, 9),
+                // (6,9): error CS0518: Predefined type 'System.ValueArray`2' is not defined or imported
+                //         int[o] x;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int[o]").WithArguments("System.ValueArray`2").WithLocation(6, 9),
                 // (6,13): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
-                //         int[o];
+                //         int[o] x;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "o").WithArguments("object", "int").WithLocation(6, 13),
                 // (6,16): warning CS0168: The variable 'x' is declared but never used
                 //         int[o] x;

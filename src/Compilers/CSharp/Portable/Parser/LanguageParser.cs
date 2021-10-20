@@ -6796,7 +6796,7 @@ tryAgain:
                                 // [5]  or [ident]
                                 this.EatToken();
                                 this.EatToken();
-                                result = ScanTypeFlags.MustBeType;
+                                result = ScanTypeFlags.NonGenericTypeOrExpression;
                                 break;
                             }
                         }
