@@ -89,10 +89,7 @@ namespace Microsoft.CodeAnalysis
             _lazyChecksums = new AsyncLazy<ProjectStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
         }
 
-        public ProjectState(
-            ProjectInfo projectInfo,
-            HostLanguageServices languageServices,
-            SolutionServices solutionServices)
+        public ProjectState(ProjectInfo projectInfo, HostLanguageServices languageServices, SolutionServices solutionServices)
         {
             Contract.ThrowIfNull(projectInfo);
             Contract.ThrowIfNull(languageServices);
