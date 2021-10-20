@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private static readonly ConditionalWeakTable<Compilation, SkeletonReferenceSet> s_compilationToReferenceMap = new();
 
-            private readonly SemaphoreSlim _gate = new(initialCount: 1);
+            private readonly object _gate = new();
 
             /// <summary>
             /// The <see cref="Project.GetDependentSemanticVersionAsync"/> version of the project that the
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis
                 // thread succeeded in storing.
                 var finalReferenceSet = s_compilationToReferenceMap.GetValue(finalCompilation, _ => referenceSet);
 
-                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                lock (_gate)
                 {
                     // whoever one, still store this reference set against us with the provided version.
                     _version = version;
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // Otherwise, we don't have a direct mapping stored.  Try to see if the cached reference we have is
                 // applicable to this project semantic version.
-                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                lock (_gate)
                 {
                     // if we don't have a skeleton cached, then we have nothing to return.
                     if (_skeletonReferenceSet == null)
