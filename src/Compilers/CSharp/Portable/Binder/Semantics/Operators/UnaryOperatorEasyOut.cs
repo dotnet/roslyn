@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void UnaryOperatorEasyOut(UnaryOperatorKind kind, BoundExpression operand, UnaryOperatorOverloadResolutionResult result)
         {
             var operandType = operand.Type;
-            if ((object)operandType == null)
+            if (operandType is null)
             {
                 return;
             }

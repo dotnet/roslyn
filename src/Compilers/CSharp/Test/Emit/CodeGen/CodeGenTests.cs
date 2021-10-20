@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Linq;
@@ -628,6 +630,14 @@ class C
         [Fact, WorkItem(540019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540019")]
         public void TestBug6156()
         {
+            // Note: this test originally required a mismatch between the compile-time view of what the
+            // program should do and the runtime view.  The runtime considers `ref` and `out` to be the
+            // same, so it had a different view of what one method was overriding than C# did.  However,
+            // in the context of implementing the covariant return types feature, we added code in the compiler to
+            // cause the compiler to emit methodimpl records whenever there is a mismatch.  As a consequence
+            // of that, we updated this test to now require that the runtime behavior and the compile-time behavior
+            // of this program match, so that at runtime it obeys the behavior specified by the C#
+            // language specification.
             var source = @"
 class Ref1 
 { public virtual void M(ref int x) { x = 1; } }
@@ -645,64 +655,64 @@ class M
     Ref1 r1;
     r1 = new Ref1();
     r1.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 1
     r1 = new Out1();
     r1.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 1
     r1 = new Ref2();
     r1.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 3
     r1 = new Out2();
     r1.M(ref x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 3
     Out1 o1;
     o1 = new Out1();
     o1.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 1
     o1 = new Ref2();
     o1.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 3
     o1 = new Out2();
     o1.M(ref x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 3
     Ref2 r2;
     r2 = new Ref2();
     r2.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 3
     r2 = new Out2();
     r2.M(ref x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 3
     Out2 o2;
     o2 = new Out2();
     o2.M(ref x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 3
     o1 = new Out1();
     o1.M(out x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 2
     o1 = new Ref2();
     o1.M(out x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 2
     o1 = new Out2();
     o1.M(out x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 4
     r2 = new Ref2();
     r2.M(out x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 2
     r2 = new Out2();
     r2.M(out x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 4
     o2 = new Out2();
     o2.M(out x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 4
   }
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"
-1111
-111
-11
-1
-234
-34
+1133
+133
+33
+3
+224
+24
 4
 ");
         }
@@ -13254,7 +13264,8 @@ expectedOutput: "-100");
                 emittingPdb: false,
                 emitTestCoverageData: false,
                 hasDeclarationErrors: false,
-                diagnostics: diagnostics,
+                emitMethodBodies: true,
+                diagnostics: new BindingDiagnosticBag(diagnostics),
                 filterOpt: null,
                 entryPointOpt: null,
                 cancellationToken: CancellationToken.None);
@@ -14779,7 +14790,7 @@ class c1
                 expectedOutput: "",
                 symbolValidator: validator,
                 options: TestOptions.UnsafeDebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                parseOptions: TestOptions.RegularPreview);
+                parseOptions: TestOptions.Regular9);
 
             void validator(ModuleSymbol module)
             {
@@ -17163,6 +17174,49 @@ class Program
 }
 ";
             var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Skipped, expectedOutput: @"");
+        }
+
+        [Fact]
+        [WorkItem(51228, "https://github.com/dotnet/roslyn/issues/51228")]
+        public void Issue51228()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static Task<object> t;
+
+    static async Task Main(string[] args)
+    {
+        Task<object> task = MethodAsync();
+        GetReference(__makeref(task));
+        object result = await task;
+        System.Console.WriteLine(result);
+        System.Console.WriteLine(task == t);
+    }
+
+    static void GetReference(TypedReference reference)
+    {
+        t = __refvalue(reference, Task<object>);
+        System.Console.WriteLine(__reftype(reference));
+    }
+
+    static async Task<object> MethodAsync()
+    {
+        await Task.FromResult(1);
+        await Task.FromResult(2);
+        return ""Success"";
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: @"
+System.Threading.Tasks.Task`1[System.Object]
+Success
+True
+").VerifyDiagnostics();
         }
     }
 }

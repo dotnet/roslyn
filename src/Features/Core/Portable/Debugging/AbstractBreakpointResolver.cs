@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Debugging
         // enable setting breakpoints on all accessors by setting a breakpoint on the property
         // declaration (same as C# behavior).
         private static readonly SymbolDisplayFormat s_vsDebugNameFormat =
-            new SymbolDisplayFormat(
+            new(
                 globalNamespaceStyle:
                     SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle:
@@ -112,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                 return members.Where(m => IsApplicable(m, parameterCount, cancellationToken)).
                     Select(CreateBreakpoint).ToImmutableArrayOrEmpty();
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return ImmutableArray<BreakpointResolutionResult>.Empty;
             }
@@ -148,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                         return FindMembers(containers, nameParts.ToArray());
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return ImmutableArray<ISymbol>.Empty;
             }
@@ -236,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Debugging
         {
             // You can only set a breakpoint on methods (including constructors/destructors) and properties.
             var kind = methodOrProperty.Kind;
-            if (!(kind == SymbolKind.Method || kind == SymbolKind.Property))
+            if (kind is not (SymbolKind.Method or SymbolKind.Property))
             {
                 return false;
             }

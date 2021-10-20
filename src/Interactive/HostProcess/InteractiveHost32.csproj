@@ -7,6 +7,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net472</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -24,7 +25,7 @@
 
     Use BuiltProjectOutputGroup as the dependend target to ensure the targets has all dependencies that BuiltProjectOutputGroupOutput would have.
   -->
-  <Target Name="PublishProjectOutputGroup" DependsOnTargets="BuiltProjectOutputGroup" Returns="@(_PublishProjectOutputGroup)">
+  <Target Name="PublishProjectOutputGroup" DependsOnTargets="Build;BuiltProjectOutputGroup" Returns="@(_PublishProjectOutputGroup)">
     <ItemGroup>
       <_PublishProjectOutputGroup Include="$(TargetPath)">
         <TargetPath>$(TargetFileName)</TargetPath>

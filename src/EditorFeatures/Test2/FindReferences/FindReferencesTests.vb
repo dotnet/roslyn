@@ -18,6 +18,10 @@ Imports Xunit.Abstractions
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     <[UseExportProvider]>
     Partial Public Class FindReferencesTests
+        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures.AddParts(
+            GetType(NoCompilationContentTypeDefinitions),
+            GetType(NoCompilationContentTypeLanguageService))
+
         Private Const DefinitionKey As String = "Definition"
         Private Const ValueUsageInfoKey As String = "ValueUsageInfo."
         Private Const TypeOrNamespaceUsageInfoKey As String = "TypeOrNamespaceUsageInfo."
@@ -47,30 +51,29 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, host)
         End Function
 
-        Private Shared Async Function TestStreamingFeature(element As XElement,
-                                                    searchSingleFileOnly As Boolean,
-                                                    uiVisibleOnly As Boolean,
-                                                    host As TestHost) As Task
+        Private Shared Async Function TestStreamingFeature(
+                element As XElement,
+                searchSingleFileOnly As Boolean,
+                uiVisibleOnly As Boolean,
+                host As TestHost) As Task
             ' We don't support testing features that only expect partial results.
             If searchSingleFileOnly OrElse uiVisibleOnly Then
                 Return
             End If
 
-            Using workspace = TestWorkspace.Create(element)
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, host = TestHost.OutOfProcess)))
-
+            Using workspace = TestWorkspace.Create(element, composition:=s_composition.WithTestHostParts(host))
                 Assert.True(workspace.Documents.Any(Function(d) d.CursorPosition.HasValue))
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
                     Dim cursorPosition = cursorDocument.CursorPosition.Value
 
-                    Dim startDocument = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
+                    Dim startDocument = If(workspace.CurrentSolution.GetDocument(cursorDocument.Id),
+                                      Await workspace.CurrentSolution.GetSourceGeneratedDocumentAsync(cursorDocument.Id, CancellationToken.None))
                     Assert.NotNull(startDocument)
 
                     Dim findRefsService = startDocument.GetLanguageService(Of IFindUsagesService)
                     Dim context = New TestContext()
-                    Await findRefsService.FindReferencesAsync(startDocument, cursorPosition, context)
+                    Await findRefsService.FindReferencesAsync(startDocument, cursorPosition, context, CancellationToken.None)
 
                     Dim expectedDefinitions =
                         workspace.Documents.Where(Function(d) d.AnnotatedSpans.ContainsKey(DefinitionKey) AndAlso d.AnnotatedSpans(DefinitionKey).Any()).
@@ -166,6 +169,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     propertyValues = New HashSet(Of String)()
                     additionalPropertiesMap.Add(propertyName, propertyValues)
                 End If
+
                 propertyValues.Add(propertyValue)
             Next
 
@@ -228,20 +232,20 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return definition.DisplayIfNoReferences
             End Function
 
-            Public Overrides Function OnDefinitionFoundAsync(definition As DefinitionItem) As Task
+            Public Overrides Function OnDefinitionFoundAsync(definition As DefinitionItem, cancellationToken As CancellationToken) As ValueTask
                 SyncLock gate
                     Me.Definitions.Add(definition)
                 End SyncLock
 
-                Return Task.CompletedTask
+                Return Nothing
             End Function
 
-            Public Overrides Function OnReferenceFoundAsync(reference As SourceReferenceItem) As Task
+            Public Overrides Function OnReferenceFoundAsync(reference As SourceReferenceItem, cancellationToken As CancellationToken) As ValueTask
                 SyncLock gate
                     References.Add(reference)
                 End SyncLock
 
-                Return Task.CompletedTask
+                Return Nothing
             End Function
         End Class
 
@@ -252,16 +256,27 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Optional uiVisibleOnly As Boolean = False,
                 Optional options As FindReferencesSearchOptions = Nothing) As Task
 
+            Await TestAPI(definition, host, explicit:=False, searchSingleFileOnly, uiVisibleOnly, options)
+            Await TestAPI(definition, host, explicit:=True, searchSingleFileOnly, uiVisibleOnly, options)
+        End Function
+
+        Private Async Function TestAPI(
+                definition As XElement,
+                host As TestHost,
+                explicit As Boolean,
+                searchSingleFileOnly As Boolean,
+                uiVisibleOnly As Boolean,
+                options As FindReferencesSearchOptions) As Task
             options = If(options, FindReferencesSearchOptions.Default)
-            Using workspace = TestWorkspace.Create(definition)
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, host = TestHost.OutOfProcess)))
+            options = options.With(explicit:=explicit)
+            Using workspace = TestWorkspace.Create(definition, composition:=s_composition.WithTestHostParts(host))
                 workspace.SetTestLogger(AddressOf _outputHelper.WriteLine)
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
                     Dim cursorPosition = cursorDocument.CursorPosition.Value
 
-                    Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
+                    Dim document = If(workspace.CurrentSolution.GetDocument(cursorDocument.Id),
+                                      Await workspace.CurrentSolution.GetSourceGeneratedDocumentAsync(cursorDocument.Id, CancellationToken.None))
                     Assert.NotNull(document)
 
                     Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, cursorPosition)
@@ -288,11 +303,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                     Function(g) g.Select(Function(loc) loc.SourceSpan).Distinct().ToList())
 
                     Dim documentsWithAnnotatedSpans = workspace.Documents.Where(Function(d) d.AnnotatedSpans.Any())
-                    Assert.Equal(Of String)(documentsWithAnnotatedSpans.Select(Function(d) GetFilePathAndProjectLabel(workspace, d)).Order(), actualDefinitions.Keys.Order())
+                    Assert.Equal(Of String)(documentsWithAnnotatedSpans.Select(Function(d) GetFilePathAndProjectLabel(d)).Order(), actualDefinitions.Keys.Order())
                     For Each doc In documentsWithAnnotatedSpans
 
                         Dim expected = If(doc.AnnotatedSpans.ContainsKey(DefinitionKey), doc.AnnotatedSpans(DefinitionKey), ImmutableArray(Of TextSpan).Empty).Order()
-                        Dim actual = actualDefinitions(GetFilePathAndProjectLabel(workspace, doc)).Order()
+                        Dim actual = actualDefinitions(GetFilePathAndProjectLabel(doc)).Order()
 
                         If Not TextSpansMatch(expected, actual) Then
                             Assert.True(False, PrintSpans(expected, actual, workspace.CurrentSolution.GetDocument(doc.Id), "{|Definition:", "|}"))
@@ -302,14 +317,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Dim actualReferences = GetActualReferences(result, uiVisibleOnly, options, document)
 
                     Dim expectedDocuments = workspace.Documents.Where(Function(d) d.SelectedSpans.Any())
-                    Assert.Equal(expectedDocuments.Select(Function(d) GetFilePathAndProjectLabel(workspace, d)).Order(), actualReferences.Keys.Order())
+                    Assert.Equal(expectedDocuments.Select(Function(d) GetFilePathAndProjectLabel(d)).Order(), actualReferences.Keys.Order())
 
                     For Each doc In expectedDocuments
                         Dim expectedSpans = doc.SelectedSpans.Order()
-                        Dim actualSpans = actualReferences(GetFilePathAndProjectLabel(workspace, doc)).Order()
+                        Dim actualSpans = actualReferences(GetFilePathAndProjectLabel(doc)).Order()
+
+                        Dim expectedDocument =
+                            If(workspace.CurrentSolution.GetDocument(doc.Id),
+                               Await workspace.CurrentSolution.GetSourceGeneratedDocumentAsync(doc.Id, CancellationToken.None))
 
                         AssertEx.Equal(expectedSpans, actualSpans,
-                                       message:=PrintSpans(expectedSpans, actualSpans, workspace.CurrentSolution.GetDocument(doc.Id), "[|", "|]", messageOnly:=True))
+                                       message:=PrintSpans(expectedSpans, actualSpans, expectedDocument, "[|", "|]", messageOnly:=True))
                     Next
 
                     Dim valueUsageInfoKeys = workspace.Documents.SelectMany(Function(d) d.AnnotatedSpans.Keys.Where(Function(key) key.StartsWith(ValueUsageInfoKey)))
@@ -320,7 +339,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
                             Dim valueUsageInfoField = key.Substring(ValueUsageInfoKey.Length)
                             actualReferences = GetActualReferences(result, uiVisibleOnly, options, document, Function(r) r.SymbolUsageInfo.ValueUsageInfoOpt?.ToString() = valueUsageInfoField)
-                            Dim actualSpans = actualReferences(GetFilePathAndProjectLabel(workspace, doc)).Order()
+                            Dim actualSpans = actualReferences(GetFilePathAndProjectLabel(doc)).Order()
 
                             If Not TextSpansMatch(expectedSpans, actualSpans) Then
                                 Assert.True(False, PrintSpans(expectedSpans, actualSpans, workspace.CurrentSolution.GetDocument(doc.Id), $"{{|{key}:", "|}"))
@@ -339,7 +358,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                                                                                                  Return r.SymbolUsageInfo.TypeOrNamespaceUsageInfoOpt IsNot Nothing AndAlso
                                                                                                                                    r.SymbolUsageInfo.TypeOrNamespaceUsageInfoOpt.ToString().Split(","c).Select(Function(s) s.Trim).SetEquals(typeOrNamespaceUsageInfoFieldNames)
                                                                                                              End Function)
-                            Dim actualSpans = actualReferences(GetFilePathAndProjectLabel(workspace, doc)).Order()
+                            Dim actualSpans = actualReferences(GetFilePathAndProjectLabel(doc)).Order()
 
                             If Not TextSpansMatch(expectedSpans, actualSpans) Then
                                 Assert.True(False, PrintSpans(expectedSpans, actualSpans, workspace.CurrentSolution.GetDocument(doc.Id), $"{{|{key}:", "|}"))
@@ -364,7 +383,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
                                                                                                                      Return propertyValue.Length = 0
                                                                                                                  End Function)
-                                Dim actualSpans = actualReferences(GetFilePathAndProjectLabel(workspace, doc)).Order()
+                                Dim actualSpans = actualReferences(GetFilePathAndProjectLabel(doc)).Order()
 
                                 If Not TextSpansMatch(expectedSpans, actualSpans) Then
                                     Assert.True(False, PrintSpans(expectedSpans, actualSpans, workspace.CurrentSolution.GetDocument(doc.Id), $"{{|{annotationKey}:", "|}"))
@@ -420,6 +439,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 builder.Append(suffix)
                 position = span.End
             Next
+
             builder.Append(text.GetSubText(New TextSpan(position, text.Length - position)))
 
             Return instance.ToStringAndFree()
@@ -485,9 +505,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Return $"{document.Project.Name}: {document.FilePath}"
         End Function
 
-        Private Shared Function GetFilePathAndProjectLabel(workspace As TestWorkspace, hostDocument As TestHostDocument) As String
-            Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-            Return GetFilePathAndProjectLabel(document)
+        Private Shared Function GetFilePathAndProjectLabel(hostDocument As TestHostDocument) As String
+            Return $"{hostDocument.Project.Name}: {hostDocument.FilePath}"
         End Function
     End Class
 End Namespace

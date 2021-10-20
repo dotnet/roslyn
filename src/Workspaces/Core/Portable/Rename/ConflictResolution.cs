@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -39,8 +37,10 @@ namespace Microsoft.CodeAnalysis.Rename
         private readonly ImmutableDictionary<DocumentId, ImmutableArray<ComplexifiedSpan>> _documentToComplexifiedSpansMap;
         private readonly ImmutableDictionary<DocumentId, ImmutableArray<RelatedLocation>> _documentToRelatedLocationsMap;
 
+#nullable disable warnings
         public ConflictResolution(string errorMessage) : this()
             => ErrorMessage = errorMessage;
+#nullable enable warnings
 
         public ConflictResolution(
             Solution oldSolution,

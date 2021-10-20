@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -13,38 +11,45 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(MSLSPMethods.ProjectContextsName)]
-    internal class GetTextDocumentWithContextHandler : AbstractRequestHandler<GetTextDocumentWithContextParams, ActiveProjectContexts?>
+    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
+    [ProvidesMethod(VSMethods.GetProjectContextsName)]
+    internal class GetTextDocumentWithContextHandler : AbstractStatelessRequestHandler<VSGetProjectContextsParams, VSProjectContextList?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GetTextDocumentWithContextHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public GetTextDocumentWithContextHandler()
         {
         }
 
-        public override Task<ActiveProjectContexts?> HandleRequestAsync(
-            GetTextDocumentWithContextParams request,
-            ClientCapabilities clientCapabilities,
-            string? clientName,
-            CancellationToken cancellationToken)
+        public override string Method => VSMethods.GetProjectContextsName;
+
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSGetProjectContextsParams request) => new TextDocumentIdentifier { Uri = request.TextDocument.Uri };
+
+        public override Task<VSProjectContextList?> HandleRequestAsync(VSGetProjectContextsParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var documents = SolutionProvider.GetDocuments(request.TextDocument.Uri, clientName);
+            Contract.ThrowIfNull(context.Solution);
+
+            // We specifically don't use context.Document here because we want multiple
+            var documents = context.Solution.GetDocuments(request.TextDocument.Uri, context.ClientName);
 
             if (!documents.Any())
             {
-                return Task.FromResult<ActiveProjectContexts?>(null);
+                return SpecializedTasks.Null<VSProjectContextList>();
             }
 
-            var contexts = new List<ProjectContext>();
+            var contexts = new List<VSProjectContext>();
 
             foreach (var document in documents)
             {
                 var project = document.Project;
-                var context = new ProjectContext
+                var projectContext = new VSProjectContext
                 {
                     Id = ProtocolConversions.ProjectIdToProjectContextId(project.Id),
                     Label = project.Name
@@ -52,14 +57,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 if (project.Language == LanguageNames.CSharp)
                 {
-                    context.Kind = ProjectContextKind.CSharp;
+                    projectContext.Kind = VSProjectKind.CSharp;
                 }
                 else if (project.Language == LanguageNames.VisualBasic)
                 {
-                    context.Kind = ProjectContextKind.VisualBasic;
+                    projectContext.Kind = VSProjectKind.VisualBasic;
                 }
 
-                contexts.Add(context);
+                contexts.Add(projectContext);
             }
 
             // If the document is open, it doesn't matter which DocumentId we pass to GetDocumentIdInCurrentContext since
@@ -70,7 +75,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var openDocument = documents.First();
             var currentContextDocumentId = openDocument.Project.Solution.Workspace.GetDocumentIdInCurrentContext(openDocument.Id);
 
-            return Task.FromResult<ActiveProjectContexts?>(new ActiveProjectContexts
+            return Task.FromResult<VSProjectContextList?>(new VSProjectContextList
             {
                 ProjectContexts = contexts.ToArray(),
                 DefaultIndex = documents.IndexOf(d => d.Id == currentContextDocumentId)

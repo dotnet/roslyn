@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
             }
 
             return !(node.IsKind(SyntaxKind.BaseExpression) ||
-                     node.Parent.Parent.IsKind(SyntaxKind.ObjectInitializerExpression) ||
+                     node.GetRequiredParent().GetRequiredParent().IsKind(SyntaxKind.ObjectInitializerExpression) ||
                      IsInPropertyOrFieldInitialization(containingSymbol, node));
         }
 

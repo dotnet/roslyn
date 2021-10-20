@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
@@ -25,13 +26,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
     {
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public GenericNameSignatureHelpProvider()
         {
         }
 
         public override bool IsTriggerCharacter(char ch)
-            => ch == '<' || ch == ',';
+            => ch is '<' or ',';
 
         public override bool IsRetriggerCharacter(char ch)
             => ch == '>';
@@ -71,16 +72,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 token != node.TypeArgumentList.GreaterThanToken;
         }
 
-        protected override async Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (!TryGetGenericIdentifier(root, position, document.GetLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken,
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (!TryGetGenericIdentifier(root, position, document.GetRequiredLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken,
                     out var genericIdentifier, out var lessThanToken))
             {
                 return null;
             }
 
-            if (!(genericIdentifier.Parent is SimpleNameSyntax simpleName))
+            if (genericIdentifier.Parent is not SimpleNameSyntax simpleName)
             {
                 return null;
             }
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var accessibleSymbols =
                 symbols.WhereAsArray(s => s.GetArity() > 0)
-                       .WhereAsArray(s => s is INamedTypeSymbol || s is IMethodSymbol)
+                       .WhereAsArray(s => s is INamedTypeSymbol or IMethodSymbol)
                        .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
                        .Sort(semanticModel, genericIdentifier.SpanStart);
 
@@ -125,17 +126,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var anonymousTypeDisplayService = document.GetLanguageService<IAnonymousTypeDisplayService>();
-            var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
+            var structuralTypeDisplayService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
+            var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
             var textSpan = GetTextSpan(genericIdentifier, lessThanToken);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             return CreateSignatureHelpItems(accessibleSymbols.Select(s =>
-                Convert(s, lessThanToken, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService)).ToList(),
+                Convert(s, lessThanToken, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem: null);
         }
 
-        public override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
+        public override SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
             if (!TryGetGenericIdentifier(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken,
                     out var genericIdentifier, out _))
@@ -166,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             ISymbol symbol,
             SyntaxToken lessThanToken,
             SemanticModel semanticModel,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
+            IStructuralTypeDisplayService structuralTypeDisplayService,
             IDocumentationCommentFormattingService documentationCommentFormattingService)
         {
             var position = lessThanToken.SpanStart;
@@ -176,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             {
                 item = CreateItem(
                     symbol, semanticModel, position,
-                    anonymousTypeDisplayService,
+                    structuralTypeDisplayService,
                     false,
                     symbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                     GetPreambleParts(namedType, semanticModel, position),
@@ -189,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 var method = (IMethodSymbol)symbol;
                 item = CreateItem(
                     symbol, semanticModel, position,
-                    anonymousTypeDisplayService,
+                    structuralTypeDisplayService,
                     false,
                     c => symbol.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c),
                     GetPreambleParts(method, semanticModel, position),

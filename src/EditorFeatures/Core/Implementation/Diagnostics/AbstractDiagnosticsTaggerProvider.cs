@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -52,14 +49,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         /// we're tagging.
         /// </summary>
         private static readonly ConditionalWeakTable<object, ITextSnapshot> _diagnosticIdToTextSnapshot =
-            new ConditionalWeakTable<object, ITextSnapshot>();
+            new();
 
         protected AbstractDiagnosticsTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
-            IForegroundNotificationService notificationService,
             IAsynchronousOperationListener listener)
-            : base(threadingContext, listener, notificationService)
+            : base(threadingContext, listener)
         {
             _diagnosticService = diagnosticService;
             _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
@@ -98,14 +94,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             }
         }
 
+        protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
         protected override TaggerDelay AddedTagNotificationDelay => TaggerDelay.OnIdle;
 
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.Compose(
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Medium),
-                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer, TaggerDelay.Medium),
-                TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, _diagnosticService, TaggerDelay.Short));
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
+                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
+                TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, _diagnosticService));
         }
 
         protected internal abstract bool IsEnabled { get; }
@@ -121,13 +118,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         protected internal virtual ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
             => diagnosticData.DataLocation is object ? ImmutableArray.Create(diagnosticData.DataLocation) : ImmutableArray<DiagnosticDataLocation>.Empty;
 
-        protected override Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
+        protected override Task ProduceTagsAsync(
+            TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)
         {
-            ProduceTags(context, spanToTag);
-            return Task.CompletedTask;
+            return ProduceTagsAsync(context, spanToTag, cancellationToken);
         }
 
-        private void ProduceTags(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag)
+        private async Task ProduceTagsAsync(
+            TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, CancellationToken cancellationToken)
         {
             if (!this.IsEnabled)
             {
@@ -142,7 +140,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             var editorSnapshot = spanToTag.SnapshotSpan.Snapshot;
 
-            var cancellationToken = context.CancellationToken;
             var workspace = document.Project.Solution.Workspace;
 
             // See if we've marked any spans as those we want to suppress diagnostics for.
@@ -152,28 +149,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             var suppressedDiagnosticsSpans = (NormalizedSnapshotSpanCollection?)null;
             buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
 
-            var eventArgs = _diagnosticService.GetDiagnosticsUpdatedEventArgs(
-                workspace, document.Project.Id, document.Id, context.CancellationToken);
+            var buckets = _diagnosticService.GetPushDiagnosticBuckets(
+                workspace, document.Project.Id, document.Id, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken);
 
-            foreach (var updateArg in eventArgs)
+            foreach (var bucket in buckets)
             {
-                ProduceTags(
+                await ProduceTagsAsync(
                     context, spanToTag, workspace, document,
-                    suppressedDiagnosticsSpans, updateArg, cancellationToken);
+                    suppressedDiagnosticsSpans, bucket, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private void ProduceTags(
+        private async Task ProduceTagsAsync(
             TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag,
             Workspace workspace, Document document,
             NormalizedSnapshotSpanCollection? suppressedDiagnosticsSpans,
-            UpdatedEventArgs updateArgs, CancellationToken cancellationToken)
+            DiagnosticBucket bucket, CancellationToken cancellationToken)
         {
             try
             {
-                var id = updateArgs.Id;
-                var diagnostics = _diagnosticService.GetDiagnostics(
-                    workspace, document.Project.Id, document.Id, id, false, cancellationToken);
+                var id = bucket.Id;
+                var diagnostics = await _diagnosticService.GetPushDiagnosticsAsync(
+                    workspace, document.Project.Id, document.Id, id,
+                    includeSuppressedDiagnostics: false,
+                    diagnosticMode: InternalDiagnosticsOptions.NormalDiagnosticMode,
+                    cancellationToken).ConfigureAwait(false);
 
                 var isLiveUpdate = id is ISupportLiveUpdate;
 
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     }
                 }
             }
-            catch (ArgumentOutOfRangeException ex) when (FatalError.ReportWithoutCrash(ex))
+            catch (ArgumentOutOfRangeException ex) when (FatalError.ReportAndCatch(ex))
             {
                 // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=428328&_a=edit&triage=false
                 // explicitly report NFW to find out what is causing us for out of range.

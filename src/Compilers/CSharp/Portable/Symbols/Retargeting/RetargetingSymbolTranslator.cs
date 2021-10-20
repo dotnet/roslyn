@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private readonly Func<Symbol, RetargetingNamespaceSymbol> _createRetargetingNamespace;
         private readonly Func<Symbol, RetargetingTypeParameterSymbol> _createRetargetingTypeParameter;
         private readonly Func<Symbol, RetargetingNamedTypeSymbol> _createRetargetingNamedType;
-        private readonly Func<Symbol, RetargetingFieldSymbol> _createRetargetingField;
+        private readonly Func<Symbol, FieldSymbol> _createRetargetingField;
         private readonly Func<Symbol, RetargetingPropertySymbol> _createRetargetingProperty;
         private readonly Func<Symbol, RetargetingEventSymbol> _createRetargetingEvent;
 
@@ -55,9 +57,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return new RetargetingNamedTypeSymbol(this, (NamedTypeSymbol)symbol);
         }
 
-        private RetargetingFieldSymbol CreateRetargetingField(Symbol symbol)
+        private FieldSymbol CreateRetargetingField(Symbol symbol)
         {
             Debug.Assert(ReferenceEquals(symbol.ContainingModule, _underlyingModule));
+            if (symbol is TupleErrorFieldSymbol tupleErrorField)
+            {
+                var correspondingTupleField = tupleErrorField.CorrespondingTupleField;
+                Debug.Assert(correspondingTupleField is TupleErrorFieldSymbol);
+
+                var retargetedCorrespondingDefaultFieldOpt = (correspondingTupleField == (object)tupleErrorField)
+                    ? null
+                    : (TupleErrorFieldSymbol)RetargetingTranslator.Retarget(correspondingTupleField);
+
+                return new TupleErrorFieldSymbol(
+                    RetargetingTranslator.Retarget(tupleErrorField.ContainingType, RetargetOptions.RetargetPrimitiveTypesByName),
+                    tupleErrorField.Name,
+                    tupleErrorField.TupleElementIndex,
+                    tupleErrorField.Locations.IsEmpty ? null : tupleErrorField.Locations[0],
+                    this.RetargetingTranslator.Retarget(tupleErrorField.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
+                    tupleErrorField.GetUseSiteInfo().DiagnosticInfo,
+                    tupleErrorField.IsImplicitlyDeclared,
+                    retargetedCorrespondingDefaultFieldOpt);
+            }
+
             return new RetargetingFieldSymbol(this, (FieldSymbol)symbol);
         }
 
@@ -783,8 +805,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 // TODO: if it is a missing symbol error but no longer missing in the target assembly, then we can resolve it here.
 
-                var useSiteDiagnostic = type.GetUseSiteDiagnostic();
-                if (useSiteDiagnostic != null)
+                var useSiteDiagnostic = type.GetUseSiteInfo().DiagnosticInfo;
+                if (useSiteDiagnostic?.Severity == DiagnosticSeverity.Error)
                 {
                     return type;
                 }
@@ -873,6 +895,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             public MethodSymbol Retarget(MethodSymbol method, IEqualityComparer<MethodSymbol> retargetedMethodComparer)
             {
+                Debug.Assert((object)method == method.ConstructedFrom);
+
                 if (ReferenceEquals(method.ContainingModule, this.UnderlyingModule) && ReferenceEquals(method, method.OriginalDefinition))
                 {
                     return Retarget(method);
@@ -881,10 +905,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 var containingType = method.ContainingType;
                 var retargetedType = Retarget(containingType, RetargetOptions.RetargetPrimitiveTypesByName);
 
+                if (ReferenceEquals(retargetedType, containingType))
+                {
+                    return method;
+                }
+
+                if (!containingType.IsDefinition)
+                {
+                    Debug.Assert(!retargetedType.IsDefinition);
+
+                    var retargetedDefinition = Retarget(method.OriginalDefinition, retargetedMethodComparer);
+
+                    if (retargetedDefinition is null)
+                    {
+                        return null;
+                    }
+
+                    return retargetedDefinition.AsMember(retargetedType);
+                }
+
+                Debug.Assert(retargetedType.IsDefinition);
+
                 // NB: may return null if the method cannot be found in the retargeted type (e.g. removed in a subsequent version)
-                return ReferenceEquals(retargetedType, containingType) ?
-                           method :
-                           FindMethodInRetargetedType(method, retargetedType, retargetedMethodComparer);
+                return FindMethodInRetargetedType(method, retargetedType, retargetedMethodComparer);
             }
 
             public FieldSymbol Retarget(FieldSymbol field)
@@ -939,21 +982,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             private class RetargetedTypeMethodFinder : RetargetingSymbolTranslator
             {
-                private RetargetedTypeMethodFinder(RetargetingModuleSymbol retargetingModule) :
+                private readonly NamedTypeSymbol _retargetedType;
+                private readonly MethodSymbol _toFind;
+
+                private RetargetedTypeMethodFinder(RetargetingModuleSymbol retargetingModule, NamedTypeSymbol retargetedType, MethodSymbol toFind) :
                     base(retargetingModule)
                 {
+                    _retargetedType = retargetedType;
+                    _toFind = toFind;
                 }
 
                 public static MethodSymbol Find(RetargetingSymbolTranslator translator, MethodSymbol method, NamedTypeSymbol retargetedType, IEqualityComparer<MethodSymbol> retargetedMethodComparer)
                 {
-                    if (!method.IsGenericMethod)
+                    if (!method.IsGenericMethod && !retargetedType.IsGenericType)
                     {
                         return FindWorker(translator, method, retargetedType, retargetedMethodComparer);
                     }
 
-                    // A generic method needs special handling because its signature is very likely
-                    // to refer to method's type parameters.
-                    var finder = new RetargetedTypeMethodFinder(translator._retargetingModule);
+                    // A generic method or a method in generic type needs special handling because its signature is very likely
+                    // to refer to method's or type's type parameters.
+                    var finder = new RetargetedTypeMethodFinder(translator._retargetingModule, retargetedType, method);
                     return FindWorker(finder, method, retargetedType, retargetedMethodComparer);
                 }
 
@@ -987,10 +1035,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         retargetedType,
                         method.MethodKind,
                         method.CallingConvention,
-                        IndexedTypeParameterSymbol.Take(method.Arity),
+                        IndexedTypeParameterSymbol.TakeSymbols(method.Arity),
                         targetParamsBuilder.ToImmutableAndFree(),
                         method.RefKind,
                         method.IsInitOnly,
+                        method.IsStatic,
                         translator.Retarget(method.ReturnTypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
                         translator.RetargetModifiers(method.RefCustomModifiers, out modifiersHaveChanged_Ignored),
                         ImmutableArray<MethodSymbol>.Empty);
@@ -1012,16 +1061,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                 public override TypeParameterSymbol Retarget(TypeParameterSymbol typeParameter)
                 {
-                    if (ReferenceEquals(typeParameter.ContainingModule, this.UnderlyingModule))
+                    if (typeParameter.TypeParameterKind == TypeParameterKind.Method)
                     {
-                        return base.Retarget(typeParameter);
+                        Debug.Assert((object)typeParameter.ContainingSymbol == _toFind);
+
+                        // The method symbol we are building will be using IndexedTypeParameterSymbols as 
+                        // its type parameters, therefore, we should return them here as well.
+                        return IndexedTypeParameterSymbol.GetTypeParameter(typeParameter.Ordinal);
                     }
 
-                    Debug.Assert(typeParameter.TypeParameterKind == TypeParameterKind.Method);
+                    NamedTypeSymbol containingType = _toFind.ContainingType;
+                    NamedTypeSymbol retargetedContainingType = _retargetedType;
 
-                    // The method symbol we are building will be using IndexedTypeParameterSymbols as 
-                    // its type parameters, therefore, we should return them here as well.
-                    return IndexedTypeParameterSymbol.GetTypeParameter(typeParameter.Ordinal);
+                    do
+                    {
+                        if ((object)containingType == typeParameter.ContainingSymbol)
+                        {
+                            return retargetedContainingType.TypeParameters[typeParameter.Ordinal];
+                        }
+
+                        containingType = containingType.ContainingType;
+                        retargetedContainingType = retargetedContainingType.ContainingType;
+                    }
+                    while (containingType is object);
+
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
 

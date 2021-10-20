@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
@@ -24,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         public readonly struct Result
         {
             public readonly ResultKind Kind;
-            public readonly CodeStyleOption2<bool> Option;
             public readonly IInvocationOperation InvocationOperation;
             public readonly InvocationExpressionSyntax Invocation;
             public readonly IMethodSymbol SliceLikeMethod;
@@ -37,13 +34,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             public readonly IOperation? Op2;
 
             public Result(
-                ResultKind kind, CodeStyleOption2<bool> option,
-                IInvocationOperation invocationOperation, InvocationExpressionSyntax invocation,
-                IMethodSymbol sliceLikeMethod, MemberInfo memberInfo,
-                IOperation op1, IOperation? op2)
+                ResultKind kind,
+                IInvocationOperation invocationOperation,
+                InvocationExpressionSyntax invocation,
+                IMethodSymbol sliceLikeMethod,
+                MemberInfo memberInfo,
+                IOperation op1,
+                IOperation? op2)
             {
                 Kind = kind;
-                Option = option;
                 InvocationOperation = invocationOperation;
                 Invocation = invocation;
                 SliceLikeMethod = sliceLikeMethod;

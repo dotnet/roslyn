@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
@@ -114,6 +116,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get { return -1; }
+        }
+
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
             get { return FlowAnalysisAnnotations.None; }
@@ -161,6 +168,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
+<<<<<<< HEAD
         public override bool IsNullChecked => false;
+=======
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => ImmutableArray<int>.Empty;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => false;
+>>>>>>> upstream/main
     }
 }

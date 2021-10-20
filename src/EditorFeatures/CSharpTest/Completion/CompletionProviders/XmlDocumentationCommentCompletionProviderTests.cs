@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -17,10 +19,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public XmlDocumentationCommentCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(XmlDocCommentCompletionProvider);
 
@@ -44,18 +42,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
+            string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
+            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
         {
             // We don't need to try writing comments in from of items in doc comments.
             await VerifyAtPositionAsync(
                 code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
-                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
-                matchingFilters, flags);
+                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription,
+                isComplexTextEdit, matchingFilters, flags);
 
             await VerifyAtEndOfFileAsync(
                 code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
-                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
-                matchingFilters, flags);
+                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription,
+                isComplexTextEdit, matchingFilters, flags);
 
             // Items cannot be partially written if we're checking for their absence,
             // or if we're verifying that the list will show up (without specifying an actual item)
@@ -64,12 +63,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 await VerifyAtPosition_ItemPartiallyWrittenAsync(
                     code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
                     sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                    inlineDescription, matchingFilters, flags);
+                    displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags);
 
                 await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
                     code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
                     sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                    inlineDescription, matchingFilters, flags);
+                    displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags);
             }
         }
 
@@ -698,6 +697,7 @@ class C
         }
 
         [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11490")]
+        [WorkItem(37504, "https://github.com/dotnet/roslyn/issues/37504")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SeeAttributeNames()
         {
@@ -710,7 +710,23 @@ class C
     static void Goo()
     {
     }
-}", "cref", "langword");
+}", "cref", "langword", "href");
+        }
+
+        [WorkItem(37504, "https://github.com/dotnet/roslyn/issues/37504")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SeeAlsoAttributeNames()
+        {
+            await VerifyItemsExistAsync(@"
+class C
+{
+    /// <summary>
+    /// <seealso $$/>
+    /// </summary>
+    static void Goo()
+    {
+    }
+}", "cref", "href");
         }
 
         [WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")]
@@ -995,6 +1011,28 @@ class C
 }";
             await VerifyItemExistsAsync(text, "term");
             await VerifyItemExistsAsync(text, "description");
+        }
+
+        [WorkItem(52738, "https://github.com/dotnet/roslyn/issues/52738")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RecordParam()
+        {
+            await VerifyItemsExistAsync(@"
+/// $$
+public record Goo<T>(string MyParameter);
+", "param name=\"MyParameter\"", "typeparam name=\"T\"");
+        }
+
+        [WorkItem(52738, "https://github.com/dotnet/roslyn/issues/52738")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RecordParamRef()
+        {
+            await VerifyItemsExistAsync(@"
+/// <summary>
+/// $$
+/// <summary>
+public record Goo<T>(string MyParameter);
+", "paramref name=\"MyParameter\"", "typeparamref name=\"T\"");
         }
     }
 }

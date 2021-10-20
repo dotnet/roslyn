@@ -2,8 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -11,17 +15,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         /// <summary>
         /// Synchronize build errors with live error.
-        /// 
-        /// no cancellationToken since this can't be cancelled
         /// </summary>
-        public Task SynchronizeWithBuildAsync(Workspace workspace, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> diagnostics)
+        public ValueTask SynchronizeWithBuildAsync(
+            Workspace workspace,
+            ImmutableDictionary<ProjectId,
+            ImmutableArray<DiagnosticData>> diagnostics,
+            TaskQueue postBuildAndErrorListRefreshTaskQueue,
+            bool onBuildCompleted,
+            CancellationToken cancellationToken)
         {
-            if (_map.TryGetValue(workspace, out var analyzer))
-            {
-                return analyzer.SynchronizeWithBuildAsync(diagnostics);
-            }
-
-            return Task.CompletedTask;
+            return _map.TryGetValue(workspace, out var analyzer)
+                ? analyzer.SynchronizeWithBuildAsync(diagnostics, postBuildAndErrorListRefreshTaskQueue, onBuildCompleted, cancellationToken)
+                : default;
         }
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -22,7 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             return SyntaxFactory.ParseSyntaxTree(text, options ?? TestOptions.Regular);
         }
-
 
         [Fact]
         public void TestExternAlias()
@@ -578,6 +579,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestFileScopedNamespace()
+        {
+            var text = "namespace a;";
+            var file = this.ParseFile(text, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.FileScopedNamespaceDeclaration, file.Members[0].Kind());
+            var ns = (FileScopedNamespaceDeclarationSyntax)file.Members[0];
+            Assert.NotEqual(default, ns.NamespaceKeyword);
+            Assert.NotNull(ns.Name);
+            Assert.Equal("a", ns.Name.ToString());
+            Assert.NotEqual(default, ns.SemicolonToken);
+            Assert.Equal(0, ns.Usings.Count);
+            Assert.Equal(0, ns.Members.Count);
+        }
+
+        [Fact]
         public void TestNamespaceWithDottedName()
         {
             var text = "namespace a.b.c { }";
@@ -623,6 +645,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestFileScopedNamespaceWithUsing()
+        {
+            var text = "namespace a; using b.c;";
+            var file = this.ParseFile(text, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.FileScopedNamespaceDeclaration, file.Members[0].Kind());
+            var ns = (FileScopedNamespaceDeclarationSyntax)file.Members[0];
+            Assert.NotEqual(default, ns.NamespaceKeyword);
+            Assert.NotNull(ns.Name);
+            Assert.Equal("a", ns.Name.ToString());
+            Assert.NotEqual(default, ns.SemicolonToken);
+            Assert.Equal(1, ns.Usings.Count);
+            Assert.Equal("using b.c;", ns.Usings[0].ToString());
+            Assert.Equal(0, ns.Members.Count);
+        }
+
+        [Fact]
         public void TestNamespaceWithExternAlias()
         {
             var text = "namespace a { extern alias b; }";
@@ -643,6 +687,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("extern alias b;", ns.Externs[0].ToString());
             Assert.Equal(0, ns.Members.Count);
             Assert.NotEqual(default, ns.CloseBraceToken);
+        }
+
+        [Fact]
+        public void TestFileScopedNamespaceWithExternAlias()
+        {
+            var text = "namespace a; extern alias b;";
+            var file = this.ParseFile(text, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.FileScopedNamespaceDeclaration, file.Members[0].Kind());
+            var ns = (FileScopedNamespaceDeclarationSyntax)file.Members[0];
+            Assert.NotEqual(default, ns.NamespaceKeyword);
+            Assert.NotNull(ns.Name);
+            Assert.Equal("a", ns.Name.ToString());
+            Assert.NotEqual(default, ns.SemicolonToken);
+            Assert.Equal(1, ns.Externs.Count);
+            Assert.Equal("extern alias b;", ns.Externs[0].ToString());
+            Assert.Equal(0, ns.Members.Count);
         }
 
         [Fact]
@@ -5724,10 +5790,10 @@ partial class PartialPartial
         {
             var text = @"partial enum E{}";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial enum E{}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1),
-                // (1,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (1,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial enum E{}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(1, 14));
         }
@@ -8131,10 +8197,10 @@ class A : B : C
                 // (2,15): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "C").WithLocation(2, 15),
-                // (3,1): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,1): error CS8370: Feature 'top-level statements' is not available in C# 7.3. Please use language version 9.0 or greater.
                 // {
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"{
-}").WithArguments("top-level statements").WithLocation(3, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, @"{
+}").WithArguments("top-level statements", "9.0").WithLocation(3, 1),
                 // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // {
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"{
@@ -8329,13 +8395,13 @@ b { }";
         {
             UsingNode(
 @"class C<T> where T : default { }",
-                useCSharp8 ? TestOptions.Regular8 : TestOptions.RegularPreview,
+                useCSharp8 ? TestOptions.Regular8 : TestOptions.Regular9,
                 useCSharp8 ?
                     new[]
                     {
-                        // (1,22): error CS8652: The feature 'default type parameter constraints' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        // (1,22): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
                         // class C<T> where T : default { }
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "default").WithArguments("default type parameter constraints").WithLocation(1, 22)
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(1, 22)
                     } :
                     Array.Empty<DiagnosticDescription>());
 
@@ -8445,16 +8511,16 @@ b { }";
 @"class C<T, U>
     where T : struct, default
     where U : default, class { }",
-                useCSharp8 ? TestOptions.Regular8 : TestOptions.RegularPreview,
+                useCSharp8 ? TestOptions.Regular8 : TestOptions.Regular9,
                 useCSharp8 ?
                     new[]
                     {
-                        // (2,23): error CS8652: The feature 'default type parameter constraints' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        // (2,23): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
                         //     where T : struct, default
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "default").WithArguments("default type parameter constraints").WithLocation(2, 23),
-                        // (3,15): error CS8652: The feature 'default type parameter constraints' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(2, 23),
+                        // (3,15): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
                         //     where U : default, class { }
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "default").WithArguments("default type parameter constraints").WithLocation(3, 15)
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(3, 15)
                     } :
                     Array.Empty<DiagnosticDescription>());
 

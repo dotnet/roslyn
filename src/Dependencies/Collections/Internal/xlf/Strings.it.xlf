@@ -1,0 +1,152 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="it" original="../Strings.resx">
+    <body>
+      <trans-unit id="Arg_ArrayPlusOffTooSmall">
+        <source>Destination array is not long enough to copy all the items in the collection. Check array index and length.</source>
+        <target state="translated">La lunghezza della matrice di destinazione non è sufficiente per copiare tutti gli elementi della raccolta. Controllare l'indice e la lunghezza della matrice.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Arg_BogusIComparer">
+        <source>Unable to sort because the IComparer.Compare() method returns inconsistent results. Either a value does not compare equal to itself, or one value repeatedly compared to another value yields different results. IComparer: '{0}'.</source>
+        <target state="translated">Impossibile eseguire l'ordinamento. Il metodo IComparer.Compare() restituisce risultati incoerenti. Un valore non viene confrontato uguale a se stesso oppure un valore confrontato ripetutamente con un altro valore restituisce risultati diversi. IComparer: '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Arg_HTCapacityOverflow">
+        <source>Hashtable's capacity overflowed and went negative. Check load factor, capacity and the current size of the table.</source>
+        <target state="translated">Overflow capacità hashtable. Il valore è diventato negativo. Controllare la capacità, il fattore di carico e la dimensione corrente della tabella.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Arg_KeyNotFoundWithKey">
+        <source>The given key '{0}' was not present in the dictionary.</source>
+        <target state="translated">La chiave specificata '{0}' non è presente nel dizionario.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Arg_LongerThanDestArray">
+        <source>Destination array was not long enough. Check the destination index, length, and the array's lower bounds.</source>
+        <target state="translated">Lunghezza della matrice di destinazione insufficiente. Controllare l'indice di destinazione, la lunghezza e i limiti inferiori della matrice.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Arg_LongerThanSrcArray">
+        <source>Source array was not long enough. Check the source index, length, and the array's lower bounds.</source>
+        <target state="translated">Lunghezza della matrice di origine insufficiente. Controllare l'indice di origine, la lunghezza e i limiti inferiori della matrice.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Arg_NonZeroLowerBound">
+        <source>The lower bound of target array must be zero.</source>
+        <target state="translated">Il limite inferiore della matrice di destinazione deve essere zero.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Arg_RankMultiDimNotSupported">
+        <source>Only single dimensional arrays are supported for the requested action.</source>
+        <target state="translated">Per l'azione richiesta sono supportate solo matrici unidimensionali.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Arg_WrongType">
+        <source>The value "{0}" is not of type "{1}" and cannot be used in this generic collection.</source>
+        <target state="translated">Il valore "{0}" non è di tipo "{1}" e non può essere utilizzato in questa raccolta generica.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentException_OtherNotArrayOfCorrectLength">
+        <source>Object is not a array with the same number of elements as the array to compare it to.</source>
+        <target state="translated">L'oggetto non è una matrice con lo stesso numero di elementi della matrice a cui confrontarlo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentOutOfRange_ArrayLB">
+        <source>Number was less than the array's lower bound in the first dimension.</source>
+        <target state="translated">Il valore del numero è minore del limite inferiore della matrice nella prima dimensione.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentOutOfRange_BiggerThanCollection">
+        <source>Larger than collection size.</source>
+        <target state="translated">Più grande della dimensione della raccolta.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentOutOfRange_Count">
+        <source>Count must be positive and count must refer to a location within the string/array/collection.</source>
+        <target state="translated">Il contatore deve avere valore positivo e fare riferimento a una posizione all'interno della stringa, della matrice o della raccolta.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentOutOfRange_Index">
+        <source>Index was out of range. Must be non-negative and less than the size of the collection.</source>
+        <target state="translated">Indice non compreso nell'intervallo consentito. Deve essere non negativo e minore della dimensione della raccolta.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentOutOfRange_ListInsert">
+        <source>Index must be within the bounds of the List.</source>
+        <target state="translated">L'indice deve essere compreso nei limiti dell'elenco.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentOutOfRange_NeedNonNegNum">
+        <source>Non-negative number required.</source>
+        <target state="translated">È richiesto un numero non negativo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentOutOfRange_SmallCapacity">
+        <source>capacity was less than the current size.</source>
+        <target state="translated">capacità inferiore alla dimensione corrente.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Argument_AddingDuplicateWithKey">
+        <source>An item with the same key has already been added. Key: {0}</source>
+        <target state="translated">È stato già aggiunto un elemento con la stessa chiave. Chiave: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Argument_InvalidArrayType">
+        <source>Target array type is not compatible with the type of items in the collection.</source>
+        <target state="translated">Il tipo di matrice di destinazione non è compatibile con il tipo di elementi della raccolta.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Argument_InvalidOffLen">
+        <source>Offset and length were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.</source>
+        <target state="translated">Offset e lunghezza eccedono i limiti della matrice oppure il conteggio è maggiore del numero di elementi presenti dall'indice alla fine della raccolta di origine.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotFindOldValue">
+        <source>Cannot find the old value</source>
+        <target state="translated">Non è possibile trovare il valore precedente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidOperation_ConcurrentOperationsNotSupported">
+        <source>Operations that change non-concurrent collections must have exclusive access. A concurrent update was performed on this collection and corrupted its state. The collection's state is no longer correct.</source>
+        <target state="translated">Le operazioni che modificano raccolte non simultanee devono avere accesso esclusivo. Un aggiornamento simultaneo eseguito su questa raccolta ne ha danneggiato lo stato. Lo stato della raccolta non è più corretto.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidOperation_EnumFailedVersion">
+        <source>Collection was modified; enumeration operation may not execute.</source>
+        <target state="translated">La raccolta è stata modificata. L'operazione di enumerazione potrebbe non essere eseguita.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidOperation_EnumOpCantHappen">
+        <source>Enumeration has either not started or has already finished.</source>
+        <target state="translated">Enumerazione non avviata o già terminata.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidOperation_IComparerFailed">
+        <source>Failed to compare two elements in the array.</source>
+        <target state="translated">Non è stato possibile confrontare due elementi nella matrice.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NotSupported_FixedSizeCollection">
+        <source>Collection was of a fixed size.</source>
+        <target state="translated">La raccolta è a dimensione fissa.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NotSupported_KeyCollectionSet">
+        <source>Mutating a key collection derived from a dictionary is not allowed.</source>
+        <target state="translated">Impossibile cambiare una raccolta di chiavi derivata da un dizionario.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NotSupported_ValueCollectionSet">
+        <source>Mutating a value collection derived from a dictionary is not allowed.</source>
+        <target state="translated">Impossibile cambiare una raccolta di valori derivata da un dizionario.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rank_MustMatch">
+        <source>The specified arrays must have the same number of dimensions.</source>
+        <target state="translated">Le matrici specificate devono avere lo stesso numero di dimensioni.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

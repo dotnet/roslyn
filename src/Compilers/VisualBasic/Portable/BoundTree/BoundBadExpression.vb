@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundBadExpression
+    Partial Friend Class BoundBadExpression
         Inherits BoundExpression
 
 #If DEBUG Then

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
     /// <summary>
@@ -32,14 +30,21 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </value>
         int? MultiLineCommentTrivia { get; }
 
+        int SingleLineDocCommentTrivia { get; }
+        int? MultiLineDocCommentTrivia { get; }
+        int? ShebangDirectiveTrivia { get; }
+
         #endregion
 
         #region keywords
 
         int AwaitKeyword { get; }
+        int AsyncKeyword { get; }
         int GlobalKeyword { get; }
         int IfKeyword { get; }
         int? GlobalStatement { get; }
+        int TrueKeyword { get; }
+        int FalseKeyword { get; }
 
         #endregion
 
@@ -83,6 +88,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int DefaultLiteralExpression { get; }
         int FalseLiteralExpression { get; }
         int NullLiteralExpression { get; }
+        int NumericLiteralExpression { get; }
         int StringLiteralExpression { get; }
         int TrueLiteralExpression { get; }
 
@@ -95,6 +101,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int BaseExpression { get; }
         int ConditionalAccessExpression { get; }
         int ConditionalExpression { get; }
+        int? ImplicitObjectCreationExpression { get; }
+        int InterpolatedStringExpression { get; }
         int InvocationExpression { get; }
         int LogicalAndExpression { get; }
         int LogicalOrExpression { get; }
@@ -107,6 +115,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int SimpleMemberAccessExpression { get; }
         int TernaryConditionalExpression { get; }
         int ThisExpression { get; }
+        int? ThrowExpression { get; }
         int TupleExpression { get; }
 
         #endregion
@@ -116,8 +125,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int ExpressionStatement { get; }
         int ForEachStatement { get; }
         int LocalDeclarationStatement { get; }
+        int? LocalFunctionStatement { get; }
         int LockStatement { get; }
         int ReturnStatement { get; }
+        int ThrowStatement { get; }
         int UsingStatement { get; }
 
         #endregion
@@ -125,18 +136,28 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         #region members/declarations
 
         int Attribute { get; }
+        int ClassDeclaration { get; }
         int Parameter { get; }
         int TypeConstraint { get; }
         int VariableDeclarator { get; }
+        int FieldDeclaration { get; }
 
         int IncompleteMember { get; }
         int TypeArgumentList { get; }
+        int ParameterList { get; }
+
+        #endregion
+
+        #region clauses
+
+        int EqualsValueClause { get; }
 
         #endregion
 
         #region other
 
         int Interpolation { get; }
+        int InterpolatedStringText { get; }
 
         #endregion
     }

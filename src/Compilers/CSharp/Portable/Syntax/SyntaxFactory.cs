@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -1404,7 +1402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="nodes">A sequence of syntax nodes.</param>
         /// <param name="separators">A sequence of token to be interleaved between the nodes. The number of tokens must
         /// be one less than the number of nodes.</param>
-        public static SeparatedSyntaxList<TNode> SeparatedList<TNode>(IEnumerable<TNode> nodes, IEnumerable<SyntaxToken> separators) where TNode : SyntaxNode
+        public static SeparatedSyntaxList<TNode> SeparatedList<TNode>(IEnumerable<TNode>? nodes, IEnumerable<SyntaxToken>? separators) where TNode : SyntaxNode
         {
             // Interleave the nodes and the separators.  The number of separators must be equal to or 1 less than the number of nodes or
             // an argument exception is thrown.
@@ -1552,34 +1550,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
-        /// <summary>
-        /// Produces a syntax tree by parsing the source text.
-        /// </summary>
+#pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+
+        /// <inheritdoc cref="CSharpSyntaxTree.ParseText(string, CSharpParseOptions?, string, Encoding?, CancellationToken)"/>
         public static SyntaxTree ParseSyntaxTree(
             string text,
             ParseOptions? options = null,
             string path = "",
             Encoding? encoding = null,
-            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions = null,
-            bool? isGeneratedCode = null,
             CancellationToken cancellationToken = default)
         {
-            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
+            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, encoding, cancellationToken);
         }
 
-        /// <summary>
-        /// Produces a syntax tree by parsing the source text.
-        /// </summary>
+        /// <inheritdoc cref="CSharpSyntaxTree.ParseText(SourceText, CSharpParseOptions?, string, CancellationToken)"/>
         public static SyntaxTree ParseSyntaxTree(
             SourceText text,
             ParseOptions? options = null,
             string path = "",
-            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions = null,
-            bool? isGeneratedCode = null,
             CancellationToken cancellationToken = default)
         {
-            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
+            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, cancellationToken);
         }
+
+#pragma warning restore RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         /// <summary>
@@ -2474,6 +2468,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semicolonToken: semicolonToken);
         }
 
+        public static ConversionOperatorDeclarationSyntax ConversionOperatorDeclaration(
+            SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers,
+            SyntaxToken implicitOrExplicitKeyword,
+            SyntaxToken operatorKeyword,
+            TypeSyntax type,
+            ParameterListSyntax parameterList,
+            BlockSyntax? body,
+            ArrowExpressionClauseSyntax? expressionBody,
+            SyntaxToken semicolonToken)
+        {
+            return SyntaxFactory.ConversionOperatorDeclaration(
+                attributeLists: attributeLists,
+                modifiers: modifiers,
+                implicitOrExplicitKeyword: implicitOrExplicitKeyword,
+                explicitInterfaceSpecifier: null,
+                operatorKeyword: operatorKeyword,
+                type: type,
+                parameterList: parameterList,
+                body: body,
+                expressionBody: expressionBody,
+                semicolonToken: semicolonToken);
+        }
+
+        public static ConversionOperatorDeclarationSyntax ConversionOperatorDeclaration(
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            SyntaxToken implicitOrExplicitKeyword,
+            TypeSyntax type,
+            ParameterListSyntax parameterList,
+            BlockSyntax? body,
+            ArrowExpressionClauseSyntax? expressionBody)
+        {
+            return SyntaxFactory.ConversionOperatorDeclaration(
+                attributeLists: attributeLists,
+                modifiers: modifiers,
+                implicitOrExplicitKeyword: implicitOrExplicitKeyword,
+                explicitInterfaceSpecifier: null,
+                type: type,
+                parameterList: parameterList,
+                body: body,
+                expressionBody: expressionBody);
+        }
+
+        /// <summary>Creates a new OperatorDeclarationSyntax instance.</summary>
         public static OperatorDeclarationSyntax OperatorDeclaration(
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
@@ -2496,6 +2534,52 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semicolonToken: semicolonToken);
         }
 
+        /// <summary>Creates a new OperatorDeclarationSyntax instance.</summary>
+        public static OperatorDeclarationSyntax OperatorDeclaration(
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            TypeSyntax returnType,
+            SyntaxToken operatorKeyword,
+            SyntaxToken operatorToken,
+            ParameterListSyntax parameterList,
+            BlockSyntax? body,
+            ArrowExpressionClauseSyntax? expressionBody,
+            SyntaxToken semicolonToken)
+        {
+            return SyntaxFactory.OperatorDeclaration(
+                attributeLists: attributeLists,
+                modifiers: modifiers,
+                returnType: returnType,
+                explicitInterfaceSpecifier: null,
+                operatorKeyword: operatorKeyword,
+                operatorToken: operatorToken,
+                parameterList: parameterList,
+                body: body,
+                expressionBody: expressionBody,
+                semicolonToken: semicolonToken);
+        }
+
+        /// <summary>Creates a new OperatorDeclarationSyntax instance.</summary>
+        public static OperatorDeclarationSyntax OperatorDeclaration(
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            TypeSyntax returnType,
+            SyntaxToken operatorToken,
+            ParameterListSyntax parameterList,
+            BlockSyntax? body,
+            ArrowExpressionClauseSyntax? expressionBody)
+        {
+            return SyntaxFactory.OperatorDeclaration(
+                attributeLists: attributeLists,
+                modifiers: modifiers,
+                returnType: returnType,
+                explicitInterfaceSpecifier: null,
+                operatorToken: operatorToken,
+                parameterList: parameterList,
+                body: body,
+                expressionBody: expressionBody);
+        }
+
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>
         public static UsingDirectiveSyntax UsingDirective(NameEqualsSyntax alias, NameSyntax name)
         {
@@ -2505,6 +2589,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 alias: alias,
                 name: name,
                 semicolonToken: Token(SyntaxKind.SemicolonToken));
+        }
+
+        public static UsingDirectiveSyntax UsingDirective(SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken)
+        {
+            return UsingDirective(globalKeyword: default(SyntaxToken), usingKeyword, staticKeyword, alias, name, semicolonToken);
         }
 
         /// <summary>Creates a new ClassOrStructConstraintSyntax instance.</summary>
@@ -2607,6 +2696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : throw new ArgumentException(nameof(body));
 
         // BACK COMPAT OVERLOAD DO NOT MODIFY
+        [Obsolete("The diagnosticOptions parameter is obsolete due to performance problems, if you are passing non-null use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static SyntaxTree ParseSyntaxTree(
             string text,
@@ -2620,6 +2710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // BACK COMPAT OVERLOAD DO NOT MODIFY
+        [Obsolete("The diagnosticOptions parameter is obsolete due to performance problems, if you are passing non-null use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static SyntaxTree ParseSyntaxTree(
             SourceText text,
@@ -2633,25 +2724,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // BACK COMPAT OVERLOAD DO NOT MODIFY
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("The diagnosticOptions and isGeneratedCode parameters are obsolete due to performance problems, if you are using them use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
         public static SyntaxTree ParseSyntaxTree(
             string text,
             ParseOptions? options,
             string path,
             Encoding? encoding,
+            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
+            bool? isGeneratedCode,
             CancellationToken cancellationToken)
         {
-            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions: null, isGeneratedCode: null, cancellationToken);
+            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
         }
 
         // BACK COMPAT OVERLOAD DO NOT MODIFY
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("The diagnosticOptions and isGeneratedCode parameters are obsolete due to performance problems, if you are using them use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
         public static SyntaxTree ParseSyntaxTree(
             SourceText text,
             ParseOptions? options,
             string path,
+            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
+            bool? isGeneratedCode,
             CancellationToken cancellationToken)
         {
-            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, diagnosticOptions: null, cancellationToken);
+            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
         }
     }
 }

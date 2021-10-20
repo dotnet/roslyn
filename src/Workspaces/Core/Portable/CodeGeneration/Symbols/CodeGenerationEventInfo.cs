@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -9,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal class CodeGenerationEventInfo
     {
         private static readonly ConditionalWeakTable<IEventSymbol, CodeGenerationEventInfo> s_eventToInfoMap =
-            new ConditionalWeakTable<IEventSymbol, CodeGenerationEventInfo>();
+            new();
 
         private readonly bool _isUnsafe;
         private CodeGenerationEventInfo(bool isUnsafe)

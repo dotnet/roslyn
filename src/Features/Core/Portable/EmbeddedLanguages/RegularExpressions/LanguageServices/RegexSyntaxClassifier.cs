@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
@@ -54,8 +56,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 return;
             }
 
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _info);
-            var tree = detector?.TryParseRegexPattern(token, cancellationToken);
+            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel.Compilation, _info);
+            var tree = detector?.TryParseRegexPattern(token, semanticModel, cancellationToken);
             if (tree == null)
             {
                 return;

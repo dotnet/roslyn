@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -31,8 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
 
         private static bool IsQuestionOrColonOfNewConditional(SyntaxToken token)
         {
-            if (token.Kind() == SyntaxKind.QuestionToken ||
-                token.Kind() == SyntaxKind.ColonToken)
+            if (token.Kind() is SyntaxKind.QuestionToken or
+                SyntaxKind.ColonToken)
             {
                 return token.Parent.HasAnnotation(SpecializedFormattingAnnotation);
             }

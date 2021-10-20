@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     /// <summary>
-    /// Provides current active statements.
+    /// Provides active statement spans within the specified document of a solution.
     /// </summary>
-    internal delegate Task<ImmutableArray<ActiveStatementDebugInfo>> ActiveStatementProvider(CancellationToken cancellationToken);
+    internal delegate ValueTask<ImmutableArray<ActiveStatementSpan>> ActiveStatementSpanProvider(DocumentId? documentId, string filePath, CancellationToken cancellationToken);
 }

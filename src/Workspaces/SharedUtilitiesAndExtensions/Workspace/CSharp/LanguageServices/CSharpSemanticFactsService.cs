@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -9,15 +11,17 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class CSharpSemanticFactsService : AbstractSemanticFactsService, ISemanticFactsService
+    internal sealed partial class CSharpSemanticFactsService : AbstractSemanticFactsService, ISemanticFactsService
     {
-        internal static readonly CSharpSemanticFactsService Instance = new CSharpSemanticFactsService();
+        internal static readonly CSharpSemanticFactsService Instance = new();
 
         protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
         protected override ISemanticFacts SemanticFacts => CSharpSemanticFacts.Instance;
@@ -33,6 +37,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Get all the symbols visible to the current location.
             var visibleSymbols = semanticModel.LookupSymbols(location.SpanStart);
+
+            // Local function parameter is allowed to shadow variables since C# 8.
+            if (((CSharpCompilation)semanticModel.Compilation).LanguageVersion.MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
+            {
+                if (SyntaxFacts.IsParameterList(container) && SyntaxFacts.IsLocalFunctionStatement(container.Parent))
+                {
+                    visibleSymbols = visibleSymbols.WhereAsArray(s => !s.MatchesKind(SymbolKind.Local, SymbolKind.Parameter));
+                }
+            }
 
             // Some symbols in the enclosing block could cause conflicts even if they are not available at the location.
             // E.g. symbols inside if statements / try catch statements.
@@ -99,5 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsAttributeNameContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
             => semanticModel.SyntaxTree.IsAttributeNameContext(position, cancellationToken);
+
+        public CommonConversion ClassifyConversion(SemanticModel semanticModel, SyntaxNode expression, ITypeSymbol destination)
+            => semanticModel.ClassifyConversion((ExpressionSyntax)expression, destination).ToCommonConversion();
     }
 }

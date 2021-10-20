@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -44,16 +46,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 _equivalenceKey = Title;
             }
 
-            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 var solution = _semanticDocument.Project.Solution;
                 var generateUnsafe = _state.TypeMemberType.RequiresUnsafeModifier() &&
                                      !_state.IsContainedInUnsafeType;
 
-                var otions = new CodeGenerationOptions(
+                var options = new CodeGenerationOptions(
                     afterThisLocation: _state.AfterThisLocation,
                     beforeThisLocation: _state.BeforeThisLocation,
-                    contextLocation: _state.IdentifierToken.GetLocation());
+                    contextLocation: _state.IdentifierToken.GetLocation(),
+                    options: await _semanticDocument.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
 
                 if (_generateProperty)
                 {
@@ -75,8 +78,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         getMethod: getAccessor,
                         setMethod: setAccessor);
 
-                    return CodeGenerator.AddPropertyDeclarationAsync(
-                        solution, _state.TypeToGenerateIn, propertySymbol, otions, cancellationToken);
+                    return await CodeGenerator.AddPropertyDeclarationAsync(
+                        solution, _state.TypeToGenerateIn, propertySymbol, options, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -89,8 +92,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         type: _state.TypeMemberType,
                         name: _state.IdentifierToken.ValueText);
 
-                    return CodeGenerator.AddFieldDeclarationAsync(
-                        solution, _state.TypeToGenerateIn, fieldSymbol, otions, cancellationToken);
+                    return await CodeGenerator.AddFieldDeclarationAsync(
+                        solution, _state.TypeToGenerateIn, fieldSymbol, options, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -199,15 +202,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 get
                 {
                     var text = _isConstant
-                        ? FeaturesResources.Generate_constant_1_0
+                        ? FeaturesResources.Generate_constant_0
                         : _generateProperty
-                            ? _isReadonly ? FeaturesResources.Generate_read_only_property_1_0 : FeaturesResources.Generate_property_1_0
-                            : _isReadonly ? FeaturesResources.Generate_read_only_field_1_0 : FeaturesResources.Generate_field_1_0;
+                            ? _isReadonly ? FeaturesResources.Generate_read_only_property_0 : FeaturesResources.Generate_property_0
+                            : _isReadonly ? FeaturesResources.Generate_read_only_field_0 : FeaturesResources.Generate_field_0;
 
                     return string.Format(
                         text,
-                        _state.IdentifierToken.ValueText,
-                        _state.TypeToGenerateIn.Name);
+                        _state.IdentifierToken.ValueText);
                 }
             }
 

@@ -10,14 +10,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractObjectInitializerCompletionProvider : LSPCompletionProvider
     {
-        protected abstract Tuple<ITypeSymbol, Location> GetInitializedType(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
+        protected abstract Tuple<ITypeSymbol, Location>? GetInitializedType(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         protected abstract HashSet<string> GetInitializedMembers(SyntaxTree tree, int position, CancellationToken cancellationToken);
         protected abstract string EscapeIdentifier(ISymbol symbol);
 
@@ -27,17 +26,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var position = context.Position;
             var cancellationToken = context.CancellationToken;
 
-            var workspace = document.Project.Solution.Workspace;
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var typeAndLocation = GetInitializedType(document, semanticModel, position, cancellationToken);
-
-            if (typeAndLocation == null)
+            if (GetInitializedType(document, semanticModel, position, cancellationToken) is not var (type, initializerLocation))
             {
                 return;
             }
 
-            var initializerLocation = typeAndLocation.Item2;
-            if (!(typeAndLocation.Item1 is INamedTypeSymbol initializedType))
+            if (type is ITypeParameterSymbol typeParameterSymbol)
+            {
+                type = typeParameterSymbol.GetNamedTypeSymbolConstraint();
+            }
+
+            if (type is not INamedTypeSymbol initializedType)
             {
                 return;
             }
@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var enclosing = semanticModel.GetEnclosingNamedType(position, cancellationToken);
+            Contract.ThrowIfNull(enclosing);
 
             // Find the members that can be initialized. If we have a NamedTypeSymbol, also get the overridden members.
             IEnumerable<ISymbol> members = semanticModel.LookupSymbols(position, initializedType);
@@ -61,8 +62,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var uninitializedMembers = members.Where(m => !alreadyTypedMembers.Contains(m.Name));
 
             uninitializedMembers = uninitializedMembers.Where(m => m.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation));
-
-            var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var uninitializedMember in uninitializedMembers)
             {
@@ -84,6 +83,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static bool IsLegalFieldOrProperty(ISymbol symbol)
         {
             return symbol.IsWriteableFieldOrProperty()
+                || symbol.ContainingType.IsAnonymousType
                 || CanSupportObjectInitializer(symbol);
         }
 

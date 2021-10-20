@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -14,9 +15,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
     Friend Class IsKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("Is", VBFeaturesResources.Followed_by_a_comparison_operator_and_then_an_expression_Case_Is_introduces_the_statements_to_run_if_the_Select_Case_expression_combined_with_the_Case_Is_expression_evaluates_to_True))
+
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.FollowsEndOfStatement Then
-                Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 
             Dim targetToken = context.TargetToken
@@ -32,12 +36,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
                     ' subsequent clauses (following the list separator token).
                     If targetToken.IsChildToken(Of CaseStatementSyntax)(Function(caseStatement) caseStatement.CaseKeyword) OrElse
                        targetToken.IsChildSeparatorToken(Of CaseStatementSyntax, CaseClauseSyntax)(Function(caseStatement) caseStatement.Cases) Then
-                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Is", VBFeaturesResources.Followed_by_a_comparison_operator_and_then_an_expression_Case_Is_introduces_the_statements_to_run_if_the_Select_Case_expression_combined_with_the_Case_Is_expression_evaluates_to_True))
+                        Return s_keywords
                     End If
                 End If
             End If
 
-            Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+            Return ImmutableArray(Of RecommendedKeyword).Empty
         End Function
 
     End Class

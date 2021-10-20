@@ -10,8 +10,12 @@ Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessarySuppressions
 
+#If Not CODE_STYLE Then ' Not exported in CodeStyle layer: https://github.com/dotnet/roslyn/issues/47942
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend NotInheritable Class VisualBasicRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer
+#Else
+    Friend NotInheritable Class VisualBasicRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer
+#End If
         Inherits AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer
 
         Protected Overrides ReadOnly Property CompilerErrorCodePrefix As String = "BC"

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,7 +11,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -389,13 +390,42 @@ class C
             var tree = Parse(text);
             var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
-            var errors = comp.GetDiagnostics().ToArray();
-            Assert.Equal(3, errors.Length);
+            comp.VerifyDiagnostics(
+                // (1,10): error CS1001: Identifier expected
+                // namespace
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 10),
+                // (1,10): error CS1514: { expected
+                // namespace
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 10),
+                // (1,10): error CS1513: } expected
+                // namespace
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 10));
 
             var nsArray = tree.GetCompilationUnitRoot().DescendantNodes().Where(node => node.IsKind(SyntaxKind.NamespaceDeclaration)).ToArray();
             Assert.Equal(1, nsArray.Length);
 
             var nsSyntax = nsArray[0] as NamespaceDeclarationSyntax;
+            var symbol = model.GetDeclaredSymbol(nsSyntax);
+            Assert.Equal(string.Empty, symbol.Name);
+        }
+
+        [WorkItem(539740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539740")]
+        [Fact]
+        public void FileScopedNamespaceWithoutName()
+        {
+            var text = "namespace;";
+            var tree = Parse(text);
+            var comp = CreateCompilation(tree);
+            var model = comp.GetSemanticModel(tree);
+            comp.VerifyDiagnostics(
+                // (1,10): error CS1001: Identifier expected
+                // namespace;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 10));
+
+            var nsArray = tree.GetCompilationUnitRoot().DescendantNodes().Where(node => node.IsKind(SyntaxKind.FileScopedNamespaceDeclaration)).ToArray();
+            Assert.Equal(1, nsArray.Length);
+
+            var nsSyntax = nsArray[0] as FileScopedNamespaceDeclarationSyntax;
             var symbol = model.GetDeclaredSymbol(nsSyntax);
             Assert.Equal(string.Empty, symbol.Name);
         }
@@ -3814,6 +3844,28 @@ class C
             Assert.Equal("lib", target.ContainingAssembly.Name);
         }
 
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void LookupInNamespace(string ob, string cb)
+        {
+            var source = @"
+namespace NS
+" + ob + @"
+    class C
+    {
+        void M() { }
+        void M0() { }
+    }
+" + cb + @"
+";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var methodDecl = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+            var endPosition = methodDecl.Body.OpenBraceToken.EndPosition;
+            var symbol = model.LookupSymbols(endPosition, name: "M0").Single();
+            Assert.Equal("void NS.C.M0()", symbol.ToTestDisplayString());
+        }
+
         [WorkItem(1019366, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019366")]
         [WorkItem(273, "CodePlex")]
         [ClrOnlyFact]
@@ -4041,10 +4093,67 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            foreach (var interp in tree.GetRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>())
-            {
-                Assert.False(model.GetConstantValue(interp).HasValue);
+
+            var actual = tree.GetRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>().ToArray();
+            Assert.True(model.GetConstantValue(actual[0]).HasValue);
+            Assert.Equal("Hello, world!", model.GetConstantValue(actual[0]).Value);
+            Assert.False(model.GetConstantValue(actual[1]).HasValue);
+        }
+
+        [Fact]
+        public void ConstantValueOfInterpolatedStringComplex()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        const string S1 = $""Number 3"";
+        Console.WriteLine($""{""Level 5""} {S1}"");
+        Console.WriteLine($""Level {5} {S1}"");
+    }
+
+    void M(string S1 = $""Testing"", Namae n = null)
+    {
+        if (n is Namae { X : $""ConstantInterpolatedString""}){
+            switch(S1){
+                case $""Level 5"":
+                    break;
+                case $""Radio Noise"":
+                    goto case $""Level 5"";
             }
+        }
+        S1 = S0;
+    }
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var actual = tree.GetRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>().ToArray();
+            Assert.Equal(@"$""Number 3""", actual[0].ToString());
+            Assert.Equal("Number 3", model.GetConstantValue(actual[0]).Value);
+
+            Assert.Equal(@"$""{""Level 5""} {S1}""", actual[1].ToString());
+            Assert.Equal("Level 5 Number 3", model.GetConstantValue(actual[1]).Value);
+
+            Assert.False(model.GetConstantValue(actual[2]).HasValue);
+
+            Assert.Equal(@"$""Testing""", actual[3].ToString());
+            Assert.Equal("Testing", model.GetConstantValue(actual[3]).Value);
+
+            Assert.Equal(@"$""ConstantInterpolatedString""", actual[4].ToString());
+            Assert.Equal("ConstantInterpolatedString", model.GetConstantValue(actual[4]).Value);
+
+            Assert.Equal(@"$""Level 5""", actual[5].ToString());
+            Assert.Equal("Level 5", model.GetConstantValue(actual[5]).Value);
+
+            Assert.Equal(@"$""Radio Noise""", actual[6].ToString());
+            Assert.Equal("Radio Noise", model.GetConstantValue(actual[6]).Value);
+
+            Assert.Equal(@"$""Level 5""", actual[7].ToString());
+            Assert.Equal("Level 5", model.GetConstantValue(actual[7]).Value);
         }
 
         [WorkItem(814, "https://github.com/dotnet/roslyn/issues/814")]
@@ -4174,6 +4283,30 @@ class C
 
             var speculativeTypeInfo = specModel.GetTypeInfo(replacementIfStatement.Condition);
             Assert.Equal(SpecialType.System_Boolean, speculativeTypeInfo.Type.SpecialType);
+        }
+
+        [Fact, WorkItem(52013, "https://github.com/dotnet/roslyn/issues/52013")]
+        public void NameOf_ArgumentDoesNotExist()
+        {
+            var source = @"
+using System.Diagnostics;
+
+public partial class C
+{
+    [Conditional(nameof(DEBUG))]
+    void M() { }
+
+";
+            var comp = CreateCompilation(source);
+            var method = (IMethodSymbol)comp.GetTypeByMetadataName("C").GetMembers("M").Single().GetPublicSymbol();
+            var attribute = method.GetAttributes().Single();
+            Assert.Equal("DEBUG", attribute.ConstructorArguments[0].Value);
+
+            var tree = comp.SyntaxTrees.Single();
+            var root = tree.GetRoot();
+
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("DEBUG", model.GetConstantValue(root.DescendantNodes().OfType<InvocationExpressionSyntax>().Single()));
         }
 
         #region "regression helper"

@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../CodeFixesResources.resx">
     <body>
+      <trans-unit id="Add_blank_line_after_block">
+        <source>Add blank line after block</source>
+        <target state="translated">Přidat za blok prázdný řádek</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_both">
         <source>Add both</source>
         <target state="translated">Přidat obojí</target>
@@ -22,6 +27,16 @@
         <target state="translated">Opravit porušení názvu: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_all_occurrences_in">
+        <source>Fix all occurrences in</source>
+        <target state="translated">Opravit všechny výskyty v</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_extra_blank_lines">
+        <source>Remove extra blank lines</source>
+        <target state="translated">Odebrat nadbytečné prázdné řádky</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_assignment">
         <source>Remove redundant assignment</source>
         <target state="translated">Odebrat redundantní přiřazení</target>
@@ -29,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Suppress_or_Configure_issues">
         <source>Suppress or Configure issues</source>
-        <target state="new">Suppress or Configure issues</target>
+        <target state="translated">Potlačit nebo konfigurovat problémy</target>
         <note />
       </trans-unit>
       <trans-unit id="Update_suppression_format">

@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -131,7 +130,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Given a <paramref name="symbol"/> returns the <see cref="ProjectId"/> of the <see cref="Project"/> it came
-        /// from.  Returns <see langword="null"/> if <paramref name="symbol"/> does not come from <paramref name="symbol"/>.
+        /// from.  Returns <see langword="null"/> if <paramref name="symbol"/> does not come from any project in this solution.
         /// </summary>
         /// <remarks>
         /// This function differs from <see cref="GetProject(IAssemblySymbol, CancellationToken)"/> in terms of how it
@@ -181,34 +180,43 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public DocumentId? GetDocumentId(SyntaxTree? syntaxTree, ProjectId? projectId)
         {
-            if (syntaxTree != null)
-            {
-                // is this tree known to be associated with a document?
-                var documentId = DocumentState.GetDocumentIdForTree(syntaxTree);
-                if (documentId != null && (projectId == null || documentId.ProjectId == projectId))
-                {
-                    // does this solution even have the document?
-                    if (this.ContainsDocument(documentId))
-                    {
-                        return documentId;
-                    }
-                }
-            }
-
-            return null;
+            return State.GetDocumentState(syntaxTree, projectId)?.Id;
         }
 
         /// <summary>
         /// Gets the document in this solution with the specified document ID.
         /// </summary>
         public Document? GetDocument(DocumentId? documentId)
+            => GetProject(documentId?.ProjectId)?.GetDocument(documentId!);
+
+        /// <summary>
+        /// Gets a document or a source generated document in this solution with the specified document ID.
+        /// </summary>
+        internal ValueTask<Document?> GetDocumentAsync(DocumentId? documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
         {
-            if (this.ContainsDocument(documentId))
+            var project = GetProject(documentId?.ProjectId);
+            if (project == null)
             {
-                return this.GetProject(documentId.ProjectId)!.GetDocument(documentId);
+                return default;
             }
 
-            return null;
+            Contract.ThrowIfNull(documentId);
+            return project.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken);
+        }
+
+        /// <summary>
+        /// Gets a document, additional document, analyzer config document or a source generated document in this solution with the specified document ID.
+        /// </summary>
+        internal ValueTask<TextDocument?> GetTextDocumentAsync(DocumentId? documentId, CancellationToken cancellationToken = default)
+        {
+            var project = GetProject(documentId?.ProjectId);
+            if (project == null)
+            {
+                return default;
+            }
+
+            Contract.ThrowIfNull(documentId);
+            return project.GetTextDocumentAsync(documentId, cancellationToken);
         }
 
         /// <summary>
@@ -237,6 +245,20 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
+        public ValueTask<SourceGeneratedDocument?> GetSourceGeneratedDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
+        {
+            var project = GetProject(documentId.ProjectId);
+
+            if (project == null)
+            {
+                return new(result: null);
+            }
+            else
+            {
+                return project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken);
+            }
+        }
+
         /// <summary>
         /// Gets the document in this solution with the specified syntax tree.
         /// </summary>
@@ -247,20 +269,20 @@ namespace Microsoft.CodeAnalysis
         {
             if (syntaxTree != null)
             {
-                // is this tree known to be associated with a document?
-                var docId = DocumentState.GetDocumentIdForTree(syntaxTree);
-                if (docId != null && (projectId == null || docId.ProjectId == projectId))
+                var documentState = State.GetDocumentState(syntaxTree, projectId);
+
+                if (documentState is SourceGeneratedDocumentState)
                 {
-                    // does this solution even have the document?
-                    var document = this.GetDocument(docId);
-                    if (document != null)
-                    {
-                        // does this document really have the syntax tree?
-                        if (document.TryGetSyntaxTree(out var documentTree) && documentTree == syntaxTree)
-                        {
-                            return document;
-                        }
-                    }
+                    // We have the underlying state, but we need to get the wrapper SourceGeneratedDocument object. The wrapping is maintained by
+                    // the Project object, so we'll now fetch the project and ask it to get the SourceGeneratedDocument wrapper. Under the covers this
+                    // implicity may call to fetch the SourceGeneratedDocumentState a second time but that's not expensive.
+                    var generatedDocument = this.GetRequiredProject(documentState.Id.ProjectId).TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentState.Id);
+                    Contract.ThrowIfNull(generatedDocument, "The call to GetDocumentState found a SourceGeneratedDocumentState, so we should have found it now.");
+                    return generatedDocument;
+                }
+                else if (documentState is DocumentState)
+                {
+                    return GetDocument(documentState.Id)!;
                 }
             }
 
@@ -479,24 +501,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Update a project as a result of option changes.
-        /// 
-        /// TODO: https://github.com/dotnet/roslyn/issues/42448
-        /// this is a temporary workaround until editorconfig becomes real part of roslyn solution snapshot.
-        /// until then, this will explicitly fork current solution snapshot
-        /// </summary>
-        internal Solution WithProjectOptionsChanged(ProjectId projectId)
-        {
-            var newState = _state.WithProjectOptionsChanged(projectId);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
-        }
-
-        /// <summary>
         /// Create a new solution instance with the project specified updated to have
         /// the specified hasAllInformation.
         /// </summary>
@@ -536,8 +540,20 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the project documents in the order by the specified document ids.
         /// The specified document ids must be the same as what is already in the project; no adding or removing is allowed.
         /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="projectId"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="documentIds"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException">The solution does not contain <paramref name="projectId"/>.</exception>
+        /// <exception cref="ArgumentException">The number of documents specified in <paramref name="documentIds"/> is not equal to the number of documents in project <paramref name="projectId"/>.</exception>
+        /// <exception cref="InvalidOperationException">Document specified in <paramref name="documentIds"/> does not exist in project <paramref name="projectId"/>.</exception>
         public Solution WithProjectDocumentsOrder(ProjectId projectId, ImmutableList<DocumentId> documentIds)
         {
+            CheckContainsProject(projectId);
+
+            if (documentIds == null)
+            {
+                throw new ArgumentNullException(nameof(documentIds));
+            }
+
             var newState = _state.WithProjectDocumentsOrder(projectId, documentIds);
             if (newState == _state)
             {
@@ -1644,7 +1660,7 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken = default)
         {
             // we only log sessioninfo for actual changes committed to workspace which should exclude ones from preview
-            var session = new LinkedFileDiffMergingSession(oldSolution, this, solutionChanges ?? this.GetChanges(oldSolution), logSessionInfo: solutionChanges != null);
+            var session = new LinkedFileDiffMergingSession(oldSolution, this, solutionChanges ?? this.GetChanges(oldSolution));
 
             return (await session.MergeDiffsAsync(mergeConflictHandler, cancellationToken).ConfigureAwait(false)).MergedSolution;
         }
@@ -1658,7 +1674,7 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray<DocumentId>.Empty;
             }
 
-            var documentState = projectState.GetDocumentState(documentId);
+            var documentState = projectState.DocumentStates.GetState(documentId);
             if (documentState == null)
             {
                 // this document no longer exist
@@ -1688,16 +1704,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets a copy of the solution isolated from the original so that they do not share computed state.
-        /// 
-        /// Use isolated solutions when doing operations that are likely to access a lot of text,
-        /// syntax trees or compilations that are unlikely to be needed again after the operation is done. 
-        /// When the isolated solution is reclaimed so will the computed state.
+        /// Formerly, returned a copy of the solution isolated from the original so that they do not share computed state. It now does nothing.
         /// </summary>
+        [Obsolete("This method no longer produces a Solution that does not share state and is no longer necessary to call.", error: false)]
+        [EditorBrowsable(EditorBrowsableState.Never)] // hide this since it is obsolete and only leads to confusion
         public Solution GetIsolatedSolution()
         {
-            var newState = _state.GetIsolatedSolution();
-            return new Solution(newState);
+            // To maintain compat, just return ourself, which will be functionally identical.
+            return this;
         }
 
         /// <summary>
@@ -1727,6 +1741,21 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Returns a new Solution that will always produce a specific output for a generated file. This is used only in the
+        /// implementation of <see cref="TextExtensions.GetOpenDocumentInCurrentContextWithChanges"/> where if a user has a source
+        /// generated file open, we need to make sure everything lines up.
+        /// </summary>
+        internal Document WithFrozenSourceGeneratedDocument(SourceGeneratedDocumentIdentity documentIdentity, SourceText text)
+        {
+            var newState = _state.WithFrozenSourceGeneratedDocument(documentIdentity, text);
+            var newSolution = newState != _state ? new Solution(newState) : this;
+            var newDocumentState = newState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentIdentity.DocumentId);
+            Contract.ThrowIfNull(newDocumentState, "Because we just froze this document, it should always exist.");
+            var newProject = newSolution.GetRequiredProject(newDocumentState.Id.ProjectId);
+            return newProject.GetOrCreateSourceGeneratedDocument(newDocumentState);
         }
 
         /// <summary>
@@ -1792,7 +1821,7 @@ namespace Microsoft.CodeAnalysis
             return new Solution(newState);
         }
 
-        private void CheckContainsProject([NotNull] ProjectId? projectId)
+        private void CheckContainsProject(ProjectId projectId)
         {
             if (projectId == null)
             {
@@ -1805,7 +1834,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void CheckContainsDocument([NotNull] DocumentId? documentId)
+        private void CheckContainsDocument(DocumentId documentId)
         {
             if (documentId == null)
             {
@@ -1831,7 +1860,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void CheckContainsAdditionalDocument([NotNull] DocumentId? documentId)
+        private void CheckContainsAdditionalDocument(DocumentId documentId)
         {
             if (documentId == null)
             {
@@ -1857,7 +1886,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void CheckContainsAnalyzerConfigDocument([NotNull] DocumentId? documentId)
+        private void CheckContainsAnalyzerConfigDocument(DocumentId documentId)
         {
             if (documentId == null)
             {
@@ -1891,9 +1920,17 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (var projectReference in projectReferences)
             {
-                if (projectId == projectReference.ProjectId || _state.ContainsTransitiveReference(projectReference.ProjectId, projectId))
+                if (projectId == projectReference.ProjectId)
                 {
-                    throw new InvalidOperationException(WorkspacesResources.The_project_already_transitively_references_the_target_project);
+                    throw new InvalidOperationException(WorkspacesResources.A_project_may_not_reference_itself);
+                }
+
+                if (_state.ContainsTransitiveReference(projectReference.ProjectId, projectId))
+                {
+                    throw new InvalidOperationException(
+                        string.Format(WorkspacesResources.Adding_project_reference_from_0_to_1_will_cause_a_circular_reference,
+                            projectId,
+                            projectReference.ProjectId));
                 }
             }
         }

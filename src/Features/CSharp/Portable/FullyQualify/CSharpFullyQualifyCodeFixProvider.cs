@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
 
         protected override bool CanFullyQualify(Diagnostic diagnostic, ref SyntaxNode node)
         {
-            if (!(node is SimpleNameSyntax simpleName))
+            if (node is not SimpleNameSyntax simpleName)
             {
                 return false;
             }
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
             return true;
         }
 
-        protected override async Task<SyntaxNode> ReplaceNodeAsync(SyntaxNode node, string containerName, CancellationToken cancellationToken)
+        protected override async Task<SyntaxNode> ReplaceNodeAsync(SyntaxNode node, string containerName, bool resultingSymbolIsType, CancellationToken cancellationToken)
         {
             var simpleName = (SimpleNameSyntax)node;
 
@@ -93,6 +93,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
 
             var syntaxTree = simpleName.SyntaxTree;
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+
+            // If the name is a type that is part of a using directive, eg. "using Math" then we can go further and
+            // instead of just changing to "using System.Math", we can make it "using static System.Math" and avoid the
+            // CS0138 that would result from the former.  Don't do this for using aliases though as `static` and using
+            // aliases cannot be combined.
+            if (resultingSymbolIsType &&
+                node.Parent is UsingDirectiveSyntax { Alias: null, StaticKeyword: { RawKind: 0 } } usingDirective)
+            {
+                var newUsingDirective = usingDirective
+                    .WithStaticKeyword(SyntaxFactory.Token(SyntaxKind.StaticKeyword))
+                    .WithName(qualifiedName);
+
+                return root.ReplaceNode(usingDirective, newUsingDirective);
+            }
+
             return root.ReplaceNode(simpleName, qualifiedName);
         }
     }

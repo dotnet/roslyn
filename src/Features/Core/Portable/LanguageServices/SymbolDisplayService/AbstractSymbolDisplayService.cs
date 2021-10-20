@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -12,10 +14,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal abstract partial class AbstractSymbolDisplayService : ISymbolDisplayService
     {
-        protected readonly IAnonymousTypeDisplayService AnonymousTypeDisplayService;
+        protected readonly IStructuralTypeDisplayService AnonymousTypeDisplayService;
 
-        protected AbstractSymbolDisplayService(IAnonymousTypeDisplayService anonymousTypeDisplayService)
-            => AnonymousTypeDisplayService = anonymousTypeDisplayService;
+        protected AbstractSymbolDisplayService(IStructuralTypeDisplayService structuralTypeDisplayService)
+            => AnonymousTypeDisplayService = structuralTypeDisplayService;
 
         protected abstract AbstractSymbolDescriptionBuilder CreateDescriptionBuilder(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
 

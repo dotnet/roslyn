@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -69,6 +71,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return await InsertionPoint.CreateAsync(document, globalStatement.Parent, cancellationToken).ConfigureAwait(false);
                 }
 
+                // check whether the global statement is a statement container
+                if (!globalStatement.Statement.IsStatementContainerNode() && !root.SyntaxTree.IsScript())
+                {
+                    // The extracted function will be a new global statement
+                    return await InsertionPoint.CreateAsync(document, globalStatement.Parent, cancellationToken).ConfigureAwait(false);
+                }
+
                 return await InsertionPoint.CreateAsync(document, globalStatement.Statement, cancellationToken).ConfigureAwait(false);
             }
 
@@ -114,8 +123,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return OperationStatus.Succeeded;
             }
 
-            if (type.TypeKind == TypeKind.Error ||
-                type.TypeKind == TypeKind.Unknown)
+            if (type.TypeKind is TypeKind.Error or
+                TypeKind.Unknown)
             {
                 return OperationStatus.ErrorOrUnknownType;
             }

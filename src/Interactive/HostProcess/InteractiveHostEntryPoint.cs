@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -70,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// <summary>
             /// The system does not display the critical-error-handler message box. Instead, the system sends the error to the calling process.
             /// Best practice is that all applications call the process-wide SetErrorMode function with a parameter of SEM_FAILCRITICALERRORS at startup. 
-            /// This is to prevent error mode dialogs from hanging the application.
+            /// This is to prevent error mode dialogs from blocking the application.
             /// </summary>
             SEM_NOGPFAULTERRORBOX = 0x0002,
 

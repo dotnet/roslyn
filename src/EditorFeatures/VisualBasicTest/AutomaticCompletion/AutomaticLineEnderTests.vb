@@ -287,8 +287,10 @@ End Module
                    End Sub
         End Function
 
-        Protected Overrides Function CreateWorkspace(code As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(code)
-        End Function
+        Protected Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
     End Class
 End Namespace

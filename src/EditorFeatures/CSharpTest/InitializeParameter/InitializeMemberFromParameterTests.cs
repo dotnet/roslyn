@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -1881,6 +1883,34 @@ class C
     public int I { get; }
     public int J { get; }
 }", index: 3);
+        }
+
+        [WorkItem(53467, "https://github.com/dotnet/roslyn/issues/53467")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingWhenTypeNotInCompilation()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"">
+        <Document>
+public class Foo
+{
+    public Foo(int prop1)
+    {
+        Prop1 = prop1;
+    }
+
+    public int Prop1 { get; }
+}
+
+public class Bar : Foo
+{
+    public Bar(int prop1, int [||]prop2) : base(prop1) { }
+}
+        </Document>
+    </Project>
+</Workspace>");
         }
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -342,6 +340,7 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
                     "MapSourceRoots.ContainsDuplicate", "SourceRoot", path1, "SourceLinkUrl", "URL1", "URL2")) + Environment.NewLine,
                 engine.Log);
 
+            AssertEx.NotNull(task.MappedSourceRoots);
             AssertEx.Equal(new[]
             {
                 $"'{path1}' SourceControl='git' RevisionId='RevId1' NestedRoot='NR1A' ContainingRoot='{path3}' MappedPath='{(deterministic ? "/_/NR1A/" : path1)}' SourceLinkUrl='URL1'",
@@ -446,6 +445,7 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
             }
             else
             {
+                AssertEx.NotNull(task.MappedSourceRoots);
                 AssertEx.Equal(new[]
                 {
                     $"'{path1}' SourceControl='' RevisionId='' NestedRoot='a/b' ContainingRoot='{path1}' MappedPath='{path1}' SourceLinkUrl=''",

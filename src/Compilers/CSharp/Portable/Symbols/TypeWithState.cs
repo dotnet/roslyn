@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -16,11 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public readonly TypeSymbol? Type;
         public readonly NullableFlowState State;
+        [MemberNotNullWhen(false, nameof(Type))]
         public bool HasNullType => Type is null;
         public bool MayBeNull => State == NullableFlowState.MaybeNull;
         public bool IsNotNull => State == NullableFlowState.NotNull;
 
-        public static TypeWithState ForType(TypeSymbol type)
+        public static TypeWithState ForType(TypeSymbol? type)
         {
             return Create(type, NullableFlowState.MaybeDefault);
         }
@@ -74,8 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             State = state;
         }
 
-        public void Deconstruct(out TypeSymbol? type, out NullableFlowState state) => (type, state) = (Type, State);
-
         public string GetDebuggerDisplay() => $"{{Type:{Type?.GetDebuggerDisplay()}, State:{State}{"}"}";
 
         public override string ToString() => GetDebuggerDisplay();
@@ -89,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (Type?.IsTypeParameterDisallowingAnnotationInCSharp8() == true)
             {
                 var type = TypeWithAnnotations.Create(Type, NullableAnnotation.NotAnnotated);
-                return State == NullableFlowState.MaybeDefault ? type.SetIsAnnotated(compilation) : type;
+                return (State == NullableFlowState.MaybeDefault || asAnnotatedType) ? type.SetIsAnnotated(compilation) : type;
             }
             NullableAnnotation annotation = asAnnotatedType ?
                 (Type?.IsValueType == true ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated) :

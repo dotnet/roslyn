@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -89,11 +91,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     ? "$@\""
                     : "$\"";
             var openQuote = SyntaxFactory.Token(originalToken.GetLeadingTrivia(), openQuoteKind, openQuoteText, openQuoteText, trailing: null);
-
-            if (isAltInterpolatedVerbatim)
-            {
-                openQuote = CheckFeatureAvailability(openQuote, MessageID.IDS_FeatureAltInterpolatedVerbatimStrings);
-            }
 
             // Make a token for the close quote " (even if it was missing)
             var closeQuoteIndex = closeQuoteMissing ? originalText.Length : originalText.Length - 1;

@@ -7,14 +7,15 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UsePatternCombinators;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternCombinators
 {
@@ -27,13 +28,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternCombinators
             { CSharpCodeStyleOptions.PreferPatternMatching, new CodeStyleOption2<bool>(false, NotificationOption2.None) }
         };
 
+        public CSharpUsePatternCombinatorsDiagnosticAnalyzerTests(ITestOutputHelper logger)
+             : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUsePatternCombinatorsDiagnosticAnalyzer(), new CSharpUsePatternCombinatorsCodeFixProvider());
 
-        private Task TestAllMissingOnExpressionAsync(string expression, ParseOptions parseOptions = null, bool enabled = true)
+        private Task TestAllMissingOnExpressionAsync(string expression, ParseOptions? parseOptions = null, bool enabled = true)
             => TestMissingAsync(FromExpression(expression), parseOptions, enabled);
 
-        private Task TestMissingAsync(string initialMarkup, ParseOptions parseOptions = null, bool enabled = true)
+        private Task TestMissingAsync(string initialMarkup, ParseOptions? parseOptions = null, bool enabled = true)
             => TestMissingAsync(initialMarkup, new TestParameters(
                 parseOptions: parseOptions ?? CSharp9, options: enabled ? null : s_disabled));
 
@@ -77,6 +83,7 @@ class C
     static int i;
     static int? nullable;
     static object o;
+    static char ch;
 }
 ";
             return initialMarkup.Replace("EXPRESSION", expression);
@@ -103,15 +110,23 @@ class C
         [InlineData("i == (0x02 | 0x04) || i != 0", "i is (0x02 | 0x04) or not 0")]
         [InlineData("i == 1 || 2 == i", "i is 1 or 2")]
         [InlineData("i == (short)1 || (short)2 == i", "i is ((short)1) or ((short)2)")]
-        [InlineData("nullable == 1 || 2 == nullable", "nullable is 1 or 2")]
         [InlineData("i != 1 || 2 != i", "i is not 1 or not 2")]
         [InlineData("i != 1 && 2 != i", "i is not 1 and not 2")]
         [InlineData("!(i != 1 && 2 != i)", "i is 1 or 2")]
         [InlineData("i < 1 && 2 <= i", "i is < 1 and >= 2")]
         [InlineData("i < 1 && 2 <= i && i is not 0", "i is < 1 and >= 2 and not 0")]
-        [InlineData("(int.MaxValue - 1D) < i && i > 0", "i is > (int.MaxValue - 1D) and > 0")]
+        [InlineData("(int.MaxValue - 1D) < i && i > 0", "i is > (int)(int.MaxValue - 1D) and > 0")]
+        [InlineData("ch < ' ' || ch >= 0x100 || 'a' == ch", "ch is < ' ' or >= (char)0x100 or 'a'")]
+        [InlineData("ch == 'a' || 'b' == ch", "ch is 'a' or 'b'")]
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
         public async Task TestOnExpression(string expression, string expected)
+        {
+            await TestAllOnExpressionAsync(expression, expected);
+        }
+
+        [InlineData("nullable == 1 || 2 == nullable", "nullable is 1 or 2")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        public async Task TestOnNullableExpression(string expression, string expected)
         {
             await TestAllOnExpressionAsync(expression, expected);
         }
@@ -240,6 +255,229 @@ class C
         q.Where(item => item == 1 [||]|| item == 2);
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(52397, "https://github.com/dotnet/roslyn/issues/52397")]
+        public async Task TestMissingInPropertyAccess_NullCheckOnLeftSide()
+        {
+            await TestMissingAsync(
+@"using System;
+
+public class C
+{
+    public int I { get; }
+    
+    public EventArgs Property { get; } 
+
+    public void M()
+    {
+        if (Property != null [|&&|] I == 1)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(52397, "https://github.com/dotnet/roslyn/issues/52397")]
+        public async Task TestMissingInPropertyAccess_NullCheckOnRightSide()
+        {
+            await TestMissingAsync(
+@"using System;
+
+public class C
+{
+    public int I { get; }
+    
+    public EventArgs Property { get; } 
+
+    public void M()
+    {
+        if (I == 1 [|&&|] Property != null)
+        {
+        }
+    }
+}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(51691, "https://github.com/dotnet/roslyn/issues/51691")]
+        [InlineData("&&")]
+        [InlineData("||")]
+        public async Task TestMissingInPropertyAccess_EnumCheckAndNullCheck(string logicalOperator)
+        {
+            await TestMissingAsync(
+$@"using System.Diagnostics;
+
+public class C
+{{
+    public void M()
+    {{
+            var p = default(Process);
+            if (p.StartInfo.WindowStyle == ProcessWindowStyle.Hidden [|{logicalOperator}|] p.StartInfo != null)
+            {{
+            }}
+    }}
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(51691, "https://github.com/dotnet/roslyn/issues/51691")]
+        [InlineData("&&")]
+        [InlineData("||")]
+        public async Task TestMissingInPropertyAccess_EnumCheckAndNullCheckOnOtherType(string logicalOperator)
+        {
+            await TestMissingAsync(
+$@"using System.Diagnostics;
+
+public class C
+{{
+    public void M()
+    {{
+            var p = default(Process);
+            if (p.StartInfo.WindowStyle == ProcessWindowStyle.Hidden [|{logicalOperator}|] this != null)
+            {{
+            }}
+    }}
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(51693, "https://github.com/dotnet/roslyn/issues/51693")]
+        [InlineData("&&")]
+        [InlineData("||")]
+        public async Task TestMissingInPropertyAccess_IsCheckAndNullCheck(string logicalOperator)
+        {
+            await TestMissingAsync(
+$@"using System;
+
+public class C
+{{
+    public void M()
+    {{
+            var o1 = new object();
+            if (o1 is IAsyncResult ar [|{logicalOperator}|] ar.AsyncWaitHandle != null)
+            {{
+            }}
+    }}
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(52573, "https://github.com/dotnet/roslyn/issues/52573")]
+        [InlineData("&&")]
+        [InlineData("||")]
+        public async Task TestMissingIntegerAndStringIndex(string logicalOperator)
+        {
+            await TestMissingAsync(
+$@"using System;
+
+public class C
+{{
+    private static bool IsS(char[] ch, int count)
+    {{
+        return count == 1 [|{logicalOperator}|] ch[0] == 'S';
+    }}
+}}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        public async Task TestOnSideEffects1()
+        {
+            await TestInRegularAndScriptAsync(
+                @"
+class C
+{
+    char ReadChar() => default;
+
+    void M(char c)
+    {
+        if ({|FixAllInDocument:c == 'x' && c == 'y'|})
+        {
+        }
+
+        if (c == 'x' && c == 'y')
+        {
+        }
+
+        if (ReadChar() == 'x' && ReadChar() == 'y')
+        {
+        }
+    }
+}
+",
+
+                @"
+class C
+{
+    char ReadChar() => default;
+
+    void M(char c)
+    {
+        if (c is 'x' and 'y')
+        {
+        }
+
+        if (c is 'x' and 'y')
+        {
+        }
+
+        if (ReadChar() == 'x' && ReadChar() == 'y')
+        {
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        public async Task TestOnSideEffects2()
+        {
+            await TestInRegularAndScriptAsync(
+                @"
+class C
+{
+    char ReadChar() => default;
+
+    void M(char c)
+    {
+        if ({|FixAllInDocument:ReadChar() == 'x' && ReadChar() == 'y'|})
+        {
+        }
+
+        if (ReadChar() == 'x' && ReadChar() == 'y')
+        {
+        }
+
+        if (c == 'x' && c == 'y')
+        {
+        }
+    }
+}
+",
+
+                @"
+class C
+{
+    char ReadChar() => default;
+
+    void M(char c)
+    {
+        if (ReadChar() is 'x' and 'y')
+        {
+        }
+
+        if (ReadChar() is 'x' and 'y')
+        {
+        }
+
+        if (c == 'x' && c == 'y')
+        {
+        }
+    }
+}
+");
         }
     }
 }

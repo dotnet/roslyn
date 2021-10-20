@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,20 +31,19 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var result = await client.RunRemoteAsync<IList<SerializableDocumentHighlights>>(
-                    WellKnownServiceHubService.CodeAnalysis,
-                    nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
-                    solution,
-                    new object[]
-                    {
-                        document.Id,
-                        position,
-                        documentsToSearch.Select(d => d.Id).ToArray()
-                    },
-                    callbackTarget: null,
+                // Call the project overload.  We don't need the full solution synchronized over to the OOP
+                // in order to highlight values in this document.
+                var result = await client.TryInvokeAsync<IRemoteDocumentHighlightsService, ImmutableArray<SerializableDocumentHighlights>>(
+                    document.Project,
+                    (service, solutionInfo, cancellationToken) => service.GetDocumentHighlightsAsync(solutionInfo, document.Id, position, documentsToSearch.SelectAsArray(d => d.Id), cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
-                return result.SelectAsArray(h => h.Rehydrate(solution));
+                if (!result.HasValue)
+                {
+                    return ImmutableArray<DocumentHighlights>.Empty;
+                }
+
+                return await result.Value.SelectAsArrayAsync(h => h.RehydrateAsync(solution)).ConfigureAwait(false);
             }
 
             return await GetDocumentHighlightsInCurrentProcessAsync(
@@ -56,23 +56,28 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             var result = await TryGetEmbeddedLanguageHighlightsAsync(
                 document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
             if (!result.IsDefaultOrEmpty)
-            {
                 return result;
-            }
 
             var solution = document.Project.Solution;
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = await SymbolFinder.FindSymbolAtPositionAsync(
                 semanticModel, position, solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (symbol == null)
-            {
                 return ImmutableArray<DocumentHighlights>.Empty;
-            }
 
             // Get unique tags for referenced symbols
-            return await GetTagsForReferencedSymbolAsync(
+            var tags = await GetTagsForReferencedSymbolAsync(
                 symbol, document, documentsToSearch, cancellationToken).ConfigureAwait(false);
+
+            // Only accept these highlights if at least one of them actually intersected with the 
+            // position the caller was asking for.  For example, if the user had `$$new X();` then 
+            // SymbolFinder will consider that the symbol `X`. However, the doc highlights won't include
+            // the `new` part, so it's not appropriate for us to highlight `X` in that case.
+            if (!tags.Any(t => t.HighlightSpans.Any(hs => hs.TextSpan.IntersectsWith(position))))
+                return ImmutableArray<DocumentHighlights>.Empty;
+
+            return tags;
         }
 
         private static async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
@@ -100,19 +105,6 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             return default;
         }
 
-        private static async Task<ISymbol> GetSymbolToSearchAsync(Document document, int position, SemanticModel semanticModel, ISymbol symbol, CancellationToken cancellationToken)
-        {
-            // see whether we can use the symbol as it is
-            var currentSemanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (currentSemanticModel == semanticModel)
-            {
-                return symbol;
-            }
-
-            // get symbols from current document again
-            return await SymbolFinder.FindSymbolAtPositionAsync(currentSemanticModel, position, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
-        }
-
         private async Task<ImmutableArray<DocumentHighlights>> GetTagsForReferencedSymbolAsync(
             ISymbol symbol,
             Document document,
@@ -124,7 +116,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             {
                 var progress = new StreamingProgressCollector();
 
-                var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
+                var options = FindSymbols.FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
                 await SymbolFinder.FindReferencesAsync(
                     symbol, document.Project.Solution, progress,
                     documentsToSearch, options, cancellationToken).ConfigureAwait(false);
@@ -164,7 +156,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         private async Task<ImmutableArray<DocumentHighlights>> FilterAndCreateSpansAsync(
             ImmutableArray<ReferencedSymbol> references, Document startingDocument,
             IImmutableSet<Document> documentsToSearch, ISymbol symbol,
-            FindReferencesSearchOptions options, CancellationToken cancellationToken)
+            FindSymbols.FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             var solution = startingDocument.Project.Solution;
             references = references.FilterToItemsToShow(options);
@@ -241,11 +233,9 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                             // GetDocument will return null for locations in #load'ed trees.
                             // TODO:  Remove this check and add logic to fetch the #load'ed tree's
                             // Document once https://github.com/dotnet/roslyn/issues/5260 is fixed.
-                            // TODO: the assert is also commented out becase generated syntax trees won't
-                            // have a document until https://github.com/dotnet/roslyn/issues/42823 is fixed
                             if (document == null)
                             {
-                                // Debug.Assert(solution.Workspace.Kind == WorkspaceKind.Interactive || solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles);
+                                Debug.Assert(solution.Workspace.Kind is WorkspaceKind.Interactive or WorkspaceKind.MiscellaneousFiles);
                                 continue;
                             }
 
@@ -318,7 +308,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 {
                     var tree = location.SourceTree;
 
-                    var document = solution.GetDocument(tree);
+                    var document = solution.GetRequiredDocument(tree);
                     var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
                     if (syntaxFacts != null)
@@ -333,7 +323,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     }
                 }
             }
-            catch (NullReferenceException e) when (FatalError.ReportWithoutCrash(e))
+            catch (NullReferenceException e) when (FatalError.ReportAndCatch(e))
             {
                 // We currently are seeing a strange null references crash in this code.  We have
                 // a strong belief that this is recoverable, but we'd like to know why it is 

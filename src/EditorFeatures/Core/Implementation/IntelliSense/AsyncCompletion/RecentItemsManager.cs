@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         /// <summary>
         /// Guard for <see cref="RecentItems"/>
         /// </summary>
-        private readonly object _mruUpdateLock = new object();
+        private readonly object _mruUpdateLock = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -16,8 +16,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _metadataProvider;
 
-        internal CSharpCompilerServer(Func<string, MetadataReferenceProperties, PortableExecutableReference> metadataProvider, string[] args, BuildPaths buildPaths, string libDirectory, IAnalyzerAssemblyLoader analyzerLoader)
-            : base(CSharpCommandLineParser.Default, buildPaths.ClientDirectory != null ? Path.Combine(buildPaths.ClientDirectory, ResponseFileName) : null, args, buildPaths, libDirectory, analyzerLoader)
+        internal CSharpCompilerServer(Func<string, MetadataReferenceProperties, PortableExecutableReference> metadataProvider, string[] args, BuildPaths buildPaths, string? libDirectory, IAnalyzerAssemblyLoader analyzerLoader, GeneratorDriverCache driverCache)
+            : this(metadataProvider, Path.Combine(buildPaths.ClientDirectory, ResponseFileName), args, buildPaths, libDirectory, analyzerLoader, driverCache)
+        {
+        }
+
+        internal CSharpCompilerServer(Func<string, MetadataReferenceProperties, PortableExecutableReference> metadataProvider, string? responseFile, string[] args, BuildPaths buildPaths, string? libDirectory, IAnalyzerAssemblyLoader analyzerLoader, GeneratorDriverCache driverCache)
+            : base(CSharpCommandLineParser.Default, responseFile, args, buildPaths, libDirectory, analyzerLoader, driverCache)
         {
             _metadataProvider = metadataProvider;
         }

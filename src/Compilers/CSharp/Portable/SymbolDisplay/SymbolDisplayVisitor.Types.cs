@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.SymbolDisplay;
-using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -312,15 +313,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol underlyingTypeSymbol = (symbol as Symbols.PublicModel.NamedTypeSymbol)?.UnderlyingNamedTypeSymbol;
             var illegalGenericInstantiationSymbol = underlyingTypeSymbol as NoPiaIllegalGenericInstantiationSymbol;
 
-            if ((object)illegalGenericInstantiationSymbol != null)
+            if (illegalGenericInstantiationSymbol is not null)
             {
                 symbol = illegalGenericInstantiationSymbol.UnderlyingSymbol.GetPublicSymbol();
             }
             else
             {
                 var ambiguousCanonicalTypeSymbol = underlyingTypeSymbol as NoPiaAmbiguousCanonicalTypeSymbol;
-
-                if ((object)ambiguousCanonicalTypeSymbol != null)
+                if (ambiguousCanonicalTypeSymbol is not null)
                 {
                     symbol = ambiguousCanonicalTypeSymbol.FirstCandidate.GetPublicSymbol();
                 }
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var missingCanonicalTypeSymbol = underlyingTypeSymbol as NoPiaMissingCanonicalTypeSymbol;
 
-                    if ((object)missingCanonicalTypeSymbol != null)
+                    if (missingCanonicalTypeSymbol is not null)
                     {
                         symbolName = missingCanonicalTypeSymbol.FullTypeName;
                     }
@@ -337,16 +337,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var partKind = GetPartKind(symbol);
 
-            if (symbolName == null)
-            {
-                symbolName = symbol.Name;
-            }
+            symbolName ??= symbol.Name;
+
+            var renderSimpleAnonymousDelegate =
+                symbol.TypeKind == TypeKind.Delegate &&
+                !symbol.CanBeReferencedByName &&
+                !format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames);
 
             if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) &&
                 partKind == SymbolDisplayPartKind.ErrorTypeName &&
                 string.IsNullOrEmpty(symbolName))
             {
                 builder.Add(CreatePart(partKind, symbol, "?"));
+            }
+            else if (renderSimpleAnonymousDelegate)
+            {
+                builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.DelegateName, null, "<anonymous delegate>"));
             }
             else
             {
@@ -364,7 +370,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         MetadataHelpers.GetAritySuffix(symbol.Arity)));
                 }
             }
-            else if (symbol.Arity > 0 && format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters))
+            else if (!renderSimpleAnonymousDelegate &&
+                     symbol.Arity > 0 &&
+                     format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters))
             {
                 // It would be nice to handle VB symbols too, but it's not worth the effort.
                 if (underlyingTypeSymbol is UnsupportedMetadataTypeSymbol || underlyingTypeSymbol is MissingMetadataTypeSymbol || symbol.IsUnboundGenericType)
@@ -379,9 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    ImmutableArray<ImmutableArray<CustomModifier>> modifiers = GetTypeArgumentsModifiers(underlyingTypeSymbol);
-                    AddTypeArguments(symbol, modifiers);
-
+                    AddTypeArguments(symbol, GetTypeArgumentsModifiers(underlyingTypeSymbol));
                     AddDelegateParameters(symbol);
 
                     // TODO: do we want to skip these if we're being visited as a containing type?
@@ -511,6 +517,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(symbol.IsTupleType);
 
+            if (this.format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.CollapseTupleTypes))
+            {
+                builder.Add(CreatePart(SymbolDisplayPartKind.StructName, symbol, "<tuple>"));
+                return;
+            }
+
             ImmutableArray<IFieldSymbol> elements = symbol.TupleElements;
 
             AddPunctuation(SyntaxKind.OpenParenToken);
@@ -525,10 +537,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 VisitFieldType(element);
-                if (!element.IsImplicitlyDeclared)
+                if (element.IsExplicitlyNamedTupleElement)
                 {
                     AddSpace();
-                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, element.Name));
+                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, element, element.Name));
                 }
             }
 
@@ -562,6 +574,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (symbol.TypeKind)
             {
+                case TypeKind.Class when symbol.IsRecord:
+                    return SymbolDisplayPartKind.RecordClassName;
+                case TypeKind.Struct when symbol.IsRecord:
+                    return SymbolDisplayPartKind.RecordStructName;
                 case TypeKind.Submission:
                 case TypeKind.Module:
                 case TypeKind.Class:
@@ -658,6 +674,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (symbol.TypeKind)
                     {
+                        case TypeKind.Class when symbol.IsRecord:
+                            AddKeyword(SyntaxKind.RecordKeyword);
+                            AddSpace();
+                            break;
+
+                        case TypeKind.Struct when symbol.IsRecord:
+                            // In case ref record structs are allowed in future, call AddKeyword(SyntaxKind.RefKeyword) and remove assertion.
+                            Debug.Assert(!symbol.IsRefLikeType);
+
+                            if (symbol.IsReadOnly)
+                            {
+                                AddKeyword(SyntaxKind.ReadOnlyKeyword);
+                                AddSpace();
+                            }
+
+                            AddKeyword(SyntaxKind.RecordKeyword);
+                            AddSpace();
+                            AddKeyword(SyntaxKind.StructKeyword);
+                            AddSpace();
+                            break;
+
                         case TypeKind.Module:
                         case TypeKind.Class:
                             AddKeyword(SyntaxKind.ClassKeyword);

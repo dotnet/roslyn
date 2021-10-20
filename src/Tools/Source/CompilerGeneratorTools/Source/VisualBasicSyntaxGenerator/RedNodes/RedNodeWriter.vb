@@ -230,7 +230,7 @@ Friend Class RedNodeWriter
         If nodeStructure.IsPredefined Then Return
 
         ' XML comment
-        GenerateXmlComment(_writer, nodeStructure, 4)
+        GenerateXmlComment(_writer, nodeStructure, 4, includeRemarks:=True)
 
         ' Class name
         _writer.Write("    ")
@@ -242,7 +242,7 @@ Friend Class RedNodeWriter
         ElseIf Not nodeStructure.HasDerivedStructure Then
             _writer.WriteLine("Public NotInheritable Class {0}", StructureTypeName(nodeStructure))
         Else
-            _writer.WriteLine("Public Class {0}", StructureTypeName(nodeStructure))
+            Throw New InvalidOperationException("Not reachable")
         End If
 
         ' Base class

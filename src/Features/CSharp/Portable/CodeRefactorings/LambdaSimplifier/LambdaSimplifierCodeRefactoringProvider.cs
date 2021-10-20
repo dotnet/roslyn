@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -153,7 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
                 // Don't offer this if there are any errors or ambiguities.
                 return false;
             }
-            if (!(lambdaSemanticInfo.Symbol is IMethodSymbol lambdaMethod) || !(invocationSemanticInfo.Symbol is IMethodSymbol invocationMethod))
+
+            if (lambdaSemanticInfo.Symbol is not IMethodSymbol lambdaMethod || invocationSemanticInfo.Symbol is not IMethodSymbol invocationMethod)
             {
                 return false;
             }
@@ -282,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }

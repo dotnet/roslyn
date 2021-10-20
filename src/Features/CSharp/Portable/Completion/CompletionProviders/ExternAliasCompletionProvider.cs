@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var position = context.Position;
                 var cancellationToken = context.CancellationToken;
 
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
                 if (tree.IsInNonUserCode(position, cancellationToken))
                 {
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (targetToken.Parent.IsKind(SyntaxKind.ExternAliasDirective)
                     || (targetToken.Parent.IsKind(SyntaxKind.IdentifierName) && targetToken.Parent.IsParentKind(SyntaxKind.IncompleteMember)))
                 {
-                    var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var aliases = compilation.ExternalReferences.SelectMany(r => r.Properties.Aliases).ToSet();
 
                     if (aliases.Any())
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     }
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // nop
             }

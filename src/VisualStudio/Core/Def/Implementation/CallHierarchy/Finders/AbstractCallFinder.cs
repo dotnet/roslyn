@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
     internal abstract class AbstractCallFinder
     {
         private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly CancellationTokenSource _cancellationSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cancellationSource = new();
         private readonly ProjectId _projectId;
         private readonly SymbolKey _symbolKey;
 
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
                 {
                     completionErrorMessage = EditorFeaturesResources.Canceled;
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e))
                 {
                     completionErrorMessage = e.Message;
                 }
@@ -110,14 +112,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
 
         private IImmutableSet<Document> IncludeDocuments(CallHierarchySearchScope scope, Project project)
         {
-            if (scope == CallHierarchySearchScope.CurrentDocument || scope == CallHierarchySearchScope.CurrentProject)
+            if (scope is CallHierarchySearchScope.CurrentDocument or CallHierarchySearchScope.CurrentProject)
             {
-                var documentTrackingService = project.Solution.Workspace.Services.GetService<IDocumentTrackingService>();
-                if (documentTrackingService == null)
-                {
-                    return null;
-                }
-
+                var documentTrackingService = project.Solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
                 var activeDocument = documentTrackingService.TryGetActiveDocument();
                 if (activeDocument != null)
                 {

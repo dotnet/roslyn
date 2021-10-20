@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
@@ -94,7 +97,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 Contract.ThrowIfNull(variable);
                 Contract.ThrowIfFalse(variable.CanBeUsedAsReturnValue);
-                Contract.ThrowIfFalse(variable.ParameterModifier == ParameterBehavior.Out || variable.ParameterModifier == ParameterBehavior.Ref);
+                Contract.ThrowIfFalse(variable.ParameterModifier is ParameterBehavior.Out or ParameterBehavior.Ref);
 
                 return new VariableInfo(variable._variableSymbol, variable._variableStyle, useAsReturnValue: true);
             }
@@ -106,6 +109,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             public string Name => _variableSymbol.Name;
+
+            /// <summary>
+            /// Returns true, if the variable could be either passed as a parameter
+            /// to the new local function or the local function can capture the variable.
+            /// </summary>
+            public bool CanBeCapturedByLocalFunction
+                => _variableSymbol.CanBeCapturedByLocalFunction;
 
             public bool OriginalTypeHadAnonymousTypeOrDelegate => _variableSymbol.OriginalTypeHadAnonymousTypeOrDelegate;
 
@@ -120,10 +130,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public SyntaxToken GetIdentifierTokenAtDeclaration(SyntaxNode node)
                 => node.GetAnnotatedTokens(_variableSymbol.IdentifierTokenAnnotation).SingleOrDefault();
 
-            public static void SortVariables(Compilation compilation, List<VariableInfo> list)
+            public static void SortVariables(Compilation compilation, ArrayBuilder<VariableInfo> variables)
             {
                 var cancellationTokenType = compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName);
-                list.Sort((v1, v2) => Compare(v1, v2, cancellationTokenType));
+                variables.Sort((v1, v2) => Compare(v1, v2, cancellationTokenType));
             }
 
             private static int Compare(VariableInfo left, VariableInfo right, INamedTypeSymbol cancellationTokenType)

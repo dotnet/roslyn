@@ -2,13 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.ModuleInitializers
@@ -16,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.ModuleInitializers
     [CompilerTrait(CompilerFeature.ModuleInitializers)]
     public sealed class ModuleInitializersTests : CSharpTestBase
     {
-        private static readonly CSharpParseOptions s_parseOptions = TestOptions.RegularPreview;
+        private static readonly CSharpParseOptions s_parseOptions = TestOptions.Regular9;
 
         [Fact]
         public static void LastLanguageVersionNotSupportingModuleInitializersIs8()
@@ -35,9 +39,9 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
-                // (5,6): error CS8652: The feature 'module initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,6): error CS8400: Feature 'module initializers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     [ModuleInitializer]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ModuleInitializer").WithArguments("module initializers").WithLocation(5, 6)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "ModuleInitializer").WithArguments("module initializers", "9.0").WithLocation(5, 6)
                 );
         }
 
@@ -55,7 +59,7 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular9);
 
             compilation.VerifyDiagnostics();
         }
@@ -269,7 +273,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
             CompileAndVerify(
                 source,
                 parseOptions: s_parseOptions,
-                targetFramework: TargetFramework.NetStandardLatest,
+                targetFramework: TargetFramework.NetCoreApp,
                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"
 I.M
 Program.Main" : null,
@@ -348,7 +352,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
             CompileAndVerify(
                 source,
                 parseOptions: s_parseOptions,
-                targetFramework: TargetFramework.NetStandardLatest,
+                targetFramework: TargetFramework.NetCoreApp,
                 expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234",
                 verify: !ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Skipped : Verification.Passes);
         }
@@ -1121,6 +1125,37 @@ class Program
 }
 ";
             CompileAndVerify(source, parseOptions: s_parseOptions, references: new[] { ref1, ref2 }, expectedOutput: "123");
+        }
+
+        [Fact]
+        [WorkItem(56412, "https://github.com/dotnet/roslyn/issues/56412")]
+        public void Issue56412()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    [ModuleInitializer]
+    internal static void M() => Console.WriteLine(""C.M"");
+}
+
+class Program 
+{
+    static void Main() => Console.WriteLine(""Program.Main"");
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+
+            CompileAndVerify(
+                source,
+                options: TestOptions.ReleaseExe,
+                emitOptions: EmitOptions.Default.WithDebugInformationFormat(PathUtilities.IsUnixLikePlatform ? DebugInformationFormat.PortablePdb : DebugInformationFormat.Pdb),
+                expectedOutput: @"
+C.M
+Program.Main");
         }
     }
 }

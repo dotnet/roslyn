@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -12,7 +10,9 @@ using Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions
 {
+#if !CODE_STYLE // Not exported in CodeStyle layer: https://github.com/dotnet/roslyn/issues/47942
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
+#endif
     internal sealed class CSharpRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer
         : AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer
     {

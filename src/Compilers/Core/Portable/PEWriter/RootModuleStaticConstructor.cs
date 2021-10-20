@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
@@ -101,6 +103,8 @@ namespace Microsoft.Cci
 
         public IDefinition AsDefinition(EmitContext context) => this;
 
+        CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
+
         public void Dispatch(MetadataVisitor visitor) => visitor.Visit((IMethodDefinition)this);
 
         public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context) => SpecializedCollections.EmptyEnumerable<ICustomAttribute>();
@@ -158,5 +162,17 @@ namespace Microsoft.Cci
         public ImmutableArray<LambdaDebugInfo> LambdaDebugInfo => ImmutableArray<LambdaDebugInfo>.Empty;
 
         public DynamicAnalysisMethodBodyData DynamicAnalysisData => null;
+
+        public sealed override bool Equals(object obj)
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+        }
+
+        public sealed override int GetHashCode()
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+        }
     }
 }

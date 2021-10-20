@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -143,8 +145,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 #if DEBUG
                     switch (fromPredefTypeKind)
                     {
-                        case Microsoft.Cci.PrimitiveTypeCode.IntPtr:
-                        case Microsoft.Cci.PrimitiveTypeCode.UIntPtr:
+                        case Microsoft.Cci.PrimitiveTypeCode.IntPtr when !fromType.IsNativeIntegerType:
+                        case Microsoft.Cci.PrimitiveTypeCode.UIntPtr when !fromType.IsNativeIntegerType:
                         case Microsoft.Cci.PrimitiveTypeCode.Pointer:
                         case Microsoft.Cci.PrimitiveTypeCode.FunctionPointer:
                             Debug.Assert(IsNumeric(toType));
@@ -152,8 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         default:
                             Debug.Assert(IsNumeric(fromType));
                             Debug.Assert(
-                                toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.IntPtr ||
-                                toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.UIntPtr ||
+                                (toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.IntPtr || toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.UIntPtr) && !toType.IsNativeIntegerType ||
                                 toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.Pointer ||
                                 toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.FunctionPointer);
                             break;
@@ -323,6 +324,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (isStatic)
             {
                 _builder.EmitNullConstant();
+
+                if (method.IsAbstract)
+                {
+                    if (receiver is not BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } })
+                    {
+                        throw ExceptionUtilities.Unreachable;
+                    }
+
+                    _builder.EmitOpCode(ILOpCode.Constrained);
+                    EmitSymbolToken(receiver.Type, receiver.Syntax);
+                }
             }
             else
             {
@@ -338,14 +350,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // Metadata Spec (II.14.6):
             //   Delegates shall be declared sealed.
             //   The Invoke method shall be virtual.
-            if (method.IsMetadataVirtual() && !method.ContainingType.IsDelegateType() && !receiver.SuppressVirtualCalls)
+            if (!method.IsStatic && method.IsMetadataVirtual() && !method.ContainingType.IsDelegateType() && !receiver.SuppressVirtualCalls)
             {
                 // NOTE: method.IsMetadataVirtual -> receiver != null
                 _builder.EmitOpCode(ILOpCode.Dup);
                 _builder.EmitOpCode(ILOpCode.Ldvirtftn);
 
                 //  substitute the method with original virtual method
-                method = method.GetConstructedLeastOverriddenMethod(_method.ContainingType);
+                method = method.GetConstructedLeastOverriddenMethod(_method.ContainingType, requireSameReturnType: true);
             }
             else
             {

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -236,7 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         private ITextView EnsureTextViewIsInitialized(object previewTextView)
         {
             // We pass in a regular ITextView in tests
-            if (previewTextView != null && previewTextView is ITextView)
+            if (previewTextView is not null and ITextView)
             {
                 return (ITextView)previewTextView;
             }
@@ -250,7 +252,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 textView = _editorFactory.GetWpfTextView(adapter);
             }
 
+            UpdateTextViewOptions(textView);
+
             return textView;
+        }
+
+        private static void UpdateTextViewOptions(IWpfTextView textView)
+        {
+            // Do not show the IndentationCharacterMargin, which controls spaces vs. tabs etc.
+            textView.Options.SetOptionValue(DefaultTextViewHostOptions.IndentationCharacterMarginOptionId, false);
+
+            // Do not show LineEndingMargin, which determines EOL and EOF settings.
+            textView.Options.SetOptionValue(DefaultTextViewHostOptions.LineEndingMarginOptionId, false);
+
+            // Do not show the "no issues found" health indicator for previews. 
+            textView.Options.SetOptionValue(DefaultTextViewHostOptions.EnableFileHealthIndicatorOptionId, false);
         }
 
         // When the dialog is first instantiated, the IVsTextView it contains may 
@@ -266,15 +282,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
             var newText = "";
             var newTextPtr = Marshal.StringToHGlobalAuto(newText);
-            Marshal.ThrowExceptionForHR(adapter.GetBuffer(out var lines));
-            Marshal.ThrowExceptionForHR(lines.GetLastLineIndex(out _, out var piLineIndex));
-            Marshal.ThrowExceptionForHR(lines.GetLengthOfLine(piLineIndex, out var piLineLength));
 
-            Microsoft.VisualStudio.TextManager.Interop.TextSpan[] changes = null;
+            try
+            {
+                Marshal.ThrowExceptionForHR(adapter.GetBuffer(out var lines));
+                Marshal.ThrowExceptionForHR(lines.GetLastLineIndex(out _, out var piLineIndex));
+                Marshal.ThrowExceptionForHR(lines.GetLengthOfLine(piLineIndex, out var piLineLength));
 
-            piLineLength = piLineLength > 0 ? piLineLength - 1 : 0;
+                Microsoft.VisualStudio.TextManager.Interop.TextSpan[] changes = null;
 
-            Marshal.ThrowExceptionForHR(lines.ReplaceLines(0, 0, piLineIndex, piLineLength, newTextPtr, newText.Length, changes));
+                piLineLength = piLineLength > 0 ? piLineLength - 1 : 0;
+
+                Marshal.ThrowExceptionForHR(lines.ReplaceLines(0, 0, piLineIndex, piLineLength, newTextPtr, newText.Length, changes));
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(newTextPtr);
+            }
         }
 
         private class NoChange : AbstractChange

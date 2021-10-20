@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <WpfFact>
         <WorkItem(179726, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workItems?id=179726&_a=edit")>
         Public Async Function UpKeyShouldBlockOnRecomputationAfterPresentation() As Task
-            Dim exportProvider = TestExportProvider.ExportProviderFactoryWithCSharpAndVisualBasic.CreateExportProvider()
+            Dim exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider()
             Dim threadingContext = exportProvider.GetExportedValue(Of IThreadingContext)()
 
             Dim worker = Async Function()
@@ -191,6 +191,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                              GetMocks(controller).PresenterSession.Verify(Sub(p) p.PresentItems(It.IsAny(Of ITrackingSpan), It.IsAny(Of IList(Of SignatureHelpItem)),
                                                                                                 It.IsAny(Of SignatureHelpItem), It.IsAny(Of Integer?)), Times.Exactly(2))
                          End Function
+
             Await worker().ConfigureAwait(False)
 
         End Function

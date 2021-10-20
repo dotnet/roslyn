@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -15,30 +13,36 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.Text.Adornments;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentSignatureHelpName)]
-    internal class SignatureHelpHandler : AbstractRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp>
+    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
+    [ProvidesMethod(LSP.Methods.TextDocumentSignatureHelpName)]
+    internal class SignatureHelpHandler : AbstractStatelessRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp?>
     {
         private readonly IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _allProviders;
 
+        public override string Method => LSP.Methods.TextDocumentSignatureHelpName;
+
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SignatureHelpHandler([ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders, ILspSolutionProvider solutionProvider)
-            : base(solutionProvider)
-            => _allProviders = allProviders;
-
-        public override async Task<LSP.SignatureHelp> HandleRequestAsync(LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities,
-            string? clientName, CancellationToken cancellationToken)
+        public SignatureHelpHandler([ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders)
         {
-            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
+            _allProviders = allProviders;
+        }
+
+        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
+
+        public override async Task<LSP.SignatureHelp?> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+        {
+            var document = context.Document;
             if (document == null)
-            {
-                return new LSP.SignatureHelp();
-            }
+                return null;
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
@@ -56,9 +60,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     foreach (var item in items.Items)
                     {
                         LSP.SignatureInformation sigInfo;
-                        if (clientCapabilities?.HasVisualStudioLspCapability() == true)
+                        if (context.ClientCapabilities?.HasVisualStudioLspCapability() == true)
                         {
-                            sigInfo = new LSP.VSSignatureInformation
+                            sigInfo = new LSP.VSInternalSignatureInformation
                             {
                                 ColorizedLabel = GetSignatureClassifiedText(item)
                             };
@@ -89,7 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
             }
 
-            return new LSP.SignatureHelp();
+            return null;
         }
 
         private static int GetActiveSignature(SignatureHelpItems items)

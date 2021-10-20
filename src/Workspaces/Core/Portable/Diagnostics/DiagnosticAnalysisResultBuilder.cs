@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -153,7 +151,16 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 switch (diagnostic.Location.Kind)
                 {
                     case LocationKind.ExternalFile:
-                        // TODO: currently additional file location is not supported.
+                        var diagnosticDocumentId = Project.GetDocumentForExternalLocation(diagnostic.Location);
+                        if (diagnosticDocumentId != null)
+                        {
+                            AddDocumentDiagnostic(ref _lazyNonLocals, Project.GetRequiredTextDocument(diagnosticDocumentId), diagnostic);
+                        }
+                        else
+                        {
+                            AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
+                        }
+
                         break;
 
                     case LocationKind.None:

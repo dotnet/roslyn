@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -386,7 +388,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.MethodXml
 
         private bool TryGenerateNewClass(ObjectCreationExpressionSyntax objectCreationExpression)
         {
-            if (!(SemanticModel.GetSymbolInfo(objectCreationExpression.Type).Symbol is ITypeSymbol type))
+            if (SemanticModel.GetSymbolInfo(objectCreationExpression.Type).Symbol is not ITypeSymbol type)
             {
                 return false;
             }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal sealed partial class SolutionCrawlerRegistrationService
     {
-        private sealed partial class WorkCoordinator
+        internal sealed partial class WorkCoordinator
         {
             private sealed partial class IncrementalAnalyzerProcessor
             {
@@ -52,9 +50,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
                         IGlobalOperationNotificationService globalOperationNotificationService,
-                        int backOffTimeSpanInMs,
+                        TimeSpan backOffTimeSpan,
                         CancellationToken shutdownToken)
-                        : base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
+                        : base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpan, shutdownToken)
                     {
                         _running = Task.CompletedTask;
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
@@ -175,7 +173,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             // process the new document
                             await ProcessDocumentAsync(Analyzers, workItem, documentCancellation).ConfigureAwait(false);
                         }
-                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
@@ -229,20 +227,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private IEnumerable<DocumentId> GetPrioritizedPendingDocuments()
                     {
-                        if (Processor._documentTracker != null)
+                        // First the active document
+                        var activeDocumentId = Processor._documentTracker.TryGetActiveDocument();
+                        if (activeDocumentId != null)
                         {
-                            // First the active document
-                            var activeDocumentId = Processor._documentTracker.TryGetActiveDocument();
-                            if (activeDocumentId != null)
-                            {
-                                yield return activeDocumentId;
-                            }
+                            yield return activeDocumentId;
+                        }
 
-                            // Now any visible documents
-                            foreach (var visibleDocumentId in Processor._documentTracker.GetVisibleDocuments())
-                            {
-                                yield return visibleDocumentId;
-                            }
+                        // Now any visible documents
+                        foreach (var visibleDocumentId in Processor._documentTracker.GetVisibleDocuments())
+                        {
+                            yield return visibleDocumentId;
                         }
 
                         // Any other high priority documents
@@ -256,6 +251,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         try
                         {
+                            if (!Processor._documentTracker.SupportsDocumentTracking)
+                            {
+                                return false;
+                            }
+
                             foreach (var documentId in GetPrioritizedPendingDocuments())
                             {
                                 if (CancellationToken.IsCancellationRequested)
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                             return false;
                         }
-                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // using later version of solution is always fine since, as long as there is new work item in the queue,
                         // solution crawler will eventually call the last workitem with the lastest solution
                         // making everything to catch up
-                        var solution = Processor.CurrentSolution;
+                        var solution = Processor._registration.GetSolutionToAnalyze();
                         try
                         {
                             using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessDocumentAsync, w => w.ToString(), workItem, cancellationToken))
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 }
                             }
                         }
-                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 await Processor.RunAnalyzersAsync(reanalyzers, sourceDocument, workItem, (a, d, c) => a.AnalyzeDocumentAsync(d, null, reasons, c), cancellationToken).ConfigureAwait(false);
                             }
                         }
-                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             if (textDocument is Document document)
                             {
-                                await analyzer.AnalyzeSyntaxAsync((Document)document, reasons, cancellationToken).ConfigureAwait(false);
+                                await analyzer.AnalyzeSyntaxAsync(document, reasons, cancellationToken).ConfigureAwait(false);
                             }
                             else if (analyzer is IIncrementalAnalyzer2 analyzer2)
                             {
@@ -524,7 +524,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 return;
                             }
 
-                            await Processor.RunAnalyzersAsync(Analyzers, Processor.CurrentSolution, workItem: new WorkItem(), (a, s, c) => a.NewSolutionSnapshotAsync(s, c), CancellationToken).ConfigureAwait(false);
+                            await Processor.RunAnalyzersAsync(
+                                Analyzers,
+                                Processor._registration.GetSolutionToAnalyze(),
+                                workItem: new WorkItem(), (a, s, c) => a.NewSolutionSnapshotAsync(s, c), CancellationToken).ConfigureAwait(false);
 
                             foreach (var id in Processor.GetOpenDocumentIds())
                             {
@@ -533,14 +536,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                             SolutionCrawlerLogger.LogResetStates(Processor._logAggregator);
                         }
-                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
 
                         bool IsSolutionChanged()
                         {
-                            var currentSolution = Processor.CurrentSolution;
+                            var currentSolution = Processor._registration.GetSolutionToAnalyze();
                             var oldSolution = _lastSolution;
 
                             if (currentSolution == oldSolution)
@@ -579,28 +582,41 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         base.Shutdown();
 
-                        SolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics(Processor._registration.CorrelationId, Processor.CurrentSolution, Processor._logAggregator, Analyzers);
-
                         _workItemQueue.Dispose();
 
                         _projectCache?.Dispose();
                         _projectCache = null;
                     }
 
-                    internal void WaitUntilCompletion_ForTestingPurposesOnly(ImmutableArray<IIncrementalAnalyzer> analyzers, List<WorkItem> items)
+                    internal TestAccessor GetTestAccessor()
                     {
-                        foreach (var item in items)
-                        {
-                            ProcessDocumentAsync(analyzers, item, CancellationToken.None).Wait();
-                        }
+                        return new TestAccessor(this);
                     }
 
-                    internal void WaitUntilCompletion_ForTestingPurposesOnly()
+                    internal readonly struct TestAccessor
                     {
-                        // this shouldn't happen. would like to get some diagnostic
-                        while (_workItemQueue.HasAnyWork)
+                        private readonly NormalPriorityProcessor _normalPriorityProcessor;
+
+                        internal TestAccessor(NormalPriorityProcessor normalPriorityProcessor)
                         {
-                            FailFast.Fail("How?");
+                            _normalPriorityProcessor = normalPriorityProcessor;
+                        }
+
+                        internal void WaitUntilCompletion(ImmutableArray<IIncrementalAnalyzer> analyzers, List<WorkItem> items)
+                        {
+                            foreach (var item in items)
+                            {
+                                _normalPriorityProcessor.ProcessDocumentAsync(analyzers, item, CancellationToken.None).Wait();
+                            }
+                        }
+
+                        internal void WaitUntilCompletion()
+                        {
+                            // this shouldn't happen. would like to get some diagnostic
+                            while (_normalPriorityProcessor._workItemQueue.HasAnyWork)
+                            {
+                                FailFast.Fail("How?");
+                            }
                         }
                     }
                 }

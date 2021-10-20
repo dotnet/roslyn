@@ -4,9 +4,9 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.DocumentationComments
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Inherits AbstractOrdinaryMethodSignatureHelpProvider
 
         <ImportingConstructor>
-        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 memberGroup = memberGroup.SelectAsArray(Function(m) If(Equals(matchedMethodSymbol.OriginalDefinition, m), matchedMethodSymbol, m))
             End If
 
-            Dim enclosingSymbol = semanticModel.GetEnclosingSymbol(position)
+            Dim enclosingSymbol = semanticModel.GetEnclosingSymbol(position, cancellationToken)
             If enclosingSymbol.IsConstructor() Then
                 memberGroup = memberGroup.WhereAsArray(Function(m) Not m.Equals(enclosingSymbol))
             End If
@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                                  FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
                                  Sort(semanticModel, invocationExpression.SpanStart))
 
-            Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
+            Dim structuralTypeDisplayService = document.GetLanguageService(Of IStructuralTypeDisplayService)()
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
 
             Dim items = New List(Of SignatureHelpItem)
@@ -123,17 +123,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             End If
 
             If expressionType.IsDelegateType() Then
-                items.AddRange(GetDelegateInvokeItems(invocationExpression, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, DirectCast(expressionType, INamedTypeSymbol), cancellationToken))
+                items.AddRange(GetDelegateInvokeItems(invocationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService, DirectCast(expressionType, INamedTypeSymbol), cancellationToken))
             End If
 
             If defaultProperties.Count > 0 Then
-                items.AddRange(GetElementAccessItems(targetExpression, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, within, defaultProperties, cancellationToken))
+                items.AddRange(GetElementAccessItems(targetExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService, within, defaultProperties, cancellationToken))
             End If
 
             Dim textSpan = GetSignatureHelpSpan(invocationExpression.ArgumentList)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
-            Dim selectedItem = TryGetSelectedIndex(accessibleMembers, symbolInfo)
+            Dim selectedItem = TryGetSelectedIndex(accessibleMembers, symbolInfo.Symbol)
             Return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem)
         End Function
     End Class

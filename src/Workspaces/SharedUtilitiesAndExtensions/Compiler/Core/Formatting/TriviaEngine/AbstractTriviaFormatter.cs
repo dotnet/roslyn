@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -789,7 +787,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         private TextChange GetWhitespaceTextChange(LineColumn lineColumn, LineColumnDelta delta, TextSpan span)
-            => new TextChange(span, GetWhitespaceString(lineColumn, delta));
+            => new(span, GetWhitespaceString(lineColumn, delta));
 
         private void AddWhitespaceTextChange(LineColumn lineColumn, LineColumnDelta delta, TextSpan span, ArrayBuilder<TextChange> changes)
         {
@@ -912,7 +910,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private static string GetSpaces(int space)
         {
-            if (space >= 0 && space < 20)
+            if (space is >= 0 and < 20)
             {
                 return s_spaceCache[space];
             }

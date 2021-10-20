@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             Document document,
             BaseObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
+            IStructuralTypeDisplayService structuralTypeDisplayService,
             IDocumentationCommentFormattingService documentationCommentFormattingService,
             INamedTypeSymbol normalType,
             ISymbol within,
@@ -33,10 +33,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                                                    .Sort(semanticModel, objectCreationExpression.SpanStart);
 
             var symbolInfo = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken);
-            var selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo);
+            var selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo.Symbol);
 
             var items = accessibleConstructors.SelectAsArray(c =>
-                ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService));
+                ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService));
 
             return (items, selectedItem);
         }
@@ -45,13 +45,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             IMethodSymbol constructor,
             BaseObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
+            IStructuralTypeDisplayService structuralTypeDisplayService,
             IDocumentationCommentFormattingService documentationCommentFormattingService)
         {
             var position = objectCreationExpression.SpanStart;
             var item = CreateItem(
                 constructor, semanticModel, position,
-                anonymousTypeDisplayService,
+                structuralTypeDisplayService,
                 constructor.IsParams(),
                 constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetNormalTypePreambleParts(constructor, semanticModel, position),

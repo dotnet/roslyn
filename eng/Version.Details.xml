@@ -1,15 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
+    <Dependency Name="XliffTasks" Version="1.0.0-beta.21215.1">
+      <Uri>https://github.com/dotnet/xliff-tasks</Uri>
+      <Sha>7e80445ee82adbf9a8e6ae601ac5e239d982afaa</Sha>
+      <SourceBuild RepoName="xliff-tasks" ManagedOnly="true" />
+    </Dependency>
+    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build" Version="0.1.0-alpha.1.21452.1">
+      <Uri>https://github.com/dotnet/source-build</Uri>
+      <Sha>a9515db097e05728fcc2169d074eae3c6a4580d0</Sha>
+      <SourceBuild RepoName="source-build" ManagedOnly="true" />
+    </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="1.0.0-beta.20365.6">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="7.0.0-beta.21474.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>7cc59275eade471e29b88a797275818b0d513d0f</Sha>
+      <Sha>3ea0d860c6973f2cbadc9e895c7ec2cbdaec4ad5</Sha>
+      <SourceBuild RepoName="arcade" ManagedOnly="true" />
     </Dependency>
-    <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="3.8.0-1.20361.1">
+    <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="4.0.0-5.21469.2">
       <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>f24d2c5c98211908ab90d6f1f42e7592411d6058</Sha>
+      <Sha>c1d8c6f043bc80425c6828455eb57f8a404759c6</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="7.0.0-beta.21474.2">
+      <Uri>https://github.com/dotnet/arcade</Uri>
+      <Sha>3ea0d860c6973f2cbadc9e895c7ec2cbdaec4ad5</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>

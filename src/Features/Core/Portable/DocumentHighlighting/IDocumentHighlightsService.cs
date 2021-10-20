@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -18,9 +19,13 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         WrittenReference,
     }
 
+    [DataContract]
     internal readonly struct HighlightSpan
     {
+        [DataMember(Order = 0)]
         public TextSpan TextSpan { get; }
+
+        [DataMember(Order = 1)]
         public HighlightSpanKind Kind { get; }
 
         public HighlightSpan(TextSpan textSpan, HighlightSpanKind kind) : this()

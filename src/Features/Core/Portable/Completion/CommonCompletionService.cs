@@ -36,12 +36,12 @@ namespace Microsoft.CodeAnalysis.Completion
             return base.GetBetterItem(item, existingItem);
         }
 
-        internal override Task<(CompletionList completionList, bool expandItemsAvailable)> GetCompletionsInternalAsync(
+        internal override Task<(CompletionList? completionList, bool expandItemsAvailable)> GetCompletionsInternalAsync(
             Document document,
             int caretPosition,
             CompletionTrigger trigger,
-            ImmutableHashSet<string> roles,
-            OptionSet options,
+            ImmutableHashSet<string>? roles,
+            OptionSet? options,
             CancellationToken cancellationToken)
         {
             return GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, trigger, roles, options, cancellationToken);
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Completion
         internal override ImmutableArray<CompletionItem> FilterItems(Document document, ImmutableArray<(CompletionItem, PatternMatch?)> itemsWithPatternMatch, string filterText)
         {
             var helper = CompletionHelper.GetHelper(document);
-            return CompletionService.FilterItems(helper, itemsWithPatternMatch);
+            return CompletionService.FilterItems(helper, itemsWithPatternMatch, filterText);
         }
     }
 }

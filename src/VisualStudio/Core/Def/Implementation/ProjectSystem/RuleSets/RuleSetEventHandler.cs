@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -209,8 +211,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
 
         private static void UpdateCodeAnalysisRuleSetPropertiesInProject(EnvDTE.Project project, string newRuleSetFilePath)
         {
-            if (project.Kind == PrjKind.prjKindCSharpProject ||
-                project.Kind == PrjKind.prjKindVBProject)
+            if (project.Kind is PrjKind.prjKindCSharpProject or
+                PrjKind.prjKindVBProject)
             {
                 var projectFullName = project.FullName;
                 if (!string.IsNullOrWhiteSpace(projectFullName))

@@ -7,10 +7,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Shared.Extensions
     internal static class LanguageVersionExtensions
     {
         public static bool IsCSharp9OrAbove(this LanguageVersion languageVersion)
-#if CODE_STYLE
-            => languageVersion >= (LanguageVersion)900;
-#else
             => languageVersion >= LanguageVersion.CSharp9;
-#endif
+
+        public static bool IsCSharp10OrAbove(this LanguageVersion languageVersion)
+            => languageVersion >= LanguageVersion.CSharp10;
+
+        public static bool HasConstantInterpolatedStrings(this LanguageVersion languageVersion)
+            => languageVersion.IsCSharp10OrAbove();
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Indentation;
@@ -1521,7 +1523,7 @@ class C
             // create tree service
             using var workspace = TestWorkspace.CreateCSharp(code);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
+                .WithChangedOption(FormattingBehaviorOptions.SmartIndent, LanguageNames.CSharp, indentStyle)
                 .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
             var hostdoc = workspace.Documents.First();
             var buffer = hostdoc.GetTextBuffer();

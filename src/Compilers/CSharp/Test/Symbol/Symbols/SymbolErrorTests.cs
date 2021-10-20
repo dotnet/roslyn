@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -736,13 +738,13 @@ public class C2 : B<object>.C<A> { }
 public class C3 : B<A>.C<object> { }
 public class C4 : B<B<A>>.C<object> { }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,14): error CS0060: Inconsistent accessibility: base class 'B<A>' is less accessible than class 'C1'
+                // (6,14): error CS0060: Inconsistent accessibility: base type 'B<A>' is less accessible than class 'C1'
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "B<A>").WithLocation(6, 14),
-                // (7,14): error CS0060: Inconsistent accessibility: base class 'B<object>.C<A>' is less accessible than class 'C2'
+                // (7,14): error CS0060: Inconsistent accessibility: base type 'B<object>.C<A>' is less accessible than class 'C2'
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C2").WithArguments("C2", "B<object>.C<A>").WithLocation(7, 14),
-                // (8,14): error CS0060: Inconsistent accessibility: base class 'B<A>.C<object>' is less accessible than class 'C3'
+                // (8,14): error CS0060: Inconsistent accessibility: base type 'B<A>.C<object>' is less accessible than class 'C3'
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C3").WithArguments("C3", "B<A>.C<object>").WithLocation(8, 14),
-                // (9,14): error CS0060: Inconsistent accessibility: base class 'B<B<A>>.C<object>' is less accessible than class 'C4'
+                // (9,14): error CS0060: Inconsistent accessibility: base type 'B<B<A>>.C<object>' is less accessible than class 'C4'
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C4").WithArguments("C4", "B<B<A>>.C<object>").WithLocation(9, 14));
         }
 
@@ -760,7 +762,7 @@ public class C4 : B<B<A>>.C<object> { }";
 public class B<T> : A { }
 public class C : B<A.B.C> { }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (9,14): error CS0060: Inconsistent accessibility: base class 'B<A.B.C>' is less accessible than class 'C'
+                // (9,14): error CS0060: Inconsistent accessibility: base type 'B<A.B.C>' is less accessible than class 'C'
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("C", "B<A.B.C>").WithLocation(9, 14));
         }
 
@@ -834,7 +836,7 @@ interface i1
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular,
-                              targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+                              targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (6,35): error CS0073: An add or remove accessor must have a body
                 //     event myDelegate myevent { add; remove; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 35),
@@ -843,7 +845,7 @@ interface i1
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 43));
 
             CreateCompilation(text, parseOptions: TestOptions.Regular7,
-                              targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+                              targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (6,35): error CS0073: An add or remove accessor must have a body
                 //     event myDelegate myevent { add; remove; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 35),
@@ -871,7 +873,7 @@ interface i1
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7,
-                              targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+                              targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (5,32): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //     event myDelegate myevent { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "8.0").WithLocation(5, 32),
@@ -893,7 +895,7 @@ interface i1
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7,
-                              targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+                              targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (5,32): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //     event myDelegate myevent { add {} }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "8.0").WithLocation(5, 32),
@@ -1725,10 +1727,10 @@ namespace n3
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("MyNamespace.MyClass.field").WithLocation(11, 24),
                 // (6,28): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //         static public void f();   // CS0106
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "f").WithArguments("static", "7.0", "8.0").WithLocation(6, 28),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "f").WithArguments("static", "7.0", "8.0").WithLocation(6, 28),
                 // (6,28): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //         static public void f();   // CS0106
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "f").WithArguments("public", "7.0", "8.0").WithLocation(6, 28),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "f").WithArguments("public", "7.0", "8.0").WithLocation(6, 28),
                 // (6,28): error CS0501: 'I.f()' must declare a body because it is not marked abstract, extern, or partial
                 //         static public void f();   // CS0106
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "f").WithArguments("MyNamespace.I.f()").WithLocation(6, 28)
@@ -1757,19 +1759,16 @@ class C
     public extern object P6 { get; } // no error
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (3,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     public static int P1 { get; }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("static", "7.0", "8.0").WithLocation(3, 23),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("static", "7.0", "8.0").WithLocation(3, 23),
                 // (3,23): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     public static int P1 { get; }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("public", "7.0", "8.0").WithLocation(3, 23),
-                // (3,28): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
-                //     public static int P1 { get; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "get").WithArguments("default interface implementation", "8.0").WithLocation(3, 28),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("public", "7.0", "8.0").WithLocation(3, 23),
                 // (4,18): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     abstract int P2 { static set; }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("abstract", "7.0", "8.0").WithLocation(4, 18),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P2").WithArguments("abstract", "7.0", "8.0").WithLocation(4, 18),
                 // (4,30): error CS0106: The modifier 'static' is not valid for this item
                 //     abstract int P2 { static set; }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("static").WithLocation(4, 30),
@@ -2080,8 +2079,17 @@ interface I<T>
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_StaticNotVirtual, Line = 9, Column = 37 });
+            CreateCompilation(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (7,18): error CS0534: 'MyClass2' does not implement inherited abstract member 'MyClass.MyMethod()'
+                //     public class MyClass2 : MyClass
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "MyClass2").WithArguments("MyNamespace.MyClass2", "MyNamespace.MyClass.MyMethod()").WithLocation(7, 18),
+                // (9,37): error CS0112: A static member cannot be marked as 'override'
+                //         override public static void MyMethod()   // CS0112, remove static keyword
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "MyMethod").WithArguments("override").WithLocation(9, 37),
+                // (9,37): warning CS0114: 'MyClass2.MyMethod()' hides inherited member 'MyClass.MyMethod()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //         override public static void MyMethod()   // CS0112, remove static keyword
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "MyMethod").WithArguments("MyNamespace.MyClass2.MyMethod()", "MyNamespace.MyClass.MyMethod()").WithLocation(9, 37)
+                );
         }
 
         [Fact]
@@ -2101,24 +2109,30 @@ class B : A
 ";
             var tree = Parse(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             CreateCompilation(tree).VerifyDiagnostics(
-    // (78): error CS0112: A static member 'B.P' cannot be marked as override, virtual, or abstract
-    //     protected static override object P { get { return null; } }
-    Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P").WithArguments("B.P").WithLocation(7, 38),
-    // (8,34): error CS0112: A static member 'B.Q' cannot be marked as override, virtual, or abstract
-    //     public static virtual object Q { get; }
-    Diagnostic(ErrorCode.ERR_StaticNotVirtual, "Q").WithArguments("B.Q").WithLocation(8, 34),
-    // (8,34): error CS8026: Feature 'readonly automatically implemented properties' is not available in C# 5. Please use language version 6 or greater.
-    //     public static virtual object Q { get; }
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "Q").WithArguments("readonly automatically implemented properties", "6").WithLocation(8, 34),
-    // (9,37): error CS0112: A static member 'B.R' cannot be marked as override, virtual, or abstract
-    //     internal static abstract object R { get; set; }
-    Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("B.R").WithLocation(9, 37),
-    // (9,41): error CS0513: 'B.R.get' is abstract but it is contained in non-abstract class 'B'
-    //     internal static abstract object R { get; set; }
-    Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("B.R.get", "B").WithLocation(9, 41),
-    // (9,46): error CS0513: 'B.R.set' is abstract but it is contained in non-abstract class 'B'
-    //     internal static abstract object R { get; set; }
-    Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("B.R.set", "B").WithLocation(9, 46));
+                // (5,7): error CS0534: 'B' does not implement inherited abstract member 'A.P.get'
+                // class B : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.P.get").WithLocation(5, 7),
+                // (7,38): error CS0112: A static member cannot be marked as 'override'
+                //     protected static override object P { get { return null; } }
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P").WithArguments("override").WithLocation(7, 38),
+                // (7,38): warning CS0114: 'B.P' hides inherited member 'A.P'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     protected static override object P { get { return null; } }
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "P").WithArguments("B.P", "A.P").WithLocation(7, 38),
+                // (8,34): error CS0112: A static member cannot be marked as 'virtual'
+                //     public static virtual object Q { get; }
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "Q").WithArguments("virtual").WithLocation(8, 34),
+                // (8,34): error CS8026: Feature 'readonly automatically implemented properties' is not available in C# 5. Please use language version 6 or greater.
+                //     public static virtual object Q { get; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "Q").WithArguments("readonly automatically implemented properties", "6").WithLocation(8, 34),
+                // (9,37): error CS0112: A static member cannot be marked as 'abstract'
+                //     internal static abstract object R { get; set; }
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("abstract").WithLocation(9, 37),
+                // (9,41): error CS0513: 'B.R.get' is abstract but it is contained in non-abstract type 'B'
+                //     internal static abstract object R { get; set; }
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("B.R.get", "B").WithLocation(9, 41),
+                // (9,46): error CS0513: 'B.R.set' is abstract but it is contained in non-abstract type 'B'
+                //     internal static abstract object R { get; set; }
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("B.R.set", "B").WithLocation(9, 46));
         }
 
         [Fact]
@@ -2136,12 +2150,29 @@ abstract class B : A
     internal static abstract event System.Action R;
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_StaticNotVirtual, Line = 7, Column = 51 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_StaticNotVirtual, Line = 8, Column = 47 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_StaticNotVirtual, Line = 9, Column = 50 },
-                new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedEvent, Line = 7, Column = 51, IsWarning = true },
-                new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedEvent, Line = 8, Column = 47, IsWarning = true });
+            CreateCompilation(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (7,51): error CS0112: A static member cannot be marked as 'override'
+                //     protected static override event System.Action P;
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P").WithArguments("override").WithLocation(7, 51),
+                // (7,51): error CS0533: 'B.P' hides inherited abstract member 'A.P'
+                //     protected static override event System.Action P;
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "P").WithArguments("B.P", "A.P").WithLocation(7, 51),
+                // (7,51): warning CS0114: 'B.P' hides inherited member 'A.P'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     protected static override event System.Action P;
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "P").WithArguments("B.P", "A.P").WithLocation(7, 51),
+                // (7,51): warning CS0067: The event 'B.P' is never used
+                //     protected static override event System.Action P;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "P").WithArguments("B.P").WithLocation(7, 51),
+                // (8,47): error CS0112: A static member cannot be marked as 'virtual'
+                //     public static virtual event System.Action Q;
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "Q").WithArguments("virtual").WithLocation(8, 47),
+                // (8,47): warning CS0067: The event 'B.Q' is never used
+                //     public static virtual event System.Action Q;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Q").WithArguments("B.Q").WithLocation(8, 47),
+                // (9,50): error CS0112: A static member cannot be marked as 'abstract'
+                //     internal static abstract event System.Action R;
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("abstract").WithLocation(9, 50)
+                );
         }
 
         [Fact]
@@ -3194,10 +3225,10 @@ class MyClass2 : MyClass
             CreateCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
                 // (3,17): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     sealed void M();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M").WithArguments("sealed", "7.0", "8.0").WithLocation(3, 17),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M").WithArguments("sealed", "7.0", "8.0").WithLocation(3, 17),
                 // (4,19): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     sealed object P { get; }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P").WithArguments("sealed", "7.0", "8.0").WithLocation(4, 19),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P").WithArguments("sealed", "7.0", "8.0").WithLocation(4, 19),
                 // (4,23): error CS0501: 'I.P.get' must declare a body because it is not marked abstract, extern, or partial
                 //     sealed object P { get; }
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I.P.get").WithLocation(4, 23),
@@ -3649,6 +3680,31 @@ class BAttribute : System.Attribute { }
         }
 
         [Fact]
+        public void PartialMethodRenameParameters()
+        {
+            var text = @"namespace NS
+{
+    public partial class MyClass
+    {
+        partial void F<T, U>(T t) where T : class;
+        partial void F<T, U>(T tt) where T : class {}
+    }
+}";
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (6,22): warning CS8826: Partial method declarations 'void MyClass.F<T, U>(T t)' and 'void MyClass.F<T, U>(T tt)' have signature differences.
+                //         partial void F<T, U>(T tt) where T : class {}
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F").WithArguments("void MyClass.F<T, U>(T t)", "void MyClass.F<T, U>(T tt)").WithLocation(6, 22)
+                );
+
+            var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
+            var type1 = ns.GetTypeMembers("MyClass").Single() as NamedTypeSymbol;
+            Assert.Equal(0, type1.TypeParameters.Length);
+            var f = type1.GetMembers("F").Single() as MethodSymbol;
+            Assert.Equal("T t", f.Parameters[0].ToTestDisplayString());
+        }
+
+        [Fact]
         public void PartialMethodRenameTypeParameters()
         {
             var text = @"namespace NS
@@ -3659,7 +3715,12 @@ class BAttribute : System.Attribute { }
         partial void F<U, T>(U u) where U : class {}
     }
 }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (6,22): warning CS8826: Partial method declarations 'void MyClass.F<T, U>(T t)' and 'void MyClass.F<U, T>(U u)' have signature differences.
+                //         partial void F<U, T>(U u) where U : class {}
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F").WithArguments("void MyClass.F<T, U>(T t)", "void MyClass.F<U, T>(U u)").WithLocation(6, 22)
+                );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns.GetTypeMembers("MyClass").Single() as NamedTypeSymbol;
@@ -3801,7 +3862,7 @@ namespace N
         }
 
         /// <summary>
-        /// Class1.dll: error CS0268: Imported type 'C1' is invalid. It contains a circular base class dependency.
+        /// Class1.dll: error CS0268: Imported type 'C1' is invalid. It contains a circular base type dependency.
         /// </summary>
         [Fact()]
         public void CS0268ERR_ImportedCircularBase01()
@@ -3817,10 +3878,10 @@ namespace N
 
             var comp = CreateCompilation(text, new[] { ref1, ref2 });
             comp.VerifyDiagnostics(
-                // (3,23): error CS0268: Imported type 'C2' is invalid. It contains a circular base class dependency.
+                // (3,23): error CS0268: Imported type 'C2' is invalid. It contains a circular base type dependency.
                 //     public class C3 : C1 { }
                 Diagnostic(ErrorCode.ERR_ImportedCircularBase, "C1").WithArguments("C2", "C1"),
-                // (4,22): error CS0268: Imported type 'I2' is invalid. It contains a circular base class dependency.
+                // (4,22): error CS0268: Imported type 'I2' is invalid. It contains a circular base type dependency.
                 //     public interface I3 : I1 { }
                 Diagnostic(ErrorCode.ERR_ImportedCircularBase, "I3").WithArguments("I2", "I1")
                 );
@@ -4085,13 +4146,13 @@ namespace N
                 .VerifyDiagnostics(
                 // (4,21): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     int Q { private get; set; } // CS0275
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.0", "8.0").WithLocation(4, 21),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "get").WithArguments("private", "7.0", "8.0").WithLocation(4, 21),
                 // (4,21): error CS0442: 'I.Q.get': abstract properties cannot have private accessors
                 //     int Q { private get; set; } // CS0275
                 Diagnostic(ErrorCode.ERR_PrivateAbstractAccessor, "get").WithArguments("I.Q.get").WithLocation(4, 21),
                 // (5,30): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     object R { get; internal set; } // CS0275
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7.0", "8.0").WithLocation(5, 30)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "set").WithArguments("internal", "7.0", "8.0").WithLocation(5, 30)
                 );
         }
 
@@ -4109,13 +4170,13 @@ namespace N
                 .VerifyDiagnostics(
                 // (4,32): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     int this[char x] { private get; set; } // CS0275
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.0", "8.0").WithLocation(4, 32),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "get").WithArguments("private", "7.0", "8.0").WithLocation(4, 32),
                 // (4,32): error CS0442: 'I.this[char].get': abstract properties cannot have private accessors
                 //     int this[char x] { private get; set; } // CS0275
                 Diagnostic(ErrorCode.ERR_PrivateAbstractAccessor, "get").WithArguments("I.this[char].get").WithLocation(4, 32),
                 // (5,43): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     object this[string x] { get; internal set; } // CS0275
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7.0", "8.0").WithLocation(5, 43)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "set").WithArguments("internal", "7.0", "8.0").WithLocation(5, 43)
                 );
         }
 
@@ -7211,9 +7272,9 @@ extern alias FT1;
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (3,25): error CS0441: 'NS.Test': a class cannot be both static and sealed
+                // (3,25): error CS0441: 'NS.Test': a type cannot be both static and sealed
                 Diagnostic(ErrorCode.ERR_SealedStaticClass, "Test").WithArguments("NS.Test"),
-                // (11,25): error CS0441: 'NS.StaticClass': a class cannot be both static and sealed
+                // (11,25): error CS0441: 'NS.StaticClass': a type cannot be both static and sealed
                 Diagnostic(ErrorCode.ERR_SealedStaticClass, "StaticClass").WithArguments("NS.StaticClass"),
 
                 //CONSIDER: Dev10 skips these cascading errors
@@ -7721,9 +7782,27 @@ class D : C<int>
    public override void F(int t) {}   // CS0462
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeOverrideMatches, Line = 3, Column = 24, IsWarning = true },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AmbigOverride, Line = 9, Column = 25 });
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
+            {
+                comp.VerifyDiagnostics(
+                    // (9,25): error CS0462: The inherited members 'C<T>.F(T)' and 'C<T>.F(int)' have the same signature in type 'D', so they cannot be overridden
+                    //    public override void F(int t) {}   // CS0462
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "F").WithArguments("C<T>.F(T)", "C<T>.F(int)", "D").WithLocation(9, 25)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (3,24): warning CS1957: Member 'D.F(int)' overrides 'C<int>.F(int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                    //    public virtual void F(T t) {}
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "F").WithArguments("C<int>.F(int)", "D.F(int)").WithLocation(3, 24),
+                    // (9,25): error CS0462: The inherited members 'C<T>.F(T)' and 'C<T>.F(int)' have the same signature in type 'D', so they cannot be overridden
+                    //    public override void F(int t) {}   // CS0462
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "F").WithArguments("C<T>.F(T)", "C<T>.F(int)", "D").WithLocation(9, 25)
+                    );
+            }
         }
 
         [Fact]
@@ -8326,19 +8405,19 @@ namespace N2
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (8,36): error CS0513: 'clx.P.get' is abstract but it is contained in non-abstract class 'clx'
+                // (8,36): error CS0513: 'clx.P.get' is abstract but it is contained in non-abstract type 'clx'
                 //         public abstract object P { get; set; }
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("NS.clx.P.get", "NS.clx").WithLocation(8, 36),
-                // (8,41): error CS0513: 'clx.P.set' is abstract but it is contained in non-abstract class 'clx'
+                // (8,41): error CS0513: 'clx.P.set' is abstract but it is contained in non-abstract type 'clx'
                 //         public abstract object P { get; set; }
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("NS.clx.P.set", "NS.clx").WithLocation(8, 41),
-                // (6,34): error CS0513: 'clx.M2()' is abstract but it is contained in non-abstract class 'clx'
+                // (6,34): error CS0513: 'clx.M2()' is abstract but it is contained in non-abstract type 'clx'
                 //         internal abstract object M2();
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M2").WithArguments("NS.clx.M2()", "NS.clx").WithLocation(6, 34),
-                // (7,42): error CS0513: 'clx.M3(sbyte)' is abstract but it is contained in non-abstract class 'clx'
+                // (7,42): error CS0513: 'clx.M3(sbyte)' is abstract but it is contained in non-abstract type 'clx'
                 //         protected abstract internal void M3(sbyte p);
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M3").WithArguments("NS.clx.M3(sbyte)", "NS.clx").WithLocation(7, 42),
-                // (5,30): error CS0513: 'clx.M1()' is abstract but it is contained in non-abstract class 'clx'
+                // (5,30): error CS0513: 'clx.M1()' is abstract but it is contained in non-abstract type 'clx'
                 //         abstract public void M1();
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M1").WithArguments("NS.clx.M1()", "NS.clx").WithLocation(5, 30));
         }
@@ -8354,13 +8433,13 @@ class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (4,41): error CS0513: 'C.E' is abstract but it is contained in non-abstract class 'C'
+                // (4,41): error CS0513: 'C.E' is abstract but it is contained in non-abstract type 'C'
                 //     public abstract event System.Action E;
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "E").WithArguments("C.E", "C"),
-                // (5,39): error CS0513: 'C.this[int].get' is abstract but it is contained in non-abstract class 'C'
+                // (5,39): error CS0513: 'C.this[int].get' is abstract but it is contained in non-abstract type 'C'
                 //     public abstract int this[int x] { get; set; }
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("C.this[int].get", "C"),
-                // (5,44): error CS0513: 'C.this[int].set' is abstract but it is contained in non-abstract class 'C'
+                // (5,44): error CS0513: 'C.this[int].set' is abstract but it is contained in non-abstract type 'C'
                 //     public abstract int this[int x] { get; set; }
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("C.this[int].set", "C"));
         }
@@ -8909,7 +8988,7 @@ struct S6<T>
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyDiagnostics(
                 // (5,16): error CS0525: Interfaces cannot contain instance fields
@@ -9040,7 +9119,7 @@ struct S6<T>
     }
 }
 ";
-            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (14,39): error CS1002: ; expected
                 //         T P { get { return default(T) } set { } }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(14, 39)
@@ -9528,7 +9607,7 @@ public class Clx
     }
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (11,20): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //         void IFace.F();   // CS0541
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F").WithArguments("default interface implementation", "8.0").WithLocation(11, 20),
@@ -10139,16 +10218,16 @@ public sealed class C
             // events themselves.  On the other hand, property accessors can have modifiers,
             // whereas event accessors cannot.
             CreateCompilation(text).VerifyDiagnostics(
-                // (4,40): error CS0549: 'C.E' is a new virtual member in sealed class 'C'
+                // (4,40): error CS0549: 'C.E' is a new virtual member in sealed type 'C'
                 //     public virtual event System.Action E;
                 Diagnostic(ErrorCode.ERR_NewVirtualInSealed, "E").WithArguments("C.E", "C"),
-                // (5,40): error CS0549: 'C.F' is a new virtual member in sealed class 'C'
+                // (5,40): error CS0549: 'C.F' is a new virtual member in sealed type 'C'
                 //     public virtual event System.Action F { add { } remove { } }
                 Diagnostic(ErrorCode.ERR_NewVirtualInSealed, "F").WithArguments("C.F", "C"),
-                // (6,38): error CS0549: 'C.this[int].get' is a new virtual member in sealed class 'C'
+                // (6,38): error CS0549: 'C.this[int].get' is a new virtual member in sealed type 'C'
                 //     public virtual int this[int x] { get { return 0; } set { } }
                 Diagnostic(ErrorCode.ERR_NewVirtualInSealed, "get").WithArguments("C.this[int].get", "C"),
-                // (6,56): error CS0549: 'C.this[int].set' is a new virtual member in sealed class 'C'
+                // (6,56): error CS0549: 'C.this[int].set' is a new virtual member in sealed type 'C'
                 //     public virtual int this[int x] { get { return 0; } set { } }
                 Diagnostic(ErrorCode.ERR_NewVirtualInSealed, "set").WithArguments("C.this[int].set", "C"),
 
@@ -10264,10 +10343,10 @@ public struct C
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (5,37): error CS0553: 'D.implicit operator B(D)': user-defined conversions to or from a base class are not allowed
+                // (5,37): error CS0553: 'D.implicit operator B(D)': user-defined conversions to or from a base type are not allowed
                 //     public static implicit operator B(D d) // CS0553
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "B").WithArguments("D.implicit operator B(D)"),
-                // (12,37): error CS0553: 'C.implicit operator C?(object)': user-defined conversions to or from a base class are not allowed
+                // (12,37): error CS0553: 'C.implicit operator C?(object)': user-defined conversions to or from a base type are not allowed
                 //     public static implicit operator C?(object c) // CS0553
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "C?").WithArguments("C.implicit operator C?(object)"));
         }
@@ -10287,7 +10366,7 @@ public class D : B {}
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-// (4,37): error CS0554: 'B.implicit operator B(D)': user-defined conversions to or from a derived class are not allowed
+// (4,37): error CS0554: 'B.implicit operator B(D)': user-defined conversions to or from a derived type are not allowed
 //     public static implicit operator B(D d) // CS0554
 Diagnostic(ErrorCode.ERR_ConversionWithDerived, "B").WithArguments("B.implicit operator B(D)")
                 );
@@ -10312,11 +10391,11 @@ public struct S
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-// (4,37): error CS0555: User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type
+// (4,37): error CS0555: User-defined operator cannot convert a type to itself
 //     public static implicit operator MyClass(MyClass aa)   // CS0555
 Diagnostic(ErrorCode.ERR_IdentityConversion, "MyClass"),
 
-// (11,37): error CS0555: User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type
+// (11,37): error CS0555: User-defined operator cannot convert a type to itself
 //     public static implicit operator S?(S s) { return s; }
 Diagnostic(ErrorCode.ERR_IdentityConversion, "S?")
                 );
@@ -10575,24 +10654,29 @@ interface IA
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (12,13): error CS0573: 'cly': cannot have instance property or field initializers in structs
+                // (12,13): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         clx a = new clx();   // CS8036
-                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "a").WithArguments("x.cly").WithLocation(12, 13),
-                // (13,13): error CS0573: 'cly': cannot have instance property or field initializers in structs
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "a").WithArguments("struct field initializers", "10.0").WithLocation(12, 13),
+                // (13,13): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         int i = 7;           // CS8036
-                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "i").WithArguments("x.cly").WithLocation(13, 13),
-                // (12,13): warning CS0169: The field 'cly.a' is never used
-                //         clx a = new clx();   // CS8036
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("x.cly.a").WithLocation(12, 13),
-                // (13,13): warning CS0169: The field 'cly.i' is never used
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "i").WithArguments("struct field initializers", "10.0").WithLocation(13, 13),
+                // (13,13): warning CS0414: The field 'cly.i' is assigned but its value is never used
                 //         int i = 7;           // CS8036
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("x.cly.i").WithLocation(13, 13),
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i").WithArguments("x.cly.i").WithLocation(13, 13),
                 // (15,20): warning CS0414: The field 'cly.s' is assigned but its value is never used
                 //         static int s = 2;    // no error
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20)
-            );
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20));
+
+            comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (13,13): warning CS0414: The field 'cly.i' is assigned but its value is never used
+                //         int i = 7;           // CS8036
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i").WithArguments("x.cly.i").WithLocation(13, 13),
+                // (15,20): warning CS0414: The field 'cly.s' is assigned but its value is never used
+                //         static int s = 2;    // no error
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20));
         }
 
         [Fact]
@@ -10613,13 +10697,21 @@ interface IA
 ";
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5));
             comp.VerifyDiagnostics(
-    // (5,16): error CS0568: Structs cannot contain explicit parameterless constructors
-    //         public S1() {}
-    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S1").WithLocation(5, 16),
-    // (9,13): error CS0568: Structs cannot contain explicit parameterless constructors
-    //             S2() { }
-    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S2").WithLocation(9, 13)
-   );
+                // (5,16): error CS8026: Feature 'parameterless struct constructors' is not available in C# 5. Please use language version 10.0 or greater.
+                //         public S1() {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "S1").WithArguments("parameterless struct constructors", "10.0").WithLocation(5, 16),
+                // (9,13): error CS8026: Feature 'parameterless struct constructors' is not available in C# 5. Please use language version 10.0 or greater.
+                //             S2() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "S2").WithArguments("parameterless struct constructors", "10.0").WithLocation(9, 13),
+                // (9,13): error CS8938: The parameterless struct constructor must be 'public'.
+                //             S2() { }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S2").WithLocation(9, 13));
+
+            comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (9,13): error CS8918: The parameterless struct constructor must be 'public'.
+                //             S2() { }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S2").WithLocation(9, 13));
         }
 
         [Fact]
@@ -10718,7 +10810,64 @@ namespace Globals.Errors.ResolveInheritance
         }
 
         [Fact]
-        public void CS0577ERR_ConditionalOnSpecialMethod()
+        public void CS0577ERR_ConditionalOnSpecialMethod_01()
+        {
+            var sourceA =
+@"#pragma warning disable 436
+using System.Diagnostics;
+class Program
+{
+    [Conditional("""")] Program() { }
+}";
+            var sourceB =
+@"namespace System.Diagnostics
+{
+    public class ConditionalAttribute : Attribute
+    {
+        public ConditionalAttribute(string s) { }
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            comp.VerifyDiagnostics(
+                // (5,6): error CS0577: The Conditional attribute is not valid on 'Program.Program()' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation
+                //     [Conditional("")] Program() { }
+                Diagnostic(ErrorCode.ERR_ConditionalOnSpecialMethod, @"Conditional("""")").WithArguments("Program.Program()").WithLocation(5, 6));
+        }
+
+        [Fact]
+        public void CS0577ERR_ConditionalOnSpecialMethod_02()
+        {
+            var source =
+@"using System.Diagnostics;
+class Program
+{
+    [Conditional("""")] ~Program() { }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,6): error CS0577: The Conditional attribute is not valid on 'Program.~Program()' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation
+                //     [Conditional("")] ~Program() { }
+                Diagnostic(ErrorCode.ERR_ConditionalOnSpecialMethod, @"Conditional("""")").WithArguments("Program.~Program()").WithLocation(4, 6));
+        }
+
+        [Fact]
+        public void CS0577ERR_ConditionalOnSpecialMethod_03()
+        {
+            var source =
+@"using System.Diagnostics;
+class C
+{
+    [Conditional("""")] public static C operator !(C c) => c;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,6): error CS0577: The Conditional attribute is not valid on 'C.operator !(C)' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation
+                //     [Conditional("")] public static C operator !(C c) => c;
+                Diagnostic(ErrorCode.ERR_ConditionalOnSpecialMethod, @"Conditional("""")").WithArguments("C.operator !(C)").WithLocation(4, 6));
+        }
+
+        [Fact]
+        public void CS0577ERR_ConditionalOnSpecialMethod_04()
         {
             var text = @"interface I
 {
@@ -10732,7 +10881,7 @@ public class MyClass : I
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (8,6): error CS0577: The Conditional attribute is not valid on 'MyClass.I.m()' because it is a constructor, destructor, operator, or explicit interface implementation
+                // (8,6): error CS0577: The Conditional attribute is not valid on 'MyClass.I.m()' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation
                 //     [System.Diagnostics.Conditional("a")]   // CS0577
                 Diagnostic(ErrorCode.ERR_ConditionalOnSpecialMethod, @"System.Diagnostics.Conditional(""a"")").WithArguments("MyClass.I.m()").WithLocation(8, 6));
         }
@@ -12409,13 +12558,14 @@ class A<T, S>
         public void CS0698ERR_GenericDerivingFromAttribute01()
         {
             var text =
-@"class C<T> : System.Attribute  // CS0698
+@"class C<T> : System.Attribute
 {
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
-                // (1,14): error CS0698: A generic type cannot derive from 'System.Attribute' because it is an attribute class
-                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "System.Attribute").WithArguments("System.Attribute").WithLocation(1, 14));
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,14): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // class C<T> : System.Attribute
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(1, 14));
         }
 
         [Fact]
@@ -12428,11 +12578,13 @@ class C<T>
 {
     class B : A { }
 }";
-            CreateCompilation(text).VerifyDiagnostics(
-                // (2,14): error CS0698: A generic type cannot derive from 'A' because it is an attribute class
-                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "A").WithArguments("A").WithLocation(2, 14),
-                // (5,15): error CS0698: A generic type cannot derive from 'A' because it is an attribute class
-                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "A").WithArguments("A").WithLocation(5, 15));
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (2,14): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // class B<T> : A { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A").WithArguments("generic attributes").WithLocation(2, 14),
+                // (5,15): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     class B : A { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A").WithArguments("generic attributes").WithLocation(5, 15));
         }
 
         [Fact]
@@ -12961,12 +13113,12 @@ static class C
             };
 
             // in /warn:5 we diagnose "is" and "as" operators with a static type.
-            var strictComp = CreateCompilation(text, options: TestOptions.ReleaseDll.WithWarningLevel(5));
+            var strictComp = CreateCompilation(text);
             strictComp.VerifyDiagnostics(strictDiagnostics);
 
             // these rest of the diagnostics correspond to those produced by the native compiler.
             var regularDiagnostics = strictDiagnostics.Where(d => !d.Code.Equals((int)ErrorCode.WRN_StaticInAsOrIs)).ToArray();
-            var regularComp = CreateCompilation(text);
+            var regularComp = CreateCompilation(text, options: TestOptions.ReleaseDll.WithWarningLevel(4));
             regularComp.VerifyDiagnostics(regularDiagnostics);
         }
 
@@ -13166,7 +13318,7 @@ static class S
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                // new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.WRN_ParameterIsStaticClass, Line = 12, Column = 14, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 16, Column = 21 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 22, Column = 20 });
 
@@ -13222,6 +13374,8 @@ class C
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
+                // (12,14): warning CS8898: 'NS.D<T>': static types cannot be used as return types
+                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "M").WithArguments("NS.D<T>").WithLocation(12, 14),
                 // (16,25): error CS0722: 'NS.C': static types cannot be used as return types
                 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "F").WithArguments("NS.C").WithLocation(16, 25),
                 // (23,29): error CS0722: 'NS.D<sbyte>': static types cannot be used as return types
@@ -13261,11 +13415,11 @@ class C
             CreateCompilation(source).VerifyDiagnostics(
                 // (4,23): error CS0722: 'S': static types cannot be used as return types
                 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "F").WithArguments("S").WithLocation(4, 23),
-                // (4,23): error CS0513: 'C.F()' is abstract but it is contained in non-abstract class 'C'
+                // (4,23): error CS0513: 'C.F()' is abstract but it is contained in non-abstract type 'C'
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "F").WithArguments("C.F()", "C").WithLocation(4, 23),
-                // (5,27): error CS0513: 'C.P.get' is abstract but it is contained in non-abstract class 'C'
+                // (5,27): error CS0513: 'C.P.get' is abstract but it is contained in non-abstract type 'C'
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("C.P.get", "C").WithLocation(5, 27),
-                // (6,27): error CS0513: 'C.Q.set' is abstract but it is contained in non-abstract class 'C'
+                // (6,27): error CS0513: 'C.Q.set' is abstract but it is contained in non-abstract type 'C'
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("C.Q.set", "C").WithLocation(6, 27),
                 // (5,27): error CS0722: 'S': static types cannot be used as return types
                 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "get").WithArguments("S").WithLocation(5, 27),
@@ -13315,6 +13469,49 @@ public class Test
                 // (4,12): error CS0729: Type 'Test' is defined in this assembly, but a type forwarder is specified for it
                 // [assembly: TypeForwardedTo(typeof(Test))]
                 Diagnostic(ErrorCode.ERR_ForwardedTypeInThisAssembly, "TypeForwardedTo(typeof(Test))").WithArguments("Test"));
+        }
+
+        [Fact, WorkItem(38256, "https://github.com/dotnet/roslyn/issues/38256")]
+        public void ParameterAndReturnTypesAreStaticClassesWarning()
+        {
+            var source = @"
+static class C {}
+interface I
+{
+    void M1(C c); // 1
+    C M2(); // 2
+    C Prop { get; set; } // 3, 4
+    C this[C c] { get; set; } // 5, 6, 7
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyDiagnostics(
+                // (5,10): warning CS8897: 'C': static types cannot be used as parameters
+                //     void M1(C c); // 1
+                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "M1").WithArguments("C").WithLocation(5, 10),
+                // (6,7): warning CS8898: 'C': static types cannot be used as return types
+                //     C M2(); // 2
+                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "M2").WithArguments("C").WithLocation(6, 7),
+                // (7,14): warning CS8898: 'C': static types cannot be used as return types
+                //     C Prop { get; set; } // 3, 4
+                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "get").WithArguments("C").WithLocation(7, 14),
+                // (7,19): warning CS8897: 'C': static types cannot be used as parameters
+                //     C Prop { get; set; } // 3, 4
+                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "set").WithArguments("C").WithLocation(7, 19),
+                // (8,7): warning CS8897: 'C': static types cannot be used as parameters
+                //     C this[C c] { get; set; } // 5, 6, 7
+                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "this").WithArguments("C").WithLocation(8, 7),
+                // (8,19): warning CS8898: 'C': static types cannot be used as return types
+                //     C this[C c] { get; set; } // 5, 6, 7
+                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "get").WithArguments("C").WithLocation(8, 19),
+                // (8,24): warning CS8897: 'C': static types cannot be used as parameters
+                //     C this[C c] { get; set; } // 5, 6, 7
+                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "set").WithArguments("C").WithLocation(8, 24)
+            );
+
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(4));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -13623,13 +13820,13 @@ partial class C
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial int f;
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
-                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial object P { get { return null; } }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
-                // (6,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (6,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial int this[int index]
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(6, 5),
                 // (4,17): warning CS0169: The field 'C.f' is never used
@@ -13897,6 +14094,12 @@ partial class C<X>
                 // (32,18): error CS0761: Partial method declarations of 'C<X>.K1<T, U>()' have inconsistent constraints for type parameter 'U'
                 //     partial void K1<T, U>() where T : class where U : IA<T> { }
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "K1").WithArguments("C<X>.K1<T, U>()", "U").WithLocation(32, 18),
+                // (32,18): warning CS8826: Partial method declarations 'void C<X>.K1<U, T>()' and 'void C<X>.K1<T, U>()' have differences in parameter names, parameter types, or return types.
+                //     partial void K1<T, U>() where T : class where U : IA<T> { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "K1").WithArguments("void C<X>.K1<U, T>()", "void C<X>.K1<T, U>()").WithLocation(32, 18),
+                // (33,18): warning CS8826: Partial method declarations 'void C<X>.K2<T1, T2>()' and 'void C<X>.K2<T, U>()' have differences in parameter names, parameter types, or return types.
+                //     partial void K2<T, U>() where T : class where U : T, IA<U> { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "K2").WithArguments("void C<X>.K2<T1, T2>()", "void C<X>.K2<T, U>()").WithLocation(33, 18),
                 // (38,18): error CS0761: Partial method declarations of 'C<X>.A1<T>()' have inconsistent constraints for type parameter 'T'
                 //     partial void A1<T>() where T : class { }
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "A1").WithArguments("C<X>.A1<T>()", "T").WithLocation(38, 18));
@@ -14400,7 +14603,7 @@ struct U<T>
                 .VerifyDiagnostics(
                     // (3,17): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                     //     static void M(this object o);
-                    Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M").WithArguments("static", "7.0", "8.0").WithLocation(3, 17),
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M").WithArguments("static", "7.0", "8.0").WithLocation(3, 17),
                     // (1,11): error CS1106: Extension method must be defined in a non-generic static class
                     // interface I
                     Diagnostic(ErrorCode.ERR_BadExtensionAgg, "I").WithLocation(1, 11),
@@ -15063,7 +15266,7 @@ class AAttribute : Attribute { }
                 // (4,34): error CS1001: Identifier expected
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "2"),
-                // (4,36): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                // (4,36): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";"),
                 // (3,30): error CS7092: A fixed buffer may only have one dimension.
@@ -15390,12 +15593,15 @@ public class Derived : Base
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 10, Column = 14 }, //Base.myProperty.get not impl
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 10, Column = 14 }, //Base.myProperty.set not impl
-                                                                                                                        // COMPARE: InheritanceBindingTests.TestNoPropertyToOverride
-
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeTypeOnOverride, Line = 13, Column = 28 } //key error, property type changed
+            // The set accessor has the wrong parameter type so is not implemented.
+            // The override get accessor has the right signature (no parameters) so is implemented, though with the wrong return type.
+            CreateCompilation(text).VerifyDiagnostics(
+                // (10,14): error CS0534: 'Derived' does not implement inherited abstract member 'Base.myProperty.set'
+                // public class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.myProperty.set").WithLocation(10, 14),
+                // (13,28): error CS1715: 'Derived.myProperty': type must be 'int' to match overridden member 'Base.myProperty'
+                //     public override double myProperty  // CS1715
+                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "myProperty").WithArguments("Derived.myProperty", "Base.myProperty", "int").WithLocation(13, 28)
                 );
         }
 
@@ -17613,13 +17819,13 @@ sealed class D : C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (13,21): warning CS0628: 'D.Nested': new protected member declared in sealed class
+                // (13,21): warning CS0628: 'D.Nested': new protected member declared in sealed type
                 //     protected class Nested {} // CS0628
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "Nested").WithArguments("D.Nested"),
-                // (11,28): warning CS0628: 'D.Q': new protected member declared in sealed class
+                // (11,28): warning CS0628: 'D.Q': new protected member declared in sealed type
                 //     protected internal int Q { get { return 0; } } // CS0628
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "Q").WithArguments("D.Q"),
-                // (10,20): warning CS0628: 'D.N()': new protected member declared in sealed class
+                // (10,20): warning CS0628: 'D.N()': new protected member declared in sealed type
                 //     protected void N() { } // CS0628
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "N").WithArguments("D.N()")
                 );
@@ -17635,7 +17841,7 @@ sealed class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (4,35): warning CS0628: 'C.E': new protected member declared in sealed class
+                // (4,35): warning CS0628: 'C.E': new protected member declared in sealed type
                 //     protected event System.Action E;
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "E").WithArguments("C.E"),
                 // (4,35): warning CS0067: The event 'C.E' is never used
@@ -17665,13 +17871,13 @@ sealed class D : C
                 // (9,24): error CS0106: The modifier 'override' is not valid for this item
                 //     protected override D() { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "D").WithArguments("override").WithLocation(9, 24),
-                // (10,15): warning CS0628: 'D.D(byte)': new protected member declared in sealed class
+                // (10,15): warning CS0628: 'D.D(byte)': new protected member declared in sealed type
                 //     protected D(byte b) { }
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "D").WithArguments("D.D(byte)").WithLocation(10, 15),
-                // (11,24): warning CS0628: 'D.D(short)': new protected member declared in sealed class
+                // (11,24): warning CS0628: 'D.D(short)': new protected member declared in sealed type
                 //     protected internal D(short s) { }
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "D").WithArguments("D.D(short)").WithLocation(11, 24),
-                // (12,24): warning CS0628: 'D.D(int)': new protected member declared in sealed class
+                // (12,24): warning CS0628: 'D.D(int)': new protected member declared in sealed type
                 //     internal protected D(int i) { }
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "D").WithArguments("D.D(int)").WithLocation(12, 24));
         }
@@ -18265,7 +18471,8 @@ class Derived : Base<int, int>, IFace
         [Fact]
         public void CS1957WRN_MultipleRuntimeOverrideMatches()
         {
-            var text = @"class Base<TString>
+            var text =
+@"class Base<TString>
 {
     public virtual void Test(TString s, out int x)
     {
@@ -18280,8 +18487,22 @@ class Derived : Base<string>
     public override void Test(string s, ref int x) { }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeOverrideMatches, Line = 8, Column = 25, IsWarning = true });
+            // We no longer report a runtime ambiguous override (CS1957) because the compiler produces a methodimpl record to disambiguate.
+            CSharpCompilation comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
+            {
+                comp.VerifyDiagnostics(
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (8,25): warning CS1957: Member 'Derived.Test(string, ref int)' overrides 'Base<string>.Test(string, ref int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                    //     public virtual void Test(string s, ref int x) { } // CS1957
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Test").WithArguments("Base<string>.Test(string, ref int)", "Derived.Test(string, ref int)").WithLocation(8, 25)
+                    );
+            }
         }
 
         [Fact]
@@ -19915,13 +20136,13 @@ internal abstract object P { get; }
 internal abstract event System.EventHandler E;";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (1,24): error CS0513: 'M()' is abstract but it is contained in non-abstract class 'Script'
+                // (1,24): error CS0513: 'M()' is abstract but it is contained in non-abstract type 'Script'
                 // internal abstract void M();
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M").WithArguments("M()", "Script").WithLocation(1, 24),
-                // (2,30): error CS0513: 'P.get' is abstract but it is contained in non-abstract class 'Script'
+                // (2,30): error CS0513: 'P.get' is abstract but it is contained in non-abstract type 'Script'
                 // internal abstract object P { get; }
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("P.get", "Script").WithLocation(2, 30),
-                // (3,45): error CS0513: 'E' is abstract but it is contained in non-abstract class 'Script'
+                // (3,45): error CS0513: 'E' is abstract but it is contained in non-abstract type 'Script'
                 // internal abstract event System.EventHandler E;
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "E").WithArguments("E", "Script").WithLocation(3, 45));
         }
@@ -19937,13 +20158,13 @@ internal abstract object P { get; }
 internal abstract event System.EventHandler E;";
             var submission = CSharpCompilation.CreateScriptCompilation("s0.dll", SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Script), new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef });
             submission.VerifyDiagnostics(
-                // (1,24): error CS0513: 'M()' is abstract but it is contained in non-abstract class 'Script'
+                // (1,24): error CS0513: 'M()' is abstract but it is contained in non-abstract type 'Script'
                 // internal abstract void M();
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M").WithArguments("M()", "Script").WithLocation(1, 24),
-                // (2,30): error CS0513: 'P.get' is abstract but it is contained in non-abstract class 'Script'
+                // (2,30): error CS0513: 'P.get' is abstract but it is contained in non-abstract type 'Script'
                 // internal abstract object P { get; }
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("P.get", "Script").WithLocation(2, 30),
-                // (3,45): error CS0513: 'E' is abstract but it is contained in non-abstract class 'Script'
+                // (3,45): error CS0513: 'E' is abstract but it is contained in non-abstract type 'Script'
                 // internal abstract event System.EventHandler E;
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "E").WithArguments("E", "Script").WithLocation(3, 45));
         }
@@ -20347,7 +20568,7 @@ namespace Testspace
             var forwarderCompilation = CreateEmptyCompilation(
                 source: string.Empty,
                 references: new MetadataReference[] { ilModuleReference },
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                options: TestOptions.DebugDll,
                 assemblyName: "Forwarder");
 
             var csSource = @"
@@ -20412,7 +20633,7 @@ namespace UserSpace
             var forwarderCompilation = CreateEmptyCompilation(
                 source: string.Empty,
                 references: new MetadataReference[] { module1Reference, module2Reference },
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                options: TestOptions.DebugDll,
                 assemblyName: "Forwarder");
 
             var csSource = @"
@@ -20690,6 +20911,19 @@ partial class C {
                 // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(in int)'
                 //     partial void M(in int i) {}  
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(in int)").WithLocation(4, 18));
+        }
+
+        [Fact]
+        public void MethodWithNoReturnTypeShouldNotComplainAboutStaticCtor()
+        {
+            CreateCompilation(@"
+class X
+{
+    private static Y(int i) {}
+}").VerifyDiagnostics(
+                // (4,20): error CS1520: Method must have a return type
+                //     private static Y(int i) {}
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Y").WithLocation(4, 20));
         }
     }
 }

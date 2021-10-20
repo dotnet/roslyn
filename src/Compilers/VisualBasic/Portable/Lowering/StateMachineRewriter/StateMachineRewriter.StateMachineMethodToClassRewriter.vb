@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _hoistedVariables As IReadOnlySet(Of Symbol) = Nothing
 
             Private ReadOnly _synthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser
-            Private _nextFreeHoistedLocalSlot As Integer
+            Private ReadOnly _nextFreeHoistedLocalSlot As Integer
 
             Public Sub New(F As SyntheticBoundNodeFactory,
                            stateField As FieldSymbol,
@@ -74,16 +74,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            synthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser,
                            slotAllocatorOpt As VariableSlotAllocator,
                            nextFreeHoistedLocalSlot As Integer,
-                           Diagnostics As DiagnosticBag)
+                           diagnostics As BindingDiagnosticBag)
 
-                MyBase.New(slotAllocatorOpt, F.CompilationState, Diagnostics, preserveOriginalLocals:=False)
+                MyBase.New(slotAllocatorOpt, F.CompilationState, diagnostics, preserveOriginalLocals:=False)
 
                 Debug.Assert(F IsNot Nothing)
                 Debug.Assert(stateField IsNot Nothing)
                 Debug.Assert(hoistedVariables IsNot Nothing)
                 Debug.Assert(initialProxies IsNot Nothing)
                 Debug.Assert(nextFreeHoistedLocalSlot >= 0)
-                Debug.Assert(Diagnostics IsNot Nothing)
+                Debug.Assert(diagnostics IsNot Nothing)
 
                 Me.F = F
                 Me.StateField = stateField

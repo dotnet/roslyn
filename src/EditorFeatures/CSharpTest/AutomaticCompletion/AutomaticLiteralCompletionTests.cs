@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
@@ -430,14 +433,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),
-                BraceCompletionSessionProvider.SingleQuote.OpenCharacter, BraceCompletionSessionProvider.SingleQuote.CloseCharacter);
+                SingleQuote.OpenCharacter, SingleQuote.CloseCharacter);
         }
 
         internal static Holder CreateSessionDoubleQuote(string code)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),
-                BraceCompletionSessionProvider.DoubleQuote.OpenCharacter, BraceCompletionSessionProvider.DoubleQuote.CloseCharacter);
+                DoubleQuote.OpenCharacter, DoubleQuote.CloseCharacter);
         }
     }
 }

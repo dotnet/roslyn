@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 
 #if CODE_STYLE
@@ -88,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return GetOption(analyzerOptions, option, language, syntaxTree, cancellationToken);
         }
 
-        public static bool TryGetEditorConfigOption<T>(this AnalyzerOptions analyzerOptions, TOption option, SyntaxTree syntaxTree, out T value)
+        public static bool TryGetEditorConfigOption<T>(this AnalyzerOptions analyzerOptions, TOption option, SyntaxTree syntaxTree, [MaybeNullWhen(false)] out T value)
         {
             var configOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
             return configOptions.TryGetEditorConfigOption(option, out value);

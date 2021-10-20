@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            SolutionCrawlerOptions.BackgroundAnalysisScopeOption);
+            SolutionCrawlerOptions.BackgroundAnalysisScopeOption,
+            SolutionCrawlerOptions.SolutionBackgroundAnalysisScopeOption);
     }
 }

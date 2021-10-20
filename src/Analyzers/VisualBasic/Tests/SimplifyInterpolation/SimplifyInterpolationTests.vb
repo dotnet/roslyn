@@ -32,9 +32,7 @@ End Class", parameters)
 
                 Assert.Equal(
                     {
-                        ("IDE0071", DiagnosticSeverity.Info),
-                        ("IDE0071WithoutSuggestion", DiagnosticSeverity.Hidden),
-                        ("IDE0071WithoutSuggestion", DiagnosticSeverity.Hidden)
+                        ("IDE0071", DiagnosticSeverity.Info)
                     },
                     diagnostics.Select(Function(d) (d.Descriptor.Id, d.Severity)))
             End Using
@@ -150,19 +148,13 @@ Class C
 End Class")
         End Function
 
-        <Fact>
-        Public Async Function PadLeftWithComplexConstantExpression() As Task
-            Await TestInRegularAndScriptAsync("
+        <Fact, WorkItem(49712, "https://github.com/dotnet/roslyn/issues/49712")>
+        Public Async Function PadLeftWithNonLiteralConstantExpression() As Task
+            Await TestMissingInRegularAndScriptAsync("
 Class C
     Sub M(someValue As String)
         Const someConstant As Integer = 1
-        Dim v = $""prefix {someValue{|Unnecessary:[||].PadLeft(|}CByte(3.3) + someConstant{|Unnecessary:)|}} suffix""
-    End Sub
-End Class", "
-Class C
-    Sub M(someValue As String)
-        Const someConstant As Integer = 1
-        Dim v = $""prefix {someValue,CByte(3.3) + someConstant} suffix""
+        Dim v = $""prefix {someValue[||].PadLeft(someConstant)} suffix""
     End Sub
 End Class")
         End Function
@@ -217,19 +209,13 @@ Class C
 End Class")
         End Function
 
-        <Fact>
-        Public Async Function PadRightWithComplexConstantExpressionRequiringParentheses() As Task
-            Await TestInRegularAndScriptAsync("
+        <Fact, WorkItem(49712, "https://github.com/dotnet/roslyn/issues/49712")>
+        Public Async Function PadRightWithNonLiteralConstantExpression() As Task
+            Await TestMissingInRegularAndScriptAsync("
 Class C
     Sub M(someValue As String)
         Const someConstant As Integer = 1
-        Dim v = $""prefix {someValue{|Unnecessary:[||].PadRight(|}CByte(3.3) + someConstant{|Unnecessary:)|}} suffix""
-    End Sub
-End Class", "
-Class C
-    Sub M(someValue As String)
-        Const someConstant As Integer = 1
-        Dim v = $""prefix {someValue,-(CByte(3.3) + someConstant)} suffix""
+        Dim v = $""prefix {someValue[||].PadRight(someConstant)} suffix""
     End Sub
 End Class")
         End Function

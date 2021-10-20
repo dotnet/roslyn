@@ -8,11 +8,13 @@ Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.Composition
@@ -37,43 +39,45 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
     Friend Class TestEnvironment
         Implements IDisposable
 
-        Private Shared ReadOnly s_exportCatalog As Lazy(Of ComposableCatalog) = New Lazy(Of ComposableCatalog)(
-            Function()
-                Dim catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
-                catalog = catalog.WithParts(GetType(FileChangeWatcherProvider),
-                                            GetType(MockVisualStudioWorkspace),
-                                            GetType(MetadataReferences.FileWatchedPortableExecutableReferenceFactory),
-                                            GetType(VisualStudioProjectFactory),
-                                            GetType(MockServiceProvider),
-                                            GetType(SolutionEventsBatchScopeCreator),
-                                            GetType(ProjectCodeModelFactory),
-                                            GetType(CPSProjectFactory),
-                                            GetType(VisualStudioRuleSetManagerFactory),
-                                            GetType(VsMetadataServiceFactory),
-                                            GetType(VisualStudioMetadataReferenceManagerFactory),
-                                            GetType(MockWorkspaceEventListenerProvider),
-                                            GetType(MockDiagnosticUpdateSourceRegistrationService),
-                                            GetType(HostDiagnosticUpdateSource))
+        ' TODO:
+        ' Use VisualStudioTestComposition.LanguageServices instead, With mocked services replaced With test mocks.
+        '   
+        '    WithoutParts(
+        '        GetType(VisualStudioWorkspaceImpl),
+        '        GetType(IServiceProvider),
+        '        GetType(IDiagnosticUpdateSourceRegistrationService)).
+        '    WithAdditionalParts(
+        '        GetType(MockVisualStudioWorkspace),
+        '        GetType(MockServiceProvider),
+        '        GetType(MockDiagnosticUpdateSourceRegistrationService),
+        '        GetType(MockWorkspaceEventListenerProvider))
 
-                Return catalog
-            End Function)
+        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeaturesWpf _
+            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
+            .AddParts(
+                GetType(FileChangeWatcherProvider),
+                GetType(MockVisualStudioWorkspace),
+                GetType(MetadataReferences.FileWatchedPortableExecutableReferenceFactory),
+                GetType(VisualStudioProjectFactory),
+                GetType(MockServiceProvider),
+                GetType(SolutionEventsBatchScopeCreator),
+                GetType(ProjectCodeModelFactory),
+                GetType(CPSProjectFactory),
+                GetType(VisualStudioRuleSetManagerFactory),
+                GetType(VsMetadataServiceFactory),
+                GetType(VisualStudioMetadataReferenceManagerFactory),
+                GetType(MockWorkspaceEventListenerProvider),
+                GetType(MockDiagnosticUpdateSourceRegistrationService),
+                GetType(HostDiagnosticUpdateSource),
+                GetType(HierarchyItemToProjectIdMap))
 
         Private ReadOnly _workspace As VisualStudioWorkspaceImpl
         Private ReadOnly _projectFilePaths As New List(Of String)
 
         Public Sub New(ParamArray extraParts As Type())
-            Dim exportCatalog = s_exportCatalog.Value
+            Dim composition = s_composition.AddParts(extraParts)
 
-            ' Don't create a new catalog instance if we aren't adding extra parts; some tests create a
-            ' TestEnvironment without extra parts more than once in the same test and that breaks the validation
-            ' made in SingleExportProviderFactory that prevents multiple compositions being created with unique
-            ' catalogs in the same test.
-            If extraParts.Any() Then
-                exportCatalog = exportCatalog.WithParts(extraParts)
-            End If
-
-            Dim exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(exportCatalog)
-            ExportProvider = exportProviderFactory.CreateExportProvider()
+            ExportProvider = composition.ExportProviderFactory.CreateExportProvider()
             _workspace = ExportProvider.GetExportedValue(Of VisualStudioWorkspaceImpl)
             ThreadingContext = ExportProvider.GetExportedValue(Of IThreadingContext)()
             Interop.WrapperPolicy.s_ComWrapperFactory = MockComWrapperFactory.Instance
@@ -102,15 +106,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                            exportProvider.GetExportedValue(Of MockServiceProvider))
             End Sub
 
-            Public Overrides Sub DisplayReferencedSymbols(solution As Microsoft.CodeAnalysis.Solution, referencedSymbols As IEnumerable(Of ReferencedSymbol))
+            Public Overrides Sub DisplayReferencedSymbols(solution As Solution, referencedSymbols As IEnumerable(Of ReferencedSymbol))
                 Throw New NotImplementedException()
             End Sub
 
-            Public Overrides Function TryGoToDefinition(symbol As ISymbol, project As Microsoft.CodeAnalysis.Project, cancellationToken As CancellationToken) As Boolean
+            Public Overrides Function TryGoToDefinition(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Boolean
                 Throw New NotImplementedException()
             End Function
 
-            Public Overrides Function TryFindAllReferences(symbol As ISymbol, project As Microsoft.CodeAnalysis.Project, cancellationToken As CancellationToken) As Boolean
+            Public Overrides Function TryGoToDefinitionAsync(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Task(Of Boolean)
+                Throw New NotImplementedException()
+            End Function
+
+            Public Overrides Function TryFindAllReferences(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Boolean
                 Throw New NotImplementedException()
             End Function
 
@@ -162,10 +170,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         <PartNotDiscoverable>
         <Export>
         <Export(GetType(SVsServiceProvider))>
-        Private Class MockServiceProvider
-            Implements System.IServiceProvider
+        Friend Class MockServiceProvider
+            Implements IServiceProvider
             Implements SVsServiceProvider ' The shell service provider actually implements this too for people using that type directly
-            Implements Shell.IAsyncServiceProvider
+            Implements IAsyncServiceProvider
 
             Private ReadOnly _exportProvider As Composition.ExportProvider
             Private ReadOnly _fileChangeEx As MockVsFileChangeEx = New MockVsFileChangeEx
@@ -178,11 +186,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 _exportProvider = exportProvider
             End Sub
 
-            Public Function GetService(serviceType As Type) As Object Implements System.IServiceProvider.GetService
+            Public Function GetService(serviceType As Type) As Object Implements IServiceProvider.GetService
                 Select Case serviceType
                     Case GetType(SVsSolution)
                         ' Return a loose mock that just is a big no-op
-                        Dim solutionMock As New Mock(Of IVsSolution)(MockBehavior.Loose)
+                        Dim solutionMock As New Mock(Of IVsSolution2)(MockBehavior.Loose)
                         Return solutionMock.Object
 
                     Case GetType(SComponentModel)
@@ -205,7 +213,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 End Select
             End Function
 
-            Public Function GetServiceAsync(serviceType As Type) As Task(Of Object) Implements Shell.IAsyncServiceProvider.GetServiceAsync
+            Public Function GetServiceAsync(serviceType As Type) As Task(Of Object) Implements IAsyncServiceProvider.GetServiceAsync
                 Return System.Threading.Tasks.Task.FromResult(GetService(serviceType))
             End Function
 
@@ -266,14 +274,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             End Function
         End Class
 
-        Friend Sub RaiseFileChange(path As String)
+        Friend Async Function RaiseFileChangeAsync(path As String) As Task
             ' Ensure we've pushed everything to the file change watcher
             Dim fileChangeProvider = ExportProvider.GetExportedValue(Of FileChangeWatcherProvider)
-            Dim mockFileChangeService = DirectCast(ServiceProvider.GetService(GetType(SVsFileChangeEx)), MockVsFileChangeEx)
-            fileChangeProvider.TrySetFileChangeService_TestOnly(mockFileChangeService)
-            fileChangeProvider.Watcher.WaitForQueue_TestOnly()
+            Dim mockFileChangeService = Assert.IsType(Of MockVsFileChangeEx)(ServiceProvider.GetService(GetType(SVsFileChangeEx)))
+            Await ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync()
             mockFileChangeService.FireUpdate(path)
-        End Sub
+        End Function
 
         Private Class MockVsSmartOpenScope
             Implements IVsSmartOpenScope

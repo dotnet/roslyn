@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateVariable
             ImmutableArray.Create(CS1061, CS0103, CS0117, CS0539, CS0246, CS0120, CS0118);
 
         protected override bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)
-            => node is SimpleNameSyntax || node is PropertyDeclarationSyntax || node is MemberBindingExpressionSyntax;
+            => node is SimpleNameSyntax or PropertyDeclarationSyntax or MemberBindingExpressionSyntax;
 
         protected override SyntaxNode GetTargetNode(SyntaxNode node)
         {

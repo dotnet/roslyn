@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -61,8 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
         private static ExpressionSyntax AsExpressionSyntax(IOperation operation)
             => operation switch
             {
-                IReturnOperation op => (ExpressionSyntax)op.ReturnedValue.Syntax,
-                IThrowOperation op => ThrowExpression((ExpressionSyntax)op.Exception.Syntax),
+                IReturnOperation { ReturnedValue: { } value } => (ExpressionSyntax)value.Syntax,
+                IThrowOperation { Exception: { } exception } => ThrowExpression((ExpressionSyntax)exception.Syntax),
                 IBlockOperation op => AsExpressionSyntax(op.Operations.Single()),
                 var v => throw ExceptionUtilities.UnexpectedValue(v.Kind)
             };
@@ -77,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
                 closeParenToken: ifStatement.CloseParenToken.WithPrependedLeadingTrivia(ElasticMarker),
                 openBraceToken: block?.OpenBraceToken ?? Token(SyntaxKind.OpenBraceToken),
                 sections: List(sectionList.Cast<SwitchSectionSyntax>()),
-                closeBraceToken: block?.CloseBraceToken ?? Token(SyntaxKind.CloseBraceToken));
+                closeBraceToken: block?.CloseBraceToken.WithoutLeadingTrivia() ?? Token(SyntaxKind.CloseBraceToken));
         }
 
         private static WhenClauseSyntax? AsWhenClause(AnalyzedSwitchLabel label)
@@ -109,6 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
         public override IEnumerable<SyntaxNode> AsSwitchSectionStatements(IOperation operation)
         {
             var node = operation.Syntax;
+            Debug.Assert(operation.SemanticModel is not null);
             var requiresBreak = operation.SemanticModel.AnalyzeControlFlow(node).EndPointIsReachable;
             var requiresBlock = !operation.SemanticModel.AnalyzeDataFlow(node).VariablesDeclared.IsDefaultOrEmpty;
 
@@ -128,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
                     statements.AddRange(block.Statements);
                     if (requiresBreak)
                     {
-                        statements.Add(BreakStatement());
+                        statements.Add(BreakStatement().WithLeadingTrivia(block.CloseBraceToken.LeadingTrivia));
                     }
                 }
             }

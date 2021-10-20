@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using System.Threading;
@@ -30,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (_singleton == null)
             {
                 var temporaryStorage = workspaceServices.GetService<ITemporaryStorageService>();
-                Interlocked.CompareExchange(ref _singleton, new VisualStudioMetadataReferenceManager(_serviceProvider, temporaryStorage), null);
+                Interlocked.CompareExchange(ref _singleton, new VisualStudioMetadataReferenceManager(workspaceServices.Workspace, _serviceProvider, temporaryStorage), null);
             }
 
             return _singleton;

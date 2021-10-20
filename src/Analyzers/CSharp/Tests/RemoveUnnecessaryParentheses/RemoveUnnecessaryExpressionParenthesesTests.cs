@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,15 +11,22 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParentheses
 {
     public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer(), new CSharpRemoveUnnecessaryParenthesesCodeFixProvider());
 
@@ -36,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         }
 
         internal override bool ShouldSkipMessageDescriptionVerification(DiagnosticDescriptor descriptor)
-            => descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary) && descriptor.DefaultSeverity == DiagnosticSeverity.Hidden;
+            => descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary) && descriptor.DefaultSeverity == DiagnosticSeverity.Hidden;
 
         private static DiagnosticDescription GetRemoveUnnecessaryParenthesesDiagnostic(string text, int line, int column)
             => TestHelpers.Diagnostic(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId, text, startLocation: new LinePosition(line, column));
@@ -91,6 +100,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     void M()
     {
         var span = $$(stackalloc byte[8]);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [WorkItem(47365, "https://github.com/dotnet/roslyn/issues/47365")]
+        public async Task TestDynamic()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        dynamic i = 1;
+        dynamic s = ""s"";
+        Console.WriteLine(s + $$(1 + i));
     }
 }");
         }
@@ -2490,7 +2515,78 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-#if !CODE_STYLE
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestRangeWithConstantExpression()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(string s)
+    {
+        _ = s[$$(1)..];
+    }
+}",
+@"class C
+{
+    void M(string s)
+    {
+        _ = s[1..];
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestRangeWithMemberAccessExpression()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(string s)
+    {
+        _ = s[$$(s.Length)..];
+    }
+}",
+@"class C
+{
+    void M(string s)
+    {
+        _ = s[s.Length..];
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestRangeWithElementAccessExpression()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(string s, int[] indices)
+    {
+        _ = s[$$(indices[0])..];
+    }
+}",
+@"class C
+{
+    void M(string s, int[] indices)
+    {
+        _ = s[indices[0]..];
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestRangeWithBinaryExpression()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(string s)
+    {
+        _ = s[$$(s.Length - 5)..];
+    }
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestAlwaysUnnecessaryForPrimaryPattern1()
@@ -2532,6 +2628,52 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-#endif
+        [WorkItem(50025, "https://github.com/dotnet/roslyn/issues/50025")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestDoNotRemoveWithConstantAndTypeAmbiguity()
+        {
+            await TestMissingAsync(
+@"
+public class C
+{    
+    public const int Goo = 1;  
+    
+    public void M(Goo o)
+    {
+        if (o is $$(Goo)) M(1);
+    }
+}
+
+public class Goo { }");
+        }
+
+        [WorkItem(50025, "https://github.com/dotnet/roslyn/issues/50025")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestDoRemoveWithNoConstantAndTypeAmbiguity()
+        {
+            await TestAsync(
+@"
+public class C
+{    
+    public const int Goo = 1;  
+    
+    public void M(object o)
+    {
+        if (o is $$(Goo)) M(1);
+    }    
+}
+",
+@"
+public class C
+{    
+    public const int Goo = 1;  
+    
+    public void M(object o)
+    {
+        if (o is Goo) M(1);
+    }    
+}
+", offeredWhenRequireForClarityIsEnabled: true);
+        }
     }
 }

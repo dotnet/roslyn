@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -12,11 +14,17 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     public abstract class AbstractUnncessarySuppressionDiagnosticTest : AbstractUserDiagnosticTest
     {
+        protected AbstractUnncessarySuppressionDiagnosticTest(ITestOutputHelper logger)
+            : base(logger)
+        {
+        }
+
         internal abstract CodeFixProvider CodeFixProvider { get; }
         internal abstract AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer SuppressionAnalyzer { get; }
         internal abstract ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers { get; }
@@ -32,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             AddAnalyzersToWorkspace(workspace);
             var document = GetDocumentAndSelectSpan(workspace, out var span);
-            return await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, span);
+            return await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span);
         }
 
         internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
@@ -47,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
 
             // Include suppressed diagnostics as they are needed by unnecessary suppressions analyzer.
-            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, includeSuppressedDiagnostics: true);
+            var testDriver = new TestDiagnosticAnalyzerDriver(workspace, document.Project, includeSuppressedDiagnostics: true);
             var diagnostics = await testDriver.GetAllDiagnosticsAsync(document, span);
 
             // Filter out suppressed diagnostics before invoking code fix.

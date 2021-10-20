@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Linq;
 using System.Windows;
@@ -205,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                         }
 
                         if (ChangeSignatureDialogViewModel._thisParameter != null &&
-                            ParameterSymbol == (ChangeSignatureDialogViewModel._thisParameter as ExistingParameterViewModel).ParameterSymbol)
+                            ParameterSymbol == ChangeSignatureDialogViewModel._thisParameter.ParameterSymbol)
                         {
                             return @this ?? string.Empty;
                         }
@@ -227,6 +225,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     {
                         return string.Empty;
                     }
+
                     switch (ParameterSymbol.Language)
                     {
                         case LanguageNames.CSharp:
@@ -234,6 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                         case LanguageNames.VisualBasic:
                             return NullText("Nothing", "Nothing");
                     }
+
                     return string.Empty;
 
                     string NullText(string @null, string @default)

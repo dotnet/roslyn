@@ -2,15 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
-using Microsoft.CodeAnalysis.Editor.Options;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
@@ -31,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
         {
             return new Dictionary<OptionKey2, object>
             {
-                { new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Smart },
-                { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp),  false },
-                { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp),  false },
+                { new OptionKey2(FormattingBehaviorOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Smart },
+                { new OptionKey2(FormattingBehaviorOptions.AutoFormattingOnTyping, LanguageNames.CSharp),  false },
+                { new OptionKey2(BraceCompletionOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp),  false },
             };
         }
 
@@ -513,7 +514,7 @@ class Program
             var subjectDocument = workspace.Documents.Single();
             var spans = subjectDocument.SelectedSpans;
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(FormattingOptions2.AllowDisjointSpanMerging, true)));
+                .WithChangedOption(FormattingBehaviorOptions.AllowDisjointSpanMerging, true)));
 
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             var syntaxRoot = await document.GetSyntaxRootAsync();
@@ -1170,7 +1171,7 @@ class C : Attribute
 }";
             var optionSet = new Dictionary<OptionKey2, object>
                             {
-                                { new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
+                                { new OptionKey2(FormattingBehaviorOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
                             };
             AssertFormatAfterTypeChar(code, expected, optionSet);
         }
@@ -1201,7 +1202,7 @@ class C : Attribute
 
             var optionSet = new Dictionary<OptionKey2, object>
             {
-                    { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp), false }
+                    { new OptionKey2(BraceCompletionOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -1233,7 +1234,7 @@ class C : Attribute
 
             var optionSet = new Dictionary<OptionKey2, object>
             {
-                { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+                { new OptionKey2(FormattingBehaviorOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -1265,7 +1266,7 @@ class C : Attribute
 
             var optionSet = new Dictionary<OptionKey2, object>
             {
-                { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+                { new OptionKey2(FormattingBehaviorOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -1323,7 +1324,7 @@ class C : Attribute
 
             var optionSet = new Dictionary<OptionKey2, object>
             {
-                    { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnSemicolon, LanguageNames.CSharp), false }
+                    { new OptionKey2(FormattingBehaviorOptions.AutoFormattingOnSemicolon, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -1355,7 +1356,7 @@ class C : Attribute
 
             var optionSet = new Dictionary<OptionKey2, object>
             {
-                    { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+                    { new OptionKey2(FormattingBehaviorOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -2169,6 +2170,35 @@ using MS.B;
 
         [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SeparateGroups_KeepMultipleLinesBetweenGroups_FileScopedNamespace()
+        {
+            var code = @"$$
+namespace N;
+
+using System.A;
+using System.B;
+
+
+using MS.A;
+using MS.B;
+";
+
+            var expected = @"$$
+namespace N;
+
+using System.A;
+using System.B;
+
+
+using MS.A;
+using MS.B;
+";
+
+            AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, true));
+        }
+
+        [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void SeparateGroups_DoNotGroupIfNotSorted()
         {
             var code = @"$$
@@ -2230,6 +2260,34 @@ using System.B;
 ";
 
             AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, true));
+        }
+
+        [Fact, WorkItem(49492, "https://github.com/dotnet/roslyn/issues/49492")]
+        public void PreserveAnnotationsOnMultiLineTrivia()
+        {
+            var text = @"
+namespace TestApp
+{
+    class Test
+    {
+    /* __marker__ */
+    }
+}
+";
+
+            var position = text.IndexOf("/* __marker__ */");
+            var syntaxTree = CSharpSyntaxTree.ParseText(text);
+            var root = syntaxTree.GetRoot();
+
+            var annotation = new SyntaxAnnotation("marker");
+            var markerTrivia = root.FindTrivia(position, findInsideTrivia: true);
+            var annotatedMarkerTrivia = markerTrivia.WithAdditionalAnnotations(annotation);
+            root = root.ReplaceTrivia(markerTrivia, annotatedMarkerTrivia);
+
+            var formattedRoot = Formatter.Format(root, new AdhocWorkspace());
+            var annotatedTrivia = formattedRoot.GetAnnotatedTrivia("marker");
+
+            Assert.Single(annotatedTrivia);
         }
 
         private static void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey2, object> changedOptionSet = null)

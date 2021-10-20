@@ -1,8 +1,6 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-
-#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -30,14 +28,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// an important scenario that we can be generating multiple documents in parallel, and so 
         /// we simply take this lock around all public entrypoints to enforce sequential access.
         /// </summary>
-        private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+        private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
         /// <summary>
         /// For a description of the key, see GetKeyAsync.
         /// </summary>
-        private readonly Dictionary<UniqueDocumentKey, MetadataAsSourceGeneratedFileInfo> _keyToInformation = new Dictionary<UniqueDocumentKey, MetadataAsSourceGeneratedFileInfo>();
+        private readonly Dictionary<UniqueDocumentKey, MetadataAsSourceGeneratedFileInfo> _keyToInformation = new();
 
-        private readonly Dictionary<string, MetadataAsSourceGeneratedFileInfo> _generatedFilenameToInformation = new Dictionary<string, MetadataAsSourceGeneratedFileInfo>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, MetadataAsSourceGeneratedFileInfo> _generatedFilenameToInformation = new(StringComparer.OrdinalIgnoreCase);
         private IBidirectionalMap<MetadataAsSourceGeneratedFileInfo, DocumentId> _openedDocumentIds = BidirectionalMap<MetadataAsSourceGeneratedFileInfo, DocumentId>.Empty;
 
         private MetadataAsSourceWorkspace? _workspace;
@@ -126,7 +124,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     {
                         try
                         {
+                            // Fetch the IDecompiledSourceService from the temporary document, not the original one -- it
+                            // may be a different language because we don't have support for decompiling into VB.NET, so we just
+                            // use C#.
                             var decompiledSourceService = temporaryDocument.GetLanguageService<IDecompiledSourceService>();
+
                             if (decompiledSourceService != null)
                             {
                                 temporaryDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, compilation, symbol, cancellationToken).ConfigureAwait(false);
@@ -136,7 +138,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                                 useDecompiler = false;
                             }
                         }
-                        catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                         {
                             useDecompiler = false;
                         }
@@ -153,7 +155,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                     // Create the directory. It's possible a parallel deletion is happening in another process, so we may have
                     // to retry this a few times.
-                    var directoryToCreate = Path.GetDirectoryName(fileInfo.TemporaryFilePath);
+                    var directoryToCreate = Path.GetDirectoryName(fileInfo.TemporaryFilePath)!;
                     while (!Directory.Exists(directoryToCreate))
                     {
                         try
@@ -299,9 +301,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             }
         }
 
-        internal async Task<SymbolMappingResult?> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken)
+        private async Task<Project?> MapDocumentAsync(Document document, CancellationToken cancellationToken)
         {
-            MetadataAsSourceGeneratedFileInfo fileInfo;
+            MetadataAsSourceGeneratedFileInfo? fileInfo;
 
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -311,20 +313,22 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
             }
 
-            // WARANING: do not touch any state fields outside the lock.
+            // WARNING: do not touch any state fields outside the lock.
             var solution = fileInfo.Workspace.CurrentSolution;
             var project = solution.GetProject(fileInfo.SourceProjectId);
-            if (project == null)
-            {
-                return null;
-            }
+            return project;
+        }
 
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+        internal async Task<SymbolMappingResult?> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken)
+        {
+            var project = await MapDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            if (project == null)
+                return null;
+
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var resolutionResult = symbolId.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken);
             if (resolutionResult.Symbol == null)
-            {
                 return null;
-            }
 
             return new SymbolMappingResult(project, resolutionResult.Symbol);
         }
@@ -407,6 +411,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         public bool IsNavigableMetadataSymbol(ISymbol symbol)
         {
+            if (!symbol.Locations.Any(l => l.IsInMetadata))
+            {
+                return false;
+            }
+
             switch (symbol.Kind)
             {
                 case SymbolKind.Event:
@@ -420,6 +429,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             return false;
         }
+
+        public Workspace? TryGetWorkspace() => _workspace;
 
         private class UniqueDocumentKey : IEquatable<UniqueDocumentKey>
         {

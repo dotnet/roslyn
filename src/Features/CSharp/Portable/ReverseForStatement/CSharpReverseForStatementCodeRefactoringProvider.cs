@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
 {
     using static IntegerUtilities;
 
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ReverseForStatement), Shared]
     internal class CSharpReverseForStatementCodeRefactoringProvider : CodeRefactoringProvider
     {
         [ImportingConstructor]
@@ -60,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             var variable = declaration.Variables[0];
             var after = forStatement.Incrementors[0];
 
-            if (!(forStatement.Condition is BinaryExpressionSyntax condition))
+            if (forStatement.Condition is not BinaryExpressionSyntax condition)
                 return;
 
             var (document, _, cancellationToken) = context;
@@ -99,10 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             };
         }
 
-        private static bool IsUnsignedBoundary(Optional<object> startValue, Optional<object> endValue, ulong maxValue)
+        private static bool IsUnsignedBoundary(Optional<object?> startValue, Optional<object?> endValue, ulong maxValue)
             => ValueEquals(startValue, 0) || ValueEquals(endValue, maxValue);
 
-        private static bool ValueEquals(Optional<object> valueOpt, ulong value)
+        private static bool ValueEquals(Optional<object?> valueOpt, ulong value)
             => valueOpt.HasValue && IsIntegral(valueOpt.Value) && ToUInt64(valueOpt.Value) == value;
 
         private static bool MatchesIncrementPattern(
@@ -137,8 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             out bool equals, [NotNullWhen(true)] out ExpressionSyntax? end)
         {
             // i < ...   i <= ...
-            if (condition.Kind() == SyntaxKind.LessThanExpression ||
-                condition.Kind() == SyntaxKind.LessThanOrEqualExpression)
+            if (condition.Kind() is SyntaxKind.LessThanExpression or
+                SyntaxKind.LessThanOrEqualExpression)
             {
                 end = condition.Right;
                 equals = condition.Kind() == SyntaxKind.LessThanOrEqualExpression;
@@ -146,8 +144,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             }
 
             // ... > i   ... >= i
-            if (condition.Kind() == SyntaxKind.GreaterThanExpression ||
-                condition.Kind() == SyntaxKind.GreaterThanOrEqualExpression)
+            if (condition.Kind() is SyntaxKind.GreaterThanExpression or
+                SyntaxKind.GreaterThanOrEqualExpression)
             {
                 end = condition.Left;
                 equals = condition.Kind() == SyntaxKind.GreaterThanOrEqualExpression;
@@ -264,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             var condition = (BinaryExpressionSyntax)forStatement.Condition!;
             var after = forStatement.Incrementors[0];
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
             var generator = editor.Generator;
@@ -360,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
                 ? (condition.Left, operand)
                 : (operand, condition.Right);
 
-            var newOperatorKind = condition.Kind() == SyntaxKind.LessThanExpression || condition.Kind() == SyntaxKind.LessThanOrEqualExpression
+            var newOperatorKind = condition.Kind() is SyntaxKind.LessThanExpression or SyntaxKind.LessThanOrEqualExpression
                 ? SyntaxKind.GreaterThanEqualsToken
                 : SyntaxKind.LessThanEqualsToken;
 
@@ -398,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Reverse_for_statement, createChangedDocument)
+                : base(CSharpFeaturesResources.Reverse_for_statement, createChangedDocument, nameof(CSharpFeaturesResources.Reverse_for_statement))
             {
             }
         }

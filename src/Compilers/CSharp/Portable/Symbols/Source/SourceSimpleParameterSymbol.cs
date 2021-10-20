@@ -19,16 +19,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
            int ordinal,
            RefKind refKind,
            string name,
-           bool isDiscard,
            ImmutableArray<Location> locations)
            : base(owner, parameterType, ordinal, refKind, name, locations)
         {
-            IsDiscard = isDiscard;
         }
 
-        public override bool IsDiscard { get; }
+        public override bool IsDiscard => false;
 
-        internal override ConstantValue ExplicitDefaultConstantValue
+        internal override ConstantValue? ExplicitDefaultConstantValue
         {
             get { return null; }
         }
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
-        internal override SyntaxReference SyntaxReference
+        internal override SyntaxReference? SyntaxReference
         {
             get { return null; }
         }
@@ -101,6 +99,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get { return -1; }
+        }
+
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => ImmutableArray<int>.Empty;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => false;
+
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
             get { return FlowAnalysisAnnotations.None; }
@@ -108,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableHashSet<string> NotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
-        internal override MarshalPseudoCustomAttributeData MarshallingInformation
+        internal override MarshalPseudoCustomAttributeData? MarshallingInformation
         {
             get { return null; }
         }

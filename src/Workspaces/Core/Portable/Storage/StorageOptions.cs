@@ -11,31 +11,29 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Storage
 {
-    internal static class StorageOptions
+    [ExportOptionProvider, Shared]
+    internal sealed class StorageOptions : IOptionProvider
     {
         internal const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
 
-        public const string OptionName = "FeatureManager/Storage";
+        private const string FeatureName = "FeatureManager/Storage";
 
-        public static readonly Option<StorageDatabase> Database = new Option<StorageDatabase>(
-            OptionName, nameof(Database), defaultValue: StorageDatabase.SQLite);
+        public static readonly Option<StorageDatabase> Database = new(
+            FeatureName, nameof(Database), defaultValue: StorageDatabase.SQLite,
+            new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(Database)));
 
-        public static readonly Option<bool> SQLiteInMemoryWriteCache = new Option<bool>(
-            OptionName, nameof(SQLiteInMemoryWriteCache), defaultValue: false,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(SQLiteInMemoryWriteCache)));
-    }
+        public static readonly Option<bool> CloudCacheFeatureFlag = new(
+            FeatureName, nameof(CloudCacheFeatureFlag), defaultValue: false,
+            new FeatureFlagStorageLocation("Roslyn.CloudCache3"));
 
-    [ExportOptionProvider, Shared]
-    internal class RemoteHostOptionsProvider : IOptionProvider
-    {
+        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
+            Database,
+            CloudCacheFeatureFlag);
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteHostOptionsProvider()
+        public StorageOptions()
         {
         }
-
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            StorageOptions.Database,
-            StorageOptions.SQLiteInMemoryWriteCache);
     }
 }

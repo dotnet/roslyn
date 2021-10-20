@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
@@ -15,8 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         {
             private readonly ITextView _textView;
 
-            public CaretPositionChangedEventSource(ITextView textView, ITextBuffer subjectBuffer, TaggerDelay delay)
-                : base(delay)
+            public CaretPositionChangedEventSource(ITextView textView, ITextBuffer subjectBuffer)
             {
                 Contract.ThrowIfNull(textView);
                 Contract.ThrowIfNull(subjectBuffer);
@@ -30,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             public override void Disconnect()
                 => _textView.Caret.PositionChanged -= OnCaretPositionChanged;
 
-            private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
+            private void OnCaretPositionChanged(object? sender, CaretPositionChangedEventArgs e)
                 => this.RaiseChanged();
         }
     }

@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
 Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessarySuppressions
+Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.RemoveUnnecessarySuppressions
 
@@ -20,15 +21,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Remove
     Public NotInheritable Class RemoveUnnecessaryInlineSuppressionsTests
         Inherits AbstractUnncessarySuppressionDiagnosticTest
 
+        Public Sub New(logger As ITestOutputHelper)
+            MyBase.New(logger)
+        End Sub
+
         Protected Overrides Function GetScriptOptions() As ParseOptions
             Return TestOptions.Script
         End Function
 
-        Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(
-                initialMarkup,
-                parameters.parseOptions,
-                If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).WithReportSuppressedDiagnostics(True))
+        Protected Overrides Function SetParameterDefaults(parameters As TestParameters) As TestParameters
+            Return parameters.WithCompilationOptions(If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
         End Function
 
         Protected Overrides Function GetLanguage() As String

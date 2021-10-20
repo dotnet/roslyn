@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -24,13 +22,13 @@ namespace Microsoft.CodeAnalysis
         /// to one.  Conversion of this value to float produces the corresponding
         /// canonical NaN of the float type (IEEE Std 754-2008 section 6.2.3).
         /// </summary>
-        private static double _s_IEEE_canonical_NaN = BitConverter.Int64BitsToDouble(unchecked((long)0xFFF8000000000000UL));
+        private static readonly double _s_IEEE_canonical_NaN = BitConverter.Int64BitsToDouble(unchecked((long)0xFFF8000000000000UL));
 
         private sealed class ConstantValueBad : ConstantValue
         {
             private ConstantValueBad() { }
 
-            public readonly static ConstantValueBad Instance = new ConstantValueBad();
+            public static readonly ConstantValueBad Instance = new ConstantValueBad();
 
             public override ConstantValueTypeDiscriminator Discriminator
             {
@@ -66,8 +64,8 @@ namespace Microsoft.CodeAnalysis
         {
             private ConstantValueNull() { }
 
-            public readonly static ConstantValueNull Instance = new ConstantValueNull();
-            public readonly static ConstantValueNull Uninitialized = new ConstantValueNull();
+            public static readonly ConstantValueNull Instance = new ConstantValueNull();
+            public static readonly ConstantValueNull Uninitialized = new ConstantValueNull();
 
             public override ConstantValueTypeDiscriminator Discriminator
             {

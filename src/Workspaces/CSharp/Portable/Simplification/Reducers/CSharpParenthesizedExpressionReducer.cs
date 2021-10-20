@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
     internal partial class CSharpParenthesizedExpressionReducer : AbstractCSharpReducer
     {
-        private static readonly ObjectPool<IReductionRewriter> s_pool = new ObjectPool<IReductionRewriter>(
+        private static readonly ObjectPool<IReductionRewriter> s_pool = new(
             () => new Rewriter(s_pool));
 
         public CSharpParenthesizedExpressionReducer() : base(s_pool)
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             OptionSet optionSet,
             CancellationToken cancellationToken)
         {
-            if (node.CanRemoveParentheses(semanticModel))
+            if (node.CanRemoveParentheses(semanticModel, cancellationToken))
             {
                 // TODO(DustinCa): We should not be skipping elastic trivia below.
                 // However, the formatter seems to mess up trailing trivia in some

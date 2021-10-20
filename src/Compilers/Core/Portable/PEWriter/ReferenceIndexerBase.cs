@@ -2,18 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.Cci
 {
     internal abstract class ReferenceIndexerBase : MetadataVisitor
     {
-        private readonly HashSet<IReference> _alreadySeen = new HashSet<IReference>(MetadataEntityReferenceComparer.ConsiderEverything);
-        private readonly HashSet<IReference> _alreadyHasToken = new HashSet<IReference>(MetadataEntityReferenceComparer.ConsiderEverything);
+        private readonly HashSet<IReferenceOrISignature> _alreadySeen = new();
+        private readonly HashSet<IReferenceOrISignature> _alreadyHasToken = new();
         protected bool typeReferenceNeedsToken;
 
         internal ReferenceIndexerBase(EmitContext context)
@@ -46,7 +49,7 @@ namespace Microsoft.Cci
 
         public override void Visit(IFieldReference fieldReference)
         {
-            if (!_alreadySeen.Add(fieldReference))
+            if (!_alreadySeen.Add(new IReferenceOrISignature(fieldReference)))
             {
                 return;
             }
@@ -125,7 +128,7 @@ namespace Microsoft.Cci
                 return;
             }
 
-            if (!_alreadySeen.Add(methodReference))
+            if (!_alreadySeen.Add(new IReferenceOrISignature(methodReference)))
             {
                 return;
             }
@@ -163,7 +166,7 @@ namespace Microsoft.Cci
 
         protected abstract void ReserveMethodToken(IMethodReference methodReference);
 
-        public override abstract void Visit(CommonPEModuleBuilder module);
+        public abstract override void Visit(CommonPEModuleBuilder module);
 
         public override void Visit(IModuleReference moduleReference)
         {
@@ -175,7 +178,7 @@ namespace Microsoft.Cci
 
         protected abstract void RecordModuleReference(IModuleReference moduleReference);
 
-        public override abstract void Visit(IPlatformInvokeInformation platformInvokeInformation);
+        public abstract override void Visit(IPlatformInvokeInformation platformInvokeInformation);
 
         public override void Visit(INamespaceTypeReference namespaceTypeReference)
         {
@@ -227,6 +230,10 @@ namespace Microsoft.Cci
 
         public override void Visit(IPropertyDefinition propertyDefinition)
         {
+            this.Visit(propertyDefinition.RefCustomModifiers);
+            this.Visit(propertyDefinition.ReturnValueCustomModifiers);
+            this.Visit(propertyDefinition.GetType(Context));
+
             this.Visit(propertyDefinition.Parameters);
         }
 
@@ -393,7 +400,7 @@ namespace Microsoft.Cci
         // Returns true if we need to look at the children, false otherwise.
         private bool VisitTypeReference(ITypeReference typeReference)
         {
-            if (!_alreadySeen.Add(typeReference))
+            if (!_alreadySeen.Add(new IReferenceOrISignature(typeReference)))
             {
                 if (!this.typeReferenceNeedsToken)
                 {
@@ -401,7 +408,7 @@ namespace Microsoft.Cci
                 }
 
                 this.typeReferenceNeedsToken = false;
-                if (!_alreadyHasToken.Add(typeReference))
+                if (!_alreadyHasToken.Add(new IReferenceOrISignature(typeReference)))
                 {
                     return false;
                 }
@@ -419,13 +426,13 @@ namespace Microsoft.Cci
                 if (specializedNestedTypeReference != null)
                 {
                     INestedTypeReference unspecializedNestedTypeReference = specializedNestedTypeReference.GetUnspecializedVersion(Context);
-                    if (_alreadyHasToken.Add(unspecializedNestedTypeReference))
+                    if (_alreadyHasToken.Add(new IReferenceOrISignature(unspecializedNestedTypeReference)))
                     {
                         RecordTypeReference(unspecializedNestedTypeReference);
                     }
                 }
 
-                if (this.typeReferenceNeedsToken && _alreadyHasToken.Add(typeReference))
+                if (this.typeReferenceNeedsToken && _alreadyHasToken.Add(new IReferenceOrISignature(typeReference)))
                 {
                     RecordTypeReference(typeReference);
                 }

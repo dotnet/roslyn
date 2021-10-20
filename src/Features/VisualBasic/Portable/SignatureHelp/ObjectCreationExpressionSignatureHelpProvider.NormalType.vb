@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Private Shared Function GetNormalTypeConstructors(document As Document,
                                                    objectCreationExpression As ObjectCreationExpressionSyntax,
                                                    semanticModel As SemanticModel,
-                                                   anonymousTypeDisplayService As IAnonymousTypeDisplayService,
+                                                   structuralTypeDisplayService As IStructuralTypeDisplayService,
                                                    normalType As INamedTypeSymbol,
                                                    within As ISymbol,
                                                    cancellationToken As CancellationToken) As (items As IList(Of SignatureHelpItem), selectedItem As Integer?)
@@ -33,21 +33,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
 
             Dim items = accessibleConstructors.Select(
-                Function(c) ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService)).ToList()
+                Function(c) ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList()
 
             Dim currentConstructor = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken)
-            Dim selectedItem = TryGetSelectedIndex(accessibleConstructors, currentConstructor)
+            Dim selectedItem = TryGetSelectedIndex(accessibleConstructors, currentConstructor.Symbol)
 
             Return (items, selectedItem)
         End Function
 
         Private Shared Function ConvertNormalTypeConstructor(constructor As IMethodSymbol, objectCreationExpression As ObjectCreationExpressionSyntax, semanticModel As SemanticModel,
-                                                      anonymousTypeDisplayService As IAnonymousTypeDisplayService,
+                                                      structuralTypeDisplayService As IStructuralTypeDisplayService,
                                                       documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpItem
             Dim position = objectCreationExpression.SpanStart
             Dim item = CreateItem(
                 constructor, semanticModel, position,
-                anonymousTypeDisplayService,
+                structuralTypeDisplayService,
                 constructor.IsParams(),
                 constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetNormalTypePreambleParts(constructor, semanticModel, position), GetSeparatorParts(),

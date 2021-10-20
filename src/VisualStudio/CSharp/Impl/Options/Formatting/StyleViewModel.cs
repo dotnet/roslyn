@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Windows.Data;
@@ -9,7 +11,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
@@ -400,6 +401,30 @@ class C
         // {ServicesVSResources.Over_colon}
         var s = o as string;
         if (s != null)
+        {{
+        }}
+//]
+    }}
+}}
+";
+
+        private static readonly string s_preferPatternMatchingOverMixedTypeCheck = $@"
+class C
+{{
+    void M1()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        if (o is not string s)
+        {{
+        }}
+//]
+    }}
+    void M2()
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        if (!(o is string s))
         {{
         }}
 //]
@@ -834,6 +859,46 @@ class Customer2
 }}
 ";
 
+        private static readonly string s_preferFileScopedNamespace = $@"
+//[
+// {ServicesVSResources.Prefer_colon}
+namespace A.B.C;
+
+public class Program
+{{
+}}
+//]
+//[
+// {ServicesVSResources.Over_colon}
+namespace A.B.C
+{{
+    public class Program
+    {{
+    }}
+}}
+//]
+";
+
+        private static readonly string s_preferBlockNamespace = $@"
+//[
+// {ServicesVSResources.Prefer_colon}
+namespace A.B.C
+{{
+    public class Program
+    {{
+    }}
+}}
+//]
+//[
+// {ServicesVSResources.Over_colon}
+namespace A.B.C;
+
+public class Program
+{{
+}}
+//]
+";
+
         private static readonly string s_preferSimpleUsingStatement = $@"
 using System;
 
@@ -945,6 +1010,22 @@ class Customer
 }}
 ";
 
+        private static readonly string s_preferImplicitObjectCreationWhenTypeIsApparent = $@"
+using System.Collections.Generic;
+class Order {{}}
+
+//[
+class Customer
+{{
+    // {ServicesVSResources.Prefer_colon}
+    private readonly List<Order> orders = new();
+
+    // {ServicesVSResources.Over_colon}
+    private readonly List<Order> orders = new List<Order>();
+}}
+//]
+";
+
         private static readonly string s_preferIndexOperator = $@"
 using System;
 
@@ -989,6 +1070,30 @@ class Customer
 }}
 ";
 
+        private static readonly string s_preferTupleSwap = $@"
+using System;
+
+class Customer
+{{
+    void M1(string[] args)
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        (args[1], args[0]) = (args[0], args[1]);
+//]
+    }}
+    void M2(string[] args)
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        var temp = args[0];
+        args[0] = args[1];
+        args[1] = temp;
+//]
+    }}
+}}
+";
+
         private static readonly string s_preferIsNullOverReferenceEquals = $@"
 using System;
 
@@ -1013,6 +1118,36 @@ class Customer
             return;
 
         if ((object)value2 == null)
+            return;
+//]
+    }}
+}}
+";
+
+        private static readonly string s_preferNullcheckOverTypeCheck = $@"
+using System;
+
+class Customer
+{{
+    void M1(string value1, string value2)
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        if (value1 is null)
+            return;
+
+        if (value2 is not null)
+            return;
+//]
+    }}
+    void M2(string value1, string value2)
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        if (value1 is not object)
+            return;
+
+        if (value2 is object)
             return;
 //]
     }}
@@ -1328,6 +1463,237 @@ class Customer2
         }}
     }}
 //]
+}}
+";
+
+        private static readonly string s_allow_embedded_statements_on_same_line_true = $@"
+class Class2
+{{
+    void Method(int a, int b)
+    {{
+//[
+        // {ServicesVSResources.Allow_colon}
+        if (a > b) return true;
+//]
+        return false;
+    }}
+}}
+";
+
+        private static readonly string s_allow_embedded_statements_on_same_line_false = $@"
+class Class1
+{{
+    void Method(int a, int b)
+    {{
+//[
+        // {ServicesVSResources.Require_colon}
+        if (a > b)
+            return true;
+//]
+        return false;
+    }}
+}}
+class Class2
+{{
+    void Method(int a, int b)
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        if (a > b) return true;
+//]
+        return false;
+    }}
+}}
+";
+
+        private static readonly string s_allow_blank_line_between_consecutive_braces_true = $@"
+class Class2
+{{
+//[
+    // {ServicesVSResources.Allow_colon}
+    void Method()
+    {{
+        if (true)
+        {{
+            DoWork();
+        }}
+
+    }}
+//]
+}}
+";
+
+        private static readonly string s_allow_blank_line_between_consecutive_braces_false = $@"
+class Class1
+{{
+//[
+    // {ServicesVSResources.Require_colon}
+    void Method()
+    {{
+        if (true)
+        {{
+            DoWork();
+        }}
+    }}
+//]
+}}
+class Class2
+{{
+//[
+    // {ServicesVSResources.Over_colon}
+    void Method()
+    {{
+        if (true)
+        {{
+            DoWork();
+        }}
+
+    }}
+//]
+}}
+";
+
+        private static readonly string s_allow_multiple_blank_lines_true = $@"
+class Class2
+{{
+    void Method()
+    {{
+//[
+        // {ServicesVSResources.Allow_colon}
+        if (true)
+        {{
+            DoWork();
+        }}
+
+
+        return;
+//]
+    }}
+}}
+";
+
+        private static readonly string s_allow_multiple_blank_lines_false = $@"
+class Class1
+{{
+    void Method()
+    {{
+//[
+        // {ServicesVSResources.Require_colon}
+        if (true)
+        {{
+            DoWork();
+        }}
+
+        return;
+//]
+    }}
+}}
+class Class2
+{{
+    void Method()
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        if (true)
+        {{
+            DoWork();
+        }}
+
+
+        return;
+//]
+    }}
+}}
+";
+
+        private static readonly string s_allow_statement_immediately_after_block_true = $@"
+class Class2
+{{
+    void Method()
+    {{
+//[
+        // {ServicesVSResources.Allow_colon}
+        if (true)
+        {{
+            DoWork();
+        }}
+        return;
+//]
+    }}
+}}
+";
+
+        private static readonly string s_allow_statement_immediately_after_block_false = $@"
+class Class1
+{{
+    void Method()
+    {{
+//[
+        // {ServicesVSResources.Require_colon}
+        if (true)
+        {{
+            DoWork();
+        }}
+
+        return;
+//]
+    }}
+}}
+class Class2
+{{
+    void Method()
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        if (true)
+        {{
+            DoWork();
+        }}
+        return;
+//]
+    }}
+}}
+";
+
+        private static readonly string s_allow_bank_line_after_colon_in_constructor_initializer_true = $@"
+class Class
+{{
+//[
+    // {ServicesVSResources.Allow_colon}
+    public Class() :
+        base()
+    {{
+    }}
+//]
+}}
+";
+
+        private static readonly string s_allow_bank_line_after_colon_in_constructor_initializer_false = $@"
+namespace NS1
+{{
+    class Class
+    {{
+    //[
+        // {ServicesVSResources.Require_colon}
+        public Class()
+            : base()
+        {{
+        }}
+    //]
+    }}
+}}
+namespace NS2
+{{
+    class Class
+    {{
+    //[
+        // {ServicesVSResources.Over_colon}
+        public Class() :
+            base()
+        {{
+        }}
+    //]
+    }}
 }}
 ";
 
@@ -1652,8 +2018,10 @@ class C2
             var modifierGroupTitle = ServicesVSResources.Modifier_preferences_colon;
             var codeBlockPreferencesGroupTitle = ServicesVSResources.Code_block_preferences_colon;
             var expressionPreferencesGroupTitle = ServicesVSResources.Expression_preferences_colon;
+            var patternMatchingPreferencesGroupTitle = CSharpVSResources.Pattern_matching_preferences_colon;
             var variablePreferencesGroupTitle = ServicesVSResources.Variable_preferences_colon;
             var parameterPreferencesGroupTitle = ServicesVSResources.Parameter_preferences_colon;
+            var newLinePreferencesGroupTitle = ServicesVSResources.New_line_preferences_experimental_colon;
 
             var usingDirectivePlacementPreferences = new List<CodeStylePreference>
             {
@@ -1694,6 +2062,7 @@ class C2
 
             // Code block
             AddBracesOptions(optionStore, codeBlockPreferencesGroupTitle);
+            AddNamespaceDeclarationsOptions(optionStore, codeBlockPreferencesGroupTitle);
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferAutoProperties, ServicesVSResources.analyzer_Prefer_auto_properties, s_preferAutoProperties, s_preferAutoProperties, this, optionStore, codeBlockPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferSimpleUsingStatement, ServicesVSResources.Prefer_simple_using_statement, s_preferSimpleUsingStatement, s_preferSimpleUsingStatement, this, optionStore, codeBlockPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferSystemHashCode, ServicesVSResources.Prefer_System_HashCode_in_GetHashCode, s_preferSystemHashCode, s_preferSystemHashCode, this, optionStore, codeBlockPreferencesGroupTitle));
@@ -1705,9 +2074,6 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferCollectionInitializer, ServicesVSResources.Prefer_collection_initializer, s_preferCollectionInitializer, s_preferCollectionInitializer, this, optionStore, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferSimplifiedBooleanExpressions, ServicesVSResources.Prefer_simplified_boolean_expressions, s_preferSimplifiedConditionalExpression, s_preferSimplifiedConditionalExpression, this, optionStore, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferSwitchExpression, CSharpVSResources.Prefer_switch_expression, s_preferSwitchExpression, s_preferSwitchExpression, this, optionStore, expressionPreferencesGroupTitle));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatching, CSharpVSResources.Prefer_pattern_matching, s_preferPatternMatching, s_preferPatternMatching, this, optionStore, expressionPreferencesGroupTitle));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, CSharpVSResources.Prefer_pattern_matching_over_is_with_cast_check, s_preferPatternMatchingOverIsWithCastCheck, s_preferPatternMatchingOverIsWithCastCheck, this, optionStore, expressionPreferencesGroupTitle));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck, CSharpVSResources.Prefer_pattern_matching_over_as_with_null_check, s_preferPatternMatchingOverAsWithNullCheck, s_preferPatternMatchingOverAsWithNullCheck, this, optionStore, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferConditionalExpressionOverAssignment, ServicesVSResources.Prefer_conditional_expression_over_if_with_assignments, s_preferConditionalExpressionOverIfWithAssignments, s_preferConditionalExpressionOverIfWithAssignments, this, optionStore, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferConditionalExpressionOverReturn, ServicesVSResources.Prefer_conditional_expression_over_if_with_returns, s_preferConditionalExpressionOverIfWithReturns, s_preferConditionalExpressionOverIfWithReturns, this, optionStore, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferExplicitTupleNames, ServicesVSResources.Prefer_explicit_tuple_name, s_preferExplicitTupleName, s_preferExplicitTupleName, this, optionStore, expressionPreferencesGroupTitle));
@@ -1716,9 +2082,18 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferInferredAnonymousTypeMemberNames, ServicesVSResources.Prefer_inferred_anonymous_type_member_names, s_preferInferredAnonymousTypeMemberName, s_preferInferredAnonymousTypeMemberName, this, optionStore, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction, ServicesVSResources.Prefer_local_function_over_anonymous_function, s_preferLocalFunctionOverAnonymousFunction, s_preferLocalFunctionOverAnonymousFunction, this, optionStore, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferCompoundAssignment, ServicesVSResources.Prefer_compound_assignments, s_preferCompoundAssignments, s_preferCompoundAssignments, this, optionStore, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, CSharpVSResources.Prefer_implicit_object_creation_when_type_is_apparent, s_preferImplicitObjectCreationWhenTypeIsApparent, s_preferImplicitObjectCreationWhenTypeIsApparent, this, optionStore, expressionPreferencesGroupTitle));
 
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferIndexOperator, ServicesVSResources.Prefer_index_operator, s_preferIndexOperator, s_preferIndexOperator, this, optionStore, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferRangeOperator, ServicesVSResources.Prefer_range_operator, s_preferRangeOperator, s_preferRangeOperator, this, optionStore, expressionPreferencesGroupTitle));
+
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferTupleSwap, ServicesVSResources.Prefer_tuple_swap, s_preferTupleSwap, s_preferTupleSwap, this, optionStore, expressionPreferencesGroupTitle));
+
+            // Pattern matching
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatching, CSharpVSResources.Prefer_pattern_matching, s_preferPatternMatching, s_preferPatternMatching, this, optionStore, patternMatchingPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, CSharpVSResources.Prefer_pattern_matching_over_is_with_cast_check, s_preferPatternMatchingOverIsWithCastCheck, s_preferPatternMatchingOverIsWithCastCheck, this, optionStore, patternMatchingPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck, CSharpVSResources.Prefer_pattern_matching_over_as_with_null_check, s_preferPatternMatchingOverAsWithNullCheck, s_preferPatternMatchingOverAsWithNullCheck, this, optionStore, patternMatchingPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferNotPattern, CSharpVSResources.Prefer_pattern_matching_over_mixed_type_check, s_preferPatternMatchingOverMixedTypeCheck, s_preferPatternMatchingOverMixedTypeCheck, this, optionStore, patternMatchingPreferencesGroupTitle));
 
             AddExpressionBodyOptions(optionStore, expressionPreferencesGroupTitle);
             AddUnusedValueOptions(optionStore, expressionPreferencesGroupTitle);
@@ -1733,6 +2108,7 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, this, optionStore, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, this, optionStore, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, CSharpVSResources.Prefer_is_null_for_reference_equality_checks, s_preferIsNullOverReferenceEquals, s_preferIsNullOverReferenceEquals, this, optionStore, nullCheckingGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, CSharpVSResources.Prefer_null_check_over_type_check, s_preferNullcheckOverTypeCheck, s_preferNullcheckOverTypeCheck, this, optionStore, nullCheckingGroupTitle));
 
             // Using directive preferences.
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<AddImportPlacement>(
@@ -1746,6 +2122,13 @@ class C2
 
             // Parameter preferences
             AddParameterOptions(optionStore, parameterPreferencesGroupTitle);
+
+            // New line preferences.
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.AllowMultipleBlankLines, ServicesVSResources.Allow_multiple_blank_lines, s_allow_multiple_blank_lines_true, s_allow_multiple_blank_lines_false, this, optionStore, newLinePreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CSharpVSResources.Allow_embedded_statements_on_same_line, s_allow_embedded_statements_on_same_line_true, s_allow_embedded_statements_on_same_line_false, this, optionStore, newLinePreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CSharpVSResources.Allow_blank_lines_between_consecutive_braces, s_allow_blank_line_between_consecutive_braces_true, s_allow_blank_line_between_consecutive_braces_false, this, optionStore, newLinePreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, ServicesVSResources.Allow_statement_immediately_after_block, s_allow_statement_immediately_after_block_true, s_allow_statement_immediately_after_block_false, this, optionStore, newLinePreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, CSharpVSResources.Allow_bank_line_after_colon_in_constructor_initializer, s_allow_bank_line_after_colon_in_constructor_initializer_true, s_allow_bank_line_after_colon_in_constructor_initializer_false, this, optionStore, newLinePreferencesGroupTitle));
         }
 
         private void AddParenthesesOptions(OptionStore optionStore)
@@ -1792,6 +2175,24 @@ class C2
                 enumValues,
                 new[] { s_preferBraces, s_doNotPreferBraces, s_preferBracesWhenMultiline },
                 this, optionStore, bracesPreferenceGroupTitle, bracesPreferences));
+        }
+
+        private void AddNamespaceDeclarationsOptions(OptionStore optionStore, string group)
+        {
+            var preferences = new List<CodeStylePreference>
+            {
+                new CodeStylePreference(CSharpVSResources.Block_scoped, isChecked: false),
+                new CodeStylePreference(CSharpVSResources.File_scoped, isChecked: false),
+            };
+
+            var enumValues = new[] { NamespaceDeclarationPreference.BlockScoped, NamespaceDeclarationPreference.FileScoped };
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<NamespaceDeclarationPreference>(
+                CSharpCodeStyleOptions.NamespaceDeclarations,
+                ServicesVSResources.Namespace_declarations,
+                enumValues,
+                new[] { s_preferBlockNamespace, s_preferFileScopedNamespace },
+                this, optionStore, group, preferences));
         }
 
         private void AddExpressionBodyOptions(OptionStore optionStore, string expressionPreferencesGroupTitle)

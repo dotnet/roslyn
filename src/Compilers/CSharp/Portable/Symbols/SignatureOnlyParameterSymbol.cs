@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -72,6 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsCallerMemberName { get { throw ExceptionUtilities.Unreachable; } }
 
+        internal override int CallerArgumentExpressionParameterIndex { get { throw ExceptionUtilities.Unreachable; } }
+
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations { get { throw ExceptionUtilities.Unreachable; } }
 
         internal override ImmutableHashSet<string> NotNullIfParameterNotNull { get { throw ExceptionUtilities.Unreachable; } }
@@ -86,7 +90,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ModuleSymbol ContainingModule { get { throw ExceptionUtilities.Unreachable; } }
 
+<<<<<<< HEAD
         public override bool IsNullChecked => false;
+=======
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable;
+>>>>>>> upstream/main
 
         #endregion Not used by MethodSignatureComparer
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -224,7 +222,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var typeNameConstant = attr.ConstructorArguments.FirstOrDefault();
                 if (typeNameConstant.Type == null ||
                     typeNameConstant.Type.SpecialType != SpecialType.System_String ||
-                    !(typeNameConstant.Value is string value))
+                    typeNameConstant.Value is not string value)
                 {
                     continue;
                 }

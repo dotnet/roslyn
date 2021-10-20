@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.PopulateSwitch;
@@ -11,12 +9,18 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwitch
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
     public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public PopulateSwitchExpressionTests(ITestOutputHelper logger)
+           : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpPopulateSwitchExpressionDiagnosticAnalyzer(), new CSharpPopulateSwitchExpressionCodeFixProvider());
 
@@ -958,7 +962,7 @@ class MyClass
             (MyEnum)0 => 1,
             (MyEnum)1 => 2,
             ""Mismatching constant"" => 3,
-            _ => throw new System.NotImplementedException(),
+            MyEnum.FizzBuzz => throw new System.NotImplementedException(),
         }
     }
 }");
@@ -1036,7 +1040,7 @@ class MyClass
             Bar.Option1 => 1,
             Bar.Option2 => 2,
             null => null,
-            _ => throw new System.NotImplementedException(),
+            Bar.Option3 => throw new System.NotImplementedException(),
         };
     }
 
@@ -1048,6 +1052,214 @@ class MyClass
 }
 }
 ");
+        }
+
+        [Fact]
+        [WorkItem(50982, "https://github.com/dotnet/roslyn/issues/50982")]
+        public async Task TestOrPatternIsHandled()
+        {
+            await TestInRegularAndScript1Async(
+@"public static class C
+{
+    static bool IsValidValue(E e) 
+    {
+        return e [||]switch
+        {
+            E.A or E.B or E.C => true,
+            _ = false
+        };
+    }
+
+    public enum E
+    {
+        A,
+        B,
+        C,
+        D,
+        E,
+        F,
+        G,
+    }
+}
+",
+@"public static class C
+{
+    static bool IsValidValue(E e) 
+    {
+        return e [||]switch
+        {
+            E.A or E.B or E.C => true,
+            E.D => throw new System.NotImplementedException(),
+            E.E => throw new System.NotImplementedException(),
+            E.F => throw new System.NotImplementedException(),
+            E.G => throw new System.NotImplementedException(),
+            _ = false
+        };
+    }
+
+    public enum E
+    {
+        A,
+        B,
+        C,
+        D,
+        E,
+        F,
+        G,
+    }
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(50982, "https://github.com/dotnet/roslyn/issues/50982")]
+        public async Task TestOrPatternIsHandled_AllEnumValuesAreHandled_NoDiagnostic()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public static class C
+{
+    static bool IsValidValue(E e) 
+    {
+        return e [||]switch
+        {
+            (E.A or E.B) or (E.C or E.D) => true,
+            (E.E or E.F) or (E.G) => true,
+            _ = false
+        };
+    }
+
+    public enum E
+    {
+        A,
+        B,
+        C,
+        D,
+        E,
+        F,
+        G,
+    }
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(50982, "https://github.com/dotnet/roslyn/issues/50982")]
+        public async Task TestMixingOrWithAndPatterns()
+        {
+            await TestInRegularAndScript1Async(
+@"public static class C
+{
+    static bool M(E e) 
+    {
+        return e [||]switch
+        {
+            (E.A or E.B) and (E.C or E.D) => true,
+            _ = false
+        };
+    }
+
+    public enum E
+    {
+        A,
+        B,
+        C,
+        D,
+        E,
+        F,
+        G,
+    }
+}
+",
+@"public static class C
+{
+    static bool M(E e) 
+    {
+        return e [||]switch
+        {
+            (E.A or E.B) and (E.C or E.D) => true,
+            E.A => throw new System.NotImplementedException(),
+            E.B => throw new System.NotImplementedException(),
+            E.C => throw new System.NotImplementedException(),
+            E.D => throw new System.NotImplementedException(),
+            E.E => throw new System.NotImplementedException(),
+            E.F => throw new System.NotImplementedException(),
+            E.G => throw new System.NotImplementedException(),
+            _ = false
+        };
+    }
+
+    public enum E
+    {
+        A,
+        B,
+        C,
+        D,
+        E,
+        F,
+        G,
+    }
+}
+"
+);
+        }
+
+        [Fact]
+        [WorkItem(50982, "https://github.com/dotnet/roslyn/issues/50982")]
+        public async Task TestMixingOrWithAndPatterns2()
+        {
+            await TestInRegularAndScript1Async(
+@"public static class C
+{
+    static bool M(E e) 
+    {
+        return e [||]switch
+        {
+            (E.A or E.B) or (E.C and E.D) => true,
+            _ = false
+        };
+    }
+
+    public enum E
+    {
+        A,
+        B,
+        C,
+        D,
+        E,
+        F,
+        G,
+    }
+}
+",
+@"public static class C
+{
+    static bool M(E e) 
+    {
+        return e [||]switch
+        {
+            (E.A or E.B) or (E.C and E.D) => true,
+            E.C => throw new System.NotImplementedException(),
+            E.D => throw new System.NotImplementedException(),
+            E.E => throw new System.NotImplementedException(),
+            E.F => throw new System.NotImplementedException(),
+            E.G => throw new System.NotImplementedException(),
+            _ = false
+        };
+    }
+
+    public enum E
+    {
+        A,
+        B,
+        C,
+        D,
+        E,
+        F,
+        G,
+    }
+}
+"
+);
         }
     }
 }

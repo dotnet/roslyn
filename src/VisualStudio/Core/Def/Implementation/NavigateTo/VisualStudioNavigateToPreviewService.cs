@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
@@ -26,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigateTo
 
         public bool CanPreview(Document document)
         {
-            if (!(document.Project.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace))
+            if (document.Project.Solution.Workspace is not VisualStudioWorkspaceImpl visualStudioWorkspace)
             {
                 return false;
             }

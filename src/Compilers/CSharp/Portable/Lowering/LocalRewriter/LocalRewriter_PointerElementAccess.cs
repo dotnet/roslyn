@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
 using Roslyn.Utilities;
 
@@ -39,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundPointerIndirectionOperator(
                     node.Syntax,
                     rewrittenExpression,
+                    node.RefersToLocation,
                     node.Type);
             }
 
@@ -78,7 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenIndex,
                     rewrittenExpression.Type,
                     method: null,
+                    constrainedToTypeOpt: null,
                     isPointerElementAccess: true), //see RewriterPointerNumericOperator
+                node.RefersToLocation,
                 node.Type);
         }
     }

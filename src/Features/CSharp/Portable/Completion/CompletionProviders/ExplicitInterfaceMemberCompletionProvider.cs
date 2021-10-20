@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -23,12 +21,11 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     [ExportCompletionProvider(nameof(ExplicitInterfaceMemberCompletionProvider), LanguageNames.CSharp), Shared]
-    [ExtensionOrder(After = nameof(SymbolCompletionProvider))]
+    [ExtensionOrder(After = nameof(UnnamedSymbolCompletionProvider))]
     internal partial class ExplicitInterfaceMemberCompletionProvider : LSPCompletionProvider
     {
         private static readonly SymbolDisplayFormat s_signatureDisplayFormat =
-            new SymbolDisplayFormat(
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+            new(genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 memberOptions:
                     SymbolDisplayMemberOptions.IncludeParameters,
                 parameterOptions:
@@ -45,10 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => text[characterPosition] == '.';
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('.');
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('.');
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -116,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         rules: CompletionItemRules.Default));
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // nop
             }
@@ -144,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // `Contains<T>(string key)<`
             return Task.FromResult<TextChange?>(new TextChange(
                 selectedItem.Span,
-                ch == '(' || ch == '[' || ch == '<'
+                ch is '(' or '[' or '<'
                     ? selectedItem.DisplayText
                     : SymbolCompletionItem.GetInsertionText(selectedItem)));
         }

@@ -5,7 +5,6 @@
 Imports System.IO
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.SpecialType
-Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -4539,6 +4538,84 @@ BC42106: Operator 'CType' doesn't return a value on all code paths. A null refer
         End Operator ' C6
         ~~~~~~~~~~~~
 </expected>)
+        End Sub
+
+        <WorkItem(56376, "https://github.com/dotnet/roslyn/issues/56376")>
+        <Fact>
+        Public Sub UserDefinedConversionOperatorInGenericExpressionTree_01()
+            Dim compilationDef =
+<compilation name="OperatorsWithDefaultValuesAreNotBound">
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+Public Class Program
+    Public Shared Sub Main()
+        GenericMethod(Of String)()
+    End Sub
+    
+    Private Shared Sub GenericMethod(Of T)()
+        Dim func As Func(Of Expression(Of Func(Of T, C(Of T)))) =
+            Function ()
+                Return Function(x) x 
+            End Function
+            
+        func().Compile()(Nothing)
+    End Sub
+End Class
+
+Class C(Of T)
+    Public Shared Widening Operator CType(t1 As T) As C(Of T)
+        Console.Write("Run")
+        Return Nothing 
+    End Operator
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilation(compilationDef, options:=TestOptions.ReleaseExe)
+
+            compilation.AssertTheseDiagnostics()
+
+            CompileAndVerify(compilation, expectedOutput:="Run")
+        End Sub
+
+        <WorkItem(56376, "https://github.com/dotnet/roslyn/issues/56376")>
+        <Fact>
+        Public Sub UserDefinedConversionOperatorInGenericExpressionTree_02()
+            Dim compilationDef =
+<compilation name="OperatorsWithDefaultValuesAreNotBound">
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+Public Class Program
+    Public Shared Sub Main()
+        GenericMethod(Of String)()
+    End Sub
+    
+    Private Shared Sub GenericMethod(Of T)()
+        Dim func As Func(Of Expression(Of Func(Of T, C(Of T)))) =
+            Function ()
+                Return Function(x) CType(x, C(Of T))
+            End Function
+            
+        func().Compile()(Nothing)
+    End Sub
+End Class
+
+Class C(Of T)
+    Public Shared Narrowing Operator CType(t1 As T) As C(Of T)
+        Console.Write("Run")
+        Return Nothing 
+    End Operator
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilation(compilationDef, options:=TestOptions.ReleaseExe)
+
+            compilation.AssertTheseDiagnostics()
+
+            CompileAndVerify(compilation, expectedOutput:="Run")
         End Sub
 
 #End Region

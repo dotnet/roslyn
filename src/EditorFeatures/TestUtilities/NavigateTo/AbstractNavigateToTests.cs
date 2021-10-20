@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,6 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.Host;
@@ -35,12 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
     [UseExportProvider]
     public abstract class AbstractNavigateToTests
     {
-        private static readonly Lazy<IExportProviderFactory> s_exportProviderFactory =
-            new Lazy<IExportProviderFactory>(() =>
-            {
-                var catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(DocumentTrackingServiceFactory));
-                return ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
-            });
+        protected static readonly TestComposition DefaultComposition = EditorTestCompositions.EditorFeatures;
+        protected static readonly TestComposition FirstVisibleComposition = EditorTestCompositions.EditorFeatures.AddParts(typeof(FirstDocIsVisibleDocumentTrackingService.Factory));
+        protected static readonly TestComposition FirstActiveAndVisibleComposition = EditorTestCompositions.EditorFeatures.AddParts(typeof(FirstDocIsActiveAndVisibleDocumentTrackingService.Factory));
 
         protected INavigateToItemProvider _provider;
         protected NavigateToTestAggregator _aggregator;
@@ -68,76 +68,73 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         protected abstract TestWorkspace CreateWorkspace(string content, ExportProvider exportProvider);
         protected abstract string Language { get; }
 
-        protected async Task TestAsync(string content, Func<TestWorkspace, Task> body)
+        public enum Composition
         {
-            // Keep track of tested combinations to ensure all expected tests run
-            var testedCombinations = new HashSet<(TestHost testHost, Type documentTrackingServiceType)>();
-
-            await TestAsync(content, BodyWrapper, TestHost.InProcess);
-            await TestAsync(content, BodyWrapper, TestHost.OutOfProcess);
-
-            Assert.Contains((TestHost.InProcess, null), testedCombinations);
-            Assert.Contains((TestHost.InProcess, typeof(FirstDocIsVisibleDocumentTrackingService)), testedCombinations);
-            Assert.Contains((TestHost.InProcess, typeof(FirstDocIsActiveAndVisibleDocumentTrackingService)), testedCombinations);
-
-            Assert.Contains((TestHost.OutOfProcess, null), testedCombinations);
-            Assert.Contains((TestHost.OutOfProcess, typeof(FirstDocIsVisibleDocumentTrackingService)), testedCombinations);
-            Assert.Contains((TestHost.OutOfProcess, typeof(FirstDocIsActiveAndVisibleDocumentTrackingService)), testedCombinations);
-
-            return;
-
-            // Local function
-            Task BodyWrapper(TestWorkspace workspace)
-            {
-                // Track the current test setup
-                var testHost = workspace.Options.GetOption(RemoteTestHostOptions.RemoteHostTest) ? TestHost.OutOfProcess : TestHost.InProcess;
-                var documentTrackingServiceType = workspace.Services.GetService<IDocumentTrackingService>()?.GetType();
-                testedCombinations.Add((testHost, documentTrackingServiceType));
-
-                // Run the test itself
-                return body(workspace);
-            }
+            Default,
+            FirstVisible,
+            FirstActiveAndVisible,
         }
 
-        private async Task TestAsync(string content, Func<TestWorkspace, Task> body, TestHost testHost)
+        protected async Task TestAsync(TestHost testHost, Composition composition, string content, Func<TestWorkspace, Task> body)
         {
-            await TestAsync(content, body, testHost, null);
-            await TestAsync(content, body, testHost, w => new FirstDocIsVisibleDocumentTrackingService(w.Workspace));
-            await TestAsync(content, body, testHost, w => new FirstDocIsActiveAndVisibleDocumentTrackingService(w.Workspace));
+            var testComposition = composition switch
+            {
+                Composition.Default => DefaultComposition,
+                Composition.FirstVisible => FirstVisibleComposition,
+                Composition.FirstActiveAndVisible => FirstActiveAndVisibleComposition,
+                _ => throw ExceptionUtilities.UnexpectedValue(composition),
+            };
+
+            await TestAsync(content, body, testHost, testComposition);
+        }
+
+        protected async Task TestAsync(TestHost testHost, Composition composition, XElement content, Func<TestWorkspace, Task> body)
+        {
+            var testComposition = composition switch
+            {
+                Composition.Default => DefaultComposition,
+                Composition.FirstVisible => FirstVisibleComposition,
+                Composition.FirstActiveAndVisible => FirstActiveAndVisibleComposition,
+                _ => throw ExceptionUtilities.UnexpectedValue(composition),
+            };
+
+            await TestAsync(content, body, testHost, testComposition);
         }
 
         private async Task TestAsync(
             string content, Func<TestWorkspace, Task> body, TestHost testHost,
-            Func<HostWorkspaceServices, IDocumentTrackingService> createTrackingService)
+            TestComposition composition)
         {
-            using (var workspace = SetupWorkspace(content, createTrackingService))
-            {
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                    .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, testHost == TestHost.OutOfProcess)));
-                await body(workspace);
-            }
+            using var workspace = CreateWorkspace(content, testHost, composition);
+            await body(workspace);
         }
 
-        private protected TestWorkspace SetupWorkspace(
-            XElement workspaceElement,
-            Func<HostWorkspaceServices, IDocumentTrackingService> createTrackingService)
+        protected async Task TestAsync(
+            XElement content, Func<TestWorkspace, Task> body, TestHost testHost,
+            TestComposition composition)
         {
-            var exportProvider = s_exportProviderFactory.Value.CreateExportProvider();
-            var documentTrackingServiceFactory = exportProvider.GetExportedValue<DocumentTrackingServiceFactory>();
-            documentTrackingServiceFactory.FactoryMethod = createTrackingService;
+            using var workspace = CreateWorkspace(content, testHost, composition);
+            await body(workspace);
+        }
+
+        private protected TestWorkspace CreateWorkspace(
+            XElement workspaceElement,
+            TestHost testHost,
+            TestComposition composition)
+        {
+            var exportProvider = composition.WithTestHostParts(testHost).ExportProviderFactory.CreateExportProvider();
 
             var workspace = TestWorkspace.Create(workspaceElement, exportProvider: exportProvider);
             InitializeWorkspace(workspace);
             return workspace;
         }
 
-        private protected TestWorkspace SetupWorkspace(
+        private protected TestWorkspace CreateWorkspace(
             string content,
-            Func<HostWorkspaceServices, IDocumentTrackingService> createTrackingService)
+            TestHost testHost,
+            TestComposition composition)
         {
-            var exportProvider = s_exportProviderFactory.Value.CreateExportProvider();
-            var documentTrackingServiceFactory = exportProvider.GetExportedValue<DocumentTrackingServiceFactory>();
-            documentTrackingServiceFactory.FactoryMethod = createTrackingService;
+            var exportProvider = composition.WithTestHostParts(testHost).ExportProviderFactory.CreateExportProvider();
 
             var workspace = CreateWorkspace(content, exportProvider);
             InitializeWorkspace(workspace);
@@ -146,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 
         internal void InitializeWorkspace(TestWorkspace workspace)
         {
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
             _aggregator = new NavigateToTestAggregator(_provider);
         }
 
@@ -225,8 +222,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         {
             private readonly Workspace _workspace;
 
-            public FirstDocIsVisibleDocumentTrackingService(Workspace workspace)
+            [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+            private FirstDocIsVisibleDocumentTrackingService(Workspace workspace)
                 => _workspace = workspace;
+
+            public bool SupportsDocumentTracking => true;
 
             public event EventHandler<DocumentId> ActiveDocumentChanged { add { } remove { } }
             public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
@@ -236,14 +236,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 
             public ImmutableArray<DocumentId> GetVisibleDocuments()
                 => ImmutableArray.Create(_workspace.CurrentSolution.Projects.First().DocumentIds.First());
+
+            [ExportWorkspaceServiceFactory(typeof(IDocumentTrackingService), ServiceLayer.Test), Shared, PartNotDiscoverable]
+            public class Factory : IWorkspaceServiceFactory
+            {
+                [ImportingConstructor]
+                [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+                public Factory()
+                {
+                }
+
+                [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+                public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+                    => new FirstDocIsVisibleDocumentTrackingService(workspaceServices.Workspace);
+            }
         }
 
         private class FirstDocIsActiveAndVisibleDocumentTrackingService : IDocumentTrackingService
         {
             private readonly Workspace _workspace;
 
-            public FirstDocIsActiveAndVisibleDocumentTrackingService(Workspace workspace)
+            [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+            private FirstDocIsActiveAndVisibleDocumentTrackingService(Workspace workspace)
                 => _workspace = workspace;
+
+            public bool SupportsDocumentTracking => true;
 
             public event EventHandler<DocumentId> ActiveDocumentChanged { add { } remove { } }
             public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
@@ -253,28 +270,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 
             public ImmutableArray<DocumentId> GetVisibleDocuments()
                 => ImmutableArray.Create(_workspace.CurrentSolution.Projects.First().DocumentIds.First());
-        }
 
-        [Export]
-        [ExportWorkspaceServiceFactory(typeof(IDocumentTrackingService), ServiceLayer.Host)]
-        [Shared]
-        [PartNotDiscoverable]
-        public sealed class DocumentTrackingServiceFactory : IWorkspaceServiceFactory
-        {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public DocumentTrackingServiceFactory()
-                => FactoryMethod = null;
-
-            internal Func<HostWorkspaceServices, IDocumentTrackingService> FactoryMethod
+            [ExportWorkspaceServiceFactory(typeof(IDocumentTrackingService), ServiceLayer.Test), Shared, PartNotDiscoverable]
+            public class Factory : IWorkspaceServiceFactory
             {
-                get;
-                set;
-            }
+                [ImportingConstructor]
+                [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+                public Factory()
+                {
+                }
 
-            [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-            public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => FactoryMethod?.Invoke(workspaceServices);
+                [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+                public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+                    => new FirstDocIsActiveAndVisibleDocumentTrackingService(workspaceServices.Workspace);
+            }
         }
     }
 }

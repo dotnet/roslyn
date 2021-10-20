@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -72,8 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind())
             {
                 case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.FileScopedNamespaceDeclaration:
                     {
-                        var ns = (NamespaceDeclarationSyntax)node;
+                        var ns = (BaseNamespaceDeclarationSyntax)node;
                         foreach (var decl in ns.Members)
                         {
                             ComputeDeclarations(model, associatedSymbol: null, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
@@ -94,11 +98,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return;
                     }
+                case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
+                    {
+                        if (associatedSymbol is IMethodSymbol ctor)
+                        {
+                            var recordDeclaration = (RecordDeclarationSyntax)node;
+                            Debug.Assert(ctor.MethodKind == MethodKind.Constructor && recordDeclaration.ParameterList is object);
 
+                            var codeBlocks = GetParameterListInitializersAndAttributes(recordDeclaration.ParameterList);
+
+                            if (recordDeclaration.BaseList?.Types.FirstOrDefault() is PrimaryConstructorBaseTypeSyntax initializer)
+                            {
+                                codeBlocks = codeBlocks.Concat(initializer);
+                            }
+
+                            builder.Add(GetDeclarationInfo(node, associatedSymbol, codeBlocks));
+                            return;
+                        }
+
+                        goto case SyntaxKind.ClassDeclaration;
+                    }
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
-                case SyntaxKind.RecordDeclaration:
                     {
                         var t = (TypeDeclarationSyntax)node;
                         foreach (var decl in t.Members)

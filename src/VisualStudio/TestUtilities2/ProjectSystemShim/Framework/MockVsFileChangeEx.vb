@@ -16,7 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         Private ReadOnly _lock As New Object
         Private ReadOnly _watchedFiles As New List(Of WatchedEntity)
         Private ReadOnly _watchedDirectories As New List(Of WatchedEntity)
-        Private _nextCookie As UInteger = 0UI
+        Private _nextCookie As UInteger
 
         Public Function AdviseDirChange(pszDir As String, fWatchSubDir As Integer, pFCE As IVsFileChangeEvents, ByRef pvsCookie As UInteger) As Integer Implements IVsFileChangeEx.AdviseDirChange
             If fWatchSubDir = 0 Then
@@ -139,6 +139,22 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             End SyncLock
         End Function
 
+        Public Function UnadviseFileChangesAsync(cookies As IReadOnlyCollection(Of UInteger), Optional cancellationToken As CancellationToken = Nothing) As Task(Of String()) Implements IVsAsyncFileChangeEx.UnadviseFileChangesAsync
+            Dim paths As New List(Of String)()
+
+            SyncLock _lock
+                For Each cookie In cookies
+                    Dim path = _watchedFiles.FirstOrDefault(Function(t) t.Cookie = cookie).Path
+
+                    Marshal.ThrowExceptionForHR(UnadviseFileChange(cookie))
+
+                    paths.Add(path)
+                Next
+            End SyncLock
+
+            Return Task.FromResult(paths.ToArray())
+        End Function
+
         Public Function AdviseDirChangeAsync(directory As String, watchSubdirectories As Boolean, sink As IVsFreeThreadedFileChangeEvents2, Optional cancellationToken As CancellationToken = Nothing) As Task(Of UInteger) Implements IVsAsyncFileChangeEx.AdviseDirChangeAsync
             Dim cookie As UInteger
             Marshal.ThrowExceptionForHR(AdviseDirChange(directory, If(watchSubdirectories, 1, 0), sink, cookie))
@@ -155,6 +171,22 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             End SyncLock
         End Function
 
+        Public Function UnadviseDirChangesAsync(cookies As IReadOnlyCollection(Of UInteger), Optional cancellationToken As CancellationToken = Nothing) As Task(Of String()) Implements IVsAsyncFileChangeEx.UnadviseDirChangesAsync
+            Dim paths As New List(Of String)()
+
+            SyncLock _lock
+                For Each cookie In cookies
+                    Dim path = _watchedFiles.FirstOrDefault(Function(t) t.Cookie = cookie).Path
+
+                    Marshal.ThrowExceptionForHR(UnadviseFileChange(cookie))
+
+                    paths.Add(path)
+                Next
+            End SyncLock
+
+            Return Task.FromResult(paths.ToArray())
+        End Function
+
         Public Function SyncFileAsync(filename As String, Optional cancellationToken As CancellationToken = Nothing) As Tasks.Task Implements IVsAsyncFileChangeEx.SyncFileAsync
             Throw New NotImplementedException()
         End Function
@@ -167,9 +199,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Throw New NotImplementedException()
         End Function
 
-#Disable Warning IDE0060 ' Remove unused parameter - Implements 'IVsAsyncFileChangeEx.FilterDirectoryChangesAsync', but this method is not yet defined in current reference to shell package.
-        Public Function FilterDirectoryChangesAsync(cookie As UInteger, extensions As String(), Optional cancellationToken As CancellationToken = Nothing) As Task
-#Enable Warning IDE0060 ' Remove unused parameter
+        Public Function FilterDirectoryChangesAsync(cookie As UInteger, extensions As String(), cancellationToken As CancellationToken) As Task Implements IVsAsyncFileChangeEx.FilterDirectoryChangesAsync
             _watchedDirectories.FirstOrDefault(Function(t) t.Cookie = cookie).ExtensionFilters = extensions
             Return Task.CompletedTask
         End Function

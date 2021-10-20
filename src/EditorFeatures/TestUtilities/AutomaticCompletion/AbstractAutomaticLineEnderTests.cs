@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -19,34 +22,47 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
     [UseExportProvider]
     public abstract class AbstractAutomaticLineEnderTests
     {
-        protected abstract TestWorkspace CreateWorkspace(string code);
+        protected abstract string Language { get; }
         protected abstract Action CreateNextHandler(TestWorkspace workspace);
 
         internal abstract IChainedCommandHandler<AutomaticLineEnderCommandArgs> GetCommandHandler(TestWorkspace workspace);
 
+        protected void Test(string expected, string markupCode, bool completionActive = false, bool assertNextHandlerInvoked = false)
+        {
+            TestFileMarkupParser.GetPositionsAndSpans(markupCode, out var code, out var positions, out _);
+            Assert.NotEmpty(positions);
+
+            foreach (var position in positions)
+            {
+                // Run the test once for each input position. All marked positions in the input for a test are expected
+                // to have the same result.
+                Test(expected, code, position, completionActive, assertNextHandlerInvoked);
+            }
+        }
+
 #pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/45892
-        protected void Test(string expected, string code, bool completionActive = false, bool assertNextHandlerInvoked = false)
+        private void Test(string expected, string code, int position, bool completionActive = false, bool assertNextHandlerInvoked = false)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
-            using (var workspace = CreateWorkspace(code))
-            {
-                var view = workspace.Documents.Single().GetTextView();
-                var buffer = workspace.Documents.Single().GetTextBuffer();
-                var nextHandlerInvoked = false;
+            var markupCode = code[0..position] + "$$" + code[position..];
 
-                view.Caret.MoveTo(new SnapshotPoint(buffer.CurrentSnapshot, workspace.Documents.Single(d => d.CursorPosition.HasValue).CursorPosition.Value));
+            // WPF is required for some reason: https://github.com/dotnet/roslyn/issues/46286
+            using var workspace = TestWorkspace.Create(Language, compilationOptions: null, parseOptions: null, new[] { markupCode }, composition: EditorTestCompositions.EditorFeaturesWpf);
 
-                var commandHandler = GetCommandHandler(workspace);
+            var view = workspace.Documents.Single().GetTextView();
+            var buffer = workspace.Documents.Single().GetTextBuffer();
+            var nextHandlerInvoked = false;
 
-                commandHandler.ExecuteCommand(new AutomaticLineEnderCommandArgs(view, buffer),
-                                                    assertNextHandlerInvoked
-                                                        ? () => { nextHandlerInvoked = true; }
-                : CreateNextHandler(workspace), TestCommandExecutionContext.Create());
+            view.Caret.MoveTo(new SnapshotPoint(buffer.CurrentSnapshot, workspace.Documents.Single(d => d.CursorPosition.HasValue).CursorPosition.Value));
 
-                Test(view, buffer, expected);
+            var commandHandler = GetCommandHandler(workspace);
+            var nextHandler = assertNextHandlerInvoked ? () => nextHandlerInvoked = true : CreateNextHandler(workspace);
 
-                Assert.Equal(assertNextHandlerInvoked, nextHandlerInvoked);
-            }
+            commandHandler.ExecuteCommand(new AutomaticLineEnderCommandArgs(view, buffer), nextHandler, TestCommandExecutionContext.Create());
+
+            Test(view, buffer, expected);
+
+            Assert.Equal(assertNextHandlerInvoked, nextHandlerInvoked);
         }
 
         private static void Test(ITextView view, ITextBuffer buffer, string expectedWithAnnotations)
