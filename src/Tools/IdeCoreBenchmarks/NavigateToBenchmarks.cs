@@ -29,67 +29,80 @@ namespace IdeCoreBenchmarks
     [MemoryDiagnoser]
     public class NavigateToBenchmarks
     {
-        Solution _solution;
         string _solutionPath;
+        MSBuildWorkspace _workspace;
 
         [GlobalSetup]
-        public void SetUp()
+        public void GlobalSetup()
+        {
+            RestoreCompilerSolution();
+            SetUpWorkspace();
+        }
+
+        [IterationSetup]
+        public void IterationSetup() => LoadSolutionAsync().Wait();
+
+        private void RestoreCompilerSolution()
+        {
+            var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
+            _solutionPath = Path.Combine(roslynRoot, @"Roslyn.sln");
+            var restoreOperation = Process.Start("dotnet", $"restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true {_solutionPath}");
+            restoreOperation.WaitForExit();
+            if (restoreOperation.ExitCode != 0)
+                throw new ArgumentException($"Unable to restore {_solutionPath}");
+        }
+
+        private static void SetUpWorkspace()
         {
             // QueryVisualStudioInstances returns Visual Studio installations on .NET Framework, and .NET Core SDK
             // installations on .NET Core. We use the one with the most recent version.
             var msBuildInstance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(x => x.Version).First();
 
             MSBuildLocator.RegisterInstance(msBuildInstance);
+        }
 
+        private async Task LoadSolutionAsync()
+        {
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
             _solutionPath = Path.Combine(roslynRoot, @"Roslyn.sln");
 
-            if (!File.Exists(solutionPath))
+            if (!File.Exists(_solutionPath))
                 throw new ArgumentException("Couldn't find Roslyn.sln");
 
             Console.Write("Found Roslyn.sln: " + Process.GetCurrentProcess().Id);
-        }
-
-        [IterationSetup]
-        public void IterationSetup()
-        {
             var assemblies = MSBuildMefHostServices.DefaultAssemblies
                 .Add(typeof(AnalyzerRunnerHelper).Assembly)
                 .Add(typeof(FindReferencesBenchmarks).Assembly);
             var services = MefHostServices.Create(assemblies);
 
-            var workspace = MSBuildWorkspace.Create(new Dictionary<string, string>
+            _workspace = MSBuildWorkspace.Create(new Dictionary<string, string>
                 {
                     // Use the latest language version to force the full set of available analyzers to run on the project.
                     { "LangVersion", "9.0" },
                 }, services);
 
-            if (workspace == null)
+            if (_workspace == null)
                 throw new ArgumentException("Couldn't create workspace");
 
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
                 .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)));
 
             Console.WriteLine("Opening roslyn.  Attach to: " + Process.GetCurrentProcess().Id);
 
             var start = DateTime.Now;
-            _solution = workspace.OpenSolutionAsync(solutionPath, progress: null, CancellationToken.None).Result;
+            var solution = _workspace.OpenSolutionAsync(_solutionPath, progress: null, CancellationToken.None).Result;
             Console.WriteLine("Finished opening roslyn: " + (DateTime.Now - start));
 
             // Force a storage instance to be created.  This makes it simple to go examine it prior to any operations we
             // perform, including seeing how big the initial string table is.
-            var storageService = workspace.Services.GetPersistentStorageService(workspace.CurrentSolution.Options);
+            var storageService = _workspace.Services.GetPersistentStorageService(_workspace.CurrentSolution.Options);
             if (storageService == null)
                 throw new ArgumentException("Couldn't get storage service");
 
-            var task = storageService.GetStorageAsync(_workspace.CurrentSolution, CancellationToken.None);
-            while (!task.IsCompleted)
+            using (var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(_workspace.CurrentSolution), CancellationToken.None))
             {
-                Thread.Sleep(100);
+                Console.WriteLine("Sucessfully got persistent storage instance");
             }
-
-            using var storage = task.Result;
-            Console.WriteLine();
         }
 
 
