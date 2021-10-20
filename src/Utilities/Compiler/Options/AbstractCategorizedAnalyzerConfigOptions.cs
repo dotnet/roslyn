@@ -93,15 +93,12 @@ namespace Analyzer.Utilities
         {
             var optionKeyPrefix = MapOptionKindToKeyPrefix(kind);
 
-            T? optionValue;
-            if (rule != null)
+            if (rule != null
+                && (TryGetSpecificOptionValue(rule.Id, optionKeyPrefix, out T? optionValue)
+                || TryGetSpecificOptionValue(rule.Category, optionKeyPrefix, out optionValue)
+                || TryGetAnySpecificOptionValue(rule.CustomTags, optionKeyPrefix, out optionValue)))
             {
-                if (TryGetSpecificOptionValue(rule.Id, optionKeyPrefix, out optionValue) ||
-                    TryGetSpecificOptionValue(rule.Category, optionKeyPrefix, out optionValue) ||
-                    TryGetAnySpecificOptionValue(rule.CustomTags, optionKeyPrefix, out optionValue))
-                {
-                    return (true, optionValue);
-                }
+                return (true, optionValue);
             }
 
             if (TryGetGeneralOptionValue(optionKeyPrefix, out optionValue))
