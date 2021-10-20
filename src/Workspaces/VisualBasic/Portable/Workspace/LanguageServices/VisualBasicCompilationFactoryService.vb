@@ -48,6 +48,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return s_defaultOptions
         End Function
 
+        Public Function GetCompilationOptionsFromPortablePdbMetadata(metadata As ImmutableDictionary(Of String, String)) As CompilationOptions Implements ICompilationFactoryService.GetCompilationOptionsFromPortablePdbMetadata
+            Dim outputKind As OutputKind
+
+            If (Not [Enum].TryParse(metadata.GetValueOrDefault("output-kind", ""), outputKind)) Then
+                Return Nothing
+            End If
+
+            Return New VisualBasicCompilationOptions(outputKind)
+        End Function
+
         Public Function CreateGeneratorDriver(parseOptions As ParseOptions, generators As ImmutableArray(Of ISourceGenerator), optionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText)) As GeneratorDriver Implements ICompilationFactoryService.CreateGeneratorDriver
             Return VisualBasicGeneratorDriver.Create(generators, additionalTexts, DirectCast(parseOptions, VisualBasicParseOptions), optionsProvider)
         End Function
