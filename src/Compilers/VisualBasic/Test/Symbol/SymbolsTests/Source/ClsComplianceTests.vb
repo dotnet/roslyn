@@ -2562,7 +2562,7 @@ End Class
 
             For Each st As SpecialType In [Enum].GetValues(GetType(SpecialType))
                 Select Case (st)
-                    Case SpecialType.None, SpecialType.System_Void, SpecialType.System_Runtime_CompilerServices_IsVolatile
+                    Case SpecialType.None, SpecialType.System_Void, SpecialType.System_Runtime_CompilerServices_IsVolatile, SpecialType.System_ValueArray_TR
                         Continue For
                 End Select
 

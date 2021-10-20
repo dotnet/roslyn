@@ -92,6 +92,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(SpecialType.None, c107.SpecialType)
 
             For i As Integer = 1 To SpecialType.Count Step 1
+
+                ' HACKATHON special Type
+                If i = SpecialType.System_ValueArray_TR Then
+                    Continue For
+                End If
+
                 Dim type As NamedTypeSymbol = c1.Assembly.GetSpecialType(CType(i, SpecialType))
 
                 If i = SpecialType.System_Runtime_CompilerServices_RuntimeFeature Or

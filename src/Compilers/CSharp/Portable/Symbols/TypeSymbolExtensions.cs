@@ -146,6 +146,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ((NamedTypeSymbol)type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
         }
 
+        public static bool IsValueArrayType(this TypeSymbol type)
+        {
+            if (type.OriginalDefinition.SpecialType != SpecialType.System_ValueArray_TR)
+            {
+                return false;
+            }
+
+            TypeSymbol markerType = ((NamedTypeSymbol)type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[1].Type;
+            return markerType.IsArray() && ((ArrayTypeSymbol)markerType).ElementType.IsObjectType();
+        }
+
+        public static TypeSymbol GetValueArrayElementType(this TypeSymbol type)
+        {
+            return type.GetValueArrayElementTypeWithAnnotations().Type;
+        }
+
+        public static TypeWithAnnotations GetValueArrayElementTypeWithAnnotations(this TypeSymbol type)
+        {
+            RoslynDebug.Assert((object)type != null);
+            RoslynDebug.Assert(IsValueArrayType(type));
+            RoslynDebug.Assert(type is NamedTypeSymbol);  //not testing Kind because it may be an ErrorType
+
+            return ((NamedTypeSymbol)type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+        }
+
+        public static int GetValueArrayLength(this TypeSymbol type)
+        {
+            RoslynDebug.Assert((object)type != null);
+            RoslynDebug.Assert(IsValueArrayType(type));
+            RoslynDebug.Assert(type is NamedTypeSymbol);  //not testing Kind because it may be an ErrorType
+
+            return ((ArrayTypeSymbol)((NamedTypeSymbol)type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[1].Type).Rank;
+        }
+
         public static TypeSymbol StrippedType(this TypeSymbol type)
         {
             return type.IsNullableType() ? type.GetNullableUnderlyingType() : type;

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
             Assert.Equal(SpecialType.System_Int32, p.SpecialType);
         }
 
-        [Fact]
+        [Fact(Skip = "HACKATHON")]
         public void PresentCorLib()
         {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[] { NetCoreApp.SystemRuntime });

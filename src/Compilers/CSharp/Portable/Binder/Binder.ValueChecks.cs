@@ -1318,6 +1318,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // ignore receiver when symbol is static
                 receiverOpt = null;
             }
+            else if (symbol.ContainingType?.IsValueArrayType() == true)
+            {
+                // all the references that can be obtained from ValueArray instance accessors/methods
+                // point back to the instance
+                // therefore any instance member access on a ValueArray just forwards to the receiver.
+                return isRefEscape || symbol.GetTypeOrReturnType().Type.IsRefLikeType ?
+                    GetRefEscape(receiverOpt, scopeOfTheContainingExpression) :
+                    GetValEscape(receiverOpt, scopeOfTheContainingExpression);
+            }
 
             //by default it is safe to escape
             uint escapeScope = Binder.ExternalScope;
@@ -1424,6 +1433,15 @@ moreArguments:
             {
                 // ignore receiver when symbol is static
                 receiverOpt = null;
+            }
+            else if (symbol.ContainingType?.IsValueArrayType() == true)
+            {
+                // all the references that can be obtained from ValueArray instance accessors/methods
+                // point back to the instance
+                // therefore any instance member access on a ValueArray just forwards to the receiver.
+                return isRefEscape || symbol.GetTypeOrReturnType().Type.IsRefLikeType ?
+                    CheckRefEscape(receiverOpt.Syntax, receiverOpt, escapeFrom, escapeTo, true, diagnostics) :
+                    CheckValEscape(receiverOpt.Syntax, receiverOpt, escapeFrom, escapeTo, true, diagnostics);
             }
 
             ArrayBuilder<bool> inParametersMatchedWithArgs = null;
