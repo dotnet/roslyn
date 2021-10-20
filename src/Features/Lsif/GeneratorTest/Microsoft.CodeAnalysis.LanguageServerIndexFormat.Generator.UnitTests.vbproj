@@ -7,7 +7,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace></RootNamespace>
     <RoslynProjectType>UnitTest</RoslynProjectType>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities\Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities.csproj" />
