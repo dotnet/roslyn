@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis;
 /// semantics) will not leak backward to a prior <see cref="ProjectState"/>, causing it to see a view of the world
 /// inapplicable to its current snapshot.
 /// </summary>
-private class CachedSkeletonReferences
+internal class CachedSkeletonReferences
 {
     /// <summary>
     /// Mapping from compilation instance to metadata-references for it.  This allows us to associate the same
