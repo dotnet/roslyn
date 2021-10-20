@@ -126,7 +126,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var context = new RequestContext(workspaceSolution, logger.TraceInformation, clientCapabilities, clientName, document, documentChangeTracker, lspWorkspaceManager, supportedLanguages, globalOptions);
+            var context = new RequestContext(
+                workspaceSolution,
+                logger.TraceInformation,
+                clientCapabilities,
+                clientName,
+                document,
+                documentChangeTracker,
+                lspWorkspaceManager,
+                supportedLanguages,
+                globalOptions);
             return context;
         }
 

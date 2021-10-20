@@ -23,15 +23,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// This type is tied to a particular server.
 /// </summary>
 /// <remarks>
-/// This type is build to store an incremental LSP solution that we update based on LSP text changes. This solution is _eventually consistent_ with the workspace,
-///   1. When LSP text changes come in, we only fork the relevant document.
-///   2. We listen to workspace events. When we receive an event that is not for an LSP open document,
-///      we delete our incremental LSP solution so that we can fork the workspace with all open LSP documents.
-/// This is more complex, but has a few nice properties
-///   1. LSP didChange events only cause us to update the document that changed, not all open documents.
-///   2. Since we incrementally update our LSP documents, we only have to re-parse the document that changed.
-///   3. Since we incrementally update our LSP documents, project versions for other open documents remain unchanged.
-///   4. We are not reliant on the workspace being updated frequently (which it is not in VSCode) to do checksum diffing between LSP and the workspace.
+/// This is built to store incremental solutions that we update based on LSP text changes. This solution is <b>eventually consistent</b> with the workspace:
+/// <list type="bullet">
+///   <item> When LSP text changes come in, we only fork the relevant document. </item>
+///   <item> We listen to workspace events. When we receive an event that is not for an LSP open document,
+///          we delete our incremental LSP solution so that we can fork the workspace with all open LSP documents. </item>
+/// </list>
+///
+/// Doing incremental forking like this is more complex, but has a few nice properties:
+/// <list type="bullet">
+///   <item>LSP didChange events only cause us to update the document that changed, not all open documents.</item>
+///   <item>Since we incrementally update our LSP documents, we only have to re-parse the document that changed.</item>
+///   <item>Since we incrementally update our LSP documents, project versions for other open documents remain unchanged.</item>
+///   <item>We are not reliant on the workspace being updated frequently (which it is not in VSCode) to do checksum diffing between LSP and the workspace.</item>
+/// </list>
 /// </remarks>
 internal partial class LspWorkspaceManager : IDisposable
 {
@@ -46,8 +51,9 @@ internal partial class LspWorkspaceManager : IDisposable
     /// <summary>
     /// A map from the registered workspace to the running lsp solution with incremental changes from LSP
     /// text sync applied to it.
-    /// This solution is null (cleared) when we detect a change that requires us to re-fork the LSP solution from the workspace,
-    /// for example project changes, document adds/removed.
+    /// All workspaces registered by the <see cref="LspWorkspaceRegistrationService"/> are added as keys to this dictionary
+    /// with a null value (solution) initially.  As LSP text changes come in, we create the incremental solution from the workspace and update it with changes.
+    /// When we detect a change that requires us to re-fork the LSP solution from the workspace we null out the solution for the key.
     /// </summary>
     private readonly Dictionary<Workspace, Solution?> _workspaceToLspSolution = new();
 
@@ -87,11 +93,12 @@ internal partial class LspWorkspaceManager : IDisposable
         lock (_gate)
         {
             _lspWorkspaceRegistrationService.WorkspaceRegistered -= OnWorkspaceRegistered;
-            var registeredWorkspaces = _workspaceToLspSolution.Keys.ToImmutableArray();
-            foreach (var registeredWorkspace in registeredWorkspaces)
+            foreach (var registeredWorkspace in _workspaceToLspSolution.Keys)
             {
                 registeredWorkspace.WorkspaceChanged -= OnWorkspaceChanged;
             }
+
+            _workspaceToLspSolution.Clear();
         }
     }
 
@@ -106,7 +113,7 @@ internal partial class LspWorkspaceManager : IDisposable
         lock (_gate)
         {
             // Set the LSP solution for the workspace to null so that when asked we fork from the workspace.
-            _workspaceToLspSolution[e.Workspace] = null;
+            _workspaceToLspSolution.Add(e.Workspace, null);
             e.Workspace.WorkspaceChanged += OnWorkspaceChanged;
         }
     }
@@ -118,19 +125,19 @@ internal partial class LspWorkspaceManager : IDisposable
     /// </summary>
     private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
     {
+        var workspace = e.NewSolution.Workspace;
+        if (e.Kind is WorkspaceChangeKind.DocumentChanged or WorkspaceChangeKind.AdditionalDocumentChanged or WorkspaceChangeKind.AnalyzerConfigDocumentChanged)
+        {
+            Contract.ThrowIfNull(e.DocumentId, $"DocumentId missing for document change event {e.Kind}");
+            if (IsDocumentTrackedByLsp(e.DocumentId, e.NewSolution, _documentChangeTracker))
+            {
+                // We're tracking the document already, no need to fork the workspace to get the changes, LSP will have sent them to us.
+                return;
+            }
+        }
+
         lock (_gate)
         {
-            var workspace = e.NewSolution.Workspace;
-            if (e.Kind is WorkspaceChangeKind.DocumentChanged or WorkspaceChangeKind.AdditionalDocumentChanged or WorkspaceChangeKind.AnalyzerConfigDocumentChanged)
-            {
-                Contract.ThrowIfNull(e.DocumentId, $"DocumentId missing for document change event {e.Kind}");
-                if (IsDocumentTrackedByLsp(e.DocumentId, e.NewSolution, _documentChangeTracker))
-                {
-                    // We're tracking the document already, no need to fork the workspace to get the changes, LSP will have sent them to us.
-                    return;
-                }
-            }
-
             // Documents added/removed, closed document changes, any changes to the project, or any changes to the solution mean we need to re-fork from the workspace
             // to ensure that the lsp solution contains these updates.
             _workspaceToLspSolution[workspace] = null;
@@ -141,12 +148,7 @@ internal partial class LspWorkspaceManager : IDisposable
             var changedDocument = newWorkspaceSolution.GetRequiredDocument(changedDocumentId);
             var documentUri = changedDocument.TryGetURI();
 
-            if (documentUri != null && documentChangeTracker.IsTracking(documentUri))
-            {
-                return true;
-            }
-
-            return false;
+            return documentUri != null && documentChangeTracker.IsTracking(documentUri);
         }
     }
 
@@ -184,7 +186,7 @@ internal partial class LspWorkspaceManager : IDisposable
     {
         lock (_gate)
         {
-            // Trigger a fork of all workspaces, the LSP document text may not be correct any more and this document
+            // Trigger a fork of all workspaces, the LSP document text may not be correct anymore and this document
             // may have been removed / moved to a different workspace.
             _ = ResetIncrementalLspSolutions_CalledUnderLock();
 
@@ -204,8 +206,8 @@ internal partial class LspWorkspaceManager : IDisposable
             // Get our current solutions and re-fork from the workspace as needed.
             var updatedSolutions = ComputeIncrementalLspSolutions_CalledUnderLock();
 
-            var findDocumentResult = FindDocument(uri, updatedSolutions, clientName: null, _requestTelemetryLogger, _logger);
-            if (findDocumentResult == null)
+            var findDocumentResult = FindDocuments(uri, updatedSolutions, clientName: null, _requestTelemetryLogger, _logger);
+            if (findDocumentResult.IsEmpty)
             {
                 // We didn't find this document in a registered workspace or in the misc workspace.
                 // This can happen when workspace event processing is behind LSP and a new document was added that has not been reflected in the incremental LSP solution yet.
@@ -221,7 +223,7 @@ internal partial class LspWorkspaceManager : IDisposable
 
             // Update all the documents that have a matching uri with the new source text and store as our new incremental solution.
             // We can have multiple documents with the same URI (e.g. linked documents).
-            var solution = GetSolutionWithReplacedDocuments(findDocumentResult.Value.LspSolution, (uri, newSourceText));
+            var solution = GetSolutionWithReplacedDocuments(findDocumentResult.First().Project.Solution, ImmutableArray.Create((uri, newSourceText)));
             _workspaceToLspSolution[solution.Workspace] = solution;
 
             if (solution.Workspace is not LspMiscellaneousFilesWorkspace && _lspMiscellaneousFilesWorkspace != null)
@@ -261,7 +263,10 @@ internal partial class LspWorkspaceManager : IDisposable
     /// <summary>
     /// Returns a document with the LSP tracked text forked from the appropriate workspace solution.
     /// </summary>
-    /// <param name="clientName">returns documents that have a matching client name.  Commonly used to distinguish razor documents.</param>
+    /// <param name="clientName">
+    /// Returns documents that have a matching client name.  In razor scenarios this is to ensure that the Razor C# server
+    /// only provides data for generated razor documents (which have a client name).
+    /// </param>
     public Document? GetLspDocument(TextDocumentIdentifier textDocumentIdentifier, string? clientName)
     {
         lock (_gate)
@@ -270,14 +275,14 @@ internal partial class LspWorkspaceManager : IDisposable
             var currentLspSolutions = ComputeIncrementalLspSolutions_CalledUnderLock();
 
             // Search through the latest lsp solutions to find the document with matching uri and client name.
-            var findDocumentResult = FindDocument(textDocumentIdentifier.Uri, currentLspSolutions, clientName, _requestTelemetryLogger, _logger);
-            if (findDocumentResult == null)
+            var findDocumentResult = FindDocuments(textDocumentIdentifier.Uri, currentLspSolutions, clientName, _requestTelemetryLogger, _logger);
+            if (findDocumentResult.IsEmpty)
             {
                 return null;
             }
 
             // Filter the matching documents by project context.
-            var documentInProjectContext = findDocumentResult.Value.MatchingDocuments.FindDocumentInProjectContext(textDocumentIdentifier);
+            var documentInProjectContext = findDocumentResult.FindDocumentInProjectContext(textDocumentIdentifier);
             return documentInProjectContext;
         }
     }
@@ -317,7 +322,7 @@ internal partial class LspWorkspaceManager : IDisposable
             if (incrementalSolution == null)
             {
                 // We have no incremental lsp solution, create a new one forked from the workspace with LSP tracked documents.
-                var newIncrementalSolution = GetSolutionWithReplacedDocuments(workspace.CurrentSolution, _documentChangeTracker.GetTrackedDocuments().ToArray());
+                var newIncrementalSolution = GetSolutionWithReplacedDocuments(workspace.CurrentSolution, _documentChangeTracker.GetTrackedDocuments());
                 _workspaceToLspSolution[workspace] = newIncrementalSolution;
                 updatedSolutions.Add(newIncrementalSolution);
             }
@@ -336,7 +341,7 @@ internal partial class LspWorkspaceManager : IDisposable
     /// Client name is used in razor cases to filter out non-razor documents.  However once we switch fully over to pull
     /// diagnostics, the client should only ever ask the razor server about razor documents, so we may be able to remove it here.
     /// </summary>
-    private static (Solution LspSolution, ImmutableArray<Document> MatchingDocuments)? FindDocument(
+    private static ImmutableArray<Document> FindDocuments(
         Uri uri,
         ImmutableArray<Solution> registeredSolutions,
         string? clientName,
@@ -346,7 +351,9 @@ internal partial class LspWorkspaceManager : IDisposable
         logger.TraceInformation($"Finding document corresponding to {uri}");
 
         // Ensure we search the lsp misc files solution last if it is present.
-        registeredSolutions = registeredSolutions.OrderBy(solution => solution.Workspace is LspMiscellaneousFilesWorkspace).ToImmutableArray();
+        registeredSolutions = registeredSolutions
+            .Where(solution => solution.Workspace is not LspMiscellaneousFilesWorkspace)
+            .Concat(registeredSolutions.Where(solution => solution.Workspace is LspMiscellaneousFilesWorkspace)).ToImmutableArray();
 
         // First search the registered workspaces for documents with a matching URI.
         if (TryGetDocumentsForUri(uri, registeredSolutions, clientName, out var documents, out var solution))
@@ -354,14 +361,14 @@ internal partial class LspWorkspaceManager : IDisposable
             telemetryLogger.UpdateFindDocumentTelemetryData(success: true, solution.Workspace.Kind);
             logger.TraceInformation($"{documents.Value.First().FilePath} found in workspace {solution.Workspace.Kind}");
 
-            return (solution, documents.Value);
+            return documents.Value;
         }
 
         // We didn't find the document in any workspace, record a telemetry notification that we did not find it.
         var searchedWorkspaceKinds = string.Join(";", registeredSolutions.SelectAsArray(s => s.Workspace.Kind));
         logger.TraceError($"Could not find '{uri}' with client name '{clientName}'.  Searched {searchedWorkspaceKinds}");
         telemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
-        return null;
+        return ImmutableArray<Document>.Empty;
 
         static bool TryGetDocumentsForUri(
             Uri uri,
@@ -392,7 +399,7 @@ internal partial class LspWorkspaceManager : IDisposable
     /// but with document text for any open documents updated to match the LSP view of the world. This makes
     /// the LSP server the source of truth for all document text, but all other changes come from the workspace
     /// </summary>
-    private static Solution GetSolutionWithReplacedDocuments(Solution solution, params (Uri DocumentUri, SourceText Text)[] documentsToReplace)
+    private static Solution GetSolutionWithReplacedDocuments(Solution solution, ImmutableArray<(Uri DocumentUri, SourceText Text)> documentsToReplace)
     {
         foreach (var (uri, text) in documentsToReplace)
         {
