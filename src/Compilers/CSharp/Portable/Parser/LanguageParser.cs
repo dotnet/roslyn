@@ -11499,8 +11499,8 @@ tryAgain:
                 }
 
                 // Must have:     ) => 
-                if (this.PeekToken(skipIndex + 1).Kind == SyntaxKind.CloseParenToken
-                    && this.PeekToken(skipIndex + 2).Kind == SyntaxKind.EqualsGreaterThanToken)
+                if (this.PeekToken(skipIndex).Kind == SyntaxKind.CloseParenToken
+                    && this.PeekToken(skipIndex + 1).Kind == SyntaxKind.EqualsGreaterThanToken)
                 {
                     return true;
                 }

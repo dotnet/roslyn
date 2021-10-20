@@ -265,7 +265,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void NullableAnalyzeParameterDefaultValueFromAttributes()
         {
-            ParameterHelpers.AddNullCheckingErrorsToParameter(diagnostics, this);
             var parameterSyntax = this.CSharpSyntaxNode;
             if (parameterSyntax == null)
             {

@@ -68,7 +68,7 @@ interface C
 {
     public void M(string x!!) { }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest,
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.StandardLatest,
                 parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
         }
@@ -140,24 +140,48 @@ partial class C
     != null) { }
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                    // (6,26): error CS1525: Invalid expression term '!'
-                    //     void M1(string name! !=null) { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(6, 26),
-                    // (8,27): error CS1525: Invalid expression term '!'
-                    //     void M3(string name ! !=null) { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(8, 27),
-                    // (9,27): error CS1525: Invalid expression term '!'
-                    //     void M4(string name ! ! =null) { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(9, 27),
-                    // (10,26): error CS1525: Invalid expression term '!'
-                    //     void M5(string name! ! =null) { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(10, 26),
-                    // (11,26): error CS1525: Invalid expression term '!'
-                    //     void M6(string name! != null) { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(11, 26),
-                    // (13,5): error CS1525: Invalid expression term '!'
-                    //     != null) { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(13, 5));
+                // (5,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
+                //     void M0(string name !!=null) { }
+                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(5, 20),
+                // (6,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
+                //     void M1(string name! !=null) { }
+                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(6, 20),
+                // (6,26): error CS1525: Invalid expression term '!'
+                //     void M1(string name! !=null) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(6, 26),
+                // (7,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
+                //     void M2(string name!!= null) { }
+                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(7, 20),
+                // (8,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
+                //     void M3(string name ! !=null) { }
+                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(8, 20),
+                // (8,27): error CS1525: Invalid expression term '!'
+                //     void M3(string name ! !=null) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(8, 27),
+                // (9,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
+                //     void M4(string name ! ! =null) { }
+                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(9, 20),
+                // (9,27): error CS1525: Invalid expression term '!'
+                //     void M4(string name ! ! =null) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(9, 27),
+                // (10,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
+                //     void M5(string name! ! =null) { }
+                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(10, 20),
+                // (10,26): error CS1525: Invalid expression term '!'
+                //     void M5(string name! ! =null) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(10, 26),
+                // (11,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
+                //     void M6(string name! != null) { }
+                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(11, 20),
+                // (11,26): error CS1525: Invalid expression term '!'
+                //     void M6(string name! != null) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(11, 26),
+                // (12,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
+                //     void M7(string name!
+                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(12, 20),
+                // (13,5): error CS1525: Invalid expression term '!'
+                //     != null) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(13, 5));
         }
 
         [Fact]
@@ -378,7 +402,7 @@ class C
                                                                     .DescendantNodes()
                                                                     .OfType<SimpleLambdaExpressionSyntax>()
                                                                     .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol;
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
             Assert.True(methodSymbol.Parameters[0].IsNullChecked);
         }
 
@@ -405,7 +429,7 @@ class C
                                                                            .DescendantNodes()
                                                                            .OfType<ParenthesizedLambdaExpressionSyntax>()
                                                                            .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol;
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
             Assert.True(methodSymbol.Parameters[0].IsNullChecked);
             Assert.False(methodSymbol.Parameters[1].IsNullChecked);
         }
@@ -433,7 +457,7 @@ class C
                                                                                   .DescendantNodes()
                                                                                   .OfType<Syntax.ParenthesizedLambdaExpressionSyntax>()
                                                                                   .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol;
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
             Assert.True(methodSymbol.Parameters[0].IsNullChecked);
         }
 
@@ -565,7 +589,7 @@ class C
                                                                            .DescendantNodes()
                                                                            .OfType<ParenthesizedLambdaExpressionSyntax>()
                                                                            .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol;
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
             Assert.True(methodSymbol.Parameters[0].IsNullChecked);
         }
 
@@ -592,7 +616,7 @@ class C
                                                                            .DescendantNodes()
                                                                            .OfType<ParenthesizedLambdaExpressionSyntax>()
                                                                            .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol;
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
             Assert.True(methodSymbol.Parameters[0].IsNullChecked);
             Assert.False(methodSymbol.Parameters[1].IsNullChecked);
         }
@@ -620,7 +644,7 @@ class C
                                                            .DescendantNodes()
                                                            .OfType<ParenthesizedLambdaExpressionSyntax>()
                                                            .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol;
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
             Assert.True(methodSymbol.Parameters[0].IsNullChecked);
             Assert.True(methodSymbol.Parameters[1].IsNullChecked);
         }
@@ -648,7 +672,7 @@ class C
                                                                            .DescendantNodes()
                                                                            .OfType<ParenthesizedLambdaExpressionSyntax>()
                                                                            .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol;
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
             Assert.True(methodSymbol.Parameters[0].IsNullChecked);
         }
 

@@ -1479,8 +1479,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
 
-            var member = operation.SemanticModel.GetDeclaredSymbol(operation.Syntax);
-            VisitNullChecks(operation, ((IMethodSymbol)member).Parameters);
+            // PROTOTYPE(param-nullchecking): this implementation doesn't handle record primary constructors
+            if (operation.SemanticModel!.GetDeclaredSymbol(operation.Syntax) is IMethodSymbol method)
+            {
+                VisitNullChecks(operation, method.Parameters);
+            }
 
             if (operation.Initializer != null)
             {
@@ -1497,9 +1500,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             StartVisitingStatement(operation);
 
-            var member = operation.SemanticModel.GetDeclaredSymbol(operation.Syntax);
+            // PROTOTYPE(param-nullchecking): do we need to use SemanticModel here?
+            var member = operation.SemanticModel!.GetDeclaredSymbol(operation.Syntax);
             Debug.Assert(captureIdForResult is null);
-            VisitNullChecks(operation, ((IMethodSymbol)member).Parameters);
+            VisitNullChecks(operation, ((IMethodSymbol)member!).Parameters);
 
             VisitMethodBodyBaseOperation(operation);
             return FinishVisitingStatement(operation);
@@ -1512,7 +1516,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 if (param.IsNullChecked)
                 {
-                    var check = GenerateNullCheckForParameter(param, operation.Syntax, ((Operation)operation).OwningSemanticModel);
+                    // PROTOTYPE(param-nullchecking): do we need to use SemanticModel here?
+                    var check = GenerateNullCheckForParameter(param, operation.Syntax, ((Operation)operation).OwningSemanticModel!);
                     _currentStatement = check;
                     VisitConditional(check, captureIdForResult: null);
                 }
@@ -1523,7 +1528,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         private ConditionalOperation GenerateNullCheckForParameter(IParameterSymbol parameter, SyntaxNode syntax, SemanticModel semanticModel)
         {
             Debug.Assert(parameter.Language == LanguageNames.CSharp);
-            var paramReference = new ParameterReferenceOperation(parameter, semanticModel, syntax, parameter.Type, constantValue: null, isImplicit: true);
+            var paramReference = new ParameterReferenceOperation(parameter, semanticModel, syntax, parameter.Type, isImplicit: true);
             var boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
 
             IOperation conditionOp;
@@ -1562,7 +1567,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                         semanticModel,
                         syntax,
                         boolType,
-                        constantValue: null,
                         isImplicit: true),
                     isLifted: false,
                     isChecked: false,
@@ -1593,7 +1597,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
 
             var paramNameLiteral = new LiteralOperation(semanticModel, syntax, _compilation.GetSpecialType(SpecialType.System_String), ConstantValue.Create(parameter.Name), isImplicit: true);
-            var argumentNullExceptionMethod = (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_ArgumentNullException__ctorString)?.GetISymbol();
+            var argumentNullExceptionMethod = (IMethodSymbol?)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_ArgumentNullException__ctorString)?.GetISymbol();
             var argumentNullExceptionType = argumentNullExceptionMethod?.ContainingType;
 
             // Occurs when a member is missing.
@@ -1615,11 +1619,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                         initializer: null,
                         ImmutableArray.Create<IArgumentOperation>(
                             new ArgumentOperation(
-                                paramNameLiteral,
                                 ArgumentKind.Explicit,
                                 parameter: argumentNullExceptionMethod.Parameters[0],
-                                inConversionOpt: null,
-                                outConversionOpt: null,
+                                value: paramNameLiteral,
+                                OperationFactory.IdentityConversion,
+                                OperationFactory.IdentityConversion,
                                 semanticModel,
                                 syntax,
                                 isImplicit: true)),
@@ -1636,12 +1640,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     semanticModel,
                     syntax,
                     argumentNullExceptionType,
-                    constantValue: null,
                     isImplicit: true),
                 semanticModel,
                 syntax,
-                type: null,
-                constantValue: null,
                 isImplicit: true);
             return new ConditionalOperation(conditionOp, whenTrue, whenFalse: null, isRef: false, semanticModel, syntax, boolType, constantValue: null, isImplicit: true);
         }
