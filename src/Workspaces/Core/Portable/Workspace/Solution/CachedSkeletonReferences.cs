@@ -41,11 +41,13 @@ namespace Microsoft.CodeAnalysis
     internal class CachedSkeletonReferences
     {
         /// <summary>
-        /// Mapping from compilation instance to metadata-references for it.  Safe to use as a static CWT as anyone 
-        /// with a reference to this compilation (and the same <see cref="MetadataReferenceProperties"/> is allowed
-        /// to reference it using the same <see cref="MetadataReference"/>.
+        /// Mapping from compilation instance to metadata-references for it.  This allows us to associate the same
+        /// <see cref="SkeletonReferenceSet"/> to different compilations that may not be the same as the original
+        /// compilation we generated the set from.  This allows us to use compilations as keys as long as they're
+        /// alive, but also associate the set with new compilations that are generated in the future if the older
+        /// compilations were thrown away.
         /// </summary>
-        private static readonly ConditionalWeakTable<Compilation, SkeletonReferenceSet> s_compilationToReferenceMap = new();
+        private static readonly ConditionalWeakTable<Compilation, SkeletonReferenceSet> s_compilationToReferenceMap1 = new();
 
         private readonly ProjectId _projectId;
 
@@ -106,7 +108,7 @@ namespace Microsoft.CodeAnalysis
             // If we have one for the latter, we'll make sure that it's version matches what we're asking for before
             // returning it.
             workspace.LogTestMessage($"Looking to see if we already have a skeleton assembly for {_projectId} before we build one...");
-            var reference = await TryGetReferenceAsync(workspace, properties, finalCompilation, version, cancellationToken).ConfigureAwait(false);
+            var reference = await TryGetReferenceAsync(properties, finalCompilation, version, cancellationToken).ConfigureAwait(false);
             if (reference != null)
             {
                 workspace.LogTestMessage($"A reference was found {_projectId} so we're skipping the build.");
@@ -124,7 +126,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // unfortunately, we couldn't create one. see if we have one from previous compilation., it might be
                 // out-of-date big time, but better than nothing.
-                reference = await TryGetReferenceAsync(workspace, properties, finalCompilation, version: null, cancellationToken).ConfigureAwait(false);
+                reference = await TryGetReferenceAsync(properties, finalCompilation, version: null, cancellationToken).ConfigureAwait(false);
                 if (reference != null)
                 {
                     workspace.LogTestMessage($"We failed to create metadata so we're using the one we just found from an earlier version.");
@@ -134,15 +136,10 @@ namespace Microsoft.CodeAnalysis
 
             // We either had an image, or we didn't have an image and we didn't have a previous value we could reuse.
             // Just store this image against this version for us, and any future ProjectStates that fork from us.
+            // note: this could be happening on multiple threads.  So we just all the first thread that successfully
+            // assigns the compilation to win here.
 
-            var tempReferenceSet = new SkeletonReferenceSet(image);
-            var referenceSet = s_compilationToReferenceMap.GetValue(finalCompilation, _ => tempReferenceSet);
-            if (tempReferenceSet != referenceSet)
-            {
-                // someone else has beaten us. 
-                // let image go eagerly. otherwise, finalizer in temporary storage will take care of it
-                image.Cleanup();
-            }
+            var referenceSet = s_compilationToReferenceMap1.GetValue(finalCompilation, _ => new SkeletonReferenceSet(image));
 
             // Store this for ourselves, and for any project states that clone from us from this point onwards.
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
@@ -163,36 +160,32 @@ namespace Microsoft.CodeAnalysis
         /// built skeleton than just have no semantic information for that project at all.
         /// </summary>
         public async Task<MetadataReference?> TryGetReferenceAsync(
-            Workspace workspace,
             MetadataReferenceProperties properties,
             Compilation finalOrDeclarationCompilation,
             VersionStamp? version,
             CancellationToken cancellationToken)
         {
-            // if we have one from snapshot cache, use it. it will make sure same compilation will get same metadata reference always.
-            if (s_compilationToReferenceMap.TryGetValue(finalOrDeclarationCompilation, out var referenceSet))
+            // first, check if we have a direct mapping from this compilation to a reference set. If so, use it.  This
+            // ensures the same compilations will get same metadata reference.
+            if (!s_compilationToReferenceMap1.TryGetValue(finalOrDeclarationCompilation, out var referenceSet))
             {
-                workspace.LogTestMessage($"Found already cached metadata in {nameof(s_compilationToReferenceMap)} for the exact compilation");
-                return await referenceSet.GetMetadataReferenceAsync(
-                    finalOrDeclarationCompilation, properties, cancellationToken).ConfigureAwait(false);
+                // Otherwise, we don't have a direct mapping stored.  Try to see if the cached reference we have is
+                // applicable to this project semantic version.
+                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    // if we don't have a skeleton cached, then we have nothing to return.
+                    if (_skeletonReferenceSet == null)
+                        return null;
+
+                    // if the caller is requiring a particular semantic version, it much match what we have cached.
+                    if (version != null && version != _version)
+                        return null;
+
+                    referenceSet = _skeletonReferenceSet;
+                }
             }
 
-            // otherwise see if we can use the cached skeleton associated with a particular semantic version-stamp.
-            SkeletonReferenceSet set;
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-            {
-                // if we don't have a skeleton cached, then we have nothing to return.
-                if (_skeletonReferenceSet == null)
-                    return null;
-
-                // if the caller is requiring a particular semantic version, it much match what we have cached.
-                if (version != null && version != _version)
-                    return null;
-
-                set = _skeletonReferenceSet;
-            }
-
-            return await set.GetMetadataReferenceAsync(finalOrDeclarationCompilation, properties, cancellationToken).ConfigureAwait(false);
+            return await referenceSet.GetMetadataReferenceAsync(finalOrDeclarationCompilation, properties, cancellationToken).ConfigureAwait(false);
         }
 
         private sealed class SkeletonReferenceSet
