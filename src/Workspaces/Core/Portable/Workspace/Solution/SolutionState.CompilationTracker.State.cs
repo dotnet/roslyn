@@ -222,13 +222,20 @@ namespace Microsoft.CodeAnalysis
                 /// </summary>
                 public override ValueSource<Optional<Compilation>> FinalCompilationWithGeneratedDocuments { get; }
 
+                // <Caravela> This code is used by Try.Caravela.
+                public override ImmutableArray<Diagnostic> TransformerDiagnostics { get; }
+                // </Caravela>
+
                 private FinalState(
                     ValueSource<Optional<Compilation>> finalCompilationSource,
                     ValueSource<Optional<Compilation>> compilationWithoutGeneratedFilesSource,
                     Compilation compilationWithoutGeneratedFiles,
                     bool hasSuccessfullyLoaded,
                     TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
-                    UnrootedSymbolSet unrootedSymbolSet
+                    UnrootedSymbolSet unrootedSymbolSet,
+                    // <Caravela> This code is used by Try.Caravela.
+                    ImmutableArray<Diagnostic> transformerDiagnostics
+                    // </Caravela>
                     )
                     : base(compilationWithoutGeneratedFilesSource,
                            compilationWithoutGeneratedFiles.Clone().RemoveAllReferences(),
@@ -238,14 +245,19 @@ namespace Microsoft.CodeAnalysis
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                     FinalCompilationWithGeneratedDocuments = finalCompilationSource;
                     UnrootedSymbolSet = unrootedSymbolSet;
+                    // <Caravela> This code is used by Try.Caravela.
+                    TransformerDiagnostics = transformerDiagnostics;
+                    // </Caravela>
 
-                    if (GeneratedDocuments.IsEmpty)
-                    {
-                        // In this case, the finalCompilationSource and compilationWithoutGeneratedFilesSource should point to the
-                        // same Compilation, which should be compilationWithoutGeneratedFiles itself
-                        Debug.Assert(finalCompilationSource.TryGetValue(out var finalCompilationVal));
-                        Debug.Assert(object.ReferenceEquals(finalCompilationVal.Value, compilationWithoutGeneratedFiles));
-                    }
+                    // <Caravela> This assertion if false for Caravela.Compiler. We change the final compilation by transformers.
+                    // if (GeneratedDocuments.IsEmpty)
+                    // {
+                    //    // In this case, the finalCompilationSource and compilationWithoutGeneratedFilesSource should point to the
+                    //    // same Compilation, which should be compilationWithoutGeneratedFiles itself
+                    //    Debug.Assert(finalCompilationSource.TryGetValue(out var finalCompilationVal));
+                    //    Debug.Assert(object.ReferenceEquals(finalCompilationVal.Value, compilationWithoutGeneratedFiles));
+                    // }
+                    // </Caravela>
                 }
 
                 /// <param name="finalCompilation">Not held onto</param>
@@ -259,7 +271,10 @@ namespace Microsoft.CodeAnalysis
                     TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
                     Compilation finalCompilation,
                     ProjectId projectId,
-                    Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId
+                    Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId,
+                    // <Caravela> This code is used by Try.Caravela.
+                    ImmutableArray<Diagnostic> transformerDiagnostics = default
+                    // </Caravela>
                     )
                 {
                     // Keep track of information about symbols from this Compilation.  This will help support other APIs
@@ -273,7 +288,10 @@ namespace Microsoft.CodeAnalysis
                         compilationWithoutGeneratedFilesSource,
                         compilationWithoutGeneratedFiles,
                         hasSuccessfullyLoaded,
-                        generatedDocuments, unrootedSymbolSet
+                        generatedDocuments, unrootedSymbolSet,
+                        // <Caravela> This code is used by Try.Caravela.
+                        transformerDiagnostics
+                        // </Caravela>
                         );
                 }
 

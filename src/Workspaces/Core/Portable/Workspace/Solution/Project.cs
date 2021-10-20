@@ -658,5 +658,9 @@ namespace Microsoft.CodeAnalysis
         internal SkippedHostAnalyzersInfo GetSkippedAnalyzersInfo(DiagnosticAnalyzerInfoCache infoCache)
             => Solution.State.Analyzers.GetSkippedAnalyzersInfo(this, infoCache);
 
+        // <Caravela> This code is used by Try.Caravela.
+        public Task<ImmutableArray<Diagnostic>> GetTransformerDiagnosticsAsync(CancellationToken cancellationToken)
+            => _solution.State.GetTransformerDiagnosticsAsync(_projectState, cancellationToken);
+        // </Caravela>
     }
 }

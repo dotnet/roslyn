@@ -78,11 +78,11 @@ namespace Caravela.Compiler
 #if !CARAVELA_COMPILER_INTERFACE
             foreach (var transformation in transformations)
             {
-                if (transformation.NewTree != transformation.OldTree)
+                if (transformation.NewTree == transformation.OldTree)
                 {
                     continue;
                 }
-                
+
                 if (transformation.OldTree != null)
                 {
                     TrackTreeReplacement(transformation.OldTree, transformation.NewTree);
