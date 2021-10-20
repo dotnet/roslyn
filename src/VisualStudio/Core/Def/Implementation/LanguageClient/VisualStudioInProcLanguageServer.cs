@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -36,11 +37,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         private readonly AsyncBatchingWorkQueue<DocumentId> _diagnosticsWorkQueue;
         private readonly IDiagnosticService? _diagnosticService;
 
+        private readonly ImmutableArray<string> _supportedLanguages;
+
         internal VisualStudioInProcLanguageServer(
             AbstractRequestDispatcherFactory requestDispatcherFactory,
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
             ILspWorkspaceRegistrationService workspaceRegistrationService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspLogger logger,
             IDiagnosticService? diagnosticService,
@@ -48,9 +52,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             string? clientName,
             string userVisibleServerName,
             string telemetryServerTypeName)
-            : base(requestDispatcherFactory, jsonRpc, capabilitiesProvider, workspaceRegistrationService, listenerProvider, logger, supportedLanguages, clientName, userVisibleServerName, telemetryServerTypeName)
+            : base(requestDispatcherFactory, jsonRpc, capabilitiesProvider, workspaceRegistrationService, globalOptions, listenerProvider, logger, supportedLanguages, clientName, userVisibleServerName, telemetryServerTypeName)
         {
+            _supportedLanguages = supportedLanguages;
             _diagnosticService = diagnosticService;
+
             // Dedupe on DocumentId.  If we hear about the same document multiple times, we only need to process that id once.
             _diagnosticsWorkQueue = new AsyncBatchingWorkQueue<DocumentId>(
                 TimeSpan.FromMilliseconds(250),
@@ -158,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                     return;
 
                 // Only publish document diagnostics for the languages this provider supports.
-                if (document.Project.Language != CodeAnalysis.LanguageNames.CSharp && document.Project.Language != CodeAnalysis.LanguageNames.VisualBasic)
+                if (!_supportedLanguages.Contains(document.Project.Language))
                     return;
 
                 _diagnosticsWorkQueue.AddWork(document.Id);
@@ -215,7 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                     var diagnosticMode = document.IsRazorDocument()
                         ? InternalDiagnosticsOptions.RazorDiagnosticMode
                         : InternalDiagnosticsOptions.NormalDiagnosticMode;
-                    if (document.Project.Solution.Workspace.IsPushDiagnostics(diagnosticMode))
+                    if (GlobalOptions.IsPushDiagnostics(diagnosticMode))
                         await PublishDiagnosticsAsync(diagnosticService, document, cancellationToken).ConfigureAwait(false);
                 }
             }

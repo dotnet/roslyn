@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             var identifierNode = identifier
                 .Ancestors()
-                .TakeWhile(n => n.Kind() == SyntaxKind.ParenthesizedExpression || n.Kind() == SyntaxKind.CastExpression)
+                .TakeWhile(n => n.Kind() is SyntaxKind.ParenthesizedExpression or SyntaxKind.CastExpression)
                 .LastOrDefault();
 
             if (identifierNode == null)

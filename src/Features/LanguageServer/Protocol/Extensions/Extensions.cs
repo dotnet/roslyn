@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -20,9 +21,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     internal static class Extensions
     {
         public static Uri GetURI(this TextDocument document)
-        {
-            return ProtocolConversions.GetUriFromFilePath(document.FilePath);
-        }
+            => ProtocolConversions.GetUriFromFilePath(document.FilePath);
+
+        public static Uri? TryGetURI(this TextDocument document, RequestContext? context = null)
+            => ProtocolConversions.TryGetUriFromFilePath(document.FilePath, context);
 
         public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri)
             => GetDocuments(solution, documentUri, clientName: null, logger: null);
@@ -175,7 +177,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     return "vb";
                 case LanguageNames.FSharp:
                     return "fsharp";
-                case "TypeScript":
+                case InternalLanguageNames.TypeScript:
                     return "typescript";
                 default:
                     throw new ArgumentException(string.Format("Document project language {0} is not valid", document.Project.Language));

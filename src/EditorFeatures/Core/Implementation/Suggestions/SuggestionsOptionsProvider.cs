@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     [ExportOptionProvider, Shared]
-    internal class SuggestionsOptionsProvider : IOptionProvider
+    internal sealed class SuggestionsOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            SuggestionsOptions.Asynchronous);
+            SuggestionsOptions.Asynchronous,
+            SuggestionsOptions.AsynchronousQuickActionsDisableFeatureFlag);
     }
 }

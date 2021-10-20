@@ -2569,7 +2569,7 @@ public class C : A {
         [Fact]
         public async Task TestFrozenPartialProjectHasDifferentSemanticVersions()
         {
-            using var workspace = CreateWorkspaceWithPartalSemantics();
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
             var project = workspace.CurrentSolution.AddProject("CSharpProject", "CSharpProject", LanguageNames.CSharp);
             project = project.AddDocument("Extra.cs", SourceText.From("class Extra { }")).Project;
 

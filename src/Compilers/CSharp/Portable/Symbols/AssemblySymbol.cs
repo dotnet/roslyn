@@ -436,8 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal bool RuntimeSupportsStaticAbstractMembersInInterfaces
         {
-            // https://github.com/dotnet/roslyn/issues/53800: Implement the actual check, this is a temporary stub. 
-            get => RuntimeSupportsDefaultInterfaceImplementation;
+            get => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces);
         }
 
         private bool RuntimeSupportsFeature(SpecialMember feature)
