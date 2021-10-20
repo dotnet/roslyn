@@ -23,7 +23,9 @@
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Caravela.Compiler.UnitTests" />
+    <!-- <Caravela> -->
+    <InternalsVisibleTo Include="Caravela.Compiler.UnitTests" Key="$(MetalamaKey)" />
+    <!-- </Caravela> -->
     <EmbeddedResource Include="..\..\csc\csc.rsp" LogicalName="csc.rsp" />
   </ItemGroup>
   <ItemGroup>

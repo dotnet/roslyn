@@ -1,0 +1,13 @@
+<Project>
+
+    <PropertyGroup>
+        <SignAssembly>True</SignAssembly>
+        <PublicSign>True</PublicSign>
+        <DelaySign>False</DelaySign>
+
+        <PublicKey>$(MetalamaKey)</PublicKey>
+	    <PublicKeyToken>772fca7b1db8db06</PublicKeyToken>
+        <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)Metalama.StrongName.public.snk</AssemblyOriginatorKeyFile>
+    </PropertyGroup>
+    
+</Project>

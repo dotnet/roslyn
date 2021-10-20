@@ -1,0 +1,9 @@
+<Project>
+
+    <!-- Imports Directory.Build.targets of the upper directory. Use this code in any non-root Directory.Build.* even if the file does not exist. -->
+    <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))" Condition="Exists('$([MSBuild]::GetPathOfFileAbove(`Directory.Build.targets`, `$(MSBuildThisFileDirectory)../`))')" />
+
+    <!-- This import needs to be done in .targets to override the settings from Arcade. -->
+    <Import Project="$(MSBuildThisFileDirectory)eng\StrongName.props" />
+    
+</Project>
