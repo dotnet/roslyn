@@ -529,8 +529,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         InheritanceMargin_GetInheritanceMemberItems = 493,
 
         LSP_FindDocumentInWorkspace = 494,
-        AssetService_Perf = 495,
 
         SuggestedActions_GetSuggestedActionsAsync = 500,
+
+        AssetService_Perf = 520,
     }
 }

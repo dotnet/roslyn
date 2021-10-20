@@ -90,6 +90,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             timer.Stop();
 
+            // report telemetry to help correlate slow solution sync with UI delays
             if (timer.ElapsedMilliseconds > 1000)
             {
                 Logger.Log(FunctionId.AssetService_Perf, KeyValueLogMessage.Create(map => map["SolutionSyncTime"] = timer.ElapsedMilliseconds));
