@@ -4428,5 +4428,37 @@ class Ignored { }
                 CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
             }.RunAsync();
         }
+
+        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TopLevelStatement_MultipleStatementsWithInvalidOrdering()
+        {
+            var code = @"
+using System;
+
+Console.WriteLine(""string"");
+
+class Ignored { }
+
+[|{|CS8803:int x = int.Parse(""0"");|}
+Console.WriteLine(x);|]
+
+Console.WriteLine(x);
+
+class Ignored2 { }
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp9,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
+            }.RunAsync();
+        }
     }
 }
