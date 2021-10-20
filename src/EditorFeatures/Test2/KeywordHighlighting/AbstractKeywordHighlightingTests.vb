@@ -25,16 +25,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                 Dim snapshot = testDocument.GetTextBuffer().CurrentSnapshot
                 Dim caretPosition = testDocument.CursorPosition.Value
                 Dim document As Document = workspace.CurrentSolution.Projects.First.Documents.First
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
 
-                Dim options = workspace.Options.WithChangedOption(FeatureOnOffOptions.KeywordHighlighting, document.Project.Language, optionIsEnabled)
-                document = document.WithSolutionOptions(options)
+                globalOptions.SetGlobalOption(New OptionKey(FeatureOnOffOptions.KeywordHighlighting, document.Project.Language), optionIsEnabled)
 
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractKeywordHighlightingTests)}.{NameOf(Me.VerifyHighlightsAsync)} creates asynchronous taggers")
 
                 Dim tagProducer = New HighlighterViewTaggerProvider(
                     workspace.GetService(Of IThreadingContext),
                     workspace.GetService(Of IHighlightingService)(),
-                    workspace.GetService(Of IGlobalOptionService),
+                    globalOptions,
                     AsynchronousOperationListenerProvider.NullProvider)
 
                 Dim context = New TaggerContext(Of KeywordHighlightTag)(document, snapshot, New SnapshotPoint(snapshot, caretPosition))
