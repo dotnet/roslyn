@@ -11,7 +11,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
         public static TrackingInvocationSet Merge(TrackingInvocationSet set1, TrackingInvocationSet set2)
         {
             var builder = ImmutableHashSet.CreateBuilder<IOperation>();
-            var totalCount = AddInvocationCount(set1.TotalCount, set2.TotalCount);
+            var totalCount = AddInvocationCount(set1.EnumerationCount, set2.EnumerationCount);
             foreach (var operation in set1.Operations)
             {
                 builder.Add(operation);
@@ -28,7 +28,20 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
         public static TrackingInvocationSet Intersect(TrackingInvocationSet set1, TrackingInvocationSet set2)
         {
             var builder = ImmutableHashSet.CreateBuilder<IOperation>();
-            var totalCount = Min(set1.TotalCount, set2.TotalCount);
+
+            // Get the min of two count.
+            // Example:
+            // if (a)
+            // {
+            //    Bar.First();
+            //    Bar.First();
+            // }
+            // else
+            // {
+            //    Bar.First();
+            // }
+            // Then 'Bar' is only guranteed to be enumerated once after the if-else statement
+            var totalCount = Min(set1.EnumerationCount, set2.EnumerationCount);
             foreach (var operation in set1.Operations)
             {
                 builder.Add(operation);

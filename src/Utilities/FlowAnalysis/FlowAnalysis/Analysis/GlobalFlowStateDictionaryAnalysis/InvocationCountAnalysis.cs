@@ -12,6 +12,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
     using InvocationCountAnalysisResult = DataFlowAnalysisResult<InvocationCountBlockAnalysisResult, InvocationCountAnalysisValue>;
     using InvocationCountAnalysisDomain = MapAbstractDomain<AnalysisEntity, InvocationCountAnalysisValue>;
 
+    /// <summary>
+    /// An analysis that tracks the state of a set of <see cref="AnalysisEntity"/>. The state is shared among the block.
+    /// </summary>
     internal class InvocationCountAnalysis : ForwardDataFlowAnalysis<
         InvocationCountAnalysisData,
         InvocationCountAnalysisContext,
@@ -77,7 +80,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
 
         protected override InvocationCountAnalysisResult ToResult(InvocationCountAnalysisContext analysisContext, InvocationCountAnalysisResult dataFlowAnalysisResult)
         {
-            // Use the global values map
+            // Use the global values map. Drop the per-operation inforamation
             var operationVisitor = (InvocationCountDataFlowOperationVisitor)OperationVisitor;
             return dataFlowAnalysisResult.With(operationVisitor.GetGlobalValuesMap());
         }

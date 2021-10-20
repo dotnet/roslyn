@@ -9,11 +9,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
 {
     internal class InvocationCountAnalysisValue : CacheBasedEquatable<InvocationCountAnalysisValue>
     {
+        /// <summary>
+        /// The core analysis value of <see cref="InvocationCountAnalysis"/>.
+        /// Key is the <see cref="AnalysisEntity"/> tracked my the analysis. Value is the state of the <see cref="AnalysisEntity"/>.
+        /// </summary>
         public ImmutableDictionary<AnalysisEntity, TrackingInvocationSet> TrackedEntities { get; }
 
         public InvocationCountAnalysisValueKind Kind { get; }
 
         public static readonly InvocationCountAnalysisValue Empty = new(ImmutableDictionary<AnalysisEntity, TrackingInvocationSet>.Empty, InvocationCountAnalysisValueKind.Empty);
+
         public static readonly InvocationCountAnalysisValue Unknown = new(ImmutableDictionary<AnalysisEntity, TrackingInvocationSet>.Empty, InvocationCountAnalysisValueKind.Unknown);
 
         public InvocationCountAnalysisValue(
@@ -24,6 +29,26 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
             Kind = kind;
         }
 
+        /// <summary>
+        /// Merge <param name="value1"/> and <param name="value2"/>
+        /// </summary>
+        /// <remarks>
+        /// e.g.
+        /// {
+        ///     "entity1" : ["1", "2", "3"]
+        ///     "entity2" : "1"
+        /// }
+        /// {
+        ///     "entity1" : ["2", "3", "4"]
+        ///     "entity3" : "1"
+        /// }
+        /// After intersection, the result would be
+        /// {
+        ///     "entity1" : ["1", "2", "3", "4"]
+        ///     "entity2" : "1"
+        ///     "entity3" : "1"
+        /// }
+        /// </remarks>
         public static InvocationCountAnalysisValue Merge(InvocationCountAnalysisValue value1, InvocationCountAnalysisValue value2)
         {
             if (value1.TrackedEntities.Count == 0)
@@ -59,6 +84,28 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.InvocationCountAnalysis
             return new InvocationCountAnalysisValue(builder.ToImmutableDictionary(), InvocationCountAnalysisValueKind.Known);
         }
 
+        /// <summary>
+        /// Interset the state of the analysisEntity in <param name="value1"/> and <param name="value2"/>.
+        /// </summary>
+        /// <remarks>
+        /// This will only intersect the value of the common analysisEntity of value1 and value2.
+        /// If different analysisEntities are presented, they will be merged.
+        /// e.g.
+        /// {
+        ///     "entity1" : [1, 2, 3]
+        ///     "entity2" : "1"
+        /// }
+        /// {
+        ///     "entity1" : [2, 3, 4]
+        ///     "entity3" : "1"
+        /// }
+        /// After intersection, the result would be
+        /// {
+        ///     "entity1" : [2, 3]
+        ///     "entity2" : "1"
+        ///     "entity3" : "1"
+        /// }
+        /// </remarks>
         public static InvocationCountAnalysisValue Intersect(InvocationCountAnalysisValue value1, InvocationCountAnalysisValue value2)
         {
             var builder = ImmutableDictionary.CreateBuilder<AnalysisEntity, TrackingInvocationSet>();
