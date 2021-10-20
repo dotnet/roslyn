@@ -28,6 +28,7 @@
     For more information about LSIF, see https://code.visualstudio.com/blogs/2019/02/19/lsif</PackageDescription>
 
     <IsShipping>false</IsShipping>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
   </PropertyGroup>
 
   <Target Name="_GetFilesToPackage" DependsOnTargets="ResolveReferences">

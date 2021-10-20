@@ -61,6 +61,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="Debugging\**\*.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
+    <Compile Remove="EditAndContinue\**\*.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Update="CSharpFeaturesResources.resx" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>

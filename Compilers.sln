@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29519.87
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -151,6 +151,12 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Rebuild", "src\Compilers\Core\Rebuild\Microsoft.CodeAnalysis.Rebuild.csproj", "{321F9FED-AACC-42CB-93E5-541D79E099E8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Rebuild.UnitTests", "src\Compilers\Core\RebuildTest\Microsoft.CodeAnalysis.Rebuild.UnitTests.csproj", "{FDBFBB64-5980-41C2-9E3E-FB8E2F700A5C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.Features", "src\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj", "{339D54BB-C365-43E6-A820-C9312965B5DE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.CSharp.Features", "src\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj", "{50EEFFF1-C60A-4EC0-8203-7A06BB3CD65C}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Microsoft.CodeAnalysis.VisualBasic.Features", "src\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj", "{0278BAFC-CE64-406A-B51E-501D8C5F82C0}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -421,6 +427,18 @@ Global
 		{FDBFBB64-5980-41C2-9E3E-FB8E2F700A5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FDBFBB64-5980-41C2-9E3E-FB8E2F700A5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FDBFBB64-5980-41C2-9E3E-FB8E2F700A5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{339D54BB-C365-43E6-A820-C9312965B5DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{339D54BB-C365-43E6-A820-C9312965B5DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{339D54BB-C365-43E6-A820-C9312965B5DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{339D54BB-C365-43E6-A820-C9312965B5DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50EEFFF1-C60A-4EC0-8203-7A06BB3CD65C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50EEFFF1-C60A-4EC0-8203-7A06BB3CD65C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50EEFFF1-C60A-4EC0-8203-7A06BB3CD65C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50EEFFF1-C60A-4EC0-8203-7A06BB3CD65C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0278BAFC-CE64-406A-B51E-501D8C5F82C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0278BAFC-CE64-406A-B51E-501D8C5F82C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0278BAFC-CE64-406A-B51E-501D8C5F82C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0278BAFC-CE64-406A-B51E-501D8C5F82C0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
