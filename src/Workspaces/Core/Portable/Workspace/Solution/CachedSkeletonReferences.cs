@@ -117,7 +117,7 @@ private class CachedSkeletonReferences
         {
             // whoever one, still store this reference set against us with the provided version.
             _version = version;
-            _skeletonReferenceSet = finalReferenceSet;
+            _skeletonReferenceSet = referenceSet;
         }
 
         return referenceSet.GetMetadataReference(properties);
