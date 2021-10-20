@@ -478,7 +478,7 @@ End Class
                         KeyValuePairUtil.Create(newDocument.FilePath, ImmutableArray.Create(
                             New ActiveStatement(
                                 ordinal:=0,
-                                ActiveStatementFlags.IsLeafFrame,
+                                ActiveStatementFlags.LeafFrame,
                                 New SourceFileSpan(newDocument.FilePath, oldStatementSpan),
                                 instructionId:=Nothing)))
                     }),

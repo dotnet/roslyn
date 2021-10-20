@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     var documentActiveStatements = documentMap.GetOrAdd(mappedSpan.Path, path => new List<ActiveStatement>());
 
                     var statementFlags = (flags != null) ? flags[ordinal] :
-                        ((ordinal == 0) ? ActiveStatementFlags.IsLeafFrame : ActiveStatementFlags.IsNonLeafFrame) | ActiveStatementFlags.MethodUpToDate;
+                        ((ordinal == 0) ? ActiveStatementFlags.LeafFrame : ActiveStatementFlags.NonLeafFrame) | ActiveStatementFlags.MethodUpToDate;
 
                     var exceptionRegions = (ordinal < exceptionRegionMarkers.Length) ?
                         exceptionRegionMarkers[ordinal].SelectAsArray(unmappedRegionSpan => (SourceFileSpan)tree.GetMappedLineSpan(unmappedRegionSpan)) :

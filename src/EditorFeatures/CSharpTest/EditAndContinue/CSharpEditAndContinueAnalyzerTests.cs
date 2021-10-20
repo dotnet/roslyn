@@ -307,7 +307,7 @@ class C
                     KeyValuePairUtil.Create(newDocument.FilePath, ImmutableArray.Create(
                         new ActiveStatement(
                             ordinal: 0,
-                            ActiveStatementFlags.IsLeafFrame,
+                            ActiveStatementFlags.LeafFrame,
                             new SourceFileSpan(newDocument.FilePath, oldStatementSpan),
                             instructionId: default)))
                 }),

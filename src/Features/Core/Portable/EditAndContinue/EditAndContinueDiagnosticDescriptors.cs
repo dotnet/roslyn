@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private static readonly ImmutableArray<DiagnosticDescriptor> s_descriptors;
 
         // descriptors for diagnostics reported by the debugger:
-        private static Dictionary<ManagedEditAndContinueAvailabilityStatus, DiagnosticDescriptor> s_lazyModuleDiagnosticDescriptors;
+        private static Dictionary<ManagedHotReloadAvailabilityStatus, DiagnosticDescriptor> s_lazyModuleDiagnosticDescriptors;
         private static readonly object s_moduleDiagnosticDescriptorsGuard;
 
         static EditAndContinueDiagnosticDescriptors()
@@ -185,11 +186,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal static DiagnosticDescriptor GetDescriptor(EditAndContinueErrorCode errorCode)
             => s_descriptors[GetDescriptorIndex(errorCode)];
 
-        internal static DiagnosticDescriptor GetModuleDiagnosticDescriptor(ManagedEditAndContinueAvailabilityStatus status)
+        internal static DiagnosticDescriptor GetModuleDiagnosticDescriptor(ManagedHotReloadAvailabilityStatus status)
         {
             lock (s_moduleDiagnosticDescriptorsGuard)
             {
-                s_lazyModuleDiagnosticDescriptors ??= new Dictionary<ManagedEditAndContinueAvailabilityStatus, DiagnosticDescriptor>();
+                s_lazyModuleDiagnosticDescriptors ??= new Dictionary<ManagedHotReloadAvailabilityStatus, DiagnosticDescriptor>();
 
                 if (!s_lazyModuleDiagnosticDescriptors.TryGetValue(status, out var descriptor))
                 {
