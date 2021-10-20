@@ -122,6 +122,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 value: value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default);
         }
 
+        public void SetFileScopedNamespaces(bool value)
+            => _inProc.SetFileScopedNamespaces(value);
+
         public void SetEnableOpeningSourceGeneratedFilesInWorkspaceExperiment(bool value)
         {
             SetOption(

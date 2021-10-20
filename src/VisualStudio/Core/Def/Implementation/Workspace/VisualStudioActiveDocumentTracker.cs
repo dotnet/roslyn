@@ -176,11 +176,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             AssertIsForeground();
 
-            if (elementid == (uint)VSConstants.VSSELELEMID.SEID_DocumentFrame)
+            // Process and track newly active document frame.
+            // Note that sometimes we receive 'SEID_WindowFrame' instead of 'SEID_DocumentFrame'
+            // for the newly active document. We ensure that we only process frames for documents
+            // and not other tool windows by checking the frame type is 'WINDOWFRAMETYPE_Document'.
+            if (elementid == (uint)VSConstants.VSSELELEMID.SEID_DocumentFrame ||
+                elementid == (uint)VSConstants.VSSELELEMID.SEID_WindowFrame)
             {
                 // Remember the newly activated frame so it can be read from another thread.
 
-                if (varValueNew is IVsWindowFrame frame)
+                if (varValueNew is IVsWindowFrame frame &&
+                    ErrorHandler.Succeeded(frame.GetProperty((int)__VSFPROPID.VSFPROPID_Type, out var frameType)) &&
+                    (int)frameType == (int)__WindowFrameTypeFlags.WINDOWFRAMETYPE_Document)
                 {
                     TrackNewActiveWindowFrame(frame);
                 }

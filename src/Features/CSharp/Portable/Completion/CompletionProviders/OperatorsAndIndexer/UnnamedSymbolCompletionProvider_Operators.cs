@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 var position = SymbolCompletionItem.GetContextPosition(item);
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var (dotLikeToken, expressionStart) = GetDotAndExpressionStart(root, position);
+                var (dotLikeToken, expressionStart) = GetDotAndExpressionStart(root, position, cancellationToken);
 
                 // Place the new operator before the expression, and delete the dot.
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

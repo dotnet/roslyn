@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
@@ -58,6 +59,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 _visualStudioWorkspace.SetOptions(_visualStudioWorkspace.Options.WithChangedOption(
                     FeatureOnOffOptions.PrettyListing, languageName, value));
+            });
+
+        public void SetFileScopedNamespaces(bool value)
+            => InvokeOnUIThread(cancellationToken =>
+            {
+                _visualStudioWorkspace.SetOptions(_visualStudioWorkspace.Options.WithChangedOption(
+                    new OptionKey(GetOption("NamespaceDeclarations", "CSharpCodeStyleOptions")),
+                    new CodeStyleOption2<NamespaceDeclarationPreference>(value
+                        ? NamespaceDeclarationPreference.FileScoped
+                        : NamespaceDeclarationPreference.BlockScoped,
+                        NotificationOption2.Suggestion)));
             });
 
         public void EnableQuickInfo(bool value)
@@ -180,6 +192,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// </summary>
         public void ResetOptions()
         {
+            SetFileScopedNamespaces(false);
+
             ResetOption(CompletionViewOptions.EnableArgumentCompletionSnippets);
             ResetOption(FeatureOnOffOptions.NavigateToDecompiledSources);
             return;
