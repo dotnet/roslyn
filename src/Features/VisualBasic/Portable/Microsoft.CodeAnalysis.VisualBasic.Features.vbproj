@@ -56,8 +56,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="Debugging\**\*.vb" Condition="'$(DotNetBuildFromSource)' == 'true'" />
     <Compile Remove="EditAndContinue\**\*.vb" Condition="'$(DotNetBuildFromSource)' == 'true'" />
+    <Compile Include="EditAndContinue\BreakpointSpans.vb" Condition="'$(DotNetBuildFromSource)' == 'true'" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="VBFeaturesResources.resx" GenerateSource="true" Namespace="Microsoft.CodeAnalysis.VisualBasic" />

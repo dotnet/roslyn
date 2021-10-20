@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
@@ -132,9 +132,8 @@
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Contracts" Version="$(MicrosoftVisualStudioDebuggerContractsVersion)" Condition="'$(DotNetBuildFromSource)' != 'true'" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="Debugging\**\*.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
     <Compile Remove="EditAndContinue\**\*.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
-    <Compile Remove="Emit\**\*.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
+    <Compile Include="EditAndContinue\EditAndContinueMethodDebugInfoReader.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
     <Compile Remove="ExternalAccess\UnitTesting\API\UnitTestingHotReloadService.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
     <Compile Remove="ExternalAccess\Watch\Api\WatchHotReloadService.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
   </ItemGroup>
