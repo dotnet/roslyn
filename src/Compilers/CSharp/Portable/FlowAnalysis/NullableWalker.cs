@@ -8692,7 +8692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode? VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        public override BoundNode? VisitIndexOrRangeIndexerFallbackAccess(BoundIndexOrRangeIndexerFallbackAccess node)
         {
             BoundExpression receiver = node.Receiver;
             var receiverType = VisitRvalueWithState(receiver).Type;

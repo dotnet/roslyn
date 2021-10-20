@@ -155,15 +155,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundITuplePattern _:
                 case BoundRelationalPattern _:
                 case BoundSlicePattern _:
+                case BoundListPattern lp:
                     break; // nothing to learn
                 case BoundTypePattern tp:
                     if (tp.IsExplicitNotNullTest)
                     {
                         LearnFromNullTest(inputSlot, inputType, ref this.State, markDependentSlotsNotNull: false);
                     }
-                    break;
-                case BoundListPattern lp:
-                    // PROTOTYPE(list-patterns)
                     break;
                 case BoundRecursivePattern rp:
                     {

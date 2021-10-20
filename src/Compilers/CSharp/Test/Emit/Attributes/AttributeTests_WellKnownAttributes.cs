@@ -13637,11 +13637,16 @@ public class C
 }
 ";
 
-            // PROTOTYPE missing diagnostics (we're checking the Count property but not the accessor)
             CreateCompilation(code, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (23,13): error CS0619: 'C.Count.get' is obsolete: 'error'
+                //         _ = this[^1]; // 1, 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[^1]").WithArguments("C.Count.get", "error").WithLocation(23, 13),
                 // (23,13): error CS0619: 'C.this[int].get' is obsolete: 'error'
                 //         _ = this[^1]; // 1, 2
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[^1]").WithArguments("C.this[int].get", "error").WithLocation(23, 13),
+                // (24,13): error CS0619: 'C.Count.get' is obsolete: 'error'
+                //         _ = this[..]; // 3, 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.Count.get", "error").WithLocation(24, 13),
                 // (24,13): error CS0619: 'C.Slice(int, int)' is obsolete: 'error'
                 //         _ = this[..]; // 3, 4
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.Slice(int, int)", "error").WithLocation(24, 13)

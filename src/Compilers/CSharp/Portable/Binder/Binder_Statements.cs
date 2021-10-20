@@ -1540,9 +1540,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         propertySymbol = indexerAccess.Indexer;
                     }
                     break;
-                case BoundKind.IndexOrRangePatternIndexerAccess:
+                case BoundKind.IndexOrRangeIndexerFallbackAccess:
                     {
-                        var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
+                        var patternIndexer = (BoundIndexOrRangeIndexerFallbackAccess)expr;
                         receiver = patternIndexer.Receiver;
                         propertySymbol = (PropertySymbol)patternIndexer.PatternSymbol;
                     }

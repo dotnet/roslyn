@@ -398,16 +398,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.IndexerAccess:
                     return CheckPropertyValueKind(node, expr, valueKind, checkingReceiver, diagnostics);
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    var patternIndexer = ((BoundIndexOrRangePatternIndexerAccess)expr);
-                    if (patternIndexer.PatternSymbol.Kind == SymbolKind.Property)
+                case BoundKind.IndexOrRangeIndexerFallbackAccess:
+                    var fallbackIndexer = (BoundIndexOrRangeIndexerFallbackAccess)expr;
+                    if (fallbackIndexer.PatternSymbol.Kind == SymbolKind.Property)
                     {
                         // If this is an Index indexer, PatternSymbol should be a property, pointing to the
-                        // pattern indexer. If it's a Range access, it will be a method, pointing to a Slice method
+                        // fallback indexer. If it's a Range access, it will be a method, pointing to a Slice method
                         // and it's handled below as part of invocations.
                         return CheckPropertyValueKind(node, expr, valueKind, checkingReceiver, diagnostics);
                     }
-                    Debug.Assert(patternIndexer.PatternSymbol.Kind == SymbolKind.Method);
+                    Debug.Assert(fallbackIndexer.PatternSymbol.Kind == SymbolKind.Method);
                     break;
 
                 case BoundKind.EventAccess:
@@ -589,9 +589,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         checkingReceiver,
                         diagnostics);
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
-                    // If we got here this should be a pattern indexer taking a Range,
+                case BoundKind.IndexOrRangeIndexerFallbackAccess:
+                    var patternIndexer = (BoundIndexOrRangeIndexerFallbackAccess)expr;
+                    // If we got here this should be a fallback indexer taking a Range,
                     // meaning that the pattern symbol must be a method (either Slice or Substring)
                     return CheckMethodReturnValueKind(
                         (MethodSymbol)patternIndexer.PatternSymbol,
@@ -2347,12 +2347,12 @@ moreArguments:
                         diagnostics,
                         isRefEscape: true);
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
+                case BoundKind.IndexOrRangeIndexerFallbackAccess:
+                    var fallbackIndexer = (BoundIndexOrRangeIndexerFallbackAccess)expr;
                     RefKind refKind;
                     ImmutableArray<ParameterSymbol> parameters;
 
-                    switch (patternIndexer.PatternSymbol)
+                    switch (fallbackIndexer.PatternSymbol)
                     {
                         case PropertySymbol p:
                             refKind = p.RefKind;
@@ -2372,11 +2372,11 @@ moreArguments:
                     }
 
                     return CheckInvocationEscape(
-                        patternIndexer.Syntax,
-                        patternIndexer.PatternSymbol,
-                        patternIndexer.Receiver,
+                        fallbackIndexer.Syntax,
+                        fallbackIndexer.PatternSymbol,
+                        fallbackIndexer.Receiver,
                         parameters,
-                        ImmutableArray.Create<BoundExpression>(patternIndexer.Argument),
+                        ImmutableArray.Create<BoundExpression>(fallbackIndexer.Argument),
                         default,
                         default,
                         checkingReceiver,
@@ -2618,8 +2618,8 @@ moreArguments:
                         scopeOfTheContainingExpression,
                         isRefEscape: false);
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
+                case BoundKind.IndexOrRangeIndexerFallbackAccess:
+                    var patternIndexer = (BoundIndexOrRangeIndexerFallbackAccess)expr;
                     var parameters = patternIndexer.PatternSymbol switch
                     {
                         PropertySymbol p => p.Parameters,
@@ -3040,8 +3040,8 @@ moreArguments:
                         diagnostics,
                         isRefEscape: false);
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
+                case BoundKind.IndexOrRangeIndexerFallbackAccess:
+                    var patternIndexer = (BoundIndexOrRangeIndexerFallbackAccess)expr;
                     var patternSymbol = patternIndexer.PatternSymbol;
                     var parameters = patternSymbol switch
                     {

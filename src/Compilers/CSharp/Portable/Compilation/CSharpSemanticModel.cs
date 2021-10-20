@@ -3427,13 +3427,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
+                case BoundKind.IndexOrRangeIndexerFallbackAccess:
                     {
-                        var indexerAccess = (BoundIndexOrRangePatternIndexerAccess)boundNode;
+                        var indexerAccess = (BoundIndexOrRangeIndexerFallbackAccess)boundNode;
 
                         resultKind = indexerAccess.ResultKind;
 
-                        // The only time a BoundIndexOrRangePatternIndexerAccess is created, overload resolution succeeded
+                        // The only time a BoundIndexOrRangeIndexerFallbackAccess is created, overload resolution succeeded
                         // and returned only 1 result
                         Debug.Assert(indexerAccess.PatternSymbol is object);
                         symbols = ImmutableArray.Create<Symbol>(indexerAccess.PatternSymbol);

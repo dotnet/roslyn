@@ -2000,10 +2000,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_MethGrpToNonDel = 8974,
         ERR_LambdaExplicitReturnTypeVar = 8975,
 
-        // PROTOTYPE(list-patterns)
-        ERR_UnsupportedTypeForListPattern = 9200,
-        ERR_UnsupportedTypeForSlicePattern,
-        ERR_MisplacedSlicePattern,
+        #endregion
+
+        #region diagnostics introduced for C# 11.0
+
+        ERR_UnsupportedTypeForListPattern = 9000,
+        ERR_UnsupportedTypeForSlicePattern = 9001,
+        ERR_MisplacedSlicePattern = 9002,
 
         #endregion
 

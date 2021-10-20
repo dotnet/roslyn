@@ -11,9 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class PatternParsingTests_ListPatterns : ParsingTests
     {
-        // PROTOTYPE(list-patterns)
-        private static CSharpParseOptions RegularWithoutListPatterns => TestOptions.Regular9;
-
         private new void UsingExpression(string text, params DiagnosticDescription[] expectedErrors)
         {
             UsingExpression(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), expectedErrors);
@@ -27,83 +24,57 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ListPattern_00()
         {
             UsingExpression(@"c is [[]]");
-            verify();
 
-            UsingExpression(@"c is [[]]", RegularWithoutListPatterns,
-                // (1,6): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // c is [[]]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[[]]").WithArguments("list pattern").WithLocation(1, 6),
-                // (1,7): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // c is [[]]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[]").WithArguments("list pattern").WithLocation(1, 7));
-            verify();
-
-            void verify()
+            N(SyntaxKind.IsPatternExpression);
             {
-                N(SyntaxKind.IsPatternExpression);
+                N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "c");
-                    }
-                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ListPattern);
+                {
+                    N(SyntaxKind.OpenBracketToken);
                     N(SyntaxKind.ListPattern);
                     {
                         N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.ListPattern);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.CloseBracketToken);
-                        }
                         N(SyntaxKind.CloseBracketToken);
                     }
+                    N(SyntaxKind.CloseBracketToken);
                 }
-                EOF();
             }
+            EOF();
         }
 
         [Fact]
         public void ListPattern_01()
         {
             UsingExpression(@"c is [[],] v");
-            verify();
 
-            UsingExpression(@"c is [[],] v", RegularWithoutListPatterns,
-                // (1,6): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // c is [[],]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[[],] v").WithArguments("list pattern").WithLocation(1, 6),
-                // (1,7): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // c is [[],]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[]").WithArguments("list pattern").WithLocation(1, 7));
-            verify();
-
-            void verify()
+            N(SyntaxKind.IsPatternExpression);
             {
-                N(SyntaxKind.IsPatternExpression);
+                N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "c");
-                    }
-                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ListPattern);
+                {
+                    N(SyntaxKind.OpenBracketToken);
                     N(SyntaxKind.ListPattern);
                     {
                         N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.ListPattern);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.CloseBracketToken);
-                        }
-                        N(SyntaxKind.CommaToken);
                         N(SyntaxKind.CloseBracketToken);
-                        N(SyntaxKind.SingleVariableDesignation);
-                        {
-                            N(SyntaxKind.IdentifierToken, "v");
-                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.CloseBracketToken);
+                    N(SyntaxKind.SingleVariableDesignation);
+                    {
+                        N(SyntaxKind.IdentifierToken, "v");
                     }
                 }
-                EOF();
             }
+            EOF();
         }
 
         [Fact]
@@ -456,35 +427,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void SlicePattern_01()
         {
             UsingExpression(@"c is [..]");
-            verify();
 
-            UsingExpression(@"c is [..]", RegularWithoutListPatterns,
-                // (1,6): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // c is [..]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[..]").WithArguments("list pattern").WithLocation(1, 6));
-            verify();
-
-            void verify()
+            N(SyntaxKind.IsPatternExpression);
             {
-                N(SyntaxKind.IsPatternExpression);
+                N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "c");
-                    }
-                    N(SyntaxKind.IsKeyword);
-                    N(SyntaxKind.ListPattern);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.SlicePattern);
-                        {
-                            N(SyntaxKind.DotDotToken);
-                        }
-                        N(SyntaxKind.CloseBracketToken);
-                    }
+                    N(SyntaxKind.IdentifierToken, "c");
                 }
-                EOF();
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ListPattern);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.SlicePattern);
+                    {
+                        N(SyntaxKind.DotDotToken);
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
             }
+            EOF();
         }
 
         [Fact]

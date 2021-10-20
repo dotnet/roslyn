@@ -161,20 +161,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
-
-        public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        public override BoundNode VisitIndexOrRangeIndexerFallbackAccess(BoundIndexOrRangeIndexerFallbackAccess node)
         {
-            return VisitIndexOrRangePatternIndexerAccess(node, isLeftOfAssignment: false);
+            return VisitIndexOrRangeIndexerFallbackAccess(node, isLeftOfAssignment: false);
         }
 
-        private BoundSequence VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node, bool isLeftOfAssignment)
+        private BoundSequence VisitIndexOrRangeIndexerFallbackAccess(BoundIndexOrRangeIndexerFallbackAccess node, bool isLeftOfAssignment)
         {
             if (TypeSymbol.Equals(
                 node.Argument.Type,
                 _compilation.GetWellKnownType(WellKnownType.System_Index),
                 TypeCompareKind.ConsiderEverything))
             {
-                return VisitIndexPatternIndexerAccess(
+                return VisitIndexIndexerFallbackAccess(
                     node.Syntax,
                     node.Receiver,
                     node.LengthOrCountProperty,
@@ -188,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Argument.Type,
                     _compilation.GetWellKnownType(WellKnownType.System_Range),
                     TypeCompareKind.ConsiderEverything));
-                return VisitRangePatternIndexerAccess(
+                return VisitRangeIndexerFallbackAccess(
                     node.Receiver,
                     node.LengthOrCountProperty,
                     (MethodSymbol)node.PatternSymbol,
@@ -196,8 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
-        private BoundSequence VisitIndexPatternIndexerAccess(
+        private BoundSequence VisitIndexIndexerFallbackAccess(
             SyntaxNode syntax,
             BoundExpression receiver,
             PropertySymbol lengthOrCountProperty,
@@ -286,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundSequence VisitRangePatternIndexerAccess(
+        private BoundSequence VisitRangeIndexerFallbackAccess(
             BoundExpression receiver,
             PropertySymbol lengthOrCountProperty,
             MethodSymbol sliceMethod,

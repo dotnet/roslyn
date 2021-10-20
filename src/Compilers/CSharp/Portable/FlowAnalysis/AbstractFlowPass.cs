@@ -1433,13 +1433,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        public override BoundNode VisitIndexOrRangeIndexerFallbackAccess(BoundIndexOrRangeIndexerFallbackAccess node)
         {
-            // Index or Range pattern indexers evaluate the following in order:
+            // Index or Range fallback indexers evaluate the following in order:
             // 1. The receiver
-            // 1. The Count or Length method off the receiver
-            // 2. The argument to the access
-            // 3. The pattern method
+            // 2. The Count or Length method off the receiver
+            // 3. The argument to the access
+            // 4. The pattern method
             VisitRvalue(node.Receiver);
             var method = GetReadMethod(node.LengthOrCountProperty);
             VisitReceiverAfterCall(node.Receiver, method);

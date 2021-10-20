@@ -7736,29 +7736,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupOptions lookupOptions = expr.Kind == BoundKind.BaseReference ? LookupOptions.UseBaseReferenceAccessibility : LookupOptions.Default;
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupMembersWithFallback(lookupResult, expr.Type, WellKnownMemberNames.Indexer, arity: 0, useSiteInfo: ref useSiteInfo, options: lookupOptions);
-            diagnostics.Add(node, useSiteInfo);
 
             // Store, rather than return, so that we can release resources.
             BoundExpression indexerAccessExpression;
 
             if (!lookupResult.IsMultiViable)
             {
-                if (TryBindIndexOrRangeIndexer(
+                if (TryBindIndexOrRangeIndexerFallback(
                     node,
                     expr,
                     analyzedArguments,
                     diagnostics,
-                    out var patternIndexerAccess))
+                    out var indexerFallbackAccess))
                 {
-                    indexerAccessExpression = patternIndexerAccess;
+                    indexerAccessExpression = indexerFallbackAccess;
                 }
                 else
                 {
+                    diagnostics.Add(node, useSiteInfo);
                     indexerAccessExpression = BadIndexerExpression(node, expr, analyzedArguments, lookupResult.Error, diagnostics);
                 }
             }
             else
             {
+                diagnostics.Add(node, useSiteInfo);
                 ArrayBuilder<PropertySymbol> indexerGroup = ArrayBuilder<PropertySymbol>.GetInstance();
                 foreach (Symbol symbol in lookupResult.Symbols)
                 {
@@ -7889,7 +7890,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowRefOmittedArguments = receiverOpt.IsExpressionOfComImportType();
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.OverloadResolution.PropertyOverloadResolution(propertyGroup, receiverOpt, analyzedArguments, overloadResolutionResult, allowRefOmittedArguments, ref useSiteInfo);
-            diagnostics.Add(syntax, useSiteInfo);
             BoundExpression propertyAccess;
 
             if (analyzedArguments.HasDynamicArgument && overloadResolutionResult.HasAnyApplicableMember)
@@ -7914,14 +7914,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!analyzedArguments.HasErrors)
                 {
-                    if (TryBindIndexOrRangeIndexer(
+                    if (TryBindIndexOrRangeIndexerFallback(
                         syntax,
                         receiverOpt,
                         analyzedArguments,
                         diagnostics,
-                        out var patternIndexerAccess))
+                        out var indexerFallbackAccess))
                     {
-                        return patternIndexerAccess;
+                        return indexerFallbackAccess;
                     }
                     else
                     {
@@ -7941,6 +7941,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             memberGroup: candidates,
                             typeContainingConstructor: null,
                             delegateTypeBeingInvoked: null);
+
+                        diagnostics.Add(syntax, useSiteInfo);
                     }
                 }
 
@@ -7961,6 +7963,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                diagnostics.Add(syntax, useSiteInfo);
+
                 MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
                 PropertySymbol property = resolutionResult.Member;
                 RefKind? receiverRefKind = receiverOpt?.GetRefKind();
@@ -8020,14 +8024,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private bool TryBindIndexOrRangeIndexer(
+        private bool TryBindIndexOrRangeIndexerFallback(
             SyntaxNode syntax,
             BoundExpression? receiverOpt,
             AnalyzedArguments arguments,
             BindingDiagnosticBag diagnostics,
-            [NotNullWhen(true)] out BoundIndexOrRangePatternIndexerAccess? patternIndexerAccess)
+            [NotNullWhen(true)] out BoundIndexOrRangeIndexerFallbackAccess? indexerFallbackAccess)
         {
-            patternIndexerAccess = null;
+            indexerFallbackAccess = null;
 
             // Verify a few things up-front, namely that we have a single argument
             // to this indexer that has an Index or Range type and that there is
@@ -8053,23 +8057,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool argIsIndex = argIsIndexNotRange.Value();
-            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            if (!TryFindIndexOrRangeIndexerPattern(receiverOpt, receiverType, argIsIndex: argIsIndex,
-                out PropertySymbol? lengthOrCountProperty, out Symbol? patternSymbol, diagnostics, ref useSiteInfo))
+            if (!TryFindIndexOrRangeIndexerFallback(syntax, receiverOpt, receiverType, argIsIndex: argIsIndex,
+                out PropertySymbol? lengthOrCountProperty, out Symbol? patternSymbol, diagnostics))
             {
                 return false;
             }
 
-            patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
+            indexerFallbackAccess = new BoundIndexOrRangeIndexerFallbackAccess(
                 syntax,
                 receiverOpt,
                 lengthOrCountProperty,
                 patternSymbol,
                 BindToNaturalType(argument, diagnostics),
                 patternSymbol.GetTypeOrReturnType().Type);
-
-            ReportDiagnosticsIfObsolete(diagnostics, patternSymbol, syntax, hasBaseReceiver: false);
-            ReportDiagnosticsIfObsolete(diagnostics, lengthOrCountProperty, syntax, hasBaseReceiver: false);
 
             if (!argIsIndex)
             {
@@ -8098,15 +8098,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool TryFindIndexOrRangeIndexerPattern(
+        /// <summary>
+        /// Finds pattern-based fallback indexer and Length/Count property.
+        /// </summary>
+        private bool TryFindIndexOrRangeIndexerFallback(
+            SyntaxNode syntax,
             BoundExpression? receiverOpt,
             TypeSymbol receiverType,
             bool argIsIndex,
             [NotNullWhen(true)] out PropertySymbol? lengthOrCountProperty,
             [NotNullWhen(true)] out Symbol? patternSymbol,
-            // PROTOTYPE(list-patterns) We should take either of these and adjust the caller.
-            BindingDiagnosticBag diagnostics,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            BindingDiagnosticBag diagnostics)
         {
             // SPEC:
 
@@ -8120,10 +8122,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var lookupResult = LookupResult.GetInstance();
 
-            if (TryLookupLengthOrCount(receiverType, lookupResult, out lengthOrCountProperty, ref useSiteInfo) &&
-                TryFindIndexOrRangeIndexerPattern(lookupResult, receiverOpt, receiverType, argIsIndex, out patternSymbol, diagnostics, ref useSiteInfo))
+            if (TryLookupLengthOrCount(syntax, receiverType, lookupResult, out lengthOrCountProperty, diagnostics) &&
+                TryFindIndexOrRangeIndexerFallback(syntax, lookupResult, receiverOpt, receiverType, argIsIndex, out patternSymbol, diagnostics))
             {
-                CheckImplicitThisCopyInReadOnlyMember(receiverOpt, lengthOrCountProperty.GetMethod, diagnostics);
+                var lengthAccess = new BoundPropertyAccess(syntax, receiverOpt, lengthOrCountProperty, LookupResultKind.Viable, lengthOrCountProperty.Type);
+                CheckPropertyValueKind(syntax, lengthAccess, BindValueKind.RValue, checkingReceiver: false, diagnostics);
+
                 lookupResult.Free();
                 return true;
             }
@@ -8133,16 +8137,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private bool TryFindIndexOrRangeIndexerPattern(
+        /// <summary>
+        /// Finds pattern-based fallback indexer:
+        /// - for Index indexer, this will find `this[int]`.
+        /// - for Range indexer, this will find `Slice(int, int)` or `string.Substring(int, int)`.
+        /// </summary>
+        private bool TryFindIndexOrRangeIndexerFallback(
+            SyntaxNode syntax,
             LookupResult lookupResult,
             BoundExpression? receiverOpt,
             TypeSymbol receiverType,
             bool argIsIndex,
             [NotNullWhen(true)] out Symbol? patternSymbol,
-            // PROTOTYPE(list-patterns) We should take either of these and adjust the caller.
-            BindingDiagnosticBag diagnostics,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            BindingDiagnosticBag diagnostics)
         {
+            var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+
             Debug.Assert(lookupResult.IsClear);
             if (argIsIndex)
             {
@@ -8171,6 +8181,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // note: implicit copy check on the indexer accessor happens in CheckPropertyValueKind
                             patternSymbol = property;
+                            property.AddUseSiteInfo(ref useSiteInfo);
+                            diagnostics.Add(syntax, useSiteInfo);
+                            ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: false);
                             return true;
                         }
                     }
@@ -8181,7 +8194,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!argIsIndex);
                 // Look for Substring
                 var substring = (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_String__Substring);
-                // PROTOTYPE(list-patterns) Consider reporting a missing member for string.Substring
                 if (substring is object)
                 {
                     patternSymbol = substring;
@@ -8218,6 +8230,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             original.Parameters[1] is { Type: { SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.None })
                         {
                             patternSymbol = method;
+                            method.AddUseSiteInfo(ref useSiteInfo);
+                            diagnostics.Add(syntax, useSiteInfo);
+                            ReportDiagnosticsIfObsolete(diagnostics, method, syntax, hasBaseReceiver: false);
                             CheckImplicitThisCopyInReadOnlyMember(receiverOpt, method, diagnostics);
                             return true;
                         }
@@ -8230,18 +8245,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private bool TryLookupLengthOrCount(
+            SyntaxNode syntax,
             TypeSymbol receiverType,
             LookupResult lookupResult,
             [NotNullWhen(true)] out PropertySymbol? lengthOrCountProperty,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(lookupResult.IsClear);
-            // PROTOTYPE(list-patterns) Assert about whether diagnostics and dependencies are being accumulated.
-            return tryLookupLengthOrCount(WellKnownMemberNames.LengthPropertyName, out lengthOrCountProperty, ref useSiteInfo) ||
-                   tryLookupLengthOrCount(WellKnownMemberNames.CountPropertyName, out lengthOrCountProperty, ref useSiteInfo);
-
-            bool tryLookupLengthOrCount(string propertyName, out PropertySymbol? valid, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            if (tryLookupLengthOrCount(WellKnownMemberNames.LengthPropertyName, out lengthOrCountProperty, diagnostics) ||
+                tryLookupLengthOrCount(WellKnownMemberNames.CountPropertyName, out lengthOrCountProperty, diagnostics))
             {
+                ReportDiagnosticsIfObsolete(diagnostics, lengthOrCountProperty, syntax, hasBaseReceiver: false);
+                return true;
+            }
+
+            return false;
+
+            bool tryLookupLengthOrCount(string propertyName, [NotNullWhen(true)] out PropertySymbol? valid, BindingDiagnosticBag diagnostics)
+            {
+                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 LookupMembersInType(
                     lookupResult,
                     receiverType,
@@ -8263,8 +8285,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     lookupResult.Clear();
                     valid = property;
+                    property.AddUseSiteInfo(ref useSiteInfo);
+                    diagnostics.Add(syntax, useSiteInfo);
                     return true;
                 }
+
                 lookupResult.Clear();
                 valid = null;
                 return false;

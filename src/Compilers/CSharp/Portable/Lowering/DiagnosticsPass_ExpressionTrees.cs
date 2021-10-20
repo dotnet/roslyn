@@ -97,14 +97,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitArrayAccess(node);
         }
 
-        public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        public override BoundNode VisitIndexOrRangeIndexerFallbackAccess(BoundIndexOrRangeIndexerFallbackAccess node)
         {
             if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, node);
             }
 
-            return base.VisitIndexOrRangePatternIndexerAccess(node);
+            return base.VisitIndexOrRangeIndexerFallbackAccess(node);
         }
 
         public override BoundNode VisitFromEndIndexExpression(BoundFromEndIndexExpression node)

@@ -224,9 +224,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureInferredDelegateType = MessageBase + 12799,
         IDS_FeatureLambdaAttributes = MessageBase + 12800,
 
-        // PROTOTYPE(list-patterns) To reduce conflicts with upstream. Should be moved/indexed eventually.
-        IDS_FeatureListPattern = MessageBase + 12850,
-
         IDS_FeatureWithOnAnonymousTypes = MessageBase + 12801,
         IDS_FeatureExtendedPropertyPatterns = MessageBase + 12802,
         IDS_FeatureStaticAbstractMembersInInterfaces = MessageBase + 12803,
@@ -238,7 +235,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureFileScopedNamespace = MessageBase + 12809,
         IDS_FeatureParameterlessStructConstructors = MessageBase + 12810,
         IDS_FeatureStructFieldInitializers = MessageBase + 12811,
+
         IDS_FeatureGenericAttributes = MessageBase + 12812,
+        IDS_FeatureListPattern = MessageBase + 12813,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -345,9 +344,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                // PREFER reporting diagnostics in binding when diagnostics do not affect the shape of the tree
+
                 // C# preview features.
                 case MessageID.IDS_FeatureStaticAbstractMembersInInterfaces: // semantic check
                 case MessageID.IDS_FeatureGenericAttributes: // semantic check
+                case MessageID.IDS_FeatureListPattern: // semantic check
                     return LanguageVersion.Preview;
 
                 // C# 10.0 features.
@@ -533,10 +535,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(feature);
-
-                // PROTOTYPE(list-patterns)
-                case MessageID.IDS_FeatureListPattern:
-                    return LanguageVersion.Preview;
             }
         }
     }

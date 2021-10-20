@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     sliceType = inputType;
                 }
-                else if (TryPerformPatternIndexerLookup(node, inputType, argIsIndex: false, out indexerAccess, out Symbol? patternSymbol, lengthProperty: out _, diagnostics))
+                else if (TryBindIndexerForPattern(node, inputType, argIsIndex: false, out indexerAccess, out Symbol? patternSymbol, lengthProperty: out _, diagnostics, ref hasErrors))
                 {
                     if (patternSymbol is MethodSymbol method)
                     {
@@ -280,6 +280,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             BindingDiagnosticBag diagnostics)
         {
+            CheckFeatureAvailability(node, MessageID.IDS_FeatureListPattern, diagnostics);
+
             TypeSymbol elementType;
             BoundIndexerAccess? indexerAccess = null;
             PropertySymbol? indexerSymbol = null;
@@ -295,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementType = ((ArrayTypeSymbol)inputType).ElementType;
                 hasErrors |= !TryGetSpecialTypeMember(Compilation, SpecialMember.System_Array__Length, node, diagnostics, out lengthProperty);
             }
-            else if (TryPerformPatternIndexerLookup(node, narrowedType, argIsIndex: true, out indexerAccess, out Symbol? patternSymbol, out lengthProperty, diagnostics))
+            else if (TryBindIndexerForPattern(node, narrowedType, argIsIndex: true, out indexerAccess, out Symbol? patternSymbol, out lengthProperty, diagnostics, ref hasErrors))
             {
                 if (patternSymbol is PropertySymbol indexer)
                 {
@@ -331,20 +333,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 variableAccess: variableAccess, inputType: inputType, narrowedType: narrowedType, hasErrors);
         }
 
-        private bool TryPerformPatternIndexerLookup(
+        private bool TryBindIndexerForPattern(
             SyntaxNode syntax,
             TypeSymbol receiverType,
             bool argIsIndex,
             out BoundIndexerAccess? indexerAccess,
             out Symbol? patternSymbol,
             [NotNullWhen(true)] out PropertySymbol? lengthProperty,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            ref bool hasErrors)
         {
             Debug.Assert(!receiverType.IsErrorType());
             indexerAccess = null;
             patternSymbol = null;
             lengthProperty = null;
-            bool found;
+            bool found = false;
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var bindingDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
             TypeSymbol argType = Compilation.GetWellKnownType(argIsIndex ? WellKnownType.System_Index : WellKnownType.System_Range);
@@ -373,31 +376,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lookupResult.Clear();
 
                     var analyzedArguments = AnalyzedArguments.GetInstance();
-                    analyzedArguments.Arguments.Add(new BoundIndexOrRangeIndexerPatternValuePlaceholder(syntax, argType));
+                    analyzedArguments.Arguments.Add(new BoundIndexOrRangeIndexerFallbackValuePlaceholder(syntax, argType));
                     var receiver = new BoundImplicitReceiver(syntax, receiverType);
                     BoundExpression boundAccess = BindIndexerOrIndexedPropertyAccess(syntax, receiver, indexerGroup, analyzedArguments, bindingDiagnostics);
                     switch (boundAccess)
                     {
                         case BoundIndexerAccess boundIndexerAccess:
                             if (boundIndexerAccess.ResultKind == LookupResultKind.Viable &&
-                                boundIndexerAccess.Indexer.GetMethod is { } getMethod &&
+                                boundIndexerAccess.Indexer.GetOwnOrInheritedGetMethod() is { } getMethod &&
                                 IsAccessible(getMethod, ref useSiteInfo) &&
-                                TryLookupLengthOrCount(receiverType, lookupResult, out lengthProperty, ref useSiteInfo))
+                                TryLookupLengthOrCount(syntax, receiverType, lookupResult, out lengthProperty, bindingDiagnostics) &&
+                                !getMethod.IsStatic)
                             {
-                                // PROTOTYPE(list-patterns) Can this be ever true? If so, move to if above
-                                Debug.Assert(!boundIndexerAccess.Indexer.IsStatic);
-                                ReportDiagnosticsIfObsolete(bindingDiagnostics, lengthProperty, syntax, hasBaseReceiver: false);
                                 GetWellKnownTypeMember(argIsIndex ? WellKnownMember.System_Index__ctor : WellKnownMember.System_Range__ctor, bindingDiagnostics, syntax: syntax);
                                 indexerAccess = BindIndexerDefaultArguments(boundIndexerAccess, BindValueKind.RValue, bindingDiagnostics);
                                 found = true;
                                 break;
                             }
-                            found = false;
                             break;
 
-                        case BoundIndexOrRangePatternIndexerAccess boundIndexOrRangePatternIndexerAccess:
-                            lengthProperty = boundIndexOrRangePatternIndexerAccess.LengthOrCountProperty;
-                            patternSymbol = boundIndexOrRangePatternIndexerAccess.PatternSymbol;
+                        case BoundIndexOrRangeIndexerFallbackAccess boundIndexOrRangeIndexerFallbackAccess:
+                            lengthProperty = boundIndexOrRangeIndexerFallbackAccess.LengthOrCountProperty;
+                            patternSymbol = boundIndexOrRangeIndexerFallbackAccess.PatternSymbol;
                             found = true;
                             break;
 
@@ -406,26 +406,55 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     analyzedArguments.Free();
                     indexerGroup.Free();
-                    goto done;
                 }
                 lookupResult.Clear();
             }
+            else
+            {
+                // If the argType is missing, we will fallback to the implicit indexer support.
+                found = TryLookupLengthOrCount(syntax, receiverType, lookupResult, out lengthProperty, diagnostics) &&
+                    TryFindIndexOrRangeIndexerFallback(syntax, lookupResult, receiverOpt: null, receiverType, argIsIndex, out patternSymbol, diagnostics);
+            }
 
-            // If the argType is missing or the indexer lookup has failed, we will fallback to the implicit indexer support.
-            found = TryLookupLengthOrCount(receiverType, lookupResult, out lengthProperty, ref useSiteInfo) &&
-                    TryFindIndexOrRangeIndexerPattern(lookupResult, receiverOpt: null, receiverType, argIsIndex, out patternSymbol, diagnostics, ref useSiteInfo);
-
-done:
             if (found)
             {
                 Debug.Assert(indexerAccess is not null ^ patternSymbol is not null);
                 Debug.Assert(lengthProperty is not null);
+
+                if (!hasErrors)
+                {
+                    if (patternSymbol is not null)
+                    {
+                        var indexerFallbackAccess = new BoundIndexOrRangeIndexerFallbackAccess(syntax, new BoundImplicitReceiver(syntax, receiverType),
+                            lengthProperty, patternSymbol, argument: new BoundIndexOrRangeIndexerFallbackValuePlaceholder(syntax, argType), patternSymbol.GetTypeOrReturnType().Type);
+
+                        if (!CheckValueKind(syntax, indexerFallbackAccess, BindValueKind.RValue, checkingReceiver: false, bindingDiagnostics))
+                        {
+                            hasErrors = true;
+                        }
+                    }
+                    else
+                    {
+                        var lengthAccess = new BoundPropertyAccess(syntax, new BoundImplicitReceiver(syntax, receiverType), lengthProperty, LookupResultKind.Viable, lengthProperty.Type);
+                        if (!CheckValueKind(syntax, lengthAccess, BindValueKind.RValue, checkingReceiver: false, bindingDiagnostics))
+                        {
+                            hasErrors = true;
+                        }
+
+                        if (indexerAccess is not null && !CheckValueKind(syntax, indexerAccess, BindValueKind.RValue, checkingReceiver: false, bindingDiagnostics))
+                        {
+                            hasErrors = true;
+                        }
+                    }
+                }
+
                 // At this point we have succeeded to bind a viable indexer,
                 // report additional binding diagnostics that we have seen so far
                 diagnostics.AddRange(bindingDiagnostics);
                 diagnostics.Add(syntax, useSiteInfo);
             }
 
+            bindingDiagnostics.Free();
             lookupResult.Free();
             return found;
         }
@@ -1456,9 +1485,10 @@ done:
                         TypeSymbol receiverType = member.Receiver?.Type ?? inputType;
                         if (!receiverType.IsErrorType())
                         {
+                            bool ignoredHasErrors = false;
                             isLengthOrCount = receiverType.IsSZArray()
                                 ? ReferenceEquals(memberSymbol, Compilation.GetSpecialTypeMember(SpecialMember.System_Array__Length))
-                                : TryPerformPatternIndexerLookup(node, receiverType, argIsIndex: true, indexerAccess: out _, patternSymbol: out _, out PropertySymbol? lengthProperty, BindingDiagnosticBag.Discarded) &&
+                                : TryBindIndexerForPattern(node, receiverType, argIsIndex: true, indexerAccess: out _, patternSymbol: out _, out PropertySymbol? lengthProperty, BindingDiagnosticBag.Discarded, ref ignoredHasErrors) &&
                                   memberSymbol.Equals(lengthProperty, TypeCompareKind.ConsiderEverything); // If Length and Count are both present, only the former is assumed to be non-negative.
                         }
                     }

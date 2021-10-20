@@ -3152,5 +3152,42 @@ Indexer get
 3
 ");
         }
+
+        [Fact]
+        public void ObsoleteRangeType()
+        {
+            var source = @"
+_ = new C()[..];
+
+class C
+{
+    public int Length => 0;
+    public int this[int i] => 0;
+    public int Slice(int i, int j) => 0;
+}
+
+namespace System
+{
+    [Obsolete]
+    public readonly struct Range
+    {
+        public Index Start { get; }
+
+        public Index End { get; }
+
+        public Range(Index start, Index end) => throw null;
+
+        public static Range StartAt(Index start) => throw null;
+
+        public static Range EndAt(Index end) => throw null;
+
+        public static Range All => throw null;
+    }
+}
+";
+            // Note: we currently don't report Obsolete diagnostic on either Index or Range
+            var comp = CreateCompilation(new[] { source, TestSources.Index });
+            comp.VerifyDiagnostics();
+        }
     }
 }
