@@ -11,11 +11,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class AdditionalTextComparer : IEqualityComparer<AdditionalText>
+    internal sealed class AdditionalTextComparer : IEqualityComparer<AdditionalText>
     {
         public static readonly AdditionalTextComparer Instance = new AdditionalTextComparer();
 
-        public bool Equals([AllowNull] AdditionalText x, [AllowNull] AdditionalText y)
+        public bool Equals(AdditionalText? x, AdditionalText? y)
         {
             if (object.ReferenceEquals(x, y))
             {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
             return ByteSequenceComparer.Equals(xText.GetChecksum(), yText.GetChecksum());
         }
 
-        public int GetHashCode([DisallowNull] AdditionalText obj)
+        public int GetHashCode(AdditionalText obj)
         {
             return Hash.Combine(PathUtilities.Comparer.GetHashCode(obj.Path),
                                 ByteSequenceComparer.GetHashCode(obj.GetText()?.GetChecksum() ?? ImmutableArray<byte>.Empty));
