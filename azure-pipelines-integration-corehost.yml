@@ -1,4 +1,4 @@
-# Separate pipeline from normal integration CI to allow branches to change legs
+# Separate pipeline from normal integration CI to allow it to be non-required
 
 # Branches that trigger a build on commit
 trigger:
