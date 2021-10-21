@@ -60,10 +60,10 @@
       <Link>InternalUtilities\LambdaUtilities.cs</Link>
     </Compile>
   </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="EditAndContinue\**\*.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
-    <Compile Include="EditAndContinue\BreakpointSpans.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
-    <Compile Include="EditAndContinue\SyntaxUtilities.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
+  <ItemGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
+    <Compile Remove="EditAndContinue\**\*.cs" />
+    <Compile Include="EditAndContinue\BreakpointSpans.cs" />
+    <Compile Include="EditAndContinue\SyntaxUtilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="CSharpFeaturesResources.resx" GenerateSource="true" />

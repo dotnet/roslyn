@@ -55,9 +55,9 @@
       <Link>InternalUtilities\LambdaUtilities.vb</Link>
     </Compile>
   </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="EditAndContinue\**\*.vb" Condition="'$(DotNetBuildFromSource)' == 'true'" />
-    <Compile Include="EditAndContinue\BreakpointSpans.vb" Condition="'$(DotNetBuildFromSource)' == 'true'" />
+  <ItemGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
+    <Compile Remove="EditAndContinue\**\*.vb" />
+    <Compile Include="EditAndContinue\BreakpointSpans.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="VBFeaturesResources.resx" GenerateSource="true" Namespace="Microsoft.CodeAnalysis.VisualBasic" />

@@ -131,11 +131,11 @@
     <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="$(MicrosoftCodeAnalysisAnalyzerUtilitiesVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Contracts" Version="$(MicrosoftVisualStudioDebuggerContractsVersion)" Condition="'$(DotNetBuildFromSource)' != 'true'" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="EditAndContinue\**\*.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
-    <Compile Include="EditAndContinue\EditAndContinueMethodDebugInfoReader.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
-    <Compile Remove="ExternalAccess\UnitTesting\API\UnitTestingHotReloadService.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
-    <Compile Remove="ExternalAccess\Watch\Api\WatchHotReloadService.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
+  <ItemGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
+    <Compile Remove="EditAndContinue\**\*.cs" />
+    <Compile Include="EditAndContinue\EditAndContinueMethodDebugInfoReader.cs" />
+    <Compile Remove="ExternalAccess\UnitTesting\API\UnitTestingHotReloadService.cs" />
+    <Compile Remove="ExternalAccess\Watch\Api\WatchHotReloadService.cs" />
   </ItemGroup>
   <Import Project="..\..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems" Label="Shared" />
