@@ -112,7 +112,7 @@ internal class CachedSkeletonReferences
 
         lock (_gate)
         {
-            // whoever one, still store this reference set against us with the provided version.
+            // whoever won, still store this reference set against us with the provided version.
             _version = version;
             _skeletonReferenceSet = referenceSet;
         }
