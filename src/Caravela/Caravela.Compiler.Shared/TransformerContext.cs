@@ -15,10 +15,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Caravela.Compiler
 {
+   
     /// <summary>
     /// Context passed to a source transformer when <see cref="ISourceTransformer.Execute(TransformerContext)"/> is called.
     /// The implementation can modify the compilation using the methods <see cref="AddSyntaxTrees(Microsoft.CodeAnalysis.SyntaxTree[])"/>, <see cref="ReplaceSyntaxTree"/> or
-    /// <see cref="AddResources(Microsoft.CodeAnalysis.ResourceDescription[])"/>. It can report a diagnostic using <see cref="ReportDiagnostic"/> or suppress diagnostics using <see cref="RegisterDiagnosticFilter"/>.
+    /// <see cref="AddResources(ManagedResource[])"/>. It can report a diagnostic using <see cref="ReportDiagnostic"/> or suppress diagnostics using <see cref="RegisterDiagnosticFilter"/>.
     /// </summary>
     public sealed class TransformerContext
     {
@@ -27,11 +28,11 @@ namespace Caravela.Compiler
         private readonly IAnalyzerAssemblyLoader _assemblyLoader;
 
         internal List<SyntaxTreeTransformation> TransformedTrees { get; } = new();
-        internal List<ResourceDescription> AddedResources { get; } = new();
+        internal List<ManagedResource> AddedResources { get; } = new();
         internal List<DiagnosticFilter> DiagnosticFilters { get; } = new();
 
         internal TransformerContext(
-            Compilation compilation, ImmutableArray<object> plugins, AnalyzerConfigOptions globalOptions, ImmutableArray<ResourceDescription> manifestResources,
+            Compilation compilation, ImmutableArray<object> plugins, AnalyzerConfigOptions globalOptions, ImmutableArray<ManagedResource> manifestResources,
             DiagnosticBag diagnostics, IAnalyzerAssemblyLoader assemblyLoader)
         {
             Compilation = compilation;
@@ -124,10 +125,8 @@ namespace Caravela.Compiler
 
         /// <summary>
         /// Gets the list of managed resources. 
-        ///
-        /// To inspect existing resources, use extension methods from <see cref="ResourceDescriptionExtensions "/>.
         /// </summary>
-        public ImmutableArray<ResourceDescription> Resources { get; }
+        public ImmutableArray<ManagedResource> Resources { get; }
 
         /// <summary>
         /// Adds a <see cref="Diagnostic"/> to the user's compilation.
@@ -143,14 +142,14 @@ namespace Caravela.Compiler
 #endif
         }
 
-        public void AddResources(params ResourceDescription[] resources)
+        public void AddResources(params ManagedResource[] resources)
         {
 #if !CARAVELA_COMPILER_INTERFACE
             this.AddedResources.AddRange(resources);
 #endif
         }
 
-        public void AddResources(IEnumerable<ResourceDescription> resources)
+        public void AddResources(IEnumerable<ManagedResource> resources)
         {
 #if !CARAVELA_COMPILER_INTERFACE
             this.AddedResources.AddRange(resources);
