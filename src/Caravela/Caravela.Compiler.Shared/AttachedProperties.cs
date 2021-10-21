@@ -58,6 +58,13 @@ namespace Caravela.Compiler
             return value;
         }
 
+        public static bool Has<TTarget, TProperty>(TTarget obj)
+            where TTarget : class
+            where TProperty : class
+        {
+            return Impl<TTarget, TProperty>.Properties.TryGetValue(obj, out var value) && value != null;
+        }
+
         public static TProperty GetOrAdd<TTarget, TProperty>(TTarget obj)
             where TTarget : class
             where TProperty : class, new()

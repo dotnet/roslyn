@@ -9,12 +9,13 @@
     <Import_RootNamespace>Caravela.Compiler</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)ManagedResource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AttachedProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CaravelaCompilerInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticFilteringRequest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Intrinsics.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ISourceTransformer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ResourceDescriptionExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RefAssemblyResourceMarker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SyntaxTreeTransformation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformerContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformerAttribute.cs" />

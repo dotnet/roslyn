@@ -434,10 +434,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Dictionary<SyntaxTree, (SyntaxTree NewTree,bool IsModified)> oldTreeToNewTrees = new();
             Dictionary<SyntaxTree, SyntaxTree?> newTreesToOldTrees = new();
             HashSet<SyntaxTree> addedTrees = new();
-            List<ResourceDescription> addedResources = new();
+            var inputResources = manifestResources.SelectAsArray(m => new ManagedResource(m));
+            List<ManagedResource> addedResources = new();
             var diagnosticFiltersBuilder = ImmutableArray.CreateBuilder<DiagnosticFilter>();
-            var manifestResourcesBuilder = ImmutableArray.CreateBuilder<ResourceDescription>();
-
+            
             // Add tracking annotations to the input tree.
             var annotatedInputCompilation = inputCompilation;
             bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // mark old trees as debuggable
                 foreach (var tree in inputCompilation.SyntaxTrees)
                 {
-                    SyntaxTree annotatedTree = tree.WithRootAndOptions(TreeTracker.AnnotateNodeAndChildren(tree.GetRoot()), tree.Options);
+                    SyntaxTree annotatedTree = tree.WithRootAndOptions(TreeTracker.AnnotateNodeAndChildren(tree.GetRoot(cancellationToken)), tree.Options);
                     SyntaxTreeHistory.Update(tree, annotatedTree );
                     annotatedInputCompilation = annotatedInputCompilation.ReplaceSyntaxTree(tree, annotatedTree);
                     oldTreeToNewTrees[tree] = (annotatedTree,false);
@@ -470,12 +470,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 try
                 {
                     var context = new TransformerContext(outputCompilation, plugins,
-                        analyzerConfigProvider.GlobalOptions, manifestResources.AddRange(addedResources), diagnostics,
+                        analyzerConfigProvider.GlobalOptions, inputResources.AddRange(addedResources), diagnostics,
                         assemblyLoader);
                     transformer.Execute(context);
                     
                     diagnosticFiltersBuilder.AddRange(context.DiagnosticFilters);
-                    manifestResourcesBuilder.AddRange(context.AddedResources);
+                    addedResources.AddRange(context.AddedResources);
 
                     
                     foreach (var transformedTree in context.TransformedTrees)
@@ -539,8 +539,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             outputCompilation = outputCompilation.AddSyntaxTrees(newTree);
                         }
                     }
-                    
-                    addedResources.AddRange(context.AddedResources);
 
                 }
                 catch (Exception ex)
@@ -558,8 +556,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 .Concat(addedTrees.Select(t => new SyntaxTreeTransformation(t, null)))
                 .ToImmutableArray();
 
+            foreach ( var resource in addedResources.Where( r => r.IncludeInRefAssembly ) )
+            {
+                AttachedProperties.Add(resource.Resource, RefAssemblyResourceMarker.Instance);
+            }
+
+
             return new TransformersResult(annotatedInputCompilation, outputCompilation,
-                 replacements, new DiagnosticFilters(diagnosticFiltersBuilder.ToImmutable()), addedResources.ToImmutableArray());
+                 replacements, new DiagnosticFilters(diagnosticFiltersBuilder.ToImmutable()), addedResources.SelectAsArray( m => m.Resource) );
             
     
         }

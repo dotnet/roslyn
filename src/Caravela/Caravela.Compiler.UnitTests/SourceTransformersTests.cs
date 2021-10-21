@@ -250,6 +250,54 @@ build_property.CaravelaCompilerTransformedFilesOutputPath = {transformedDir.Path
             CleanupAllGeneratedFiles(src2.Path);
             Directory.Delete(dir.Path, true);
         }
+        
+        [Fact]
+        public void AddManagedResourcesInNormalAssemblies()
+        {
+            var resources = new[]
+            {
+                new ManagedResource("A", new byte[] { 1, 2, 3 }),
+                new ManagedResource("B", new byte[] { 1, 2, 3 }, true)
+            };
+            
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("");
+
+            var args = new[] { "/t:library", src.Path, "/refout:" + dir.Path + "/" + "ref.dll"  };
+
+            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: (new ISourceTransformer[] { new AddResourceTransformer(resources) }).ToImmutableArray());
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = csc.Run(outWriter);
+            var output = outWriter.ToString();
+
+            Assert.Equal(0, exitCode);
+
+            var assembly = LoadCompiledAssembly(Path.Combine(dir.Path, "temp.dll"));
+            Assert.Equal("A, B", string.Join(", ", assembly.GetManifestResourceNames().OrderBy(n => n)));
+
+            var refAssembly = LoadCompiledAssembly(Path.Combine(dir.Path, "ref.dll"));
+            Assert.Equal("B", string.Join(", ", refAssembly.GetManifestResourceNames().OrderBy(n => n)));
+
+            CleanupAllGeneratedFiles(src.Path);
+        }
+        
+        
+        
+        class AddResourceTransformer : ISourceTransformer
+        {
+           private readonly ManagedResource[] _resources;
+
+           public AddResourceTransformer(ManagedResource[] resources)
+           {
+               _resources = resources;
+           }
+
+           public void Execute(TransformerContext context)
+            {
+                context.AddResources(this._resources);
+            }
+        }
 
         class DoSomethingTransformer : ISourceTransformer
         {

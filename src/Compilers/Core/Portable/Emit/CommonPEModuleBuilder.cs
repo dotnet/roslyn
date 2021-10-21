@@ -13,11 +13,13 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
+using Caravela.Compiler;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit.NoPia;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
+using ManagedResource = Microsoft.Cci.ManagedResource;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -42,6 +44,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private ImmutableArray<Cci.AssemblyReferenceAlias> _lazyAssemblyReferenceAliases;
         private ImmutableArray<Cci.ManagedResource> _lazyManagedResources;
+        // <Caravela>
+        private ImmutableArray<Cci.ManagedResource> _lazyManagedResourcesRefAssembly;
+        // </Caravela>
         private IEnumerable<EmbeddedText> _embeddedTexts = SpecializedCollections.EmptyEnumerable<EmbeddedText>();
 
         // Only set when running tests to allow realized IL for a given method to be looked up by method.
@@ -405,32 +410,44 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public ImmutableArray<Cci.ManagedResource> GetResources(EmitContext context)
         {
+            // <Caravela>
+
+            ref ImmutableArray<ManagedResource> resources = ref this._lazyManagedResources;
+            
             if (context.IsRefAssembly)
             {
-                // Manifest resources are not included in ref assemblies
-                // Ref assemblies don't support added modules
-                return ImmutableArray<Cci.ManagedResource>.Empty;
+                resources = ref this._lazyManagedResourcesRefAssembly;
             }
-
-            if (_lazyManagedResources.IsDefault)
+            
+            if (resources.IsDefault)
             {
                 var builder = ArrayBuilder<Cci.ManagedResource>.GetInstance();
 
                 foreach (ResourceDescription r in ManifestResources)
                 {
-                    builder.Add(r.ToManagedResource(this));
+                    if (!context.IsRefAssembly ||
+                        AttachedProperties.Has<ResourceDescription, RefAssemblyResourceMarker>(r))
+                    {
+                        builder.Add(r.ToManagedResource(this));
+                    }
                 }
 
-                if (OutputKind != OutputKind.NetModule)
+                if (!context.IsRefAssembly)
                 {
-                    // Explicitly add resources from added modules
-                    AddEmbeddedResourcesFromAddedModules(builder, context.Diagnostics);
+                    if (OutputKind != OutputKind.NetModule)
+                    {
+                        // Explicitly add resources from added modules
+                        AddEmbeddedResourcesFromAddedModules(builder, context.Diagnostics);
+                    }
                 }
 
-                _lazyManagedResources = builder.ToImmutableAndFree();
+                resources = builder.ToImmutableAndFree();
             }
 
-            return _lazyManagedResources;
+            return resources;
+            
+            // </Caravela>
+
         }
 
         public IEnumerable<EmbeddedText> EmbeddedTexts
