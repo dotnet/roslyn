@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text.Editor;
@@ -51,25 +52,35 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 throw new InvalidOperationException(string.Format("No expanded light bulb session found after View.ShowSmartTag.  Buffer content type={0}", bufferType));
             }
 
-            var start = DateTime.Now;
-            IEnumerable<SuggestedActionSet> actionSets = Array.Empty<SuggestedActionSet>();
-            while (DateTime.Now - start < Helper.HangMitigatingTimeout)
+            var asyncSession = (IAsyncLightBulbSession)activeSession;
+            var tcs = new TaskCompletionSource<List<SuggestedActionSet>>();
+
+            var delayTask = Task.Delay(Helper.HangMitigatingTimeout);
+
+            EventHandler<SuggestedActionsUpdatedArgs>? handler = null;
+            handler = (s, e) =>
             {
-                var status = activeSession.TryGetSuggestedActionSets(out actionSets);
-                if (status is not QuerySuggestedActionCompletionStatus.Completed and
-                              not QuerySuggestedActionCompletionStatus.Canceled)
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(1));
-                    continue;
-                }
+                // ignore these.  we care about when the lightbulb items are all completed.
+                if (e.Status == QuerySuggestedActionCompletionStatus.InProgress)
+                    return;
 
-                if (status != QuerySuggestedActionCompletionStatus.Completed)
-                    actionSets = Array.Empty<SuggestedActionSet>();
+                if (e.Status == QuerySuggestedActionCompletionStatus.Completed)
+                    tcs.SetResult(e.ActionSets.ToList());
+                else
+                    tcs.SetException(new InvalidOperationException($"Light bulb transitioned to non-complete state: {e.Status}"));
 
-                break;
-            }
+                asyncSession.SuggestedActionsUpdated -= handler;
+            };
 
-            return actionSets;
+            asyncSession.SuggestedActionsUpdated += handler;
+
+            asyncSession.PopulateWithData(overrideRequestedActionCategories: null, operationContext: null);
+            var completedTask = await Task.WhenAny(tcs.Task, delayTask).ConfigureAwait(false);
+
+            if (completedTask == delayTask)
+                throw new InvalidOperationException("Timeout before getting all lightbulb items populated");
+
+            return await tcs.Task.ConfigureAwait(false);
         }
     }
 }
