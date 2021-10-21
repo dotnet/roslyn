@@ -1,4 +1,4 @@
-# Separate pipeline from normal integration CI to allow it to be non-required
+# Separate pipeline from normal integration CI to allow branches to change legs
 
 # Branches that trigger a build on commit
 trigger:
@@ -23,11 +23,18 @@ jobs:
   pool:
     name: NetCorePublic-Pool
     queue: $(queueName)
+  strategy:
+    maxParallel: 2
+    matrix:
+      debug:
+        _configuration: Debug
+      release:
+        _configuration: Release
   timeoutInMinutes: 135
 
   steps:
     - template: eng/pipelines/test-integration-job.yml
       parameters:
-        configuration: Debug
+        configuration: $(_configuration)
         oop64bit: true
         oopCoreClr: true
