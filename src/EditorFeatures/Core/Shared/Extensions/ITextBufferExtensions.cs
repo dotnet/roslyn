@@ -2,72 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static partial class ITextBufferExtensions
     {
-        internal static bool GetFeatureOnOffOption(this ITextBuffer buffer, Option2<bool> option)
-        {
-            var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-
-            if (document != null)
-            {
-                return document.Project.Solution.Options.GetOption(option);
-            }
-
-            return option.DefaultValue;
-        }
-
-        internal static T GetFeatureOnOffOption<T>(this ITextBuffer buffer, PerLanguageOption2<T> option)
-        {
-            // Add a FailFast to help diagnose 984249.  Hopefully this will let us know what the issue is.
-            try
-            {
-                var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-
-                if (document != null)
-                {
-                    return document.Project.Solution.Options.GetOption(option, document.Project.Language);
-                }
-
-                return option.DefaultValue;
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagate(e))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        internal static bool? GetOptionalFeatureOnOffOption(this ITextBuffer buffer, PerLanguageOption2<bool?> option)
-        {
-            // Add a FailFast to help diagnose 984249.  Hopefully this will let us know what the issue is.
-            try
-            {
-                var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-
-                if (document != null)
-                {
-                    return document.Project.Solution.Options.GetOption(option, document.Project.Language);
-                }
-
-                return option.DefaultValue;
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagate(e))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
         internal static bool IsInLspEditorContext(this ITextBuffer buffer)
         {
             if (buffer.TryGetWorkspace(out var workspace))
