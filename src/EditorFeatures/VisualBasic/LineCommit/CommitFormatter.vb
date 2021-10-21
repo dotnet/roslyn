@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Return
                 End If
 
-                If Not isExplicitFormat OrElse _globalOptions.GetOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic) Then
+                If Not (isExplicitFormat OrElse _globalOptions.GetOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)) Then
                     Return
                 End If
 
