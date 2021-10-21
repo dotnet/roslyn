@@ -70,8 +70,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private readonly ReferenceCountedDisposable<TagSourceState> _tagSourceState = new(new TagSourceState());
 
-            private readonly IGlobalOptionService _globalOptions;
-
             #endregion
 
             #region Fields that can only be accessed from the foreground thread
@@ -105,7 +103,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 ITextView textViewOpt,
                 ITextBuffer subjectBuffer,
                 AbstractAsynchronousTaggerProvider<TTag> dataSource,
-                IGlobalOptionService globalOptions,
                 IAsynchronousOperationListener asyncListener)
                 : base(dataSource.ThreadingContext)
             {
@@ -117,7 +114,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _textViewOpt = textViewOpt;
                 _dataSource = dataSource;
                 _asyncListener = asyncListener;
-                _globalOptions = globalOptions;
 
                 _highPriTagsChangedQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
                     TaggerDelay.NearImmediate.ComputeTimeDelay(),
