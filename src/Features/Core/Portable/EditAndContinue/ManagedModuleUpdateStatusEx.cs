@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     // To be replaced with actual values from Debugger.Contracts in vs-deps branch.
     internal static class ManagedModuleUpdateStatusEx
     {
-        public const ManagedModuleUpdateStatus RestartRequired = (ManagedModuleUpdateStatus)2;
-        public const ManagedModuleUpdateStatus Blocked = (ManagedModuleUpdateStatus)3;
+        public const ManagedModuleUpdateStatus RestartRequired = ManagedModuleUpdateStatus.RestartRequired;
+        public const ManagedModuleUpdateStatus Blocked = ManagedModuleUpdateStatus.Blocked;
     }
 }

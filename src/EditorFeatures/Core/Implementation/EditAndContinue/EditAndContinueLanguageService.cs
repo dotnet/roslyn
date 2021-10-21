@@ -18,12 +18,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
-    internal sealed class EditAndContinueLanguageService : IEditAndContinueSolutionProvider
+    [Shared]
+    [Export(typeof(IManagedHotReloadLanguageService))]
+    [Export(typeof(IEditAndContinueSolutionProvider))]
+    [Export(typeof(EditAndContinueLanguageService))]
+    [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
+    internal sealed class EditAndContinueLanguageService : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
     {
         private static readonly ActiveStatementSpanProvider s_noActiveStatementSpanProvider =
             (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
-        private readonly Lazy<IManagedEditAndContinueDebuggerService> _debuggerService;
+        private readonly Lazy<IManagedHotReloadService> _debuggerService;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
 
@@ -38,12 +43,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         public event Action<Solution>? SolutionCommitted;
 
         /// <summary>
-        /// Import <see cref="IHostWorkspaceProvider"/> lazily so that the host does not need to implement it
+        /// Import <see cref="IHostWorkspaceProvider"/> lazily so that the host does not need to implement it 
         /// unless the host implements debugger components.
         /// </summary>
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditAndContinueLanguageService(
             Lazy<IHostWorkspaceProvider> workspaceProvider,
-            Lazy<IManagedEditAndContinueDebuggerService> debuggerService,
+            Lazy<IManagedHotReloadService> debuggerService,
             IDiagnosticAnalyzerService diagnosticService,
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource)
         {
@@ -187,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 Contract.ThrowIfTrue(_disabled);
                 await GetDebuggingSession().CommitSolutionUpdateAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
             }
         }
@@ -205,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 await GetDebuggingSession().DiscardSolutionUpdateAsync(cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
             }
         }
