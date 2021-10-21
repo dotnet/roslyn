@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 Dim provider = New SemanticClassificationViewTaggerProvider(
                     workspace.GetService(Of IThreadingContext),
                     workspace.GetService(Of ClassificationTypeMap),
-                    workspace.GetService(Of GlobalOptionService),
+                    workspace.GetService(Of IGlobalOptionService),
                     listenerProvider)
 
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
