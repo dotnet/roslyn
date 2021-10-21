@@ -38,6 +38,7 @@
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.InheritanceMargin" ClassName="Microsoft.CodeAnalysis.Remote.RemoteInheritanceMarginService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.UnusedReferenceAnalysis" ClassName="Microsoft.CodeAnalysis.Remote.RemoteUnusedReferenceAnalysisService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ProcessTelemetry" ClassName="Microsoft.CodeAnalysis.Remote.RemoteProcessTelemetryService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.CompilationAvailable" ClassName="Microsoft.CodeAnalysis.Remote.RemoteCompilationAvailableService+Factory" />
   </ItemGroup>
 
   <!--
