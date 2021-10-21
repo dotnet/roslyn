@@ -256,7 +256,7 @@ build_property.CaravelaCompilerTransformedFilesOutputPath = {transformedDir.Path
         {
             var resources = new[]
             {
-                new ManagedResource("A", new byte[] { 1, 2, 3 } , true),
+                new ManagedResource("A", new byte[] { 1, 2, 3 }),
                 new ManagedResource("B", new byte[] { 1, 2, 3 }, true)
             };
             
