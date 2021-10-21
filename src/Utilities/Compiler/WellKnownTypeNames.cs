@@ -231,6 +231,7 @@ namespace Analyzer.Utilities
         public const string SystemIProgress1 = "System.IProgress`1";
         public const string SystemLinqEnumerable = "System.Linq.Enumerable";
         public const string SystemLinqExpressionsExpression1 = "System.Linq.Expressions.Expression`1";
+        public const string SystemLinqIOrderedEnumerable1 = "System.Linq.IOrderedEnumerable`1";
         public const string SystemLinqQueryable = "System.Linq.Queryable";
         public const string SystemMarshalByRefObject = "System.MarshalByRefObject";
         public const string SystemMemory1 = "System.Memory`1";
