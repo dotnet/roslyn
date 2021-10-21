@@ -117,13 +117,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 TaggerEventSources.OnTextChanged(subjectBuffer),
                 TaggerEventSources.OnParseOptionChanged(subjectBuffer),
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowOutliningForCodeLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowOutliningForDeclarationLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowOutliningForCommentsAndPreprocessorRegions),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions));
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowBlockStructureGuidesForCodeLevelConstructs),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowBlockStructureGuidesForDeclarationLevelConstructs),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowOutliningForCodeLevelConstructs),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowOutliningForDeclarationLevelConstructs),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowOutliningForCommentsAndPreprocessorRegions),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.CollapseRegionsWhenCollapsingToDefinitions));
         }
 
         protected sealed override async Task ProduceTagsAsync(
