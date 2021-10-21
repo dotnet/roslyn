@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
@@ -55,8 +56,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             var asyncSession = (IAsyncLightBulbSession)activeSession;
             var tcs = new TaskCompletionSource<List<SuggestedActionSet>>();
 
-            var delayTask = Task.Delay(Helper.HangMitigatingTimeout);
-
             EventHandler<SuggestedActionsUpdatedArgs>? handler = null;
             handler = (s, e) =>
             {
@@ -75,12 +74,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             asyncSession.SuggestedActionsUpdated += handler;
 
             asyncSession.PopulateWithData(overrideRequestedActionCategories: null, operationContext: null);
-            var completedTask = await Task.WhenAny(tcs.Task, delayTask).ConfigureAwait(false);
 
-            if (completedTask == delayTask)
-                throw new InvalidOperationException("Timeout before getting all lightbulb items populated");
-
-            return await tcs.Task.ConfigureAwait(false);
+            return await tcs.Task.WithTimeout(Helper.HangMitigatingTimeout).ConfigureAwait(false);
         }
     }
 }
