@@ -65,7 +65,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 };
             }
 
-            return _defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
+            var defaultCapabilities = _defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
+
+            // If the LSP semantic tokens feature flag is enabled, advertise no semantic tokens capabilities for this Live Share
+            // LSP server as LSP semantic tokens requests will be serviced by the AlwaysActiveInProcLanguageClient in both local and
+            // remote scenarios.
+            var isLspSemanticTokenEnabled = GlobalOptions.GetOption(LspOptions.LspSemanticTokensFeatureFlag);
+            if (isLspSemanticTokenEnabled)
+            {
+                defaultCapabilities.SemanticTokensOptions = null;
+            }
+
+            return defaultCapabilities;
         }
 
         /// <summary>
