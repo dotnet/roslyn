@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Emit.NoPia;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
+using ManagedResource = Microsoft.Cci.ManagedResource;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -410,11 +411,15 @@ namespace Microsoft.CodeAnalysis.Emit
         public ImmutableArray<Cci.ManagedResource> GetResources(EmitContext context)
         {
             // <Caravela>
+
+            ref ImmutableArray<ManagedResource> resources = ref this._lazyManagedResources;
             
-            var lazy = context.IsRefAssembly ? _lazyManagedResourcesRefAssembly : _lazyManagedResources;
+            if (context.IsRefAssembly)
+            {
+                resources = ref this._lazyManagedResourcesRefAssembly;
+            }
             
-            
-            if (lazy.IsDefault)
+            if (resources.IsDefault)
             {
                 var builder = ArrayBuilder<Cci.ManagedResource>.GetInstance();
 
@@ -436,10 +441,10 @@ namespace Microsoft.CodeAnalysis.Emit
                     }
                 }
 
-                lazy = builder.ToImmutableAndFree();
+                resources = builder.ToImmutableAndFree();
             }
 
-            return lazy;
+            return resources;
             
             // </Caravela>
 
