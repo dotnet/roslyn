@@ -5,19 +5,20 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class RemoteTaggerCompilationAvailableService : BrokeredServiceBase, IRemoteTaggerCompilationAvailableService
+    internal sealed class RemoteCompilationAvailableService : BrokeredServiceBase, IRemoteCompilationAvailableService
     {
-        internal sealed class Factory : FactoryBase<IRemoteTaggerCompilationAvailableService>
+        internal sealed class Factory : FactoryBase<IRemoteCompilationAvailableService>
         {
-            protected override IRemoteTaggerCompilationAvailableService CreateService(in ServiceConstructionArguments arguments)
-                => new RemoteTaggerCompilationAvailableService(arguments);
+            protected override IRemoteCompilationAvailableService CreateService(in ServiceConstructionArguments arguments)
+                => new RemoteCompilationAvailableService(arguments);
         }
 
-        public RemoteTaggerCompilationAvailableService(in ServiceConstructionArguments arguments)
+        public RemoteCompilationAvailableService(in ServiceConstructionArguments arguments)
             : base(arguments)
         {
         }

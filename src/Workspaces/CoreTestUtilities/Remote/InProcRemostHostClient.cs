@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteValueTrackingService.Factory());
                 RegisterRemoteBrokeredService(new RemoteInheritanceMarginService.Factory());
                 RegisterRemoteBrokeredService(new RemoteUnusedReferenceAnalysisService.Factory());
-                RegisterRemoteBrokeredService(new RemoteTaggerCompilationAvailableService.Factory());
+                RegisterRemoteBrokeredService(new RemoteCompilationAvailableService.Factory());
             }
 
             public void Dispose()

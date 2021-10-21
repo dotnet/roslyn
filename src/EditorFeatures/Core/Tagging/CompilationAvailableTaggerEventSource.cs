@@ -6,6 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -15,10 +16,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
-    internal interface IRemoteTaggerCompilationAvailableService
-    {
-        ValueTask ComputeCompilationAsync(PinnedSolutionInfo solutionInfo, ProjectId projectId, CancellationToken cancellationToken);
-    }
 
     /// <summary>
     /// Tagger event that fires once the compilation is available in the remote OOP process for a particular project.
@@ -106,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
-                    var result = await client.TryInvokeAsync<IRemoteTaggerCompilationAvailableService>(
+                    var result = await client.TryInvokeAsync<IRemoteCompilationAvailableService>(
                         document.Project,
                         (service, solutionInfo, cancellationToken) => service.ComputeCompilationAsync(solutionInfo, document.Project.Id, cancellationToken),
                         cancellationToken).ConfigureAwait(false);
