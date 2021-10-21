@@ -100,8 +100,9 @@ public class Program
     }
 }
 ");
+
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Unnecessary assignment of a value to 'x'");
+            VisualStudio.Editor.Verify.CodeAction("Remove redundant assignment");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
