@@ -53,5 +53,23 @@ Class Goo
 End Class
 ");
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(57293, "https://github.com/dotnet/roslyn/issues/57293")]
+        public void RemoveRedundantAssignmentCodeFix()
+        {
+            SetUpEditor(@"
+Module Program
+    Sub Main(args As String())
+        Dim x = 4
+        x = 2$$
+    End Sub
+End Module
+
+");
+
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Remove redundant assignment");
+        }
     }
 }
