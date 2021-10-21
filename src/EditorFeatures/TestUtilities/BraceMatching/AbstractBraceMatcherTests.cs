@@ -30,8 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceMatching
                 var position = workspace.Documents.Single().CursorPosition.Value;
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
                 var braceMatcher = workspace.GetService<IBraceMatchingService>();
+                var braceMatchingOptions = BraceMatchingOptions.From(document.Project);
 
-                var foundSpan = await braceMatcher.FindMatchingSpanAsync(document, position, CancellationToken.None);
+                var foundSpan = await braceMatcher.FindMatchingSpanAsync(document, position, braceMatchingOptions, CancellationToken.None);
                 MarkupTestFile.GetSpans(expectedCode, out var parsedExpectedCode, out ImmutableArray<TextSpan> expectedSpans);
 
                 if (expectedSpans.Any())
