@@ -84,6 +84,53 @@ class Program
             VisualStudio.Editor.Verify.CodeAction("using System;");
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(57293, "https://github.com/dotnet/roslyn/issues/57293")]
+        public void RemoveRedundantAssignmentCodeFix()
+        {
+            SetUpEditor(@"
+using System;
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        int x = 2;
+        x = 5;$$
+    }
+}
+");
+
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Remove redundant assignment");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [WorkItem(57293, "https://github.com/dotnet/roslyn/issues/57293")]
+        public void UseIsNullCheckCodeFix()
+        {
+            SetUpEditor(@"
+using System;
+
+public class Program
+{
+    public int Method()
+    {
+        var x = ""test"";
+        if (x is not string)$$
+        {
+            return 0;
+        }
+        
+        return 1;
+    }
+}
+");
+
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Prefer 'null' check over type check");
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public void FastDoubleInvoke()
         {
