@@ -34,6 +34,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public ChangeSignatureDialog_OutOfProc ChangeSignatureDialog { get; }
 
+        public CodeDefinitionWindow_OutOfProc CodeDefinitionWindow { get; }
+
         public CSharpInteractiveWindow_OutOfProc InteractiveWindow { get; }
 
         public ObjectBrowserWindow_OutOfProc ObjectBrowserWindow { get; }
@@ -132,6 +134,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             AddParameterDialog = new AddParameterDialog_OutOfProc(this);
             ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
+            CodeDefinitionWindow = new CodeDefinitionWindow_OutOfProc(this);
             InteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
             ObjectBrowserWindow = new ObjectBrowserWindow_OutOfProc(this);
             Debugger = new Debugger_OutOfProc(this);

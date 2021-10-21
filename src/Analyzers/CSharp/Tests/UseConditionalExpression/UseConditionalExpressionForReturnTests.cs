@@ -19,6 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
 {
     public partial class UseConditionalExpressionForReturnTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        private static readonly ParseOptions CSharp8 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
+        private static readonly ParseOptions CSharp9 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
+
         public UseConditionalExpressionForReturnTests(ITestOutputHelper logger)
           : base(logger)
         {
@@ -461,9 +464,9 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
-        public async Task TestConversion1()
+        public async Task TestConversion1_CSharp8()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -484,16 +487,45 @@ class C
 {
     object M()
     {
-        return true ? ""a"" : ""b"";
+        return true ? ""a"" : (object)""b"";
     }
-}");
+}", parseOptions: CSharp8);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestConversion1_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    object M()
+    {
+        [||]if (true)
+        {
+            return ""a"";
+        }
+        else
+        {
+            return ""b"";
+        }
+    }
+}",
+@"
+class C
+{
+    object M()
+    {
+        return true ? ""a"" : (object)""b"";
+    }
+}", parseOptions: CSharp9);
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
-        public async Task TestConversion1_Throw1()
+        public async Task TestConversion1_Throw1_CSharp8()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -514,16 +546,46 @@ class C
 {
     object M()
     {
-        return true ? throw new System.Exception() : ""b"";
+        return true ? throw new System.Exception() : (object)""b"";
     }
-}");
+}", parseOptions: CSharp8);
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
-        public async Task TestConversion1_Throw2()
+        public async Task TestConversion1_Throw1_CSharp9()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    object M()
+    {
+        [||]if (true)
+        {
+            throw new System.Exception();
+        }
+        else
+        {
+            return ""b"";
+        }
+    }
+}",
+@"
+class C
+{
+    object M()
+    {
+        return true ? throw new System.Exception() : (object)""b"";
+    }
+}", parseOptions: CSharp9);
+        }
+
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestConversion1_Throw2_CSharp8()
+        {
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -544,9 +606,39 @@ class C
 {
     object M()
     {
-        return true ? ""a"" : throw new System.Exception();
+        return true ? (object)""a"" : throw new System.Exception();
     }
-}");
+}", parseOptions: CSharp8);
+        }
+
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestConversion1_Throw2_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    object M()
+    {
+        [||]if (true)
+        {
+            return ""a"";
+        }
+        else
+        {
+            throw new System.Exception();
+        }
+    }
+}",
+@"
+class C
+{
+    object M()
+    {
+        return true ? (object)""a"" : throw new System.Exception();
+    }
+}", parseOptions: CSharp9);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]

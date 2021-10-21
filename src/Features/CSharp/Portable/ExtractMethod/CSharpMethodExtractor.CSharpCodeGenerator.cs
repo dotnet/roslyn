@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             private SimpleNameSyntax CreateMethodNameForInvocation()
             {
                 return AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0
-                    ? (SimpleNameSyntax)SyntaxFactory.IdentifierName(_methodName)
+                    ? SyntaxFactory.IdentifierName(_methodName)
                     : SyntaxFactory.GenericName(_methodName, SyntaxFactory.TypeArgumentList(CreateMethodCallTypeVariables()));
             }
 
