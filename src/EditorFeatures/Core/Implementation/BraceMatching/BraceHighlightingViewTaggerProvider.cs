@@ -55,7 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
                 TaggerEventSources.OnParseOptionChanged(subjectBuffer));
         }
 
-        protected override Task ProduceTagsAsync(TaggerContext<BraceHighlightTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+        protected override Task ProduceTagsAsync(
+            TaggerContext<BraceHighlightTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, CancellationToken cancellationToken)
         {
             var document = documentSnapshotSpan.Document;
             if (!caretPosition.HasValue || document == null)
@@ -63,17 +64,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
                 return Task.CompletedTask;
             }
 
-            return ProduceTagsAsync(context, document, documentSnapshotSpan.SnapshotSpan.Snapshot, caretPosition.Value);
+            return ProduceTagsAsync(
+                context, document, documentSnapshotSpan.SnapshotSpan.Snapshot, caretPosition.Value, cancellationToken);
         }
 
-        internal async Task ProduceTagsAsync(TaggerContext<BraceHighlightTag> context, Document document, ITextSnapshot snapshot, int position)
+        internal async Task ProduceTagsAsync(
+            TaggerContext<BraceHighlightTag> context, Document document, ITextSnapshot snapshot, int position, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Tagger_BraceHighlighting_TagProducer_ProduceTags, context.CancellationToken))
+            using (Logger.LogBlock(FunctionId.Tagger_BraceHighlighting_TagProducer_ProduceTags, cancellationToken))
             {
                 if (position >= 0 && position <= snapshot.Length)
                 {
                     var (bracesLeftOfPosition, bracesRightOfPosition) = await GetAllMatchingBracesAsync(
-                        _braceMatcherService, document, position, context.CancellationToken).ConfigureAwait(false);
+                        _braceMatcherService, document, position, cancellationToken).ConfigureAwait(false);
 
                     AddBraces(context, snapshot, bracesLeftOfPosition);
                     AddBraces(context, snapshot, bracesRightOfPosition);

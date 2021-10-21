@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -58,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
         private const string VariableKindAttributeName = "variablekind";
 
         private static readonly char[] s_encodedChars = new[] { '<', '>', '&' };
-        private static readonly string[] s_encodings = new[] { "&lt;", "&gt;", "&amp;" };
+        private static readonly ImmutableArray<string> s_encodings = ImmutableArray.Create("&lt;", "&gt;", "&amp;");
 
         private readonly StringBuilder _builder;
         protected readonly IMethodSymbol Symbol;

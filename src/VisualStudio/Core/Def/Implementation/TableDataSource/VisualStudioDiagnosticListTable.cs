@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return _liveTableSource;
                 }
 
-                return _errorList.AreOtherErrorSourceEntriesShown ? (ITableDataSource)_liveTableSource : _buildTableSource;
+                return _errorList.AreOtherErrorSourceEntriesShown ? _liveTableSource : _buildTableSource;
             }
 
             /// this is for test only

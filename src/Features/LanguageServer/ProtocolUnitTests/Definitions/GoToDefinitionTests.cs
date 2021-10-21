@@ -120,6 +120,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
             Assert.Empty(results);
         }
 
+        [Fact]
+        public async Task TestGotoDefinitionCrossLanguage()
+        {
+            var markup =
+@"<Workspace>
+    <Project Language=""C#"" Name=""Definition"" CommonReferences=""true"">
+        <Document>
+            public class {|definition:A|}
+            {
+            }
+        </Document>
+    </Project>
+    <Project Language=""Visual Basic"" CommonReferences=""true"">
+        <ProjectReference>Definition</ProjectReference>
+        <Document>
+            Class C
+                Dim a As {|caret:A|}
+            End Class
+        </Document>
+    </Project>
+</Workspace>";
+            using var testLspServer = CreateMultiProjectLspServer(markup, out var locations);
+
+            var results = await RunGotoDefinitionAsync(testLspServer, locations["caret"].Single());
+            AssertLocationsEqual(locations["definition"], results);
+        }
+
         private static async Task<LSP.Location[]> RunGotoDefinitionAsync(TestLspServer testLspServer, LSP.Location caret)
         {
             return await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentDefinitionName,

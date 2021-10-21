@@ -17,32 +17,21 @@ namespace Microsoft.CodeAnalysis.Storage
     internal readonly struct SolutionKey
     {
         [DataMember(Order = 0)]
-        public readonly string? WorkspaceKind;
-
-        [DataMember(Order = 1)]
         public readonly SolutionId Id;
 
-        [DataMember(Order = 2)]
+        [DataMember(Order = 1)]
         public readonly string? FilePath;
 
-        [DataMember(Order = 3)]
-        public readonly bool IsPrimaryBranch;
-
-        public SolutionKey(string? workspaceKind, SolutionId id, string? filePath, bool isPrimaryBranch)
+        public SolutionKey(SolutionId id, string? filePath)
         {
-            WorkspaceKind = workspaceKind;
             Id = id;
             FilePath = filePath;
-            IsPrimaryBranch = isPrimaryBranch;
         }
 
         public static SolutionKey ToSolutionKey(Solution solution)
             => ToSolutionKey(solution.State);
 
         public static SolutionKey ToSolutionKey(SolutionState solutionState)
-            => new(solutionState.Workspace.Kind, solutionState.Id, solutionState.FilePath, solutionState.BranchId == solutionState.Workspace.PrimaryBranchId);
-
-        public SolutionKey WithWorkspaceKind(string workspaceKind)
-            => new(workspaceKind, Id, FilePath, IsPrimaryBranch);
+            => new(solutionState.Id, solutionState.FilePath);
     }
 }

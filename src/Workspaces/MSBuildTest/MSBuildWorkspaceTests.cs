@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             Assert.NotNull(workspace.Services.Workspace);
             Assert.Equal(workspace, workspace.Services.Workspace);
             Assert.NotNull(workspace.Services.HostServices);
-            Assert.NotNull(workspace.Services.PersistentStorage);
             Assert.NotNull(workspace.Services.TemporaryStorage);
             Assert.NotNull(workspace.Services.TextFactory);
         }

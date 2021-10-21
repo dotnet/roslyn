@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string CallHierarchy = nameof(CallHierarchy);
         public const string Classification = nameof(Classification);
         public const string CodeModel = nameof(CodeModel);
+        public const string CodeDefinitionWindow = nameof(CodeDefinitionWindow);
         public const string CompletionSet = nameof(CompletionSet);
         public const string DesignerAttributes = nameof(DesignerAttributes);
         public const string DiagnosticService = nameof(DiagnosticService);
@@ -24,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string GoToImplementation = nameof(GoToImplementation);
         public const string GraphProvider = nameof(GraphProvider);
         public const string InfoBar = nameof(InfoBar);
+        public const string InlineDiagnostics = nameof(InlineDiagnostics);
         public const string InheritanceMargin = nameof(InheritanceMargin);
         public const string InlineHints = nameof(InlineHints);
         public const string InteractiveEvaluator = nameof(InteractiveEvaluator);
