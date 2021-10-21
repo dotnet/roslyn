@@ -62,7 +62,11 @@
     <ICSharpCodeDecompilerVersion>6.1.0.5902</ICSharpCodeDecompilerVersion>
     <MicrosoftBuildLocatorVersion>1.2.6</MicrosoftBuildLocatorVersion>
     <!--
-      These are used as reference assemblies only, so they must have a "RefOnly" prefix to avoid assignment via PVP.
+      SourceBuild will requires that all dependencies also be source buildable. We are referencing a
+      version of MSBuild that is not SourceBuild compatible, which makes our build incompatible. Since we only
+      use these dependencies as reference assemblies, we can opt them out of this behavior by having their
+      version variable be prefixed with `RefOnly`. This will allow us to reference these libraries and remain
+      Source Build compatible.
     -->
     <RefOnlyMicrosoftBuildVersion>$(RefOnlyMicrosoftBuildPackagesVersion)</RefOnlyMicrosoftBuildVersion>
     <RefOnlyMicrosoftBuildFrameworkVersion>$(RefOnlyMicrosoftBuildPackagesVersion)</RefOnlyMicrosoftBuildFrameworkVersion>
