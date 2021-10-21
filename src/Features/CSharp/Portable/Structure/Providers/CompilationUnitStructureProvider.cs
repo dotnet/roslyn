@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             SyntaxToken previousToken,
             CompilationUnitSyntax compilationUnit,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(compilationUnit, ref spans, optionProvider);
+            CSharpStructureHelpers.CollectCommentBlockSpans(compilationUnit, ref spans, options);
 
             // extern aliases and usings are outlined in a single region
             var externsAndUsings = new List<SyntaxNode>();

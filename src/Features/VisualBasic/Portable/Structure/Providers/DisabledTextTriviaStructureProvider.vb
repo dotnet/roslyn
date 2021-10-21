@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
         Public Overrides Sub CollectBlockSpans(trivia As SyntaxTrivia,
                                                ByRef spans As TemporaryArray(Of BlockSpan),
-                                               optionProvider As BlockStructureOptionProvider,
+                                               options As BlockStructureOptions,
                                                cancellationToken As CancellationToken)
             If trivia.Kind = SyntaxKind.DisabledTextTrivia Then
                 ' Don't include trailing line breaks in spanToCollapse

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Structure
             SyntaxToken previousToken,
             SyntaxNode node,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
             throw new NotSupportedException();
