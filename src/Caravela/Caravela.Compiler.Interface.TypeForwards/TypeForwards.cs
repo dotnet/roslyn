@@ -8,7 +8,7 @@ using Caravela.Compiler;
 [assembly: TypeForwardedTo(typeof(CaravelaCompilerInfo))]
 [assembly: TypeForwardedTo(typeof(SyntaxTreeTransformation))]
 [assembly: TypeForwardedTo(typeof(DiagnosticFilteringRequest))]
-
+[assembly: TypeForwardedTo(typeof(ManagedResource))]
 
 namespace Caravela.Compiler.Interface.TypeForwards
 {

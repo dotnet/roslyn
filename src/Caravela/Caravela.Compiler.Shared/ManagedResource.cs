@@ -8,49 +8,74 @@ using Microsoft.CodeAnalysis;
 
 namespace Caravela.Compiler
 {
+    /// <summary>
+    /// Represents a managed resource.
+    /// </summary>
     public sealed class ManagedResource
     {
+        /// <summary>
+        /// Gets the underlying <see cref="ResourceDescription"/>.
+        /// </summary>
         public ResourceDescription Resource { get; }
+        
+        /// <summary>
+        /// Gets a value indicating whether the resource should be included in reference assemblies.
+        /// </summary>
         public bool IncludeInRefAssembly { get; }
 
-        public ManagedResource(ResourceDescription resource, bool includeInRefAssembly = false)
-        {
-            Resource = resource;
-            IncludeInRefAssembly = includeInRefAssembly;
-        }
-        
-#if CARAVELA_COMPILER_INTERFACE
-        private static InvalidOperationException NewInvalidOperationException() => new InvalidOperationException("This operation works only inside Caravela.");
-#endif
+#if !CARAVELA_COMPILER_INTERFACE
 
-        public string? Name =>
-#if CARAVELA_COMPILER_INTERFACE
-            throw NewInvalidOperationException();
-#else
-                this.Resource.ResourceName;
+        /// <summary>
+        /// Initializes a new instance of <see cref="ManagedResource"/> that represents an existing <see cref="ResourceDescription"/>.
+        /// </summary>
+        internal ManagedResource(ResourceDescription resource, bool includeInRefAssembly = false)
+        {
+            this.Resource = resource;
+            this.Name = resource.ResourceName;
+            this.IsEmbedded = resource.IsEmbedded;
+            this.IsPublic = resource.IsPublic;
+            this.DataProvider = resource.DataProvider;
+            this.IncludeInRefAssembly = includeInRefAssembly;
+        }
 #endif
         
-        public bool IsPublic =>
-#if CARAVELA_COMPILER_INTERFACE
-            throw NewInvalidOperationException();
-#else
-            this.Resource.IsPublic;
-#endif
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="ManagedResource"/> that represents a new public resource
+        /// embedded in the module.
+        /// </summary>
+        /// <param name="name">Name of the manage resource.</param>
+        /// <param name="data">The managed resource data.</param>
+        /// <param name="includeInRefAssembly">A value indicating whether the resource should be included in reference assemblies.</param>
+        public ManagedResource(string name, byte[] data, bool includeInRefAssembly = false)
+        {
+            this.Resource = new ResourceDescription(name, () => new MemoryStream( data ), true);
+            this.Name = name;
+            this.IsPublic = true;
+            this.IsEmbedded = true;
+            this.DataProvider = () => new MemoryStream(data);
+            this.IncludeInRefAssembly = includeInRefAssembly;
+        }
+    
+        /// <summary>
+        /// Gets the resource name.
+        /// </summary>
+        public string Name { get; }
+    
+        /// <summary>
+        /// Gets a value indicating whether the resource is public.
+        /// </summary>
+        public bool IsPublic { get; }
       
-        public bool IsEmbedded =>
-#if CARAVELA_COMPILER_INTERFACE
-            throw NewInvalidOperationException();
-#else
-            this.Resource.IsEmbedded;
-#endif
-        
-        public Stream GetData() =>
-#if CARAVELA_COMPILER_INTERFACE
-            throw NewInvalidOperationException();
-#else
-            this.Resource.DataProvider();
-#endif
-        
+        /// <summary>
+        /// Gets a value indicating whether the resource is embedded in the module.
+        /// </summary>
+        public bool? IsEmbedded { get; }
+
+        /// <summary>
+        /// Gets a delegate returning the content of the resource.
+        /// </summary>
+        public Func<Stream>? DataProvider { get; }
     }
 
 }

@@ -256,8 +256,8 @@ build_property.CaravelaCompilerTransformedFilesOutputPath = {transformedDir.Path
         {
             var resources = new[]
             {
-                new ManagedResource(new ResourceDescription("A", () => new MemoryStream(), true)),
-                new ManagedResource(new ResourceDescription("B", () => new MemoryStream(), true), true)
+                new ManagedResource("A", new byte[] { 1, 2, 3 } , true),
+                new ManagedResource("B", new byte[] { 1, 2, 3 }, true)
             };
             
             var dir = Temp.CreateDirectory();
