@@ -2,11 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Formatting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
@@ -27,15 +31,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             public static StatementSyntax Rewrite(
                 SwitchStatementSyntax switchStatement,
+                SemanticModel model,
                 ITypeSymbol declaratorToRemoveTypeOpt,
                 SyntaxKind nodeToGenerate,
                 bool shouldMoveNextStatementToSwitchExpression,
                 bool generateDeclaration)
             {
+                if (switchStatement.ContainsDirectives)
+                {
+                    // Do not rewrite statements with preprocessor directives
+                    return switchStatement;
+                }
+
                 var rewriter = new Rewriter(isAllThrowStatements: nodeToGenerate == SyntaxKind.ThrowStatement);
 
                 // Rewrite the switch statement as a switch expression.
-                var switchExpression = rewriter.RewriteSwitchStatement(switchStatement,
+                var switchExpression = rewriter.RewriteSwitchStatement(switchStatement, model,
                     allowMoveNextStatementToSwitchExpression: shouldMoveNextStatementToSwitchExpression);
 
                 // Generate the final statement to wrap the switch expression, e.g. a "return" or an assignment.
@@ -126,8 +137,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 var totalPattern = GetPattern(switchLabels[0], out var whenClauseUnused);
                 Debug.Assert(whenClauseUnused == null, "We should not have offered to convert multiple cases if any have a when clause");
 
-#if !CODE_STYLE
-
                 for (var i = 1; i < switchLabels.Count; i++)
                 {
                     var nextPatternPart = GetPattern(switchLabels[i], out whenClauseUnused);
@@ -135,8 +144,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
                     totalPattern = BinaryPattern(SyntaxKind.OrPattern, totalPattern.Parenthesize(), nextPatternPart.Parenthesize());
                 }
-
-#endif
 
                 whenClauseOpt = null;
                 return totalPattern;
@@ -172,16 +179,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             private ExpressionSyntax RewriteStatements(SyntaxList<StatementSyntax> statements)
             {
-                Debug.Assert(statements.Count == 1 || statements.Count == 2);
+                Debug.Assert(statements.Count is 1 or 2);
                 Debug.Assert(!statements[0].IsKind(SyntaxKind.BreakStatement));
                 return Visit(statements[0]);
             }
 
             public override ExpressionSyntax VisitSwitchStatement(SwitchStatementSyntax node)
-                => RewriteSwitchStatement(node);
+                => RewriteSwitchStatement(node, null);
 
-            private ExpressionSyntax RewriteSwitchStatement(SwitchStatementSyntax node, bool allowMoveNextStatementToSwitchExpression = true)
+            private ExpressionSyntax RewriteSwitchStatement(SwitchStatementSyntax node, SemanticModel model, bool allowMoveNextStatementToSwitchExpression = true)
             {
+
                 var switchArms = node.Sections
                     // The default label must come last in the switch expression.
                     .OrderBy(section => section.Labels.Any(label => IsDefaultSwitchLabel(label)))
@@ -202,15 +210,36 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                              SwitchExpressionArm(DiscardPattern(), Visit(nextStatement))));
                     }
                 }
+                // add explicit cast if necessary 
+                var switchStatement = AddCastIfNecessary(model, node);
 
                 return SwitchExpression(
-                    node.Expression.Parenthesize(),
+                    switchStatement.Expression.Parenthesize(),
                     Token(leading: default, SyntaxKind.SwitchKeyword, node.CloseParenToken.TrailingTrivia),
-                    Token(SyntaxKind.OpenBraceToken),
+                    Token(leading: default, SyntaxKind.OpenBraceToken, node.OpenBraceToken.TrailingTrivia),
                     SeparatedList(
                         switchArms.Select(t => t.armExpression.WithLeadingTrivia(t.tokensForLeadingTrivia.GetTrivia().FilterComments(addElasticMarker: false))),
                         switchArms.Select(t => Token(SyntaxKind.CommaToken).WithTrailingTrivia(t.tokensForTrailingTrivia.GetTrivia().FilterComments(addElasticMarker: true)))),
                     Token(SyntaxKind.CloseBraceToken));
+            }
+
+            private static SwitchStatementSyntax AddCastIfNecessary(SemanticModel model, SwitchStatementSyntax node)
+            {
+                // If the swith statement expression is being implicitly converted then we need to explicitly cast the expression
+                // before rewriting as a switch expression
+                var expressionType = model.GetSymbolInfo(node.Expression).Symbol.GetSymbolType();
+                var expressionConvertedType = model.GetTypeInfo(node.Expression).ConvertedType;
+
+                if (expressionConvertedType != null &&
+                    !SymbolEqualityComparer.Default.Equals(expressionConvertedType, expressionType))
+                {
+                    return node.Update(node.SwitchKeyword, node.OpenParenToken,
+                        node.Expression.Cast(expressionConvertedType).WithAdditionalAnnotations(Formatter.Annotation),
+                        node.CloseParenToken, node.OpenBraceToken,
+                        node.Sections, node.CloseBraceToken);
+                }
+
+                return node;
             }
 
             public override ExpressionSyntax VisitReturnStatement(ReturnStatementSyntax node)

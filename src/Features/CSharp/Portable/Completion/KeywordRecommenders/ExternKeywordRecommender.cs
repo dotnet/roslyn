@@ -93,6 +93,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return true;
             }
 
+            // namespace N;
+            // |
+            if (token.Kind() == SyntaxKind.SemicolonToken &&
+                token.Parent.IsKind(SyntaxKind.FileScopedNamespaceDeclaration))
+            {
+                return true;
+            }
+
             // extern alias a;
             // |
             if (token.Kind() == SyntaxKind.SemicolonToken &&

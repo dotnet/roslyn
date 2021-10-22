@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -104,21 +106,20 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
-                    var result = await client.RunRemoteAsync<(DocumentId, TextChange[])[]>(
-                        WellKnownServiceHubService.CodeAnalysis,
-                        nameof(IRemoteEncapsulateFieldService.EncapsulateFieldsAsync),
+                    var fieldSymbolKeys = fields.SelectAsArray(f => SymbolKey.CreateString(f, cancellationToken));
+
+                    var result = await client.TryInvokeAsync<IRemoteEncapsulateFieldService, ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>>(
                         solution,
-                        new object[]
-                        {
-                            document.Id,
-                            fields.Select(f => SymbolKey.CreateString(f, cancellationToken)).ToArray(),
-                            updateReferences,
-                        },
-                        callbackTarget: null,
+                        (service, solutionInfo, cancellationToken) => service.EncapsulateFieldsAsync(solutionInfo, document.Id, fieldSymbolKeys, updateReferences, cancellationToken),
                         cancellationToken).ConfigureAwait(false);
 
+                    if (!result.HasValue)
+                    {
+                        return solution;
+                    }
+
                     return await RemoteUtilities.UpdateSolutionAsync(
-                        solution, result, cancellationToken).ConfigureAwait(false);
+                        solution, result.Value, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 var compilation = semanticModel.Compilation;
 
                 // We couldn't resolve this field. skip it
-                if (!(field.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).Symbol is IFieldSymbol currentField))
+                if (field.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).Symbol is not IFieldSymbol currentField)
                     continue;
 
                 var nextSolution = await EncapsulateFieldAsync(document, currentField, updateReferences, cancellationToken).ConfigureAwait(false);
@@ -316,11 +317,12 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var fieldDeclaration = field.DeclaringSyntaxReferences.First();
             var options = new CodeGenerationOptions(
                 contextLocation: fieldDeclaration.SyntaxTree.GetLocation(fieldDeclaration.Span),
-                parseOptions: fieldDeclaration.SyntaxTree.Options);
+                parseOptions: fieldDeclaration.SyntaxTree.Options,
+                options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
 
             var destination = field.ContainingType;
-            var updatedDocument = await codeGenerationService.AddPropertyAsync(destinationSolution, destination, property, options, cancellationToken)
-                .ConfigureAwait(false);
+            var updatedDocument = await codeGenerationService.AddPropertyAsync(
+                destinationSolution, destination, property, options, cancellationToken).ConfigureAwait(false);
 
             updatedDocument = await Formatter.FormatAsync(updatedDocument, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
             updatedDocument = await Simplifier.ReduceAsync(updatedDocument, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -359,7 +361,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         protected static Accessibility ComputeAccessibility(Accessibility accessibility, ITypeSymbol type)
         {
             var computedAccessibility = accessibility;
-            if (accessibility == Accessibility.NotApplicable || accessibility == Accessibility.Private)
+            if (accessibility is Accessibility.NotApplicable or Accessibility.Private)
             {
                 computedAccessibility = Accessibility.Public;
             }
@@ -415,7 +417,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             // Trim leading "m_"
             if (baseName.Length >= 2 && baseName[0] == 'm' && baseName[1] == '_')
             {
-                baseName = baseName.Substring(2);
+                baseName = baseName[2..];
             }
 
             // Take original name if no characters left
@@ -427,15 +429,15 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             // Make the first character upper case using the "en-US" culture.  See discussion at
             // https://github.com/dotnet/roslyn/issues/5524.
             var firstCharacter = EnUSCultureInfo.TextInfo.ToUpper(baseName[0]);
-            return firstCharacter.ToString() + baseName.Substring(1);
+            return firstCharacter.ToString() + baseName[1..];
         }
 
-        private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
+        private static readonly CultureInfo EnUSCultureInfo = new("en-US");
 
         private class MyCodeAction : CodeAction.SolutionChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution)
+                : base(title, createChangedSolution, title)
             {
             }
         }

@@ -4,25 +4,22 @@
 
 Imports System.Collections.Immutable
 Imports System.ComponentModel.Composition
-Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
-Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Indentation
 Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     <Export(GetType(ICommitFormatter))>
     Friend Class CommitFormatter
         Implements ICommitFormatter
-
-        Private ReadOnly _indentationManagerService As IIndentationManagerService
 
         Private Shared ReadOnly s_codeCleanupPredicate As Func(Of ICodeCleanupProvider, Boolean) =
             Function(p)
@@ -31,9 +28,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End Function
 
         <ImportingConstructor>
-        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
-        Public Sub New(indentationManagerService As IIndentationManagerService)
-            _indentationManagerService = indentationManagerService
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
         End Sub
 
         Public Sub CommitRegion(spanToFormat As SnapshotSpan,
@@ -52,18 +48,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 spanToFormat = spanToFormat.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeInclusive)
                 dirtyRegion = dirtyRegion.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeInclusive)
 
-                Dim document = currentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
+                ' Use frozen partial semantics here.  We're operating on the UI thread, and we don't want to block the
+                ' user indefinitely while getting full semantics for this projects (which can require building all
+                ' projects we depend on).
+                Dim document = currentSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken)
                 If document Is Nothing Then
                     Return
                 End If
 
-                Dim documentOptions = document.GetDocumentOptionsWithInferredIndentationAsync(isExplicitFormat, _indentationManagerService, cancellationToken).WaitAndGetResult(cancellationToken)
+                Dim inferredIndentationService = document.Project.Solution.Workspace.Services.GetRequiredService(Of IInferredIndentationService)()
+                Dim documentOptions = inferredIndentationService.GetDocumentOptionsWithInferredIndentationAsync(document, isExplicitFormat, cancellationToken).WaitAndGetResult(cancellationToken)
                 If Not (isExplicitFormat OrElse documentOptions.GetOption(FeatureOnOffOptions.PrettyListing)) Then
                     Return
                 End If
 
                 Dim textSpanToFormat = spanToFormat.Span.ToTextSpan()
-                If AbortForDiagnostics(document, textSpanToFormat, cancellationToken) Then
+                If AbortForDiagnostics(document, cancellationToken) Then
                     Return
                 End If
 
@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End Using
         End Sub
 
-        Private Function AbortForDiagnostics(document As Document, textSpanToFormat As TextSpan, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function AbortForDiagnostics(document As Document, cancellationToken As CancellationToken) As Boolean
             Const UnterminatedStringId = "BC30648"
 
             Dim tree = document.GetSyntaxTreeSynchronously(cancellationToken)
@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Return diagnostics.Any()
         End Function
 
-        Private Function GetCommitFormattingCleanupProvider(
+        Private Shared Function GetCommitFormattingCleanupProvider(
             document As Document,
             documentOptions As DocumentOptionSet,
             spanToFormat As SnapshotSpan,
@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                                  Function(r, spans, w, c) Format(r, spans, w, documentOptions, rules, c))
         End Function
 
-        Private Async Function FormatAsync(document As Document, spans As ImmutableArray(Of TextSpan), options As OptionSet, rules As IEnumerable(Of AbstractFormattingRule), cancellationToken As CancellationToken) As Task(Of Document)
+        Private Shared Async Function FormatAsync(document As Document, spans As ImmutableArray(Of TextSpan), options As OptionSet, rules As IEnumerable(Of AbstractFormattingRule), cancellationToken As CancellationToken) As Task(Of Document)
             ' if old text already exist, use fast path for formatting
             Dim oldText As SourceText = Nothing
 
@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Return Await Formatter.FormatAsync(document, spans, options, rules, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Private Function Format(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, options As OptionSet, rules As IEnumerable(Of AbstractFormattingRule), cancellationToken As CancellationToken) As SyntaxNode
+        Private Shared Function Format(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, options As OptionSet, rules As IEnumerable(Of AbstractFormattingRule), cancellationToken As CancellationToken) As SyntaxNode
             ' if old text already exist, use fast path for formatting
             Dim oldText As SourceText = Nothing
 
@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Return Formatter.Format(root, spans, workspace, options, rules, cancellationToken)
         End Function
 
-        Private Function GetFormattingRules(
+        Private Shared Function GetFormattingRules(
             document As Document,
             documentOptions As DocumentOptionSet,
             spanToFormat As SnapshotSpan,
@@ -236,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Return Formatter.GetDefaultFormattingRules(document)
         End Function
 
-        Private Function GetNumberOfIndentOperations(document As Document,
+        Private Shared Function GetNumberOfIndentOperations(document As Document,
                                                      documentOptions As DocumentOptionSet,
                                                      SyntaxTree As SyntaxTree,
                                                      Span As SnapshotSpan,

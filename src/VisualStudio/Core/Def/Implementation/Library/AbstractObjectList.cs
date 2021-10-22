@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -25,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         protected abstract IVsSimpleObjectList2 GetList(uint index, uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch);
         protected abstract string GetText(uint index, VSTREETEXTOPTIONS tto);
         protected abstract string GetTipText(uint index, VSTREETOOLTIPTYPE eTipType);
-        protected abstract int GoToSource(uint index, VSOBJGOTOSRCTYPE srcType);
+        protected abstract Task GoToSourceAsync(uint index, VSOBJGOTOSRCTYPE srcType);
         protected abstract uint GetUpdateCounter();
 
         protected virtual bool SupportsBrowseContainers
@@ -309,11 +312,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         int IVsSimpleObjectList2.GoToSource(uint index, VSOBJGOTOSRCTYPE srcType)
         {
             if (index >= GetItemCount())
-            {
                 return VSConstants.E_INVALIDARG;
-            }
 
-            return GoToSource(index, srcType);
+            // Fire and forget
+            _ = GoToSourceAsync(index, srcType);
+            return VSConstants.S_OK;
         }
 
         int IVsSimpleObjectList2.LocateNavInfoNode(IVsNavInfoNode pNavInfoNode, out uint pulIndex)

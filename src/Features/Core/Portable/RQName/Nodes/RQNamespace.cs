@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 {
-    internal class RQNamespace : RQTypeOrNamespace<INamespaceSymbol>
+    internal class RQNamespace : RQTypeOrNamespace
     {
         public RQNamespace(IList<string> namespaceNames) : base(namespaceNames) { }
 

@@ -2,9 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
-    Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessarySuppressions.VisualBasicRemoveUnnecessarySuppressionsDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessarySuppressions.VisualBasicRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer,
     Microsoft.CodeAnalysis.UpdateLegacySuppressions.UpdateLegacySuppressionsCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UpdateLegacySuppressions
@@ -12,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UpdateLegacySuppre
     <Trait(Traits.Feature, Traits.Features.CodeActionsUpdateLegacySuppressions)>
     <WorkItem(44362, "https://github.com/dotnet/roslyn/issues/44362")>
     Public Class UpdateLegacySuppressionsTests
-        <Fact>
-        Public Sub TestStandardProperties()
-            VerifyVB.VerifyStandardProperties()
+        <Theory, CombinatorialData>
+        Public Sub TestStandardProperty([property] As AnalyzerProperty)
+            VerifyVB.VerifyStandardProperty([property])
         End Sub
 
         <Theory>
@@ -48,7 +49,7 @@ Namespace N
     End Class
 End Namespace
 "
-            Dim expectedDiagnostic = VerifyVB.Diagnostic(AbstractRemoveUnnecessarySuppressionsDiagnosticAnalyzer.LegacyFormatTargetDescriptor).
+            Dim expectedDiagnostic = VerifyVB.Diagnostic(AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.LegacyFormatTargetDescriptor).
                                         WithLocation(0).
                                         WithArguments(target)
 

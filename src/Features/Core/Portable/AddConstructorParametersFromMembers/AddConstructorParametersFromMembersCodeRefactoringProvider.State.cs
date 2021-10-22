@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,9 +19,11 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
         private class State
         {
             public ImmutableArray<ConstructorCandidate> ConstructorCandidates { get; private set; }
-            public INamedTypeSymbol ContainingType { get; private set; }
 
-            public static async Task<State> GenerateAsync(
+            [NotNull]
+            public INamedTypeSymbol? ContainingType { get; private set; }
+
+            public static async Task<State?> GenerateAsync(
                 ImmutableArray<ISymbol> selectedMembers,
                 Document document,
                 CancellationToken cancellationToken)
@@ -75,7 +78,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 ImmutableArray<IParameterSymbol> parametersForSelectedMembers,
                 CancellationToken cancellationToken)
             {
-                var applicableConstructors = ArrayBuilder<ConstructorCandidate>.GetInstance();
+                using var _ = ArrayBuilder<ConstructorCandidate>.GetInstance(out var applicableConstructors);
 
                 foreach (var constructor in containingType.InstanceConstructors)
                 {
@@ -86,7 +89,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                     }
                 }
 
-                return applicableConstructors.ToImmutableAndFree();
+                return applicableConstructors.ToImmutable();
             }
 
             private static async Task<bool> IsApplicableConstructorAsync(IMethodSymbol constructor, Document document, ImmutableArray<string> parameterNamesForSelectedMembers, CancellationToken cancellationToken)
@@ -95,7 +98,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
                 if (constructorParams.Length == 2)
                 {
-                    var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var deserializationConstructorCheck = new DeserializationConstructorCheck(compilation);
                     if (deserializationConstructorCheck.IsDeserializationConstructor(constructor))
                     {
@@ -115,8 +118,9 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
             private static ConstructorCandidate CreateConstructorCandidate(ImmutableArray<IParameterSymbol> parametersForSelectedMembers, ImmutableArray<ISymbol> selectedMembers, IMethodSymbol constructor)
             {
-                var missingParametersBuilder = ArrayBuilder<IParameterSymbol>.GetInstance();
-                var missingMembersBuilder = ArrayBuilder<ISymbol>.GetInstance();
+                using var _0 = ArrayBuilder<IParameterSymbol>.GetInstance(out var missingParametersBuilder);
+                using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var missingMembersBuilder);
+
                 var constructorParamNames = constructor.Parameters.SelectAsArray(p => p.Name);
                 var zippedParametersAndSelectedMembers =
                     parametersForSelectedMembers.Zip(selectedMembers, (parameter, selectedMember) => (parameter, selectedMember));
@@ -131,7 +135,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 }
 
                 return new ConstructorCandidate(
-                    constructor, missingMembersBuilder.ToImmutableAndFree(), missingParametersBuilder.ToImmutableAndFree());
+                    constructor, missingMembersBuilder.ToImmutable(), missingParametersBuilder.ToImmutable());
             }
         }
     }

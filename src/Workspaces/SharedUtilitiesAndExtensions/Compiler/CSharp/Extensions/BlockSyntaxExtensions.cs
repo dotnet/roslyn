@@ -5,9 +5,11 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool TryConvertToExpressionBody(
             this BlockSyntax block,
             ParseOptions options, ExpressionBodyPreference preference,
-            out ExpressionSyntax expression,
+            [NotNullWhen(true)] out ExpressionSyntax? expression,
             out SyntaxToken semicolonToken)
         {
             if (preference != ExpressionBodyPreference.Never &&
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool TryConvertToArrowExpressionBody(
             this BlockSyntax block, SyntaxKind declarationKind,
             ParseOptions options, ExpressionBodyPreference preference,
-            out ArrowExpressionClauseSyntax arrowExpression,
+            [NotNullWhen(true)] out ArrowExpressionClauseSyntax? arrowExpression,
             out SyntaxToken semicolonToken)
         {
             var version = ((CSharpParseOptions)options).LanguageVersion;
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool TryGetExpression(
             LanguageVersion version, StatementSyntax firstStatement,
-            out ExpressionSyntax expression, out SyntaxToken semicolonToken)
+            [NotNullWhen(true)] out ExpressionSyntax? expression, out SyntaxToken semicolonToken)
         {
             if (firstStatement is ExpressionStatementSyntax exprStatement)
             {

@@ -113,6 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                                         If param Is parameterSyntax Then
                                             Exit For
                                         End If
+
                                         ordinal = ordinal + 1
                                     Next
 
@@ -123,6 +124,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                                     ' Compiler will anyways generate an error for this case.
                                     Return CaseCorrectIdentifierIfNamesDiffer(token, newToken, otherPartParam, namesMustBeEqualIgnoringCase:=True)
                                 End If
+                            End If
+                        Else
+                            ' Named tuple expression
+                            Dim nameColonEquals = TryCast(token.Parent?.Parent, NameColonEqualsSyntax)
+                            If nameColonEquals IsNot Nothing AndAlso TypeOf nameColonEquals.Parent?.Parent Is TupleExpressionSyntax Then
+                                Return newToken
                             End If
                         End If
                     End If

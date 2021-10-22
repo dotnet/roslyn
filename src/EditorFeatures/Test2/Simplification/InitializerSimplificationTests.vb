@@ -82,7 +82,7 @@ End Class
         End Function
 #End Region
 
-        Private Async Function AssertCompilesAndEqual(input As XElement, expected As XElement) As Task
+        Private Shared Async Function AssertCompilesAndEqual(input As XElement, expected As XElement) As Task
             Using workspace = CreateTestWorkspace(input)
                 Dim simplifiedDocument = Await SimplifyAsync(workspace).ConfigureAwait(False)
 

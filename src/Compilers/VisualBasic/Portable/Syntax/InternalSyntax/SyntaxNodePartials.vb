@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
-    Friend Partial Class ArgumentSyntax
+    Partial Friend Class ArgumentSyntax
         Public Function GetExpression() As ExpressionSyntax
             Select Case Kind
                 Case SyntaxKind.OmittedArgument

@@ -1,0 +1,177 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ja" original="../SolutionExplorerShim.resx">
+    <body>
+      <trans-unit id="Analyzers">
+        <source>Analyzers</source>
+        <target state="translated">アナライザー</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Folder_Properties">
+        <source>Folder Properties</source>
+        <target state="translated">フォルダーのプロパティ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzer_Properties">
+        <source>Analyzer Properties</source>
+        <target state="translated">アナライザーのプロパティ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Analyzer">
+        <source>Add Analyzer</source>
+        <target state="translated">アナライザーの追加</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzer_Files">
+        <source>Analyzer Files</source>
+        <target state="translated">アナライザー ファイル</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Diagnostic_Properties">
+        <source>Diagnostic Properties</source>
+        <target state="translated">診断のプロパティ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_rule_set_file_is_specified_or_the_file_does_not_exist">
+        <source>No rule set file is specified, or the file does not exist.</source>
+        <target state="translated">ルール セット ファイルが指定されていないか、ファイルが存在しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_Generated_File_Properties">
+        <source>Source Generated File Properties</source>
+        <target state="translated">ソースで生成されたファイルのプロパティ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_Generator_Properties">
+        <source>Source Generator Properties</source>
+        <target state="translated">ソース ジェネレーターのプロパティ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_rule_set_file_could_not_be_opened">
+        <source>The rule set file could not be opened.</source>
+        <target state="translated">ルール セット ファイルを開くことができませんでした。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_rule_set_file_could_not_be_updated">
+        <source>The rule set file could not be updated.</source>
+        <target state="translated">ルール セット ファイルを更新できませんでした。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_create_a_rule_set_for_project_0">
+        <source>Could not create a rule set for project {0}.</source>
+        <target state="translated">プロジェクト {0} にルール セットを作成できませんでした。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Default_">
+        <source>Default</source>
+        <target state="translated">既定</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_">
+        <source>Error</source>
+        <target state="translated">エラー</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_generator_is_not_generating_files">
+        <source>This generator is not generating files.</source>
+        <target state="translated">このジェネレーターではファイルは生成されていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_Name">
+        <source>Type Name</source>
+        <target state="translated">型名</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning">
+        <source>Warning</source>
+        <target state="translated">警告</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Info">
+        <source>Info</source>
+        <target state="translated">情報</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Hidden">
+        <source>Hidden</source>
+        <target state="translated">非表示</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppressed">
+        <source>Suppressed</source>
+        <target state="translated">抑制済み</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rule_Set">
+        <source>Rule Set</source>
+        <target state="translated">ルール セット</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Checking_out_0_for_editing">
+        <source>Checking out {0} for editing...</source>
+        <target state="translated">編集のために {0} をチェックアウトしています...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name">
+        <source>(Name)</source>
+        <target state="translated">(名前)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Path">
+        <source>Path</source>
+        <target state="translated">パス</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Category">
+        <source>Category</source>
+        <target state="translated">カテゴリ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Default_severity">
+        <source>Default severity</source>
+        <target state="translated">既定の重要度</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Description">
+        <source>Description</source>
+        <target state="translated">説明</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Effective_severity">
+        <source>Effective severity</source>
+        <target state="translated">有効な重要度</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enabled_by_default">
+        <source>Enabled by default</source>
+        <target state="translated">既定で有効化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Help_link">
+        <source>Help link</source>
+        <target state="translated">ヘルプ リンク</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ID">
+        <source>ID</source>
+        <target state="translated">ID</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Message">
+        <source>Message</source>
+        <target state="translated">メッセージ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Tags">
+        <source>Tags</source>
+        <target state="translated">タグ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Title">
+        <source>Title</source>
+        <target state="translated">タイトル</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

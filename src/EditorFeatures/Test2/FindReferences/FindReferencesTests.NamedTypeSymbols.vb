@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
@@ -544,7 +545,7 @@ class C : I<int>, I<string>
 
         <WorkItem(539883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539883")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCascadedMembersFromConstructedInterfaces5(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestCascadedMembersFromConstructedInterfaces5_Api(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -563,12 +564,36 @@ class C : I<int>, I<string>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPI(input, host)
         End Function
 
         <WorkItem(539883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539883")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCascadedMembersFromConstructedInterfaces6(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestCascadedMembersFromConstructedInterfaces5_FEature(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+interface I<X>
+{
+    void {|Definition:Goo|}(X x);
+}
+
+class C : I<int>, I<string>
+{
+    public void {|Definition:$$Goo|}(int x) { }
+    public void Goo(string x) { }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WorkItem(539883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539883")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCascadedMembersFromConstructedInterfaces6_Api(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -587,7 +612,31 @@ class C : I<int>, I<string>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPI(input, host)
+        End Function
+
+        <WorkItem(539883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539883")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCascadedMembersFromConstructedInterfaces6_Feature(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+interface I<X>
+{
+    void {|Definition:Goo|}(X x);
+}
+
+class C : I<int>, I<string>
+{
+    public void Goo(int x) { }
+    public void {|Definition:$$Goo|}(string x) { }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -2477,6 +2526,19 @@ namespace N
     }
 }]]>
         </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestNamedTypeUsedInSourceGeneratedOutput(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>class {|Definition:$$C|} { }</Document>
+        <DocumentFromSourceGenerator>class D : [|C|] { }</DocumentFromSourceGenerator>
     </Project>
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)

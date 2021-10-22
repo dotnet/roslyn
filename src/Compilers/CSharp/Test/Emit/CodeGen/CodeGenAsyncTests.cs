@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -20,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         {
             options = options ?? TestOptions.ReleaseExe;
 
-            IEnumerable<MetadataReference> asyncRefs = new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef };
+            IEnumerable<MetadataReference> asyncRefs = new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp };
             references = (references != null) ? references.Concat(asyncRefs) : asyncRefs;
 
             return CreateCompilationWithMscorlib45(source, options: options, references: references);
@@ -2575,11 +2578,11 @@ class Test
   .maxstack  2
   .locals init (Test.<F>d__1 V_0)
   IL_0000:  ldloca.s   V_0
-  IL_0002:  ldarg.0
-  IL_0003:  stfld      ""System.Threading.AutoResetEvent Test.<F>d__1.handle""
-  IL_0008:  ldloca.s   V_0
-  IL_000a:  call       ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create()""
-  IL_000f:  stfld      ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Test.<F>d__1.<>t__builder""
+  IL_0002:  call       ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create()""
+  IL_0007:  stfld      ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Test.<F>d__1.<>t__builder""
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldarg.0
+  IL_000f:  stfld      ""System.Threading.AutoResetEvent Test.<F>d__1.handle""
   IL_0014:  ldloca.s   V_0
   IL_0016:  ldc.i4.m1
   IL_0017:  stfld      ""int Test.<F>d__1.<>1__state""
@@ -3100,7 +3103,7 @@ class C
 }
 ";
 
-            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
 
             // CONSIDER: It would be nice if we didn't squiggle the whole method body, but this is a corner case.
             comp.VerifyEmitDiagnostics(
@@ -3130,7 +3133,7 @@ class C
 {
     async Task M() {}
 }";
-            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
             comp.VerifyEmitDiagnostics(
                 // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async Task M() {}
@@ -3161,7 +3164,7 @@ class C
 {
     async Task<int> F() => 3;
 }";
-            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
             comp.VerifyEmitDiagnostics(
                 // (4,21): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async Task<int> F() => 3;
@@ -3340,11 +3343,11 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (17,27): error CS1983: The return type of an async method must be void, Task or Task<T>
-                //     async T_NIT<int> f1() => await Task.FromResult(1);
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(17, 27),
-                // (18,22): error CS1983: The return type of an async method must be void, Task or Task<T>
-                //     async T_NIN f2() => await Task.FromResult(1);
+                // (17,27): error CS8940: A generic task-like return type was expected, but the type 'N.BG<int>' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.
+                //     async T_NIT<int> f1() => await Task.FromResult(1); 
+                Diagnostic(ErrorCode.ERR_WrongArityAsyncReturn, "=> await Task.FromResult(1)").WithArguments("N.BG<int>").WithLocation(17, 27),
+                // (18,22): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
+                //     async T_NIN f2() => await Task.FromResult(1);      
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(18, 22),
                 // (19,27): error CS0656: Missing compiler required member 'N.BG<int>.Task'
                 //     async T_NOT<int> f3() => await Task.FromResult(1); // ok builderType genericity (but missing members)
@@ -3352,40 +3355,40 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
                 // (19,27): error CS0656: Missing compiler required member 'N.BG<int>.Create'
                 //     async T_NOT<int> f3() => await Task.FromResult(1); // ok builderType genericity (but missing members)
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.FromResult(1)").WithArguments("N.BG<int>", "Create").WithLocation(19, 27),
-                // (20,22): error CS1983: The return type of an async method must be void, Task or Task<T>
-                //     async T_NON f4() => await Task.FromResult(1);
+                // (20,22): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
+                //     async T_NON f4() => await Task.FromResult(1);      
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(20, 22),
-                // (21,27): error CS1983: The return type of an async method must be void, Task or Task<T>
-                //     async T_NNT<int> f5() => await Task.FromResult(1);
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(21, 27),
+                // (21,27): error CS8940: A generic task-like return type was expected, but the type 'N.BN' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.
+                //     async T_NNT<int> f5() => await Task.FromResult(1); 
+                Diagnostic(ErrorCode.ERR_WrongArityAsyncReturn, "=> await Task.FromResult(1)").WithArguments("N.BN").WithLocation(21, 27),
                 // (22,22): error CS0656: Missing compiler required member 'N.BN.Task'
                 //     async T_NNN f6() => await Task.FromResult(1);      // ok builderType genericity (but missing members)
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.FromResult(1)").WithArguments("N.BN", "Task").WithLocation(22, 22),
                 // (22,22): error CS0656: Missing compiler required member 'N.BN.Create'
                 //     async T_NNN f6() => await Task.FromResult(1);      // ok builderType genericity (but missing members)
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.FromResult(1)").WithArguments("N.BN", "Create").WithLocation(22, 22),
-                // (39,27): error CS1983: The return type of an async method must be void, Task or Task<T>
+                // (39,27): error CS8940: A generic task-like return type was expected, but the type 'G<int>.BG<int>' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.
                 //     async T_IIT<int> g1() => await Task.FromResult(1);
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(39, 27),
-                // (40,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                Diagnostic(ErrorCode.ERR_WrongArityAsyncReturn, "=> await Task.FromResult(1)").WithArguments("G<int>.BG<int>").WithLocation(39, 27),
+                // (40,22): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
                 //     async T_IIN g2() => await Task.FromResult(1);
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(40, 22),
-                // (41,27): error CS1983: The return type of an async method must be void, Task or Task<T>
+                // (41,27): error CS8940: A generic task-like return type was expected, but the type 'G<int>.BN' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.
                 //     async T_INT<int> g3() => await Task.FromResult(1);
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(41, 27),
-                // (42,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                Diagnostic(ErrorCode.ERR_WrongArityAsyncReturn, "=> await Task.FromResult(1)").WithArguments("G<int>.BN").WithLocation(41, 27),
+                // (42,22): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
                 //     async T_INN g4() => await Task.FromResult(1);      // might have been ok builder genericity but we decided not
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(42, 22),
-                // (43,27): error CS1983: The return type of an async method must be void, Task or Task<T>
+                // (43,27): error CS8940: A generic task-like return type was expected, but the type 'G<>.BG<>' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.
                 //     async T_OOT<int> g5() => await Task.FromResult(1);
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(43, 27),
-                // (44,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                Diagnostic(ErrorCode.ERR_WrongArityAsyncReturn, "=> await Task.FromResult(1)").WithArguments("G<>.BG<>").WithLocation(43, 27),
+                // (44,22): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
                 //     async T_OON g6() => await Task.FromResult(1);
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(44, 22),
-                // (45,27): error CS1983: The return type of an async method must be void, Task or Task<T>
+                // (45,27): error CS8940: A generic task-like return type was expected, but the type 'G<>.BN' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.
                 //     async T_ONT<int> g7() => await Task.FromResult(1);
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(45, 27),
-                // (46,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                Diagnostic(ErrorCode.ERR_WrongArityAsyncReturn, "=> await Task.FromResult(1)").WithArguments("G<>.BN").WithLocation(45, 27),
+                // (46,22): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
                 //     async T_ONN g8() => await Task.FromResult(1);
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(46, 22)
                 );
@@ -3821,9 +3824,9 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
 ";
             var comp = CreateCompilationWithMscorlib45(source);
             comp.VerifyEmitDiagnostics(
-                // (5,30): error CS1983: The return type of an async method must be void, Task or Task<T>
+                // (5,30): error CS8940: A generic task-like return type was expected, but the type 'Mismatch1MethodBuilder' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.
                 //     async Mismatch1<int> f() { await (Task)null; return 1; }
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "{ await (Task)null; return 1; }").WithLocation(5, 30),
+                Diagnostic(ErrorCode.ERR_WrongArityAsyncReturn, "{ await (Task)null; return 1; }").WithArguments("Mismatch1MethodBuilder").WithLocation(5, 30),
                 // (6,45): error CS1997: Since 'C.g()' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task<T>'?
                 //     async Mismatch2 g() { await (Task)null; return 1; }
                 Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("C.g()").WithLocation(6, 45)
@@ -4825,9 +4828,9 @@ namespace System.Runtime.CompilerServices
 }";
             var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             compilation.VerifyEmitDiagnostics(
-                // (8,53): error CS1983: The return type of an async method must be void, Task or Task<T>
+                // (8,53): error CS8940: A generic task-like return type was expected, but the type 'CustomAsyncTaskMethodBuilder<,>' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.
                 //     public async MyAwesomeType<string> CustomTask() { await Task.Delay(1000); return string.Empty; }
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "{ await Task.Delay(1000); return string.Empty; }").WithLocation(8, 53)
+                Diagnostic(ErrorCode.ERR_WrongArityAsyncReturn, "{ await Task.Delay(1000); return string.Empty; }").WithArguments("CustomAsyncTaskMethodBuilder<,>").WithLocation(8, 53)
                 );
         }
 
@@ -5805,6 +5808,33 @@ public class C {
       IL_00af:  ret
     }
 ");
+        }
+
+        [Fact, WorkItem(46843, "https://github.com/dotnet/roslyn/issues/46843")]
+        public void LockInAsyncMethodWithAwaitInFinally()
+        {
+            var source = @"
+using System.Threading.Tasks;
+public class C
+{
+    public async Task M(object o)
+    {
+        lock(o)
+        {
+        }
+
+        try
+        {
+        }
+        finally
+        {
+            await Task.Yield();
+        }
+    }
+}
+";
+            var comp = CSharpTestBase.CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

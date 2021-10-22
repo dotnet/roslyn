@@ -669,7 +669,7 @@ class c
             Return InvokeWithKeywordCommitSeeLangword("await", showCompletionInArgumentLists)
         End Function
 
-        Private Async Function InvokeWithKeywordCommitSeeLangword(keyword As String, showCompletionInArgumentLists As Boolean) As Task
+        Private Shared Async Function InvokeWithKeywordCommitSeeLangword(keyword As String, showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 class c
@@ -762,6 +762,25 @@ class c<T>
 
                 ' /// <param name="bar"$$
                 Await state.AssertLineTextAroundCaret("    /// <param name=""bar""", "")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitParam_Record(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+/// <param$$
+record R(int I);
+            ]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="param name=""I""")
+                state.SendReturn()
+                Await state.AssertNoCompletionSession()
+
+                ' /// <param name="I"$$
+                Await state.AssertLineTextAroundCaret("/// <param name=""I""", "")
             End Using
         End Function
 

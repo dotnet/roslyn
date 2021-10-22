@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -205,9 +207,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             TypeSymbol type = t.Type;
                             var outputTemp = new BoundDagTemp(t.Syntax, type, t);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
-                            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                            Conversion conversion = _factory.Compilation.Conversions.ClassifyBuiltInConversion(inputType, output.Type, ref useSiteDiagnostics);
-                            _localRewriter._diagnostics.Add(t.Syntax, useSiteDiagnostics);
+                            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = _localRewriter.GetNewCompoundUseSiteInfo();
+                            Conversion conversion = _factory.Compilation.Conversions.ClassifyBuiltInConversion(inputType, output.Type, ref useSiteInfo);
+                            _localRewriter._diagnostics.Add(t.Syntax, useSiteInfo);
                             BoundExpression evaluated;
                             if (conversion.Exists)
                             {
@@ -259,14 +261,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (test)
                 {
                     case BoundDagNonNullTest d:
-                        return _localRewriter.MakeNullCheck(d.Syntax, input, input.Type.IsNullableType() ? BinaryOperatorKind.NullableNullNotEqual : BinaryOperatorKind.NotEqual);
+                        return MakeNullCheck(d.Syntax, input, input.Type.IsNullableType() ? BinaryOperatorKind.NullableNullNotEqual : BinaryOperatorKind.NotEqual);
 
                     case BoundDagTypeTest d:
                         // Note that this tests for non-null as a side-effect. We depend on that to sometimes avoid the null check.
                         return _factory.Is(input, d.Type);
 
                     case BoundDagExplicitNullTest d:
-                        return _localRewriter.MakeNullCheck(d.Syntax, input, input.Type.IsNullableType() ? BinaryOperatorKind.NullableNullEqual : BinaryOperatorKind.Equal);
+                        return MakeNullCheck(d.Syntax, input, input.Type.IsNullableType() ? BinaryOperatorKind.NullableNullEqual : BinaryOperatorKind.Equal);
 
                     case BoundDagValueTest d:
                         Debug.Assert(!input.Type.IsNullableType());
@@ -281,6 +283,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         throw ExceptionUtilities.UnexpectedValue(test);
                 }
             }
+
+            private BoundExpression MakeNullCheck(SyntaxNode syntax, BoundExpression rewrittenExpr, BinaryOperatorKind operatorKind)
+            {
+                if (rewrittenExpr.Type.IsPointerOrFunctionPointer())
+                {
+                    TypeSymbol objectType = _factory.SpecialType(SpecialType.System_Object);
+                    var operandType = new PointerTypeSymbol(TypeWithAnnotations.Create(_factory.SpecialType(SpecialType.System_Void)));
+                    return _localRewriter.MakeBinaryOperator(
+                        syntax,
+                        operatorKind,
+                        _factory.Convert(operandType, rewrittenExpr),
+                        _factory.Convert(operandType, new BoundLiteral(syntax, ConstantValue.Null, objectType)),
+                        _factory.SpecialType(SpecialType.System_Boolean),
+                        method: null, constrainedToTypeOpt: null);
+                }
+
+                return _localRewriter.MakeNullCheck(syntax, rewrittenExpr, operatorKind);
+            }
+
             protected BoundExpression MakeValueTest(SyntaxNode syntax, BoundExpression input, ConstantValue value)
             {
                 TypeSymbol comparisonType = input.Type.EnumUnderlyingTypeOrSelf();
@@ -317,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     literal = _factory.Convert(comparisonType, literal);
                 }
 
-                return this._localRewriter.MakeBinaryOperator(_factory.Syntax, operatorKind, input, literal, _factory.SpecialType(SpecialType.System_Boolean), method: null);
+                return this._localRewriter.MakeBinaryOperator(_factory.Syntax, operatorKind, input, literal, _factory.SpecialType(SpecialType.System_Boolean), method: null, constrainedToTypeOpt: null);
             }
 
             /// <summary>
@@ -337,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 [NotNullWhen(true)] out BoundExpression sideEffect,
                 [NotNullWhen(true)] out BoundExpression testExpression)
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = _localRewriter.GetNewCompoundUseSiteInfo();
 
                 // case 1: type test followed by cast to that type
                 if (test is BoundDagTypeTest typeDecision &&
@@ -357,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // case 2: null check followed by cast to a base type
                 if (test is BoundDagNonNullTest nonNullTest &&
                     evaluation is BoundDagTypeEvaluation typeEvaluation2 &&
-                    _factory.Compilation.Conversions.ClassifyBuiltInConversion(test.Input.Type, typeEvaluation2.Type, ref useSiteDiagnostics) is Conversion conv &&
+                    _factory.Compilation.Conversions.ClassifyBuiltInConversion(test.Input.Type, typeEvaluation2.Type, ref useSiteInfo) is Conversion conv &&
                     (conv.IsIdentity || conv.Kind == ConversionKind.ImplicitReference || conv.IsBoxing) &&
                     typeEvaluation2.Input == nonNullTest.Input)
                 {
@@ -366,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression output = _tempAllocator.GetTemp(new BoundDagTemp(evaluation.Syntax, baseType, evaluation));
                     sideEffect = _factory.AssignmentExpression(output, _factory.Convert(baseType, input));
                     testExpression = _factory.ObjectNotEqual(output, _factory.Null(baseType));
-                    _localRewriter._diagnostics.Add(test.Syntax, useSiteDiagnostics);
+                    _localRewriter._diagnostics.Add(test.Syntax, useSiteInfo);
                     return true;
                 }
 
@@ -426,6 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 if (loweredInput.Type.IsTupleType &&
+                    !loweredInput.Type.OriginalDefinition.Equals(_factory.Compilation.GetWellKnownType(WellKnownType.System_ValueTuple_TRest)) &&
                     loweredInput.Syntax.Kind() == SyntaxKind.TupleExpression &&
                     loweredInput is BoundObjectCreationExpression expr &&
                     !decisionDag.TopologicallySortedNodes.Any(n => usesOriginalInput(n)))
@@ -450,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(savedInputExpression != null);
                 return decisionDag;
 
-                bool usesOriginalInput(BoundDecisionDagNode node)
+                static bool usesOriginalInput(BoundDecisionDagNode node)
                 {
                     switch (node)
                     {
@@ -507,8 +529,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var rewrittenDag = decisionDag.Rewrite(makeReplacement);
                 savedInputExpression = loweredInput.Update(
                     loweredInput.Constructor, arguments: newArguments.ToImmutableAndFree(), loweredInput.ArgumentNamesOpt, loweredInput.ArgumentRefKindsOpt,
-                    loweredInput.Expanded, loweredInput.ArgsToParamsOpt, loweredInput.ConstantValueOpt,
-                    loweredInput.InitializerExpressionOpt, loweredInput.BinderOpt, loweredInput.Type);
+                    loweredInput.Expanded, loweredInput.ArgsToParamsOpt, loweredInput.DefaultArguments, loweredInput.ConstantValueOpt,
+                    loweredInput.InitializerExpressionOpt, loweredInput.Type);
 
                 return rewrittenDag;
 

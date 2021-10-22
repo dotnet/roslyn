@@ -15,12 +15,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     public class VisualStudioWorkspace_OutOfProc : OutOfProcComponent
     {
         private readonly VisualStudioWorkspace_InProc _inProc;
-        private readonly VisualStudioInstance _instance;
 
         internal VisualStudioWorkspace_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
-            _instance = visualStudioInstance;
             _inProc = CreateInProcComponent<VisualStudioWorkspace_InProc>(visualStudioInstance);
         }
         public void SetOptionInfer(string projectName, bool value)
@@ -50,8 +48,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void WaitForAllAsyncOperations(TimeSpan timeout, params string[] featureNames)
             => _inProc.WaitForAllAsyncOperations(timeout, featureNames);
 
+        public void WaitForAllAsyncOperationsOrFail(TimeSpan timeout, params string[] featureNames)
+            => _inProc.WaitForAllAsyncOperationsOrFail(timeout, featureNames);
+
         public void CleanUpWorkspace()
             => _inProc.CleanUpWorkspace();
+
+        public void ResetOptions()
+            => _inProc.ResetOptions();
 
         public void CleanUpWaitingService()
             => _inProc.CleanUpWaitingService();
@@ -70,6 +74,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             SetPerLanguageOption(
                 optionName: "ShowItemsFromUnimportedNamespaces",
                 feature: "CompletionOptions",
+                language: LanguageNames.VisualBasic,
+                value: value);
+        }
+
+        public void SetEnableDecompilationOption(bool value)
+        {
+            SetOption("NavigateToDecompiledSources", "FeatureOnOffOptions", value);
+        }
+
+        public void SetArgumentCompletionSnippetsOption(bool value)
+        {
+            SetPerLanguageOption(
+                optionName: CompletionViewOptions.EnableArgumentCompletionSnippets.Name,
+                feature: CompletionViewOptions.EnableArgumentCompletionSnippets.Feature,
+                language: LanguageNames.CSharp,
+                value: value);
+
+            SetPerLanguageOption(
+                optionName: CompletionViewOptions.EnableArgumentCompletionSnippets.Name,
+                feature: CompletionViewOptions.EnableArgumentCompletionSnippets.Feature,
                 language: LanguageNames.VisualBasic,
                 value: value);
         }
@@ -98,9 +122,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 value: value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default);
         }
 
-        public void SetFeatureOption(string feature, string optionName, string language, string valueString)
+        public void SetFileScopedNamespaces(bool value)
+            => _inProc.SetFileScopedNamespaces(value);
+
+        public void SetEnableOpeningSourceGeneratedFilesInWorkspaceExperiment(bool value)
+        {
+            SetOption(
+                optionName: LanguageServices.Implementation.SourceGeneratedFileManager.Options.EnableOpeningInWorkspace.Name,
+                feature: LanguageServices.Implementation.SourceGeneratedFileManager.Options.EnableOpeningInWorkspace.Feature,
+                value: value);
+        }
+
+        public void SetFeatureOption(string feature, string optionName, string language, string? valueString)
             => _inProc.SetFeatureOption(feature, optionName, language, valueString);
 
-        public string GetWorkingFolder() => _inProc.GetWorkingFolder();
+        public string? GetWorkingFolder() => _inProc.GetWorkingFolder();
     }
 }

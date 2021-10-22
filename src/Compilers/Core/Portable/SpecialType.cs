@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -16,7 +14,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     /// <remarks>
     /// Only types explicitly mentioned in "Co-located core types" spec 
-    /// (https://github.com/dotnet/roslyn/blob/master/docs/compilers/Co-located%20core%20types.md)
+    /// (https://github.com/dotnet/roslyn/blob/main/docs/compilers/Co-located%20core%20types.md)
     /// can be in this enum.
     /// The following things should be in sync:
     ///     1) SpecialType enum
@@ -256,8 +254,13 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_RuntimeFeature = 44,
 
         /// <summary>
+        /// An attribute that is placed on each method with a 'methodimpl" aka ".override" in metadata.
+        /// </summary>
+        System_Runtime_CompilerServices_PreserveBaseOverridesAttribute = 45,
+
+        /// <summary>
         /// Count of special types. This is not a count of enum members.
         /// </summary>
-        Count = System_Runtime_CompilerServices_RuntimeFeature
+        Count = System_Runtime_CompilerServices_PreserveBaseOverridesAttribute
     }
 }

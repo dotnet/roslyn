@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -180,7 +182,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             {
                 for (var i = originalIndexInBlock; i < firstStatementIndexAffectedInBlock; i++)
                 {
-                    if (!(InnermostBlockStatements[i] is TLocalDeclarationStatementSyntax))
+                    if (InnermostBlockStatements[i] is not TLocalDeclarationStatementSyntax)
                     {
                         return false;
                     }

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UpdateLegacySuppressions
 {
@@ -33,10 +34,10 @@ namespace Microsoft.CodeAnalysis.UpdateLegacySuppressions
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in context.Diagnostics)
             {
-                if (diagnostic.Properties?.ContainsKey(AbstractRemoveUnnecessarySuppressionsDiagnosticAnalyzer.DocCommentIdKey) == true &&
+                if (diagnostic.Properties?.ContainsKey(AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.DocCommentIdKey) == true &&
                     root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true) != null)
                 {
                     context.RegisterCodeFix(
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UpdateLegacySuppressions
             foreach (var diagnostic in diagnostics)
             {
                 var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
-                var newDocCommentId = diagnostic.Properties[AbstractRemoveUnnecessarySuppressionsDiagnosticAnalyzer.DocCommentIdKey];
+                var newDocCommentId = diagnostic.Properties[AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.DocCommentIdKey];
                 editor.ReplaceNode(node, editor.Generator.LiteralExpression(newDocCommentId).WithTriviaFrom(node));
             }
 

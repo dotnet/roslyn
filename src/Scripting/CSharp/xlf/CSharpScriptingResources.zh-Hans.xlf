@@ -36,9 +36,9 @@ Options:
   @&lt;file&gt;                        Read response file for more options
   --                             Indicates that the remaining arguments should not be treated as options.
 </source>
-        <target state="needs-review-translation">用法: csi [option] ... [script-file.csx] [script-argument] ...
+        <target state="translated">用法: csi [option] ... [script-file.csx] [script-argument] ...
 
-如果指定了 script-file.csx，则执行此脚本，否则，启动交互式 REPL (读取 Eval 打印循环)。
+如果指定了 script-file.csx，则执行此脚本，否则启动交互式 REPL (读取 Eval 打印循环)。
 
 选项:
   /help                          显示此用法消息(替代形式: /?)
@@ -49,6 +49,13 @@ Options:
   /lib:&lt;路径列表&gt;               在其中查找 #r 指令所指定的库的目录列表。
                                  (替代形式: /libPath、/libPaths)
   /u:&lt;命名空间&gt;                 定义全局命名空间 using (替代形式: /using、/usings、/import、/imports)
+  /langversion:?                 显示语言版本的允许值并退出
+  /langversion:&lt;字符串&gt;          指定语言版本，例如
+                                 `latest` (最新版本，包括次要版本)、
+                                 `default` (与 `latest` 相同)、
+                                 `latestmajor` (最新版本，不包括次要版本)、
+                                 `preview` (最新版本，包括不受支持的预览版中的功能)
+                                或特定版本，如 `6` 或 `7.1`
   @&lt;文件&gt;                        读取响应文件以了解更多选项
   --                             表示剩余参数不应作为选项。
 </target>

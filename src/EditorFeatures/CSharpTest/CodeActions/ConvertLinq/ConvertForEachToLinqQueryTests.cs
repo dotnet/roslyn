@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
@@ -1320,6 +1322,70 @@ partial class C
 partial class C
 {
     partial IEnumerable<int> M(IEnumerable<int> nums)
+    {
+        return nums.SelectMany(n1 => nums.Select(n2 => n1));
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
+        public async Task ReturnIEnumerableExtendedPartialMethod()
+        {
+            var source = @"
+using System.Collections.Generic;
+using System.Linq;
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums);
+}
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums)
+    {
+        [|foreach (int n1 in nums)
+        {
+            foreach (int n2 in nums)
+            {
+                yield return n1;
+            }
+        }|]
+
+        yield break;
+    }
+}
+";
+            var queryOutput = @"
+using System.Collections.Generic;
+using System.Linq;
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums);
+}
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums)
+    {
+        return from int n1 in nums
+               from int n2 in nums
+               select n1;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
+
+            var linqInvocationOutput = @"
+using System.Collections.Generic;
+using System.Linq;
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums);
+}
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums)
     {
         return nums.SelectMany(n1 => nums.Select(n2 => n1));
     }

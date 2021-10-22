@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -15,6 +14,9 @@ namespace Microsoft.CodeAnalysis
     {
         [DebuggerHidden]
         [DoesNotReturn]
+#if !NETSTANDARD1_3
+        [MethodImpl(MethodImplOptions.Synchronized)]
+#endif
         internal static void OnFatalException(Exception exception)
         {
             // EDMAURER Now using the managed API to fail fast so as to default
@@ -27,8 +29,7 @@ namespace Microsoft.CodeAnalysis
 
 #if !NET20
             // don't fail fast with an aggregate exception that is masking true exception
-            var aggregate = exception as AggregateException;
-            if (aggregate != null && aggregate.InnerExceptions.Count == 1)
+            if (exception is AggregateException aggregate && aggregate.InnerExceptions.Count == 1)
             {
                 exception = aggregate.InnerExceptions[0];
             }
@@ -42,6 +43,9 @@ namespace Microsoft.CodeAnalysis
 
         [DebuggerHidden]
         [DoesNotReturn]
+#if !NETSTANDARD1_3
+        [MethodImpl(MethodImplOptions.Synchronized)]
+#endif
         internal static void Fail(string message)
         {
             DumpStackTrace(message: message);
@@ -82,32 +86,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Dumps the stack trace of the exception and the handler to the console. This is useful
-        /// for debugging unit tests that hit a fatal exception
-        /// </summary>
-        [Conditional("DEBUG")]
-        private static void DumpStackTrace(Exception exception)
-        {
-            Console.WriteLine("Dumping info before call to failfast");
-            Console.WriteLine("Exception info");
-
-            for (Exception? current = exception; current is object; current = current!.InnerException)
-            {
-                Console.WriteLine(current.Message);
-                Console.WriteLine(current.StackTrace);
-                current = current.InnerException;
-            }
-
-#if !NET20 && !NETSTANDARD1_3
-            Console.WriteLine("Stack trace of handler");
-            var stackTrace = new StackTrace();
-            Console.WriteLine(stackTrace.ToString());
-#endif
-
-            Console.Out.Flush();
-        }
-
-        /// <summary>
         /// Checks for the given <paramref name="condition"/>; if the <paramref name="condition"/> is <c>true</c>, 
         /// immediately terminates the process without running any pending <c>finally</c> blocks or finalizers
         /// and causes a crash dump to be collected (if the system is configured to do so). 
@@ -129,8 +107,7 @@ namespace Microsoft.CodeAnalysis
                 Debugger.Break();
             }
 
-            DumpStackTrace(message: message);
-            Environment.FailFast("ASSERT FAILED" + Environment.NewLine + message);
+            Fail("ASSERT FAILED" + Environment.NewLine + message);
         }
     }
 }

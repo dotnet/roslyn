@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -116,7 +118,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             Assert.Equal(initialPath, project.GetOutputFileName());
 
             string getCurrentCompilationOutputAssemblyPath()
-                => environment.Workspace.CurrentSolution.GetRequiredProject(project.Test_VisualStudioProject.Id).CompilationOutputFilePaths.AssemblyPath;
+                => environment.Workspace.CurrentSolution.GetRequiredProject(project.Test_VisualStudioProject.Id).CompilationOutputInfo.AssemblyPath;
 
             Assert.Equal(initialPath, getCurrentCompilationOutputAssemblyPath());
 
@@ -149,7 +151,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
             string getCurrentCompilationOutputAssemblyPath()
-                => environment.Workspace.CurrentSolution.GetRequiredProject(project.Test_VisualStudioProject.Id).CompilationOutputFilePaths.AssemblyPath;
+                => environment.Workspace.CurrentSolution.GetRequiredProject(project.Test_VisualStudioProject.Id).CompilationOutputInfo.AssemblyPath;
 
             Assert.Null(getCurrentCompilationOutputAssemblyPath());
 
@@ -174,6 +176,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         [WpfTheory]
         [InlineData(LanguageVersion.CSharp7_3)]
         [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.CSharp9)]
         [InlineData(LanguageVersion.Latest)]
         [InlineData(LanguageVersion.LatestMajor)]
         [InlineData(LanguageVersion.Preview)]

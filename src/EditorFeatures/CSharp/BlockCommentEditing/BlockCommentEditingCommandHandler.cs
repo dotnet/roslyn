@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -79,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             return true;
         }
 
-        private Span GetReplacementSpan(SnapshotPoint caretPosition)
+        private static Span GetReplacementSpan(SnapshotPoint caretPosition)
         {
             // We want to replace all the whitespace following the caret.  This is standard <enter> behavior in VS that
             // we want to mimic.
@@ -92,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             return Span.FromBounds(start, end);
         }
 
-        private string? GetTextToInsert(SnapshotPoint caretPosition)
+        private static string? GetTextToInsert(SnapshotPoint caretPosition)
         {
             var currentLine = caretPosition.GetContainingLine();
             var firstNonWhitespacePosition = currentLine.GetFirstNonWhitespacePosition() ?? -1;

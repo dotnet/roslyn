@@ -6,7 +6,7 @@
 set -u
 
 # Stop script if subcommand fails
-set -e 
+set -e
 
 usage()
 {
@@ -23,16 +23,16 @@ usage()
   echo "  --publish                  Publish build artifacts"
   echo "  --help                     Print help and exit"
   echo ""
-  echo "Test actions:"     
+  echo "Test actions:"
   echo "  --testCoreClr              Run unit tests on .NET Core (short: --test, -t)"
   echo "  --testMono                 Run unit tests on Mono"
   echo "  --testIOperation           Run unit tests with the IOperation test hook"
   echo ""
   echo "Advanced settings:"
   echo "  --ci                       Building in CI"
-  echo "  --docker                   Run in a docker container if applicable"
   echo "  --bootstrap                Build using a bootstrap compilers"
   echo "  --runAnalyzers             Run analyzers during build operations"
+  echo "  --skipDocumentation        Skip generation of XML documentation files"
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
   echo "  --warnAsError              Treat all warnings as errors"
   echo "  --sourceBuild              Simulate building for source-build"
@@ -65,15 +65,16 @@ configuration="Debug"
 verbosity='minimal'
 binary_log=false
 ci=false
+helix=false
+helix_queue_name=""
 bootstrap=false
 run_analyzers=false
+skip_documentation=false
 prepare_machine=false
 warn_as_error=false
 properties=""
-disable_parallel_restore=false
 source_build=false
 
-docker=false
 args=""
 
 if [[ $# = 0 ]]
@@ -129,6 +130,14 @@ while [[ $# > 0 ]]; do
     --ci)
       ci=true
       ;;
+    --helix)
+      helix=true
+      ;;
+    --helixqueuename)
+      helix_queue_name=$2
+      args="$args $1"
+      shift
+      ;;
     --bootstrap)
       bootstrap=true
       # Bootstrap requires restore
@@ -137,18 +146,18 @@ while [[ $# > 0 ]]; do
     --runanalyzers)
       run_analyzers=true
       ;;
+    --skipdocumentation)
+      skip_documentation=true
+      ;;
     --preparemachine)
       prepare_machine=true
       ;;
     --warnaserror)
       warn_as_error=true
       ;;
-    --docker)
-      docker=true
-      shift
-      continue
-      ;;
-    --sourcebuild)
+    --sourcebuild|/p:arcadebuildfromsource=true)
+      # Arcade specifies /p:ArcadeBuildFromSource=true instead of --sourceBuild, but that's not developer friendly so we
+      # have an alias.
       source_build=true
       ;;
     /p:*)
@@ -163,27 +172,6 @@ while [[ $# > 0 ]]; do
   args="$args $1"
   shift
 done
-
-if [[ "$docker" == true ]]
-then
-  echo "Docker exec: $args"
-
-  # Run this script with the same arguments (except for --docker) in a container that has Mono installed.
-  BUILD_COMMAND=/opt/code/eng/build.sh "$scriptroot"/docker/mono.sh $args
-  lastexitcode=$?
-  if [[ $lastexitcode != 0 ]]; then
-    echo "Docker build failed (exit code '$lastexitcode')." >&2
-    exit $lastexitcode
-  fi
-
-  # Ensure that all docker containers are stopped.
-  # Hence exit with true even if "kill" failed as it will fail if they stopped gracefully
-  if [[ "$prepare_machine" == true ]]; then
-    docker kill $(docker ps -q) || true
-  fi
-
-  exit
-fi
 
 # Import Arcade functions
 . "$scriptroot/common/tools.sh"
@@ -220,24 +208,20 @@ function BuildSolution {
 
   InitializeToolset
   local toolset_build_proj=$_InitializeToolset
-  
+
   local bl=""
   if [[ "$binary_log" = true ]]; then
     bl="/bl:\"$log_dir/Build.binlog\""
-  fi
-  
-  local projects="$repo_root/$solution" 
-  
-  # https://github.com/dotnet/roslyn/issues/23736
-  UNAME="$(uname)"
-  if [[ "$UNAME" == "Darwin" ]]; then
-    run_analyzers=false
+    export RoslynCommandLineLogFile="$log_dir/vbcscompiler.log"
   fi
 
+  local projects="$repo_root/$solution"
+
+  UNAME="$(uname)"
   # NuGet often exceeds the limit of open files on Mac and Linux
   # https://github.com/NuGet/Home/issues/2163
   if [[ "$UNAME" == "Darwin" || "$UNAME" == "Linux" ]]; then
-    disable_parallel_restore=true
+    ulimit -n 6500 || echo "Cannot change ulimit"
   fi
 
   if [[ "$test_ioperation" == true ]]; then
@@ -264,10 +248,16 @@ function BuildSolution {
     test_runtime="/p:TestRuntime=Mono"
     mono_tool="/p:MonoTool=\"$mono_path\""
     test_runtime_args="--debug"
-  elif [[ "$test_core_clr" == true ]]; then
-    test=true
-    test_runtime="/p:TestRuntime=Core /p:TestTargetFrameworks=netcoreapp3.1"
-    mono_tool=""
+  fi
+
+  local generate_documentation_file=""
+  if [[ "$skip_documentation" == true ]]; then
+    generate_documentation_file="/p:GenerateDocumentationFile=false"
+  fi
+
+  local roslyn_use_hard_links=""
+  if [[ "$ci" == true ]]; then
+    roslyn_use_hard_links="/p:ROSLYNUSEHARDLINKS=true"
   fi
 
   # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
@@ -285,20 +275,25 @@ function BuildSolution {
     /p:Test=$test \
     /p:Pack=$pack \
     /p:Publish=$publish \
-    /p:UseRoslynAnalyzers=$run_analyzers \
+    /p:RunAnalyzersDuringBuild=$run_analyzers \
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
     /p:TreatWarningsAsErrors=true \
-    /p:RestoreDisableParallel=$disable_parallel_restore \
     /p:TestRuntimeAdditionalArguments=$test_runtime_args \
-    /p:DotNetBuildFromSource=$source_build \
+    /p:ArcadeBuildFromSource=$source_build \
     $test_runtime \
     $mono_tool \
+    $generate_documentation_file \
+    $roslyn_use_hard_links \
     $properties
 }
 
-InitializeDotNetCli $restore
-if [[ "$restore" == true ]]; then
+install=false
+if [[ "$restore" == true || "$test_core_clr" == true ]]; then
+  install=true
+fi
+InitializeDotNetCli $install
+if [[ "$restore" == true && "$source_build" != true ]]; then
   dotnet tool restore
 fi
 
@@ -308,5 +303,23 @@ if [[ "$bootstrap" == true ]]; then
   bootstrap_dir=$_MakeBootstrapBuild
 fi
 
-BuildSolution
+if [[ "$restore" == true || "$build" == true || "$rebuild" == true || "$test_mono" == true ]]; then
+  BuildSolution
+fi
+
+if [[ "$test_core_clr" == true ]]; then
+  runtests_args=""
+  if [[ -n "$helix_queue_name" ]]; then
+    runtests_args="$runtests_args --helixQueueName $helix_queue_name"
+  fi
+
+  if [[ "$helix" == true ]]; then
+    runtests_args="$runtests_args --helix"
+  fi
+
+  if [[ "$ci" != true ]]; then
+    runtests_args="$runtests_args --html"
+  fi
+  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/net6.0/RunTests.dll" --tfm net6.0 --configuration ${configuration} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
+fi
 ExitWithExitCode 0

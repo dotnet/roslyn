@@ -36,21 +36,28 @@ Options:
   @&lt;file&gt;                        Read response file for more options
   --                             Indicates that the remaining arguments should not be treated as options.
 </source>
-        <target state="needs-review-translation">Użycie: csi [opcja] ... [plik-skryptu.csx] [argument-skryptu] ...
+        <target state="translated">Użycie: csi [opcja] ... [plik-skryptu.csx] [argument-skryptu] ...
 
-Wykonuje plik plik-skryptu.csx, jeśli został podany. W przeciwnym razie uruchamia interaktywną pętlę REPL (Read Eval Print Loop).
+Wykonuje plik plik-skryptu.csx, jeśli został podany. W przeciwnym razie uruchamia interakcyjną pętlę REPL (Read Eval Print Loop).
 
 Opcje:
   /help                          Wyświetla ten komunikat o użyciu (postać alternatywna: /?)
-  /version                             Wyświetla wersję i wychodzi
-   /i Powoduje przejście do pętli REPL po wykonaniu określonego skryptu.
+  /version                       Wyświetla wersję i kończy działanie
+  /i                             Powoduje przejście do pętli REPL po wykonaniu określonego skryptu
   /r:&lt;plik&gt;                      Przywołuje metadane z określonego pliku zestawu (postać alternatywna: /reference)
   /r:&lt;lista plików&gt;              Przywołuje metadane z określonych plików zestawu (postać alternatywna: /reference)
-  /lib:&lt;lista ścieżek&gt;           Lista katalogów, w których mają być wyszukiwane biblioteki określone przez dyrektywę #r. 
+  /lib:&lt;lista ścieżek&gt;           Lista katalogów, w których mają być wyszukiwane biblioteki określone przez dyrektywę #r
                                  (postacie alternatywne: /libPath /libPaths)
   /u:&lt;przestrzeń nazw&gt;           Definiuje globalną przestrzeń nazw (postacie alternatywne: /using, /usings, /import, /imports)
+  /langversion:?                 Wyświetla dozwolone wartości wersji języka i kończy działanie
+  /langversion:&lt;ciąg&gt;            Określa wersję języka, taką jak:
+                                 `latest` (najnowsza wersja, włącznie z wersjami pomocniczymi),
+                                 `default` (to samo co `latest`),
+                                 `latestmajor` (najnowsza wersja, bez wersji pomocniczych),
+                                 `preview` (najnowsza wersja, włącznie z funkcjami w nieobsługiwanej wersji zapoznawczej)
+                                 albo określone wersje, takie jak `6` lub `7.1`
   @&lt;plik&gt;                        Odczytuje plik odpowiedzi, aby uzyskać więcej opcji
-  --                             Wskazuje, że pozostałe argumenty nie mają być traktowane jako opcje.
+  --                             Wskazuje, że pozostałe argumenty nie powinny być traktowane jako opcje.
 </target>
         <note />
       </trans-unit>

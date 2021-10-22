@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -6250,6 +6252,30 @@ class A
         }
 
         [Fact]
+        public void TestFileScopedNamespaceDeclarationInUsingDirective()
+        {
+            var text = @"using namespace Goo;";
+            var file = this.ParseTree(text);
+
+            Assert.Equal(text, file.ToFullString());
+            file.GetDiagnostics().Verify(
+                // (1,7): error CS1041: Identifier expected; 'namespace' is a keyword
+                // using namespace Goo;
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "namespace").WithArguments("", "namespace").WithLocation(1, 7));
+
+            var usings = file.Usings;
+            Assert.Equal(1, usings.Count);
+            Assert.True(usings[0].Name.IsMissing);
+
+            var members = file.Members;
+            Assert.Equal(1, members.Count);
+
+            var namespaceDeclaration = members[0];
+            Assert.Equal(SyntaxKind.FileScopedNamespaceDeclaration, namespaceDeclaration.Kind());
+            Assert.False(((FileScopedNamespaceDeclarationSyntax)namespaceDeclaration).Name.IsMissing);
+        }
+
+        [Fact]
         public void TestContextualKeywordAsFromVariable()
         {
             var text = @"
@@ -6518,7 +6544,7 @@ public class Test
     };
 }";
 
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, TestOptions.RegularPreview);
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, TestOptions.Regular9);
             Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
 
             // The issue (9391) was exhibited while enumerating the diagnostics
@@ -7052,6 +7078,27 @@ static
             var ns = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
             Assert.False(ns.OpenBraceToken.IsMissing);
             Assert.False(ns.CloseBraceToken.IsMissing);
+        }
+
+
+        [WorkItem(947819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947819")]
+        [Fact]
+        public void MissingOpenBraceForClassFileScopedNamespace()
+        {
+            var source = @"namespace n;
+
+class c
+";
+            var root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
+
+            Assert.Equal(source, root.ToFullString());
+            // Verify incomplete class decls don't eat tokens of surrounding nodes
+            var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
+            Assert.False(classDecl.Identifier.IsMissing);
+            Assert.True(classDecl.OpenBraceToken.IsMissing);
+            Assert.True(classDecl.CloseBraceToken.IsMissing);
+            var ns = root.DescendantNodes().OfType<FileScopedNamespaceDeclarationSyntax>().Single();
+            Assert.False(ns.SemicolonToken.IsMissing);
         }
 
         [WorkItem(947819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947819")]

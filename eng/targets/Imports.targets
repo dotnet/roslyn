@@ -23,7 +23,7 @@
       Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
       but gets included in lots of output items like VSIX.
     -->
-    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp3.1'">false</GenerateRuntimeConfigurationFiles>
+    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'">false</GenerateRuntimeConfigurationFiles>
 
     <!--
       When building a .NET Core exe make sure to include the template runtimeconfig.json file 
@@ -35,8 +35,10 @@
       Disable nullable warnings when targeting anything other than our supported .NET core version(s). 
       This condition will be evaluated multiple times in multi-targeted projects hence need to be careful
       to only set in the inner builds, not the outer build where only $(TargetFrameworks) is defined.
+      We still check $(TargetFrameworks) for empty though, because for single-targeted builds we want to
+      allow nullable warnings regardless of target framework.
     -->
-    <DisableNullableWarnings Condition="'$(DisableNullableWarnings)' == '' AND $(TargetFrameworks.Contains('netcoreapp3.1')) AND '$(TargetFramework)' != '' AND '$(TargetFramework)' != 'netcoreapp3.1'">true</DisableNullableWarnings>
+    <DisableNullableWarnings Condition="'$(DisableNullableWarnings)' == '' AND  '$(TargetFrameworks)' != '' AND '$(TargetFramework)' != '' AND '$(TargetFrameworkIdentifier)' != '.NETCoreApp'">true</DisableNullableWarnings>
 
     <!--
       Disable code style analyzers in "older" targets for a multi-targeted project. These analyzers don't
@@ -47,15 +49,15 @@
   </PropertyGroup>
 
   <!--
-    PERF: Set default value for 'UseRoslynAnalyzers' to determine if analyzers should be executed.
+    PERF: Set default value for 'RunAnalyzersDuringBuild' to determine if analyzers should be executed.
           Default to 'false' in all non-CI builds to improve local build time (i.e. csc/vbc invocations both inside Visual Studio and from command line prompt), except if:
             1. We are enforcing code style, i.e. '$(RoslynEnforceCodeStyle)' == 'true' OR
             2. We are explicitly running code analysis via "Run Code Analysis" command, i.e. '$(RunCodeAnalysis)' == 'true'.
           Otherwise, default to 'true'.
   -->
-  <PropertyGroup Condition="'$(UseRoslynAnalyzers)' == ''">
-    <UseRoslynAnalyzers Condition="'$(DesignTimeBuild)' != 'true' AND '$(ContinuousIntegrationBuild)' != 'true' AND !('$(RoslynEnforceCodeStyle)' == 'true' OR '$(RunCodeAnalysis)' == 'true')">false</UseRoslynAnalyzers>
-    <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
+  <PropertyGroup Condition="'$(RunAnalyzersDuringBuild)' == ''">
+    <RunAnalyzersDuringBuild Condition="'$(DesignTimeBuild)' != 'true' AND '$(ContinuousIntegrationBuild)' != 'true' AND !('$(RoslynEnforceCodeStyle)' == 'true' OR '$(RunCodeAnalysis)' == 'true')">false</RunAnalyzersDuringBuild>
+    <RunAnalyzersDuringBuild Condition="'$(RunAnalyzersDuringBuild)' == ''">true</RunAnalyzersDuringBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DisableNullableWarnings)' == 'true'">
@@ -98,11 +100,15 @@
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
   </PropertyGroup>
 
-  <!-- Rulesets -->
-  <PropertyGroup Condition="'$(CodeAnalysisRuleSet)' == ''">
-    <CodeAnalysisRuleSet Condition="'$(IsShipping)' == 'true'">$(RepositoryEngineeringDir)config\rulesets\Shipping.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRuleSet Condition="'$(IsShipping)' != 'true'">$(RepositoryEngineeringDir)config\rulesets\NonShipping.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
+  <!-- Global Analyzer Config -->
+  <ItemGroup>
+    <!-- Always include Common.globalconfig -->
+    <EditorConfigFiles Include="$(RepositoryEngineeringDir)config\globalconfigs\Common.globalconfig" />
+    <!-- Include Shipping.globalconfig for shipping projects -->
+    <EditorConfigFiles Condition="'$(IsShipping)' == 'true'" Include="$(RepositoryEngineeringDir)config\globalconfigs\Shipping.globalconfig" />
+    <!-- Include NonShipping.globalconfig for non-shipping projects -->
+    <EditorConfigFiles Condition="'$(IsShipping)' != 'true'" Include="$(RepositoryEngineeringDir)config\globalconfigs\NonShipping.globalconfig" />
+  </ItemGroup>
 
   <!--
     Some dependencies bring in references to UIAutomationClient and UIAutomationTypes. These conflict with the faster
@@ -162,17 +168,6 @@
                  Condition="$(_VersionComparisonResult) &lt; 0"/>
   </Target> 
 
-  <Target Name="DisableAnalyzers"
-          BeforeTargets="CoreCompile"
-          Condition="'$(UseRoslynAnalyzers)' == 'false'">
-    <!--
-      Disable analyzers via an MSBuild property settable on the command line.
-    -->
-    <ItemGroup>
-      <Analyzer Remove="@(Analyzer)" />
-    </ItemGroup>
-  </Target>
-
   <!-- 
     This target is used to copy referenced projects to a sub-directory vs. the direct output 
     directory of the build. Useful when the referenced project is an EXE and the referencing 
@@ -196,6 +191,11 @@
   -->
   <ItemGroup>
     <AdditionalFiles Include="@(PublicAPI)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Include BannedSymbols covering all projects -->
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\config\BannedSymbols.txt" />
   </ItemGroup>
 
   <ItemGroup>
@@ -368,5 +368,4 @@
       <Reference Remove="@(Reference)" Condition=" '%(FileName)' == 'Microsoft.VisualBasic' or '%(FileName)' == 'Microsoft.VisualBasic.Core' " />
     </ItemGroup>
   </Target>
-
 </Project>

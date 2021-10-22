@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
@@ -110,6 +113,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 return this.PrimaryModule.MetadataLocation.Cast<MetadataLocation, Location>();
+            }
+        }
+
+        public override int MetadataToken
+        {
+            get
+            {
+                return MetadataTokens.GetToken(_assembly.Handle);
             }
         }
 

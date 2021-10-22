@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 
@@ -18,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             long INumericTC<long>.MinValue => long.MinValue;
 
             long INumericTC<long>.MaxValue => long.MaxValue;
+
+            long INumericTC<long>.Zero => 0;
 
             bool INumericTC<long>.Related(BinaryOperatorKind relation, long left, long right)
             {

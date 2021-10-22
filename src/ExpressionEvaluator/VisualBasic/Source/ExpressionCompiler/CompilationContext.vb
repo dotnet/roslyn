@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             ' Assert that the cheap check for "Me" is equivalent to the expensive check for "Me".
             Debug.Assert(
-                _displayClassVariables.ContainsKey(StringConstants.HoistedMeName) =
+                _displayClassVariables.ContainsKey(GeneratedNameConstants.HoistedMeName) =
                 _displayClassVariables.Values.Any(Function(v) v.Kind = DisplayClassVariableKind.Me))
         End Sub
 
@@ -141,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 methodName,
                 Me,
                 Function(method As EEMethodSymbol, diags As DiagnosticBag, ByRef properties As ResultProperties)
-                    Dim hasDisplayClassMe = _displayClassVariables.ContainsKey(StringConstants.HoistedMeName)
+                    Dim hasDisplayClassMe = _displayClassVariables.ContainsKey(GeneratedNameConstants.HoistedMeName)
                     Dim bindAsExpression = syntax.Kind = SyntaxKind.PrintStatement
                     Dim binder = ExtendBinderChain(
                         aliases,
@@ -200,6 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim objectType = Me.Compilation.GetSpecialType(SpecialType.System_Object)
             Dim allTypeParameters = GetAllTypeParameters(_currentFrame)
             Dim additionalTypes = ArrayBuilder(Of NamedTypeSymbol).GetInstance()
+            Dim syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken))
 
             Dim typeVariablesType As EENamedTypeSymbol = Nothing
             If Not argumentsOnly AndAlso allTypeParameters.Length > 0 Then
@@ -209,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 typeVariablesType = New EENamedTypeSymbol(
                     Me.Compilation.SourceModule.GlobalNamespace,
                     objectType,
-                    Nothing,
+                    syntax,
                     _currentFrame,
                     ExpressionCompilerConstants.TypeVariablesClassName,
                     Function(m, t)
@@ -225,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim synthesizedType As New EENamedTypeSymbol(
                 Me.Compilation.SourceModule.GlobalNamespace,
                 objectType,
-                Nothing,
+                syntax,
                 _currentFrame,
                 typeName,
                 Function(m, container)
@@ -242,10 +243,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                                 End If
 
                                 Dim methodName = GetNextMethodName(methodBuilder)
-                                Dim syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken))
                                 Dim local = PlaceholderLocalSymbol.Create(typeNameDecoder, _currentFrame, [alias])
                                 ' Skip pseudo-variables with errors.
-                                If local.GetUseSiteErrorInfo()?.Severity = DiagnosticSeverity.Error Then
+                                If local.GetUseSiteInfo().DiagnosticInfo?.Severity = DiagnosticSeverity.Error Then
                                     Continue For
                                 End If
                                 Dim aliasMethod = Me.CreateMethod(
@@ -278,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Dim parameterIndex = If(m.IsShared, 0, 1)
                     For Each parameter In m.Parameters
                         Dim parameterName As String = parameter.Name
-                        If GeneratedNames.GetKind(parameterName) = GeneratedNameKind.None Then
+                        If GeneratedNameParser.GetKind(parameterName) = GeneratedNameKind.None Then
                             AppendParameterAndMethod(localBuilder, methodBuilder, parameter, container, parameterIndex)
                             itemsAdded.Add(parameterName)
                         End If
@@ -488,7 +488,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Private Shared Function BindExpression(binder As Binder, syntax As ExpressionSyntax, diagnostics As DiagnosticBag, <Out> ByRef resultProperties As ResultProperties) As BoundStatement
-            Dim expression = binder.BindExpression(syntax, diagnostics)
+            Dim bindingDiagnostics = New BindingDiagnosticBag(diagnostics)
+            Dim expression = binder.BindExpression(syntax, bindingDiagnostics)
 
             Dim flags = DkmClrCompilationResultFlags.None
             If Not IsAssignableExpression(binder, expression) Then
@@ -504,9 +505,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Try
 
             If IsStatement(expression) Then
-                expression = binder.ReclassifyInvocationExpressionAsStatement(expression, diagnostics)
+                expression = binder.ReclassifyInvocationExpressionAsStatement(expression, bindingDiagnostics)
             Else
-                expression = binder.MakeRValue(expression, diagnostics)
+                expression = binder.MakeRValue(expression, bindingDiagnostics)
             End If
 
             Select Case expression.Type.SpecialType
@@ -523,7 +524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Private Shared Function IsAssignableExpression(binder As Binder, expression As BoundExpression) As Boolean
-            Dim diagnostics = DiagnosticBag.GetInstance()
+            Dim diagnostics = New BindingDiagnosticBag(DiagnosticBag.GetInstance())
             Dim value = binder.ReclassifyAsValue(expression, diagnostics)
             Dim result = False
             If Binder.IsValidAssignmentTarget(value) AndAlso Not diagnostics.HasAnyErrors() Then
@@ -554,7 +555,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private Shared Function BindStatement(binder As Binder, syntax As StatementSyntax, diagnostics As DiagnosticBag, <Out> ByRef resultProperties As ResultProperties) As BoundStatement
             resultProperties = New ResultProperties(DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
-            Return binder.BindStatement(syntax, diagnostics).MakeCompilerGenerated()
+            Return binder.BindStatement(syntax, New BindingDiagnosticBag(diagnostics)).MakeCompilerGenerated()
         End Function
 
         Private Shared Function CreateBinderChain(
@@ -769,9 +770,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Else
                         Debug.Assert(importRecord.Alias Is Nothing) ' Represented as ImportTargetKind.NamespaceOrType in old-format PDBs.
 
-                        Dim unusedDiagnostics = DiagnosticBag.GetInstance()
-                        typeSymbol = importBinder.BindTypeSyntax(targetSyntax, unusedDiagnostics)
-                        unusedDiagnostics.Free()
+                        typeSymbol = importBinder.BindTypeSyntax(targetSyntax, BindingDiagnosticBag.Discarded)
 
                         Debug.Assert(typeSymbol IsNot Nothing)
 
@@ -790,14 +789,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         End If
 
                         ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                        aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position)
+                        aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position, ImmutableArray(Of AssemblySymbol).Empty)
                     Else
                         If importsBuilder Is Nothing Then
                             importsBuilder = ArrayBuilder(Of NamespaceOrTypeAndImportsClausePosition).GetInstance()
                         End If
 
                         ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                        importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(typeSymbol, position))
+                        importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(typeSymbol, position, ImmutableArray(Of AssemblySymbol).Empty))
                     End If
 
                 ' Dev12 treats the current namespace the same as any other namespace (see ProcedureContext::LoadImportsAndDefaultNamespaceNormal).
@@ -809,9 +808,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         Return False
                     End If
 
-                    Dim unusedDiagnostics = DiagnosticBag.GetInstance()
-                    Dim namespaceOrTypeSymbol = importBinder.BindNamespaceOrTypeSyntax(targetSyntax, unusedDiagnostics)
-                    unusedDiagnostics.Free()
+                    Dim namespaceOrTypeSymbol = importBinder.BindNamespaceOrTypeSyntax(targetSyntax, BindingDiagnosticBag.Discarded)
 
                     Debug.Assert(namespaceOrTypeSymbol IsNot Nothing)
 
@@ -829,7 +826,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         End If
 
                         ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                        importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(namespaceOrTypeSymbol, position))
+                        importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(namespaceOrTypeSymbol, position, ImmutableArray(Of AssemblySymbol).Empty))
                     Else
                         Dim aliasSymbol As New AliasSymbol(importBinder.Compilation, importBinder.ContainingNamespaceOrType, [alias], namespaceOrTypeSymbol, NoLocation.Singleton)
 
@@ -838,13 +835,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         End If
 
                         ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                        aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position)
+                        aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position, ImmutableArray(Of AssemblySymbol).Empty)
                     End If
 
                 Case ImportTargetKind.NamespaceOrType ' Aliased namespace or type (native PDB only)
-                    Dim unusedDiagnostics = DiagnosticBag.GetInstance()
-                    Dim namespaceOrTypeSymbol = importBinder.BindNamespaceOrTypeSyntax(targetSyntax, unusedDiagnostics)
-                    unusedDiagnostics.Free()
+                    Dim namespaceOrTypeSymbol = importBinder.BindNamespaceOrTypeSyntax(targetSyntax, BindingDiagnosticBag.Discarded)
 
                     Debug.Assert(namespaceOrTypeSymbol IsNot Nothing)
 
@@ -863,7 +858,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     End If
 
                     ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                    aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position)
+                    aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position, ImmutableArray(Of AssemblySymbol).Empty)
 
                 Case ImportTargetKind.XmlNamespace
                     If xmlImports Is Nothing Then
@@ -1043,7 +1038,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Dim field = DirectCast(member, FieldSymbol)
                     Dim fieldName = field.Name
                     Dim parameterName As String = Nothing
-                    If GeneratedNames.TryParseHoistedUserVariableName(fieldName, parameterName) Then
+                    If GeneratedNameParser.TryParseHoistedUserVariableName(fieldName, parameterName) Then
                         parameterNamesInOrder.Add(parameterName)
                     End If
                 Next
@@ -1078,7 +1073,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim displayClassInstances = ArrayBuilder(Of DisplayClassInstanceAndFields).GetInstance()
 
             For Each parameter As ParameterSymbol In method.Parameters
-                If GeneratedNames.GetKind(parameter.Name) = GeneratedNameKind.TransparentIdentifier Then
+                If GeneratedNameParser.GetKind(parameter.Name) = GeneratedNameKind.TransparentIdentifier Then
                     Dim instance As New DisplayClassInstanceFromParameter(parameter)
                     displayClassInstances.Add(New DisplayClassInstanceAndFields(instance))
                 End If
@@ -1150,11 +1145,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Sub
 
         Private Shared Function IsHoistedMeFieldName(fieldName As String) As Boolean
-            Return fieldName.Equals(StringConstants.HoistedMeName, StringComparison.Ordinal)
+            Return fieldName.Equals(GeneratedNameConstants.HoistedMeName, StringComparison.Ordinal)
         End Function
 
         Private Shared Function IsLambdaMethodName(methodName As String) As Boolean
-            Return methodName.StartsWith(StringConstants.LambdaMethodNamePrefix, StringComparison.Ordinal)
+            Return methodName.StartsWith(GeneratedNameConstants.LambdaMethodNamePrefix, StringComparison.Ordinal)
         End Function
 
         ''' <summary>
@@ -1162,7 +1157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' </summary>
         Private Shared Function IsDisplayClassInstanceLocalName(name As String) As Boolean
             Debug.Assert(name IsNot Nothing) ' Verified by caller.
-            Return name.StartsWith(StringConstants.ClosureVariablePrefix, StringComparison.Ordinal)
+            Return name.StartsWith(GeneratedNameConstants.ClosureVariablePrefix, StringComparison.Ordinal)
         End Function
 
         ''' <summary>
@@ -1171,22 +1166,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' </summary>
         Private Shared Function IsDisplayClassInstanceFieldName(name As String) As Boolean
             Debug.Assert(name IsNot Nothing) ' Verified by caller.
-            Return name.StartsWith(StringConstants.HoistedSpecialVariablePrefix & StringConstants.ClosureVariablePrefix, StringComparison.Ordinal) OrElse
-                name.StartsWith(StringConstants.StateMachineHoistedUserVariablePrefix & StringConstants.ClosureVariablePrefix, StringComparison.Ordinal) OrElse
-                name.StartsWith(StringConstants.HoistedSpecialVariablePrefix & StringConstants.DisplayClassPrefix, StringComparison.Ordinal) ' Async lambda case
+            Return name.StartsWith(GeneratedNameConstants.HoistedSpecialVariablePrefix & GeneratedNameConstants.ClosureVariablePrefix, StringComparison.Ordinal) OrElse
+                name.StartsWith(GeneratedNameConstants.StateMachineHoistedUserVariablePrefix & GeneratedNameConstants.ClosureVariablePrefix, StringComparison.Ordinal) OrElse
+                name.StartsWith(GeneratedNameConstants.HoistedSpecialVariablePrefix & GeneratedNameConstants.DisplayClassPrefix, StringComparison.Ordinal) ' Async lambda case
         End Function
 
         Private Shared Function IsTransparentIdentifierField(field As FieldSymbol) As Boolean
             Dim fieldName = field.Name
 
             Dim unmangledName As String = Nothing
-            If GeneratedNames.TryParseHoistedUserVariableName(fieldName, unmangledName) Then
+            If GeneratedNameParser.TryParseHoistedUserVariableName(fieldName, unmangledName) Then
                 fieldName = unmangledName
             ElseIf field.IsAnonymousTypeField(unmangledName) Then
                 fieldName = unmangledName
             End If
 
-            Return GeneratedNames.GetKind(fieldName) = GeneratedNameKind.TransparentIdentifier
+            Return GeneratedNameParser.GetKind(fieldName) = GeneratedNameKind.TransparentIdentifier
         End Function
 
         Private Shared Function IsGeneratedLocalName(name As String) As Boolean
@@ -1267,15 +1262,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Dim hoistedLocalName As String = Nothing
                 Dim hoistedLocalSlotIndex As Integer = 0
 
-                If fieldName.StartsWith(StringConstants.HoistedUserVariablePrefix, StringComparison.Ordinal) Then
+                If fieldName.StartsWith(GeneratedNameConstants.HoistedUserVariablePrefix, StringComparison.Ordinal) Then
                     Debug.Assert(Not field.IsShared)
                     variableKind = DisplayClassVariableKind.Local
-                    variableName = fieldName.Substring(StringConstants.HoistedUserVariablePrefix.Length)
-                ElseIf fieldName.StartsWith(StringConstants.HoistedSpecialVariablePrefix, StringComparison.Ordinal) Then
+                    variableName = fieldName.Substring(GeneratedNameConstants.HoistedUserVariablePrefix.Length)
+                ElseIf fieldName.StartsWith(GeneratedNameConstants.HoistedSpecialVariablePrefix, StringComparison.Ordinal) Then
                     Debug.Assert(Not field.IsShared)
                     variableKind = DisplayClassVariableKind.Local
-                    variableName = fieldName.Substring(StringConstants.HoistedSpecialVariablePrefix.Length)
-                ElseIf GeneratedNames.TryParseStateMachineHoistedUserVariableName(fieldName, hoistedLocalName, hoistedLocalSlotIndex) Then
+                    variableName = fieldName.Substring(GeneratedNameConstants.HoistedSpecialVariablePrefix.Length)
+                ElseIf GeneratedNameParser.TryParseStateMachineHoistedUserVariableName(fieldName, hoistedLocalName, hoistedLocalSlotIndex) Then
                     Debug.Assert(Not field.IsShared)
 
                     If Not inScopeHoistedLocalSlots.Contains(hoistedLocalSlotIndex) Then
@@ -1290,9 +1285,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     ' A reference to "Me".
                     variableKind = DisplayClassVariableKind.Me
                     variableName = fieldName ' As in C#, we retain the mangled name.  It shouldn't be used, other than as a dictionary key.
-                ElseIf fieldName.StartsWith(StringConstants.LambdaCacheFieldPrefix, StringComparison.Ordinal) Then
+                ElseIf fieldName.StartsWith(GeneratedNameConstants.LambdaCacheFieldPrefix, StringComparison.Ordinal) Then
                     Continue For
-                ElseIf GeneratedNames.GetKind(fieldName) = GeneratedNameKind.TransparentIdentifier Then
+                ElseIf GeneratedNameParser.GetKind(fieldName) = GeneratedNameKind.TransparentIdentifier Then
                     ' A transparent identifier (field) in an anonymous type synthesized for a transparent identifier.
                     Debug.Assert(Not field.IsShared)
                     Continue For
@@ -1327,7 +1322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         Debug.Assert((variableKind = DisplayClassVariableKind.Parameter) OrElse
                         (variableKind = DisplayClassVariableKind.Me))
 
-                        If variableKind = DisplayClassVariableKind.Parameter AndAlso GeneratedNames.GetKind(instance.Type.Name) = GeneratedNameKind.LambdaDisplayClass Then
+                        If variableKind = DisplayClassVariableKind.Parameter AndAlso GeneratedNameParser.GetKind(instance.Type.Name) = GeneratedNameKind.LambdaDisplayClass Then
                             displayClassVariablesBuilder(variableName) = instance.ToVariable(variableName, variableKind, field)
                         End If
                     End If
@@ -1377,7 +1372,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim desiredMethodName As String = Nothing
             If IsLambdaMethodName(candidateSubstitutedSourceMethod.Name) OrElse
-                    GeneratedNames.TryParseStateMachineTypeName(candidateSourceTypeName, desiredMethodName) Then
+               GeneratedNameParser.TryParseStateMachineTypeName(candidateSourceTypeName, desiredMethodName) Then
 
                 ' We could be in the MoveNext method of an async lambda.  If that is the case, we can't 
                 ' figure out desiredMethodName by unmangling the name.
@@ -1387,7 +1382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Debug.Assert(containing IsNot Nothing)
                     If containing.IsClosureType() Then
                         candidateSubstitutedSourceType = containing
-                        sourceMethodMustBeInstance = candidateSubstitutedSourceType.MemberNames.Contains(StringConstants.HoistedMeName, StringComparer.Ordinal)
+                        sourceMethodMustBeInstance = candidateSubstitutedSourceType.MemberNames.Contains(GeneratedNameConstants.HoistedMeName, StringComparer.Ordinal)
                     End If
                 End If
 
@@ -1480,7 +1475,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Friend Sub New(instance As DisplayClassInstance)
                 MyClass.New(instance, ConsList(Of FieldSymbol).Empty)
                 Debug.Assert(instance.Type.IsClosureOrStateMachineType() OrElse
-                             GeneratedNames.GetKind(instance.Type.Name) = GeneratedNameKind.AnonymousType)
+                             GeneratedNameParser.GetKind(instance.Type.Name) = GeneratedNameKind.AnonymousType)
             End Sub
 
             Private Sub New(instance As DisplayClassInstance, fields As ConsList(Of FieldSymbol))
@@ -1502,7 +1497,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Friend Function FromField(field As FieldSymbol) As DisplayClassInstanceAndFields
                 Debug.Assert(field.Type.IsClosureOrStateMachineType() OrElse
-                             GeneratedNames.GetKind(field.Type.Name) = GeneratedNameKind.AnonymousType)
+                             GeneratedNameParser.GetKind(field.Type.Name) = GeneratedNameKind.AnonymousType)
                 Return New DisplayClassInstanceAndFields(Me.Instance, Me.Fields.Prepend(field))
             End Function
 

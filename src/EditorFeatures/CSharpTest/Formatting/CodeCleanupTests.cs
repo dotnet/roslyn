@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -78,6 +80,43 @@ internal class Program
 {
     private static void Main(string[] args)
     {
+        List<int> list = new List<int>();
+        Console.WriteLine(list.Count);
+    }
+}
+";
+            return AssertCodeCleanupResult(expected, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        public Task SortGlobalUsings()
+        {
+            var code = @"using System.Threading.Tasks;
+using System.Threading;
+global using System.Collections.Generic;
+global using System;
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        Barrier b = new Barrier(0);
+        var list = new List<int>();
+        Console.WriteLine(list.Count);
+    }
+}
+";
+
+            var expected = @"global using System;
+global using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+internal class Program
+{
+    private static async Task Main(string[] args)
+    {
+        Barrier b = new Barrier(0);
         List<int> list = new List<int>();
         Console.WriteLine(list.Count);
     }
@@ -520,9 +559,7 @@ namespace A
         /// <returns>The <see cref="Task"/> to test code cleanup.</returns>
         private protected static async Task AssertCodeCleanupResult(string expected, string code, CodeStyleOption2<AddImportPlacement> preferredImportPlacement, bool systemUsingsFirst = true, bool separateUsingGroups = false)
         {
-            var exportProvider = ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic).CreateExportProvider();
-
-            using var workspace = TestWorkspace.CreateCSharp(code, exportProvider: exportProvider);
+            using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
 
             var solution = workspace.CurrentSolution
                 .WithOptions(workspace.Options

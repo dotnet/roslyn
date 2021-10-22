@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -126,6 +124,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // Compilation wide suppression with a non-null target is considered invalid.
                 return targetSymbolString == null;
+            }
+            else if (targetScope == TargetScope.NamespaceAndDescendants)
+            {
+                // TargetSymbolResolver expects the callers to normalize 'NamespaceAndDescendants' and 'Namespace' scopes to 'Namespace' scope.
+                targetScope = TargetScope.Namespace;
             }
 
             var resolver = new TargetSymbolResolver(_compilation, targetScope, targetSymbolString);

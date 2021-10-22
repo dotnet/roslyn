@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -77,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                         }
 
                         var extensionType_GetContentMethod = extensionType.GetRuntimeMethod("GetContentLocation", new Type[] { _typeIExtensionContent });
-                        if (!(extensionType_GetContentMethod?.Invoke(extension, new object[] { content }) is string assemblyPath) ||
+                        if (extensionType_GetContentMethod?.Invoke(extension, new object[] { content }) is not string assemblyPath ||
                             string.IsNullOrEmpty(assemblyPath))
                         {
                             continue;

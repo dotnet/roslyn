@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -221,8 +219,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool conversionMustBePerformedOnOriginalExpression(BoundConversion expr, ConversionKind kind)
             {
-                // These are conversions from-expression that do not produce a constant,
-                // and which must be performed on the original expression, not on a copy of it.
+                // These are conversions from-expression that
+                // must be performed on the original expression, not on a copy of it.
                 switch (kind)
                 {
                     case ConversionKind.AnonymousFunction:       // a lambda cannot be saved without a target type
@@ -230,6 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ConversionKind.InterpolatedString:      // an interpolated string must be saved in interpolated form
                     case ConversionKind.SwitchExpression:        // a switch expression must have its arms converted
                     case ConversionKind.StackAllocToPointerType: // a stack alloc is not well-defined without an enclosing conversion
+                    case ConversionKind.ConditionalExpression:   // a conditional expression must have its alternatives converted
                     case ConversionKind.StackAllocToSpanType:
                     case ConversionKind.ObjectCreation:
                         return true;
@@ -550,11 +549,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression dynamicResult = _dynamicFactory.MakeDynamicBinaryOperator(single.Kind, left, right, isCompoundAssignment: false, _compilation.DynamicType).ToExpression();
                 if (operatorKind == BinaryOperatorKind.Equal)
                 {
-                    return _factory.Not(MakeUnaryOperator(UnaryOperatorKind.DynamicFalse, left.Syntax, method: null, dynamicResult, boolType));
+                    return _factory.Not(MakeUnaryOperator(UnaryOperatorKind.DynamicFalse, left.Syntax, method: null, constrainedToTypeOpt: null, dynamicResult, boolType));
                 }
                 else
                 {
-                    return MakeUnaryOperator(UnaryOperatorKind.DynamicTrue, left.Syntax, method: null, dynamicResult, boolType);
+                    return MakeUnaryOperator(UnaryOperatorKind.DynamicTrue, left.Syntax, method: null, constrainedToTypeOpt: null, dynamicResult, boolType);
                 }
             }
 
@@ -564,36 +563,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundLiteral(left.Syntax, ConstantValue.Create(operatorKind == BinaryOperatorKind.Equal), boolType);
             }
 
-            BoundExpression binary = MakeBinaryOperator(_factory.Syntax, single.Kind, left, right, single.MethodSymbolOpt?.ReturnType ?? boolType, single.MethodSymbolOpt);
+            BoundExpression binary = MakeBinaryOperator(_factory.Syntax, single.Kind, left, right, single.MethodSymbolOpt?.ReturnType ?? boolType, single.MethodSymbolOpt, single.ConstrainedToTypeOpt);
             UnaryOperatorSignature boolOperator = single.BoolOperator;
-            Conversion boolConversion = single.ConversionForBool;
 
             BoundExpression result;
+            BoundExpression convertedBinary = ApplyConversionIfNotIdentity(single.ConversionForBool, single.ConversionForBoolPlaceholder, binary);
+
             if (boolOperator.Kind != UnaryOperatorKind.Error)
             {
                 // Produce
                 // !((left == right).op_false)
                 // (left != right).op_true
-                BoundExpression convertedBinary = MakeConversionNode(_factory.Syntax, binary, boolConversion, boolOperator.OperandType, @checked: false);
-
                 Debug.Assert(boolOperator.ReturnType.SpecialType == SpecialType.System_Boolean);
-                result = MakeUnaryOperator(boolOperator.Kind, binary.Syntax, boolOperator.Method, convertedBinary, boolType);
+                result = MakeUnaryOperator(boolOperator.Kind, binary.Syntax, boolOperator.Method, boolOperator.ConstrainedToTypeOpt, convertedBinary, boolType);
 
                 if (operatorKind == BinaryOperatorKind.Equal)
                 {
                     result = _factory.Not(result);
                 }
             }
-            else if (!boolConversion.IsIdentity)
+            else
             {
                 // Produce
                 // (bool)(left == right)
                 // (bool)(left != right)
-                result = MakeConversionNode(_factory.Syntax, binary, boolConversion, boolType, @checked: false);
-            }
-            else
-            {
-                result = binary;
+                result = convertedBinary;
             }
 
             return result;

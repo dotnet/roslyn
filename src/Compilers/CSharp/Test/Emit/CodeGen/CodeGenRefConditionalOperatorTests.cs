@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1058,7 +1060,7 @@ class C
     }
 ";
 
-            var comp = CompileAndVerifyWithMscorlib40(source, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef, SystemCoreRef }, expectedOutput: "00", verify: Verification.Fails);
+            var comp = CompileAndVerifyWithMscorlib40(source, references: new[] { TestMetadata.Net40.System, ValueTupleRef, TestMetadata.Net40.SystemCore }, expectedOutput: "00", verify: Verification.Fails);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("Program.Main", @"
@@ -1200,5 +1202,158 @@ class C
                );
         }
 
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
+        public void TestRefOnPointerIndirection_ThroughTernary_01()
+        {
+            var code = @"
+using System;
+
+unsafe
+{
+    bool b = true;
+    ref int x = ref b ? ref *(int*)0 : ref *(int*)1;
+    Console.WriteLine(""run"");
+}
+";
+
+            verify(TestOptions.UnsafeReleaseExe, Verification.Passes, @"
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  brtrue.s   IL_0008
+  IL_0003:  ldc.i4.1
+  IL_0004:  conv.i
+  IL_0005:  pop
+  IL_0006:  br.s       IL_000b
+  IL_0008:  ldc.i4.0
+  IL_0009:  conv.i
+  IL_000a:  pop
+  IL_000b:  ldstr      ""run""
+  IL_0010:  call       ""void System.Console.WriteLine(string)""
+  IL_0015:  ret
+}
+");
+
+            verify(TestOptions.UnsafeDebugExe, Verification.Fails, @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  .locals init (bool V_0, //b
+                int& V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  brtrue.s   IL_000a
+  IL_0006:  ldc.i4.1
+  IL_0007:  conv.i
+  IL_0008:  br.s       IL_000c
+  IL_000a:  ldc.i4.0
+  IL_000b:  conv.i
+  IL_000c:  stloc.1
+  IL_000d:  ldstr      ""run""
+  IL_0012:  call       ""void System.Console.WriteLine(string)""
+  IL_0017:  nop
+  IL_0018:  nop
+  IL_0019:  ret
+}
+");
+
+            void verify(CSharpCompilationOptions options, Verification verify, string expectedIL)
+            {
+                var comp = CreateCompilation(code, options: options);
+                var verifier = CompileAndVerify(comp, expectedOutput: "run", verify: verify);
+                verifier.VerifyDiagnostics();
+                verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+            }
+        }
+
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
+        public void TestRefOnPointerIndirection_ThroughTernary_02()
+        {
+            var code = @"
+using System;
+
+unsafe
+{
+    int i1 = 0;
+    int* p1 = &i1;
+    bool b = true;
+    ref int x = ref b ? ref *M(*p1) : ref i1;
+    Console.WriteLine(""run"");
+
+    int* M(int i)
+    {
+        Console.Write(i);
+        return (int*)0;
+    }
+}
+";
+
+            verify(TestOptions.UnsafeReleaseExe, @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  1
+  .locals init (int V_0, //i1
+                int* V_1) //p1
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  conv.u
+  IL_0005:  stloc.1
+  IL_0006:  ldc.i4.1
+  IL_0007:  brfalse.s  IL_0011
+  IL_0009:  ldloc.1
+  IL_000a:  ldind.i4
+  IL_000b:  call       ""int* Program.<<Main>$>g__M|0_0(int)""
+  IL_0010:  pop
+  IL_0011:  ldstr      ""run""
+  IL_0016:  call       ""void System.Console.WriteLine(string)""
+  IL_001b:  ret
+}
+");
+
+            verify(TestOptions.UnsafeDebugExe, @"
+{
+  // Code size       38 (0x26)
+  .maxstack  1
+  .locals init (int V_0, //i1
+                int* V_1, //p1
+                bool V_2, //b
+                int& V_3) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  conv.u
+  IL_0006:  stloc.1
+  IL_0007:  ldc.i4.1
+  IL_0008:  stloc.2
+  IL_0009:  ldloc.2
+  IL_000a:  brtrue.s   IL_0010
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  br.s       IL_0017
+  IL_0010:  ldloc.1
+  IL_0011:  ldind.i4
+  IL_0012:  call       ""int* Program.<<Main>$>g__M|0_0(int)""
+  IL_0017:  stloc.3
+  IL_0018:  ldstr      ""run""
+  IL_001d:  call       ""void System.Console.WriteLine(string)""
+  IL_0022:  nop
+  IL_0023:  nop
+  IL_0024:  nop
+  IL_0025:  ret
+}
+");
+
+            void verify(CSharpCompilationOptions options, string expectedIL)
+            {
+                var comp = CreateCompilation(code, options: options);
+                var verifier = CompileAndVerify(comp, expectedOutput: "0run", verify: Verification.Fails);
+                verifier.VerifyDiagnostics();
+                verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+            }
+        }
     }
 }

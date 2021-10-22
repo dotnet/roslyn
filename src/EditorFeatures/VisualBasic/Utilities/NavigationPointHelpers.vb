@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
                 line = text.Lines.GetLineFromPosition(eventBlock.EventStatement.Span.End).LineNumber + 1
             End If
 
-            Return GetNavigationPoint(text, indentSize, eventBlock.EventStatement, eventBlock.EndEventStatement, line)
+            Return GetNavigationPoint(text, indentSize, eventBlock.EventStatement, line)
         End Function
 
         Public Function GetNavigationPoint(text As SourceText, indentSize As Integer, methodBlock As MethodBlockBaseSyntax) As VirtualTreePoint
@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
                 line = text.Lines.GetLineFromPosition(methodBlock.BlockStatement.Span.End).LineNumber + 1
             End If
 
-            Return GetNavigationPoint(text, indentSize, methodBlock.BlockStatement, methodBlock.EndBlockStatement, line)
+            Return GetNavigationPoint(text, indentSize, methodBlock.BlockStatement, line)
         End Function
 
         Public Function GetHeaderStartPosition(eventBlock As EventBlockSyntax) As Integer
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
         End Function
 
         ' TODO: this function conflates tab size and indent size.
-        Public Function GetNavigationPoint(text As SourceText, indentSize As Integer, beginStatement As StatementSyntax, endStatement As StatementSyntax, lineNumber As Integer) As VirtualTreePoint
+        Public Function GetNavigationPoint(text As SourceText, indentSize As Integer, beginStatement As StatementSyntax, lineNumber As Integer) As VirtualTreePoint
             Dim line = text.Lines(lineNumber)
             Dim nonWhitespaceOffset = line.GetFirstNonWhitespacePosition()
 

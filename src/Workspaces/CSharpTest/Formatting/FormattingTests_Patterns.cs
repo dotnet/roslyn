@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -308,6 +311,232 @@ class A
                 { CSharpFormattingOptions2.SpaceWithinExpressionParentheses, spaceWithinExpressionParentheses },
             };
             await AssertFormatAsync(expected, content, changedOptionSet: changingOptions);
+        }
+
+        [Fact]
+        [WorkItem(46284, "https://github.com/dotnet/roslyn/issues/46284")]
+        public async Task FormatMultiLinePattern1()
+        {
+            var content = @"
+class TypeName
+{
+    bool MethodName(string value)
+    {
+        return value is object
+               && value is
+                 {
+                     Length: 2,
+                 };
+    }
+}
+";
+            var expected = @"
+class TypeName
+{
+    bool MethodName(string value)
+    {
+        return value is object
+               && value is
+               {
+                   Length: 2,
+               };
+    }
+}
+";
+
+            await AssertFormatAsync(expected, content);
+        }
+
+        [Fact]
+        [WorkItem(46284, "https://github.com/dotnet/roslyn/issues/46284")]
+        public async Task FormatMultiLinePattern2()
+        {
+            var content = @"
+class TypeName
+{
+    private static bool IsCallingConventionModifier(CustomModifier modifier)
+    {
+        var modifierType = ((CSharpCustomModifier)modifier).ModifierSymbol;
+        return (object)modifierType.ContainingAssembly == modifierType.ContainingAssembly.CorLibrary
+               && modifierType.Name != ""CallConv""
+               && modifierType.Arity == 0
+               && modifierType.Name.StartsWith(""CallConv"", StringComparison.Ordinal)
+               && modifierType.ContainingNamespace is
+                  {
+                      Name: ""CompilerServices"",
+                      ContainingNamespace:
+                      {
+                          Name: ""Runtime"",
+                          ContainingNamespace:
+                          {
+                              Name: ""System"",
+                              ContainingNamespace: { IsGlobalNamespace: true }
+                          }
+                      }
+                  };
+    }
+}
+";
+            var expected = @"
+class TypeName
+{
+    private static bool IsCallingConventionModifier(CustomModifier modifier)
+    {
+        var modifierType = ((CSharpCustomModifier)modifier).ModifierSymbol;
+        return (object)modifierType.ContainingAssembly == modifierType.ContainingAssembly.CorLibrary
+               && modifierType.Name != ""CallConv""
+               && modifierType.Arity == 0
+               && modifierType.Name.StartsWith(""CallConv"", StringComparison.Ordinal)
+               && modifierType.ContainingNamespace is
+               {
+                   Name: ""CompilerServices"",
+                   ContainingNamespace:
+                   {
+                       Name: ""Runtime"",
+                       ContainingNamespace:
+                       {
+                           Name: ""System"",
+                           ContainingNamespace: { IsGlobalNamespace: true }
+                       }
+                   }
+               };
+    }
+}
+";
+
+            await AssertFormatAsync(expected, content);
+        }
+
+        [Fact]
+        [WorkItem(46284, "https://github.com/dotnet/roslyn/issues/46284")]
+        public async Task FormatMultiLinePattern3()
+        {
+            var content = @"
+class TypeName
+{
+    private static bool IsCallingConventionModifier(CustomModifier modifier)
+    {
+        var modifierType = ((CSharpCustomModifier)modifier).ModifierSymbol;
+        return (object)modifierType.ContainingAssembly == modifierType.ContainingAssembly.CorLibrary
+               && modifierType.Name != ""CallConv""
+               && modifierType.Arity == 0
+               && modifierType.Name.StartsWith(""CallConv"", StringComparison.Ordinal)
+               && modifierType.ContainingNamespace is
+{
+Name: ""CompilerServices"",
+ContainingNamespace:
+{
+Name: ""Runtime"",
+ContainingNamespace:
+{
+Name: ""System"",
+ContainingNamespace: { IsGlobalNamespace: true }
+}
+}
+};
+    }
+}
+";
+            var expected = @"
+class TypeName
+{
+    private static bool IsCallingConventionModifier(CustomModifier modifier)
+    {
+        var modifierType = ((CSharpCustomModifier)modifier).ModifierSymbol;
+        return (object)modifierType.ContainingAssembly == modifierType.ContainingAssembly.CorLibrary
+               && modifierType.Name != ""CallConv""
+               && modifierType.Arity == 0
+               && modifierType.Name.StartsWith(""CallConv"", StringComparison.Ordinal)
+               && modifierType.ContainingNamespace is
+               {
+                   Name: ""CompilerServices"",
+                   ContainingNamespace:
+                   {
+                       Name: ""Runtime"",
+                       ContainingNamespace:
+                       {
+                           Name: ""System"",
+                           ContainingNamespace: { IsGlobalNamespace: true }
+                       }
+                   }
+               };
+    }
+}
+";
+
+            await AssertFormatAsync(expected, content);
+        }
+
+        [Fact]
+        [WorkItem(42861, "https://github.com/dotnet/roslyn/issues/42861")]
+        public async Task FormatMultiLinePattern4()
+        {
+            var content = @"
+class TypeName
+{
+    void MethodName(string value)
+    {
+        if (value is
+                 {
+                     Length: 2,
+                 })
+{
+}
+    }
+}
+";
+            var expected = @"
+class TypeName
+{
+    void MethodName(string value)
+    {
+        if (value is
+            {
+                Length: 2,
+            })
+        {
+        }
+    }
+}
+";
+
+            await AssertFormatAsync(expected, content);
+        }
+
+        [Fact]
+        [WorkItem(42861, "https://github.com/dotnet/roslyn/issues/42861")]
+        public async Task FormatMultiLinePattern5()
+        {
+            var content = @"
+class TypeName
+{
+    void MethodName(string value)
+    {
+        while (value is
+                 {
+                     Length: 2,
+                 })
+{
+}
+    }
+}
+";
+            var expected = @"
+class TypeName
+{
+    void MethodName(string value)
+    {
+        while (value is
+            {
+                Length: 2,
+            })
+        {
+        }
+    }
+}
+";
+
+            await AssertFormatAsync(expected, content);
         }
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             private readonly BuilderOptions _builderOptions;
             private CommonPrimitiveFormatterOptions _primitiveOptions;
-            private CommonTypeNameFormatterOptions _typeNameOptions;
+            private readonly CommonTypeNameFormatterOptions _typeNameOptions;
             private MemberDisplayFormat _memberDisplayFormat;
 
             private HashSet<object> _lazyVisitedObjects;

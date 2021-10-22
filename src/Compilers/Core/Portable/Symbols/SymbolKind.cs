@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
+using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -114,6 +115,22 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Symbol represents a function pointer type
         /// </summary>
-        FunctionPointer = 20,
+        FunctionPointerType = 20,
+    }
+
+    internal static class SymbolKindInternal
+    {
+        /// <summary>
+        /// Internal Symbol representing the inferred signature of
+        /// a lambda expression or method group.
+        /// </summary>
+        internal const SymbolKind FunctionType = (SymbolKind)255;
+
+#if DEBUG
+        static SymbolKindInternal()
+        {
+            Debug.Assert(!EnumUtilities.ContainsValue(FunctionType));
+        }
+#endif
     }
 }

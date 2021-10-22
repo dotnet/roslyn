@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundLambda
+    Partial Friend Class BoundLambda
 
         ''' <summary>
         ''' Should this lambda be treated as a single line lambda?

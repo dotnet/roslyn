@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -34,7 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
         [WpfFact]
         public async Task TestCodeActionPreviewAndApply()
         {
-            using var workspace = TestWorkspace.Create(WorkspaceXml);
+            // TODO: WPF required due to https://github.com/dotnet/roslyn/issues/46153
+            using var workspace = TestWorkspace.Create(WorkspaceXml, composition: EditorTestCompositions.EditorFeaturesWpf);
             var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace, new TestParameters());
 
             var expectedCode = "private class D { }";
@@ -68,9 +71,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
             Assert.Equal(expectedMergedText, (await workspace.CurrentSolution.GetDocument(documentId).GetTextAsync()).ToString());
             Assert.Equal(expectedMergedText, (await workspace.CurrentSolution.GetDocument(linkedDocumentId).GetTextAsync()).ToString());
         }
-
-        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-            => throw new NotSupportedException();
 
         protected override ParseOptions GetScriptOptions()
             => throw new NotSupportedException();

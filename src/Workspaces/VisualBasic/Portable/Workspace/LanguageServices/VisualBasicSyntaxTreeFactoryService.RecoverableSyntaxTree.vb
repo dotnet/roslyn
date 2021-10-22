@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host
@@ -52,8 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              options As ParseOptions,
                                                              text As ValueSource(Of TextAndVersion),
                                                              encoding As Encoding,
-                                                             root As CompilationUnitSyntax,
-                                                             diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic)) As SyntaxTree
+                                                             root As CompilationUnitSyntax) As SyntaxTree
                     Return New RecoverableSyntaxTree(
                         service,
                         cacheKey,
@@ -63,8 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             options,
                             text,
                             encoding,
-                            root.FullSpan.Length,
-                            If(diagnosticOptions, EmptyDiagnosticOptions)))
+                            root.FullSpan.Length))
                 End Function
 
                 Public Overrides ReadOnly Property FilePath As String Implements IRecoverableSyntaxTree(Of CompilationUnitSyntax).FilePath
@@ -76,12 +73,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Public Overrides ReadOnly Property Options As VisualBasicParseOptions
                     Get
                         Return DirectCast(_info.Options, VisualBasicParseOptions)
-                    End Get
-                End Property
-
-                Public Overrides ReadOnly Property DiagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic)
-                    Get
-                        Return _info.DiagnosticOptions
                     End Get
                 End Property
 
@@ -166,18 +157,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     Return New RecoverableSyntaxTree(Me, _info.WithFilePath(path))
-                End Function
-
-                Public Overrides Function WithDiagnosticOptions(options As ImmutableDictionary(Of String, ReportDiagnostic)) As SyntaxTree
-                    If options Is Nothing Then
-                        options = EmptyDiagnosticOptions
-                    End If
-
-                    If ReferenceEquals(options, _info.DiagnosticOptions) Then
-                        Return Me
-                    End If
-
-                    Return New RecoverableSyntaxTree(Me, _info.WithDiagnosticOptions(options))
                 End Function
             End Class
         End Class

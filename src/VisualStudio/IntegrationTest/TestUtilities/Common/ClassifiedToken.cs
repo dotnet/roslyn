@@ -3,11 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Runtime.Serialization;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common
 {
-    [System.Serializable]
+    [Serializable]
     public struct ClassifiedToken
     {
         public ClassifiedToken(string text, string classification)

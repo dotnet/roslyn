@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
@@ -19,6 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RenameTracking
         }
 
         public bool IsIdentifierValidForRenameTracking(string name)
-            => name != "var" && name != "dynamic" && name != "_";
+            => name is not "var" and not "dynamic" and not "_";
     }
 }

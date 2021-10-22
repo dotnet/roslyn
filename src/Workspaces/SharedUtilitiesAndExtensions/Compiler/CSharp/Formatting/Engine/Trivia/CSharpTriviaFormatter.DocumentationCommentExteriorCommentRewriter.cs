@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 
@@ -71,8 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 while (currentParent != null)
                 {
-                    if (currentParent.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia ||
-                        currentParent.Kind() == SyntaxKind.MultiLineDocumentationCommentTrivia)
+                    if (currentParent.Kind() is SyntaxKind.SingleLineDocumentationCommentTrivia or
+                        SyntaxKind.MultiLineDocumentationCommentTrivia)
                     {
                         if (trivia.Span.End == currentParent.SpanStart ||
                             trivia.Span.End == currentParent.Span.End)

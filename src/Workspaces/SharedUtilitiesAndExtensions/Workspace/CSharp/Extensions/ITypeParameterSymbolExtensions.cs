@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -59,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var constraintTypes =
                 typeParameter.ConstraintTypes.Where(t => t.TypeKind == TypeKind.Class).Concat(
                 typeParameter.ConstraintTypes.Where(t => t.TypeKind == TypeKind.Interface).Concat(
-                typeParameter.ConstraintTypes.Where(t => t.TypeKind != TypeKind.Class && t.TypeKind != TypeKind.Interface)));
+                typeParameter.ConstraintTypes.Where(t => t.TypeKind is not TypeKind.Class and not TypeKind.Interface)));
 
             foreach (var type in constraintTypes)
             {

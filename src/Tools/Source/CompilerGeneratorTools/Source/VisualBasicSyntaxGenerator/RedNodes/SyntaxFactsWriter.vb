@@ -86,6 +86,10 @@ Public Class SyntaxFactsWriter
                     tokenText = tokenText.Replace("""", """""")
                 End If
 
+                If tokenText IsNot Nothing AndAlso tokenText.Contains(vbCrLf) Then
+                    tokenText = tokenText.Replace(vbCrLf, Environment.NewLine)
+                End If
+
                 If tokenText <> Nothing Then
                     _writer.WriteLine("                Case SyntaxKind.{0}", kind.Name)
 

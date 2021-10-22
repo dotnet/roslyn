@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
@@ -54,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             var parentNode = this.ParentElement.LookupNode();
             if (parentNode != null)
             {
-                if (CodeModelService.TryGetParameterNode(parentNode, name, out var parameterNode))
+                if (CodeModelService.TryGetParameterNode(parentNode, name, out _))
                 {
                     // The name of the CodeElement should be just the identifier name associated with the element 
                     // devoid of the type characters hence we use the just identifier name for both creation and 

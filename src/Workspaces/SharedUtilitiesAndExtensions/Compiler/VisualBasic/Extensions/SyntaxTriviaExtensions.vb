@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Module SyntaxTriviaExtensions
@@ -37,6 +38,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension>
         Public Function IsRegularOrDocComment(trivia As SyntaxTrivia) As Boolean
             Return trivia.Kind = SyntaxKind.CommentTrivia OrElse trivia.Kind = SyntaxKind.DocumentationCommentTrivia
+        End Function
+
+        <Extension()>
+        Public Function IsPragmaDirective(trivia As SyntaxTrivia, ByRef isDisable As Boolean, ByRef isActive As Boolean, ByRef errorCodes As SeparatedSyntaxList(Of SyntaxNode)) As Boolean
+            Select Case trivia.Kind()
+                Case SyntaxKind.DisableWarningDirectiveTrivia
+                    Dim pragmaWarning = DirectCast(trivia.GetStructure(), DisableWarningDirectiveTriviaSyntax)
+                    errorCodes = pragmaWarning.ErrorCodes
+                    isDisable = True
+                    isActive = True
+                    Return True
+
+                Case SyntaxKind.EnableWarningDirectiveTrivia
+                    Dim pragmaWarning = DirectCast(trivia.GetStructure(), EnableWarningDirectiveTriviaSyntax)
+                    errorCodes = pragmaWarning.ErrorCodes
+                    isDisable = False
+                    isActive = True
+                    Return True
+            End Select
+
+            errorCodes = Nothing
+            isDisable = False
+            isActive = False
+            Return False
         End Function
     End Module
 End Namespace

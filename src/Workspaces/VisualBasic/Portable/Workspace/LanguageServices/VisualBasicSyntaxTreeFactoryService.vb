@@ -2,13 +2,13 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.IO
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -18,21 +18,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements ILanguageServiceFactory
 
         Private Shared ReadOnly _parseOptionsWithLatestLanguageVersion As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest)
+        Private ReadOnly _optionService As IGlobalOptionService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New()
+        Public Sub New(optionService As IGlobalOptionService)
+            _optionService = optionService
         End Sub
 
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicSyntaxTreeFactoryService(provider)
+            Return New VisualBasicSyntaxTreeFactoryService(_optionService, provider)
         End Function
 
         Partial Friend Class VisualBasicSyntaxTreeFactoryService
             Inherits AbstractSyntaxTreeFactoryService
 
-            Public Sub New(languageServices As HostLanguageServices)
-                MyBase.New(languageServices)
+            Public Sub New(optionService As IGlobalOptionService, languageServices As HostLanguageServices)
+                MyBase.New(optionService, languageServices)
             End Sub
 
             Public Overloads Overrides Function GetDefaultParseOptions() As ParseOptions
@@ -43,22 +45,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _parseOptionsWithLatestLanguageVersion
             End Function
 
-            Public Overrides Function ParseSyntaxTree(filePath As String, options As ParseOptions, text As SourceText, analyzerConfigOptionsResult As AnalyzerConfigOptionsResult?, cancellationToken As CancellationToken) As SyntaxTree
+            Public Overrides Function ParseSyntaxTree(filePath As String, options As ParseOptions, text As SourceText, cancellationToken As CancellationToken) As SyntaxTree
                 If options Is Nothing Then
                     options = GetDefaultParseOptions()
                 End If
 
-                ' NOTE: Unlike the C# SyntaxFactory.ParseSyntaxTree API, the VB version does not currently support the flag 'isGeneratedCode' from analyzer options.
-                Return SyntaxFactory.ParseSyntaxTree(text, options, filePath, analyzerConfigOptionsResult?.TreeOptions, cancellationToken)
+                Return SyntaxFactory.ParseSyntaxTree(text, options, filePath, cancellationToken)
             End Function
 
-            Public Overrides Function CreateSyntaxTree(filePath As String, options As ParseOptions, encoding As Encoding, root As SyntaxNode, analyzerConfigOptionsResult As AnalyzerConfigOptionsResult) As SyntaxTree
+            Public Overrides Function CreateSyntaxTree(filePath As String, options As ParseOptions, encoding As Encoding, root As SyntaxNode) As SyntaxTree
                 If options Is Nothing Then
                     options = GetDefaultParseOptions()
                 End If
 
-                ' NOTE: Unlike the CSharpSyntaxTree.Create API, the VB version does not currently support the flag 'isGeneratedCode' from analyzer options.
-                Return VisualBasicSyntaxTree.Create(DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), filePath, encoding, analyzerConfigOptionsResult.TreeOptions)
+                Return VisualBasicSyntaxTree.Create(DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), filePath, encoding)
             End Function
 
             Public Overrides Function CanCreateRecoverableTree(root As SyntaxNode) As Boolean
@@ -71,8 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             optionsOpt As ParseOptions,
                                                             text As ValueSource(Of TextAndVersion),
                                                             encoding As Encoding,
-                                                            root As SyntaxNode,
-                                                            treeDiagnosticReportingOptionsOpt As ImmutableDictionary(Of String, ReportDiagnostic)) As SyntaxTree
+                                                            root As SyntaxNode) As SyntaxTree
 
                 Debug.Assert(CanCreateRecoverableTree(root))
                 Return RecoverableSyntaxTree.CreateRecoverableTree(
@@ -82,8 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If(optionsOpt, GetDefaultParseOptions()),
                     text,
                     encoding,
-                    DirectCast(root, CompilationUnitSyntax),
-                    treeDiagnosticReportingOptionsOpt)
+                    DirectCast(root, CompilationUnitSyntax))
             End Function
 
             Public Overrides Function DeserializeNodeFrom(stream As Stream, cancellationToken As CancellationToken) As SyntaxNode

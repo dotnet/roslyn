@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -45,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
             var semanticModel = (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
             var localFunctionSymbol = semanticModel.GetDeclaredSymbol(localFunction, cancellationToken);
+            Contract.ThrowIfNull(localFunctionSymbol, "We should have gotten a method symbol for a local function.");
             var documentImmutableSet = ImmutableHashSet.Create(document);
 
             // Finds all the call sites of the local function
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                     // We limited the search scope to the single document, 
                     // so all reference should be in the same tree.
                     var referenceNode = root.FindNode(location.Location.SourceSpan);
-                    if (!(referenceNode is IdentifierNameSyntax identifierNode))
+                    if (referenceNode is not IdentifierNameSyntax identifierNode)
                     {
                         // Unexpected scenario, skip and warn.
                         shouldWarn = true;
@@ -168,20 +167,16 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
         /// Creates a new parameter symbol paired with the original captured symbol for each captured variables.
         /// </summary>
         private static ImmutableArray<(IParameterSymbol symbol, ISymbol capture)> CreateParameterSymbols(ImmutableArray<ISymbol> captures)
-        {
-            var parameters = ArrayBuilder<(IParameterSymbol, ISymbol)>.GetInstance(captures.Length);
-
-            foreach (var symbol in captures)
+            => captures.SelectAsArray(static c =>
             {
-                parameters.Add((CodeGenerationSymbolFactory.CreateParameterSymbol(
+                var symbolType = c.GetSymbolType();
+                Contract.ThrowIfNull(symbolType);
+                return (CodeGenerationSymbolFactory.CreateParameterSymbol(
                     attributes: default,
                     refKind: RefKind.None,
                     isParams: false,
-                    type: symbol.GetSymbolType(),
-                    name: symbol.Name.ToCamelCase()), symbol));
-            }
-
-            return parameters.ToImmutableAndFree();
-        }
+                    type: symbolType,
+                    name: c.Name.ToCamelCase()), c);
+            });
     }
 }

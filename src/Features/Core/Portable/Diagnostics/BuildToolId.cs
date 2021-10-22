@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal abstract class Base<T> : BuildToolId
         {
-            protected readonly T _Field1;
+            protected readonly T? _Field1;
 
-            public Base(T field)
+            public Base(T? field)
                 => _Field1 = field;
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
-                if (!(obj is Base<T> other))
+                if (obj is not Base<T> other)
                 {
                     return false;
                 }
@@ -36,14 +36,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal abstract class Base<T1, T2> : Base<T2>
         {
-            private readonly T1 _Field2;
+            private readonly T1? _Field2;
 
-            public Base(T1 field1, T2 field2) : base(field2)
+            public Base(T1? field1, T2? field2) : base(field2)
                 => _Field2 = field1;
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
-                if (!(obj is Base<T1, T2> other))
+                if (obj is not Base<T1, T2> other)
                 {
                     return false;
                 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -57,27 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal override Cci.PrimitiveTypeCode GetPrimitiveTypeCode(PEModuleSymbol moduleSymbol, TypeSymbol type)
         {
             return type.PrimitiveTypeCode;
-        }
-
-        internal override bool IsAcceptedVolatileModifierType(PEModuleSymbol moduleSymbol, TypeSymbol type)
-        {
-            return type.SpecialType == SpecialType.System_Runtime_CompilerServices_IsVolatile;
-        }
-
-        internal override bool IsAcceptedInAttributeModifierType(TypeSymbol type)
-        {
-            return type.IsWellKnownTypeInAttribute();
-        }
-
-        internal override bool IsAcceptedIsExternalInitModifierType(TypeSymbol type)
-            => type.IsWellKnownTypeIsExternalInit();
-
-        internal override bool IsAcceptedOutAttributeModifierType(TypeSymbol type)
-            => type.IsWellKnownTypeOutAttribute();
-
-        internal override bool IsAcceptedUnmanagedTypeModifierType(TypeSymbol type)
-        {
-            return type.IsWellKnownTypeUnmanagedType();
         }
 
         internal override TypeSymbol GetSZArrayTypeSymbol(PEModuleSymbol moduleSymbol, TypeSymbol elementType, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)

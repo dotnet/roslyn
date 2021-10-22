@@ -2,37 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
-    [Export(typeof(IOptionPersister))]
     internal class CommentTaskTokenSerializer : IOptionPersister
     {
-        private readonly ITaskList _taskList;
+        private readonly ITaskList? _taskList;
         private readonly IGlobalOptionService _globalOptionService;
 
-        private string _lastCommentTokenCache = null;
+        private string? _lastCommentTokenCache = null;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CommentTaskTokenSerializer(
             IGlobalOptionService globalOptionService,
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+            ITaskList? taskList)
         {
             _globalOptionService = globalOptionService;
 
             // The SVsTaskList may not be available or doesn't actually implement ITaskList
             // in the "devenv /build" scenario
-            _taskList = serviceProvider.GetService(typeof(SVsTaskList)) as ITaskList;
+            _taskList = taskList;
 
             // GetTaskTokenList is safe in the face of nulls
             _lastCommentTokenCache = GetTaskTokenList(_taskList);
@@ -43,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
-        public bool TryFetch(OptionKey optionKey, out object value)
+        public bool TryFetch(OptionKey optionKey, out object? value)
         {
             value = string.Empty;
             if (optionKey != TodoCommentOptions.TokenList)
@@ -55,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             return true;
         }
 
-        public bool TryPersist(OptionKey optionKey, object value)
+        public bool TryPersist(OptionKey optionKey, object? value)
         {
             // it never persists
             return false;
@@ -83,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _globalOptionService.RefreshOption(TodoCommentOptions.TokenList, _lastCommentTokenCache);
         }
 
-        private static string GetTaskTokenList(ITaskList taskList)
+        private static string GetTaskTokenList(ITaskList? taskList)
         {
             var commentTokens = taskList?.CommentTokens;
             if (commentTokens == null || commentTokens.Count == 0)
@@ -99,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     continue;
                 }
 
-                result.Add($"{commentToken.Text}:{((int)commentToken.Priority).ToString()}");
+                result.Add($"{commentToken.Text}:{(int)commentToken.Priority}");
             }
 
             return string.Join("|", result);

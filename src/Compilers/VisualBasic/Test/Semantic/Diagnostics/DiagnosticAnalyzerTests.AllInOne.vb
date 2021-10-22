@@ -19,7 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Public Sub DiagnosticAnalyzerAllInOne()
             Dim source = TestResource.AllInOneVisualBasicBaseline
             Dim analyzer = New BasicTrackingDiagnosticAnalyzer()
-            CreateCompilationWithMscorlib40({source}).VerifyAnalyzerDiagnostics({analyzer})
+            Dim options = New AnalyzerOptions({DirectCast(New TestAdditionalText(), AdditionalText)}.ToImmutableArray())
+            CreateCompilationWithMscorlib40({source}).VerifyAnalyzerDiagnostics({analyzer}, options)
             analyzer.VerifyAllAnalyzerMembersWereCalled()
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds()
             analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(New HashSet(Of SyntaxKind)())
@@ -44,8 +45,9 @@ End Enum
         <WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")>
         Public Sub AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
             Dim compilation = CreateCompilationWithMscorlib40({TestResource.AllInOneVisualBasicCode})
+            Dim options = New AnalyzerOptions({CType(new TestAdditionalText(), AdditionalText)}.ToImmutableArray())
             ThrowingDiagnosticAnalyzer(Of SyntaxKind).VerifyAnalyzerEngineIsSafeAgainstExceptions(
-                Function(analyzer) compilation.GetAnalyzerDiagnostics({analyzer}))
+                Function(analyzer) compilation.GetAnalyzerDiagnostics({analyzer}, options))
         End Sub
 
         <Fact>

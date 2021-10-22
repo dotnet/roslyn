@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -110,15 +112,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                                             location => location,
                                             location => resolver(root, location, _annotations[location]));
 
-                // check variable assumption. ordering of two pairs can't be changed
                 Contract.ThrowIfFalse(
-                    tokens[TriviaLocation.BeforeBeginningOfSpan].RawKind == 0 /* && don't care */ ||
-                    /* don't care && */ tokens[TriviaLocation.AfterEndOfSpan].RawKind == 0 ||
-                    tokens[TriviaLocation.BeforeBeginningOfSpan].Span.End <= tokens[TriviaLocation.AfterEndOfSpan].SpanStart);
-
-                Contract.ThrowIfFalse(
-                    tokens[TriviaLocation.AfterBeginningOfSpan].RawKind == 0 /* && don't care */ ||
-                    /* don't care && */ tokens[TriviaLocation.BeforeEndOfSpan].RawKind == 0 ||
+                    tokens[TriviaLocation.AfterBeginningOfSpan].RawKind == 0 /* don't care */ ||
+                    tokens[TriviaLocation.BeforeEndOfSpan].RawKind == 0 /* don't care */  ||
                     tokens[TriviaLocation.AfterBeginningOfSpan] == tokens[TriviaLocation.BeforeEndOfSpan] ||
                     tokens[TriviaLocation.AfterBeginningOfSpan].GetPreviousToken(includeZeroWidth: true) == tokens[TriviaLocation.BeforeEndOfSpan] ||
                     tokens[TriviaLocation.AfterBeginningOfSpan].Span.End <= tokens[TriviaLocation.BeforeEndOfSpan].SpanStart);

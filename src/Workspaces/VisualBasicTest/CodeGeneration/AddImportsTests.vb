@@ -32,7 +32,7 @@ End NameSpace"
                     "test",
                     "test.dll",
                     LanguageNames.VisualBasic,
-                    metadataReferences:={TestReferences.NetFx.v4_0_30319.mscorlib}))
+                    metadataReferences:={TestMetadata.Net451.mscorlib}))
 
             If globalImports IsNot Nothing Then
                 Dim gi = GlobalImport.Parse(globalImports)
@@ -51,6 +51,7 @@ End NameSpace"
                                              If symbol IsNot Nothing Then
                                                  Return c.WithAdditionalAnnotations(SymbolAnnotation.Create(symbol), Simplifier.Annotation)
                                              End If
+
                                              Return c
                                          End Function)
                 doc = doc.WithSyntaxRoot(root)

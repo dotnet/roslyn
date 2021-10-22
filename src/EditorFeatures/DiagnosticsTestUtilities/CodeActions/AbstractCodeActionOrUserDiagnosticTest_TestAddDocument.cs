@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -28,10 +30,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 initialMarkup, expectedMarkup,
                 expectedContainers, expectedDocumentName,
                 WithRegularOptions(parameters));
-            await TestAddDocument(
-                initialMarkup, expectedMarkup,
-                expectedContainers, expectedDocumentName,
-                WithScriptOptions(parameters));
+
+            // VB script is not supported:
+            if (GetLanguage() == LanguageNames.CSharp)
+            {
+                await TestAddDocument(
+                    initialMarkup, expectedMarkup,
+                    expectedContainers, expectedDocumentName,
+                    WithScriptOptions(parameters));
+            }
         }
 
         protected async Task<Tuple<Solution, Solution>> TestAddDocumentAsync(
@@ -81,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 expectedDocumentName: expectedDocumentName);
         }
 
-        protected async Task<Tuple<Solution, Solution>> TestAddDocument(
+        protected static async Task<Tuple<Solution, Solution>> TestAddDocument(
             TestWorkspace workspace,
             string expected,
             ImmutableArray<CodeActionOperation> operations,
@@ -90,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             ImmutableArray<string> expectedFolders,
             string expectedDocumentName)
         {
-            var appliedChanges = ApplyOperationsAndGetSolution(workspace, operations);
+            var appliedChanges = await ApplyOperationsAndGetSolutionAsync(workspace, operations);
             var oldSolution = appliedChanges.Item1;
             var newSolution = appliedChanges.Item2;
 
@@ -109,13 +116,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             AssertEx.Equal(expectedFolders, addedDocument.Folders);
             Assert.Equal(expectedDocumentName, addedDocument.Name);
-            Assert.Equal(expected, (await addedDocument.GetTextAsync()).ToString());
+            var actual = (await addedDocument.GetTextAsync()).ToString();
+            Assert.Equal(expected, actual);
 
             var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
             if (!hasProjectChange)
             {
                 // If there is just one document change then we expect the preview to be a WpfTextView
-                var content = (await editHandler.GetPreviews(workspace, operations, CancellationToken.None).GetPreviewsAsync())[0];
+                var previews = await editHandler.GetPreviewsAsync(workspace, operations, CancellationToken.None);
+                var content = (await previews.GetPreviewsAsync())[0];
                 using (var diffView = content as DifferenceViewerPreview)
                 {
                     Assert.NotNull(diffView.Viewer);
@@ -124,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             else
             {
                 // If there are more changes than just the document we need to browse all the changes and get the document change
-                var contents = editHandler.GetPreviews(workspace, operations, CancellationToken.None);
+                var contents = await editHandler.GetPreviewsAsync(workspace, operations, CancellationToken.None);
                 var hasPreview = false;
                 var previews = await contents.GetPreviewsAsync();
                 if (previews != null)

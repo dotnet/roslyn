@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -52,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             var options = this.GetOptions(cancellationToken);
-            return (await this.GetOperationsAsync(options, cancellationToken).ConfigureAwait(false)).ToImmutableArray();
+            return (await this.GetOperationsAsync(options, cancellationToken).ConfigureAwait(false)).ToImmutableArrayOrEmpty();
         }
 
         /// <summary>

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,6 +18,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
@@ -864,28 +867,28 @@ public class LibBase
 {
     public readonly int X = 1;
 }
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
+", new[] { Net451.mscorlib }, libBaseName);
 
             var libBase2 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class LibBase
 {
     public readonly int X = 2;
 }
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
+", new[] { Net451.mscorlib }, libBaseName);
 
             var lib1 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib1
 {
     public LibBase libBase = new LibBase();
 }
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
+", new MetadataReference[] { Net451.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
 
             var lib2 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib2
 {
     public LibBase libBase = new LibBase();
 }
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib2Name);
+", new MetadataReference[] { Net451.mscorlib, libBase1.ToMetadataReference() }, lib2Name);
 
             var libBase1Image = libBase1.EmitToArray();
             var libBase2Image = libBase2.EmitToArray();

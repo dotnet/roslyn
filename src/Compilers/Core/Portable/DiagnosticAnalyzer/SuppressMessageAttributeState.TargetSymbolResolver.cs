@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (id != null && prefix != null && id.StartsWith(prefix, StringComparison.Ordinal))
                 {
-                    return id.Substring(prefix.Length);
+                    return id[prefix.Length..];
                 }
 
                 return id;
@@ -142,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             break;
                         }
                     }
-                    else if (nextChar == '.' || nextChar == '+')
+                    else if (nextChar is '.' or '+')
                     {
                         ++_index;
 
@@ -217,8 +219,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             else
                             {
                                 singleResult = candidateMembers.FirstOrDefault(s =>
-                                    s.Kind != SymbolKind.Namespace &&
-                                    s.Kind != SymbolKind.NamedType);
+                                    s.Kind is not SymbolKind.Namespace and
+                                    not SymbolKind.NamedType);
                             }
                             break;
 
@@ -230,6 +232,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         results.Add(singleResult);
                     }
+
+                    break;
                 }
 
                 return results.ToImmutableAndFree();
@@ -268,12 +272,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (delimiterOffset >= 0)
                 {
-                    segment = _name.Substring(_index, delimiterOffset - _index);
+                    segment = _name[_index..delimiterOffset];
                     _index = delimiterOffset;
                 }
                 else
                 {
-                    segment = _name.Substring(_index);
+                    segment = _name[_index..];
                     _index = _name.Length;
                 }
 
@@ -301,11 +305,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private ParameterInfo[] ParseParameterList()
             {
                 // Consume the opening parenthesis or bracket
-                Debug.Assert(PeekNextChar() == '(' || PeekNextChar() == '[');
+                Debug.Assert(PeekNextChar() is '(' or '[');
                 ++_index;
 
                 var nextChar = PeekNextChar();
-                if (nextChar == ')' || nextChar == ']')
+                if (nextChar is ')' or ']')
                 {
                     // Empty parameter list
                     ++_index;
@@ -338,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 nextChar = PeekNextChar();
-                if (nextChar == ')' || nextChar == ']')
+                if (nextChar is ')' or ']')
                 {
                     // Consume the closing parenthesis or bracket
                     ++_index;
@@ -608,7 +612,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
 
                     var nextChar = PeekNextChar();
-                    if (nextChar == '.' || nextChar == '+')
+                    if (nextChar is '.' or '+')
                     {
                         ++_index;
 
@@ -825,8 +829,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 return (INamespaceOrTypeSymbol)candidateMembers
                     .FirstOrDefault(s =>
-                        s.Kind == SymbolKind.Namespace ||
-                        s.Kind == SymbolKind.NamedType);
+                        s.Kind is SymbolKind.Namespace or
+                        SymbolKind.NamedType);
             }
 
             private static ITypeParameterSymbol GetNthTypeParameter(INamedTypeSymbol typeSymbol, int n)

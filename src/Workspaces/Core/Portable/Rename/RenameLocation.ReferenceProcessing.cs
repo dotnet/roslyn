@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -96,9 +94,9 @@ namespace Microsoft.CodeAnalysis.Rename
                 if (symbol.Kind == SymbolKind.Method)
                 {
                     var methodSymbol = (IMethodSymbol)symbol;
-                    if (methodSymbol.MethodKind == MethodKind.Constructor ||
-                        methodSymbol.MethodKind == MethodKind.StaticConstructor ||
-                        methodSymbol.MethodKind == MethodKind.Destructor)
+                    if (methodSymbol.MethodKind is MethodKind.Constructor or
+                        MethodKind.StaticConstructor or
+                        MethodKind.Destructor)
                     {
                         return methodSymbol.ContainingType;
                     }
@@ -223,10 +221,10 @@ namespace Microsoft.CodeAnalysis.Rename
                     return ((IMethodSymbol)symbol).AssociatedSymbol;
                 }
 
-                if (symbol.IsOverride && symbol.OverriddenMember() != null)
+                if (symbol.IsOverride && symbol.GetOverriddenMember() != null)
                 {
                     var originalSourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(
-                        symbol.OverriddenMember(), solution, cancellationToken).ConfigureAwait(false);
+                        symbol.GetOverriddenMember(), solution, cancellationToken).ConfigureAwait(false);
 
                     if (originalSourceSymbol != null)
                     {
@@ -301,8 +299,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 if (originalSymbol.Kind == SymbolKind.Alias)
                 {
                     var location = originalSymbol.Locations.Single();
-                    Contract.ThrowIfNull(location.SourceTree);
-                    results.Add(new RenameLocation(location, solution.GetRequiredDocument(location.SourceTree).Id));
+                    AddRenameLocationIfNotGenerated(location);
                     return results.ToImmutableAndFree();
                 }
 
@@ -311,11 +308,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 {
                     if (location.IsInSource)
                     {
-                        Contract.ThrowIfNull(location.SourceTree);
-                        results.Add(new RenameLocation(
-                            location,
-                            solution.GetRequiredDocument(location.SourceTree).Id,
-                            isRenamableAccessor: isRenamableAccessor));
+                        AddRenameLocationIfNotGenerated(location, isRenamableAccessor);
                     }
                 }
 
@@ -324,8 +317,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 if (referencedSymbol.Kind == SymbolKind.NamedType && referencedSymbol.Locations.All(l => l.IsInSource))
                 {
                     var firstLocation = referencedSymbol.Locations[0];
-                    Contract.ThrowIfNull(firstLocation.SourceTree);
-                    var syntaxFacts = solution.GetRequiredDocument(firstLocation.SourceTree)
+                    var syntaxFacts = solution.GetRequiredDocument(firstLocation.SourceTree!)
                                               .GetRequiredLanguageService<ISyntaxFactsService>();
 
                     var namedType = (INamedTypeSymbol)referencedSymbol;
@@ -343,8 +335,7 @@ namespace Microsoft.CodeAnalysis.Rename
                                     if (!syntaxFacts.IsReservedOrContextualKeyword(token) &&
                                         token.ValueText == referencedSymbol.Name)
                                     {
-                                        Contract.ThrowIfNull(location.SourceTree);
-                                        results.Add(new RenameLocation(location, solution.GetRequiredDocument(location.SourceTree).Id));
+                                        AddRenameLocationIfNotGenerated(location);
                                     }
                                 }
                             }
@@ -353,10 +344,29 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
 
                 return results.ToImmutableAndFree();
+
+                void AddRenameLocationIfNotGenerated(Location location, bool isRenamableAccessor = false)
+                {
+                    RoslynDebug.Assert(location.IsInSource);
+                    var document = solution.GetRequiredDocument(location.SourceTree);
+
+                    // If the location is in a source generated file, we won't rename it. Our assumption in this case is we
+                    // have cascaded to this symbol from our original source symbol, and the generator will update this file
+                    // based on the renamed symbol.
+                    if (document is not SourceGeneratedDocument)
+                        results.Add(new RenameLocation(location, document.Id, isRenamableAccessor: isRenamableAccessor));
+                }
             }
 
             internal static async Task<IEnumerable<RenameLocation>> GetRenamableReferenceLocationsAsync(ISymbol referencedSymbol, ISymbol originalSymbol, ReferenceLocation location, Solution solution, CancellationToken cancellationToken)
             {
+                // We won't try to update references in source generated files; we'll assume the generator will rerun
+                // and produce an updated document with the new name.
+                if (location.Document is SourceGeneratedDocument)
+                {
+                    return SpecializedCollections.EmptyEnumerable<RenameLocation>();
+                }
+
                 var shouldIncludeSymbol = await ShouldIncludeSymbolAsync(referencedSymbol, originalSymbol, solution, true, cancellationToken).ConfigureAwait(false);
                 if (!shouldIncludeSymbol)
                 {
@@ -429,7 +439,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 return results;
             }
 
-            internal static async Task<(ImmutableArray<RenameLocation>, ImmutableArray<RenameLocation>)> GetRenamableLocationsInStringsAndCommentsAsync(
+            internal static async Task<(ImmutableArray<RenameLocation> strings, ImmutableArray<RenameLocation> comments)> GetRenamableLocationsInStringsAndCommentsAsync(
                 ISymbol originalSymbol,
                 Solution solution,
                 ISet<RenameLocation> renameLocations,

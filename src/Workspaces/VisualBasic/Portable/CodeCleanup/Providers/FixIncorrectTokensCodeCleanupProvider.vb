@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Dim modifiedSpan = spans.Collapse()
                 Dim semanticModel = If(document Is Nothing,
                     Nothing,
-                    Await document.GetSemanticModelForSpanAsync(modifiedSpan, cancellationToken).ConfigureAwait(False))
+                    Await document.ReuseExistingSpeculativeModelAsync(modifiedSpan, cancellationToken).ConfigureAwait(False))
 
                 Return New FixIncorrectTokensRewriter(semanticModel, spans, cancellationToken)
             End Function

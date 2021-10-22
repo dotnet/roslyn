@@ -26,12 +26,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
             Return mock.Object
         End Function
 
-        Private ReadOnly Property DisabledLineCommitExportProvider As ExportProvider
-            Get
-                Return TestExportProvider.ExportProviderWithCSharpAndVisualBasic
-            End Get
-        End Property
-
         Private Sub DisableLineCommit(workspace As Workspace)
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
                 .WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)))
@@ -44,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                                            endCaretPos As Integer())
             Dim caretPos = before.IndexOf("$$", StringComparison.Ordinal)
             Dim beforeText = before.Replace("$$", "")
-            Using workspace = TestWorkspace.CreateVisualBasic(beforeText, exportProvider:=DisabledLineCommitExportProvider)
+            Using workspace = TestWorkspace.CreateVisualBasic(beforeText, composition:=EditorTestCompositions.EditorFeatures)
                 DisableLineCommit(workspace)
 
                 Dim view = workspace.Documents.First().GetTextView()
@@ -73,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                                   beforeCaret As Integer(),
                                   after As String,
                                   afterCaret As Integer())
-            Using workspace = TestWorkspace.CreateVisualBasic(before, exportProvider:=DisabledLineCommitExportProvider)
+            Using workspace = TestWorkspace.CreateVisualBasic(before, composition:=EditorTestCompositions.EditorFeatures)
                 DisableLineCommit(workspace)
 
                 Dim textView = workspace.Documents.First().GetTextView()
@@ -216,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
             afterCaret As Integer())
 
             ' create separate composition
-            Using workspace = TestWorkspace.CreateVisualBasic(before, exportProvider:=DisabledLineCommitExportProvider)
+            Using workspace = TestWorkspace.CreateVisualBasic(before, composition:=EditorTestCompositions.EditorFeatures)
                 DisableLineCommit(workspace)
 
                 Dim view = workspace.Documents.First().GetTextView()

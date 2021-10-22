@@ -6,13 +6,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Shared.Extensions
 {
     internal static class LanguageVersionExtensions
     {
-        // https://github.com/dotnet/roslyn/issues/43348
-        //
-        // This value should be removed when LanguageVersion.CSharp9 is available, and all callers should just
-        // reference that constant instead.
-        public const LanguageVersion CSharp9 = LanguageVersion.Preview;
-
         public static bool IsCSharp9OrAbove(this LanguageVersion languageVersion)
-            => languageVersion >= CSharp9;
+            => languageVersion >= LanguageVersion.CSharp9;
+
+        public static bool IsCSharp10OrAbove(this LanguageVersion languageVersion)
+            => languageVersion >= LanguageVersion.CSharp10;
+
+        public static bool HasConstantInterpolatedStrings(this LanguageVersion languageVersion)
+            => languageVersion.IsCSharp10OrAbove();
     }
 }

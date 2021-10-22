@@ -4,7 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -516,7 +515,7 @@ End Class"
 unsafe public class C
 {
     public delegate*<void> field;
-}", parseOptions:=New CSharp.CSharpParseOptions().WithLanguageVersion(CSharp.LanguageVersion.Preview),
+}", parseOptions:=New CSharp.CSharpParseOptions().WithLanguageVersion(CSharp.LanguageVersion.CSharp9),
     compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithAllowUnsafe(True))
 
             Dim vbComp = CreateVisualBasicCompilation(Nothing, "

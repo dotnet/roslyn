@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 get { return CSharpParseOptions.Default; }
             }
 
+            [Obsolete("Obsolete due to performance problems, use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
             public override ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions
                 => throw ExceptionUtilities.Unreachable;
 
@@ -96,11 +97,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override SyntaxTree WithFilePath(string path)
             {
                 return SyntaxFactory.SyntaxTree(_node, options: this.Options, path: path, encoding: null);
-            }
-
-            public override SyntaxTree WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> options)
-            {
-                throw ExceptionUtilities.Unreachable;
             }
         }
     }

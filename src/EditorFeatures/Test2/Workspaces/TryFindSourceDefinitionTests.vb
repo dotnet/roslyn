@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     Public Class TryFindSourceDefinitionTests
         Private ReadOnly _outputHelper As ITestOutputHelper
 
-        Private Function GetProject(snapshot As Solution, assemblyName As String) As Project
+        Private Shared Function GetProject(snapshot As Solution, assemblyName As String) As Project
             Return snapshot.Projects.Single(Function(p) p.AssemblyName = assemblyName)
         End Function
 

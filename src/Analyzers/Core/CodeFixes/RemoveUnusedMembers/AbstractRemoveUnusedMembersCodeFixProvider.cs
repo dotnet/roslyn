@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         {
             var declarators = new HashSet<SyntaxNode>();
             var fieldDeclarators = new HashSet<TFieldDeclarationSyntax>();
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var declarationService = document.GetLanguageService<ISymbolDeclarationService>();
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var declarationService = document.GetRequiredLanguageService<ISymbolDeclarationService>();
 
             // Compute declarators to remove, and also track common field declarators.
             foreach (var diagnostic in diagnostics)
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 // Get symbol to be removed.
                 var diagnosticNode = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
                 var symbol = semanticModel.GetDeclaredSymbol(diagnosticNode, cancellationToken);
-                Debug.Assert(symbol != null);
+                Contract.ThrowIfNull(symbol);
 
                 // Get symbol declarations to be removed.
                 foreach (var declReference in declarationService.GetDeclarations(symbol))
@@ -73,6 +73,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     if (symbol.Kind == SymbolKind.Field)
                     {
                         var fieldDeclarator = node.FirstAncestorOrSelf<TFieldDeclarationSyntax>();
+                        Contract.ThrowIfNull(fieldDeclarator);
                         fieldDeclarators.Add(fieldDeclarator);
                     }
                 }
@@ -126,7 +127,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Remove_unused_member, createChangedDocument)
+                : base(AnalyzersResources.Remove_unused_member, createChangedDocument, nameof(AnalyzersResources.Remove_unused_member))
             {
             }
         }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -42,12 +44,6 @@ namespace Microsoft.CodeAnalysis
         internal abstract TypeSymbol GetSpecialType(ModuleSymbol moduleSymbol, SpecialType specialType);
         internal abstract TypeSymbol GetSystemTypeSymbol(ModuleSymbol moduleSymbol);
         internal abstract TypeSymbol GetEnumUnderlyingType(ModuleSymbol moduleSymbol, TypeSymbol type);
-
-        internal abstract bool IsAcceptedVolatileModifierType(ModuleSymbol moduleSymbol, TypeSymbol type);
-        internal abstract bool IsAcceptedInAttributeModifierType(TypeSymbol type);
-        internal abstract bool IsAcceptedOutAttributeModifierType(TypeSymbol type);
-        internal abstract bool IsAcceptedUnmanagedTypeModifierType(TypeSymbol type);
-        internal abstract bool IsAcceptedIsExternalInitModifierType(TypeSymbol type);
 
         internal abstract Cci.PrimitiveTypeCode GetPrimitiveTypeCode(ModuleSymbol moduleSymbol, TypeSymbol type);
     }

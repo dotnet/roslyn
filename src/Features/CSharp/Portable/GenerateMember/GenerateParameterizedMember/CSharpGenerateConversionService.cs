@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -145,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
             methodSymbol = null;
             typeToGenerateIn = document.SemanticModel.GetTypeInfo(castExpression.Type, cancellationToken).Type as INamedTypeSymbol;
             if (typeToGenerateIn == null
-                || !(document.SemanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type is INamedTypeSymbol parameterSymbol)
+                || document.SemanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type is not INamedTypeSymbol parameterSymbol
                 || typeToGenerateIn.IsErrorType()
                 || parameterSymbol.IsErrorType())
             {
@@ -176,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
             methodSymbol = null;
             typeToGenerateIn = document.SemanticModel.GetTypeInfo(expression, cancellationToken).ConvertedType as INamedTypeSymbol;
             if (typeToGenerateIn == null
-                || !(document.SemanticModel.GetTypeInfo(expression, cancellationToken).Type is INamedTypeSymbol parameterSymbol)
+                || document.SemanticModel.GetTypeInfo(expression, cancellationToken).Type is not INamedTypeSymbol parameterSymbol
                 || typeToGenerateIn.IsErrorType()
                 || parameterSymbol.IsErrorType())
             {

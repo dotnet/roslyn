@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
@@ -75,6 +77,22 @@ namespace Microsoft.CodeAnalysis
             {
                 VerifySealed(expected: false);
                 _hasCallerMemberNameAttribute = value;
+                SetDataStored();
+            }
+        }
+
+        private int _argumentExpressionParameterIndex = -1;
+        public int CallerArgumentExpressionParameterIndex
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _argumentExpressionParameterIndex;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _argumentExpressionParameterIndex = value;
                 SetDataStored();
             }
         }

@@ -4,43 +4,45 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class NextKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NextNotInMethodBodyTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "Next")
-        End Function
+        Inherits RecommenderTests
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NextNotInLambdaTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>
+        Public Sub NextNotInMethodBodyTest()
+            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Next")
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub NextNotInLambdaTest()
+            VerifyRecommendationsMissing(<MethodBody>
 Dim x = Sub()
 |
         End Sub</MethodBody>, "Next")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NextNotAfterStatementTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>
+        Public Sub NextNotAfterStatementTest()
+            VerifyRecommendationsMissing(<MethodBody>
 Dim x
 |</MethodBody>, "Next")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NextAfterForStatementTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub NextAfterForStatementTest()
+            VerifyRecommendationsContain(<MethodBody>
 For i = 1 To 10
 |</MethodBody>, "Next")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NextAfterForEachStatementTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub NextAfterForEachStatementTest()
+            VerifyRecommendationsContain(<MethodBody>
 For i = 1 To 10
 |</MethodBody>, "Next")
-        End Function
+        End Sub
     End Class
 End Namespace

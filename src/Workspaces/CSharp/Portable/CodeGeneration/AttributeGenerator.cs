@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -85,17 +83,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static bool IsCompilerInternalAttribute(AttributeData attribute)
         {
-            // from https://github.com/dotnet/roslyn/blob/master/docs/features/nullable-metadata.md
+            // from https://github.com/dotnet/roslyn/blob/main/docs/features/nullable-metadata.md
             var attrClass = attribute.AttributeClass;
             if (attrClass == null)
                 return false;
 
             var name = attrClass.Name;
 
-            if (name != "NullableAttribute" &&
-                name != "NullableContextAttribute" &&
-                name != "NativeIntegerAttribute" &&
-                name != "DynamicAttribute")
+            if (name is not "NullableAttribute" and
+                not "NullableContextAttribute" and
+                not "NativeIntegerAttribute" and
+                not "DynamicAttribute")
             {
                 return false;
             }

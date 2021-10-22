@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -19,6 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             char INumericTC<char>.MinValue => char.MinValue;
 
             char INumericTC<char>.MaxValue => char.MaxValue;
+
+            char INumericTC<char>.Zero => (char)0;
 
             bool INumericTC<char>.Related(BinaryOperatorKind relation, char left, char right)
             {
@@ -49,11 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             string INumericTC<char>.ToString(char c)
             {
-                var isPrintable = char.IsWhiteSpace(c) ||
-                    // exclude the Unicode character categories containing non-rendering,
-                    // unknown, or incomplete characters.
-                    char.GetUnicodeCategory(c) switch { UnicodeCategory.Control => false, UnicodeCategory.OtherNotAssigned => false, UnicodeCategory.Surrogate => false, _ => true };
-                return isPrintable ? $"'{c}'" : $"\\u{(int)c:X4}";
+                return ObjectDisplay.FormatPrimitive(c, ObjectDisplayOptions.EscapeNonPrintableCharacters | ObjectDisplayOptions.UseQuotes);
             }
 
             char INumericTC<char>.Prev(char value)

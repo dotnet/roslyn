@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
 
@@ -17,7 +19,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ITypeSymbol toType,
             IParameterSymbol fromType,
             bool isImplicit,
-            ImmutableArray<AttributeData> toTypeAttributes)
+            ImmutableArray<AttributeData> toTypeAttributes,
+            string documentationCommentXml)
             : base(containingType,
                   attributes,
                   declaredAccessibility,
@@ -30,7 +33,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                       WellKnownMemberNames.ExplicitConversionName,
                   typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
                   parameters: ImmutableArray.Create(fromType),
-                  returnTypeAttributes: toTypeAttributes)
+                  returnTypeAttributes: toTypeAttributes,
+                  documentationCommentXml)
         {
         }
 

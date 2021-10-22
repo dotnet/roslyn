@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using Roslyn.Utilities;
 
@@ -21,6 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class NumericValueSetFactory<T, TTC> : IValueSetFactory<T> where TTC : struct, INumericTC<T>
         {
             public static readonly NumericValueSetFactory<T, TTC> Instance = new NumericValueSetFactory<T, TTC>();
+
+            IValueSet IValueSetFactory.AllValues => NumericValueSet<T, TTC>.AllValues;
+
+            IValueSet IValueSetFactory.NoValues => NumericValueSet<T, TTC>.NoValues;
 
             private NumericValueSetFactory() { }
 

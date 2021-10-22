@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
         <source>Deserialization reader for '{0}' read incorrect number of values.</source>
-        <target state="translated">{0}' 的還原序列化讀取器所讀取的值數目不正確。</target>
+        <target state="translated">'{0}' 的還原序列化讀取器所讀取的值數目不正確。</target>
         <note />
       </trans-unit>
       <trans-unit id="Error">

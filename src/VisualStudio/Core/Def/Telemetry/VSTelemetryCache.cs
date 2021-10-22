@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -16,8 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
         // these don't have concurrency limit on purpose to reduce chance of lock contention. 
         // if that becomes a problem - by showing up in our perf investigation, then we will consider adding concurrency limit.
-        private static readonly ConcurrentDictionary<Key, string> s_eventMap = new ConcurrentDictionary<Key, string>();
-        private static readonly ConcurrentDictionary<Key, string> s_propertyMap = new ConcurrentDictionary<Key, string>();
+        private static readonly ConcurrentDictionary<Key, string> s_eventMap = new();
+        private static readonly ConcurrentDictionary<Key, string> s_propertyMap = new();
 
         public static string GetEventName(this FunctionId functionId, string eventKey = null)
             => s_eventMap.GetOrAdd(new Key(functionId, eventKey), CreateEventName);

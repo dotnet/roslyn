@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
     Public Class SyntaxGeneratorTests
         Private _g As SyntaxGenerator
 
-        Private ReadOnly _emptyCompilation As VisualBasicCompilation = VisualBasicCompilation.Create("empty", references:={TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System})
+        Private ReadOnly _emptyCompilation As VisualBasicCompilation = VisualBasicCompilation.Create("empty", references:={TestMetadata.Net451.mscorlib, TestMetadata.Net451.System})
 
         Private ReadOnly _ienumerableInt As INamedTypeSymbol
 
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
         End Property
 
         Public Shared Function Compile(code As String) As Compilation
-            Return VisualBasicCompilation.Create("test").AddReferences(TestReferences.NetFx.v4_0_30319.mscorlib).AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(code))
+            Return VisualBasicCompilation.Create("test").AddReferences(TestMetadata.Net451.mscorlib).AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(code))
         End Function
 
         Private Shared Sub VerifySyntax(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
@@ -198,7 +198,7 @@ End Class
             VerifySyntax(Of AttributeListSyntax)(Generator.Attribute(GetAttributeData("
 Imports System
 Public Class MyAttribute
-  Inherits Attribute 
+  Inherits Attribute
   Public Property Value As Integer
 End Class
 ", "<MyAttribute(Value := 123)>")), "<Global.MyAttribute(Value:=123)>")
@@ -1747,7 +1747,7 @@ End Property")
     End Set
 End Property")
 
-            ' convert private method to public 
+            ' convert private method to public
             Dim pim = Generator.AsPrivateInterfaceImplementation(
                     Generator.MethodDeclaration("m", returnType:=Generator.IdentifierName("t")),
                     Generator.IdentifierName("i"))
@@ -2202,10 +2202,10 @@ Class C
   Custom Event MyEvent As MyDelegate
       AddHandler(ByVal value As MyDelegate)
       End AddHandler
- 
+
       RemoveHandler(ByVal value As MyDelegate)
       End RemoveHandler
- 
+
       RaiseEvent(ByVal message As String)
       End RaiseEvent
   End Event
@@ -2271,6 +2271,26 @@ End Class ' end")
     Event PropertyChanged As Global.System.ComponentModel.PropertyChangedEventHandler
 
 End Interface")
+        End Sub
+
+        <Fact>
+        Public Sub TestEnumDeclarationFromSymbol()
+            VerifySyntax(Of EnumBlockSyntax)(Generator.Declaration(_emptyCompilation.GetTypeByMetadataName("System.DateTimeKind")),
+"Public Enum DateTimeKind
+    Unspecified = 0
+    Utc = 1
+    Local = 2
+End Enum")
+        End Sub
+
+        <Fact>
+        Public Sub TestEnumWithUnderlyingTypeFromSymbol()
+            VerifySyntax(Of EnumBlockSyntax)(Generator.Declaration(_emptyCompilation.GetTypeByMetadataName("System.Security.SecurityRuleSet")),
+"Public Enum SecurityRuleSet As Byte
+    None = CByte(0)
+    Level1 = CByte(1)
+    Level2 = CByte(2)
+End Enum")
         End Sub
 #End Region
 
@@ -2531,6 +2551,18 @@ End Class
             Assert.Equal(DeclarationModifiers.None, Generator.GetModifiers(Generator.WithModifiers(Generator.LocalDeclarationStatement(Generator.IdentifierName("t"), "loc"), DeclarationModifiers.Abstract)))
             Assert.Equal(DeclarationModifiers.None, Generator.GetModifiers(Generator.WithModifiers(Generator.Attribute("a"), DeclarationModifiers.Abstract)))
             Assert.Equal(DeclarationModifiers.None, Generator.GetModifiers(Generator.WithModifiers(SyntaxFactory.TypeParameter("tp"), DeclarationModifiers.Abstract)))
+        End Sub
+
+        <Fact>
+        Public Sub TestWithModifiers_Sealed()
+            Dim classBlock = DirectCast(Generator.ClassDeclaration("C"), ClassBlockSyntax)
+            Dim classBlockWithModifiers = Generator.WithModifiers(classBlock, DeclarationModifiers.Sealed)
+            VerifySyntax(Of ClassBlockSyntax)(classBlockWithModifiers, "NotInheritable Class C
+End Class")
+
+            Dim classStatement = classBlock.ClassStatement
+            Dim classStatementWithModifiers = Generator.WithModifiers(classStatement, DeclarationModifiers.Sealed)
+            VerifySyntax(Of ClassStatementSyntax)(classStatementWithModifiers, "NotInheritable Class C")
         End Sub
 
         <Fact>
@@ -3434,7 +3466,7 @@ Public Class C
     Public Shared Z, Y, Z As Integer
 End Class")
 
-            ' Removing 
+            ' Removing
             VerifySyntax(Of ClassBlockSyntax)(
                 Generator.RemoveNode(declC, declX),
 "' Comment

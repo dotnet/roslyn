@@ -274,7 +274,7 @@ End Class")
 End Class")
         End Function
 
-        Private Async Function AssertTagsAsync(spans As IEnumerable(Of TextSpan), content As String) As Tasks.Task
+        Private Shared Async Function AssertTagsAsync(spans As IEnumerable(Of TextSpan), content As String) As Tasks.Task
             Dim tags = Await GetSpansForAsync(content)
             Assert.Equal(spans.Count(), tags.Count())
 
@@ -285,7 +285,7 @@ End Class")
             Next
         End Function
 
-        Private Async Function GetSpansForAsync(content As String) As Tasks.Task(Of IEnumerable(Of TextSpan))
+        Private Shared Async Function GetSpansForAsync(content As String) As Tasks.Task(Of IEnumerable(Of TextSpan))
             Using workspace = TestWorkspace.CreateVisualBasic(content)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
                 Dim service = Assert.IsType(Of VisualBasicLineSeparatorService)(workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of ILineSeparatorService)())

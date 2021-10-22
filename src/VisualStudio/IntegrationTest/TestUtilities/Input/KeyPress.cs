@@ -4,7 +4,7 @@
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
 {
-    public struct KeyPress
+    public readonly struct KeyPress
     {
         public readonly VirtualKey VirtualKey;
         public readonly ShiftState ShiftState;

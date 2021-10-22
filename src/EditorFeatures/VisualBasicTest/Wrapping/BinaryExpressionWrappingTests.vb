@@ -23,16 +23,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
             CodeStyleOptions2.OperatorPlacementWhenWrapping,
             OperatorPlacementWhenWrappingPreference.BeginningOfLine)
 
-        Private Function TestEndOfLine(markup As String, expected As String) As Task
-            Return TestInRegularAndScript1Async(markup, expected, parameters:=New TestParameters(
-                options:=EndOfLine))
-        End Function
-
-        Private Function TestBeginningOfLine(markup As String, expected As String) As Task
-            Return TestInRegularAndScript1Async(markup, expected, parameters:=New TestParameters(
-                options:=BeginningOfLine))
-        End Function
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
         Public Async Function TestMissingWithSyntaxError() As Task
             Await TestMissingAsync(

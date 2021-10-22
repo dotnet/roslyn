@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -402,7 +404,7 @@ namespace Roslyn.Test.PdbUtilities
             {
                 if (capacity < 0)
                     throw new ArgumentOutOfRangeException(nameof(capacity), "ArgumentOutOfRange_NeedNonNegNum");
-                if (!(loadFactorPerc >= 10 && loadFactorPerc <= 100))
+                if (loadFactorPerc is not (>= 10 and <= 100))
                     throw new ArgumentOutOfRangeException(nameof(loadFactorPerc), "ArgumentOutOfRange_IntHashTableLoadFactor");
 
                 // Based on perf work, .72 is the optimal load factor for this table.
@@ -1127,7 +1129,7 @@ namespace Roslyn.Test.PdbUtilities
         {
         }
 
-        private static XmlWriterSettings s_xmlWriterSettings = new XmlWriterSettings
+        private static readonly XmlWriterSettings s_xmlWriterSettings = new XmlWriterSettings
         {
             Encoding = Encoding.UTF8,
             Indent = true,

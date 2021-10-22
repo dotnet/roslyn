@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -15,6 +13,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             public static readonly DecimalValueSetFactory Instance = new DecimalValueSetFactory();
 
             private readonly IValueSetFactory<decimal> _underlying = NumericValueSetFactory<decimal, DecimalTC>.Instance;
+
+            IValueSet IValueSetFactory.AllValues => NumericValueSet<decimal, DecimalTC>.AllValues;
+
+            IValueSet IValueSetFactory.NoValues => NumericValueSet<decimal, DecimalTC>.NoValues;
 
             public IValueSet<decimal> Related(BinaryOperatorKind relation, decimal value) => _underlying.Related(relation, DecimalTC.Normalize(value));
 

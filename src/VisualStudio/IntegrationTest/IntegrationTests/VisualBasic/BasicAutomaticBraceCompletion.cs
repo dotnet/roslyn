@@ -2,13 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -17,14 +19,16 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicAutomaticBraceCompletion(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(BasicAutomaticBraceCompletion))
+        public BasicAutomaticBraceCompletion(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicAutomaticBraceCompletion))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Braces_InsertionAndTabCompleting()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Braces_InsertionAndTabCompleting(bool argumentCompletion)
         {
+            VisualStudio.Workspace.SetArgumentCompletionSnippetsOption(argumentCompletion);
+
             SetUpEditor(@"
 Class C
     Sub Goo()
@@ -40,7 +44,21 @@ End Class");
                VirtualKey.Escape,
                VirtualKey.Tab);
 
-            VisualStudio.Editor.Verify.CurrentLineText("Dim x = {New Object}$$", assertCaretPosition: true);
+            if (argumentCompletion)
+            {
+                VisualStudio.Editor.Verify.CurrentLineText("Dim x = {New Object($$)}", assertCaretPosition: true);
+                VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SignatureHelp);
+
+                VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+                VisualStudio.Editor.Verify.CurrentLineText("Dim x = {New Object()$$}", assertCaretPosition: true);
+
+                VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+                VisualStudio.Editor.Verify.CurrentLineText("Dim x = {New Object()}$$", assertCaretPosition: true);
+            }
+            else
+            {
+                VisualStudio.Editor.Verify.CurrentLineText("Dim x = {New Object}$$", assertCaretPosition: true);
+            }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]

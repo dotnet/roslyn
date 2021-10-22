@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -17,6 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             public static readonly NintValueSetFactory Instance = new NintValueSetFactory();
 
             private NintValueSetFactory() { }
+
+            IValueSet IValueSetFactory.AllValues => NintValueSet.AllValues;
+
+            IValueSet IValueSetFactory.NoValues => NintValueSet.NoValues;
 
             public IValueSet<int> Related(BinaryOperatorKind relation, int value)
             {

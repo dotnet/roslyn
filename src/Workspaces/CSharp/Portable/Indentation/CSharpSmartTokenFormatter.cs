@@ -44,11 +44,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         public IList<TextChange> FormatRange(
             Workspace workspace, SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfTrue(startToken.Kind() == SyntaxKind.None || startToken.Kind() == SyntaxKind.EndOfFileToken);
-            Contract.ThrowIfTrue(endToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.EndOfFileToken);
+            Contract.ThrowIfTrue(startToken.Kind() is SyntaxKind.None or SyntaxKind.EndOfFileToken);
+            Contract.ThrowIfTrue(endToken.Kind() is SyntaxKind.None or SyntaxKind.EndOfFileToken);
 
             var smartTokenformattingRules = _formattingRules;
             var common = startToken.GetCommonRoot(endToken);
+            RoslynDebug.AssertNotNull(common);
 
             // if there are errors, do not touch lines
             // Exception 1: In the case of try-catch-finally block, a try block without a catch/finally block is considered incomplete
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         public async Task<IList<TextChange>> FormatTokenAsync(
             Workspace workspace, SyntaxToken token, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfTrue(token.Kind() == SyntaxKind.None || token.Kind() == SyntaxKind.EndOfFileToken);
+            Contract.ThrowIfTrue(token.Kind() is SyntaxKind.None or SyntaxKind.EndOfFileToken);
 
             // get previous token
             var previousToken = token.GetPreviousToken(includeZeroWidth: true);
@@ -105,6 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             if (token.IsKind(SyntaxKind.OpenBraceToken) &&
                 indentStyle != FormattingOptions.IndentStyle.Smart)
             {
+                RoslynDebug.AssertNotNull(token.SyntaxTree);
                 var text = await token.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 if (token.IsFirstTokenOnLine(text))
                 {
@@ -119,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
         private class NoLineChangeFormattingRule : AbstractFormattingRule
         {
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+            public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 // no line operation. no line changes what so ever
                 var lineOperation = base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
@@ -147,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 // don't suppress anything
             }
 
-            public override AdjustSpacesOperation GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+            public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
             {
                 var spaceOperation = base.GetAdjustSpacesOperation(in previousToken, in currentToken, in nextOperation);
 

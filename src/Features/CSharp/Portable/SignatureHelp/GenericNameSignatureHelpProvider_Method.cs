@@ -58,11 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private static ITypeSymbol GetContainingType(IMethodSymbol method)
+        private static ITypeSymbol? GetContainingType(IMethodSymbol method)
         {
             var result = method.ReceiverType;
-
-            if (result.Kind != SymbolKind.NamedType || !((INamedTypeSymbol)result).IsScriptClass)
+            if (result is not INamedTypeSymbol namedTypeSymbol || !namedTypeSymbol.IsScriptClass)
             {
                 return result;
             }

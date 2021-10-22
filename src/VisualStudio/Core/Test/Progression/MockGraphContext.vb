@@ -12,6 +12,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         Private ReadOnly _direction As GraphContextDirection
         Private ReadOnly _graph As Graph
         Private ReadOnly _inputNodes As ISet(Of GraphNode)
+        Private ReadOnly _outputNodes As New HashSet(Of GraphNode)
 
         Public Sub New(direction As GraphContextDirection, graph As Graph, inputNodes As IEnumerable(Of GraphNode))
             _direction = direction
@@ -89,7 +90,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         Public ReadOnly Property OutputNodes As ISet(Of GraphNode) Implements IGraphContext.OutputNodes
             Get
-                Throw New NotImplementedException()
+                Return _outputNodes
             End Get
         End Property
 

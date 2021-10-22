@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Roslyn.Test.Utilities;
@@ -16,22 +19,21 @@ namespace Roslyn.VisualStudio.IntegrationTests
         private readonly string _solutionName;
         private readonly string _projectTemplate;
 
-        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 
-        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper, string solutionName)
-            : this(instanceFactory, testOutputHelper, solutionName, WellKnownProjectTemplates.ClassLibrary)
+        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, string solutionName)
+            : this(instanceFactory, solutionName, WellKnownProjectTemplates.ClassLibrary)
         {
         }
 
         protected AbstractEditorTest(
             VisualStudioInstanceFactory instanceFactory,
-            ITestOutputHelper testOutputHelper,
             string solutionName,
             string projectTemplate)
-           : base(instanceFactory, testOutputHelper)
+           : base(instanceFactory)
         {
             _solutionName = solutionName;
             _projectTemplate = projectTemplate;
@@ -51,13 +53,19 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
                 // Winforms and XAML do not open text files on creation
                 // so these editor tasks will not work if that is the project template being used.
-                if (_projectTemplate != WellKnownProjectTemplates.WinFormsApplication &&
-                    _projectTemplate != WellKnownProjectTemplates.WpfApplication &&
-                    _projectTemplate != WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
+                if (_projectTemplate is not WellKnownProjectTemplates.WinFormsApplication and
+                    not WellKnownProjectTemplates.WpfApplication and
+                    not WellKnownProjectTemplates.CSharpNetCoreClassLibrary and
+                    not WellKnownProjectTemplates.VisualBasicNetCoreClassLibrary)
                 {
                     VisualStudio.Editor.SetUseSuggestionMode(false);
                     ClearEditor();
                 }
+
+                // Work around potential hangs in 16.10p2 caused by the roslyn LSP server not completing initialization before solution closed.
+                // By waiting for the async operation tracking roslyn LSP server activation to complete we should never
+                // encounter the scenario where the solution closes while activation is incomplete.
+                VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.LanguageServer);
             }
         }
 
@@ -66,7 +74,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void SetUpEditor(string markupCode)
         {
-            MarkupTestFile.GetPosition(markupCode, out string code, out int caretPosition);
+            MarkupTestFile.GetPosition(markupCode, out var code, out int caretPosition);
 
             VisualStudio.Editor.DismissCompletionSessions();
             VisualStudio.Editor.DismissLightBulbSession();
