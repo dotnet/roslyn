@@ -285,12 +285,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
                         {
                             // Bail if there's a slice but only one length value is remained.
+                            // That could happen with nested slice patterns or length tests
+                            // and also with very long list patterns in certain conditions.
                             return null;
                         }
 
                         if (slice.StartIndex - slice.EndIndex > lengthValue)
                         {
-                            // Bail if the sample value is less than the required minimum length by the slice.
+                            // Bail if the sample value is less than the required minimum length by the slice
+                            // to avoid generating an incorrect example.
                             return null;
                         }
                     }
