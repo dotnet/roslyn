@@ -522,16 +522,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static bool NeedsSeparatorForListPattern(SyntaxToken token, SyntaxToken next)
         {
-            ListPatternSyntax listPattern;
-            if (token.Parent.IsKind(SyntaxKind.ListPattern))
-            {
-                listPattern = (ListPatternSyntax)token.Parent;
-            }
-            else if (next.Parent.IsKind(SyntaxKind.ListPattern))
-            {
-                listPattern = (ListPatternSyntax)next.Parent;
-            }
-            else
+            var listPattern = token.Parent as ListPatternSyntax ?? next.Parent as ListPatternSyntax;
+            if (listPattern == null)
             {
                 return false;
             }
@@ -837,14 +829,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.NotKeyword:
                     return true;
             }
+
             if (NeedsSeparatorForPropertyPattern(token, next))
             {
                 return true;
             }
+
             if (NeedsSeparatorForPositionalPattern(token, next))
             {
                 return true;
             }
+
             if (NeedsSeparatorForListPattern(token, next))
             {
                 return true;

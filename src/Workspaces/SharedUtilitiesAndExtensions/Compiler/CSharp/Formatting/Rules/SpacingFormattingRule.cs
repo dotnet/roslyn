@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // Slice pattern:
-            // ..var x
+            // .. var x
             if (previousKind == SyntaxKind.DotDotToken && previousParentKind == SyntaxKind.SlicePattern)
             {
                 return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
