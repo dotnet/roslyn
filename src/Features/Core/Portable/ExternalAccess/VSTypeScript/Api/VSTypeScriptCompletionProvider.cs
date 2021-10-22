@@ -13,9 +13,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
     {
         public sealed override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
-            var triggerOnTypingLetters = options.GetOption(CompletionOptions.TriggerOnTypingLetters2, InternalLanguageNames.TypeScript);
+            var triggerOnTypingLetters = options.GetOption(CompletionOptions.Metadata.TriggerOnTypingLetters, InternalLanguageNames.TypeScript);
             return ShouldTriggerCompletionImpl(text, caretPosition, trigger, triggerOnTypingLetters);
         }
+
+        internal sealed override bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options)
+            => ShouldTriggerCompletionImpl(text, caretPosition, trigger, options.TriggerOnTypingLetters);
 
         protected abstract bool ShouldTriggerCompletionImpl(SourceText text, int caretPosition, CompletionTrigger trigger, bool triggerOnTypingLetters);
     }

@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
+        internal override string Language => LanguageNames.CSharp;
+
         protected override async Task<CompletionItem?> GetSuggestionModeItemAsync(
             Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default)
         {

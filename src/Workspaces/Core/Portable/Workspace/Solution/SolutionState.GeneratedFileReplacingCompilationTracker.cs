@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -31,10 +30,13 @@ namespace Microsoft.CodeAnalysis
             [DisallowNull]
             private Compilation? _compilationWithReplacement;
 
+            public CachedSkeletonReferences CachedSkeletonReferences { get; }
+
             public GeneratedFileReplacingCompilationTracker(ICompilationTracker underlyingTracker, SourceGeneratedDocumentState replacementDocumentState)
             {
                 _underlyingTracker = underlyingTracker;
                 _replacedGeneratedDocumentState = replacementDocumentState;
+                CachedSkeletonReferences = underlyingTracker.CachedSkeletonReferences.Clone();
             }
 
             public ProjectState ProjectState => _underlyingTracker.ProjectState;
@@ -141,9 +143,8 @@ namespace Microsoft.CodeAnalysis
                 // Otherwise we need to create a skeleton for this project.  See if we can reuse an existing
                 // one, or create a new one when we can't.
                 var version = await GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
-                var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
-                return await this.ProjectState.GetOrBuildSkeletonReferenceAsync(
-                    solution.Workspace, properties, compilation, version, cancellationToken).ConfigureAwait(false);
+                var properties = new MetadataReferenceProperties(MetadataImageKind.Assembly, projectReference.Aliases, projectReference.EmbedInteropTypes);
+                return this.CachedSkeletonReferences.GetOrBuildReference(solution.Workspace, properties, compilation, version, cancellationToken);
             }
 
             public CompilationReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)

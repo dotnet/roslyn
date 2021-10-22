@@ -181,12 +181,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IReadOnlyList<ProjectId> ProjectIds { get; }
 
-        // Only run this in debug builds; even the .Any() call across all projects can be expensive when there's a lot of them.
-        [Conditional("DEBUG")]
         private void CheckInvariants()
         {
+            // Run these quick checks all the time.  We need to know immediately if we violate these.
             Contract.ThrowIfFalse(_projectIdToProjectStateMap.Count == ProjectIds.Count);
             Contract.ThrowIfFalse(_projectIdToProjectStateMap.Count == _dependencyGraph.ProjectIds.Count);
+
+            // Only run this in debug builds; even the .Any() call across all projects can be expensive when there's a lot of them.
+
+#if DEBUG
 
             // An id shouldn't point at a tracker for a different project.
             Contract.ThrowIfTrue(_projectIdToTrackerMap.Any(kvp => kvp.Key != kvp.Value.ProjectState.Id));
@@ -196,6 +199,8 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(_projectIdToProjectStateMap.Keys.SetEquals(_dependencyGraph.ProjectIds));
 
             Debug.Assert(_remoteSupportedLanguages.SetEquals(GetRemoteSupportedProjectLanguages(_projectIdToProjectStateMap)));
+
+#endif
         }
 
         private SolutionState Branch(
@@ -1484,6 +1489,7 @@ namespace Microsoft.CodeAnalysis
         {
             var projectId = newProjectState.Id;
 
+            Contract.ThrowIfFalse(_projectIdToProjectStateMap.ContainsKey(projectId));
             var newStateMap = _projectIdToProjectStateMap.SetItem(projectId, newProjectState);
 
             // Remote supported languages can only change if the project changes language. This is an unexpected edge
@@ -1672,6 +1678,7 @@ namespace Microsoft.CodeAnalysis
                     var tracker = this.GetCompilationTracker(documentId.ProjectId);
                     var newTracker = tracker.FreezePartialStateWithTree(this, doc, tree, cancellationToken);
 
+                    Contract.ThrowIfFalse(_projectIdToProjectStateMap.ContainsKey(documentId.ProjectId));
                     var newIdToProjectStateMap = _projectIdToProjectStateMap.SetItem(documentId.ProjectId, newTracker.ProjectState);
                     var newLanguages = _remoteSupportedLanguages;
                     var newIdToTrackerMap = _projectIdToTrackerMap.SetItem(documentId.ProjectId, newTracker);

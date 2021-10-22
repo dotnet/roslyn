@@ -36,7 +36,7 @@
     <VisualStudioEditorNewPackagesVersion>17.0.391-preview-g5e248c9073</VisualStudioEditorNewPackagesVersion>
     <ILAsmPackageVersion>5.0.0-alpha1.19409.1</ILAsmPackageVersion>
     <ILDAsmPackageVersion>5.0.0-preview.1.20112.8</ILDAsmPackageVersion>
-    <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>17.0.4129-g0e33707768</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
+    <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>17.0.5133-g7b8c8bd49d</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
     <MicrosoftVisualStudioShellPackagesVersion>17.0.0-previews-4-31709-430</MicrosoftVisualStudioShellPackagesVersion>
     <MicrosoftBuildPackagesVersion>16.5.0</MicrosoftBuildPackagesVersion>
     <!-- The version of Roslyn we build Source Generators against that are built in this
@@ -125,7 +125,7 @@
     <MicrosoftVisualStudioCompositionVersion>16.9.20</MicrosoftVisualStudioCompositionVersion>
     <MicrosoftVisualStudioCoreUtilityVersion>$(VisualStudioEditorNewPackagesVersion)</MicrosoftVisualStudioCoreUtilityVersion>
     <MicrosoftVisualStudioDebuggerUIInterfacesVersion>17.2.0-beta.21417.1</MicrosoftVisualStudioDebuggerUIInterfacesVersion>
-    <MicrosoftVisualStudioDebuggerContractsVersion>17.2.0-beta.21417.1</MicrosoftVisualStudioDebuggerContractsVersion>
+    <MicrosoftVisualStudioDebuggerContractsVersion>17.2.0</MicrosoftVisualStudioDebuggerContractsVersion>
     <MicrosoftVisualStudioDebuggerEngineimplementationVersion>17.0.1042805-preview</MicrosoftVisualStudioDebuggerEngineimplementationVersion>
     <MicrosoftVisualStudioDebuggerMetadataimplementationVersion>17.0.1042805-preview</MicrosoftVisualStudioDebuggerMetadataimplementationVersion>
     <MicrosoftVisualStudioDesignerInterfacesVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioDesignerInterfacesVersion>
@@ -145,7 +145,7 @@
     <MicrosoftVisualStudioLanguageServerProtocolVersion>$(MicrosoftVisualStudioLanguageServerProtocolPackagesVersion)</MicrosoftVisualStudioLanguageServerProtocolVersion>
     <MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>$(MicrosoftVisualStudioLanguageServerProtocolPackagesVersion)</MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>
     <MicrosoftVisualStudioLanguageServerProtocolInternalVersion>$(MicrosoftVisualStudioLanguageServerProtocolPackagesVersion)</MicrosoftVisualStudioLanguageServerProtocolInternalVersion>
-    <MicrosoftVisualStudioLanguageServerClientVersion>$(MicrosoftVisualStudioLanguageServerProtocolPackagesVersion)</MicrosoftVisualStudioLanguageServerClientVersion>
+    <MicrosoftVisualStudioLanguageServerClientVersion>17.0.5139-g7b8c8bd49d</MicrosoftVisualStudioLanguageServerClientVersion>
     <MicrosoftVisualStudioLanguageStandardClassificationVersion>$(VisualStudioEditorNewPackagesVersion)</MicrosoftVisualStudioLanguageStandardClassificationVersion>
     <MicrosoftVisualStudioLiveShareVersion>2.18.6</MicrosoftVisualStudioLiveShareVersion>
     <MicrosoftVisualStudioLiveShareLanguageServicesVersion>3.0.6</MicrosoftVisualStudioLiveShareLanguageServicesVersion>
@@ -177,6 +177,7 @@
     <MicrosoftVisualStudioValidationVersion>17.0.23-alpha</MicrosoftVisualStudioValidationVersion>
     <MicrosoftVisualStudioInteractiveWindowVersion>4.0.0-beta.21267.2</MicrosoftVisualStudioInteractiveWindowVersion>
     <MicrosoftVisualStudioVsInteractiveWindowVersion>4.0.0-beta.21267.2</MicrosoftVisualStudioVsInteractiveWindowVersion>
+    <MicrosoftVisualStudioWinFormsInterfacesVersion>17.0.0-previews-4-31709-430</MicrosoftVisualStudioWinFormsInterfacesVersion>
     <MicrosoftVisualStudioWorkspaceVSIntegrationVersion>16.3.43</MicrosoftVisualStudioWorkspaceVSIntegrationVersion>
     <MicrosoftWin32PrimitivesVersion>4.3.0</MicrosoftWin32PrimitivesVersion>
     <MicrosoftWin32RegistryVersion>5.0.0</MicrosoftWin32RegistryVersion>

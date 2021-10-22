@@ -618,4 +618,7 @@
   <data name="record_struct" xml:space="preserve">
     <value>record struct</value>
   </data>
+  <data name="Enable_nullable_reference_types_in_project" xml:space="preserve">
+    <value>Enable nullable reference types in project</value>
+  </data>
 </root>

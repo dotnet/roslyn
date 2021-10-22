@@ -456,7 +456,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var tests = ArrayBuilder<Tests>.GetInstance(2);
-                var convertedInput = MakeConvertToType(input, constant.Syntax, constant.Value.Type!, isExplicitTest: false, tests);
+                Debug.Assert(constant.Value.Type is not null || constant.HasErrors);
+                var convertedInput = constant.Value.Type is { } type ? MakeConvertToType(input, constant.Syntax, type, isExplicitTest: false, tests) : input;
                 output = convertedInput;
                 tests.Add(new Tests.One(new BoundDagValueTest(constant.Syntax, constant.ConstantValue, convertedInput)));
                 return Tests.AndSequence.Create(tests);
@@ -628,10 +629,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundRelationalPattern rel,
             out BoundDagTemp output)
         {
+            Debug.Assert(rel.Value.Type is not null);
             // check if the test is always true or always false
             var tests = ArrayBuilder<Tests>.GetInstance(2);
-            output = MakeConvertToType(input, rel.Syntax, rel.Value.Type!, isExplicitTest: false, tests);
-            var fac = ValueSetFactory.ForType(input.Type);
+            output = MakeConvertToType(input, rel.Syntax, rel.Value.Type, isExplicitTest: false, tests);
+            var fac = ValueSetFactory.ForType(rel.Value.Type);
             var values = fac?.Related(rel.Relation.Operator(), rel.ConstantValue);
             if (values?.IsEmpty == true)
             {

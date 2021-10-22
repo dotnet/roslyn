@@ -4,26 +4,24 @@
 
 #nullable disable
 
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Completion
 {
     internal sealed class FSharpInternalCommonCompletionProvider : CommonCompletionProvider
     {
-#pragma warning disable CS0612 // Switch to FSharpCommonCompletionProviderBase after F# switches
-        private readonly IFSharpCommonCompletionProvider _provider;
+        private readonly FSharpCommonCompletionProviderBase _provider;
 
-        public FSharpInternalCommonCompletionProvider(IFSharpCommonCompletionProvider provider)
+        public FSharpInternalCommonCompletionProvider(FSharpCommonCompletionProviderBase provider)
         {
             _provider = provider;
         }
-#pragma warning restore CS0612 // Type or member is obsolete
+
+        internal override string Language => LanguageNames.FSharp;
 
         public override Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -35,9 +33,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Completion
             return _provider.GetTextChangeAsync(base.GetTextChangeAsync, selectedItem, ch, cancellationToken);
         }
 
-        public override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, CompletionOptions options)
         {
-            return _provider.IsInsertionTrigger(text, insertedCharacterPosition, options);
+            return _provider.IsInsertionTrigger(text, insertedCharacterPosition);
         }
     }
 }

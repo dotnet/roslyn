@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     completionContext.Document.Project,
                     syntaxContext,
                     forceCacheCreation: isExpandedCompletion,
+                    completionContext.CompletionOptions,
                     cancellationToken).ConfigureAwait(false);
 
                 if (itemsFromAllAssemblies == null)

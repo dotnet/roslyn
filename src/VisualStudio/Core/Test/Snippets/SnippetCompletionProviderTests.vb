@@ -28,7 +28,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 Dim document = testState.Workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim selectedItem = testState.GetSelectedItem()
                 Dim service = CompletionService.GetService(document)
-                Dim itemDescription = Await service.GetDescriptionAsync(document, selectedItem)
+                Dim itemDescription = Await service.GetDescriptionAsync(document, selectedItem, CompletionOptions.Default)
                 Assert.True(itemDescription.Text.StartsWith("Description"))
 
                 testState.SendTabToCompletion()
@@ -82,7 +82,7 @@ End Class</File>.Value
             Using testState
                 Dim workspace = testState.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(New Options.OptionKey(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)))
+                    .WithChangedOption(New Options.OptionKey(CompletionOptions.Metadata.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)))
                 testState.SendTypeChars("'T")
                 Await testState.AssertNoCompletionSession()
             End Using
@@ -100,7 +100,7 @@ End Class</File>.Value
             Using testState
                 Dim workspace = testState.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(New Options.OptionKey(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)))
+                    .WithChangedOption(New Options.OptionKey(CompletionOptions.Metadata.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)))
                 testState.SendTypeChars("'''T")
                 Await testState.AssertNoCompletionSession()
             End Using
@@ -117,7 +117,7 @@ End Class</File>.Value
             Using testState
                 Dim workspace = testState.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(New Options.OptionKey(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)))
+                    .WithChangedOption(New Options.OptionKey(CompletionOptions.Metadata.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)))
                 testState.SendTypeChars("Shortcut")
                 Await testState.AssertSelectedCompletionItem(displayText:="Shortcut")
             End Using
