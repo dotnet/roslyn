@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
@@ -44,7 +45,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 Dim provider = New SemanticClassificationViewTaggerProvider(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     workspace.GetService(Of ClassificationTypeMap),
-                    listenerProvider)
+                    listenerProvider,
+                    workspace.ExportProvider.GetExportedValue(Of IGlobalOptionService))
 
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
                 Dim tagger = provider.CreateTagger(Of IClassificationTag)(
