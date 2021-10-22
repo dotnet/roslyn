@@ -170,6 +170,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
                 Assert.IsType(Of NoSourceGeneratedFilesPlaceholderItem)(Assert.Single(generatorFilesItemSource.Items))
 
+                ' Add a first item and see if it updates correctly
                 workspace.OnAdditionalDocumentAdded(
                     DocumentInfo.Create(
                         DocumentId.CreateNewId(projectId),
@@ -178,6 +179,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 Await WaitForGeneratorsAndItemSourcesAsync(workspace)
 
                 Assert.IsType(Of SourceGeneratedFileItem)(Assert.Single(generatorFilesItemSource.Items))
+
+                ' Add a second item and see if it updates correctly again
+                workspace.OnAdditionalDocumentAdded(
+                    DocumentInfo.Create(
+                        DocumentId.CreateNewId(projectId),
+                        "Test2.txt"))
+
+                Await WaitForGeneratorsAndItemSourcesAsync(workspace)
+                Assert.Equal(2, generatorFilesItemSource.Items.Cast(Of SourceGeneratedFileItem)().Count())
             End Using
         End Function
 
