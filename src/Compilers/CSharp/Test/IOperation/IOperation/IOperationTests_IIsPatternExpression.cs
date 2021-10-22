@@ -2323,5 +2323,60 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
             var comp = CreateCompilation(source);
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_ListPatterns_ControlFlow_01()
+        {
+            string source = @"
+class C
+{
+    void M(int[] o)
+    /*<bind>*/
+    {
+        if (o is [1, .. var slice, 2]) { }
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    Locals: [System.Int32[]? slice]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Jump if False (Regular) to Block[B2]
+            IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is [1, .. ... r slice, 2]')
+              Value:
+                IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'o')
+              Pattern:
+                IListPatternOperation (OperationKind.ListPattern, Type: null) (Syntax: '[1, .. var slice, 2]') (InputType: System.Int32[], NarrowedType: System.Int32[], DeclaredSymbol: null, LengthSymbol: System.Int32 System.Array.Length { get; }, IndexerSymbol: null)
+                  Patterns (3):
+                      IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32, NarrowedType: System.Int32)
+                        Value:
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                      ISlicePatternOperation (OperationKind.SlicePattern, Type: null) (Syntax: '.. var slice'), SliceSymbol: null
+                        Pattern:
+                          IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var slice') (InputType: System.Int32[], NarrowedType: System.Int32[], DeclaredSymbol: System.Int32[]? slice, MatchesNull: True)
+                      IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '2') (InputType: System.Int32, NarrowedType: System.Int32)
+                        Value:
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+            Leaving: {R1}
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+Block[B2] - Exit
+    Predecessors: [B1*2]
+    Statements (0)
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+        }
     }
 }

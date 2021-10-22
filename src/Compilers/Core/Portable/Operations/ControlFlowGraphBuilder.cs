@@ -6907,6 +6907,32 @@ oneMoreTime:
                 IsImplicit(operation));
         }
 
+        public override IOperation VisitSlicePattern(ISlicePatternOperation operation, int? argument)
+        {
+            return new SlicePatternOperation(
+                operation.SliceSymbol,
+                (IPatternOperation?)Visit(operation.Pattern),
+                operation.InputType,
+                operation.NarrowedType,
+                semanticModel: null,
+                operation.Syntax,
+                IsImplicit(operation));
+        }
+
+        public override IOperation VisitListPattern(IListPatternOperation operation, int? argument)
+        {
+            return new ListPatternOperation(
+                operation.LengthSymbol,
+                operation.IndexerSymbol,
+                operation.Patterns.SelectAsArray((p, @this) => (IPatternOperation)@this.VisitRequired(p), this),
+                operation.DeclaredSymbol,
+                operation.InputType,
+                operation.NarrowedType,
+                semanticModel: null,
+                operation.Syntax,
+                IsImplicit(operation));
+        }
+
         public override IOperation VisitRecursivePattern(IRecursivePatternOperation operation, int? argument)
         {
             return new RecursivePatternOperation(

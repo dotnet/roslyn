@@ -1904,6 +1904,8 @@ endRegion:
                 case OperationKind.NegatedPattern:
                 case OperationKind.BinaryPattern:
                 case OperationKind.TypePattern:
+                case OperationKind.SlicePattern:
+                case OperationKind.ListPattern:
                     return true;
             }
 
