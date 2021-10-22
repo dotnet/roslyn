@@ -3335,14 +3335,16 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         /// <summary>
         /// The <c>Length</c> or <c>Count</c> property that is being used to fetch the length value.
+        /// Returns <c>null</c> if no such property is found.
         /// </summary>
-        ISymbol LengthProperty { get; }
+        ISymbol? LengthSymbol { get; }
         /// <summary>
-        /// The indexer that is being used to fetch elements, or otherwise <c>null</c> for an array input.
+        /// The indexer that is being used to fetch elements.
+        /// Returns <c>null</c> for an array input.
         /// </summary>
-        ISymbol? Symbol { get; }
+        ISymbol? IndexerSymbol { get; }
         /// <summary>
-        /// This contains the subpatterns within a list subpattern.
+        /// Returns subpatterns contained within the list pattern.
         /// </summary>
         ImmutableArray<IPatternOperation> Patterns { get; }
         /// <summary>
@@ -3364,9 +3366,10 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface ISlicePatternOperation : IPatternOperation
     {
         /// <summary>
-        /// The range indexer or the <c>Slice</c> method used to fetch the slice value, or otherwise <c>null</c> for an array input.
+        /// The range indexer or the <c>Slice</c> method used to fetch the slice value.
+        /// Returns <c>null</c> for an array input.
         /// </summary>
-        ISymbol? Symbol { get; }
+        ISymbol? SliceSymbol { get; }
         /// <summary>
         /// The pattern that the slice value is matched with, if any.
         /// </summary>
@@ -7656,16 +7659,16 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ListPatternOperation : BasePatternOperation, IListPatternOperation
     {
-        internal ListPatternOperation(ISymbol lengthProperty, ISymbol? symbol, ImmutableArray<IPatternOperation> patterns, ISymbol? declaredSymbol, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+        internal ListPatternOperation(ISymbol? lengthSymbol, ISymbol? indexerSymbol, ImmutableArray<IPatternOperation> patterns, ISymbol? declaredSymbol, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(inputType, narrowedType, semanticModel, syntax, isImplicit)
         {
-            LengthProperty = lengthProperty;
-            Symbol = symbol;
+            LengthSymbol = lengthSymbol;
+            IndexerSymbol = indexerSymbol;
             Patterns = SetParentOperation(patterns, this);
             DeclaredSymbol = declaredSymbol;
         }
-        public ISymbol LengthProperty { get; }
-        public ISymbol? Symbol { get; }
+        public ISymbol? LengthSymbol { get; }
+        public ISymbol? IndexerSymbol { get; }
         public ImmutableArray<IPatternOperation> Patterns { get; }
         public ISymbol? DeclaredSymbol { get; }
         protected override IOperation GetCurrent(int slot, int index)
@@ -7699,13 +7702,13 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class SlicePatternOperation : BasePatternOperation, ISlicePatternOperation
     {
-        internal SlicePatternOperation(ISymbol? symbol, IPatternOperation? pattern, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+        internal SlicePatternOperation(ISymbol? sliceSymbol, IPatternOperation? pattern, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(inputType, narrowedType, semanticModel, syntax, isImplicit)
         {
-            Symbol = symbol;
+            SliceSymbol = sliceSymbol;
             Pattern = SetParentOperation(pattern, this);
         }
-        public ISymbol? Symbol { get; }
+        public ISymbol? SliceSymbol { get; }
         public IPatternOperation? Pattern { get; }
         protected override IOperation GetCurrent(int slot, int index)
             => slot switch
@@ -8295,12 +8298,12 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitListPattern(IListPatternOperation operation, object? argument)
         {
             var internalOperation = (ListPatternOperation)operation;
-            return new ListPatternOperation(internalOperation.LengthProperty, internalOperation.Symbol, VisitArray(internalOperation.Patterns), internalOperation.DeclaredSymbol, internalOperation.InputType, internalOperation.NarrowedType, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+            return new ListPatternOperation(internalOperation.LengthSymbol, internalOperation.IndexerSymbol, VisitArray(internalOperation.Patterns), internalOperation.DeclaredSymbol, internalOperation.InputType, internalOperation.NarrowedType, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
         public override IOperation VisitSlicePattern(ISlicePatternOperation operation, object? argument)
         {
             var internalOperation = (SlicePatternOperation)operation;
-            return new SlicePatternOperation(internalOperation.Symbol, Visit(internalOperation.Pattern), internalOperation.InputType, internalOperation.NarrowedType, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+            return new SlicePatternOperation(internalOperation.SliceSymbol, Visit(internalOperation.Pattern), internalOperation.InputType, internalOperation.NarrowedType, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
     }
     #endregion
