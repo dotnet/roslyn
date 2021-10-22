@@ -4206,6 +4206,30 @@ class C
     }
 
     [Fact]
+    public void ListPattern_Exhaustiveness_Slice()
+    {
+        var src = @"
+_ = new C() switch
+{
+    null or { Length: 4 } => 0,
+    [_, .., _] => 0
+};
+
+class C
+{
+    public int Length => throw null;
+    public int this[int i] => throw null;
+}
+";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+            // _ = new C() switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(2, 13)
+            );
+    }
+
+    [Fact]
     public void ListPattern_Exhaustiveness_StartAndEndPatternsOverlap()
     {
         var src = @"
