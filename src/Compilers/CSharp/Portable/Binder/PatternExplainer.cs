@@ -288,8 +288,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return null;
                         }
 
-                        // The sample value must be equal or greater than the required minimum length by the slice.
-                        Debug.Assert(slice.StartIndex - slice.EndIndex <= lengthValue);
+                        if (slice.StartIndex - slice.EndIndex > lengthValue)
+                        {
+                            // Bail if the sample value is less than the required minimum length by the slice.
+                            return null;
+                        }
                     }
 
                     var subpatterns = new ArrayBuilder<string>(lengthValue);
