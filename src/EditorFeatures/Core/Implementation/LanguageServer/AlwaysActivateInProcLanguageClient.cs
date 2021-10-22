@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             RequestDispatcherFactory csharpVBRequestDispatcherFactory,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             DefaultCapabilitiesProvider defaultCapabilitiesProvider,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)

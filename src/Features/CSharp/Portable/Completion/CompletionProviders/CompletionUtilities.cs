@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -39,6 +40,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return true;
 
             return false;
+        }
+
+        public static SyntaxToken? GetDotTokenLeftOfPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            var tokenOnLeft = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeSkipped: true);
+            var dotToken = tokenOnLeft.GetPreviousTokenIfTouchingWord(position);
+
+            // Has to be a . or a .. token
+            if (!TreatAsDot(dotToken, position - 1))
+                return null;
+
+            // don't want to trigger after a number. All other cases after dot are ok.
+            if (dotToken.GetPreviousToken().Kind() == SyntaxKind.NumericLiteralToken)
+                return null;
+
+            return dotToken;
         }
 
         internal static bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)

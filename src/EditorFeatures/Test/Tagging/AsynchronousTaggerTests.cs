@@ -164,9 +164,10 @@ class Program
             protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
                 => _eventSource;
 
-            protected override Task ProduceTagsAsync(TaggerContext<TestTag> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition)
+            protected override Task ProduceTagsAsync(
+                TaggerContext<TestTag> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition, CancellationToken cancellationToken)
             {
-                var tags = _callback(snapshotSpan.SnapshotSpan, context.CancellationToken);
+                var tags = _callback(snapshotSpan.SnapshotSpan, cancellationToken);
                 if (tags != null)
                 {
                     foreach (var tag in tags)

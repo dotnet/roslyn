@@ -39,7 +39,7 @@ static class C { }";
             using var testLspServer = CreateTestLspServer(s_standardCase, out var locations);
             var caretLocation = locations["caret"].First();
             await RunGetSemanticTokensAsync(testLspServer, caretLocation);
-            UpdateDocumentText(updatedText, testLspServer.TestWorkspace);
+            await UpdateDocumentTextAsync(updatedText, testLspServer.TestWorkspace);
 
             var results = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "1");
 
@@ -61,7 +61,7 @@ static class C { }";
             using var testLspServer = CreateTestLspServer(s_standardCase, out var locations);
             var caretLocation = locations["caret"].First();
             await RunGetSemanticTokensAsync(testLspServer, caretLocation);
-            UpdateDocumentText(updatedText, testLspServer.TestWorkspace);
+            await UpdateDocumentTextAsync(updatedText, testLspServer.TestWorkspace);
 
             var results = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "1");
 
@@ -85,7 +85,7 @@ static class C { }
             using var testLspServer = CreateTestLspServer(s_standardCase, out var locations);
             var caretLocation = locations["caret"].First();
             await RunGetSemanticTokensAsync(testLspServer, caretLocation);
-            UpdateDocumentText(updatedText, testLspServer.TestWorkspace);
+            await UpdateDocumentTextAsync(updatedText, testLspServer.TestWorkspace);
 
             var results = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "1");
 
@@ -115,7 +115,7 @@ static class C { }
             await RunGetSemanticTokensAsync(testLspServer, caretLocation);
 
             // Edit text
-            UpdateDocumentText(updatedText, testLspServer.TestWorkspace);
+            await UpdateDocumentTextAsync(updatedText, testLspServer.TestWorkspace);
 
             var results = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "1");
 
@@ -154,7 +154,7 @@ static class C { }";
             using var testLspServer = CreateTestLspServer(s_standardCase, out var locations);
             var caretLocation = locations["caret"].First();
             await RunGetSemanticTokensAsync(testLspServer, caretLocation);
-            UpdateDocumentText(updatedText, testLspServer.TestWorkspace);
+            await UpdateDocumentTextAsync(updatedText, testLspServer.TestWorkspace);
 
             var results = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "10");
 
@@ -178,7 +178,7 @@ static class C { }";
             using var testLspServer = CreateTestLspServer(s_standardCase, out var locations);
             var caretLocation = locations["caret"].First();
             var originalTokens = await RunGetSemanticTokensAsync(testLspServer, caretLocation);
-            UpdateDocumentText(updatedText, testLspServer.TestWorkspace);
+            await UpdateDocumentTextAsync(updatedText, testLspServer.TestWorkspace);
 
             // Edits to tokens conversion
             var edits = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "1");
@@ -200,7 +200,7 @@ internal struct S { }";
             using var testLspServer = CreateTestLspServer(s_standardCase, out var locations);
             var caretLocation = locations["caret"].First();
             var originalTokens = await RunGetSemanticTokensAsync(testLspServer, caretLocation);
-            UpdateDocumentText(updatedText, testLspServer.TestWorkspace);
+            await UpdateDocumentTextAsync(updatedText, testLspServer.TestWorkspace);
 
             // Edits to tokens conversion
             var edits = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "1");
@@ -229,7 +229,7 @@ class C
             using var testLspServer = CreateTestLspServer(s_standardCase, out var locations);
             var caretLocation = locations["caret"].First();
             var originalTokens = await RunGetSemanticTokensAsync(testLspServer, caretLocation);
-            UpdateDocumentText(updatedText, testLspServer.TestWorkspace);
+            await UpdateDocumentTextAsync(updatedText, testLspServer.TestWorkspace);
 
             // Edits to tokens conversion
             var edits = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "1");
@@ -259,7 +259,7 @@ class C
             using var testLspServer = CreateTestLspServer(originalText, out var locations);
             var caretLocation = locations["caret"].First();
             var originalTokens = await RunGetSemanticTokensAsync(testLspServer, caretLocation);
-            UpdateDocumentText(updatedText, testLspServer.TestWorkspace);
+            await UpdateDocumentTextAsync(updatedText, testLspServer.TestWorkspace);
 
             // Edits to tokens conversion
             var edits = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "1");
@@ -279,7 +279,7 @@ class C
             using var testLspServer = CreateTestLspServer(s_standardCase, out var locations);
             var caretLocation = locations["caret"].First();
             await RunGetSemanticTokensAsync(testLspServer, caretLocation);
-            UpdateDocumentText(updatedText, testLspServer.TestWorkspace);
+            await UpdateDocumentTextAsync(updatedText, testLspServer.TestWorkspace);
 
             var results = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "10");
 

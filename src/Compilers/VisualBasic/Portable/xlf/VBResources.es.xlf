@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A shared abstract interface member cannot be accessed.</source>
-        <target state="new">A shared abstract interface member cannot be accessed.</target>
+        <target state="translated">No se puede obtener acceso a un miembro de interfaz abstracta compartida.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
         <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
-        <target state="new">{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</target>
+        <target state="translated">{0} '{1}' no puede implementar la interfaz '{3}' porque contiene abstracto compartido '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
