@@ -65,7 +65,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
     /// Note that the text here is tracked regardless of whether or not we found a matching roslyn document
     /// for the URI.
     /// </summary>
-    private readonly Dictionary<Uri, SourceText> _trackedDocuments = new();
+    private ImmutableDictionary<Uri, SourceText> _trackedDocuments = ImmutableDictionary.Create<Uri, SourceText>();
 
     private readonly string _hostWorkspaceKind;
     private readonly ILspLogger _logger;
@@ -153,12 +153,15 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
             _workspaceToLspSolution[workspace] = null;
         }
 
-        static bool IsDocumentTrackedByLsp(DocumentId changedDocumentId, Solution newWorkspaceSolution, Dictionary<Uri, SourceText> trackedDocuments)
+        bool IsDocumentTrackedByLsp(DocumentId changedDocumentId, Solution newWorkspaceSolution, ImmutableDictionary<Uri, SourceText> trackedDocuments)
         {
             var changedDocument = newWorkspaceSolution.GetRequiredDocument(changedDocumentId);
             var documentUri = changedDocument.TryGetURI();
 
-            return documentUri != null && trackedDocuments.ContainsKey(documentUri);
+            lock (_gate)
+            {
+                return documentUri != null && trackedDocuments.ContainsKey(documentUri);
+            }
         }
     }
 
@@ -175,7 +178,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
         {
             // First, store the LSP view of the text as the uri is now owned by the LSP client.
             Contract.ThrowIfTrue(_trackedDocuments.ContainsKey(uri), $"didOpen received for {uri} which is already open.");
-            _trackedDocuments.Add(uri, documentText);
+            _trackedDocuments = _trackedDocuments.Add(uri, documentText);
 
             // Make sure we reset/update our LSP incremental solutions now that we potentially have a new document.
             var updatedSolutions = ResetIncrementalLspSolutions_CalledUnderLock();
@@ -202,7 +205,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
         {
             // First, stop tracking this URI and source text as it is no longer owned by LSP.
             Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(uri), $"didClose received for {uri} which is not open.");
-            _trackedDocuments.Remove(uri);
+            _trackedDocuments = _trackedDocuments.Remove(uri);
 
             // Trigger a fork of all workspaces, the LSP document text may not match the workspace and this document
             // may have been removed / moved to a different workspace.
@@ -223,7 +226,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
         {
             // Store the updated LSP view of the source text.
             Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(uri), $"didChange received for {uri} which is not open.");
-            _trackedDocuments[uri] = newSourceText;
+            _trackedDocuments = _trackedDocuments.SetItem(uri, newSourceText);
 
             // Get our current solutions and re-fork from the workspace as needed.
             var updatedSolutions = ComputeIncrementalLspSolutions_CalledUnderLock();

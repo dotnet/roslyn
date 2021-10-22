@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             IGlobalOptionService globalOptions)
         {
             // Retrieve the current LSP tracked text as of this request.
+            // This is safe as all creation of request contexts cannot happen concurrently.
             var trackedDocuments = lspWorkspaceManager.GetTrackedLspText();
 
             // If the handler doesn't need an LSP solution we do two important things:
