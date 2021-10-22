@@ -2215,5 +2215,113 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o 
             var comp = CreateCompilationWithIndexAndRangeAndSpan(source);
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_ListPatterns_MissingMember_Length()
+        {
+            string source = @"
+class X
+{
+    public int this[int i] => throw null;
+    
+    void M()
+    {
+        _ = /*<bind>*/this is []/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'this is []')
+  Value:
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: X) (Syntax: 'this')
+  Pattern:
+    IListPatternOperation (OperationKind.ListPattern, Type: null, IsInvalid) (Syntax: '[]') (InputType: X, NarrowedType: X, DeclaredSymbol: null, LengthSymbol: null, IndexerSymbol: null)
+      Patterns (0)
+";
+            var expectedDiagnostics = new[]
+            {
+                // (8,31): error CS9200: List patterns may not be used for a value of type 'X'.
+                //         _ = /*<bind>*/this is []/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[]").WithArguments("X").WithLocation(8, 31)
+            };
+
+            var comp = CreateCompilation(source);
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_ListPatterns_MissingMember_Indexer()
+        {
+            string source = @"
+class X
+{
+    public int Count { get; }
+    
+    void M()
+    {
+        _ = /*<bind>*/this is []/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'this is []')
+  Value:
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: X) (Syntax: 'this')
+  Pattern:
+    IListPatternOperation (OperationKind.ListPattern, Type: null, IsInvalid) (Syntax: '[]') (InputType: X, NarrowedType: X, DeclaredSymbol: null, LengthSymbol: System.Int32 X.Count { get; }, IndexerSymbol: null)
+      Patterns (0)
+";
+            var expectedDiagnostics = new[]
+            {
+                // (8,31): error CS9200: List patterns may not be used for a value of type 'X'.
+                //         _ = /*<bind>*/this is []/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[]").WithArguments("X").WithLocation(8, 31)
+            };
+
+            var comp = CreateCompilation(source);
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_ListPatterns_MissingMember_Slice()
+        {
+            string source = @"
+class X
+{
+    public int this[int i] => throw null;
+    public int Count => throw null;
+
+    void M()
+    {
+        _ = /*<bind>*/this is [.. 0]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'this is [.. 0]')
+  Value:
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: X) (Syntax: 'this')
+  Pattern:
+    IListPatternOperation (OperationKind.ListPattern, Type: null, IsInvalid) (Syntax: '[.. 0]') (InputType: X, NarrowedType: X, DeclaredSymbol: null, LengthSymbol: System.Int32 X.Count { get; }, IndexerSymbol: System.Int32 X.this[System.Int32 i] { get; })
+      Patterns (1):
+          ISlicePatternOperation (OperationKind.SlicePattern, Type: null, IsInvalid) (Syntax: '.. 0'), SliceSymbol: null
+            Pattern:
+              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '0') (InputType: ?, NarrowedType: System.Int32)
+                Value:
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+";
+            var expectedDiagnostics = new[]
+            {
+                // (9,32): error CS9201: Slice patterns may not be used for a value of type 'X'.
+                //         _ = /*<bind>*/this is [.. 0]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, ".. 0").WithArguments("X").WithLocation(9, 32)
+            };
+
+            var comp = CreateCompilation(source);
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }
