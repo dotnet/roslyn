@@ -147,19 +147,32 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     [Fact]
     public async Task TestForksOnOptionChangesChangesAsync()
     {
-        var markup = "p{|caret:|}}";
+        var markup =
+@"using System;
+class A
+{
+    void M()
+    {
+        DateTime.Now.ToString(""{|caret:|});
+    }
+}";
         using var testLspServer = CreateTestLspServer(markup, out var caretLocation);
         var documentUri = testLspServer.GetCurrentSolution().Projects.First().Documents.Single(d => d.FilePath!.Contains("test1")).GetURI();
 
         // Open the document via LSP to create the initial LSP solution.
-        await OpenDocumentAndVerifyLspTextAsync(documentUri, testLspServer, "p");
+        await OpenDocumentAndVerifyLspTextAsync(documentUri, testLspServer, markup);
 
-        var completionParams = CreateCompletionParams(caretLocation["caret"].Single(), VSInternalCompletionInvokeKind.Typing, "p", CompletionTriggerKind.Invoked);
+        var completionParams = CreateCompletionParams(
+                caretLocation["caret"].Single(),
+                invokeKind: VSInternalCompletionInvokeKind.Typing,
+                triggerCharacter: "\"",
+                triggerKind: CompletionTriggerKind.TriggerCharacter);
         var completionItems = await CompletionTests.RunGetCompletionsAsync(testLspServer, completionParams);
-        Assert.True(completionItems.Items.Length > 1);
+        Assert.Contains(completionItems.Items, item => item.Label == "d");
 
         // Modify an option via the workspace.
-        var solutionWithChangedOption = testLspServer.TestWorkspace.CurrentSolution.WithOptions(testLspServer.TestWorkspace.Options.WithChangedOption(LspOptions.MaxCompletionListSize, 1));
+        var solutionWithChangedOption = testLspServer.TestWorkspace.CurrentSolution.WithOptions(
+            testLspServer.TestWorkspace.Options.WithChangedOption(CodeAnalysis.Completion.CompletionOptions.Metadata.ProvideDateAndTimeCompletions, LanguageNames.CSharp, false));
         await testLspServer.TestWorkspace.ChangeSolutionAsync(solutionWithChangedOption);
 
         // Assert that the LSP incremental solution is cleared.
@@ -167,7 +180,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
         // Verify that we fork again from the workspace and the new LSP solution has the new text and respects the updated option.
         completionItems = await CompletionTests.RunGetCompletionsAsync(testLspServer, completionParams);
-        Assert.True(completionItems.Items.Length == 1);
+        Assert.Null(completionItems);
     }
 
     [Fact]
