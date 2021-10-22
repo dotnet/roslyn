@@ -1389,8 +1389,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                     case SymbolKind.Property:
                         FieldSymbol? backingField = (m as SourcePropertySymbolBase)?.BackingField;
-                        if (backingField is not null && !members.Contains(backingField))
+                        if (backingField is SynthesizedBackingFieldSymbol { IsCreatedForFieldKeyword: true })
                         {
+                            Debug.Assert(!members.Contains(backingField));
                             yield return backingField;
                         }
                         break;
@@ -1516,9 +1517,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Backing fields for field-like events are not added to the members list.
                 member = e;
             }
-            else if (member is FieldSymbol)
+            else if (member is SynthesizedBackingFieldSymbol { IsCreatedForFieldKeyword: true } backingField)
             {
-                // PROTOTYPE.
                 return;
             }
 

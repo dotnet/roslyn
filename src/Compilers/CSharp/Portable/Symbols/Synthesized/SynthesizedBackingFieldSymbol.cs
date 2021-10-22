@@ -14,13 +14,14 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// Represents a compiler generated backing field for an automatically implemented property.
+    /// Represents a compiler generated backing field for an automatically/semi-automatically implemented property.
     /// </summary>
     internal sealed class SynthesizedBackingFieldSymbol : FieldSymbolWithAttributesAndModifiers
     {
         private readonly SourcePropertySymbolBase _property;
         private readonly string _name;
         internal bool HasInitializer { get; }
+        internal bool IsCreatedForFieldKeyword { get; }
         protected override DeclarationModifiers Modifiers { get; }
 
         public SynthesizedBackingFieldSymbol(
@@ -28,7 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             bool isReadOnly,
             bool isStatic,
-            bool hasInitializer)
+            bool hasInitializer,
+            bool isCreatedForfieldKeyword)
         {
             Debug.Assert(!string.IsNullOrEmpty(name));
 
@@ -40,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _property = property;
             HasInitializer = hasInitializer;
+            IsCreatedForFieldKeyword = isCreatedForfieldKeyword;
         }
 
         protected override IAttributeTargetSymbol AttributeOwner

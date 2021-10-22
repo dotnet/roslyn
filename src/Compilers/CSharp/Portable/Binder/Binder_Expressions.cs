@@ -1562,7 +1562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!accessor.Property.IsIndexer && accessor.Property.BackingField is null)
                         {
-                            accessor.Property.CreateBackingField();
+                            accessor.Property.CreateBackingField(isCreatedForFieldKeyword: true);
                         }
 
                         if (accessor.Property.BackingField is { } backingField)

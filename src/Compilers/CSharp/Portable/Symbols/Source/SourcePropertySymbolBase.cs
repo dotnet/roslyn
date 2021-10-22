@@ -33,6 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             IsAutoProperty = 1 << 1,
             IsExplicitInterfaceImplementation = 1 << 2,
             HasInitializer = 1 << 3,
+            HasGetAccessor = 1 << 4,
+            HasSetAccessor = 1 << 5,
+            IsInitOnly = 1 << 6,
         }
 
         // TODO (tomat): consider splitting into multiple subclasses/rare data.
@@ -62,10 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
         private SynthesizedSealedPropertyAccessor _lazySynthesizedSealedAccessor;
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
-
-        private readonly bool _hasGetAccessor;
-        private readonly bool _hasSetAccessor;
-        private readonly bool _isInitOnly;
+        private SynthesizedBackingFieldSymbol _lazyBackingFieldSymbol;
 
         // CONSIDER: if the parameters were computed lazily, ParameterCount could be overridden to fall back on the syntax (as in SourceMemberMethodSymbol).
 
@@ -97,11 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _syntaxRef = syntax.GetReference();
             Location = location;
             _containingType = containingType;
-            _hasGetAccessor = hasGetAccessor;
-            _hasSetAccessor = hasSetAccessor;
             _refKind = refKind;
             _modifiers = modifiers;
-            _isInitOnly = isInitOnly;
             _explicitInterfaceType = explicitInterfaceType;
 
             if (isExplicitInterfaceImplementation)
@@ -131,6 +128,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _propertyFlags |= Flags.IsExpressionBodied;
             }
 
+            if (hasGetAccessor)
+            {
+                _propertyFlags |= Flags.HasGetAccessor;
+            }
+
+            if (hasSetAccessor)
+            {
+                _propertyFlags |= Flags.HasSetAccessor;
+            }
+
+            if (isInitOnly)
+            {
+                _propertyFlags |= Flags.IsInitOnly;
+            }
+
             if (isIndexer)
             {
                 if (indexerNameAttributeLists.Count == 0 || isExplicitInterfaceImplementation)
@@ -152,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((isAutoProperty && hasGetAccessor) || hasInitializer)
             {
                 Debug.Assert(!IsIndexer);
-                CreateBackingField();
+                CreateBackingField(isCreatedForFieldKeyword: false);
             }
 
             if (hasGetAccessor)
@@ -166,15 +178,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal void CreateBackingField()
+        internal void CreateBackingField(bool isCreatedForFieldKeyword)
         {
             Debug.Assert(BackingField is null && !IsIndexer);
-            BackingField = new SynthesizedBackingFieldSymbol(this,
+            _lazyBackingFieldSymbol = new SynthesizedBackingFieldSymbol(this,
                                       GeneratedNames.MakeBackingFieldName(_name),
-                                      isReadOnly: (_hasGetAccessor && !_hasSetAccessor) || _isInitOnly,
+                                      isReadOnly: (HasGetAccessor && !HasSetAccessor) || IsInitOnly,
                                       this.IsStatic,
-                                      hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0);
+                                      hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0,
+                                      isCreatedForfieldKeyword: isCreatedForFieldKeyword);
         }
+
         private void EnsureSignatureGuarded(BindingDiagnosticBag diagnostics)
         {
             PropertySymbol? explicitlyImplementedProperty = null;
@@ -588,6 +602,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsExplicitInterfaceImplementation
             => (_propertyFlags & Flags.IsExplicitInterfaceImplementation) != 0;
 
+        private bool HasGetAccessor => (_propertyFlags & Flags.HasGetAccessor) != 0;
+
+        private bool HasSetAccessor => (_propertyFlags & Flags.HasSetAccessor) != 0;
+
+        private bool IsInitOnly => (_propertyFlags & Flags.IsInitOnly) != 0;
+
         public sealed override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations
         {
             get
@@ -641,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Backing field for automatically implemented property, or
         /// for a property with an initializer.
         /// </summary>
-        internal SynthesizedBackingFieldSymbol BackingField { get; set; }
+        internal SynthesizedBackingFieldSymbol BackingField => _lazyBackingFieldSymbol
 
         internal override bool MustCallMethodsDirectly
         {

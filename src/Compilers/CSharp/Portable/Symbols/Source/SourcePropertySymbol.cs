@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             GetAccessorDeclarations(
                 syntax,
-                containingType,
                 diagnostics,
                 out bool isAutoProperty,
                 out bool hasAccessorList,
@@ -158,7 +157,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static void GetAccessorDeclarations(
             CSharpSyntaxNode syntaxNode,
-            SourceMemberContainerTypeSymbol containingType,
             BindingDiagnosticBag diagnostics,
             out bool isAutoProperty,
             out bool hasAccessorList,
