@@ -3133,7 +3133,7 @@
     <Comments>
       <summary>Represents a call to either AppendLiteral or AppendFormatted as part of an interpolated string handler conversion.</summary>
     </Comments>
-    <Property Name="AppendCall" Type="IOperation?">
+    <Property Name="AppendCall" Type="IOperation">
       <Comments>
         <summary>
           If this interpolated string is subject to an interpolated string handler conversion, the construction of the interpolated string handler instance.

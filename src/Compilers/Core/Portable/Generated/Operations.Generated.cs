@@ -3404,7 +3404,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// If this interpolated string is subject to an interpolated string handler conversion, the construction of the interpolated string handler instance.
         /// This can be an IInvocationOperation or IDynamicInvocationOperation for valid code, and IInvalidOperation for invalid code.
         /// </summary>
-        IOperation? AppendCall { get; }
+        IOperation AppendCall { get; }
     }
     /// <summary>
     /// Represents an argument from the method call, indexer access, or constructor invocation that is creating the containing <see cref="IInterpolatedStringHandlerCreationOperation" />
@@ -3421,7 +3421,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         /// <summary>
         /// The index of the argument of the method call containing the interpolated string handler conversion this placeholder is referencing. -1 if <see cref="PlaceholderKind" /> is
-        /// anything other than <see cref="InterpolatedStringArgumentPlaceholderKind.CallsiteArgument" />.
+        /// anything other than <see cref="InterpolatedStringArgumentPlaceholderKind.Argument" />.
         /// </summary>
         int ArgumentIndex { get; }
         /// <summary>
@@ -7802,13 +7802,13 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class InterpolatedStringAppendOperation : BaseInterpolatedStringContentOperation, IInterpolatedStringAppendOperation
     {
-        internal InterpolatedStringAppendOperation(IOperation? appendCall, OperationKind kind, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+        internal InterpolatedStringAppendOperation(IOperation appendCall, OperationKind kind, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             AppendCall = SetParentOperation(appendCall, this);
             Kind = kind;
         }
-        public IOperation? AppendCall { get; }
+        public IOperation AppendCall { get; }
         protected override IOperation GetCurrent(int slot, int index)
             => slot switch
             {
