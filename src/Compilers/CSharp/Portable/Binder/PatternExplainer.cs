@@ -243,13 +243,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (constraints.IsEmpty && evaluations.IsEmpty)
                     return null;
 
-                if (!constraints.All(c => c switch
-                {
-                    // not-null tests are implicitly incorporated into a list pattern
-                    (test: BoundDagNonNullTest _, sense: true) => true,
-                    (test: BoundDagExplicitNullTest _, sense: false) => true,
-                    _ => false,
-                }))
+                // not-null tests are implicitly incorporated into a list pattern
+                if (!constraints.All(isNotNullTest))
                 {
                     return null;
                 }
@@ -340,13 +335,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            static string makeConjunct(string oldPattern, string newPattern) => (oldPattern, newPattern) switch
-            {
-                ("_", var x) => x,
-                (var x, "_") => x,
-                (var x, var y) => x + " and " + y
-            };
-
             // Handle the special case of a tuple pattern
             string tryHandleTuplePattern(ref bool unnamedEnumValue)
             {
@@ -406,13 +394,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (constraints.IsEmpty && evaluations.IsEmpty)
                     return null;
 
-                if (!constraints.All(c => c switch
-                {
-                    // not-null tests are implicitly incorporated into a recursive pattern
-                    (test: BoundDagNonNullTest _, sense: true) => true,
-                    (test: BoundDagExplicitNullTest _, sense: false) => true,
-                    _ => false,
-                }))
+                // not-null tests are implicitly incorporated into a recursive pattern
+                if (!constraints.All(isNotNullTest))
                 {
                     return null;
                 }
@@ -509,6 +492,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return remainingValues;
+            }
+
+            static string makeConjunct(string oldPattern, string newPattern) => (oldPattern, newPattern) switch
+            {
+                ("_", var x) => x,
+                (var x, "_") => x,
+                (var x, var y) => x + " and " + y
+            };
+
+            static bool isNotNullTest((BoundDagTest test, bool sense) constraint)
+            {
+                return constraint is
+                    (test: BoundDagNonNullTest _, sense: true) or
+                    (test: BoundDagExplicitNullTest _, sense: false);
             }
         }
 

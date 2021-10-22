@@ -3374,7 +3374,7 @@ class C
             [not null] => 0,
         };
 
-        _ = this switch // we didn't test for [.. null] but we're looking for an example with Length=1. incorrect explanation [.. null, null] // 1
+        _ = this switch // we didn't test for [.. null] but we're looking for an example with Length=1. // 1
         {
             null or { Length: not 1 } => 0,
             [.. [null]] => 0,
@@ -3438,10 +3438,11 @@ class C
     }
 }
 ";
+        // Note: we don't try to explain nested slice patterns right now so all these just produce a fallback example
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyEmitDiagnostics(
                 // (20,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-                //         _ = this switch // we didn't test for [.. null] but we're looking for an example with Length=1. incorrect explanation [.. null, null] // 1
+                //         _ = this switch // we didn't test for [.. null] but we're looking for an example with Length=1. // 1
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(20, 18),
                 // (27,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
                 //         _ = this switch // didn't test for [.. [not null]] // // 2
