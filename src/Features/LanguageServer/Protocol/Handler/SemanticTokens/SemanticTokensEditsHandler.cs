@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
                         break;
                     default:
-                        throw new InvalidOperationException($"Unexpected DiffEdit operation: {edit.Operation}");
+                        throw ExceptionUtilities.UnexpectedValue(edit.Operation);
                 }
             }
 

@@ -13,30 +13,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     internal class SemanticTokensEditsDiffer : TextDiffer
     {
-        private SemanticTokensEditsDiffer(IReadOnlyList<int> oldArray, IReadOnlyList<int> newArray)
-        {
-            if (oldArray is null)
-            {
-                throw new ArgumentNullException(nameof(oldArray));
-            }
-
-            OldArray = oldArray;
-            NewArray = newArray;
-        }
-
-        private IReadOnlyList<int> OldArray { get; }
-        private IReadOnlyList<int> NewArray { get; }
-
-        protected override int OldTextLength => OldArray.Count;
-        protected override int NewTextLength => NewArray.Count;
+        private static readonly SemanticTokensEditsDiffer s_instance = new();
 
         // NOTE: This is the ideal size determined by benchmarking. Do not change unless perf tested.
         // See https://github.com/dotnet/roslyn/blob/main/src/Tools/IdeCoreBenchmarks/LSPSemanticTokensBenchmarks.cs.
         private const int MaxArraySize = 50;
 
-        protected override bool ContentEquals(int oldTextIndex, int newTextIndex)
+        protected override bool ContentEquals(
+            IReadOnlyList<int> oldSemanticTokens,
+            int oldIndex,
+            IReadOnlyList<int> newSemanticTokens,
+            int newIndex)
         {
-            return OldArray[oldTextIndex] == NewArray[newTextIndex];
+            return oldSemanticTokens[oldIndex] == newSemanticTokens[newIndex];
         }
 
         public static async Task<IReadOnlyList<DiffEdit>> ComputeSemanticTokensEditsAsync(
@@ -54,9 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 var task = Task.Run(() =>
                 {
                     var (oldTokensSubset, newTokensSubset) = GetTokenSubsets(oldTokens, newTokens, setNum);
-
-                    var differ = new SemanticTokensEditsDiffer(oldTokensSubset, newTokensSubset);
-                    var currentEditSet = differ.ComputeDiff();
+                    var currentEditSet = s_instance.ComputeDiff(oldTokensSubset, newTokensSubset);
 
                     // Adjust the indices of our results since we partitioned them earlier into smaller sets.
                     var adjustedEdits = AdjustEditPositions(oldTokens, setNum, currentEditSet);
@@ -123,7 +110,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     {
                         DiffEdit.Type.Insert => new DiffEdit(DiffEdit.Type.Insert, position, newTextPosition: edit.NewTextPosition + (setNum * MaxArraySize)),
                         DiffEdit.Type.Delete => new DiffEdit(DiffEdit.Type.Delete, position, null),
-                        _ => throw new InvalidOperationException("Unexpected DiffEdit operation: " + edit.Operation),
+                        _ => throw ExceptionUtilities.UnexpectedValue(edit.Operation),
                     };
                 });
 

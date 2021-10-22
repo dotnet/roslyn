@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Differencing;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
@@ -21,36 +22,45 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     /// </remarks>
     internal abstract class TextDiffer
     {
-        protected abstract int OldTextLength { get; }
+        protected abstract bool ContentEquals(
+            IReadOnlyList<int> oldArray,
+            int oldIndex,
+            IReadOnlyList<int> newArray,
+            int newIndex);
 
-        protected abstract int NewTextLength { get; }
-
-        protected abstract bool ContentEquals(int oldTextIndex, int newTextIndex);
-
-        protected IReadOnlyList<DiffEdit> ComputeDiff()
+        protected IReadOnlyList<DiffEdit> ComputeDiff(ArraySegment<int> oldArray, ArraySegment<int> newArray)
         {
             var edits = new List<DiffEdit>();
 
             // Initialize the vectors to use for forward and reverse searches.
-            var max = NewTextLength + OldTextLength;
+            var max = newArray.Count + oldArray.Count;
             var vf = new int[(2 * max) + 1];
             var vr = new int[(2 * max) + 1];
 
-            ComputeDiffRecursive(edits, 0, OldTextLength, 0, NewTextLength, vf, vr);
+            ComputeDiffRecursive(edits, 0, oldArray.Count, 0, newArray.Count, vf, vr, oldArray, newArray);
 
             return edits;
         }
 
-        private void ComputeDiffRecursive(List<DiffEdit> edits, int lowA, int highA, int lowB, int highB, int[] vf, int[] vr)
+        private void ComputeDiffRecursive(
+            List<DiffEdit> edits,
+            int lowA,
+            int highA,
+            int lowB,
+            int highB,
+            int[] vf,
+            int[] vr,
+            ArraySegment<int> oldArray,
+            ArraySegment<int> newArray)
         {
-            while (lowA < highA && lowB < highB && ContentEquals(lowA, lowB))
+            while (lowA < highA && lowB < highB && ContentEquals(oldArray, lowA, newArray, lowB))
             {
                 // Skip equal text at the start.
                 lowA++;
                 lowB++;
             }
 
-            while (lowA < highA && lowB < highB && ContentEquals(highA - 1, highB - 1))
+            while (lowA < highA && lowB < highB && ContentEquals(oldArray, highA - 1, newArray, highB - 1))
             {
                 // Skip equal text at the end.
                 highA--;
@@ -78,17 +88,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             else
             {
                 // Find the midpoint of the optimal path.
-                var (middleX, middleY) = FindMiddleSnake(lowA, highA, lowB, highB, vf, vr);
+                var (middleX, middleY) = FindMiddleSnake(lowA, highA, lowB, highB, vf, vr, oldArray, newArray);
 
                 // Recursively find the midpoint of the left half.
-                ComputeDiffRecursive(edits, lowA, middleX, lowB, middleY, vf, vr);
+                ComputeDiffRecursive(edits, lowA, middleX, lowB, middleY, vf, vr, oldArray, newArray);
 
                 // Recursively find the midpoint of the right half.
-                ComputeDiffRecursive(edits, middleX, highA, middleY, highB, vf, vr);
+                ComputeDiffRecursive(edits, middleX, highA, middleY, highB, vf, vr, oldArray, newArray);
             }
         }
 
-        private (int, int) FindMiddleSnake(int lowA, int highA, int lowB, int highB, int[] vf, int[] vr)
+        private (int, int) FindMiddleSnake(
+            int lowA,
+            int highA,
+            int lowB,
+            int highB,
+            int[] vf,
+            int[] vr,
+            ArraySegment<int> oldArray,
+            ArraySegment<int> newArray)
         {
             var n = highA - lowA;
             var m = highB - lowB;
@@ -132,7 +150,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     var y = x - k;
 
                     // Traverse diagonal if possible.
-                    while (x < highA && y < highB && ContentEquals(x, y))
+                    while (x < highA && y < highB && ContentEquals(oldArray, x, newArray, y))
                     {
                         x++;
                         y++;
@@ -175,7 +193,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     var y = x - k;
 
                     // Traverse diagonal if possible.
-                    while (x > lowA && y > lowB && ContentEquals(x - 1, y - 1))
+                    while (x > lowA && y > lowB && ContentEquals(oldArray, x - 1, newArray, y - 1))
                     {
                         x--;
                         y--;
@@ -199,7 +217,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 }
             }
 
-            throw new InvalidOperationException("Shouldn't reach here.");
+            throw ExceptionUtilities.Unreachable;
         }
     }
 }
