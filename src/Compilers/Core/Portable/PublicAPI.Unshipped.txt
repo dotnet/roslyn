@@ -82,7 +82,7 @@ Microsoft.CodeAnalysis.Operations.IInterpolatedStringAdditionOperation
 Microsoft.CodeAnalysis.Operations.IInterpolatedStringAdditionOperation.Left.get -> Microsoft.CodeAnalysis.IOperation!
 Microsoft.CodeAnalysis.Operations.IInterpolatedStringAdditionOperation.Right.get -> Microsoft.CodeAnalysis.IOperation!
 Microsoft.CodeAnalysis.Operations.IInterpolatedStringAppendOperation
-Microsoft.CodeAnalysis.Operations.IInterpolatedStringAppendOperation.AppendCall.get -> Microsoft.CodeAnalysis.IOperation?
+Microsoft.CodeAnalysis.Operations.IInterpolatedStringAppendOperation.AppendCall.get -> Microsoft.CodeAnalysis.IOperation!
 Microsoft.CodeAnalysis.Operations.IInterpolatedStringHandlerArgumentPlaceholderOperation
 Microsoft.CodeAnalysis.Operations.IInterpolatedStringHandlerArgumentPlaceholderOperation.ArgumentIndex.get -> int
 Microsoft.CodeAnalysis.Operations.IInterpolatedStringHandlerArgumentPlaceholderOperation.PlaceholderKind.get -> Microsoft.CodeAnalysis.Operations.InterpolatedStringArgumentPlaceholderKind

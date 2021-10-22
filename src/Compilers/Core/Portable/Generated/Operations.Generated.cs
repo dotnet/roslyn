@@ -3421,7 +3421,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         /// <summary>
         /// The index of the argument of the method call containing the interpolated string handler conversion this placeholder is referencing. -1 if <see cref="PlaceholderKind" /> is
-        /// anything other than <see cref="InterpolatedStringArgumentPlaceholderKind.Argument" />.
+        /// anything other than <see cref="InterpolatedStringArgumentPlaceholderKind.CallsiteArgument" />.
         /// </summary>
         int ArgumentIndex { get; }
         /// <summary>
