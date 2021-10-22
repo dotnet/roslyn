@@ -261,11 +261,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         switch (evaluations[i])
                         {
-                            case BoundDagIndexerEvaluation e:
+                            case BoundDagIndexerEvaluation:
                                 continue;
-                            // A list pattern can only support a single slice within.
-                            // We won't try to generate a list pattern if there's more.
-                            case BoundDagSliceEvaluation e when slice == null:
+                            case BoundDagSliceEvaluation e:
+                                if (slice != null)
+                                {
+                                    // A list pattern can only support a single slice within.
+                                    // We won't try to generate a list pattern if there's more.
+                                    return null;
+                                }
                                 slice = e;
                                 continue;
                             default:
@@ -276,10 +280,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var lengthTemp = new BoundDagTemp(lengthOrCount.Syntax, lengthOrCount.Property.Type, lengthOrCount);
                     var lengthValues = (IValueSet<int>)computeRemainingValues(ValueSetFactory.ForLength, getArray(constraintMap, lengthTemp));
                     int lengthValue = lengthValues.Sample.Int32Value;
-                    if (slice != null && lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
+                    if (slice != null)
                     {
-                        // Bail if there's a slice but only one length value is remained.
-                        return null;
+                        if (lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
+                        {
+                            // Bail if there's a slice but only one length value is remained.
+                            return null;
+                        }
+
+                        // We expect the required minimum length to be not less than our sample value.
+                        Debug.Assert(slice.StartIndex - slice.EndIndex <= lengthValue);
                     }
 
                     var subpatterns = new ArrayBuilder<string>(lengthValue);
@@ -291,9 +301,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case BoundDagIndexerEvaluation e:
                                 var indexerTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
                                 int index = e.Index;
-                                if (index > lengthValue - 1)
+                                int effectiveIndex = index < 0 ? lengthValue + index : index;
+                                if (effectiveIndex < 0 || effectiveIndex >= lengthValue)
                                     return null;
-                                var effectiveIndex = index < 0 ? ^-index : index;
                                 var oldPattern = subpatterns[effectiveIndex];
                                 var newPattern = SamplePatternForTemp(indexerTemp, constraintMap, evaluationMap, requireExactType: false, ref unnamedEnumValue);
                                 subpatterns[effectiveIndex] = makeConjunct(oldPattern, newPattern);
