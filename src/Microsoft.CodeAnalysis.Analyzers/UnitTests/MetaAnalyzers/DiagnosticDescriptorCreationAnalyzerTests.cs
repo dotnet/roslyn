@@ -1819,159 +1819,100 @@ End Class
                 VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(6).WithLocation(7));
         }
 
-        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
-        public async Task RS1031_TitleStringEndsWithPeriod_ResxFile_DiagnosticAsync()
+        [WindowsOnlyTheory, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        [InlineData(
+            "new LocalizableResourceString(nameof(Resources.AnalyzerTitle), null, typeof(Resources))",
+            "New LocalizableResourceString(NameOf(Resources.AnalyzerTitle), Nothing, GetType(Resources))")]
+        [InlineData(
+            "s_localizableTitle",
+            "s_localizableTitle",
+            "private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(Resources.AnalyzerTitle), null, typeof(Resources));",
+            "Private Shared ReadOnly s_localizableTitle As LocalizableString = New LocalizableResourceString(NameOf(Resources.AnalyzerTitle), Nothing, GetType(Resources))")]
+        [InlineData(
+            "Resources.CreateLocalizableResourceString(nameof(Resources.AnalyzerTitle))",
+            "Resources.CreateLocalizableResourceString(NameOf(Resources.AnalyzerTitle))")]
+        [InlineData(
+            "s_localizableTitle",
+            "s_localizableTitle",
+            "private static readonly LocalizableString s_localizableTitle = Resources.CreateLocalizableResourceString(nameof(Resources.AnalyzerTitle));",
+            "Private Shared ReadOnly s_localizableTitle As LocalizableString = Resources.CreateLocalizableResourceString(NameOf(Resources.AnalyzerTitle))")]
+        public async Task RS1031_TitleStringEndsWithPeriod_ResxFile_DiagnosticAsync(
+            string csharpLocalizableTitleExpression, string basicLocalizableTitleExpression,
+            string csharpLocalizableFieldDeclaration = "", string basicLocalizableFieldDeclaration = "")
         {
-            var additionalFileName = "Resources.resx";
-            var additionalFileText = @"
+            string additionalFileName = "Resources.resx";
+            string additionalFileTextFormat = @"
 <root>
-  <data name=""AnalyzerTitle1"" xml:space=""preserve"">
-    <value>MyDiagnosticTitle1.</value>
-  </data>
-  <data name=""AnalyzerTitle2"" xml:space=""preserve"">
-    <value>MyDiagnosticTitle2.</value>
-    <comment>Optional comment.</comment>
-  </data>
-</root>";
-            var fixedAdditionalFileText = @"
-<root>
-  <data name=""AnalyzerTitle1"" xml:space=""preserve"">
-    <value>MyDiagnosticTitle1</value>
-  </data>
-  <data name=""AnalyzerTitle2"" xml:space=""preserve"">
-    <value>MyDiagnosticTitle2</value>
+  <data name=""AnalyzerTitle"" xml:space=""preserve"">
+    <value>{0}</value>
     <comment>Optional comment.</comment>
   </data>
 </root>";
 
-            await VerifyCSharpCodeFixAsync(@"
+            string csharpSourceFormat = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-class Resources { }
+class Resources
+{{
+    public static LocalizableResourceString CreateLocalizableResourceString(string resourceName) => default;
+    public static string AnalyzerTitle => string.Empty;
+}}
 
 [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", {|#0:new LocalizableResourceString(""AnalyzerTitle1"", null, typeof(Resources))|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+public sealed class MyAnalyzer : DiagnosticAnalyzer
+{{
+    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        ""RuleId"", {0}, ""Message"", ""Category"", DiagnosticSeverity.Warning, true, ""Description."", ""HelpLinkUri"", ""Tags"");
+    {1}
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics {{ get; }} = ImmutableArray.Create(Rule);
+    public override void Initialize(AnalysisContext context) {{ }}
+}}";
+            await VerifyCSharpCodeFixAsync(
+                source: string.Format(csharpSourceFormat, $"{{|#0:{csharpLocalizableTitleExpression}|}}", csharpLocalizableFieldDeclaration),
+                fixedSource: string.Format(csharpSourceFormat, csharpLocalizableTitleExpression, csharpLocalizableFieldDeclaration),
+                additionalFileName: additionalFileName,
+                additionalFileText: string.Format(additionalFileTextFormat, "My Analyzer Title."),
+                fixedAdditionalFileText: string.Format(additionalFileTextFormat, "My Analyzer Title"),
+                expected: new[]
+                {
+                    VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0)
+                });
 
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", {|#1:Title|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-    private static readonly LocalizableString Title = new LocalizableResourceString(""AnalyzerTitle2"", null, typeof(Resources));
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            return ImmutableArray.Create(descriptor1, descriptor2);
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}",
-    additionalFileName: additionalFileName,
-    additionalFileText: additionalFileText,
-    fixedAdditionalFileText: fixedAdditionalFileText,
-    fixedSource: @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-
-class Resources { }
-
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", new LocalizableResourceString(""AnalyzerTitle1"", null, typeof(Resources)), ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", Title, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-    private static readonly LocalizableString Title = new LocalizableResourceString(""AnalyzerTitle2"", null, typeof(Resources));
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            return ImmutableArray.Create(descriptor1, descriptor2);
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}",
-    expected: new[] {
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0),
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(1)
-    });
-
-            await VerifyBasicCodeFixAsync(@"
+            string basicSourceFormat = @"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 
 Class Resources
+    Public Shared Function CreateLocalizableResourceString(resourceName As String) As LocalizableResourceString
+        Return Nothing
+    End Function
+    Public Shared Readonly Property AnalyzerTitle As String = """"
 End Class
 
 <DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", {|#0:New LocalizableResourceString(""AnalyzerTitle1"", Nothing, GetType(Resources))|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", {|#1:Title|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly Title As LocalizableString = New LocalizableResourceString(""AnalyzerTitle2"", Nothing, GetType(Resources))
-
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2)
-		End Get
-	End Property
-
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-",
-    additionalFileName: additionalFileName,
-    additionalFileText: additionalFileText,
-    fixedAdditionalFileText: fixedAdditionalFileText,
-    fixedSource: @"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-
-Class Resources
-End Class
-
-<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", New LocalizableResourceString(""AnalyzerTitle1"", Nothing, GetType(Resources)), ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", Title, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly Title As LocalizableString = New LocalizableResourceString(""AnalyzerTitle2"", Nothing, GetType(Resources))
-
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2)
-		End Get
-	End Property
-
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-", expected: new[] {
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0),
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(1)
-    });
+Public NotInheritable Class MyAnalyzer : Inherits DiagnosticAnalyzer
+    Private Shared Readonly Rule As DiagnosticDescriptor = New DiagnosticDescriptor(
+        ""RuleId"", {0}, ""Message"", ""Category"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUri"", ""Custom tags"")
+    {1}
+    Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) = ImmutableArray.Create(Rule)
+    Public Overrides Sub Initialize(context As AnalysisContext)
+    End Sub
+End Class";
+            await VerifyBasicCodeFixAsync(
+                source: string.Format(basicSourceFormat, $"{{|#0:{basicLocalizableTitleExpression}|}}", basicLocalizableFieldDeclaration),
+                fixedSource: string.Format(basicSourceFormat, basicLocalizableTitleExpression, basicLocalizableFieldDeclaration),
+                additionalFileName: additionalFileName,
+                additionalFileText: string.Format(additionalFileTextFormat, "My Analyzer Title."),
+                fixedAdditionalFileText: string.Format(additionalFileTextFormat, "My Analyzer Title"),
+                expected: new[]
+                {
+                    VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0)
+                });
         }
 
         [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
@@ -2092,159 +2033,109 @@ End Class
                 VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(3).WithLocation(4));
         }
 
-        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
-        public async Task RS1031_TitleIsMultiSentence_ResxFile_DiagnosticAsync()
+        [WindowsOnlyTheory, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        [InlineData(
+            "new LocalizableResourceString(nameof(Resources.AnalyzerTitle), null, typeof(Resources))",
+            "New LocalizableResourceString(NameOf(Resources.AnalyzerTitle), Nothing, GetType(Resources))")]
+        [InlineData(
+            "s_localizableTitle",
+            "s_localizableTitle",
+            "private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(Resources.AnalyzerTitle), null, typeof(Resources));",
+            "Private Shared ReadOnly s_localizableTitle As LocalizableString = New LocalizableResourceString(NameOf(Resources.AnalyzerTitle), Nothing, GetType(Resources))")]
+        [InlineData(
+            "Resources.CreateLocalizableResourceString(nameof(Resources.AnalyzerTitle))",
+            "Resources.CreateLocalizableResourceString(NameOf(Resources.AnalyzerTitle))")]
+        [InlineData(
+            "s_localizableTitle",
+            "s_localizableTitle",
+            "private static readonly LocalizableString s_localizableTitle = Resources.CreateLocalizableResourceString(nameof(Resources.AnalyzerTitle));",
+            "Private Shared ReadOnly s_localizableTitle As LocalizableString = Resources.CreateLocalizableResourceString(NameOf(Resources.AnalyzerTitle))")]
+        public async Task RS1031_TitleIsMultiSentence_ResxFile_DiagnosticAsync(
+            string csharpLocalizableTitleExpression, string basicLocalizableTitleExpression,
+            string csharpLocalizableFieldDeclaration = "", string basicLocalizableFieldDeclaration = "")
         {
-            var additionalFileName = "Resources.resx";
-            var additionalFileText = @"
+            await VerifyTitleAsync("MyDiagnostic. Title.", "MyDiagnostic");
+            await VerifyTitleAsync("MyDiagnostic. Title", "MyDiagnostic");
+            return;
+
+            //  Local functions
+
+            async Task VerifyTitleAsync(string title, string fixedTitle)
+            {
+                string additionalFileName = "Resources.resx";
+                string additionalFileTextFormat = @"
 <root>
-  <data name=""AnalyzerTitle1"" xml:space=""preserve"">
-    <value>MyDiagnostic. Title.</value>
-  </data>
-  <data name=""AnalyzerTitle2"" xml:space=""preserve"">
-    <value>MyDiagnostic. Title</value>
-    <comment>Optional comment.</comment>
-  </data>
-</root>";
-            var fixedAdditionalFileText = @"
-<root>
-  <data name=""AnalyzerTitle1"" xml:space=""preserve"">
-    <value>MyDiagnostic</value>
-  </data>
-  <data name=""AnalyzerTitle2"" xml:space=""preserve"">
-    <value>MyDiagnostic</value>
+  <data name=""AnalyzerTitle"" xml:space=""preserve"">
+    <value>{0}</value>
     <comment>Optional comment.</comment>
   </data>
 </root>";
 
-            await VerifyCSharpCodeFixAsync(@"
+                string csharpSourceFormat = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-class Resources { }
+class Resources
+{{
+    public static LocalizableResourceString CreateLocalizableResourceString(string resourceName) => default;
+    public static string AnalyzerTitle => string.Empty;
+}}
 
 [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", {|#0:new LocalizableResourceString(""AnalyzerTitle1"", null, typeof(Resources))|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+public sealed class MyAnalyzer : DiagnosticAnalyzer
+{{
+    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        ""RuleId"", {0}, ""Message"", ""Category"", DiagnosticSeverity.Warning, true, ""Description."", ""HelpLinkUri"", ""Tags"");
+    {1}
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics {{ get; }} = ImmutableArray.Create(Rule);
+    public override void Initialize(AnalysisContext context) {{ }}
+}}";
+                await VerifyCSharpCodeFixAsync(
+                    source: string.Format(csharpSourceFormat, $"{{|#0:{csharpLocalizableTitleExpression}|}}", csharpLocalizableFieldDeclaration),
+                    fixedSource: string.Format(csharpSourceFormat, csharpLocalizableTitleExpression, csharpLocalizableFieldDeclaration),
+                    additionalFileName: additionalFileName,
+                    additionalFileText: string.Format(additionalFileTextFormat, title),
+                    fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedTitle),
+                    expected: new[]
+                    {
+                                    VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0)
+                    });
 
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", {|#1:Title|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-    private static readonly LocalizableResourceString Title = new LocalizableResourceString(""AnalyzerTitle2"", null, typeof(Resources));
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            return ImmutableArray.Create(descriptor1, descriptor2);
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}",
-    additionalFileName: additionalFileName,
-    additionalFileText: additionalFileText,
-    fixedAdditionalFileText: fixedAdditionalFileText,
-    fixedSource: @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-
-class Resources { }
-
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", new LocalizableResourceString(""AnalyzerTitle1"", null, typeof(Resources)), ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", Title, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-    private static readonly LocalizableResourceString Title = new LocalizableResourceString(""AnalyzerTitle2"", null, typeof(Resources));
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            return ImmutableArray.Create(descriptor1, descriptor2);
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}",
-    expected: new[] {
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0),
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(1)
-    });
-
-            await VerifyBasicCodeFixAsync(@"
+                string basicSourceFormat = @"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 
 Class Resources
+    Public Shared Function CreateLocalizableResourceString(resourceName As String) As LocalizableResourceString
+        Return Nothing
+    End Function
+    Public Shared ReadOnly Property AnalyzerTitle As String = Nothing
 End Class
 
 <DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", {|#0:New LocalizableResourceString(""AnalyzerTitle1"", Nothing, GetType(Resources))|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", {|#1:Title|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly Title As New LocalizableResourceString(""AnalyzerTitle2"", Nothing, GetType(Resources))
-
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2)
-		End Get
-	End Property
-
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-",
-    additionalFileName: additionalFileName,
-    additionalFileText: additionalFileText,
-    fixedAdditionalFileText: fixedAdditionalFileText,
-    fixedSource: @"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-
-Class Resources
-End Class
-
-<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", New LocalizableResourceString(""AnalyzerTitle1"", Nothing, GetType(Resources)), ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", Title, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly Title As New LocalizableResourceString(""AnalyzerTitle2"", Nothing, GetType(Resources))
-
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2)
-		End Get
-	End Property
-
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-", expected: new[] {
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0),
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(1)
-    });
+Public Class MyAnalyzer : Inherits DiagnosticAnalyzer
+    Private Shared Rule As DiagnosticDescriptor = New DiagnosticDescriptor(
+        ""RuleId"", {0}, ""Message"", ""Category"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUri"", ""Tags"")
+    {1}
+    Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) = ImmutableArray.Create(Rule)
+    Public Overrides Sub Initialize(context As AnalysisContext)
+    End Sub
+End Class";
+                await VerifyBasicCodeFixAsync(
+                    source: string.Format(basicSourceFormat, $"{{|#0:{basicLocalizableTitleExpression}|}}", basicLocalizableFieldDeclaration),
+                    fixedSource: string.Format(basicSourceFormat, basicLocalizableTitleExpression, basicLocalizableFieldDeclaration),
+                    additionalFileName: additionalFileName,
+                    additionalFileText: string.Format(additionalFileTextFormat, title),
+                    fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedTitle),
+                    expected: new[]
+                    {
+                        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0)
+                    });
+            }
         }
 
         [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
@@ -2362,149 +2253,95 @@ End Class
             VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(3).WithLocation(4));
         }
 
-        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
-        public async Task RS1031_TitleIsMultiSentence_MultipleDescriptorsUsingSameTitle_ResxFile_DiagnosticAsync()
+        [WindowsOnlyTheory, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        [InlineData(
+            "new LocalizableResourceString(nameof(Resources.AnalyzerTitle), null, typeof(Resources))",
+            "New LocalizableResourceString(NameOf(Resources.AnalyzerTitle), Nothing, GetType(Resources))")]
+        [InlineData(
+            "Resources.CreateLocalizableResourceString(nameof(Resources.AnalyzerTitle))",
+            "Resources.CreateLocalizableResourceString(NameOf(Resources.AnalyzerTitle))")]
+        public async Task RS1031_TitleIsMultiSentence_MultipleDescriptorsUsingSameTitle_ResxFile_DiagnosticAsync(string csharpTitleExpression, string basicTitleExpression)
         {
-            var additionalFileName = "Resources.resx";
-            var additionalFileText = @"
+            string additionalFileName = "Resources.resx";
+            string additionalFileTextFormat = @"
 <root>
-  <data name=""AnalyzerTitle"" xml:space=""preserve"">
-    <value>MyDiagnostic. Title.</value>
-  </data>
-</root>";
-            var fixedAdditionalFileText = @"
-<root>
-  <data name=""AnalyzerTitle"" xml:space=""preserve"">
-    <value>MyDiagnostic</value>
+  <data name=""AnalyzerTitle"" space=""preserve"">
+    <value>{0}</value>
   </data>
 </root>";
 
-            await VerifyCSharpCodeFixAsync(@"
+            string csharpSourceFormat = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-class Resources { }
+class Resources
+{{
+    public static LocalizableResourceString CreateLocalizableResourceString(string resourceName) => default;
+    public static string AnalyzerTitle => default;
+}}
 
 [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""MyDiagnosticId1"", {|#0:Title|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor(""MyDiagnosticId2"", {|#1:Title|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-    private static readonly LocalizableResourceString Title = new LocalizableResourceString(""AnalyzerTitle"", null, typeof(Resources));
+public sealed class MyAnalyzer : DiagnosticAnalyzer
+{{
+    private static readonly DiagnosticDescriptor Rule1 = new DiagnosticDescriptor(
+        ""RuleId"", {0}, ""Message"", ""Category"", DiagnosticSeverity.Warning, true, ""Description."", ""HelpLinkUri"", ""Tags"");
+    private static readonly DiagnosticDescriptor Rule2 = new DiagnosticDescriptor(
+        ""RuleId"", {1}, ""Message"", ""Category"", DiagnosticSeverity.Warning, true, ""Description."", ""HelpLinkUri"", ""Tags"");
+    private static readonly LocalizableString Title = {2};
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            return ImmutableArray.Create(descriptor1, descriptor2);
-        }
-    }
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics {{ get; }} = ImmutableArray.Create(Rule1, Rule2);
+    public override void Initialize(AnalysisContext context) {{ }}
+}}";
+            await VerifyCSharpCodeFixAsync(
+                source: string.Format(csharpSourceFormat, "{|#0:Title|}", "{|#1:Title|}", csharpTitleExpression),
+                fixedSource: string.Format(csharpSourceFormat, "Title", "Title", csharpTitleExpression),
+                additionalFileName: additionalFileName,
+                additionalFileText: string.Format(additionalFileTextFormat, "MyDiagnostic. Title."),
+                fixedAdditionalFileText: string.Format(additionalFileTextFormat, "MyDiagnostic"),
+                expected: new[]
+                {
+                    VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0),
+                    VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(1)
+                });
 
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}",
-    additionalFileName: additionalFileName,
-    additionalFileText: additionalFileText,
-    fixedAdditionalFileText: fixedAdditionalFileText,
-    fixedSource: @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-
-class Resources { }
-
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""MyDiagnosticId1"", Title, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor(""MyDiagnosticId2"", Title, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-    private static readonly LocalizableResourceString Title = new LocalizableResourceString(""AnalyzerTitle"", null, typeof(Resources));
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            return ImmutableArray.Create(descriptor1, descriptor2);
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}",
-    expected: new[] {
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0),
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(1)
-    });
-
-            await VerifyBasicCodeFixAsync(@"
+            string basicSourceFormat = @"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 
 Class Resources
+    Public Shared Function CreateLocalizableResourceString(resourceName As String) As LocalizableResourceString
+        Return Nothing
+    End Function
+    Public Shared ReadOnly Property AnalyzerTitle As String = Nothing
 End Class
 
 <DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
+Public Class MyAnalyzer : Inherits DiagnosticAnalyzer
+    Private Shared ReadOnly Rule1 As DiagnosticDescriptor = New DiagnosticDescriptor(
+        ""RuleId"", {0}, ""Message"", ""Category"", DiagnosticSeverity.Warning, true, ""Description."", ""HelpLinkUri"", ""Tags"")
+    Private Shared ReadOnly Rule2 As DiagnosticDescriptor = New DiagnosticDescriptor(
+        ""RuleId"", {1}, ""Message"", ""Category"", DiagnosticSeverity.Warning, true, ""Description."", ""HelpLinkUri"", ""Tags"")
+    Private Shared ReadOnly Title As LocalizableString = {2}
 
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId1"", {|#0:Title|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId2"", {|#1:Title|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly Title As New LocalizableResourceString(""AnalyzerTitle"", Nothing, GetType(Resources))
-
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2)
-		End Get
-	End Property
-
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-",
-    additionalFileName: additionalFileName,
-    additionalFileText: additionalFileText,
-    fixedAdditionalFileText: fixedAdditionalFileText,
-    fixedSource: @"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-
-Class Resources
-End Class
-
-<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId1"", Title, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId2"", Title, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly Title As New LocalizableResourceString(""AnalyzerTitle"", Nothing, GetType(Resources))
-
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2)
-		End Get
-	End Property
-
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-", expected: new[] {
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0),
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(1)
-    });
+    Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) = ImmutableArray.Create(Rule1, Rule2)
+    Public Overrides Sub Initialize(context As AnalysisContext)
+    End Sub
+End Class";
+            await VerifyBasicCodeFixAsync(
+                source: string.Format(basicSourceFormat, "{|#0:Title|}", "{|#1:Title|}", basicTitleExpression),
+                fixedSource: string.Format(basicSourceFormat, "Title", "Title", basicTitleExpression),
+                additionalFileName: additionalFileName,
+                additionalFileText: string.Format(additionalFileTextFormat, "MyDiagnostic. Title."),
+                fixedAdditionalFileText: string.Format(additionalFileTextFormat, "MyDiagnostic"),
+                expected: new[]
+                {
+                    VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0),
+                    VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(1)
+                });
         }
 
         [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
@@ -2613,161 +2450,116 @@ End Class
                 VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(5).WithLocation(5));
         }
 
-        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
-        public async Task RS1031_TitleStringContainsLineReturn_ResxFile_DiagnosticAsync()
+        [WindowsOnlyTheory, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        [InlineData(
+            "new LocalizableResourceString(nameof(Resources.AnalyzerTitle), null, typeof(Resources))",
+            "New LocalizableResourceString(NameOf(Resources.AnalyzerTitle), Nothing, GetType(Resources))")]
+        [InlineData(
+            "s_localizableTitle",
+            "s_localizableTitle",
+            "private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(Resources.AnalyzerTitle), null, typeof(Resources));",
+            "Private Shared ReadOnly s_localizableTitle As LocalizableString = New LocalizableResourceString(NameOf(Resources.AnalyzerTitle), Nothing, GetType(Resources))")]
+        [InlineData(
+            "Resources.CreateLocalizableResourceString(nameof(Resources.AnalyzerTitle))",
+            "Resources.CreateLocalizableResourceString(NameOf(Resources.AnalyzerTitle))")]
+        [InlineData(
+            "s_localizableTitle",
+            "s_localizableTitle",
+            "private static readonly LocalizableString s_localizableTitle = Resources.CreateLocalizableResourceString(nameof(Resources.AnalyzerTitle));",
+            "Private Shared ReadOnly s_localizableTitle As LocalizableString = Resources.CreateLocalizableResourceString(NameOf(Resources.AnalyzerTitle))")]
+        public async Task RS1031_TitleStringContainsLineReturn_ResxFile_DiagnosticAsync(
+            string csharpTitleExpression, string basicTitleExpression,
+            string csharpFieldDeclaration = "", string basicFieldDeclaration = "")
         {
-            var additionalFileName = "Resources.resx";
-            var additionalFileText = @"
+            await VerifyTitleAsync(
+                @"MyDiagnostic
+Title.",
+                @"MyDiagnostic");
+            await VerifyTitleAsync(
+                @"MyDiagnostic
+Title",
+                @"MyDiagnostic");
+
+            return;
+
+            //  Local functions
+
+            async Task VerifyTitleAsync(string title, string fixedTitle)
+            {
+                string additionalFileName = "Resources.resx";
+                string additionalFileTextFormat = @"
 <root>
-  <data name=""AnalyzerTitle1"" xml:space=""preserve"">
-    <value>MyDiagnostic
-Title.</value>
-  </data>
-  <data name=""AnalyzerTitle2"" xml:space=""preserve"">
-    <value>MyDiagnostic
-Title</value>
-    <comment>Optional comment.</comment>
-  </data>
-</root>";
-            var fixedAdditionalFileText = @"
-<root>
-  <data name=""AnalyzerTitle1"" xml:space=""preserve"">
-    <value>MyDiagnostic</value>
-  </data>
-  <data name=""AnalyzerTitle2"" xml:space=""preserve"">
-    <value>MyDiagnostic</value>
+  <data name=""AnalyzerTitle"" xml:space=""preserve"">
+    <value>{0}</value>
     <comment>Optional comment.</comment>
   </data>
 </root>";
 
-            await VerifyCSharpCodeFixAsync(@"
+                string csharpSourceFormat = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-class Resources { }
+class Resources
+{{
+    public static LocalizableResourceString CreateLocalizableResourceString(string resourceName) => default;
+    public static string AnalyzerTitle => string.Empty;
+}}
 
 [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", {|#0:new LocalizableResourceString(""AnalyzerTitle1"", null, typeof(Resources))|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+public sealed class MyAnalyzer : DiagnosticAnalyzer
+{{
+    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        ""RuleId"", {0}, ""Message"", ""Category"", DiagnosticSeverity.Warning, true, ""Description."", ""HelpLinkUri"", ""Tags"");
+    {1}
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics {{ get; }} = ImmutableArray.Create(Rule);
+    public override void Initialize(AnalysisContext context) {{ }}
+}}";
+                await VerifyCSharpCodeFixAsync(
+                    source: string.Format(csharpSourceFormat, $"{{|#0:{csharpTitleExpression}|}}", csharpFieldDeclaration),
+                    fixedSource: string.Format(csharpSourceFormat, csharpTitleExpression, csharpFieldDeclaration),
+                    additionalFileName: additionalFileName,
+                    additionalFileText: string.Format(additionalFileTextFormat, title),
+                    fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedTitle),
+                    expected: new[]
+                    {
+                        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0)
+                    });
 
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", {|#1:Title|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-    private static readonly LocalizableResourceString Title = new LocalizableResourceString(""AnalyzerTitle2"", null, typeof(Resources));
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            return ImmutableArray.Create(descriptor1, descriptor2);
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}",
-    additionalFileName: additionalFileName,
-    additionalFileText: additionalFileText,
-    fixedAdditionalFileText: fixedAdditionalFileText,
-    fixedSource: @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-
-class Resources { }
-
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", new LocalizableResourceString(""AnalyzerTitle1"", null, typeof(Resources)), ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", Title, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-    private static readonly LocalizableResourceString Title = new LocalizableResourceString(""AnalyzerTitle2"", null, typeof(Resources));
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            return ImmutableArray.Create(descriptor1, descriptor2);
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}",
-    expected: new[] {
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0),
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(1)
-    });
-
-            await VerifyBasicCodeFixAsync(@"
+                string basicSourceFormat = @"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 
 Class Resources
+    Public Shared Function CreateLocalizableResourceString(resourceName As String) As LocalizableResourceString
+        Return Nothing
+    End Function
+    Public Shared Readonly Property AnalyzerTitle As String = """"
 End Class
 
 <DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", {|#0:New LocalizableResourceString(""AnalyzerTitle1"", Nothing, GetType(Resources))|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", {|#1:Title|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly Title As New LocalizableResourceString(""AnalyzerTitle2"", Nothing, GetType(Resources))
-
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2)
-		End Get
-	End Property
-
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-",
-    additionalFileName: additionalFileName,
-    additionalFileText: additionalFileText,
-    fixedAdditionalFileText: fixedAdditionalFileText,
-    fixedSource: @"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-
-Class Resources
-End Class
-
-<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", New LocalizableResourceString(""AnalyzerTitle1"", Nothing, GetType(Resources)), ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", Title, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly Title As New LocalizableResourceString(""AnalyzerTitle2"", Nothing, GetType(Resources))
-
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2)
-		End Get
-	End Property
-
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-", expected: new[] {
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0),
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(1)
-    });
+Public NotInheritable Class MyAnalyzer : Inherits DiagnosticAnalyzer
+    Private Shared Readonly Rule As DiagnosticDescriptor = New DiagnosticDescriptor(
+        ""RuleId"", {0}, ""Message"", ""Category"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUri"", ""Custom tags"")
+    {1}
+    Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) = ImmutableArray.Create(Rule)
+    Public Overrides Sub Initialize(context As AnalysisContext)
+    End Sub
+End Class";
+                await VerifyBasicCodeFixAsync(
+                    source: string.Format(basicSourceFormat, $"{{|#0:{basicTitleExpression}|}}", basicFieldDeclaration),
+                    fixedSource: string.Format(basicSourceFormat, basicTitleExpression, basicFieldDeclaration),
+                    additionalFileName: additionalFileName,
+                    additionalFileText: string.Format(additionalFileTextFormat, title),
+                    fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedTitle),
+                    expected: new[]
+                    {
+                        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0)
+                    });
+            }
         }
 
         [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
@@ -2838,189 +2630,98 @@ End Class
                 GetRS1007ExpectedDiagnostic(2));
         }
 
-        [WindowsOnlyFact, WorkItem(3958, "https://github.com/dotnet/roslyn-analyzers/issues/3958")]
-        public async Task RS1031_LeadingOrTailingWhitespace_DiagnosticAsync()
+        [WindowsOnlyTheory, WorkItem(3958, "https://github.com/dotnet/roslyn-analyzers/issues/3958")]
+        [InlineData(
+            "new LocalizableResourceString(nameof(Resources.AnalyzerTitle), null, typeof(Resources))",
+            "New LocalizableResourceString(NameOf(Resources.AnalyzerTitle), Nothing, GetType(Resources))")]
+        [InlineData(
+            "Resources.CreateLocalizableResourceString(nameof(Resources.AnalyzerTitle))",
+            "Resources.CreateLocalizableResourceString(NameOf(Resources.AnalyzerTitle))")]
+        public async Task RS1031_LeadingOrTailingWhitespace_DiagnosticAsync(string csharpTitleExpression, string basicTitleExpression)
         {
-            var additionalFileName = "Resources.resx";
-            var additionalFileText = @"
+            await VerifyTitleAsync("Title with trailing space ", "Title with trailing space");
+            await VerifyTitleAsync(" Title with leading space", "Title with leading space");
+            await VerifyTitleAsync("\t    Title with leading and trailing spaces/tabs  \t     ", "Title with leading and trailing spaces/tabs");
+            await VerifyTitleAsync("Title with trailing space. ", "Title with trailing space");
+            return;
+
+            //  Local functions
+
+            async Task VerifyTitleAsync(string title, string fixedTitle)
+            {
+                string additionalFileName = "Resources.resx";
+                string additionalFileTextFormat = @"
 <root>
-  <data name=""AnalyzerTitle1"" xml:space=""preserve"">
-    <value>Title with trailing space </value>
-  </data>
-  <data name=""AnalyzerTitle2"" xml:space=""preserve"">
-    <value> Title with leading space</value>
-  </data>
-  <data name=""AnalyzerTitle3"" xml:space=""preserve"">
-    <value>  " + "\t" + @"    Title with leading and trailing spaces/tabs  " + "\t" + @"    </value>
-  </data>
-  <data name=""AnalyzerTitle4"" xml:space=""preserve"">
-    <value>Title with trailing space. </value>
-  </data>
-</root>";
-            var fixedAdditionalFileText = @"
-<root>
-  <data name=""AnalyzerTitle1"" xml:space=""preserve"">
-    <value>Title with trailing space</value>
-  </data>
-  <data name=""AnalyzerTitle2"" xml:space=""preserve"">
-    <value>Title with leading space</value>
-  </data>
-  <data name=""AnalyzerTitle3"" xml:space=""preserve"">
-    <value>Title with leading and trailing spaces/tabs</value>
-  </data>
-  <data name=""AnalyzerTitle4"" xml:space=""preserve"">
-    <value>Title with trailing space</value>
+  <data name=""AnalyzerTitle"" xml:space=""preserve"">
+    <value>{0}</value>
   </data>
 </root>";
 
-            await VerifyCSharpCodeFixAsync(@"
+                string csharpSourceFormat = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-class Resources { }
+class Resources
+{{
+    public static LocalizableResourceString CreateLocalizableResourceString(string resourceName) => default;
+    public static string AnalyzerTitle => string.Empty;
+}}
 
 [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", {|#0:new LocalizableResourceString(""AnalyzerTitle1"", null, typeof(Resources))|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+public sealed class MyAnalyzer : DiagnosticAnalyzer
+{{
+    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        ""RuleId"", {0}, ""Message"", ""Category"", DiagnosticSeverity.Warning, true, ""Description."", ""HelpLinkUri"", ""Tags"");
 
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", {|#1:new LocalizableResourceString(""AnalyzerTitle2"", null, typeof(Resources))|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics {{ get; }} = ImmutableArray.Create(Rule);
+    public override void Initialize(AnalysisContext context) {{ }}
+}}";
+                await VerifyCSharpCodeFixAsync(
+                    source: string.Format(csharpSourceFormat, $"{{|#0:{csharpTitleExpression}|}}"),
+                    fixedSource: string.Format(csharpSourceFormat, csharpTitleExpression),
+                    additionalFileName: additionalFileName,
+                    additionalFileText: string.Format(additionalFileTextFormat, title),
+                    fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedTitle),
+                    expected: new[]
+                    {
+                        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0)
+                    });
 
-    private static readonly LocalizableResourceString Title = new LocalizableResourceString(""AnalyzerTitle3"", null, typeof(Resources));
-    private static readonly DiagnosticDescriptor descriptor3 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", {|#2:Title|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-
-    private static readonly DiagnosticDescriptor descriptor4 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", {|#3:new LocalizableResourceString(""AnalyzerTitle4"", null, typeof(Resources))|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4);
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}",
-    additionalFileName: additionalFileName,
-    additionalFileText: additionalFileText,
-    fixedAdditionalFileText: fixedAdditionalFileText,
-    fixedSource: @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-
-class Resources { }
-
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", new LocalizableResourceString(""AnalyzerTitle1"", null, typeof(Resources)), ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", new LocalizableResourceString(""AnalyzerTitle2"", null, typeof(Resources)), ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-
-    private static readonly LocalizableResourceString Title = new LocalizableResourceString(""AnalyzerTitle3"", null, typeof(Resources));
-    private static readonly DiagnosticDescriptor descriptor3 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", Title, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-
-    private static readonly DiagnosticDescriptor descriptor4 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", new LocalizableResourceString(""AnalyzerTitle4"", null, typeof(Resources)), ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4);
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}",
-    expected: new[] {
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0),
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(1),
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(2),
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(3),
-    });
-
-            await VerifyBasicCodeFixAsync(@"
+                string basicSourceFormat = @"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 
 Class Resources
+    Public Shared Function CreateLocalizableResourceString(resourceName As String) As LocalizableResourceString
+        Return Nothing
+    End Function
+    Public Shared ReadOnly Property AnalyzerTitle As String = Nothing
 End Class
 
 <DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
+Public Class MyAnalyzer : Inherits DiagnosticAnalyzer
+    Private Shared Rule As DiagnosticDescriptor = New DiagnosticDescriptor(
+        ""RuleId"", {0}, ""Message"", ""Category"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUri"", ""Tags"")
 
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", {|#0:New LocalizableResourceString(""AnalyzerTitle1"", Nothing, GetType(Resources))|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", {|#1:New LocalizableResourceString(""AnalyzerTitle2"", Nothing, GetType(Resources))|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly Title As New LocalizableResourceString(""AnalyzerTitle3"", Nothing, GetType(Resources))
-    Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", {|#2:Title|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor4 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", {|#3:New LocalizableResourceString(""AnalyzerTitle4"", Nothing, GetType(Resources))|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4)
-		End Get
-	End Property
-
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-",
-    additionalFileName: additionalFileName,
-    additionalFileText: additionalFileText,
-    fixedAdditionalFileText: fixedAdditionalFileText,
-    fixedSource: @"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-
-Class Resources
-End Class
-
-<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", New LocalizableResourceString(""AnalyzerTitle1"", Nothing, GetType(Resources)), ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", New LocalizableResourceString(""AnalyzerTitle2"", Nothing, GetType(Resources)), ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly Title As New LocalizableResourceString(""AnalyzerTitle3"", Nothing, GetType(Resources))
-    Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", Title, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor4 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", New LocalizableResourceString(""AnalyzerTitle4"", Nothing, GetType(Resources)), ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4)
-		End Get
-	End Property
-
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-", expected: new[] {
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0),
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(1),
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(2),
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(3),
-    });
+    Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) = ImmutableArray.Create(Rule)
+    Public Overrides Sub Initialize(context As AnalysisContext)
+    End Sub
+End Class";
+                await VerifyBasicCodeFixAsync(
+                    source: string.Format(basicSourceFormat, $"{{|#0:{basicTitleExpression}|}}"),
+                    fixedSource: string.Format(basicSourceFormat, basicTitleExpression),
+                    additionalFileName: additionalFileName,
+                    additionalFileText: string.Format(additionalFileTextFormat, title),
+                    fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedTitle),
+                    expected: new[]
+                    {
+                        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0)
+                    });
+            }
         }
 
         #endregion // RS1031 (DefineDiagnosticTitleCorrectlyRule)
@@ -3145,159 +2846,109 @@ End Class
                 VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(3).WithLocation(4));
         }
 
-        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
-        public async Task RS1032_MessageStringEndsWithPeriodAndIsNotMultiSentence_ResxFile_DiagnosticAsync()
+        [WindowsOnlyTheory, WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
+        [InlineData(
+            "new LocalizableResourceString(nameof(Resources.AnalyzerMessage), null, typeof(Resources))",
+            "New LocalizableResourceString(NameOf(Resources.AnalyzerMessage), Nothing, GetType(Resources))")]
+        [InlineData(
+            "s_localizableMessage",
+            "s_localizableMessage",
+            "private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(Resources.AnalyzerMessage), null, typeof(Resources));",
+            "Private Shared ReadOnly s_localizableMessage As LocalizableString = New LocalizableResourceString(NameOf(Resources.AnalyzerMessage), Nothing, GetType(Resources))")]
+        [InlineData(
+            "Resources.CreateLocalizableResourceString(nameof(Resources.AnalyzerMessage))",
+            "Resources.CreateLocalizableResourceString(NameOf(Resources.AnalyzerMessage))")]
+        [InlineData(
+            "s_localizableMessage",
+            "s_localizableMessage",
+            "private static readonly LocalizableString s_localizableMessage = Resources.CreateLocalizableResourceString(nameof(Resources.AnalyzerMessage));",
+            "Private Shared ReadOnly s_localizableMessage As LocalizableString = Resources.CreateLocalizableResourceString(NameOf(Resources.AnalyzerMessage))")]
+        public async Task RS1032_MessageStringEndsWithPeriodAndIsNotMultiSentence_ResxFile_DiagnosticAsync(
+            string csharpMessageExpression, string basicMessageExpression,
+            string csharpFieldDeclaration = "", string basicFieldDeclaration = "")
         {
-            var additionalFileName = "Resources.resx";
-            var additionalFileText = @"
+            await VerifyMessageAsync("My diagnostic message.", "My diagnostic message");
+            await VerifyMessageAsync("MyDiagnostic.Message.", "MyDiagnostic.Message");
+            return;
+
+            //  Local functions
+
+            async Task VerifyMessageAsync(string message, string fixedMessage)
+            {
+                string additionalFileName = "Resources.resx";
+                string additionalFileTextFormat = @"
 <root>
-  <data name=""AnalyzerMessage1"" xml:space=""preserve"">
-    <value>MyDiagnosticMessage.</value>
-  </data>
-  <data name=""AnalyzerMessage2"" xml:space=""preserve"">
-    <value>MyDiagnostic.Message.</value>
-    <comment>Optional comment.</comment>
-  </data>
-</root>";
-            var fixedAdditionalFileText = @"
-<root>
-  <data name=""AnalyzerMessage1"" xml:space=""preserve"">
-    <value>MyDiagnosticMessage</value>
-  </data>
-  <data name=""AnalyzerMessage2"" xml:space=""preserve"">
-    <value>MyDiagnostic.Message</value>
+  <data name=""AnalyzerMessage"" xml:space=""preserve"">
+    <value>{0}</value>
     <comment>Optional comment.</comment>
   </data>
 </root>";
 
-            await VerifyCSharpCodeFixAsync(@"
+                string csharpSourceFormat = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-class Resources { }
+class Resources
+{{
+    public static LocalizableResourceString CreateLocalizableResourceString(string resourceName) => default;
+    public static string AnalyzerMessage => default;
+}}
 
 [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#0:new LocalizableResourceString(""AnalyzerMessage1"", null, typeof(Resources))|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+public sealed class MyAnalyzer : DiagnosticAnalyzer
+{{
+    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        ""RuleId"", ""Title"", {0}, ""Category"", DiagnosticSeverity.Warning, true, ""Description."", ""HelpLinkUri"", ""Tags"");
+    {1}
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics {{ get; }} = ImmutableArray.Create(Rule);
+    public override void Initialize(AnalysisContext context) {{ }}
+}}";
+                await VerifyCSharpCodeFixAsync(
+                    source: string.Format(csharpSourceFormat, $"{{|#0:{csharpMessageExpression}|}}", csharpFieldDeclaration),
+                    fixedSource: string.Format(csharpSourceFormat, csharpMessageExpression, csharpFieldDeclaration),
+                    additionalFileName: additionalFileName,
+                    additionalFileText: string.Format(additionalFileTextFormat, message),
+                    fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedMessage),
+                    expected: new[]
+                    {
+                        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(0)
+                    });
 
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#1:Message|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-    private static readonly LocalizableString Message = new LocalizableResourceString(""AnalyzerMessage2"", null, typeof(Resources));
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            return ImmutableArray.Create(descriptor1, descriptor2);
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}",
-    additionalFileName: additionalFileName,
-    additionalFileText: additionalFileText,
-    fixedAdditionalFileText: fixedAdditionalFileText,
-    fixedSource: @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-
-class Resources { }
-
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", new LocalizableResourceString(""AnalyzerMessage1"", null, typeof(Resources)), ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", Message, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-    private static readonly LocalizableString Message = new LocalizableResourceString(""AnalyzerMessage2"", null, typeof(Resources));
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            return ImmutableArray.Create(descriptor1, descriptor2);
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}",
-    expected: new[] {
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(0),
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(1)
-    });
-
-            await VerifyBasicCodeFixAsync(@"
+                string basicSourceFormat = @"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 
 Class Resources
+    Public Shared Function CreateLocalizableResourceString(resourceName As String) As LocalizableResourceString
+        Return Nothing
+    End Function
+    Public Shared ReadOnly Property AnalyzerMessage As String = Nothing
 End Class
 
 <DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#0:New LocalizableResourceString(""AnalyzerMessage1"", Nothing, GetType(Resources))|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#1:Message|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly Message As LocalizableString = New LocalizableResourceString(""AnalyzerMessage2"", Nothing, GetType(Resources))
-
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2)
-		End Get
-	End Property
-
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-",
-    additionalFileName: additionalFileName,
-    additionalFileText: additionalFileText,
-    fixedAdditionalFileText: fixedAdditionalFileText,
-    fixedSource: @"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-
-Class Resources
-End Class
-
-<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", New LocalizableResourceString(""AnalyzerMessage1"", Nothing, GetType(Resources)), ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", Message, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly Message As LocalizableString = New LocalizableResourceString(""AnalyzerMessage2"", Nothing, GetType(Resources))
-
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2)
-		End Get
-	End Property
-
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-", expected: new[] {
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(0),
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(1)
-    });
+Public NotInheritable Class MyAnalyzer : Inherits DiagnosticAnalyzer
+    Private Shared Rule As DiagnosticDescriptor = New DiagnosticDescriptor(
+        ""RuleId"", ""Title"", {0}, ""Category"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUri"", ""Tags"")
+    {1}
+    Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) = ImmutableArray.Create(Rule)
+    Public Overrides Sub Initialize(context As AnalysisContext)
+    End Sub
+End Class";
+                await VerifyBasicCodeFixAsync(
+                    source: string.Format(basicSourceFormat, $"{{|#0:{basicMessageExpression}|}}", basicFieldDeclaration),
+                    fixedSource: string.Format(basicSourceFormat, basicMessageExpression, basicFieldDeclaration),
+                    additionalFileName: additionalFileName,
+                    additionalFileText: string.Format(additionalFileTextFormat, message),
+                    fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedMessage),
+                    expected: new[]
+                    {
+                        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(0)
+                    });
+            }
         }
 
         [WindowsOnlyFact, WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
@@ -3506,161 +3157,113 @@ End Class
                 VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(5).WithLocation(5));
         }
 
-        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
-        public async Task RS1032_MessageStringContainsLineReturn_ResxFile_DiagnosticAsync()
+        [WindowsOnlyTheory, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        [InlineData(
+            "new LocalizableResourceString(nameof(Resources.AnalyzerMessage), null, typeof(Resources))",
+            "New LocalizableResourceString(NameOf(Resources.AnalyzerMessage), Nothing, GetType(Resources))")]
+        [InlineData(
+            "s_localizableMessage",
+            "s_localizableMessage",
+            "private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(Resources.AnalyzerMessage), null, typeof(Resources));",
+            "Private Shared ReadOnly s_localizableMessage As LocalizableString = New LocalizableResourceString(NameOf(Resources.AnalyzerMessage), Nothing, GetType(Resources))")]
+        [InlineData(
+            "Resources.CreateLocalizableResourceString(nameof(Resources.AnalyzerMessage))",
+            "Resources.CreateLocalizableResourceString(NameOf(Resources.AnalyzerMessage))")]
+        [InlineData(
+            "s_localizableMessage",
+            "s_localizableMessage",
+            "private static readonly LocalizableString s_localizableMessage = Resources.CreateLocalizableResourceString(nameof(Resources.AnalyzerMessage));",
+            "Private Shared ReadOnly s_localizableMessage As LocalizableString = Resources.CreateLocalizableResourceString(NameOf(Resources.AnalyzerMessage))")]
+        public async Task RS1032_MessageStringContainsLineReturn_ResxFile_DiagnostiAsync(
+            string csharpMessageExpression, string basicMessageExpression,
+            string csharpFieldDeclaration = "", string basicFieldDeclaration = "")
         {
-            var additionalFileName = "Resources.resx";
-            var additionalFileText = @"
+            await VerifyMessageAsync(
+                @"MyDiagnostic
+Message1.", "MyDiagnostic. Message1.");
+            await VerifyMessageAsync(
+                @"MyDiagnostic.
+Message2", "MyDiagnostic. Message2.");
+            return;
+
+            //  Local functions
+
+            async Task VerifyMessageAsync(string message, string fixedMessage)
+            {
+                string additionalFileName = "Resources.resx";
+                string additionalFileTextFormat = @"
 <root>
-  <data name=""AnalyzerMessage1"" xml:space=""preserve"">
-    <value>MyDiagnostic
-Message1.</value>
-  </data>
-  <data name=""AnalyzerMessage2"" xml:space=""preserve"">
-    <value>MyDiagnostic.
-Message2</value>
-    <comment>Optional comment.</comment>
-  </data>
-</root>";
-            var fixedAdditionalFileText = @"
-<root>
-  <data name=""AnalyzerMessage1"" xml:space=""preserve"">
-    <value>MyDiagnostic. Message1.</value>
-  </data>
-  <data name=""AnalyzerMessage2"" xml:space=""preserve"">
-    <value>MyDiagnostic. Message2.</value>
+  <data name=""AnalyzerMessage"" xml:space=""preserve"">
+    <value>{0}</value>
     <comment>Optional comment.</comment>
   </data>
 </root>";
 
-            await VerifyCSharpCodeFixAsync(@"
+                string csharpSourceFormat = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-class Resources { }
+class Resources
+{{
+    public static LocalizableResourceString CreateLocalizableResourceString(string resourceName) => default;
+    public static string AnalyzerMessage => default;
+}}
 
 [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#0:new LocalizableResourceString(""AnalyzerMessage1"", null, typeof(Resources))|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+public sealed class MyAnalyzer : DiagnosticAnalyzer
+{{
+    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        ""RuleId"", ""Title"", {0}, ""Category"", DiagnosticSeverity.Warning, true, ""Description."", ""HelpLinkUri"", ""Tags"");
+    {1}
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics {{ get; }} = ImmutableArray.Create(Rule);
+    public override void Initialize(AnalysisContext context) {{ }}
+}}";
+                await VerifyCSharpCodeFixAsync(
+                    source: string.Format(csharpSourceFormat, $"{{|#0:{csharpMessageExpression}|}}", csharpFieldDeclaration),
+                    fixedSource: string.Format(csharpSourceFormat, csharpMessageExpression, csharpFieldDeclaration),
+                    additionalFileName: additionalFileName,
+                    additionalFileText: string.Format(additionalFileTextFormat, message),
+                    fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedMessage),
+                    expected: new[]
+                    {
+                        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(0)
+                    });
 
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#1:Message|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-    private static readonly LocalizableString Message = new LocalizableResourceString(""AnalyzerMessage2"", null, typeof(Resources));
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            return ImmutableArray.Create(descriptor1, descriptor2);
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}",
-    additionalFileName: additionalFileName,
-    additionalFileText: additionalFileText,
-    fixedAdditionalFileText: fixedAdditionalFileText,
-    fixedSource: @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-
-class Resources { }
-
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", new LocalizableResourceString(""AnalyzerMessage1"", null, typeof(Resources)), ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", Message, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-    private static readonly LocalizableString Message = new LocalizableResourceString(""AnalyzerMessage2"", null, typeof(Resources));
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            return ImmutableArray.Create(descriptor1, descriptor2);
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}",
-    expected: new[] {
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(0),
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(1)
-    });
-
-            await VerifyBasicCodeFixAsync(@"
+                string basicSourceFormat = @"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 
 Class Resources
+    Public Shared Function CreateLocalizableResourceString(resourceName As String) As LocalizableResourceString
+        Return Nothing
+    End Function
+    Public Shared ReadOnly Property AnalyzerMessage As String = Nothing
 End Class
 
 <DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#0:New LocalizableResourceString(""AnalyzerMessage1"", Nothing, GetType(Resources))|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#1:Message|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly Message As LocalizableString = New LocalizableResourceString(""AnalyzerMessage2"", Nothing, GetType(Resources))
-
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2)
-		End Get
-	End Property
-
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-",
-    additionalFileName: additionalFileName,
-    additionalFileText: additionalFileText,
-    fixedAdditionalFileText: fixedAdditionalFileText,
-    fixedSource: @"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-
-Class Resources
-End Class
-
-<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", New LocalizableResourceString(""AnalyzerMessage1"", Nothing, GetType(Resources)), ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", Message, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly Message As LocalizableString = New LocalizableResourceString(""AnalyzerMessage2"", Nothing, GetType(Resources))
-
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2)
-		End Get
-	End Property
-
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-", expected: new[] {
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(0),
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(1)
-    });
+Public NotInheritable Class MyAnalyzer : Inherits DiagnosticAnalyzer
+    Private Shared Rule As DiagnosticDescriptor = New DiagnosticDescriptor(
+        ""RuleId"", ""Title"", {0}, ""Category"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUri"", ""Tags"")
+    {1}
+    Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) = ImmutableArray.Create(Rule)
+    Public Overrides Sub Initialize(context As AnalysisContext)
+    End Sub
+End Class";
+                await VerifyBasicCodeFixAsync(
+                    source: string.Format(basicSourceFormat, $"{{|#0:{basicMessageExpression}|}}", basicFieldDeclaration),
+                    fixedSource: string.Format(basicSourceFormat, basicMessageExpression, basicFieldDeclaration),
+                    additionalFileName: additionalFileName,
+                    additionalFileText: string.Format(additionalFileTextFormat, message),
+                    fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedMessage),
+                    expected: new[]
+                    {
+                        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(0)
+                    });
+            }
         }
 
         [WindowsOnlyFact, WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
@@ -3738,191 +3341,111 @@ End Class
                 GetRS1007ExpectedDiagnostic(3));
         }
 
-        [WindowsOnlyFact, WorkItem(3958, "https://github.com/dotnet/roslyn-analyzers/issues/3958")]
-        public async Task RS1032_LeadingOrTrailingWhitespaces_DiagnosticAsync()
+        [WindowsOnlyTheory, WorkItem(3958, "https://github.com/dotnet/roslyn-analyzers/issues/3958")]
+        [InlineData(
+            "new LocalizableResourceString(nameof(Resources.AnalyzerMessage), null, typeof(Resources))",
+            "New LocalizableResourceString(NameOf(Resources.AnalyzerMessage), Nothing, GetType(Resources))")]
+        [InlineData(
+            "s_localizableMessage",
+            "s_localizableMessage",
+            "private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(Resources.AnalyzerMessage), null, typeof(Resources));",
+            "Private Shared ReadOnly s_localizableMessage As LocalizableString = New LocalizableResourceString(NameOf(Resources.AnalyzerMessage), Nothing, GetType(Resources))")]
+        [InlineData(
+            "Resources.CreateLocalizableResourceString(nameof(Resources.AnalyzerMessage))",
+            "Resources.CreateLocalizableResourceString(NameOf(Resources.AnalyzerMessage))")]
+        [InlineData(
+            "s_localizableMessage",
+            "s_localizableMessage",
+            "private static readonly LocalizableString s_localizableMessage = Resources.CreateLocalizableResourceString(nameof(Resources.AnalyzerMessage));",
+            "Private Shared ReadOnly s_localizableMessage As LocalizableString = Resources.CreateLocalizableResourceString(NameOf(Resources.AnalyzerMessage))")]
+        public async Task RS1032_LeadingOrTrailingWhitespaces_DiagnosticAsync(
+            string csharpMessageExpression, string basicMessageExpression,
+            string csharpFieldDeclaration = "", string basicFieldDeclaration = "")
         {
-            var additionalFileName = "Resources.resx";
-            var additionalFileText = @"
+            await VerifyMessageAsync("Message with trailing whitespace ", "Message with trailing whitespace");
+            await VerifyMessageAsync(" Message with leading whitespace", "Message with leading whitespace");
+            await VerifyMessageAsync("  \t    Message with leading and trailing spaces/tabs  \t    ", "Message with leading and trailing spaces/tabs");
+            await VerifyMessageAsync("Message with period and trailing whitespace. ", "Message with period and trailing whitespace");
+            return;
+
+            //  Local functions
+
+            async Task VerifyMessageAsync(string message, string fixedMessage)
+            {
+                string additionalFileName = "Resources.resx";
+                string additionalFileTextFormat = @"
 <root>
-  <data name=""AnalyzerMessage1"" xml:space=""preserve"">
-    <value>Message with trailing whitespace </value>
-  </data>
-  <data name=""AnalyzerMessage2"" xml:space=""preserve"">
-    <value> Message with leading whitespace</value>
+  <data name=""AnalyzerMessage"" xml:space=""preserve"">
+    <value>{0}</value>
     <comment>Optional comment.</comment>
-  </data>
-  <data name=""AnalyzerMessage3"" xml:space=""preserve"">
-    <value>  " + "\t" + @"    Message with leading and trailing spaces/tabs  " + "\t" + @"    </value>
-  </data>
-  <data name=""AnalyzerMessage4"" xml:space=""preserve"">
-    <value>Message with period and trailing whitespace. </value>
-  </data>
-</root>";
-            var fixedAdditionalFileText = @"
-<root>
-  <data name=""AnalyzerMessage1"" xml:space=""preserve"">
-    <value>Message with trailing whitespace</value>
-  </data>
-  <data name=""AnalyzerMessage2"" xml:space=""preserve"">
-    <value>Message with leading whitespace</value>
-    <comment>Optional comment.</comment>
-  </data>
-  <data name=""AnalyzerMessage3"" xml:space=""preserve"">
-    <value>Message with leading and trailing spaces/tabs</value>
-  </data>
-  <data name=""AnalyzerMessage4"" xml:space=""preserve"">
-    <value>Message with period and trailing whitespace</value>
   </data>
 </root>";
 
-            await VerifyCSharpCodeFixAsync(@"
+                string csharpSourceFormat = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-class Resources { }
+class Resources
+{{
+    public static LocalizableResourceString CreateLocalizableResourceString(string resourceName) => default;
+    public static string AnalyzerMessage => default;
+}}
 
 [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#0:new LocalizableResourceString(""AnalyzerMessage1"", null, typeof(Resources))|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+public sealed class MyAnalyzer : DiagnosticAnalyzer
+{{
+    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        ""RuleId"", ""Title"", {0}, ""Category"", DiagnosticSeverity.Warning, true, ""Description."", ""HelpLinkUri"", ""Tags"");
+    {1}
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics {{ get; }} = ImmutableArray.Create(Rule);
+    public override void Initialize(AnalysisContext context) {{ }}
+}}";
+                await VerifyCSharpCodeFixAsync(
+                    source: string.Format(csharpSourceFormat, $"{{|#0:{csharpMessageExpression}|}}", csharpFieldDeclaration),
+                    fixedSource: string.Format(csharpSourceFormat, csharpMessageExpression, csharpFieldDeclaration),
+                    additionalFileName: additionalFileName,
+                    additionalFileText: string.Format(additionalFileTextFormat, message),
+                    fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedMessage),
+                    expected: new[]
+                    {
+                        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(0)
+                    });
 
-    private static readonly LocalizableString Message = new LocalizableResourceString(""AnalyzerMessage2"", null, typeof(Resources));
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#1:Message|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-
-    private static readonly DiagnosticDescriptor descriptor3 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#2:new LocalizableResourceString(""AnalyzerMessage3"", null, typeof(Resources))|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-
-    private static readonly DiagnosticDescriptor descriptor4 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#3:new LocalizableResourceString(""AnalyzerMessage4"", null, typeof(Resources))|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4);
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}",
-    additionalFileName: additionalFileName,
-    additionalFileText: additionalFileText,
-    fixedAdditionalFileText: fixedAdditionalFileText,
-    fixedSource: @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-
-class Resources { }
-
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", new LocalizableResourceString(""AnalyzerMessage1"", null, typeof(Resources)), ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-
-    private static readonly LocalizableString Message = new LocalizableResourceString(""AnalyzerMessage2"", null, typeof(Resources));
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", Message, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-
-    private static readonly DiagnosticDescriptor descriptor3 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", new LocalizableResourceString(""AnalyzerMessage3"", null, typeof(Resources)), ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-
-    private static readonly DiagnosticDescriptor descriptor4 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", new LocalizableResourceString(""AnalyzerMessage4"", null, typeof(Resources)), ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4);
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}",
-    expected: new[] {
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(0),
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(1),
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(2),
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(3),
-    });
-
-            await VerifyBasicCodeFixAsync(@"
+                string basicSourceFormat = @"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 
 Class Resources
+    Public Shared Function CreateLocalizableResourceString(resourceName As String) As LocalizableResourceString
+        Return Nothing
+    End Function
+    Public Shared ReadOnly Property AnalyzerMessage As String = Nothing
 End Class
 
 <DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#0:New LocalizableResourceString(""AnalyzerMessage1"", Nothing, GetType(Resources))|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly Message As LocalizableString = New LocalizableResourceString(""AnalyzerMessage2"", Nothing, GetType(Resources))
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#1:Message|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#2:New LocalizableResourceString(""AnalyzerMessage3"", Nothing, GetType(Resources))|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor4 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#3:New LocalizableResourceString(""AnalyzerMessage4"", Nothing, GetType(Resources))|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4)
-		End Get
-	End Property
-
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-",
-    additionalFileName: additionalFileName,
-    additionalFileText: additionalFileText,
-    fixedAdditionalFileText: fixedAdditionalFileText,
-    fixedSource: @"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-
-Class Resources
-End Class
-
-<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", New LocalizableResourceString(""AnalyzerMessage1"", Nothing, GetType(Resources)), ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly Message As LocalizableString = New LocalizableResourceString(""AnalyzerMessage2"", Nothing, GetType(Resources))
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", Message, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", New LocalizableResourceString(""AnalyzerMessage3"", Nothing, GetType(Resources)), ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor4 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", New LocalizableResourceString(""AnalyzerMessage4"", Nothing, GetType(Resources)), ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
-
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4)
-		End Get
-	End Property
-
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-", expected: new[] {
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(0),
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(1),
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(2),
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(3),
-    });
+Public NotInheritable Class MyAnalyzer : Inherits DiagnosticAnalyzer
+    Private Shared Rule As DiagnosticDescriptor = New DiagnosticDescriptor(
+        ""RuleId"", ""Title"", {0}, ""Category"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUri"", ""Tags"")
+    {1}
+    Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) = ImmutableArray.Create(Rule)
+    Public Overrides Sub Initialize(context As AnalysisContext)
+    End Sub
+End Class";
+                await VerifyBasicCodeFixAsync(
+                    source: string.Format(basicSourceFormat, $"{{|#0:{basicMessageExpression}|}}", basicFieldDeclaration),
+                    fixedSource: string.Format(basicSourceFormat, basicMessageExpression, basicFieldDeclaration),
+                    additionalFileName: additionalFileName,
+                    additionalFileText: string.Format(additionalFileTextFormat, message),
+                    fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedMessage),
+                    expected: new[]
+                    {
+                        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(0)
+                    });
+            }
         }
 
         #endregion // RS1032 (DefineDiagnosticMessageCorrectlyRule)
@@ -4043,159 +3566,109 @@ End Class
                 VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(3).WithLocation(4));
         }
 
-        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
-        public async Task RS1033_DescriptionStringDoesNotEndWithPunctuation_ResxFile_DiagnosticAsync()
+        [WindowsOnlyTheory, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        [InlineData(
+            "new LocalizableResourceString(nameof(Resources.AnalyzerDescription), null, typeof(Resources))",
+            "New LocalizableResourceString(NameOf(Resources.AnalyzerDescription), Nothing, GetType(Resources))")]
+        [InlineData(
+            "s_localizableDescription",
+            "s_localizableDescription",
+            "private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(Resources.AnalyzerDescription), null, typeof(Resources));",
+            "Private Shared ReadOnly s_localizableDescription As LocalizableString = New LocalizableResourceString(NameOf(Resources.AnalyzerDescription), Nothing, GetType(Resources))")]
+        [InlineData(
+            "Resources.CreateLocalizableResourceString(nameof(Resources.AnalyzerDescription))",
+            "Resources.CreateLocalizableResourceString(NameOf(Resources.AnalyzerDescription))")]
+        [InlineData(
+            "s_localizableDescription",
+            "s_localizableDescription",
+            "private static readonly LocalizableString s_localizableDescription = Resources.CreateLocalizableResourceString(nameof(Resources.AnalyzerDescription));",
+            "Private Shared ReadOnly s_localizableDescription As LocalizableString = Resources.CreateLocalizableResourceString(NameOf(Resources.AnalyzerDescription))")]
+        public async Task RS1033_DescriptionStringDoesNotEndWithPunctuation_ResxFile_DiagnosticAsync(
+            string csharpDescriptionExpression, string basicDescriptionExpression,
+            string csharpFieldDeclaration = "", string basicFieldDeclaration = "")
         {
-            var additionalFileName = "Resources.resx";
-            var additionalFileText = @"
+            await VerifyDescriptionAsync("MyDiagnosticDescription", "MyDiagnosticDescription.");
+            await VerifyDescriptionAsync("MyDiagnostic. Description", "MyDiagnostic. Description.");
+            return;
+
+            //  Local functions
+
+            async Task VerifyDescriptionAsync(string description, string fixedDescription)
+            {
+                string additionalFileName = "Resources.resx";
+                string additionalFileTextFormat = @"
 <root>
-  <data name=""AnalyzerDescription1"" xml:space=""preserve"">
-    <value>MyDiagnosticDescription1</value>
-  </data>
-  <data name=""AnalyzerDescription2"" xml:space=""preserve"">
-    <value>MyDiagnostic. Description2</value>
-    <comment>Optional comment.</comment>
-  </data>
-</root>";
-            var fixedAdditionalFileText = @"
-<root>
-  <data name=""AnalyzerDescription1"" xml:space=""preserve"">
-    <value>MyDiagnosticDescription1.</value>
-  </data>
-  <data name=""AnalyzerDescription2"" xml:space=""preserve"">
-    <value>MyDiagnostic. Description2.</value>
+  <data name=""AnalyzerDescription"" xml:space=""preserve"">
+    <value>{0}</value>
     <comment>Optional comment.</comment>
   </data>
 </root>";
 
-            await VerifyCSharpCodeFixAsync(@"
+                string csharpSourceFormat = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-class Resources { }
+class Resources
+{{
+    public static LocalizableResourceString CreateLocalizableResourceString(string resourceName) => default;
+    public static string AnalyzerDescription => default;
+}}
 
 [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, {|#0:description: new LocalizableResourceString(""AnalyzerDescription1"", null, typeof(Resources))|}, helpLinkUri: ""HelpLink"", customTags: """");
+public sealed class MyAnalyzer : DiagnosticAnalyzer
+{{
+    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        ""RuleId"", ""Title"", ""Message"", ""Category"", DiagnosticSeverity.Warning, true, {0}, ""HelpLinkUri"", ""Tags"");
+    {1}
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics {{ get; }} = ImmutableArray.Create(Rule);
+    public override void Initialize(AnalysisContext context) {{ }}
+}}";
+                await VerifyCSharpCodeFixAsync(
+                    source: string.Format(csharpSourceFormat, $"{{|#0:{csharpDescriptionExpression}|}}", csharpFieldDeclaration),
+                    fixedSource: string.Format(csharpSourceFormat, csharpDescriptionExpression, csharpFieldDeclaration),
+                    additionalFileName: additionalFileName,
+                    additionalFileText: string.Format(additionalFileTextFormat, description),
+                    fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedDescription),
+                    expected: new[]
+                    {
+                        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(0)
+                    });
 
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, {|#1:description: Description|}, helpLinkUri: ""HelpLink"", customTags: """");
-    private static readonly LocalizableResourceString Description = new LocalizableResourceString(""AnalyzerDescription2"", null, typeof(Resources));
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            return ImmutableArray.Create(descriptor1, descriptor2);
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}",
-    additionalFileName: additionalFileName,
-    additionalFileText: additionalFileText,
-    fixedAdditionalFileText: fixedAdditionalFileText,
-    fixedSource: @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-
-class Resources { }
-
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, description: new LocalizableResourceString(""AnalyzerDescription1"", null, typeof(Resources)), helpLinkUri: ""HelpLink"", customTags: """");
-
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description, helpLinkUri: ""HelpLink"", customTags: """");
-    private static readonly LocalizableResourceString Description = new LocalizableResourceString(""AnalyzerDescription2"", null, typeof(Resources));
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            return ImmutableArray.Create(descriptor1, descriptor2);
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}",
-    expected: new[] {
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(0),
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(1)
-    });
-
-            await VerifyBasicCodeFixAsync(@"
+                string basicSourceFormat = @"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 
 Class Resources
+    Public Shared Function CreateLocalizableResourceString(resourceName As String) As LocalizableResourceString
+        Return Nothing
+    End Function
+    Public Shared ReadOnly Property AnalyzerDescription As String = Nothing
 End Class
 
 <DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, {|#0:New LocalizableResourceString(""AnalyzerDescription1"", Nothing, GetType(Resources))|}, ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, {|#1:Description|}, ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly Description As LocalizableString = New LocalizableResourceString(""AnalyzerDescription2"", Nothing, GetType(Resources))
-
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2)
-		End Get
-	End Property
-
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-",
-    additionalFileName: additionalFileName,
-    additionalFileText: additionalFileText,
-    fixedAdditionalFileText: fixedAdditionalFileText,
-    fixedSource: @"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-
-Class Resources
-End Class
-
-<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, New LocalizableResourceString(""AnalyzerDescription1"", Nothing, GetType(Resources)), ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, Description, ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly Description As LocalizableString = New LocalizableResourceString(""AnalyzerDescription2"", Nothing, GetType(Resources))
-
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2)
-		End Get
-	End Property
-
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-", expected: new[] {
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(0),
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(1)
-    });
+Public NotInheritable Class MyAnalyzer : Inherits DiagnosticAnalyzer
+    Private Shared Rule As DiagnosticDescriptor = New DiagnosticDescriptor(
+        ""RuleId"", ""Title"", ""Message"", ""Category"", DiagnosticSeverity.Warning, True, {0}, ""HelpLinkUri"", ""Tags"")
+    {1}
+    Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) = ImmutableArray.Create(Rule)
+    Public Overrides Sub Initialize(context As AnalysisContext)
+    End Sub
+End Class";
+                await VerifyBasicCodeFixAsync(
+                    source: string.Format(basicSourceFormat, $"{{|#0:{basicDescriptionExpression}|}}", basicFieldDeclaration),
+                    fixedSource: string.Format(basicSourceFormat, basicDescriptionExpression, basicFieldDeclaration),
+                    additionalFileName: additionalFileName,
+                    additionalFileText: string.Format(additionalFileTextFormat, description),
+                    fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedDescription),
+                    expected: new[]
+                    {
+                        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(0)
+                    });
+            }
         }
 
         [WindowsOnlyFact, WorkItem(3577, "https://github.com/dotnet/roslyn-analyzers/issues/3577")]
@@ -4273,189 +3746,111 @@ End Class
                 GetRS1007ExpectedDiagnostic(2));
         }
 
-        [WindowsOnlyFact, WorkItem(3958, "https://github.com/dotnet/roslyn-analyzers/issues/3958")]
-        public async Task RS1033_LeadingOrTrailingWhitespaces_DiagnosticAsync()
+        [WindowsOnlyTheory, WorkItem(3958, "https://github.com/dotnet/roslyn-analyzers/issues/3958")]
+        [InlineData(
+            "new LocalizableResourceString(nameof(Resources.AnalyzerDescription), null, typeof(Resources))",
+            "New LocalizableResourceString(NameOf(Resources.AnalyzerDescription), Nothing, GetType(Resources))")]
+        [InlineData(
+            "s_localizableDescription",
+            "s_localizableDescription",
+            "private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(Resources.AnalyzerDescription), null, typeof(Resources));",
+            "Private Shared ReadOnly s_localizableDescription As LocalizableString = New LocalizableResourceString(NameOf(Resources.AnalyzerDescription), Nothing, GetType(Resources))")]
+        [InlineData(
+            "Resources.CreateLocalizableResourceString(nameof(Resources.AnalyzerDescription))",
+            "Resources.CreateLocalizableResourceString(NameOf(Resources.AnalyzerDescription))")]
+        [InlineData(
+            "s_localizableDescription",
+            "s_localizableDescription",
+            "private static readonly LocalizableString s_localizableDescription = Resources.CreateLocalizableResourceString(nameof(Resources.AnalyzerDescription));",
+            "Private Shared ReadOnly s_localizableDescription As LocalizableString = Resources.CreateLocalizableResourceString(NameOf(Resources.AnalyzerDescription))")]
+        public async Task RS1033_LeadingOrTrailingWhitespaces_DiagnosticAsync(
+            string csharpDescriptionExpression, string basicDescriptionExpression,
+            string csharpFieldDeclaration = "", string basicFieldDeclaration = "")
         {
-            var additionalFileName = "Resources.resx";
-            var additionalFileText = @"
+            await VerifyDescriptionAsync("Description with trailing space ", "Description with trailing space.");
+            await VerifyDescriptionAsync(" Description with leading space", "Description with leading space.");
+            await VerifyDescriptionAsync("  \t    Description with leading and trailing spaces/tabs  \t    ", "Description with leading and trailing spaces/tabs.");
+            await VerifyDescriptionAsync("Description with period and trailing space. ", "Description with period and trailing space.");
+            return;
+
+            //  Local functions
+
+            async Task VerifyDescriptionAsync(string description, string fixedDescription)
+            {
+                string additionalFileName = "Resources.resx";
+                string additionalFileTextFormat = @"
 <root>
-  <data name=""AnalyzerDescription1"" xml:space=""preserve"">
-    <value>Description with trailing space </value>
-  </data>
-  <data name=""AnalyzerDescription2"" xml:space=""preserve"">
-    <value> Description with leading space</value>
-  </data>
-  <data name=""AnalyzerDescription3"" xml:space=""preserve"">
-    <value>  " + "\t" + @"    Description with leading and trailing spaces/tabs  " + "\t" + @"    </value>
-  </data>
-  <data name=""AnalyzerDescription4"" xml:space=""preserve"">
-    <value>Description with trailing space. </value>
-  </data>
-</root>";
-            var fixedAdditionalFileText = @"
-<root>
-  <data name=""AnalyzerDescription1"" xml:space=""preserve"">
-    <value>Description with trailing space.</value>
-  </data>
-  <data name=""AnalyzerDescription2"" xml:space=""preserve"">
-    <value>Description with leading space.</value>
-  </data>
-  <data name=""AnalyzerDescription3"" xml:space=""preserve"">
-    <value>Description with leading and trailing spaces/tabs.</value>
-  </data>
-  <data name=""AnalyzerDescription4"" xml:space=""preserve"">
-    <value>Description with trailing space.</value>
+  <data name=""AnalyzerDescription"" xml:space=""preserve"">
+    <value>{0}</value>
+    <comment>Optional comment.</comment>
   </data>
 </root>";
 
-            await VerifyCSharpCodeFixAsync(@"
+                string csharpSourceFormat = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-class Resources { }
+class Resources
+{{
+    public static LocalizableResourceString CreateLocalizableResourceString(string resourceName) => default;
+    public static string AnalyzerDescription => default;
+}}
 
 [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, {|#0:description: new LocalizableResourceString(""AnalyzerDescription1"", null, typeof(Resources))|}, helpLinkUri: ""HelpLink"", customTags: """");
+public sealed class MyAnalyzer : DiagnosticAnalyzer
+{{
+    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        ""RuleId"", ""Title"", ""Message"", ""Category"", DiagnosticSeverity.Warning, true, {0}, ""HelpLinkUri"", ""Tags"");
+    {1}
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics {{ get; }} = ImmutableArray.Create(Rule);
+    public override void Initialize(AnalysisContext context) {{ }}
+}}";
+                await VerifyCSharpCodeFixAsync(
+                    source: string.Format(csharpSourceFormat, $"{{|#0:{csharpDescriptionExpression}|}}", csharpFieldDeclaration),
+                    fixedSource: string.Format(csharpSourceFormat, csharpDescriptionExpression, csharpFieldDeclaration),
+                    additionalFileName: additionalFileName,
+                    additionalFileText: string.Format(additionalFileTextFormat, description),
+                    fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedDescription),
+                    expected: new[]
+                    {
+                        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(0)
+                    });
 
-    private static readonly LocalizableResourceString Description = new LocalizableResourceString(""AnalyzerDescription2"", null, typeof(Resources));
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, {|#1:description: Description|}, helpLinkUri: ""HelpLink"", customTags: """");
-
-    private static readonly DiagnosticDescriptor descriptor3 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, {|#2:description: new LocalizableResourceString(""AnalyzerDescription3"", null, typeof(Resources))|}, helpLinkUri: ""HelpLink"", customTags: """");
-
-    private static readonly DiagnosticDescriptor descriptor4 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, {|#3:description: new LocalizableResourceString(""AnalyzerDescription4"", null, typeof(Resources))|}, helpLinkUri: ""HelpLink"", customTags: """");
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4);
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}",
-                additionalFileName: additionalFileName,
-                additionalFileText: additionalFileText,
-                fixedAdditionalFileText: fixedAdditionalFileText,
-                fixedSource: @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-
-class Resources { }
-
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, description: new LocalizableResourceString(""AnalyzerDescription1"", null, typeof(Resources)), helpLinkUri: ""HelpLink"", customTags: """");
-
-    private static readonly LocalizableResourceString Description = new LocalizableResourceString(""AnalyzerDescription2"", null, typeof(Resources));
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description, helpLinkUri: ""HelpLink"", customTags: """");
-
-    private static readonly DiagnosticDescriptor descriptor3 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, description: new LocalizableResourceString(""AnalyzerDescription3"", null, typeof(Resources)), helpLinkUri: ""HelpLink"", customTags: """");
-
-    private static readonly DiagnosticDescriptor descriptor4 =
-        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, description: new LocalizableResourceString(""AnalyzerDescription4"", null, typeof(Resources)), helpLinkUri: ""HelpLink"", customTags: """");
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4);
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}",
-                expected: new[] {
-                    VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(0),
-                    VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(1),
-                    VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(2),
-                    VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(3),
-                });
-
-            await VerifyBasicCodeFixAsync(@"
+                string basicSourceFormat = @"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 
 Class Resources
+    Public Shared Function CreateLocalizableResourceString(resourceName As String) As LocalizableResourceString
+        Return Nothing
+    End Function
+    Public Shared ReadOnly Property AnalyzerDescription As String = Nothing
 End Class
 
 <DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, {|#0:New LocalizableResourceString(""AnalyzerDescription1"", Nothing, GetType(Resources))|}, ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly Description As LocalizableString = New LocalizableResourceString(""AnalyzerDescription2"", Nothing, GetType(Resources))
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, {|#1:Description|}, ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, {|#2:New LocalizableResourceString(""AnalyzerDescription3"", Nothing, GetType(Resources))|}, ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor4 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, {|#3:New LocalizableResourceString(""AnalyzerDescription4"", Nothing, GetType(Resources))|}, ""HelpLinkUrl"", ""Tag"")
-
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4)
-		End Get
-	End Property
-
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-",
-    additionalFileName: additionalFileName,
-    additionalFileText: additionalFileText,
-    fixedAdditionalFileText: fixedAdditionalFileText,
-    fixedSource: @"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-
-Class Resources
-End Class
-
-<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, New LocalizableResourceString(""AnalyzerDescription1"", Nothing, GetType(Resources)), ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly Description As LocalizableString = New LocalizableResourceString(""AnalyzerDescription2"", Nothing, GetType(Resources))
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, Description, ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, New LocalizableResourceString(""AnalyzerDescription3"", Nothing, GetType(Resources)), ""HelpLinkUrl"", ""Tag"")
-    Private Shared ReadOnly descriptor4 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, New LocalizableResourceString(""AnalyzerDescription4"", Nothing, GetType(Resources)), ""HelpLinkUrl"", ""Tag"")
-
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4)
-		End Get
-	End Property
-
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-", expected: new[] {
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(0),
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(1),
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(2),
-        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(3),
-    });
+Public NotInheritable Class MyAnalyzer : Inherits DiagnosticAnalyzer
+    Private Shared Rule As DiagnosticDescriptor = New DiagnosticDescriptor(
+        ""RuleId"", ""Title"", ""Message"", ""Category"", DiagnosticSeverity.Warning, True, {0}, ""HelpLinkUri"", ""Tags"")
+    {1}
+    Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) = ImmutableArray.Create(Rule)
+    Public Overrides Sub Initialize(context As AnalysisContext)
+    End Sub
+End Class";
+                await VerifyBasicCodeFixAsync(
+                    source: string.Format(basicSourceFormat, $"{{|#0:{basicDescriptionExpression}|}}", basicFieldDeclaration),
+                    fixedSource: string.Format(basicSourceFormat, basicDescriptionExpression, basicFieldDeclaration),
+                    additionalFileName: additionalFileName,
+                    additionalFileText: string.Format(additionalFileTextFormat, description),
+                    fixedAdditionalFileText: string.Format(additionalFileTextFormat, fixedDescription),
+                    expected: new[]
+                    {
+                        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(0)
+                    });
+            }
         }
 
         #endregion // RS1033 (DefineDiagnosticDescriptionCorrectlyRule)
