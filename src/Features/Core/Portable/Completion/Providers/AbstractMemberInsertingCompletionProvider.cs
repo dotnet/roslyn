@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected static CompletionItemRules GetRules()
             => s_defaultRules;
 
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, CancellationToken cancellationToken)
             => MemberInsertionCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
     }
 }
