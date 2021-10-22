@@ -11,7 +11,8 @@
   -->
   <Target Name="ConfigureInnerBuildArg" BeforeTargets="GetSourceBuildCommandConfiguration">
     <PropertyGroup>
-      <InnerBuildArgs>$(InnerBuildArgs) /p:Projects="$(InnerSourceBuildRepoRoot)\Roslyn.sln"</InnerBuildArgs>
+      <InnerBuildArgs Condition="'$(DotNetBuildFromSource)' != 'true'">$(InnerBuildArgs) /p:Projects="$(InnerSourceBuildRepoRoot)\Roslyn.sln"</InnerBuildArgs>
+      <InnerBuildArgs Condition="'$(DotNetBuildFromSource)' == 'true'">$(InnerBuildArgs) /p:Projects="$(InnerSourceBuildRepoRoot)\Roslyn.SourceBuild.slnf"</InnerBuildArgs>
     </PropertyGroup>
   </Target>
 
