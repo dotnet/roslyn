@@ -121,7 +121,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        Public Async Function ChangeToNoGeneratedDocumentsUpdatesListCorrectly() As Task
+        Public Async Function ChangeToRemoveAllGeneratedDocumentsUpdatesListCorrectly() As Task
             Dim workspaceXml =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
