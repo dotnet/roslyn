@@ -13,8 +13,8 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 {
-    [ExportOptionProvider, Shared]
-    internal class PerformanceFunctionIdOptionsProvider : IOptionProvider
+    [ExportGlobalOptionProvider, Shared]
+    internal sealed class PerformanceFunctionIdOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

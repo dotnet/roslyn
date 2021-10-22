@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
             nameof(BraceCompletionOptions), nameof(AutoFormattingOnCloseBrace), defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Close Brace"));
 
-        [ExportOptionProvider, Shared]
+        [ExportSolutionOptionProvider, Shared]
         internal class BraceCompletionOptionsProvider : IOptionProvider
         {
             [ImportingConstructor]
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
             }
 
             public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-                BraceCompletionOptions.AutoFormattingOnCloseBrace);
+                AutoFormattingOnCloseBrace);
         }
     }
 }

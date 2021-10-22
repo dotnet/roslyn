@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 {
-    [ExportOptionProvider, Shared]
+    [ExportGlobalOptionProvider, Shared]
     internal sealed class InternalFeatureOnOffOptions : IOptionProvider
     {
         [ImportingConstructor]

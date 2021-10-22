@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         public readonly IClassificationFormatMap ClassificationFormatMap;
 
         private readonly Workspace _workspace;
-        private readonly IGlobalOptionService _optionService;
+        private readonly IGlobalOptionService _globalOptions;
 
         private readonly HashSet<AbstractTableDataSourceFindUsagesContext> _currentContexts =
             new();
@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         public StreamingFindUsagesPresenter(
             IThreadingContext threadingContext,
             VisualStudioWorkspace workspace,
-            IGlobalOptionService optionService,
+            IGlobalOptionService globalOptions,
             Shell.SVsServiceProvider serviceProvider,
             ClassificationTypeMap typeMap,
             IEditorFormatMapService formatMapService,
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             : this(workspace,
                    threadingContext,
                    serviceProvider,
-                   optionService,
+                   globalOptions,
                    typeMap,
                    formatMapService,
                    classificationFormatMapService,
@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             : base(threadingContext, assertIsForeground: false)
         {
             _workspace = workspace;
-            _optionService = optionService;
+            _globalOptions = optionService;
             _serviceProvider = serviceProvider;
             TypeMap = typeMap;
             FormatMapService = formatMapService;
@@ -184,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             // We need this because we disable the Definition column when we're not showing references
             // (i.e. GoToImplementation/GoToDef).  However, we want to restore the user's choice if they
             // then do another FindAllReferences.
-            var desiredGroupingPriority = _optionService.GetOption(FindUsagesOptions.DefinitionGroupingPriority);
+            var desiredGroupingPriority = _globalOptions.GetOption(FindUsagesOptions.DefinitionGroupingPriority);
             if (desiredGroupingPriority < 0)
             {
                 StoreCurrentGroupingPriority(window);
@@ -226,7 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
         private void StoreCurrentGroupingPriority(IFindAllReferencesWindow window)
         {
-            _optionService.SetGlobalOption(FindUsagesOptions.DefinitionGroupingPriority, window.GetDefinitionColumn().GroupingPriority);
+            _globalOptions.SetGlobalOption(FindUsagesOptions.DefinitionGroupingPriority, window.GetDefinitionColumn().GroupingPriority);
         }
 
         private void SetDefinitionGroupingPriority(IFindAllReferencesWindow window, int priority)

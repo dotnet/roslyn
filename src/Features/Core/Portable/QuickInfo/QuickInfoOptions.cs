@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         bool ShowRemarksInQuickInfo,
         bool IncludeNavigationHintsInQuickInfo)
     {
-        [ExportOptionProvider, Shared]
+        [ExportSolutionOptionProvider, Shared]
         internal sealed class Metadata : IOptionProvider
         {
             [ImportingConstructor]

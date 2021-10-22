@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Options.Providers
 {
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal sealed class ExportOptionProviderAttribute : ExportAttribute
+    internal abstract class ExportOptionProviderAttribute : ExportAttribute
     {
         /// <summary>
         /// Optional source language for language specific option providers.  See <see cref="LanguageNames"/>.
@@ -18,23 +18,41 @@ namespace Microsoft.CodeAnalysis.Options.Providers
         public string Language { get; }
 
         /// <summary>
-        /// Constructor for language agnostic option providers.
-        /// Use <see cref="ExportOptionProviderAttribute(string)"/> overload for language specific option providers.
+        /// True if the option is a client global option provided by <see cref="IGlobalOptionService"/>.
         /// </summary>
-        public ExportOptionProviderAttribute()
+        public bool IsGlobal { get; }
+
+        public ExportOptionProviderAttribute(string language, bool isGlobal)
             : base(typeof(IOptionProvider))
         {
-            this.Language = string.Empty;
+            Language = language;
+            IsGlobal = isGlobal;
+        }
+    }
+
+    internal sealed class ExportGlobalOptionProviderAttribute : ExportOptionProviderAttribute
+    {
+        public ExportGlobalOptionProviderAttribute()
+            : this(language: string.Empty)
+        {
         }
 
-        /// <summary>
-        /// Constructor for language specific option providers.
-        /// Use <see cref="ExportOptionProviderAttribute()"/> overload for language agnostic option providers.
-        /// </summary>
-        public ExportOptionProviderAttribute(string language)
-            : base(typeof(IOptionProvider))
+        public ExportGlobalOptionProviderAttribute(string language)
+            : base(language, isGlobal: true)
         {
-            this.Language = language ?? throw new ArgumentNullException(nameof(language));
+        }
+    }
+
+    internal sealed class ExportSolutionOptionProviderAttribute : ExportOptionProviderAttribute
+    {
+        public ExportSolutionOptionProviderAttribute()
+            : this(language: string.Empty)
+        {
+        }
+
+        public ExportSolutionOptionProviderAttribute(string language)
+            : base(language, isGlobal: false)
+        {
         }
     }
 }

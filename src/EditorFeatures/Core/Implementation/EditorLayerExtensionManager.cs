@@ -49,17 +49,17 @@ namespace Microsoft.CodeAnalysis.Editor
         internal class ExtensionManager : AbstractExtensionManager
         {
             private readonly List<IExtensionErrorHandler> _errorHandlers;
-            private readonly IGlobalOptionService _optionsService;
+            private readonly IGlobalOptionService _globalOptions;
             private readonly IErrorReportingService _errorReportingService;
             private readonly IErrorLoggerService _errorLoggerService;
 
             public ExtensionManager(
-                IGlobalOptionService optionsService,
+                IGlobalOptionService globalOptions,
                 IErrorReportingService errorReportingService,
                 IErrorLoggerService errorLoggerService,
                 List<IExtensionErrorHandler> errorHandlers)
             {
-                _optionsService = optionsService;
+                _globalOptions = globalOptions;
                 _errorHandlers = errorHandlers;
                 _errorReportingService = errorReportingService;
                 _errorLoggerService = errorLoggerService;
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor
                 if (provider is CodeFixProvider or FixAllProvider or CodeRefactoringProvider)
                 {
                     if (!IsIgnored(provider) &&
-                        _optionsService.GetOption(ExtensionManagerOptions.DisableCrashingExtensions))
+                        _globalOptions.GetOption(ExtensionManagerOptions.DisableCrashingExtensions))
                     {
                         base.HandleException(provider, exception);
 
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor
                 }
                 else
                 {
-                    if (_optionsService.GetOption(ExtensionManagerOptions.DisableCrashingExtensions))
+                    if (_globalOptions.GetOption(ExtensionManagerOptions.DisableCrashingExtensions))
                     {
                         base.HandleException(provider, exception);
                     }

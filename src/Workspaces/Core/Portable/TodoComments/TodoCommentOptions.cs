@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
         public static readonly Option<string> TokenList = new(nameof(TodoCommentOptions), nameof(TokenList), defaultValue: "");
     }
 
-    [ExportOptionProvider, Shared]
+    [ExportSolutionOptionProvider, Shared]
     internal class TodoCommentOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]

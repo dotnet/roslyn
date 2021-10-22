@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Classification
         [property: DataMember(Order = 0)] bool ClassifyReassignedVariables,
         [property: DataMember(Order = 1)] bool ColorizeRegexPatterns)
     {
-        [ExportOptionProvider, Shared]
+        [ExportSolutionOptionProvider, Shared]
         internal sealed class Metadata : IOptionProvider
         {
             [ImportingConstructor]

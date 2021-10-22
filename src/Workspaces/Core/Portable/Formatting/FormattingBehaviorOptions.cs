@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// </summary>
     internal sealed class FormattingBehaviorOptions
     {
-        [ExportOptionProvider, Shared]
+        [ExportSolutionOptionProvider, Shared]
         internal sealed class Provider : IOptionProvider
         {
             [ImportingConstructor]

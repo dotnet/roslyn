@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(RemoveRecommendationLimit)));
     }
 
-    [ExportOptionProvider, Shared]
+    [ExportSolutionOptionProvider, Shared]
     internal class PythiaOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]

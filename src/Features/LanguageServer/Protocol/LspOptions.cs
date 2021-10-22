@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    [ExportOptionProvider, Shared]
+    [ExportGlobalOptionProvider, Shared]
     internal sealed class LspOptions : IOptionProvider
     {
         private const string LocalRegistryPath = @"Roslyn\Internal\Lsp\";

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
             storageLocation: new LocalUserProfileStorageLocation(@"Roslyn\Internal\Performance\Text\FileLengthThreshold"));
     }
 
-    [ExportOptionProvider, Shared]
+    [ExportSolutionOptionProvider, Shared]
     internal class FileTextLoaderOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]

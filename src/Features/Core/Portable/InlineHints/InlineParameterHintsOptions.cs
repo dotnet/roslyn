@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 SuppressForParametersThatMatchMethodIntent: options.GetOption(Metadata.SuppressForParametersThatMatchMethodIntent, language),
                 SuppressForParametersThatMatchArgumentName: options.GetOption(Metadata.SuppressForParametersThatMatchArgumentName, language));
 
-        [ExportOptionProvider, Shared]
+        [ExportSolutionOptionProvider, Shared]
         internal sealed class Metadata : IOptionProvider
         {
             [ImportingConstructor]
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 ForLambdaParameterTypes: options.GetOption(Metadata.ForLambdaParameterTypes, language),
                 ForImplicitObjectCreation: options.GetOption(Metadata.ForImplicitObjectCreation, language));
 
-        [ExportOptionProvider, Shared]
+        [ExportSolutionOptionProvider, Shared]
         internal sealed class Metadata : IOptionProvider
         {
             [ImportingConstructor]
