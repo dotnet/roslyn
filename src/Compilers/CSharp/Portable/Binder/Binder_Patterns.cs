@@ -1233,6 +1233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => CreateErrorType()
             };
 
+            // Note: since we're recursing on the receiver, the val escape correctly flows from inside out.
             inputValEscape = GetValEscape(memberType, inputValEscape);
             return new BoundPropertySubpatternMember(expr, receiver, symbol, type: memberType, hasErrors);
         }
