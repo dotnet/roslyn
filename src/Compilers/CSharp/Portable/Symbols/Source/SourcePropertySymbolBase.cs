@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Backing field for automatically implemented property, or
         /// for a property with an initializer.
         /// </summary>
-        internal SynthesizedBackingFieldSymbol BackingField => _lazyBackingFieldSymbol
+        internal SynthesizedBackingFieldSymbol BackingField => _lazyBackingFieldSymbol;
 
         internal override bool MustCallMethodsDirectly
         {
