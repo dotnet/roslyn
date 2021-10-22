@@ -154,7 +154,7 @@ jobs:
 - job: Correctness_Determinism
   pool:
     name: NetCore1ESPool-Svc-Public
-    demands: ImageOverride -equals Build.Windows.10.Amd64.VS2019.Open
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
@@ -170,7 +170,7 @@ jobs:
 - job: Correctness_Build
   pool:
     name: NetCore1ESPool-Svc-Public
-    demands: ImageOverride -equals Build.Windows.10.Amd64.VS2019.Open
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml

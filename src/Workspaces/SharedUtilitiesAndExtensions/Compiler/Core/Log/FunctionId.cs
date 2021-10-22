@@ -531,5 +531,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         LSP_FindDocumentInWorkspace = 494,
 
         SuggestedActions_GetSuggestedActionsAsync = 500,
+
+        AssetService_Perf = 520,
     }
 }
