@@ -2084,5 +2084,136 @@ class X
 
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularWithPatternCombinators);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_ListPatterns_Array_01()
+        {
+            string source = @"
+class X
+{
+    void M(int[] o)
+    {
+        _ = /*<bind>*/o is [42, ..]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is [42, ..]')
+  Value:
+    IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'o')
+  Pattern:
+    IListPatternOperation (OperationKind.ListPattern, Type: null) (Syntax: '[42, ..]') (InputType: System.Int32[], NarrowedType: System.Int32[], DeclaredSymbol: null, LengthSymbol: System.Int32 System.Array.Length { get; }, IndexerSymbol: null)
+      Patterns (2):
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '42') (InputType: System.Int32, NarrowedType: System.Int32)
+            Value:
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+          ISlicePatternOperation (OperationKind.SlicePattern, Type: null) (Syntax: '..'), SliceSymbol: null
+            Pattern:
+              null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            var comp = CreateCompilation(source);
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_ListPatterns_Array_02()
+        {
+            string source = @"
+class X
+{
+    void M(int[] o)
+    {
+        _ = /*<bind>*/o is [42, .. var slice]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is [42, .. var slice]')
+  Value:
+    IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'o')
+  Pattern:
+    IListPatternOperation (OperationKind.ListPattern, Type: null) (Syntax: '[42, .. var slice]') (InputType: System.Int32[], NarrowedType: System.Int32[], DeclaredSymbol: null, LengthSymbol: System.Int32 System.Array.Length { get; }, IndexerSymbol: null)
+      Patterns (2):
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '42') (InputType: System.Int32, NarrowedType: System.Int32)
+            Value:
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+          ISlicePatternOperation (OperationKind.SlicePattern, Type: null) (Syntax: '.. var slice'), SliceSymbol: null
+            Pattern:
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var slice') (InputType: System.Int32[], NarrowedType: System.Int32[], DeclaredSymbol: System.Int32[]? slice, MatchesNull: True)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            var comp = CreateCompilation(source);
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_ListPatterns_Span_01()
+        {
+            string source = @"
+class X
+{
+    void M(System.Span<int> o)
+    {
+        _ = /*<bind>*/o is [.., 42]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is [.., 42]')
+  Value:
+    IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Span<System.Int32>) (Syntax: 'o')
+  Pattern:
+    IListPatternOperation (OperationKind.ListPattern, Type: null) (Syntax: '[.., 42]') (InputType: System.Span<System.Int32>, NarrowedType: System.Span<System.Int32>, DeclaredSymbol: null, LengthSymbol: System.Int32 System.Span<System.Int32>.Length { get; }, IndexerSymbol: ref System.Int32 System.Span<System.Int32>.this[System.Int32 i] { get; })
+      Patterns (2):
+          ISlicePatternOperation (OperationKind.SlicePattern, Type: null) (Syntax: '..'), SliceSymbol: null
+            Pattern:
+              null
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '42') (InputType: System.Int32, NarrowedType: System.Int32)
+            Value:
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(source);
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_ListPatterns_Span_02()
+        {
+            string source = @"
+class X
+{
+    void M(System.Span<int> o)
+    {
+        _ = /*<bind>*/o is [.. var slice, 42]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is [.. var slice, 42]')
+  Value:
+    IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Span<System.Int32>) (Syntax: 'o')
+  Pattern:
+    IListPatternOperation (OperationKind.ListPattern, Type: null) (Syntax: '[.. var slice, 42]') (InputType: System.Span<System.Int32>, NarrowedType: System.Span<System.Int32>, DeclaredSymbol: null, LengthSymbol: System.Int32 System.Span<System.Int32>.Length { get; }, IndexerSymbol: ref System.Int32 System.Span<System.Int32>.this[System.Int32 i] { get; })
+      Patterns (2):
+          ISlicePatternOperation (OperationKind.SlicePattern, Type: null) (Syntax: '.. var slice'), SliceSymbol: System.Span<System.Int32> System.Span<System.Int32>.Slice(System.Int32 offset, System.Int32 length)
+            Pattern:
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var slice') (InputType: System.Span<System.Int32>, NarrowedType: System.Span<System.Int32>, DeclaredSymbol: System.Span<System.Int32> slice, MatchesNull: True)
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '42') (InputType: System.Int32, NarrowedType: System.Int32)
+            Value:
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(source);
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }
