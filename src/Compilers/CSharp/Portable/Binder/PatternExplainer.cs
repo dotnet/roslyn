@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return null;
                         }
 
-                        // We expect the required minimum length to be not less than our sample value.
+                        // The sample value must be equal or greater than the required minimum length by the slice.
                         Debug.Assert(slice.StartIndex - slice.EndIndex <= lengthValue);
                     }
 
