@@ -328,6 +328,7 @@ namespace Analyzer.Utilities
         public const string SystemSecurityCryptographyDES = "System.Security.Cryptography.DES";
         public const string SystemSecurityCryptographyDSA = "System.Security.Cryptography.DSA";
         public const string SystemSecurityCryptographyDSASignatureFormatter = "System.Security.Cryptography.DSASignatureFormatter";
+        public const string SystemSecurityCryptographyHashAlgorithm = "System.Security.Cryptography.HashAlgorithm";
         public const string SystemSecurityCryptographyHashAlgorithmName = "System.Security.Cryptography.HashAlgorithmName";
         public const string SystemSecurityCryptographyHMACMD5 = "System.Security.Cryptography.HMACMD5";
         public const string SystemSecurityCryptographyHMACRIPEMD160 = "System.Security.Cryptography.HMACRIPEMD160";
@@ -339,6 +340,7 @@ namespace Analyzer.Utilities
         public const string SystemSecurityCryptographyRIPEMD160 = "System.Security.Cryptography.RIPEMD160";
         public const string SystemSecurityCryptographyRSA = "System.Security.Cryptography.RSA";
         public const string SystemSecurityCryptographySHA1 = "System.Security.Cryptography.SHA1";
+        public const string SystemSecurityCryptographySHA256 = "System.Security.Cryptography.SHA256";
         public const string SystemSecurityCryptographySymmetricAlgorithm = "System.Security.Cryptography.SymmetricAlgorithm";
         public const string SystemSecurityCryptographyTripleDES = "System.Security.Cryptography.TripleDES";
         public const string SystemSecurityCryptographyX509CertificatesStoreName = "System.Security.Cryptography.X509Certificates.StoreName";
