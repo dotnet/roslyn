@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         bool UseTabs,
         string NewLine)
     {
-        [ExportOptionProvider, Shared]
+        [ExportSolutionOptionProvider, Shared]
         internal sealed class Metadata : IOptionProvider
         {
             [ImportingConstructor]

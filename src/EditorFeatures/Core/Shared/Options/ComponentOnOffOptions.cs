@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
     /// <summary>
     /// options to indicate whether a certain component in Roslyn is enabled or not
     /// </summary>
-    [ExportOptionProvider, Shared]
+    [ExportGlobalOptionProvider, Shared]
     internal sealed class EditorComponentOnOffOptions : IOptionProvider
     {
         [ImportingConstructor]

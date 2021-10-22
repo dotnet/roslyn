@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 {
-    [ExportOptionProvider, Shared]
+    [ExportGlobalOptionProvider, Shared]
     internal sealed class InlineDiagnosticsOptions : IOptionProvider
     {
         [ImportingConstructor]

@@ -11,20 +11,17 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
-    internal static class NavigationBarViewOptions
+    [ExportGlobalOptionProvider, Shared]
+    internal sealed class NavigationBarViewOptions : IOptionProvider
     {
-        [ExportOptionProvider, Shared]
-        internal sealed class Provider : IOptionProvider
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public NavigationBarViewOptions()
         {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Provider()
-            {
-            }
-
-            public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-                ShowNavigationBar);
         }
+
+        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
+            ShowNavigationBar);
 
         private const string FeatureName = "NavigationBarOptions";
 

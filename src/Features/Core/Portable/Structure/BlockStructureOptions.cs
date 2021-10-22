@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Structure
                 MaximumBannerLength: options.GetOption(Metadata.MaximumBannerLength, language),
                 IsMetadataAsSource: isMetadataAsSource);
 
-        [ExportOptionProvider, Shared]
+        [ExportSolutionOptionProvider, Shared]
         internal sealed class Metadata : IOptionProvider
         {
             [ImportingConstructor]
