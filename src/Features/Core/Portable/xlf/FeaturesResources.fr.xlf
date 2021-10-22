@@ -227,7 +227,7 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="Applying_source_changes_while_the_application_is_running_is_not_supported_by_the_runtime">
         <source>Applying source changes while the application is running is not supported by the runtime.</source>
-        <target state="new">Applying source changes while the application is running is not supported by the runtime.</target>
+        <target state="translated">L’application des modifications de la source pendant l’exécution de l’application n’est pas prise en charge par le Runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_requires_restarting_the_application">
@@ -452,7 +452,7 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="Convert_to_tuple">
         <source>Convert to tuple</source>
-        <target state="new">Convert to tuple</target>
+        <target state="translated">Convertir en tuple</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_type_to_0">
@@ -2833,7 +2833,7 @@ Si le spécificateur de format "H" est utilisé sans autres spécificateurs de f
       </trans-unit>
       <trans-unit id="all_anonymous_types_in_container">
         <source>all anonymous types in container</source>
-        <target state="new">all anonymous types in container</target>
+        <target state="translated">tous les types anonymes dans le conteneur</target>
         <note />
       </trans-unit>
       <trans-unit id="and_update_call_sites_directly">
@@ -2994,7 +2994,7 @@ Le spécificateur de format standard "f" représente une combinaison des modèle
       </trans-unit>
       <trans-unit id="just_this_anonymous_type">
         <source>just this anonymous type</source>
-        <target state="new">just this anonymous type</target>
+        <target state="translated">uniquement ce type anonyme</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">
