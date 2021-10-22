@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -10,31 +11,26 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions
 {
     internal static class SolutionExtensions
     {
-        public static ImmutableArray<Project> GetProjectsForPath(this Solution solution, string givenPath)
+        public static ImmutableArray<Project> GetProjectsUnderEditorConfigFile(this Solution solution, string pathToEditorConfigFile)
         {
-            if (Path.GetDirectoryName(givenPath) is not string givenFolderPath)
+            var directoryPathToCheck = Path.GetDirectoryName(pathToEditorConfigFile);
+            if (directoryPathToCheck is null)
             {
                 // we have been given an invalid file path
                 return ImmutableArray<Project>.Empty;
             }
 
-            if (SolutionIsInSameFolder(solution, givenFolderPath))
-            {
-                // All projects are applicable
-                return solution.Projects.ToImmutableArray();
-            }
-
+            var directoryInfoToCheck = new DirectoryInfo(directoryPathToCheck);
             var builder = ArrayBuilder<Project>.GetInstance();
             foreach (var project in solution.Projects)
             {
-                if (project.FilePath is not string projectFilePath ||
-                    new DirectoryInfo(projectFilePath).Parent is not DirectoryInfo projectDirectoryPath)
+                if (!TryGetFolderContainingProject(project, out var projectDirectory))
                 {
                     // Certain ASP.NET scenarios will create artificial projects that do not exist on disk
                     continue;
                 }
 
-                if (ContainsPath(new DirectoryInfo(givenFolderPath), projectDirectoryPath))
+                if (ContainsPath(directoryInfoToCheck, projectDirectory))
                 {
                     builder.Add(project);
                 }
@@ -42,46 +38,44 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions
 
             return builder.ToImmutableAndFree();
 
-            static bool SolutionIsInSameFolder(Solution givenSolution, string givenFolderPath)
+            static bool TryGetFolderContainingProject(Project project, [NotNullWhen(true)] out DirectoryInfo? directoryInfo)
             {
-                if (givenSolution.FilePath is not string solutionFilePath)
+                directoryInfo = null;
+                if (project.FilePath is null)
                 {
-                    // The solution path is null
                     return false;
                 }
 
-                var givenDirectory = new DirectoryInfo(givenFolderPath);
-                var solutionParentDirectory = new DirectoryInfo(solutionFilePath).Parent;
-                if (solutionParentDirectory is null)
+                var fileDirectoryInfo = new DirectoryInfo(project.FilePath);
+                if (fileDirectoryInfo.Parent is null)
                 {
-                    // we have been given an invalid file path
                     return false;
                 }
 
-                if (solutionParentDirectory.FullName == givenDirectory.FullName)
-                {
-                    // Solution is in the same folder
-                    return true;
-                }
-
-                return false;
+                directoryInfo = fileDirectoryInfo.Parent;
+                return true;
             }
 
-            static bool ContainsPath(DirectoryInfo givenPath, DirectoryInfo projectPath)
+            static bool ContainsPath(DirectoryInfo directoryContainingEditorConfig, DirectoryInfo projectDirectory)
             {
-                if (projectPath.FullName == givenPath.FullName)
+                if (directoryContainingEditorConfig.FullName == projectDirectory.FullName)
                 {
                     return true;
                 }
 
-                while (projectPath.Parent is not null)
+                // walk up each folder for the project and see if it matches
+                // example match:
+                // C:\source\roslyn\.editorconfig
+                // C:\source\roslyn\src\project.csproj
+
+                while (projectDirectory.Parent is not null)
                 {
-                    if (projectPath.Parent.FullName == givenPath.FullName)
+                    if (projectDirectory.Parent.FullName == directoryContainingEditorConfig.FullName)
                     {
                         return true;
                     }
 
-                    projectPath = projectPath.Parent;
+                    projectDirectory = projectDirectory.Parent;
                 }
 
                 return false;

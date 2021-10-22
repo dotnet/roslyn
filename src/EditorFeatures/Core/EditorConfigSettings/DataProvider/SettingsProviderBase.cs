@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
         {
             var givenFolder = new DirectoryInfo(FileName).Parent;
             var solution = Workspace.CurrentSolution;
-            var projects = solution.GetProjectsForPath(FileName);
+            var projects = solution.GetProjectsUnderEditorConfigFile(FileName);
             var project = projects.FirstOrDefault();
             if (project is null)
             {
