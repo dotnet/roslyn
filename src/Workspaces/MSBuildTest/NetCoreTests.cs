@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.UnitTests.TestFiles;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -450,6 +451,49 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
                 Assert.Contains(workspace.CurrentSolution.Projects, p => p.Name == "Library(netcoreapp2.1)");
                 Assert.Contains(workspace.CurrentSolution.Projects, p => p.Name == "Library(net461)");
+            }
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DotNetCoreSdk.IsAvailable))]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
+        public async Task TestOpenProject_VBNetCoreAppWithGlobalImportAndLibrary()
+        {
+            CreateFiles(GetVBNetCoreAppWithGlobalImportAndLibraryFiles());
+
+            var vbProjectFilePath = GetSolutionFileName(@"VBProject\VBProject.vbproj");
+            var libraryFilePath = GetSolutionFileName(@"Library\Library.csproj");
+
+            DotNetRestore(@"Library\Library.csproj");
+            DotNetRestore(@"VBProject\VBProject.vbproj");
+
+            using (var workspace = CreateMSBuildWorkspace())
+            {
+                var project = await workspace.OpenProjectAsync(vbProjectFilePath);
+
+                // Assert that there is are two projects loaded (VBProject.vbproj references Library.csproj).
+                Assert.Equal(2, workspace.CurrentSolution.ProjectIds.Count);
+
+                // Assert that there is a project reference between VBProject.vbproj and Library.csproj
+                AssertSingleProjectReference(project, libraryFilePath);
+
+                // Assert that the project does not have any diagnostics in Program.vb
+                var document = project.Documents.First(d => d.Name == "Program.vb");
+                var semanticModel = await document.GetSemanticModelAsync();
+                var diagnostics = semanticModel.GetDiagnostics();
+                Assert.Empty(diagnostics.Where(d => d.Severity >= DiagnosticSeverity.Warning));
+
+                var compilation = await project.GetCompilationAsync();
+                var option = compilation.Options as VisualBasicCompilationOptions;
+                Assert.Contains("LibraryHelperClass = Library.MyHelperClass", option.GlobalImports.Select(i => i.Name));
+            }
+
+            static void AssertSingleProjectReference(Project project, string projectRefFilePath)
+            {
+                var projectReference = Assert.Single(project.ProjectReferences);
+
+                var projectRefId = projectReference.ProjectId;
+                Assert.Equal(projectRefFilePath, project.Solution.GetProject(projectRefId).FilePath);
             }
         }
     }
