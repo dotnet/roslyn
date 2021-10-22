@@ -7231,7 +7231,7 @@ public class C
         [WorkItem(28633, "https://github.com/dotnet/roslyn/issues/28633")]
         public void EscapeScopeInSubpatternOfNonRefType()
         {
-            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.Regular10, text: @"
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithRecursivePatterns, text: @"
 using System;
 public ref struct R
 {
