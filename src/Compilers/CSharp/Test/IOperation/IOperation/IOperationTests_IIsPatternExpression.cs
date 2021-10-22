@@ -2127,16 +2127,16 @@ class X
 {
     void M(int[] o)
     {
-        _ = /*<bind>*/o is [42, .. var slice]/*</bind>*/;
+        _ = /*<bind>*/o is [42, .. var slice] list/*</bind>*/;
     }
 }
 ";
             string expectedOperationTree = @"
-IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is [42, .. var slice]')
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is [42, . ... slice] list')
   Value:
     IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'o')
   Pattern:
-    IListPatternOperation (OperationKind.ListPattern, Type: null) (Syntax: '[42, .. var slice]') (InputType: System.Int32[], NarrowedType: System.Int32[], DeclaredSymbol: null, LengthSymbol: System.Int32 System.Array.Length { get; }, IndexerSymbol: null)
+    IListPatternOperation (OperationKind.ListPattern, Type: null) (Syntax: '[42, .. var slice] list') (InputType: System.Int32[], NarrowedType: System.Int32[], DeclaredSymbol: System.Int32[] list, LengthSymbol: System.Int32 System.Array.Length { get; }, IndexerSymbol: null)
       Patterns (2):
           IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '42') (InputType: System.Int32, NarrowedType: System.Int32)
             Value:
@@ -2192,16 +2192,16 @@ class X
 {
     void M(System.Span<int> o)
     {
-        _ = /*<bind>*/o is [.. var slice, 42]/*</bind>*/;
+        _ = /*<bind>*/o is [.. var slice, 42] list/*</bind>*/;
     }
 }
 ";
             string expectedOperationTree = @"
-IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is [.. var slice, 42]')
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is [.. va ... e, 42] list')
   Value:
     IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Span<System.Int32>) (Syntax: 'o')
   Pattern:
-    IListPatternOperation (OperationKind.ListPattern, Type: null) (Syntax: '[.. var slice, 42]') (InputType: System.Span<System.Int32>, NarrowedType: System.Span<System.Int32>, DeclaredSymbol: null, LengthSymbol: System.Int32 System.Span<System.Int32>.Length { get; }, IndexerSymbol: ref System.Int32 System.Span<System.Int32>.this[System.Int32 i] { get; })
+    IListPatternOperation (OperationKind.ListPattern, Type: null) (Syntax: '[.. var slice, 42] list') (InputType: System.Span<System.Int32>, NarrowedType: System.Span<System.Int32>, DeclaredSymbol: System.Span<System.Int32> list, LengthSymbol: System.Int32 System.Span<System.Int32>.Length { get; }, IndexerSymbol: ref System.Int32 System.Span<System.Int32>.this[System.Int32 i] { get; })
       Patterns (2):
           ISlicePatternOperation (OperationKind.SlicePattern, Type: null) (Syntax: '.. var slice'), SliceSymbol: System.Span<System.Int32> System.Span<System.Int32>.Slice(System.Int32 offset, System.Int32 length)
             Pattern:
