@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis
                 if (!operation.IsImplicit)
                 {
                     // IOperation invariant is that all there is at most 1 non-implicit node per syntax node.
+                    Debug.Assert(!argument.ContainsKey(operation.Syntax), $"Duplicate operation node for {operation.Syntax}. Existing node is {argument[operation.Syntax].Kind}, new node is {operation.Kind}.");
                     argument.Add(operation.Syntax, operation);
                 }
             }
