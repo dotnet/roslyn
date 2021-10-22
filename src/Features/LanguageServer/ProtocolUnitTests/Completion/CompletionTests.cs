@@ -1260,7 +1260,7 @@ class A
             Assert.Empty(results.Items);
         }
 
-        private static Task<LSP.CompletionList> RunGetCompletionsAsync(TestLspServer testLspServer, LSP.CompletionParams completionParams)
+        internal static Task<LSP.CompletionList> RunGetCompletionsAsync(TestLspServer testLspServer, LSP.CompletionParams completionParams)
         {
             var clientCapabilities = new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true };
             return RunGetCompletionsAsync(testLspServer, completionParams, clientCapabilities);
