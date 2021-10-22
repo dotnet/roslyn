@@ -1608,9 +1608,9 @@ class X
     public static void Test5<T>(T t) where T : IIndexable, ICountableViaLength, ICountableViaCount
     {
         _ = t is { Length: -1 }; // 5
-        _ = t is { Count: -1 }; // 6
-        _ = new { t } is { t.Count: -1 }; // 7
-        _ = new { t } is { t.Length: -1 }; // 8
+        _ = t is { Count: -1 };
+        _ = new { t } is { t.Length: -1 }; // 6
+        _ = new { t } is { t.Count: -1 };
     }
 }
 ";
@@ -1631,15 +1631,10 @@ class X
             // (38,13): error CS8518: An expression of type 'T' can never match the provided pattern.
             //         _ = t is { Length: -1 }; // 5
             Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Length: -1 }").WithArguments("T").WithLocation(38, 13),
-            // (39,13): error CS8518: An expression of type 'T' can never match the provided pattern.
-            //         _ = t is { Count: -1 }; // 6
-            Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Count: -1 }").WithArguments("T").WithLocation(39, 13),
             // (40,13): error CS8518: An expression of type '<anonymous type: T t>' can never match the provided pattern.
-            //         _ = new { t } is { t.Count: -1 }; // 7
-            Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { t } is { t.Count: -1 }").WithArguments("<anonymous type: T t>").WithLocation(40, 13),
-            // (41,13): error CS8518: An expression of type '<anonymous type: T t>' can never match the provided pattern.
-            //         _ = new { t } is { t.Length: -1 }; // 8
-            Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { t } is { t.Length: -1 }").WithArguments("<anonymous type: T t>").WithLocation(41, 13));
+            //         _ = new { t } is { t.Length: -1 }; // 6
+            Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { t } is { t.Length: -1 }").WithArguments("<anonymous type: T t>").WithLocation(40, 13)
+            );
     }
 
     [Fact]
