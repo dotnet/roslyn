@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
     }
 }";
 
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
-            var caretLocation = locations["caret"].Single();
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var caretLocation = testLspServer.GetLocations("caret").Single();
 
             var commandArgument = new CodeActionResolveData(string.Format(FeaturesResources.Move_type_to_0, "B.cs"), customTags: ImmutableArray<string>.Empty, caretLocation.Range, new LSP.TextDocumentIdentifier
             {

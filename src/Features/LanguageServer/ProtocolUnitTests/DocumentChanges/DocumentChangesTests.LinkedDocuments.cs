@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
     </Project>
 </Workspace>";
 
-            using var testLspServer = CreateXmlTestLspServer(workspaceXml, out var locations);
-            var caretLocation = locations["caret"].Single();
+            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
+            var caretLocation = testLspServer.GetLocations("caret").Single();
 
             await DidOpen(testLspServer, caretLocation.Uri);
 
@@ -77,8 +77,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
     </Project>
 </Workspace>";
 
-            using var testLspServer = CreateXmlTestLspServer(workspaceXml, out var locations);
-            var caretLocation = locations["caret"].Single();
+            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
+            var caretLocation = testLspServer.GetLocations("caret").Single();
 
             var updatedText =
 @"class A
