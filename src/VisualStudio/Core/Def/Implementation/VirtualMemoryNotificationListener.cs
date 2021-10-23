@@ -38,6 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private readonly WorkspaceCacheService? _workspaceCacheService;
 
         private bool _alreadyLogged;
+        private bool _infoBarShown;
 
         private VirtualMemoryNotificationListener(
             IThreadingContext threadingContext,
@@ -154,9 +155,8 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private void ShowInfoBarIfRequired()
         {
-            if (_workspace.Options.GetOption(RuntimeOptions.BackgroundAnalysisSuspendedInfoBarShown))
+            if (_infoBarShown)
             {
-                // Info bar already shown.
                 return;
             }
 
@@ -168,9 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                     new InfoBarUI(ServicesVSResources.Learn_more, InfoBarUI.UIKind.HyperLink,
                         () => VisualStudioNavigateToLinkService.StartBrowser(new Uri(LowVMMoreInfoLink)), closeAfterAction: false));
 
-            // Update info bar shown state.
-            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                .WithChangedOption(RuntimeOptions.BackgroundAnalysisSuspendedInfoBarShown, true)));
+            _infoBarShown = true;
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
@@ -181,8 +179,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             // For newly opened solution, reset the info bar state.
-            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                .WithChangedOption(RuntimeOptions.BackgroundAnalysisSuspendedInfoBarShown, false)));
+            _infoBarShown = false;
         }
     }
 }
