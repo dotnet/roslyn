@@ -33,13 +33,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 nameof(HighlightRelatedRegexComponentsUnderCursor),
                 defaultValue: true,
                 storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightRelatedRegexComponentsUnderCursor"));
-
-        public static PerLanguageOption2<bool> ProvideRegexCompletions =
-            new(
-                nameof(RegularExpressionsOptions),
-                nameof(ProvideRegexCompletions),
-                defaultValue: true,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ProvideRegexCompletions"));
     }
 
     [ExportOptionProvider, Shared]
@@ -54,7 +47,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<Options.IOption>(
             RegularExpressionsOptions.ColorizeRegexPatterns,
             RegularExpressionsOptions.ReportInvalidRegexPatterns,
-            RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor,
-            RegularExpressionsOptions.ProvideRegexCompletions);
+            RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor);
     }
 }

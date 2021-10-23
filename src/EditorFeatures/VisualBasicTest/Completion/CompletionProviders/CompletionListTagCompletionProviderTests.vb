@@ -80,6 +80,9 @@ Public Class Color
     Public Shared Y as Integer = 4
 End Class
 ]]></Text>.Value
+
+            HideAdvancedMembers = True
+
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
@@ -87,8 +90,9 @@ End Class
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=True)
+                referencedLanguage:=LanguageNames.VisualBasic)
+
+            HideAdvancedMembers = False
 
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
@@ -97,8 +101,7 @@ End Class
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=False)
+                referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
