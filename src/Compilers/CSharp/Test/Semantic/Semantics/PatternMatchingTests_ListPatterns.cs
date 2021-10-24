@@ -1671,6 +1671,21 @@ public class C
             r = list; // error 4       
         } 
     }
+    public void M1b(ref Span<int> s)
+    {
+        Span<int> outer = default;
+        if (outer is [] list) s = list; // OK
+    }
+    public void M2b(ref R r)
+    {
+        R outer = default;
+        if (outer is [var element, .. var slice] list)
+        {
+            r = element; // OK
+            r = slice; // OK
+            r = list; // OK     
+        } 
+    }
 }").VerifyDiagnostics(
             // (15,35): error CS8352: Cannot use local 'list' in this context because it may expose referenced variables outside of their declaration scope
             //         if (outer is [] list) s = list; // error 1
