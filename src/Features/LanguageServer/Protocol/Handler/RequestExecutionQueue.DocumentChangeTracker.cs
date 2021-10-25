@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Microsoft.CodeAnalysis.Text;
@@ -28,20 +29,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             public void StartTracking(Uri documentUri, SourceText initialText)
             {
-                Contract.Fail("Mutating documents not allowed in a non-mutating request handler");
-                throw new NotImplementedException();
+                throw new InvalidOperationException("Mutating documents not allowed in a non-mutating request handler");
             }
 
             public void StopTracking(Uri documentUri)
             {
-                Contract.Fail("Mutating documents not allowed in a non-mutating request handler");
-                throw new NotImplementedException();
+                throw new InvalidOperationException("Mutating documents not allowed in a non-mutating request handler");
             }
 
             public void UpdateTrackedDocument(Uri documentUri, SourceText text)
             {
-                Contract.Fail("Mutating documents not allowed in a non-mutating request handler");
-                throw new NotImplementedException();
+                throw new InvalidOperationException("Mutating documents not allowed in a non-mutating request handler");
             }
         }
 
@@ -55,8 +53,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             public TestAccessor(RequestExecutionQueue queue)
                 => _queue = queue;
 
-            public List<SourceText> GetTrackedTexts()
-                => _queue._lspWorkspaceManager.GetTrackedLspText().Select(i => i.Value).ToList();
+            public ImmutableArray<SourceText> GetTrackedTexts()
+                => _queue._lspWorkspaceManager.GetTrackedLspText().Select(i => i.Value).ToImmutableArray();
 
             public LspWorkspaceManager GetLspWorkspaceManager() => _queue._lspWorkspaceManager;
 

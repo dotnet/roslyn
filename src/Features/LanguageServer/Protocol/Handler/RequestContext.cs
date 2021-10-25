@@ -149,18 +149,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// Mutating requests are serialized by the execution queue in order to prevent concurrent access.
         /// </summary>
         public void StartTracking(Uri uri, SourceText initialText)
-        {
-            _documentChangeTracker.StartTracking(uri, initialText);
-        }
+            => _documentChangeTracker.StartTracking(uri, initialText);
 
         /// <summary>
         /// Allows a mutating request to update the contents of a tracked document.
         /// Mutating requests are serialized by the execution queue in order to prevent concurrent access.
         /// </summary>
         public void UpdateTrackedDocument(Uri uri, SourceText changedText)
-        {
-            _documentChangeTracker.UpdateTrackedDocument(uri, changedText);
-        }
+            => _documentChangeTracker.UpdateTrackedDocument(uri, changedText);
 
         public SourceText GetTrackedDocumentSourceText(Uri documentUri)
         {
@@ -173,9 +169,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// Mutating requests are serialized by the execution queue in order to prevent concurrent access.
         /// </summary>
         public void StopTracking(Uri uri)
-        {
-            _documentChangeTracker.StopTracking(uri);
-        }
+            => _documentChangeTracker.StopTracking(uri);
 
         public bool IsTracking(Uri documentUri)
             => _trackedDocuments.ContainsKey(documentUri);

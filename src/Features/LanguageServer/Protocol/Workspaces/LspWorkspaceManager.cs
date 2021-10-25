@@ -65,7 +65,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
     /// Note that the text here is tracked regardless of whether or not we found a matching roslyn document
     /// for the URI.
     /// </summary>
-    private ImmutableDictionary<Uri, SourceText> _trackedDocuments = ImmutableDictionary.Create<Uri, SourceText>();
+    private ImmutableDictionary<Uri, SourceText> _trackedDocuments = ImmutableDictionary<Uri, SourceText>.Empty;
 
     private readonly string _hostWorkspaceKind;
     private readonly ILspLogger _logger;
@@ -139,7 +139,16 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
         if (e.Kind is WorkspaceChangeKind.DocumentChanged)
         {
             Contract.ThrowIfNull(e.DocumentId, $"DocumentId missing for document change event {e.Kind}");
-            if (IsDocumentTrackedByLsp(e.DocumentId, e.NewSolution, _trackedDocuments))
+
+            // Retrieve the current state of documents owned by LSP.
+            // It 
+            ImmutableDictionary<Uri, SourceText> trackedDocuments;
+            lock (_gate)
+            {
+                trackedDocuments = _trackedDocuments;
+            }
+
+            if (IsDocumentTrackedByLsp(e.DocumentId, e.NewSolution, trackedDocuments))
             {
                 // We're tracking the document already, no need to fork the workspace to get the changes, LSP will have sent them to us.
                 return;
@@ -157,11 +166,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
         {
             var changedDocument = newWorkspaceSolution.GetRequiredDocument(changedDocumentId);
             var documentUri = changedDocument.TryGetURI();
-
-            lock (_gate)
-            {
-                return documentUri != null && trackedDocuments.ContainsKey(documentUri);
-            }
+            return documentUri != null && trackedDocuments.ContainsKey(documentUri);
         }
     }
 
@@ -269,7 +274,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
     {
         lock (_gate)
         {
-            return _trackedDocuments.ToImmutableDictionary();
+            return _trackedDocuments;
         }
     }
 
