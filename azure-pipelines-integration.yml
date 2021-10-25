@@ -17,8 +17,8 @@ pr:
 jobs:
 - job: VS_Integration
   pool:
-    name: $(poolName)
-    queue: $(queueName)
+    name: NetCore1ESPool-Svc-Public
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   strategy:
     maxParallel: 4
     matrix:
