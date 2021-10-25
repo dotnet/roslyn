@@ -155,6 +155,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 public static CompilationTrackerState Create(
+                    SolutionServices solutionServices,
                     Compilation compilation,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? compilationWithGeneratedDocuments,
@@ -166,7 +167,7 @@ namespace Microsoft.CodeAnalysis
                     // DeclarationState now. We'll pass false for generatedDocumentsAreFinal because this is being called
                     // if our referenced projects are changing, so we'll have to rerun to consume changes.
                     return intermediateProjects.Length == 0
-                        ? new AllSyntaxTreesParsedState(compilation, generatorInfo.WithDocumentsAreFinal(false))
+                        ? new AllSyntaxTreesParsedState(solutionServices, compilation, generatorInfo.WithDocumentsAreFinal(false))
                         : new InProgressState(compilation, generatorInfo, compilationWithGeneratedDocuments, intermediateProjects);
                 }
 
@@ -174,9 +175,9 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilation,
                     SolutionServices services)
                 {
-                    return services.SupportsCachingRecoverableObjects
+                    return services.SupportsCachingRecoverableObjects && !services.Workspace.Options.GetOption(WorkspaceConfigurationOptions.DisableCompilationTrackerWeakCompilationReferences)
                         ? new WeakValueSource<Compilation>(compilation)
-                        : (ValueSource<Optional<Compilation>>)new ConstantValueSource<Optional<Compilation>>(compilation);
+                        : new ConstantValueSource<Optional<Compilation>>(compilation);
                 }
             }
 
@@ -235,9 +236,10 @@ namespace Microsoft.CodeAnalysis
             private sealed class AllSyntaxTreesParsedState : CompilationTrackerState
             {
                 public AllSyntaxTreesParsedState(
+                    SolutionServices solutionServices,
                     Compilation declarationCompilation,
                     CompilationTrackerGeneratorInfo generatorInfo)
-                    : base(new WeakValueSource<Compilation>(declarationCompilation),
+                    : base(CreateValueSource(declarationCompilation, solutionServices),
                            generatorInfo)
                 {
                 }

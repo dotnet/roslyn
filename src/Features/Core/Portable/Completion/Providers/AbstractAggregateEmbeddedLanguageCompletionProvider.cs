@@ -20,18 +20,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     /// <summary>
     /// The singular completion provider that will hook into completion and will
-    /// provider all completions across all embedded languages.
+    /// provide all completions across all embedded languages.
     /// 
     /// Completions for an individual language are provided by
     /// <see cref="IEmbeddedLanguageFeatures.CompletionProvider"/>.
     /// </summary>
-    internal abstract class AbstractEmbeddedLanguageCompletionProvider : LSPCompletionProvider
+    internal abstract class AbstractAggregateEmbeddedLanguageCompletionProvider : LSPCompletionProvider
     {
         public const string EmbeddedProviderName = "EmbeddedProvider";
 
         private ImmutableArray<IEmbeddedLanguage> _languageProviders;
 
-        protected AbstractEmbeddedLanguageCompletionProvider(IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> languageServices, string languageName)
+        protected AbstractAggregateEmbeddedLanguageCompletionProvider(IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> languageServices, string languageName)
         {
             var embeddedLanguageServiceType = typeof(IEmbeddedLanguagesProvider).AssemblyQualifiedName;
             TriggerCharacters = languageServices
@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static ImmutableHashSet<char> GetTriggerCharactersForEmbeddedLanguage(IEmbeddedLanguage language)
         {
             var completionProvider = (language as IEmbeddedLanguageFeatures)?.CompletionProvider;
-            if (completionProvider is LSPCompletionProvider lspCompletionProvider)
+            if (completionProvider != null)
             {
-                return lspCompletionProvider.TriggerCharacters;
+                return completionProvider.TriggerCharacters;
             }
 
             return ImmutableHashSet<char>.Empty;
@@ -70,15 +70,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override ImmutableHashSet<char> TriggerCharacters { get; }
 
-        internal override bool ShouldTriggerCompletion(HostLanguageServices? languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
+        internal sealed override bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options)
         {
             foreach (var language in GetLanguageProviders(languageServices))
             {
                 var completionProvider = (language as IEmbeddedLanguageFeatures)?.CompletionProvider;
                 if (completionProvider != null)
                 {
-                    if (completionProvider.ShouldTriggerCompletion(
-                            text, caretPosition, trigger, options))
+                    if (completionProvider.ShouldTriggerCompletion(text, caretPosition, trigger))
                     {
                         return true;
                     }
@@ -109,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
             => GetLanguage(item).CompletionProvider.GetChangeAsync(document, item, commitKey, cancellationToken);
 
-        public override Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        internal override Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, CancellationToken cancellationToken)
             => GetLanguage(item).CompletionProvider.GetDescriptionAsync(document, item, cancellationToken);
 
         private IEmbeddedLanguageFeatures GetLanguage(CompletionItem item)
@@ -117,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (_languageProviders.IsDefault)
                 throw ExceptionUtilities.Unreachable;
 
-            return (IEmbeddedLanguageFeatures)_languageProviders.Single(lang => (lang as IEmbeddedLanguageFeatures)?.CompletionProvider?.Name == item.Properties[EmbeddedProviderName]);
+            return (IEmbeddedLanguageFeatures)_languageProviders.Single(lang => (lang as IEmbeddedLanguageFeatures)?.CompletionProvider.Name == item.Properties[EmbeddedProviderName]);
         }
     }
 }

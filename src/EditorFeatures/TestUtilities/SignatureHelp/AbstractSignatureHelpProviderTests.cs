@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             var document = testWorkspace.CurrentSolution.GetDocument(documentId);
 
             testWorkspace.TryApplyChanges(testWorkspace.CurrentSolution.WithOptions(testWorkspace.Options
-                .WithChangedOption(CompletionOptions.HideAdvancedMembers, document.Project.Language, hideAdvancedMembers)));
+                .WithChangedOption(CompletionOptions.Metadata.HideAdvancedMembers, document.Project.Language, hideAdvancedMembers)));
 
             document = testWorkspace.CurrentSolution.GetDocument(documentId);
             var code = (await document.GetTextAsync()).ToString();

@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool SupportsRecord(ParseOptions options);
         bool SupportsRecordStruct(ParseOptions options);
         bool SupportsThrowExpression(ParseOptions options);
+        bool SupportsTargetTypedConditionalExpression(ParseOptions options);
 
         SyntaxToken ParseToken(string text);
         SyntaxTriviaList ParseLeadingTrivia(string text);

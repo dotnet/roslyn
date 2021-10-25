@@ -8,6 +8,10 @@ scripts/ @dotnet/roslyn-infrastructure
 
 src/CodeStyle/ @dotnet/roslyn-ide
 src/Compilers/ @dotnet/roslyn-compiler
+# Both IDE and Compiler traits are in this file, so we don't want to ping each other for changes to just this file.
+# Technically this means that if someone changes _just_ this file no reviewers will be tagged, but this isn't likely
+# to happen.
+src/Compilers/Test/Core/Traits/Traits.cs
 src/EditorFeatures/ @dotnet/roslyn-ide
 
 # If we touch the WPF layer or Cocoa layers, the VS for Mac team also should take a look. We do this even if it's

@@ -2913,7 +2913,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitAsExpression(BoundAsOperator asOp, bool used)
         {
-            Debug.Assert(!asOp.Conversion.Kind.IsImplicitConversion());
+            Debug.Assert(asOp.OperandPlaceholder is null);
+            Debug.Assert(asOp.OperandConversion is null);
 
             var operand = asOp.Operand;
             EmitExpression(operand, used);
@@ -3259,7 +3260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </remarks>
         private void EmitNullCoalescingOperator(BoundNullCoalescingOperator expr, bool used)
         {
-            Debug.Assert(expr.LeftConversion.IsIdentity, "coalesce with nontrivial left conversions are lowered into conditional.");
+            Debug.Assert(expr.LeftConversion is null, "coalesce with nontrivial left conversions are lowered into conditional.");
             Debug.Assert(expr.Type.IsReferenceType);
 
             EmitExpression(expr.LeftOperand, used: true);

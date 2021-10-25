@@ -64,6 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool SupportsRecordStruct(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion.IsCSharp10OrAbove();
 
+        public bool SupportsTargetTypedConditionalExpression(ParseOptions options)
+            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp9;
+
         public SyntaxToken ParseToken(string text)
             => SyntaxFactory.ParseToken(text);
 

@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 RoslynDebug.Assert(source != null);
                 RoslynDebug.Assert((object)destination != null);
-                RoslynDebug.Assert(!isCast || conversionGroupOpt != null);
+                RoslynDebug.Assert(!isCast || conversionGroupOpt != null || wasCompilerGenerated);
 
                 if (conversion.IsIdentity)
                 {
@@ -426,8 +426,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var newSwitchArms = builder.ToImmutableAndFree();
             return new BoundConvertedSwitchExpression(
-                source.Syntax, source.Type, targetTyped, conversion, source.Expression, newSwitchArms, source.DecisionDag,
-                source.DefaultLabel, source.ReportedNotExhaustive, destination, hasErrors || source.HasErrors);
+                source.Syntax, source.Type, targetTyped, source.Expression, newSwitchArms, source.DecisionDag,
+                source.DefaultLabel, source.ReportedNotExhaustive, destination, hasErrors || source.HasErrors).WithSuppression(source.IsSuppressed);
         }
 
         private BoundExpression CreateUserDefinedConversion(

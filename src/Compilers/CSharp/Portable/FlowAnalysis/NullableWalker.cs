@@ -5494,7 +5494,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     applyMemberPostConditions(receiverSlot, type, notNullMembers, ref State);
                 }
 
-                if (!notNullWhenTrueMembers.IsEmpty || !notNullWhenFalseMembers.IsEmpty)
+                if (method.ReturnType.SpecialType == SpecialType.System_Boolean
+                    && !(notNullWhenTrueMembers.IsEmpty && notNullWhenFalseMembers.IsEmpty))
                 {
                     Split();
                     applyMemberPostConditions(receiverSlot, type, notNullWhenTrueMembers, ref StateWhenTrue);
@@ -8501,7 +8502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 leftOnRightType = VisitConversion(
                     conversionOpt: null,
                     node.Left,
-                    node.LeftConversion,
+                    BoundNode.GetConversion(node.LeftConversion, node.LeftPlaceholder),
                     TypeWithAnnotations.Create(node.Operator.LeftType),
                     leftOnRightType,
                     checkConversion: true,
@@ -8535,7 +8536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultType = VisitConversion(
                     conversionOpt: null,
                     node,
-                    node.FinalConversion,
+                    BoundNode.GetConversion(node.FinalConversion, node.FinalPlaceholder),
                     leftLValueType,
                     resultType,
                     checkConversion: true,
@@ -9052,9 +9053,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // foreach (DestinationType variable in collection)
                             // and asynchronous variants
                             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                            Conversion conversion = node.ElementConversion.Kind == ConversionKind.UnsetConversionKind
-                                ? _conversions.ClassifyImplicitConversionFromType(sourceType.Type, destinationType.Type, ref discardedUseSiteInfo)
-                                : node.ElementConversion;
+                            Conversion conversion = BoundNode.GetConversion(node.ElementConversion, node.ElementPlaceholder);
+                            if (conversion.Kind == ConversionKind.NoConversion)
+                            {
+                                conversion = _conversions.ClassifyImplicitConversionFromType(sourceType.Type, destinationType.Type, ref discardedUseSiteInfo);
+                            }
+
                             result = VisitConversion(
                                 conversionOpt: null,
                                 conversionOperand: node.IterationVariableType,
@@ -9472,7 +9476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (type.CanContainNull())
             {
-                switch (node.Conversion.Kind)
+                switch (BoundNode.GetConversion(node.OperandConversion, node.OperandPlaceholder).Kind)
                 {
                     case ConversionKind.Identity:
                     case ConversionKind.ImplicitReference:
