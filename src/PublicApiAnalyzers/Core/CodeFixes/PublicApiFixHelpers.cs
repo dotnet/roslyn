@@ -49,16 +49,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return null;
         }
 
-        internal static TextDocument? GetPublicApiDocument(Project project, string name)
+        internal static TextDocument? GetPublicApiDocument(this Project project, string name)
         {
             return project.AdditionalDocuments.FirstOrDefault(doc => doc.Name.Equals(name, StringComparison.Ordinal));
         }
 
-        internal static TextDocument? GetUnshippedDocument(Project project)
-            => GetPublicApiDocument(project, DeclarePublicApiAnalyzer.UnshippedFileName);
-
-        internal static TextDocument? GetShippedDocument(Project project)
-            => GetPublicApiDocument(project, DeclarePublicApiAnalyzer.ShippedFileName);
+        internal static TextDocument? GetShippedDocument(this Project project)
+            => project.GetPublicApiDocument(DeclarePublicApiAnalyzer.ShippedFileName);
 
         /// <summary>
         /// Returns the trailing newline from the end of <paramref name="sourceText"/>, if one exists.
@@ -66,7 +63,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         /// <param name="sourceText">The source text.</param>
         /// <returns><paramref name="endOfLine"/> if <paramref name="sourceText"/> ends with a trailing newline;
         /// otherwise, <see cref="string.Empty"/>.</returns>
-        internal static string GetEndOfFileText(SourceText? sourceText, string endOfLine)
+        internal static string GetEndOfFileText(this SourceText? sourceText, string endOfLine)
         {
             if (sourceText == null || sourceText.Length == 0)
                 return string.Empty;
@@ -75,7 +72,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return lastLine.Span.IsEmpty ? endOfLine : string.Empty;
         }
 
-        internal static string GetEndOfLine(SourceText? sourceText)
+        internal static string GetEndOfLine(this SourceText? sourceText)
         {
             if (sourceText?.Lines.Count > 1)
             {

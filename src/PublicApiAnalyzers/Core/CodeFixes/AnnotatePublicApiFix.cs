@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 string publicSymbolNameWithNullability = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiNameWithNullabilityPropertyBagKey];
                 string fileName = diagnostic.Properties[DeclarePublicApiAnalyzer.FileName];
 
-                TextDocument? document = PublicApiFixHelpers.GetPublicApiDocument(project, fileName);
+                TextDocument? document = project.GetPublicApiDocument(fileName);
 
                 if (document != null)
                 {
@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 }
             }
 
-            var endOfLine = PublicApiFixHelpers.GetEndOfLine(sourceText);
-            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(endOfLine, lines) + PublicApiFixHelpers.GetEndOfFileText(sourceText, endOfLine));
+            var endOfLine = sourceText.GetEndOfLine();
+            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(endOfLine, lines) + sourceText.GetEndOfFileText(endOfLine));
             return newSourceText;
         }
 
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                     foreach (var (path, changes) in allChanges)
                     {
-                        var doc = PublicApiFixHelpers.GetPublicApiDocument(project, path);
+                        var doc = project.GetPublicApiDocument(path);
 
                         if (doc is not null)
                         {

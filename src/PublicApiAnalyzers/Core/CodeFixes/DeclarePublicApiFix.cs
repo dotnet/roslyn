@@ -121,9 +121,9 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 insertInList(lines, name);
             }
 
-            var endOfLine = PublicApiFixHelpers.GetEndOfLine(sourceText);
+            var endOfLine = sourceText.GetEndOfLine();
 
-            var newText = string.Join(endOfLine, lines) + PublicApiFixHelpers.GetEndOfFileText(sourceText, endOfLine);
+            var newText = string.Join(endOfLine, lines) + sourceText.GetEndOfFileText(endOfLine);
             return sourceText?.Replace(new TextSpan(0, sourceText.Length), newText) ?? SourceText.From(newText);
 
             // Insert name at the first suitable position
@@ -152,8 +152,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             List<string> lines = GetLinesFromSourceText(sourceText);
             IEnumerable<string> newLines = lines.Where(line => !linesToRemove.Contains(line));
 
-            var endOfLine = PublicApiFixHelpers.GetEndOfLine(sourceText);
-            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(endOfLine, newLines) + PublicApiFixHelpers.GetEndOfFileText(sourceText, endOfLine));
+            var endOfLine = sourceText.GetEndOfLine();
+            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(endOfLine, newLines) + sourceText.GetEndOfFileText(endOfLine));
             return newSourceText;
         }
 
