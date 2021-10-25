@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     char ch = _lexer.TextWindow.PeekChar();
 
                     // Note: within a hole new-lines are always allowed.  The restriction on if new-lines are allowed or not
-                    // is only within a text-portion of the interpolated stirng.
+                    // is only within a text-portion of the interpolated string.
                     if (IsAtEnd(allowNewline: true))
                     {
                         // the caller will complain
