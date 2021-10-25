@@ -6852,7 +6852,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>At least one top-level statement must be non-empty.</value>
   </data>
   <data name="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString" xml:space="preserve">
-    <value>Please use language version {0} or later to use newlines inside a non-verbatim interpolated string</value>
+    <value>Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</value>
   </data>
   <data name="IDS_FeatureGenericAttributes" xml:space="preserve">
     <value>generic attributes</value>

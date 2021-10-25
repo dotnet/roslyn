@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         diagnostics.Add(
                                             ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString,
                                             interpolation.CloseBraceToken.GetLocation(),
+                                            this.Compilation.LanguageVersion.ToDisplayString(),
                                             new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNewLinesInInterpolations.RequiredVersion()));
                                     }
                                 }
