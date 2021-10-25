@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
+        internal override string Language => LanguageNames.CSharp;
+
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
             try

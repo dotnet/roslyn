@@ -529,9 +529,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(options));
             }
 
-            var compilationOptionsService = CurrentSolution.GetRequiredProject(projectId).LanguageServices.GetRequiredService<ICompilationOptionsChangingService>();
+            var originalProject = CurrentSolution.GetRequiredProject(projectId);
+            var compilationOptionsService = originalProject.LanguageServices.GetRequiredService<ICompilationOptionsChangingService>();
             var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
-            compilationOptionsService.Apply(options, storage);
+            compilationOptionsService.Apply(originalProject.CompilationOptions!, options, storage);
         }
 
         protected override void ApplyParseOptionsChanged(ProjectId projectId, ParseOptions options)

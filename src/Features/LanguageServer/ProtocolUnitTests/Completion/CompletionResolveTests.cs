@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -462,6 +463,15 @@ link text";
 
                 return Task.FromResult(CompletionChange.Create(textChange, newPosition: 0));
             }
+
+            internal override bool ShouldTriggerCompletion(Project project, HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CodeAnalysis.Completion.CompletionOptions options, ImmutableHashSet<string> roles = null)
+                => false;
+
+            internal override CompletionRules GetRules(CodeAnalysis.Completion.CompletionOptions options)
+                => CompletionRules.Default;
+
+            internal override Task<CompletionDescription> GetDescriptionAsync(Document document, CodeAnalysis.Completion.CompletionItem item, CodeAnalysis.Completion.CompletionOptions options, CancellationToken cancellationToken = default)
+                => Task.FromResult(CompletionDescription.Empty);
         }
     }
 }

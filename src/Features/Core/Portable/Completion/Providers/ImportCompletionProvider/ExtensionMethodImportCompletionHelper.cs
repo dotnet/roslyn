@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             ISet<string> namespaceInScope,
             ImmutableArray<ITypeSymbol> targetTypesSymbols,
             bool forceIndexCreation,
+            bool hideAdvancedMembers,
             CancellationToken cancellationToken)
         {
             SerializableUnimportedExtensionMethods items;
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     project,
                     (service, solutionInfo, cancellationToken) => service.GetUnimportedExtensionMethodsAsync(
                         solutionInfo, document.Id, position, receiverTypeSymbolKeyData, namespaceInScope.ToImmutableArray(),
-                        targetTypesSymbolKeyData, forceIndexCreation, cancellationToken),
+                        targetTypesSymbolKeyData, forceIndexCreation, hideAdvancedMembers, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             else
             {
                 items = await GetUnimportedExtensionMethodsInCurrentProcessAsync(
-                    document, position, receiverTypeSymbol, namespaceInScope, targetTypesSymbols, forceIndexCreation, cancellationToken)
+                    document, position, receiverTypeSymbol, namespaceInScope, targetTypesSymbols, forceIndexCreation, hideAdvancedMembers, cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -114,6 +115,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             ISet<string> namespaceInScope,
             ImmutableArray<ITypeSymbol> targetTypes,
             bool forceIndexCreation,
+            bool hideAdvancedMembers,
             CancellationToken cancellationToken)
         {
             var ticks = Environment.TickCount;
@@ -122,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // Workspace's syntax/symbol index is used to avoid iterating every method symbols in the solution.
             var symbolComputer = await ExtensionMethodSymbolComputer.CreateAsync(
                 document, position, receiverTypeSymbol, namespaceInScope, cancellationToken).ConfigureAwait(false);
-            var (extentsionMethodSymbols, isPartialResult) = await symbolComputer.GetExtensionMethodSymbolsAsync(forceIndexCreation, cancellationToken).ConfigureAwait(false);
+            var (extentsionMethodSymbols, isPartialResult) = await symbolComputer.GetExtensionMethodSymbolsAsync(forceIndexCreation, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
 
             var getSymbolsTicks = Environment.TickCount - ticks;
             ticks = Environment.TickCount;

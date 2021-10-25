@@ -124,6 +124,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
             {
                 await _asyncListener.Delay(TimeSpan.FromMilliseconds(250), cancellationToken).ConfigureAwait(false);
 
+                // If it's not open, don't do anything, since if we are going to show locations in metadata that might
+                // be expensive. This doesn't cause a functional issue, since opening the window clears whatever was previously there
+                // so the user won't notice we weren't doing anything when it was open.
+                if (!await _codeDefinitionWindowService.IsWindowOpenAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    return;
+                }
+
                 var document = pointInRoslynSnapshot.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document == null)
                 {

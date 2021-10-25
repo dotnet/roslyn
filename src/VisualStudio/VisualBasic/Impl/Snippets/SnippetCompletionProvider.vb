@@ -54,6 +54,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             _globalOptions = globalOptions
         End Sub
 
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property IsSnippetProvider As Boolean
             Get
                 Return True
@@ -81,12 +87,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                 Return
             End If
 
-            context.IsExclusive = ShouldBeExclusive(context.Options)
+            context.IsExclusive = context.CompletionOptions.SnippetsBehavior = SnippetsRule.IncludeAfterTypingIdentifierQuestionTab
             context.AddItems(CreateCompletionItems(snippets, isPossibleTupleContext))
-        End Function
-
-        Private Function ShouldBeExclusive(options As OptionSet) As Boolean
-            Return options.GetOption(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic) = SnippetsRule.IncludeAfterTypingIdentifierQuestionTab
         End Function
 
         Private Shared ReadOnly s_commitChars As Char() = {" "c, ";"c, "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c, ","c, ":"c, "+"c, "-"c, "*"c, "/"c, "\"c, "^"c, "<"c, ">"c, "'"c, "="c}
@@ -106,9 +108,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                                        rules:=If(isTupleContext, s_tupleRules, s_rules)))
         End Function
 
-        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
-            Return Char.IsLetterOrDigit(text(characterPosition)) AndAlso
-                options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.VisualBasic)
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
+            Return Char.IsLetterOrDigit(text(characterPosition)) AndAlso options.TriggerOnTypingLetters
         End Function
 
         Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet(Of Char).Empty
