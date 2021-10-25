@@ -681,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 while (true)
                 {
                     // Note: if we reach the end of the file without hitting */ just bail out.  It's not necessary for
-                    // us to report any issues, as this code is just being used to find the end of teh interpolation hole.
+                    // us to report any issues, as this code is just being used to find the end of the interpolation hole.
                     // When the full parse happens, the lexer will grab the string inside the interpolation hole and 
                     // pass it to the regular parser.  This parser will then see the unterminated /* and will report the
                     // error for it.
