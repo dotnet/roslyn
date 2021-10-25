@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // None of the project file paths should be null
             var projectInfos = await _loader.LoadProjectInfoAsync(projectFilePaths!, targets, projectMap, progress, msbuildLogger, cancellationToken).ConfigureAwait(false);
 
-            var updatedProjects = await UpdateProjectsAsync(projectInfos).ConfigureAwait(false);
+            var updatedProjects = UpdateProjects(this, projectInfos);
 
             UpdateReferencesAfterAdd();
 

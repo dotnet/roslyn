@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 {
     public sealed partial class MSBuildWorkspace
     {
-        private async Task<ImmutableArray<Project>> UpdateProjectsAsync(ImmutableArray<ProjectInfo> newProjectInfos)
+        private ImmutableArray<Project> UpdateProjects(Workspace workspace, ImmutableArray<ProjectInfo> newProjectInfos)
         {
             using var _1 = ArrayBuilder<ProjectId>.GetInstance(out var updatedProjectIds);
 
@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     var projectToUpdate = solution.GetProject(projectInfo.Id);
                     RoslynDebug.AssertNotNull(projectToUpdate);
-                    var oldCheckSum = projectToUpdate.State.GetStateChecksumsAsync(default).WaitAndGetResult(default);
+                    var oldCheckSum = projectToUpdate.State.GetStateChecksumsAsync(default).GetAwaiter().GetResult();
                     var newCheckSum = projectInfo.GetChecksum(serialization);
-                    var newProject = UpdateProjectAsync(projectToUpdate, projectInfo, oldCheckSum, newCheckSum).WaitAndGetResult(default);
+                    var newProject = UpdateProjectAsync(workspace, projectToUpdate, projectInfo, oldCheckSum, newCheckSum).GetAwaiter().GetResult();
                     solution = AdjustReloadedProject(projectToUpdate, newProject).Solution;
                     updatedProjectIds.Add(newProject.Id);
                     return solution;
@@ -42,10 +42,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 updatedProjects.Add(solution.GetProject(projectId)!);
             }
 
-            return updatedProjects.ToImmutableAndFree();
+            return updatedProjects.ToImmutable();
         }
 
-        private static async Task<Project> UpdateProjectAsync(Project project, ProjectInfo newProjectInfo, ProjectStateChecksums oldCheckSum, ProjectStateChecksums newCheckSum)
+        private static async Task<Project> UpdateProjectAsync(
+            Workspace workspace,
+            Project project,
+            ProjectInfo newProjectInfo,
+            ProjectStateChecksums oldCheckSum,
+            ProjectStateChecksums newCheckSum)
         {
             // changed info
             project = UpdateProjectAttributes(project, newProjectInfo.Attributes);
@@ -65,11 +70,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // changed analyzer references
             project = project.WithAnalyzerReferences(newProjectInfo.AnalyzerReferences);
 
-
             // changed documents
             if (oldCheckSum.Documents.Checksum != newCheckSum.Documents.Checksum)
             {
                 project = await UpdateDocumentsAsync(
+                    workspace,
                     project,
                     newProjectInfo.Documents,
                     project.State.DocumentStates,
@@ -83,6 +88,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             if (oldCheckSum.AdditionalDocuments.Checksum != newCheckSum.AdditionalDocuments.Checksum)
             {
                 project = await UpdateDocumentsAsync(
+                    workspace,
                     project,
                     newProjectInfo.AdditionalDocuments,
                     project.State.AdditionalDocumentStates,
@@ -96,6 +102,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             if (oldCheckSum.AnalyzerConfigDocuments.Checksum != newCheckSum.AnalyzerConfigDocuments.Checksum)
             {
                 project = await UpdateDocumentsAsync(
+                    workspace,
                     project,
                     newProjectInfo.AnalyzerConfigDocuments,
                     project.State.AnalyzerConfigDocumentStates,
@@ -130,6 +137,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         }
 
         private static async Task<Project> UpdateDocumentsAsync<TTextDocumentState>(
+                Workspace workspace,
                 Project project,
                 IReadOnlyList<DocumentInfo> documentInfos,
                 TextDocumentStates<TTextDocumentState> existingTextDocumentStates,
@@ -150,7 +158,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             news.Object.ExceptWith(oldChecksums);
 
             var oldMap = await GetDocumentMapAsync(existingTextDocumentStates, olds.Object).ConfigureAwait(false);
-            var newMap = GetDocumentMap(documentInfos);
+            var newMap = GetDocumentMap(documentInfos, workspace);
 
             // added document
             ImmutableArray<DocumentInfo>.Builder? lazyDocumentsToAdd = null;
@@ -228,12 +236,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return document.Project;
         }
 
-        private static Dictionary<DocumentId, (DocumentInfo, DocumentStateChecksums)> GetDocumentMap(IReadOnlyList<DocumentInfo> documentInfos)
+        private static Dictionary<DocumentId, (DocumentInfo, DocumentStateChecksums)> GetDocumentMap(IReadOnlyList<DocumentInfo> documentInfos, Workspace workspace)
         {
             var map = new Dictionary<DocumentId, (DocumentInfo, DocumentStateChecksums)>();
             foreach (var documentInfo in documentInfos)
             {
-                map.Add(documentInfo.Id, (documentInfo, new DocumentStateChecksums(documentInfo.Attributes.GetCheckSum())));
+                map.Add(documentInfo.Id, (documentInfo, documentInfo.GetCheckSum(workspace)));
             }
 
             return map;
