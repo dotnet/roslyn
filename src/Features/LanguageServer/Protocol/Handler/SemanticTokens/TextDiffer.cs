@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         protected IReadOnlyList<DiffEdit> ComputeDiff(ArraySegment<int> oldArray, ArraySegment<int> newArray)
         {
-            var edits = new List<DiffEdit>();
+            using var _0 = ArrayBuilder<DiffEdit>.GetInstance(out var edits);
 
             // Initialize the vectors to use for forward and reverse searches.
             var max = newArray.Count + oldArray.Count;
@@ -41,11 +41,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             ComputeDiffRecursive(edits, 0, oldArray.Count, 0, newArray.Count, vf, vr, oldArray, newArray);
 
-            return edits;
+            return edits.ToArray();
         }
 
         private void ComputeDiffRecursive(
-            List<DiffEdit> edits,
+            ArrayBuilder<DiffEdit> edits,
             int lowA,
             int highA,
             int lowB,
