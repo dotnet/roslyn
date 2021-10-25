@@ -177,7 +177,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
-        public static void SetForegroundWindow(IntPtr window)
+        public static bool TrySetForegroundWindow(IntPtr window)
         {
             var activeWindow = NativeMethods.GetLastActivePopup(window);
             activeWindow = NativeMethods.IsWindowVisible(activeWindow) ? activeWindow : window;
@@ -213,9 +213,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 if (!NativeMethods.SetForegroundWindow(activeWindow))
                 {
-                    throw new InvalidOperationException("Failed to set the foreground window.");
+                    return false;
                 }
             }
+
+            return true;
         }
 
         public static void SendInput(NativeMethods.INPUT[] inputs)
