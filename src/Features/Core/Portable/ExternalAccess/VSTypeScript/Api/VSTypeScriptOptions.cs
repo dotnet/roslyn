@@ -11,9 +11,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
     internal static class VSTypeScriptOptions
     {
-        public static PerLanguageOption<bool> BlockForCompletionItems { get; } = (PerLanguageOption<bool>)CompletionGlobalOptions.BlockForCompletionItems;
-        public static PerLanguageOption<bool> TriggerOnTypingLetters { get; } = (PerLanguageOption<bool>)CompletionOptions.TriggerOnTypingLetters2;
-
         public static OptionSet WithBackgroundAnalysisScope(this OptionSet options, bool openFilesOnly)
             => options.WithChangedOption(
                     SolutionCrawlerOptions.BackgroundAnalysisScopeOption,

@@ -163,18 +163,13 @@ text;
             var documentId = workspace.GetDocumentId(hostDocument);
             var document = workspace.CurrentSolution.GetDocument(documentId);
             var position = hostDocument.CursorPosition.Value;
-
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(
-                    CompletionOptions.EnterKeyBehavior,
-                    LanguageNames.CSharp,
-                    sendThroughEnterOption)));
+            var options = CompletionOptions.Default with { EnterKeyBehavior = sendThroughEnterOption };
 
             var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, RoslynTrigger.Invoke);
             var item = completionList.Items.First(i => (i.DisplayText + i.DisplayTextSuffix).StartsWith(textTypedSoFar));
 
-            Assert.Equal(expected, CommitManager.SendEnterThroughToEditor(service.GetRules(), item, textTypedSoFar));
+            Assert.Equal(expected, CommitManager.SendEnterThroughToEditor(service.GetRules(options), item, textTypedSoFar));
         }
 
         protected void TestCommonIsTextualTriggerCharacter()

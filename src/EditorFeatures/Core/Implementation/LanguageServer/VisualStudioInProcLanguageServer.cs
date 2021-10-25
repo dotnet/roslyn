@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             AbstractRequestDispatcherFactory requestDispatcherFactory,
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
-            ILspWorkspaceRegistrationService workspaceRegistrationService,
+            LspWorkspaceRegistrationService workspaceRegistrationService,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspLogger logger,

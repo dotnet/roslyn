@@ -167,6 +167,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string WithSystemNumerics => GetText("ProjectFiles.CSharp.WithSystemNumerics.csproj");
                 public static string WithXaml => GetText("ProjectFiles.CSharp.WithXaml.csproj");
                 public static string WithoutPrefer32Bit => GetText("ProjectFiles.CSharp.WithoutPrefer32Bit.csproj");
+                public static string VBNetCoreAppWithGlobalImportAndLibrary_Library => GetText("VBNetCoreAppWithGlobalImportAndLibrary.Library.csproj");
             }
 
             public static class FSharp
@@ -190,6 +191,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string WithPrefer32Bit => GetText("ProjectFiles.VisualBasic.WithPrefer32Bit.vbproj");
                 public static string WithoutPrefer32Bit => GetText("ProjectFiles.VisualBasic.WithoutPrefer32Bit.vbproj");
                 public static string WithoutVBTargetsImported => GetText("ProjectFiles.VisualBasic.WithoutVBTargetsImported.vbproj");
+                public static string VBNetCoreAppWithGlobalImportAndLibrary_VBProject => GetText("VBNetCoreAppWithGlobalImportAndLibrary.VBProject.vbproj");
             }
         }
 
@@ -217,6 +219,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string NetCoreMultiTFM_ProjectReferenceToFSharp_CSharpLib_Class1 = GetText("NetCoreMultiTFM_ProjectReferenceToFSharp.csharplib.Class1.cs");
                 public static string MainWindow => GetText("SourceFiles.CSharp.MainWindow.xaml.cs");
                 public static string OtherStuff_Foo => GetText("SourceFiles.CSharp.OtherStuff_Foo.cs");
+                public static string VBNetCoreAppWithGlobalImportAndLibrary_MyHelperClass => GetText("VBNetCoreAppWithGlobalImportAndLibrary.MyHelperClass.cs");
             }
 
             public static class FSharp
@@ -240,6 +243,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string Settings_Designer => GetText("SourceFiles.VisualBasic.Settings.Designer.vb");
                 public static string VisualBasicClass => GetText("SourceFiles.VisualBasic.VisualBasicClass.vb");
                 public static string VisualBasicClass_WithConditionalAttributes => GetText("SourceFiles.VisualBasic.VisualBasicClass_WithConditionalAttributes.vb");
+                public static string VBNetCoreAppWithGlobalImportAndLibrary_Program => GetText("VBNetCoreAppWithGlobalImportAndLibrary.Program.vb");
             }
 
             public static class Xaml
