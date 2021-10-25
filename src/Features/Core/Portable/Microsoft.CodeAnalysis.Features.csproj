@@ -129,7 +129,7 @@
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="$(MicrosoftCodeAnalysisAnalyzerUtilitiesVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Contracts" Version="$(MicrosoftVisualStudioDebuggerContractsVersion)" Condition="'$(DotNetBuildFromSource)' != 'true' OR '$(TargetFramework)' == 'netcoreapp3.1'" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Contracts" Version="$(MicrosoftVisualStudioDebuggerContractsVersion)" Condition="'$(DotNetBuildFromSource)' != 'true' AND '$(TargetFramework)' != 'netcoreapp3.1'" />
   </ItemGroup>
   <ItemGroup Condition="'$(DotNetBuildFromSource)' == 'true' OR '$(TargetFramework)' == 'netcoreapp3.1'">
     <Compile Remove="EditAndContinue\**\*.cs" />
