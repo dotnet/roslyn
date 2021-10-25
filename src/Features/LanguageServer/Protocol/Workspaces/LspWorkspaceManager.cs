@@ -140,8 +140,9 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
         {
             Contract.ThrowIfNull(e.DocumentId, $"DocumentId missing for document change event {e.Kind}");
 
-            // Retrieve the current state of documents owned by LSP.
-            // It 
+            // Retrieve the current state of documents owned by LSP.  It is not necessarily
+            // consistent with the workspace, but if the documents owned by LSP change we fork from the workspace
+            // and will eventually become consistent.
             ImmutableDictionary<Uri, SourceText> trackedDocuments;
             lock (_gate)
             {
