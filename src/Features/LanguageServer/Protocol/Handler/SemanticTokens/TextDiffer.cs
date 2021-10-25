@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Differencing;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
@@ -34,8 +35,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // Initialize the vectors to use for forward and reverse searches.
             var max = newArray.Count + oldArray.Count;
-            var vf = new int[(2 * max) + 1];
-            var vr = new int[(2 * max) + 1];
+            var capacity = (2 * max) + 1;
+            using var _1 = ArrayBuilder<int>.GetInstance(capacity, fillWithValue: 0, out var vf);
+            using var _2 = ArrayBuilder<int>.GetInstance(capacity, fillWithValue: 0, out var vr);
 
             ComputeDiffRecursive(edits, 0, oldArray.Count, 0, newArray.Count, vf, vr, oldArray, newArray);
 
@@ -48,8 +50,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             int highA,
             int lowB,
             int highB,
-            int[] vf,
-            int[] vr,
+            ArrayBuilder<int> vf,
+            ArrayBuilder<int> vr,
             ArraySegment<int> oldArray,
             ArraySegment<int> newArray)
         {
@@ -103,8 +105,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             int highA,
             int lowB,
             int highB,
-            int[] vf,
-            int[] vr,
+            ArrayBuilder<int> vf,
+            ArrayBuilder<int> vr,
             ArraySegment<int> oldArray,
             ArraySegment<int> newArray)
         {
