@@ -55,7 +55,7 @@
       <Link>InternalUtilities\LambdaUtilities.vb</Link>
     </Compile>
   </ItemGroup>
-  <ItemGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
+  <ItemGroup Condition="'$(DotNetBuildFromSource)' == 'true' OR '$(TargetFramework)' == 'netcoreapp3.1'">
     <Compile Remove="EditAndContinue\**\*.vb" />
     <Compile Include="EditAndContinue\BreakpointSpans.vb" />
   </ItemGroup>

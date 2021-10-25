@@ -129,9 +129,9 @@
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="$(MicrosoftCodeAnalysisAnalyzerUtilitiesVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Contracts" Version="$(MicrosoftVisualStudioDebuggerContractsVersion)" Condition="'$(DotNetBuildFromSource)' != 'true'" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Contracts" Version="$(MicrosoftVisualStudioDebuggerContractsVersion)" Condition="'$(DotNetBuildFromSource)' != 'true' OR '$(TargetFramework)' == 'netcoreapp3.1'" />
   </ItemGroup>
-  <ItemGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
+  <ItemGroup Condition="'$(DotNetBuildFromSource)' == 'true' OR '$(TargetFramework)' == 'netcoreapp3.1'">
     <Compile Remove="EditAndContinue\**\*.cs" />
     <Compile Include="EditAndContinue\EditAndContinueMethodDebugInfoReader.cs" />
     <Compile Remove="ExternalAccess\UnitTesting\API\UnitTestingHotReloadService.cs" />
