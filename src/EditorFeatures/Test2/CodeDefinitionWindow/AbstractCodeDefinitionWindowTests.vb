@@ -30,6 +30,10 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
             Public Sub New()
             End Sub
 
+            Public Function IsWindowOpenAsync(cancellationToken As CancellationToken) As Task(Of Boolean) Implements ICodeDefinitionWindowService.IsWindowOpenAsync
+                Throw New NotImplementedException()
+            End Function
+
             Public Function SetContextAsync(locations As ImmutableArray(Of CodeDefinitionWindowLocation), cancellationToken As CancellationToken) As Task Implements ICodeDefinitionWindowService.SetContextAsync
                 Throw New NotImplementedException()
             End Function

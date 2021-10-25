@@ -181,7 +181,7 @@ public class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtoco
 
     private static Document? GetMiscellaneousDocument(TestLspServer testLspServer)
     {
-        return testLspServer.GetQueueAccessor().GetLspMiscellaneousFilesWorkspace()!.CurrentSolution.Projects.SingleOrDefault()?.Documents.Single();
+        return testLspServer.GetManagerAccessor().GetLspMiscellaneousFilesWorkspace()!.CurrentSolution.Projects.SingleOrDefault()?.Documents.Single();
     }
 
     private static async Task<LSP.Hover> RunGetHoverAsync(TestLspServer testLspServer, LSP.Location caret)

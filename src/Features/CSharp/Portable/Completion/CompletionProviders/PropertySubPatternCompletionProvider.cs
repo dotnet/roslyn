@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
+        internal override string Language => LanguageNames.CSharp;
+
         // Examples:
         // is { $$
         // is { Property.$$
@@ -67,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             // Find the members that can be tested.
             var members = GetCandidatePropertiesAndFields(document, semanticModel, position, type);
-            members = members.WhereAsArray(m => m.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation));
+            members = members.WhereAsArray(m => m.IsEditorBrowsable(context.CompletionOptions.HideAdvancedMembers, semanticModel.Compilation));
 
             if (memberAccess is null)
             {
@@ -156,12 +158,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, CancellationToken cancellationToken)
             => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         private static readonly CompletionItemRules s_rules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
 
-        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) || text[characterPosition] == ' ';
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters.Add(' ');

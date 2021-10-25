@@ -101,8 +101,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SetTriggerCompletionInArgumentLists(bool value)
         {
             SetPerLanguageOption(
-                optionName: CompletionOptions.TriggerInArgumentLists.Name,
-                feature: CompletionOptions.TriggerInArgumentLists.Feature,
+                optionName: CompletionOptions.Metadata.TriggerInArgumentLists.Name,
+                feature: CompletionOptions.Metadata.TriggerInArgumentLists.Feature,
                 language: LanguageNames.CSharp,
                 value: value);
         }

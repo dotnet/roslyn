@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract IImmutableList<SyntaxNode> GetAssemblyScopedAttributeSyntaxNodesOfDocument(SyntaxNode documentRoot);
         protected abstract SyntaxNode? GetConstructorArgumentOfInternalsVisibleToAttribute(SyntaxNode internalsVisibleToAttribute);
 
-        public sealed override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
+        public sealed override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, CompletionOptions options)
         {
             // Should trigger in these cases ($$ is the cursor position)
             // [InternalsVisibleTo($$         -> user enters "

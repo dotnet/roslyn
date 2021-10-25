@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -23,12 +24,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeDefinitionW
         private readonly IAsyncServiceProvider _asyncServiceProvider;
         private readonly IThreadingContext _threadingContext;
 
+        [DisallowNull]
+        private IVsCodeDefView? _lazyCodeDefView;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioCodeDefinitionWindowService(SVsServiceProvider asyncServiceProvider, IThreadingContext threadingContext)
         {
             _asyncServiceProvider = (IAsyncServiceProvider)asyncServiceProvider;
             _threadingContext = threadingContext;
+        }
+
+        private async Task<IVsCodeDefView> GetVsCodeDefViewAsync()
+        {
+            if (_lazyCodeDefView is not null)
+            {
+                return _lazyCodeDefView;
+            }
+
+            _lazyCodeDefView = await _asyncServiceProvider.GetServiceAsync<SVsCodeDefView, IVsCodeDefView>().ConfigureAwait(true);
+
+            return _lazyCodeDefView;
+        }
+
+        public async Task<bool> IsWindowOpenAsync(CancellationToken cancellationToken)
+        {
+            var vsCodeDefView = await GetVsCodeDefViewAsync().ConfigureAwait(true);
+
+            // Switch to the UI thread before using the IVsCodeDefView service
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            // IsVisible returns S_FALSE if it's not visible
+            return vsCodeDefView.IsVisible() == VSConstants.S_OK;
         }
 
         public async Task SetContextAsync(ImmutableArray<CodeDefinitionWindowLocation> locations, CancellationToken cancellationToken)
@@ -40,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeDefinitionW
                 return;
             }
 
-            var vsCodeDefView = await _asyncServiceProvider.GetServiceAsync<SVsCodeDefView, IVsCodeDefView>().ConfigureAwait(false);
+            var vsCodeDefView = await GetVsCodeDefViewAsync().ConfigureAwait(true);
 
             // Switch to the UI thread before using the IVsCodeDefView service
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
