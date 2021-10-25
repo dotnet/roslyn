@@ -83,51 +83,43 @@ namespace Microsoft.CodeAnalysis.Host
         {
             lock (_gate)
             {
-                if (_designTimeToCompileTimeSoution.TryGetValue(designTimeSolution, out var cachedCompileTimeSolution) &&
-                    cachedCompileTimeSolution != null)
+                if (!_designTimeToCompileTimeSoution.TryGetValue(designTimeSolution, out var compileTimeSolution))
                 {
-                    return cachedCompileTimeSolution;
-                }
+                    using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var configIdsToRemove);
+                    using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var documentIdsToRemove);
 
-                using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var configIdsToRemove);
-                using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var documentIdsToRemove);
-
-                foreach (var (_, projectState) in designTimeSolution.State.ProjectStates)
-                {
-                    var anyConfigs = false;
-
-                    foreach (var (_, configState) in projectState.AnalyzerConfigDocumentStates.States)
+                    foreach (var (_, projectState) in designTimeSolution.State.ProjectStates)
                     {
-                        if (IsRazorAnalyzerConfig(configState))
-                        {
-                            configIdsToRemove.Add(configState.Id);
-                            anyConfigs = true;
-                        }
-                    }
+                        var anyConfigs = false;
 
-                    // only remove design-time only documents when source-generated ones replace them
-                    if (anyConfigs)
-                    {
-                        foreach (var (_, documentState) in projectState.DocumentStates.States)
+                        foreach (var (_, configState) in projectState.AnalyzerConfigDocumentStates.States)
                         {
-                            if (documentState.Attributes.DesignTimeOnly)
+                            if (IsRazorAnalyzerConfig(configState))
                             {
-                                documentIdsToRemove.Add(documentState.Id);
+                                configIdsToRemove.Add(configState.Id);
+                                anyConfigs = true;
+                            }
+                        }
+
+                        // only remove design-time only documents when source-generated ones replace them
+                        if (anyConfigs)
+                        {
+                            foreach (var (_, documentState) in projectState.DocumentStates.States)
+                            {
+                                if (documentState.Attributes.DesignTimeOnly)
+                                {
+                                    documentIdsToRemove.Add(documentState.Id);
+                                }
                             }
                         }
                     }
+
+                    compileTimeSolution = designTimeSolution
+                        .RemoveAnalyzerConfigDocuments(configIdsToRemove.ToImmutable())
+                        .RemoveDocuments(documentIdsToRemove.ToImmutable());
+
+                    _designTimeToCompileTimeSoution.Add(designTimeSolution, compileTimeSolution);
                 }
-
-                var compileTimeSolution = designTimeSolution
-                    .RemoveAnalyzerConfigDocuments(configIdsToRemove.ToImmutable())
-                    .RemoveDocuments(documentIdsToRemove.ToImmutable());
-
-#if NETCOREAPP
-                _designTimeToCompileTimeSoution.AddOrUpdate(designTimeSolution, compileTimeSolution);
-#else
-                _designTimeToCompileTimeSoution.Remove(designTimeSolution);
-                _designTimeToCompileTimeSoution.Add(designTimeSolution, compileTimeSolution);
-#endif
 
                 return compileTimeSolution;
             }
