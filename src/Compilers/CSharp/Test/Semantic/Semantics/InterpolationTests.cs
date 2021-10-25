@@ -132,9 +132,9 @@ class Program {
                 // (5,63): error CS1010: Newline in constant
                 //         Console.WriteLine($"Jenny don\'t change your number { ");
                 Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(5, 63),
-                // (5,66): error CS8967: Newlines are not allowed inside a non-verbatim interpolated string
-                //         Console.WriteLine($"Jenny don\'t change your number { ");
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "").WithLocation(5, 66),
+                // (6,5): error CS1010: Newline in constant
+                //     }
+                Diagnostic(ErrorCode.ERR_NewlineInConst, "}").WithLocation(6, 5),
                 // (6,6): error CS1026: ) expected
                 //     }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 6),
@@ -159,9 +159,9 @@ class Program {
 }";
             // too many diagnostics perhaps, but it starts the right way.
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (5,71): error CS8077: A single-line comment may not be used in an interpolated string.
-                //         Console.WriteLine($"Jenny don\'t change your number { 8675309 // ");
-                Diagnostic(ErrorCode.ERR_SingleLineCommentInExpressionHole, "//").WithLocation(5, 71),
+                // (6,5): error CS1010: Newline in constant
+                //     }
+                Diagnostic(ErrorCode.ERR_NewlineInConst, "}").WithLocation(6, 5),
                 // (6,6): error CS1026: ) expected
                 //     }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 6),
@@ -186,12 +186,12 @@ class Program {
 }";
             // too many diagnostics perhaps, but it starts the right way.
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (5,60): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
+                //         Console.WriteLine($"Jenny don\'t change your number { 8675309 /* ");
+                Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, " {").WithLocation(5, 60),
                 // (5,71): error CS1035: End-of-file found, '*/' expected
                 //         Console.WriteLine($"Jenny don\'t change your number { 8675309 /* ");
                 Diagnostic(ErrorCode.ERR_OpenEndedComment, "").WithLocation(5, 71),
-                // (5,77): error CS8967: Newlines are not allowed inside a non-verbatim interpolated string
-                //         Console.WriteLine($"Jenny don\'t change your number { 8675309 /* ");
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "").WithLocation(5, 77),
                 // (7,2): error CS1026: ) expected
                 // }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 2),
@@ -358,12 +358,13 @@ class Program
         Console.WriteLine( $""{"" );
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(   // (6,31): error CS1010: Newline in constant
-                                                                         //         Console.WriteLine( $"{" );
-                Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(6, 31),
-                // (6,35): error CS8958: Newlines are not allowed inside a non-verbatim interpolated string
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (6,31): error CS1010: Newline in constant
                 //         Console.WriteLine( $"{" );
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "").WithLocation(6, 35),
+                Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(6, 31),
+                // (7,5): error CS1010: Newline in constant
+                //     }
+                Diagnostic(ErrorCode.ERR_NewlineInConst, "}").WithLocation(7, 5),
                 // (7,6): error CS1026: ) expected
                 //     }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 6),
