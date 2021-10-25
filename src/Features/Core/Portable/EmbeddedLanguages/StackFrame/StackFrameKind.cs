@@ -9,13 +9,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     internal enum StackFrameKind
     {
         None = 0,
+
+        // Nodes
         EndOfLine,
         MethodDeclaration,
         MemberAccess,
-        Identifier,
+        ArrayTypeExpression,
         GenericTypeIdentifier,
         TypeArgument,
         TypeIdentifier,
+        Parameter,
         ParameterList,
         ArrayExpression,
         FileInformation,

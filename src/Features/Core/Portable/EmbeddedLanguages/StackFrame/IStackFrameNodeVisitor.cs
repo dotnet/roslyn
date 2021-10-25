@@ -2,22 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 {
     internal interface IStackFrameNodeVisitor
     {
-        void Visit(StackFrameMethodDeclarationNode stackFrameMethodDeclarationNode);
-        void Visit(StackFrameMemberAccessExpressionNode stackFrameMemberAccessExpressionNode);
-        void Visit(StackFrameTypeArgumentList stackFrameTypeArguments);
-        void Visit(StackFrameParameterList stackFrameArgumentList);
-        void Visit(StackFrameIdentifierNode stackFrameIdentifierNode);
-        void Visit(StackFrameGenericTypeIdentifier stackFrameGenericTypeIdentifier);
-        void Visit(StackFrameTypeArgument stackFrameTypeArgument);
-        void Visit(StackFrameArrayExpressionNode stackFrameArrayExpressionNode);
-        void Visit(StackFrameFileInformationNode stackFrameFileInformationNode);
+        void Visit(StackFrameMethodDeclarationNode node);
+        void Visit(StackFrameMemberAccessExpressionNode node);
+        void Visit(StackFrameTypeArgumentList node);
+        void Visit(StackFrameParameterList node);
+        void Visit(StackFrameGenericTypeIdentifier node);
+        void Visit(StackFrameTypeArgumentNode node);
+        void Visit(StackFrameArrayRankSpecifier node);
+        void Visit(StackFrameFileInformationNode node);
+        void Visit(StackFrameArrayTypeExpression node);
+        void Visit(StackFrameParameterNode stackFrameParameterNode);
     }
 }

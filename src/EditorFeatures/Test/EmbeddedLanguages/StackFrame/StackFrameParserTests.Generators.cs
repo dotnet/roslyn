@@ -2,16 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 {
@@ -36,6 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         private static ImmutableArray<StackFrameTrivia> CreateTriviaArray(params StackFrameTrivia[] trivia)
             => ImmutableArray.Create(trivia);
 
+        private static ImmutableArray<StackFrameTrivia> CreateTriviaArray(StackFrameTrivia? trivia)
+            => trivia.HasValue ? ImmutableArray.Create(trivia.Value) : ImmutableArray<StackFrameTrivia>.Empty;
+
         private static ImmutableArray<StackFrameTrivia> CreateTriviaArray(params string[] strings)
             => strings.Select(s => CreateTrivia(StackFrameKind.TextTrivia, s)).ToImmutableArray();
 
@@ -55,77 +55,103 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         private static readonly StackFrameTrivia LineTrivia = CreateTrivia(StackFrameKind.LineTrivia, "line ");
         private static readonly StackFrameTrivia InTrivia = CreateTrivia(StackFrameKind.InTrivia, " in ");
 
-        private static StackFrameParameterList ArgumentList(params StackFrameNodeOrToken[] nodesOrTokens)
-            => new(OpenParenToken, nodesOrTokens.ToImmutableArray(), CloseParenToken);
+        private static readonly StackFrameParameterList EmptyParams = ParameterList(OpenParenToken, CloseParenToken);
 
-        private static StackFrameParameterList ArgumentList(StackFrameToken openToken, StackFrameToken closeToken, params StackFrameNodeOrToken[] nodesOrTokens)
-            => new(openToken, nodesOrTokens.ToImmutableArray(), closeToken);
+        private static StackFrameParameterNode Parameter(StackFrameNodeOrToken type, StackFrameToken identifier)
+            => new(type, identifier);
+
+        private static StackFrameParameterList ParameterList(StackFrameToken openToken, StackFrameToken closeToken, params StackFrameParameterNode[] parameters)
+        {
+            var separatedList = parameters.Length == 0
+                ? SeparatedStackFrameNodeList<StackFrameParameterNode>.Empty
+                : new(CommaSeparateList(parameters));
+
+            return new(openToken, closeToken, separatedList);
+
+            static ImmutableArray<StackFrameNodeOrToken> CommaSeparateList(StackFrameParameterNode[] parameters)
+            {
+                var builder = ImmutableArray.CreateBuilder<StackFrameNodeOrToken>();
+                builder.Add(parameters[0]);
+
+                for (var i = 1; i < parameters.Length; i++)
+                {
+                    builder.Add(CommaToken);
+                    builder.Add(parameters[i]);
+                }
+
+                return builder.ToImmutable();
+            }
+        }
 
         private static StackFrameMethodDeclarationNode MethodDeclaration(
             StackFrameMemberAccessExpressionNode memberAccessExpression,
             StackFrameTypeArgumentList? typeArguments = null,
             StackFrameParameterList? argumentList = null)
         {
-            return new StackFrameMethodDeclarationNode(memberAccessExpression, typeArguments, argumentList ?? ArgumentList(OpenParenToken, CloseParenToken));
+            return new StackFrameMethodDeclarationNode(memberAccessExpression, typeArguments, argumentList ?? ParameterList(OpenParenToken, CloseParenToken));
         }
 
-        private static StackFrameMemberAccessExpressionNode MemberAccessExpression(string s, ImmutableArray<StackFrameTrivia> leadingTrivia = default, ImmutableArray<StackFrameTrivia> trailingTrivia = default)
+        private static StackFrameMemberAccessExpressionNode MemberAccessExpression(string s, StackFrameTrivia? leadingTrivia = null, StackFrameTrivia? trailingTrivia = null)
+            => MemberAccessExpression(s, CreateTriviaArray(leadingTrivia), CreateTriviaArray(trailingTrivia));
+
+        private static StackFrameMemberAccessExpressionNode MemberAccessExpression(string s, ImmutableArray<StackFrameTrivia> leadingTrivia, ImmutableArray<StackFrameTrivia> trailingTrivia)
         {
-            StackFrameExpressionNode? current = null;
+            StackFrameNodeOrToken? current = null;
             var identifiers = s.Split('.');
             for (var i = 0; i < identifiers.Length; i++)
             {
                 var identifier = identifiers[i];
 
-                if (current is null)
+                if (!current.HasValue)
                 {
-                    current = Identifier(identifier, leadingTrivia: leadingTrivia);
+                    current = Identifier(identifier, leadingTrivia: leadingTrivia, trailingTrivia: ImmutableArray<StackFrameTrivia>.Empty);
                 }
                 else if (i == identifiers.Length - 1)
                 {
-                    current = MemberAccessExpression(current, Identifier(identifier, trailingTrivia: trailingTrivia));
+                    current = MemberAccessExpression(current.Value, Identifier(identifier, leadingTrivia: ImmutableArray<StackFrameTrivia>.Empty, trailingTrivia: trailingTrivia));
                 }
                 else
                 {
-                    current = MemberAccessExpression(current, Identifier(identifier));
+                    current = MemberAccessExpression(current.Value, Identifier(identifier));
                 }
             }
 
-            AssertEx.NotNull(current);
-            return (StackFrameMemberAccessExpressionNode)current;
+            Assert.True(current.HasValue);
+            Assert.True(current!.Value.IsNode);
+
+            var node = current.Value.Node;
+            AssertEx.NotNull(node);
+            return (StackFrameMemberAccessExpressionNode)node;
         }
 
         private static StackFrameTrivia SpaceTrivia(int count = 1)
             => CreateTrivia(StackFrameKind.WhitespaceTrivia, new string(' ', count));
 
-        private static StackFrameMemberAccessExpressionNode MemberAccessExpression(StackFrameExpressionNode expressionNode, StackFrameBaseIdentifierNode identifierNode, ImmutableArray<StackFrameTrivia> leadingTrivia = default, ImmutableArray<StackFrameTrivia> trailingTrivia = default)
-        {
-            if (!leadingTrivia.IsDefaultOrEmpty)
-            {
-                expressionNode = expressionNode.WithLeadingTrivia(leadingTrivia);
-            }
+        private static StackFrameMemberAccessExpressionNode MemberAccessExpression(StackFrameNodeOrToken left, StackFrameNodeOrToken right)
+            => new(left, DotToken, right);
 
-            if (!trailingTrivia.IsDefaultOrEmpty)
-            {
-                identifierNode = (StackFrameBaseIdentifierNode)identifierNode.WithTrailingTrivia(trailingTrivia);
-            }
+        private static StackFrameToken Identifier(string identifierName)
+            => Identifier(identifierName, leadingTrivia: null, trailingTrivia: null);
 
-            return new(expressionNode, DotToken, identifierNode);
-        }
+        private static StackFrameToken Identifier(string identifierName, StackFrameTrivia? leadingTrivia = null, StackFrameTrivia? trailingTrivia = null)
+            => Identifier(identifierName, CreateTriviaArray(leadingTrivia), CreateTriviaArray(trailingTrivia));
 
-        private static StackFrameIdentifierNode Identifier(string identifierName, ImmutableArray<StackFrameTrivia> leadingTrivia = default, ImmutableArray<StackFrameTrivia> trailingTrivia = default)
-            => new(CreateToken(StackFrameKind.IdentifierToken, identifierName, leadingTrivia: leadingTrivia, trailingTrivia: trailingTrivia));
+        private static StackFrameToken Identifier(string identifierName, ImmutableArray<StackFrameTrivia> leadingTrivia, ImmutableArray<StackFrameTrivia> trailingTrivia)
+            => CreateToken(StackFrameKind.IdentifierToken, identifierName, leadingTrivia: leadingTrivia, trailingTrivia: trailingTrivia);
 
-        private static StackFrameArrayExpressionNode ArrayExpression(StackFrameExpressionNode identifier, params StackFrameToken[] arrayTokens)
+        private static StackFrameArrayRankSpecifier ArrayRankSpecifier(int commaCount = 0, StackFrameTrivia? leadingTrivia = null, StackFrameTrivia? trailingTrivia = null)
+            => new(OpenBracketToken.With(leadingTrivia: CreateTriviaArray(leadingTrivia)), CloseBracketToken.With(trailingTrivia: CreateTriviaArray(trailingTrivia)), Enumerable.Repeat(CommaToken, commaCount).ToImmutableArray());
+
+        private static StackFrameArrayTypeExpression ArrayExpression(StackFrameNodeOrToken identifier, params StackFrameArrayRankSpecifier[] arrayTokens)
             => new(identifier, arrayTokens.ToImmutableArray());
 
         private static StackFrameGenericTypeIdentifier GenericType(string identifierName, int arity)
             => new(CreateToken(StackFrameKind.IdentifierToken, identifierName), AccentGraveToken, CreateToken(StackFrameKind.NumberToken, arity.ToString()));
 
-        private static StackFrameTypeArgumentList TypeArgumentList(params StackFrameTypeArgument[] typeArguments)
+        private static StackFrameTypeArgumentList TypeArgumentList(params StackFrameTypeArgumentNode[] typeArguments)
             => TypeArgumentList(useBrackets: true, typeArguments);
 
-        private static StackFrameTypeArgumentList TypeArgumentList(bool useBrackets, params StackFrameTypeArgument[] typeArguments)
+        private static StackFrameTypeArgumentList TypeArgumentList(bool useBrackets, params StackFrameTypeArgumentNode[] typeArguments)
         {
             using var _ = PooledObjects.ArrayBuilder<StackFrameNodeOrToken>.GetInstance(out var builder);
             var openToken = useBrackets ? OpenBracketToken : LessThanToken;
@@ -146,10 +172,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 builder.Add(typeArgument);
             }
 
-            return new(openToken, builder.ToImmutable(), closeToken);
+            var typeArgumentsList = new SeparatedStackFrameNodeList<StackFrameTypeArgumentNode>(builder.ToImmutable());
+
+            return new(openToken, typeArgumentsList, closeToken);
         }
 
-        private static StackFrameTypeArgument TypeArgument(string identifier)
+        private static StackFrameTypeArgumentNode TypeArgument(string identifier)
             => new(CreateToken(StackFrameKind.IdentifierToken, identifier));
 
         private static StackFrameFileInformationNode FileInformation(StackFrameToken path, StackFrameToken colon, StackFrameToken line)

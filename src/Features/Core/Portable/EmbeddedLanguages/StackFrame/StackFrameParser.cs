@@ -6,12 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -22,14 +19,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     using StackFrameToken = EmbeddedSyntaxToken<StackFrameKind>;
     using StackFrameTrivia = EmbeddedSyntaxTrivia<StackFrameKind>;
 
-    internal class StackFrameParseException : Exception
-    {
-        public StackFrameParseException(StackFrameKind expectedKind, StackFrameToken actual)
-            : base($"Expected {expectedKind} instead of '{actual.VirtualChars.CreateString()}' at {actual.GetSpan().Start}")
-        {
-        }
-    }
-
     /// <summary>
     /// Attempts to parse a stack frame line from given input. StackFrame is generally
     /// defined as a string line in a StackTrace. See https://docs.microsoft.com/en-us/dotnet/api/system.environment.stacktrace for 
@@ -37,6 +26,33 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     /// </summary>
     internal struct StackFrameParser
     {
+        private class StackFrameParseException : Exception
+        {
+            public StackFrameParseException(StackFrameKind expectedKind, StackFrameNodeOrToken actual)
+                : this($"Expected {expectedKind} instead of {GetDetails(actual)}")
+            {
+            }
+
+            private static string GetDetails(StackFrameNodeOrToken actual)
+            {
+                if (actual.IsNode)
+                {
+                    var node = actual.Node;
+                    return $"'{node.Kind}' at {node.GetSpan().Start}";
+                }
+                else
+                {
+                    var token = actual.Token;
+                    return $"'{token.VirtualChars.CreateString()}' at {token.GetSpan().Start}";
+                }
+            }
+
+            public StackFrameParseException(string message)
+                : base(message)
+            {
+            }
+        }
+
         private StackFrameLexer _lexer;
         private StackFrameToken CurrentToken => _lexer.CurrentCharAsToken();
 
@@ -83,22 +99,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// </summary>
         private StackFrameTree? TryParseTree()
         {
-            var atTrivia = _lexer.ScanAtTrivia();
-
             var methodDeclaration = TryParseMethodDeclaration();
             if (methodDeclaration is null)
             {
                 return null;
-            }
-
-            if (atTrivia.HasValue)
-            {
-                var currentTrivia = methodDeclaration.ChildAt(0).Token.LeadingTrivia;
-                var newList = currentTrivia.IsDefaultOrEmpty
-                    ? ImmutableArray.Create(atTrivia.Value)
-                    : currentTrivia.Prepend(atTrivia.Value).ToImmutableArray();
-
-                methodDeclaration = methodDeclaration.WithLeadingTrivia(newList);
             }
 
             var inTrivia = _lexer.ScanInTrivia();
@@ -159,8 +163,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// </summary>
         private StackFrameMethodDeclarationNode? TryParseMethodDeclaration()
         {
-            var identifierExpression = TryParseIdentifierExpression();
-            if (identifierExpression is not StackFrameMemberAccessExpressionNode memberAccessExpression)
+            var identifierExpression = TryParseIdentifierExpression(scanAtTrivia: true);
+            if (!(identifierExpression.HasValue && identifierExpression.Value.IsNode))
+            {
+                return null;
+            }
+
+            if (identifierExpression.Value.Node is not StackFrameMemberAccessExpressionNode memberAccessExpression)
             {
                 return null;
             }
@@ -189,12 +198,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         ///   * [|$$MyClass`1.MyMethod|](string s)
         ///   * [|$$MyClass.MyMethod|][T](T t)
         /// </summary>
-        private StackFrameExpressionNode? TryParseIdentifierExpression()
+        private StackFrameNodeOrToken? TryParseIdentifierExpression(bool scanAtTrivia = false)
         {
-            Queue<(StackFrameBaseIdentifierNode identifier, StackFrameToken separator)> typeIdentifierNodes = new();
+            Queue<(StackFrameNodeOrToken identifier, StackFrameToken separator)> typeIdentifierNodes = new();
 
-            var leadingTrivia = _lexer.ScanWhiteSpace();
-            var currentIdentifier = _lexer.ScanIdentifier();
+            var currentIdentifier = _lexer.ScanIdentifier(scanAtTrivia: scanAtTrivia, scanWhitespace: true);
 
             while (currentIdentifier.HasValue && currentIdentifier.Value.Kind == StackFrameKind.IdentifierToken)
             {
@@ -208,15 +216,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                     }
                 }
 
-                if (leadingTrivia.HasValue)
-                {
-                    currentIdentifier = currentIdentifier.Value.With(leadingTrivia: ImmutableArray.Create(leadingTrivia.Value));
-                    leadingTrivia = null;
-                }
-
-                StackFrameBaseIdentifierNode identifierNode = arity.HasValue
+                StackFrameNodeOrToken identifierNode = arity.HasValue
                     ? new StackFrameGenericTypeIdentifier(currentIdentifier.Value, graveAccentToken, arity.Value)
-                    : new StackFrameIdentifierNode(currentIdentifier.Value);
+                    : currentIdentifier.Value;
 
                 typeIdentifierNodes.Enqueue((identifierNode, CurrentToken));
 
@@ -235,18 +237,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return null;
             }
 
-            var trailingTrivia = _lexer.ScanWhiteSpace();
-
-            if (typeIdentifierNodes.Count == 1)
+            var (firstIdentifierNode, firstSeparator) = typeIdentifierNodes.Dequeue();
+            if (typeIdentifierNodes.Count == 0)
             {
-                var identifierNode = typeIdentifierNodes.Dequeue().identifier;
-                return trailingTrivia.HasValue
-                    ? identifierNode.WithTrailingTrivia(trailingTrivia.Value)
-                    : identifierNode;
+                return firstIdentifierNode;
             }
 
-            // Construct the member access expression from the identifiers
-            var (firstIdentifierNode, firstSeparator) = typeIdentifierNodes.Dequeue();
+            // Construct the member access expression from the identifiers in the list
             var currentSeparator = firstSeparator;
 
             StackFrameMemberAccessExpressionNode? memberAccessExpression = null;
@@ -256,7 +253,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 var previousSeparator = currentSeparator;
                 (var currentIdentifierNode, currentSeparator) = typeIdentifierNodes.Dequeue();
 
-                StackFrameExpressionNode leftHandNode = memberAccessExpression is null
+                var leftHandNode = memberAccessExpression is null
                     ? firstIdentifierNode
                     : memberAccessExpression;
 
@@ -265,9 +262,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             RoslynDebug.AssertNotNull(memberAccessExpression);
 
-            return trailingTrivia.HasValue
-                    ? memberAccessExpression.WithTrailingTrivia(trailingTrivia.Value)
-                    : memberAccessExpression;
+            return memberAccessExpression;
         }
 
         /// <summary>
@@ -296,7 +291,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             while (currentIdentifier.HasValue && currentIdentifier.Value.Kind == StackFrameKind.IdentifierToken)
             {
-                builder.Add(new StackFrameTypeArgument(currentIdentifier.Value));
+                builder.Add(new StackFrameTypeArgumentNode(currentIdentifier.Value));
 
                 if (_lexer.ScanIfMatch(StackFrameKind.CloseBracketToken, out var closeBracket))
                 {
@@ -329,7 +324,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return null;
             }
 
-            return new StackFrameTypeArgumentList(openToken, builder.ToImmutable(), closeToken);
+            return new StackFrameTypeArgumentList(openToken, new SeparatedStackFrameNodeList<StackFrameTypeArgumentNode>(builder.ToImmutable()), closeToken);
         }
 
         /// <summary>
@@ -340,95 +335,99 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// </summary>
         private StackFrameParameterList? TryParseMethodParameters()
         {
-            if (!_lexer.ScanIfMatch(StackFrameKind.OpenParenToken, out var openParen))
+            if (!_lexer.ScanIfMatch(StackFrameKind.OpenParenToken, scanTrailingWhitespace: true, out var openParen))
             {
                 return null;
             }
 
-            var spaceTrivia = _lexer.ScanWhiteSpace();
-            if (spaceTrivia.HasValue)
+            if (_lexer.ScanIfMatch(StackFrameKind.CloseParenToken, out var closeParen))
             {
-                openParen = openParen.With(trailingTrivia: ImmutableArray.Create(spaceTrivia.Value));
+                return new StackFrameParameterList(openParen, closeParen, SeparatedStackFrameNodeList<StackFrameParameterNode>.Empty);
             }
-
-            StackFrameToken closeParen;
 
             using var _ = ArrayBuilder<StackFrameNodeOrToken>.GetInstance(out var builder);
-            var identifier = TryParseIdentifierExpression();
-
-            while (identifier is not null)
+            builder.Add(ParseParameterNode());
+            while (_lexer.ScanIfMatch(StackFrameKind.CommaToken, out var commaToken))
             {
-                // Check if there's an array type for the identifier
-                if (CurrentToken.Kind == StackFrameKind.OpenBracketToken)
-                {
-                    if (TryParseArrayIdentifier(identifier, out var parsedTokens))
-                    {
-                        builder.Add(new StackFrameArrayExpressionNode(identifier, parsedTokens));
-                    }
-                    else
-                    {
-                        // Invalid array identifiers, bail parsing parameters 
-                        return null;
-                    }
-                }
-                else
-                {
-                    builder.Add(identifier);
-                }
-
-                if (_lexer.ScanIfMatch(StackFrameKind.CloseParenToken, out closeParen))
-                {
-                    return new StackFrameParameterList(openParen, builder.ToImmutable(), closeParen);
-                }
-
-                if (_lexer.ScanIfMatch(StackFrameKind.CommaToken, out var commaToken))
-                {
-                    builder.Add(commaToken);
-                }
-
-                var addLeadingWhitespaceAsTrivia = identifier.ChildAt(identifier.ChildCount - 1).Token.TrailingTrivia.IsDefaultOrEmpty;
-                identifier = TryParseIdentifierExpression();
+                builder.Add(commaToken);
+                builder.Add(ParseParameterNode());
             }
 
-            if (_lexer.ScanIfMatch(StackFrameKind.CloseParenToken, out closeParen))
+            if (!_lexer.ScanIfMatch(StackFrameKind.CloseParenToken, out closeParen))
             {
-                return new StackFrameParameterList(openParen, builder.ToImmutable(), closeParen);
+                throw new StackFrameParseException(StackFrameKind.CloseParenToken, CurrentToken);
             }
 
-            return null;
+            var parameters = new SeparatedStackFrameNodeList<StackFrameParameterNode>(builder.ToImmutable());
+            return new StackFrameParameterList(openParen, closeParen, parameters);
         }
 
         /// <summary>
-        /// Given an input like "string[]" where "string" is the existing <paramref name="identifier"/>
-        /// passed in, converts it into <see cref="StackFrameExpressionNode"/> by parsing the array portion
-        /// of the identifier.
+        /// Parses a <see cref="StackFrameParameterNode"/> by parsing identifiers first representing the type and then the parameter identifier.
+        /// Ex: System.String[] s
+        ///     ^--------------^ -- Type = "System.String[]"
+        ///                     ^-- Identifier = "s"    
         /// </summary>
-        private bool TryParseArrayIdentifier(StackFrameExpressionNode identifier, out ImmutableArray<StackFrameToken> arrayTokens)
+        private StackFrameParameterNode ParseParameterNode()
         {
-            using var _ = ArrayBuilder<StackFrameToken>.GetInstance(out var builder);
+            var typeIdentifier = TryParseIdentifierExpression();
+            if (!typeIdentifier.HasValue)
+            {
+                throw new StackFrameParseException("Expected type identifier when parsing parameters");
+            }
+
+            if (CurrentToken.Kind == StackFrameKind.OpenBracketToken)
+            {
+                var arrayIdentifiers = ParseArrayIdentifiers();
+                typeIdentifier = new StackFrameArrayTypeExpression(typeIdentifier.Value, arrayIdentifiers);
+            }
+
+            var identifier = TryParseIdentifierExpression();
+            if (!identifier.HasValue)
+            {
+                throw new StackFrameParseException("Expected a parameter identifier");
+            }
+
+            // Parameter identifiers should only be tokens
+            if (identifier.Value.IsNode)
+            {
+                throw new StackFrameParseException(StackFrameKind.IdentifierToken, identifier.Value);
+            }
+
+            return new StackFrameParameterNode(typeIdentifier.Value, identifier.Value.Token);
+        }
+
+        /// <summary>
+        /// Parses the array rank specifiers for an identifier. 
+        /// Ex: string[,][]
+        ///           ^----^ both are array rank specifiers
+        ///                  0: "[,]
+        ///                  1: "[]"
+        /// </summary>
+        private ImmutableArray<StackFrameArrayRankSpecifier> ParseArrayIdentifiers()
+        {
+            using var _ = ArrayBuilder<StackFrameArrayRankSpecifier>.GetInstance(out var builder);
+            using var _1 = ArrayBuilder<StackFrameToken>.GetInstance(out var commaBuilder);
 
             while (true)
             {
-                if (!_lexer.ScanIfMatch(StackFrameKind.OpenBracketToken, out var openBracket))
+                if (!_lexer.ScanIfMatch(StackFrameKind.OpenBracketToken, scanTrailingWhitespace: true, out var openBracket))
                 {
-                    arrayTokens = builder.ToImmutable();
-                    return arrayTokens.Length > 0 && arrayTokens[^1].Kind == StackFrameKind.CloseBracketToken;
+                    return builder.ToImmutable();
                 }
 
-                builder.Add(AddTrailingWhitespace(openBracket));
-
-                if (_lexer.ScanIfMatch(StackFrameKind.CommaToken, out var commaToken))
+                commaBuilder.Clear();
+                while (_lexer.ScanIfMatch(StackFrameKind.CommaToken, scanTrailingWhitespace: true, out var commaToken))
                 {
-                    builder.Add(AddTrailingWhitespace(commaToken));
+                    commaBuilder.Add(commaToken);
                 }
 
-                if (!_lexer.ScanIfMatch(StackFrameKind.CloseBracketToken, out var closeBracket))
+                if (!_lexer.ScanIfMatch(StackFrameKind.CloseBracketToken, scanTrailingWhitespace: true, out var closeBracket))
                 {
-                    arrayTokens = builder.ToImmutable();
-                    return arrayTokens.Length > 0 && arrayTokens.Last().Kind == StackFrameKind.CloseBracketToken;
+                    throw new StackFrameParseException(StackFrameKind.CloseBracketToken, CurrentToken);
                 }
 
-                builder.Add(AddTrailingWhitespace(closeBracket));
+                builder.Add(new StackFrameArrayRankSpecifier(openBracket, closeBracket, commaBuilder.ToImmutable()));
             }
 
             throw ExceptionUtilities.Unreachable;
@@ -474,17 +473,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                     path.Value,
                     colonToken,
                     numbers.Value.With(leadingTrivia: ImmutableArray.Create(lineIdentifier.Value)));
-        }
-
-        private StackFrameToken AddTrailingWhitespace(StackFrameToken token)
-        {
-            var whitespace = _lexer.ScanWhiteSpace();
-            if (whitespace.HasValue)
-            {
-                return token.With(trailingTrivia: ImmutableArray.Create(whitespace.Value));
-            }
-
-            return token;
         }
     }
 }
