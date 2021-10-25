@@ -7,7 +7,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
