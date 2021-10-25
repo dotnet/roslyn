@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     context.RegisterCodeFix(
                             new DeclarePublicApiFix.AdditionalDocumentChangeAction(
                                 $"Annotate {minimalSymbolName} in public API",
+                                document.Id,
                                 c => GetFix(document, publicSymbolName, publicSymbolNameWithNullability, c)),
                             diagnostic);
                 }

@@ -1798,8 +1798,10 @@ C.NewField -> string";
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
-        [Fact]
-        public async Task TestSimpleMissingMember_Fix_WithoutNullability_MultipleFilesAsync()
+        [InlineData(0)]
+        [InlineData(1)]
+        [Theory]
+        public async Task TestSimpleMissingMember_Fix_WithoutNullability_MultipleFilesAsync(int index)
         {
             var source = @"
 #nullable enable
@@ -1813,20 +1815,37 @@ public class C
             var unshippedText1 = @"C
 C.C() -> void";
             var unshippedText2 = @"";
-            var fixedUnshippedText1 = @"C
+            var fixedUnshippedText1_index0 = @"C
 C.C() -> void
 C.NewField -> string";
+            var fixedUnshippedText1_index1 = "C.NewField -> string";
+
+            var unshippedTextName2 = DeclarePublicApiAnalyzer.UnshippedFileNamePrefix + "test" + DeclarePublicApiAnalyzer.Extension;
 
             var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, XUnitVerifier>();
 
             test.TestState.Sources.Add(source);
             test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, shippedText));
             test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, unshippedText1));
-            test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileNamePrefix + "test" + DeclarePublicApiAnalyzer.Extension, unshippedText2));
+            test.TestState.AdditionalFiles.Add((unshippedTextName2, unshippedText2));
 
+            test.CodeActionIndex = index;
             test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, shippedText));
-            test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, fixedUnshippedText1));
-            test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileNamePrefix + "test" + DeclarePublicApiAnalyzer.Extension, unshippedText2));
+
+            if (index == 0)
+            {
+                test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, fixedUnshippedText1_index0));
+                test.FixedState.AdditionalFiles.Add((unshippedTextName2, unshippedText2));
+            }
+            else if (index == 1)
+            {
+                test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, unshippedText1));
+                test.FixedState.AdditionalFiles.Add((unshippedTextName2, fixedUnshippedText1_index1));
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
 
             await test.RunAsync();
         }

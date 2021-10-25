@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     context.RegisterCodeFix(
                             new DeclarePublicApiFix.AdditionalDocumentChangeAction(
                                 $"Add '#nullable enable' to public API",
+                                document.Id,
                                 c => GetFixAsync(document, c)),
                             diagnostic);
                 }

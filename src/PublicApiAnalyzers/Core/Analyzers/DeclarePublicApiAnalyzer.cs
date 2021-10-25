@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         internal const string ShippedFileName = "PublicAPI.Shipped.txt";
         internal const string UnshippedFileNamePrefix = "PublicAPI.Unshipped";
         internal const string Extension = ".txt";
-        internal const string UnshippedFileName = "PublicAPI.Unshipped.txt";
+        internal const string UnshippedFileName = UnshippedFileNamePrefix + Extension;
         internal const string PublicApiNamePropertyBagKey = "PublicAPIName";
         internal const string PublicApiNameWithNullabilityPropertyBagKey = "PublicAPINameWithNullability";
         internal const string MinimalNamePropertyBagKey = "MinimalName";
@@ -385,9 +384,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             }
         }
 
-        private static bool IsFile(string path, string prefix, StringComparison comparison)
-            => path.StartsWith(prefix, comparison) && path.EndsWith(Extension, comparison);
-
         private static bool TryGetApiText(
             ImmutableArray<AdditionalText> additionalTexts,
             CancellationToken cancellationToken,
@@ -397,27 +393,24 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             shippedText = null;
             unshippedText = null;
 
-            StringComparison comparison = StringComparison.Ordinal;
             foreach (AdditionalText additionalText in additionalTexts)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                string fileName = Path.GetFileName(additionalText.Path);
+                var file = new PublicApiFile(additionalText.Path);
 
-                bool isShippedFile = IsFile(fileName, ShippedFileNamePrefix, comparison);
-                bool isUnshippedFile = IsFile(fileName, UnshippedFileNamePrefix, comparison);
-
-                if (isShippedFile || isUnshippedFile)
+                if (file.IsApiFile)
                 {
                     SourceText text = additionalText.GetText(cancellationToken);
 
-                    if (text == null)
+                    if (text is null)
                     {
                         continue;
                     }
 
                     var data = (additionalText.Path, text);
-                    if (isShippedFile)
+
+                    if (file.IsShipping)
                     {
                         if (shippedText is null)
                         {
@@ -426,8 +419,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                         shippedText.Add(data);
                     }
-
-                    if (isUnshippedFile)
+                    else
                     {
                         if (unshippedText is null)
                         {
@@ -436,7 +428,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                         unshippedText.Add(data);
                     }
-                    continue;
                 }
             }
 
