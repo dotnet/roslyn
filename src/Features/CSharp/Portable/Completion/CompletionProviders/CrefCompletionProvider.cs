@@ -68,7 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 var document = context.Document;
                 var position = context.Position;
-                var options = context.Options;
+                var options = context.CompletionOptions;
                 var cancellationToken = context.CancellationToken;
 
                 var (token, semanticModel, symbols) = await GetSymbolsAsync(document, position, options, cancellationToken).ConfigureAwait(false);
@@ -95,8 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var span = GetCompletionItemSpan(text, position);
-                var hideAdvancedMembers = options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language);
-                var serializedOptions = ImmutableDictionary<string, string>.Empty.Add(HideAdvancedMembers, hideAdvancedMembers.ToString());
+                var serializedOptions = ImmutableDictionary<string, string>.Empty.Add(HideAdvancedMembers, options.HideAdvancedMembers.ToString());
 
                 var items = CreateCompletionItems(semanticModel, symbols, token, position, serializedOptions);
 
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         protected override async Task<(SyntaxToken, SemanticModel?, ImmutableArray<ISymbol>)> GetSymbolsAsync(
-            Document document, int position, OptionSet options, CancellationToken cancellationToken)
+            Document document, int position, CompletionOptions options, CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (!tree.IsEntirelyWithinCrefSyntax(position, cancellationToken))
@@ -133,9 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 parentNode, cancellationToken).ConfigureAwait(false);
 
             var symbols = GetSymbols(token, semanticModel, cancellationToken)
-                .FilterToVisibleAndBrowsableSymbols(
-                    options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language),
-                    semanticModel.Compilation);
+                .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation);
 
             return (token, semanticModel, symbols);
         }

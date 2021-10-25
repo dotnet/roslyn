@@ -101,8 +101,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SetTriggerCompletionInArgumentLists(bool value)
         {
             SetPerLanguageOption(
-                optionName: CompletionOptions.TriggerInArgumentLists.Name,
-                feature: CompletionOptions.TriggerInArgumentLists.Feature,
+                optionName: CompletionOptions.Metadata.TriggerInArgumentLists.Name,
+                feature: CompletionOptions.Metadata.TriggerInArgumentLists.Feature,
                 language: LanguageNames.CSharp,
                 value: value);
         }
@@ -121,6 +121,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 language: LanguageNames.VisualBasic,
                 value: value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default);
         }
+
+        public void SetFileScopedNamespaces(bool value)
+            => _inProc.SetFileScopedNamespaces(value);
 
         public void SetEnableOpeningSourceGeneratedFilesInWorkspaceExperiment(bool value)
         {

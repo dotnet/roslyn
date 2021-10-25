@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// </summary>
             public readonly CancellationToken CancellationToken;
 
+            /// <summary>
+            /// An action to be called when the queue fails to begin execution of this work item.
+            /// </summary>
+            public readonly Action<Exception> HandleQueueFailure;
+
             public readonly RequestMetrics Metrics;
 
             public QueueItem(
@@ -64,6 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Guid activityId,
                 ILspLogger logger,
                 RequestTelemetryLogger telemetryLogger,
+                Action<Exception> handleQueueFailure,
                 Func<RequestContext?, CancellationToken, Task> callbackAsync,
                 CancellationToken cancellationToken)
             {
@@ -79,6 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 ClientName = clientName;
                 MethodName = methodName;
                 TextDocument = textDocument;
+                HandleQueueFailure = handleQueueFailure;
                 CancellationToken = cancellationToken;
             }
 

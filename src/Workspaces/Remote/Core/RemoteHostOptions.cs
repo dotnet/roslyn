@@ -45,20 +45,15 @@ namespace Microsoft.CodeAnalysis.Remote
             new FeatureFlagStorageLocation("Roslyn.OOPServerGC"));
 
         // use coreclr host for OOP
-        public static readonly Option2<bool> OOPCoreClr = new(
-            FeatureName, nameof(OOPCoreClr), defaultValue: false,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OOPCoreClr)));
-
         public static readonly Option<bool> OOPCoreClrFeatureFlag = new(
-            FeatureName, nameof(OOPCoreClr), defaultValue: false,
-            new FeatureFlagStorageLocation("Roslyn.OOPCoreClr"));
+            FeatureName, nameof(OOPCoreClrFeatureFlag), defaultValue: false,
+            new FeatureFlagStorageLocation("Roslyn.ServiceHubCore"));
 
         ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
             SolutionChecksumMonitorBackOffTimeSpanInMS,
             OOP64Bit,
             OOPServerGC,
             OOPServerGCFeatureFlag,
-            OOPCoreClr,
             OOPCoreClrFeatureFlag);
 
         [ImportingConstructor]
@@ -77,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Remote
             => Environment.Is64BitOperatingSystem && globalOptions.GetOption(OOP64Bit);
 
         public static bool IsServiceHubProcessCoreClr(IGlobalOptionService globalOptions)
-            => globalOptions.GetOption(OOPCoreClr) || globalOptions.GetOption(OOPCoreClrFeatureFlag);
+            => globalOptions.GetOption(OOPCoreClrFeatureFlag);
 
         public static bool IsCurrentProcessRunningOnCoreClr()
             => !RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework") &&
