@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Storage;
@@ -182,7 +181,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void ResetOptions()
         {
             ResetOption(CompletionViewOptions.EnableArgumentCompletionSnippets);
-            ResetOption(MetadataAsSourceOptions.NavigateToDecompiledSources);
+            ResetOption(FeatureOnOffOptions.NavigateToDecompiledSources);
             return;
 
             // Local function

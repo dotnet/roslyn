@@ -43,13 +43,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            // If the user has turned off decompilation then it doesn't matter whether the caller wants more than signatures,
-            // we don't want to give it to them.
-            if (!project.Solution.Workspace.Options.GetOption(MetadataAsSourceOptions.NavigateToDecompiledSources))
-            {
-                signaturesOnly = true;
-            }
-
             var infoKey = await GetUniqueDocumentKeyAsync(project, topLevelNamedType, signaturesOnly, cancellationToken).ConfigureAwait(false);
             fileInfo = _keyToInformation.GetOrAdd(infoKey, _ => new MetadataAsSourceGeneratedFileInfo(tempPath, project, topLevelNamedType, signaturesOnly));
 
@@ -65,10 +58,12 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                 Contract.ThrowIfNull(temporaryDocument, "The temporary ProjectInfo didn't contain the document it said it would.");
 
-                // We only want to use the decompiler if the caller allows full source, the user has the option on, and [SuppressIldasm] isn't present
-                var useDecompiler = !signaturesOnly
-                    && !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == nameof(SuppressIldasmAttribute)
+                var useDecompiler = !signaturesOnly;
+                if (useDecompiler)
+                {
+                    useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == nameof(SuppressIldasmAttribute)
                         && attribute.AttributeClass.ToNameDisplayString() == typeof(SuppressIldasmAttribute).FullName);
+                }
 
                 if (useDecompiler)
                 {
