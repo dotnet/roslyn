@@ -761,6 +761,14 @@ class C
                 //         int x1 = 0; // CS0219 (unused variable)
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(6, 13));
 
+            // Verify compiler analyzer diagnostics for entire tree
+            result = await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel, filterSpan: null, CancellationToken.None);
+            diagnostics = result.SemanticDiagnostics[syntaxTree][compilerAnalyzer];
+            diagnostics.Verify(
+                // (6,13): warning CS0219: The variable 'x1' is assigned but its value is never used
+                //         int x1 = 0; // CS0219 (unused variable)
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(6, 13));
+
             // Verify no diagnostics with a span outside the local decl
             span = localDecl.GetLastToken().GetNextToken().Span;
             result = await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel, span, CancellationToken.None);

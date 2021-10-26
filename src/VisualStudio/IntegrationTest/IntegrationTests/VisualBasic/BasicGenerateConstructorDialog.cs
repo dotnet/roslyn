@@ -87,7 +87,7 @@ Class C
 End Class", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/57237"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public void VerifyReordering()
         {
             SetUpEditor(

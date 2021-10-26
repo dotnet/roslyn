@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         {
         }
 
-        public sealed override CompletionRules GetRules()
+        internal sealed override CompletionRules GetRules(CompletionOptions options)
             => GetRulesImpl();
 
         internal abstract CompletionRules GetRulesImpl();

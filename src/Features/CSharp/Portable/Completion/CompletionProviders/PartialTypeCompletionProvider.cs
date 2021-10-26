@@ -46,13 +46,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            var ch = text[characterPosition];
-            return ch == ' ' ||
-                (CompletionUtilities.IsStartingNewWord(text, characterPosition) &&
-                options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp));
-        }
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
+            => text[characterPosition] == ' ' ||
+               options.TriggerOnTypingLetters && CompletionUtilities.IsStartingNewWord(text, characterPosition);
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 

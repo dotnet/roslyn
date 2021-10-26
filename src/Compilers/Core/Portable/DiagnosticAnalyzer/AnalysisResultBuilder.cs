@@ -136,8 +136,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         UpdateLocalDiagnostics_NoLock(analyzer, syntaxDiagnostics, fullAnalysisResultForAnalyzersInScope, getSourceTree, ref _localSyntaxDiagnosticsOpt);
                         UpdateLocalDiagnostics_NoLock(analyzer, syntaxDiagnostics, fullAnalysisResultForAnalyzersInScope, getAdditionalTextKey, ref _localAdditionalFileDiagnosticsOpt);
-                        UpdateLocalDiagnostics_NoLock(analyzer, semanticDiagnostics, fullAnalysisResultForAnalyzersInScope, getSourceTree, ref _localSemanticDiagnosticsOpt);
                         UpdateNonLocalDiagnostics_NoLock(analyzer, compilationDiagnostics, fullAnalysisResultForAnalyzersInScope);
+
+                        // NOTE: We need to dedupe compiler analyzer semantic diagnostics as we might run the compiler analyzer multiple times for different spans in the tree.
+                        UpdateLocalDiagnostics_NoLock(analyzer, semanticDiagnostics, fullAnalysisResultForAnalyzersInScope, getSourceTree, ref _localSemanticDiagnosticsOpt,
+                            dedupeDiagnostics: analyzer is CompilerDiagnosticAnalyzer);
                     }
 
                     if (_analyzerExecutionTimeOpt != null)
@@ -189,7 +192,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<Diagnostic> diagnostics,
             bool overwrite,
             Func<Diagnostic, TKey?> getKeyFunc,
-            ref Dictionary<TKey, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? lazyLocalDiagnostics)
+            ref Dictionary<TKey, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? lazyLocalDiagnostics,
+            bool dedupeDiagnostics = false)
             where TKey : class
         {
             if (diagnostics.IsEmpty)
@@ -221,12 +225,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     allDiagnostics[analyzer] = analyzerDiagnostics;
                 }
 
+                // De-dupe diagnostic to add, if needed.
+                IEnumerable<Diagnostic> diagsToAdd = diagsByKey;
                 if (overwrite)
                 {
                     analyzerDiagnostics.Clear();
                 }
+                else if (dedupeDiagnostics)
+                {
+                    diagsToAdd = diagsByKey.Where(d => !analyzerDiagnostics.Contains(d));
+                }
 
-                analyzerDiagnostics.AddRange(diagsByKey);
+                analyzerDiagnostics.AddRange(diagsToAdd);
             }
         }
 
