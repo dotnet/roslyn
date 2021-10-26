@@ -141,6 +141,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     throw new InvalidOperationException($"{WellKnownCommandNames.Edit_ToggleCompletionMode} did not leave the editor in the expected state.");
                 }
             }
+
+            if (!value)
+            {
+                // For blocking completion mode, make sure we don't have responsive completion interfering when
+                // integration tests run slowly.
+                ExecuteOnActiveView(view =>
+                {
+                    var options = view.Options.GlobalOptions;
+                    options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, false);
+
+                    var latencyGuardOptionKey = new EditorOptionKey<bool>("EnableTypingLatencyGuard");
+                    options.SetOptionValue(latencyGuardOptionKey, false);
+                });
+            }
         }
 
         public void VerifyNotSaved()
@@ -463,7 +477,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void VerifyDialog(string dialogAutomationId, bool isOpen)
         {
-            var dialogAutomationElement = DialogHelpers.FindDialogByAutomationId((IntPtr)GetDTE().MainWindow.HWnd, dialogAutomationId, isOpen);
+            var dialogAutomationElement = DialogHelpers.FindDialogByAutomationId(GetDTE().MainWindow.HWnd, dialogAutomationId, isOpen);
 
             if ((isOpen && dialogAutomationElement == null) ||
                 (!isOpen && dialogAutomationElement != null))
@@ -474,7 +488,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void DialogSendKeys(string dialogAutomationName, object[] keys)
         {
-            var dialogAutomationElement = DialogHelpers.GetOpenDialogById((IntPtr)GetDTE().MainWindow.HWnd, dialogAutomationName);
+            var dialogAutomationElement = DialogHelpers.GetOpenDialogById(GetDTE().MainWindow.HWnd, dialogAutomationName);
 
             dialogAutomationElement.SetFocus();
             _sendKeys.Send(keys);
@@ -494,12 +508,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
         {
-            DialogHelpers.PressButton((IntPtr)GetDTE().MainWindow.HWnd, dialogAutomationName, buttonAutomationName);
+            DialogHelpers.PressButton(GetDTE().MainWindow.HWnd, dialogAutomationName, buttonAutomationName);
         }
 
         private static IUIAutomationElement FindNavigateTo()
         {
-            var vsAutomationElement = Helper.Automation.ElementFromHandle((IntPtr)GetDTE().MainWindow.HWnd);
+            var vsAutomationElement = Helper.Automation.ElementFromHandle(GetDTE().MainWindow.HWnd);
             return vsAutomationElement.FindDescendantByAutomationId("PART_SearchBox");
         }
 

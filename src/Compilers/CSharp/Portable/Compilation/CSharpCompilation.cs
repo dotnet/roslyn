@@ -4058,30 +4058,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // LanguageVersion should already be mapped to a specific version
             Debug.Assert(LanguageVersion == LanguageVersion.MapSpecifiedToEffectiveVersion());
-            WriteValue(CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString());
+            writeValue(CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString());
 
             if (Options.CheckOverflow)
             {
-                WriteValue(CompilationOptionNames.Checked, Options.CheckOverflow.ToString());
+                writeValue(CompilationOptionNames.Checked, Options.CheckOverflow.ToString());
             }
 
             if (Options.NullableContextOptions != NullableContextOptions.Disable)
             {
-                WriteValue(CompilationOptionNames.Nullable, Options.NullableContextOptions.ToString());
+                writeValue(CompilationOptionNames.Nullable, Options.NullableContextOptions.ToString());
             }
 
             if (Options.AllowUnsafe)
             {
-                WriteValue(CompilationOptionNames.Unsafe, Options.AllowUnsafe.ToString());
+                writeValue(CompilationOptionNames.Unsafe, Options.AllowUnsafe.ToString());
             }
 
             var preprocessorSymbols = GetPreprocessorSymbols();
             if (preprocessorSymbols.Any())
             {
-                WriteValue(CompilationOptionNames.Define, string.Join(",", preprocessorSymbols));
+                writeValue(CompilationOptionNames.Define, string.Join(",", preprocessorSymbols));
             }
 
-            void WriteValue(string key, string value)
+            void writeValue(string key, string value)
             {
                 builder.WriteUTF8(key);
                 builder.WriteByte(0);

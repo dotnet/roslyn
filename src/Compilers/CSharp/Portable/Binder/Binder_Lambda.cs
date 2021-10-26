@@ -248,6 +248,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             MessageID.IDS_FeatureLambdaReturnType.CheckFeatureAvailability(diagnostics, syntax);
 
             syntax = syntax.SkipRef(out RefKind refKind);
+            if ((syntax as IdentifierNameSyntax)?.Identifier.ContextualKind() == SyntaxKind.VarKeyword)
+            {
+                diagnostics.Add(ErrorCode.ERR_LambdaExplicitReturnTypeVar, syntax.Location);
+            }
+
             var returnType = BindType(syntax, diagnostics);
             var type = returnType.Type;
 

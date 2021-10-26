@@ -661,6 +661,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Equals(obj as Symbol, SymbolEqualityComparer.Default.CompareKind);
         }
 
+        public bool Equals(Symbol other)
+        {
+            return this.Equals(other, SymbolEqualityComparer.Default.CompareKind);
+        }
+
         bool ISymbolInternal.Equals(ISymbolInternal other, TypeCompareKind compareKind)
         {
             return this.Equals(other as Symbol, compareKind);

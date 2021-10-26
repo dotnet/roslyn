@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool SupportsRecord(ParseOptions options);
         bool SupportsRecordStruct(ParseOptions options);
         bool SupportsThrowExpression(ParseOptions options);
+        bool SupportsTargetTypedConditionalExpression(ParseOptions options);
 
         SyntaxToken ParseToken(string text);
         SyntaxTriviaList ParseLeadingTrivia(string text);
@@ -289,6 +290,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void GetPartsOfElementAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList);
 
         SyntaxNode GetExpressionOfArgument(SyntaxNode node);
+        SyntaxNode GetExpressionOfAttributeArgument(SyntaxNode node);
         SyntaxNode GetExpressionOfInterpolation(SyntaxNode node);
         SyntaxNode GetNameOfAttribute(SyntaxNode node);
 
@@ -309,10 +311,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         bool IsSimpleArgument([NotNullWhen(true)] SyntaxNode? node);
         bool IsArgument([NotNullWhen(true)] SyntaxNode? node);
+        bool IsAttributeArgument([NotNullWhen(true)] SyntaxNode? node);
         RefKind GetRefKindOfArgument(SyntaxNode node);
 
         void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity);
         bool LooksGeneric(SyntaxNode simpleName);
+
+        SeparatedSyntaxList<SyntaxNode> GetTypeArgumentsOfGenericName(SyntaxNode? genericName);
 
         SyntaxList<SyntaxNode> GetContentsOfInterpolatedString(SyntaxNode interpolatedString);
 

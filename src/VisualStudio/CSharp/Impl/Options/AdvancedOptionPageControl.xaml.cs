@@ -7,11 +7,13 @@
 using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
+using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
@@ -45,6 +47,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Background_analysis_scope_active_file, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.ActiveFile, LanguageNames.CSharp);
             BindToOption(Background_analysis_scope_open_files, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.OpenFilesAndProjects, LanguageNames.CSharp);
             BindToOption(Background_analysis_scope_full_solution, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution, LanguageNames.CSharp);
+            BindToOption(DisplayDiagnosticsInline, InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.CSharp);
+            BindToOption(at_the_end_of_the_line_of_code, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfCode, LanguageNames.CSharp);
+            BindToOption(on_the_right_edge_of_the_editor_window, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfEditor, LanguageNames.CSharp);
             BindToOption(Enable_navigation_to_decompiled_sources, FeatureOnOffOptions.NavigateToDecompiledSources);
             BindToOption(Run_code_analysis_in_separate_process, RemoteHostOptions.OOP64Bit);
             BindToOption(Enable_file_logging_for_diagnostics, InternalDiagnosticsOptions.EnableFileLoggingForDiagnostics);
@@ -89,13 +94,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(ShowRemarksInQuickInfo, QuickInfoOptions.ShowRemarksInQuickInfo, LanguageNames.CSharp);
             BindToOption(DisplayLineSeparators, FeatureOnOffOptions.LineSeparator, LanguageNames.CSharp);
 
-            // Quick Actions
-            BindToOption(ComputeQuickActionsAsynchronouslyExperimental, SuggestionsOptions.Asynchronous, () =>
-            {
-                // If the option has not been set by the user, check if the option is disabled from experimentation.
-                return !optionStore.GetOption(SuggestionsOptions.AsynchronousQuickActionsDisableFeatureFlag);
-            });
-
             // Highlighting
             BindToOption(EnableHighlightReferences, FeatureOnOffOptions.ReferenceHighlighting, LanguageNames.CSharp);
             BindToOption(EnableHighlightKeywords, FeatureOnOffOptions.KeywordHighlighting, LanguageNames.CSharp);
@@ -122,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Colorize_regular_expressions, RegularExpressionsOptions.ColorizeRegexPatterns, LanguageNames.CSharp);
             BindToOption(Report_invalid_regular_expressions, RegularExpressionsOptions.ReportInvalidRegexPatterns, LanguageNames.CSharp);
             BindToOption(Highlight_related_components_under_cursor, RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, LanguageNames.CSharp);
-            BindToOption(Show_completion_list, RegularExpressionsOptions.ProvideRegexCompletions, LanguageNames.CSharp);
+            BindToOption(Show_completion_list, CompletionOptions.Metadata.ProvideRegexCompletions, LanguageNames.CSharp);
 
             BindToOption(Editor_color_scheme, ColorSchemeOptions.ColorScheme);
 
@@ -136,6 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(ShowHintsForIndexers, InlineHintsOptions.ForIndexerParameters, LanguageNames.CSharp);
             BindToOption(SuppressHintsWhenParameterNameMatchesTheMethodsIntent, InlineHintsOptions.SuppressForParametersThatMatchMethodIntent, LanguageNames.CSharp);
             BindToOption(SuppressHintsWhenParameterNamesDifferOnlyBySuffix, InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix, LanguageNames.CSharp);
+            BindToOption(SuppressHintsWhenParameterNamesMatchArgumentNames, InlineHintsOptions.SuppressForParametersThatMatchArgumentName, LanguageNames.CSharp);
 
             BindToOption(DisplayInlineTypeHints, InlineHintsOptions.EnabledForTypes, LanguageNames.CSharp);
             BindToOption(ShowHintsForVariablesWithInferredTypes, InlineHintsOptions.ForImplicitVariableTypes, LanguageNames.CSharp);
@@ -239,6 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             ShowHintsForIndexers.IsEnabled = enabledForParameters;
             SuppressHintsWhenParameterNameMatchesTheMethodsIntent.IsEnabled = enabledForParameters;
             SuppressHintsWhenParameterNamesDifferOnlyBySuffix.IsEnabled = enabledForParameters;
+            SuppressHintsWhenParameterNamesMatchArgumentNames.IsEnabled = enabledForParameters;
 
             var enabledForTypes = this.OptionStore.GetOption(InlineHintsOptions.EnabledForTypes, LanguageNames.CSharp);
             ShowHintsForVariablesWithInferredTypes.IsEnabled = enabledForTypes;

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
         public static readonly Option<bool> CloudCacheFeatureFlag = new(
             FeatureName, nameof(CloudCacheFeatureFlag), defaultValue: false,
-            new FeatureFlagStorageLocation("Roslyn.CloudCache"));
+            new FeatureFlagStorageLocation("Roslyn.CloudCache3"));
 
         ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
             Database,

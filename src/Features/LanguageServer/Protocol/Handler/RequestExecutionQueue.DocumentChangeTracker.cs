@@ -4,9 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -15,13 +14,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     internal partial class RequestExecutionQueue
     {
+        /// <summary>
+        /// Associates LSP document URIs with the roslyn source text containing the LSP document text.
+        /// </summary>
         internal interface IDocumentChangeTracker
         {
             void StartTracking(Uri documentUri, SourceText initialText);
             void UpdateTrackedDocument(Uri documentUri, SourceText text);
             void StopTracking(Uri documentUri);
             bool IsTracking(Uri documentUri);
-            IEnumerable<(Uri DocumentUri, SourceText Text)> GetTrackedDocuments();
+            ImmutableArray<(Uri DocumentUri, SourceText Text)> GetTrackedDocuments();
             SourceText GetTrackedDocumentSourceText(Uri documentUri);
         }
 
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _tracker = tracker;
             }
 
-            public IEnumerable<(Uri DocumentUri, SourceText Text)> GetTrackedDocuments()
+            public ImmutableArray<(Uri DocumentUri, SourceText Text)> GetTrackedDocuments()
                 => _tracker.GetTrackedDocuments();
 
             public SourceText GetTrackedDocumentSourceText(Uri documentUri)
@@ -69,9 +71,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// Keeps track of changes to documents that are opened in the LSP client. Calls MUST not overlap, so this
         /// should be called from a mutating request handler. See <see cref="RequestExecutionQueue"/> for more details.
         /// </summary>
-        internal class DocumentChangeTracker : IWorkspaceService, IDocumentChangeTracker
+        internal class DocumentChangeTracker : IDocumentChangeTracker
         {
             private readonly Dictionary<Uri, SourceText> _trackedDocuments = new();
+
+            public DocumentChangeTracker()
+            {
+            }
 
             public bool IsTracking(Uri documentUri)
                 => _trackedDocuments.ContainsKey(documentUri);
@@ -104,8 +110,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _trackedDocuments.Remove(documentUri);
             }
 
-            public IEnumerable<(Uri DocumentUri, SourceText Text)> GetTrackedDocuments()
-                => _trackedDocuments.Select(k => (k.Key, k.Value));
+            public ImmutableArray<(Uri DocumentUri, SourceText Text)> GetTrackedDocuments()
+                => _trackedDocuments.Select(k => (k.Key, k.Value)).ToImmutableArray();
         }
 
         internal TestAccessor GetTestAccessor()
@@ -120,6 +126,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             public List<SourceText> GetTrackedTexts()
                 => _queue._documentChangeTracker.GetTrackedDocuments().Select(i => i.Text).ToList();
+
+            public LspWorkspaceManager GetLspWorkspaceManager() => _queue._lspWorkspaceManager;
 
             public bool IsComplete() => _queue._queue.IsCompleted && _queue._queue.IsEmpty;
         }

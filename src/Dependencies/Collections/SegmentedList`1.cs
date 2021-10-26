@@ -1141,7 +1141,7 @@ namespace Microsoft.CodeAnalysis.Collections
         //
         public void TrimExcess()
         {
-            var threshold = (int)(((double)_items.Length) * 0.9);
+            var threshold = (int)(_items.Length * 0.9);
             if (_size < threshold)
             {
                 Capacity = _size;

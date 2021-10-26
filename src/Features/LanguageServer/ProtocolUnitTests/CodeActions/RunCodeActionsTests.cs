@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -67,6 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 
             var result = await testLspServer.ExecuteRequestAsync<LSP.ExecuteCommandParams, object>(
                 LSP.Methods.WorkspaceExecuteCommandName, command, new LSP.ClientCapabilities(), null, CancellationToken.None);
+            Contract.ThrowIfNull(result);
             return (bool)result;
         }
     }

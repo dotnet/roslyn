@@ -747,6 +747,11 @@
         <target state="translated">'{1}'을(를) 반환하려면 반복기 블록이 있는 '{0}' 메서드가 '비동기'여야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LambdaExplicitReturnTypeVar">
+        <source>The contextual keyword 'var' cannot be used as an explicit lambda return type</source>
+        <target state="new">The contextual keyword 'var' cannot be used as an explicit lambda return type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LambdaWithAttributesToExpressionTree">
         <source>A lambda expression with attributes cannot be converted to an expression tree</source>
         <target state="translated">특성이 있는 람다 식은 식 트리로 변환할 수 없습니다.</target>
@@ -828,8 +833,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString">
-        <source>Newlines are not allowed inside a non-verbatim interpolated string</source>
-        <target state="translated">비언어적 보간된 문자열 내부에는 개행이 허용되지 않습니다.</target>
+        <source>Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</source>
+        <target state="new">Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
@@ -1287,6 +1292,11 @@
         <target state="translated">라인 범위 지시문</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureNewLinesInInterpolations">
+        <source>newlines in interpolations</source>
+        <target state="new">newlines in interpolations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
         <source>parameterless struct constructors</source>
         <target state="translated">매개 변수 없는 구조체 생성자</target>
@@ -1458,8 +1468,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter">
-        <source>Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
-        <target state="translated">매개 변수 {0}은 매개 변수 목록에서 {1} 다음에 나타나지만 보간된 문자열 처리기 변환을 위한 인수로 사용됩니다. 이렇게 하려면 호출자가 호출 사이트에서 명명된 인수를 사용하여 매개 변수를 재정렬해야 합니다. 관련된 모든 인수 뒤에 보간된 문자열 처리기 매개 변수를 넣는 것을 고려하세요.</target>
+        <source>Parameter '{0}' occurs after '{1}' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
+        <target state="needs-review-translation">매개 변수 {0}은 매개 변수 목록에서 {1} 다음에 나타나지만 보간된 문자열 처리기 변환을 위한 인수로 사용됩니다. 이렇게 하려면 호출자가 호출 사이트에서 명명된 인수를 사용하여 매개 변수를 재정렬해야 합니다. 관련된 모든 인수 뒤에 보간된 문자열 처리기 매개 변수를 넣는 것을 고려하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">

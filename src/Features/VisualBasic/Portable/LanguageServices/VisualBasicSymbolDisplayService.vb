@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
         Inherits AbstractSymbolDisplayService
 
         Public Sub New(provider As HostLanguageServices)
-            MyBase.New(provider.GetService(Of IAnonymousTypeDisplayService)())
+            MyBase.New(provider.GetService(Of IStructuralTypeDisplayService)())
         End Sub
 
         Protected Overrides Function CreateDescriptionBuilder(workspace As Workspace,

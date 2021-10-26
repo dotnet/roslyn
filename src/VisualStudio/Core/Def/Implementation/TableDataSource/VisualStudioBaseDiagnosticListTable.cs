@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -18,8 +17,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal abstract partial class VisualStudioBaseDiagnosticListTable : AbstractTable
     {
-        private static readonly string[] s_columns = new string[]
+        protected VisualStudioBaseDiagnosticListTable(Workspace workspace, ITableManagerProvider provider)
+            : base(workspace, provider, StandardTables.ErrorsTable)
         {
+        }
+
+        internal override ImmutableArray<string> Columns { get; } = ImmutableArray.Create(
             StandardTableColumnDefinitions.ErrorSeverity,
             StandardTableColumnDefinitions.ErrorCode,
             StandardTableColumnDefinitions.Text,
@@ -31,15 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             StandardTableColumnDefinitions.BuildTool,
             StandardTableColumnDefinitions.ErrorSource,
             StandardTableColumnDefinitions.DetailsExpander,
-            StandardTableColumnDefinitions.SuppressionState
-        };
-
-        protected VisualStudioBaseDiagnosticListTable(Workspace workspace, ITableManagerProvider provider)
-            : base(workspace, provider, StandardTables.ErrorsTable)
-        {
-        }
-
-        internal override IReadOnlyCollection<string> Columns => s_columns;
+            StandardTableColumnDefinitions.SuppressionState);
 
         public static __VSERRORCATEGORY GetErrorCategory(DiagnosticSeverity severity)
         {

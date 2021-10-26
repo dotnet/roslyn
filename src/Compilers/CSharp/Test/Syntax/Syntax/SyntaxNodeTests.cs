@@ -3791,5 +3791,16 @@ namespace HelloWorld
                 action(SyntaxFactory.ParseCompilationUnit(test.Key), test.Value);
             }
         }
+
+        [Fact]
+        [WorkItem(56740, "https://github.com/dotnet/roslyn/issues/56740")]
+        public void TestStackAllocKeywordUpdate()
+        {
+            var text = "stackalloc/**/int[50]";
+            var expression = (StackAllocArrayCreationExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var replacedKeyword = SyntaxFactory.Token(SyntaxKind.StackAllocKeyword).WithTrailingTrivia(SyntaxFactory.Space);
+            var newExpression = expression.Update(replacedKeyword, expression.Type).ToString();
+            Assert.Equal("stackalloc int[50]", newExpression);
+        }
     }
 }

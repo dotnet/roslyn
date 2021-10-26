@@ -273,6 +273,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return expr;
                     }
                     break;
+
+                case BoundKind.PointerIndirectionOperator:
+                    if ((valueKind & BindValueKind.RefersToLocation) == BindValueKind.RefersToLocation)
+                    {
+                        var pointerIndirection = (BoundPointerIndirectionOperator)expr;
+                        expr = pointerIndirection.Update(pointerIndirection.Operand, refersToLocation: true, pointerIndirection.Type);
+                    }
+                    break;
+
+                case BoundKind.PointerElementAccess:
+                    if ((valueKind & BindValueKind.RefersToLocation) == BindValueKind.RefersToLocation)
+                    {
+                        var elementAccess = (BoundPointerElementAccess)expr;
+                        expr = elementAccess.Update(elementAccess.Expression, elementAccess.Index, elementAccess.Checked, refersToLocation: true, elementAccess.Type);
+                    }
+                    break;
             }
 
             bool hasResolutionErrors = false;
