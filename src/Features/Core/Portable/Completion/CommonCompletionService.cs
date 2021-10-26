@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis.Completion
         internal override Task<(CompletionList? completionList, bool expandItemsAvailable)> GetCompletionsInternalAsync(
             Document document,
             int caretPosition,
+            CompletionOptions options,
             CompletionTrigger trigger,
             ImmutableHashSet<string>? roles,
-            OptionSet? options,
             CancellationToken cancellationToken)
         {
             return GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, trigger, roles, options, cancellationToken);

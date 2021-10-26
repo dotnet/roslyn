@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis
         {
             ProjectState ProjectState { get; }
 
+            CachedSkeletonReferences CachedSkeletonReferences { get; }
+
             /// <summary>
             /// Returns <see langword="true"/> if this <see cref="Project"/>/<see cref="Compilation"/> could produce the
             /// given <paramref name="symbol"/>.  The symbol must be a <see cref="IAssemblySymbol"/>, <see

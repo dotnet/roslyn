@@ -338,6 +338,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsDirective([NotNullWhen(true)] SyntaxNode? node);
         bool IsStatement([NotNullWhen(true)] SyntaxNode? node);
         bool IsExecutableStatement([NotNullWhen(true)] SyntaxNode? node);
+        bool IsGlobalStatement([NotNullWhen(true)] SyntaxNode? node);
+        bool AreStatementsInSameContainer(SyntaxNode firstStatement, SyntaxNode secondStatement);
 
         bool IsDeconstructionAssignment([NotNullWhen(true)] SyntaxNode? node);
         bool IsDeconstructionForEachStatement([NotNullWhen(true)] SyntaxNode? node);

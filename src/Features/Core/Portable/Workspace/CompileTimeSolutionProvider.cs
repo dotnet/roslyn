@@ -8,6 +8,7 @@ using System.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,16 +49,13 @@ namespace Microsoft.CodeAnalysis.Host
 
         private readonly object _gate = new();
 
-        /// <summary>
-        /// Cached compile time solution corresponding to the <see cref="Workspace.PrimaryBranchId"/>
-        /// </summary>
-        private (int DesignTimeSolutionVersion, BranchId DesignTimeSolutionBranch, Solution CompileTimeSolution)? _primaryBranchCompileTimeCache;
-
-        /// <summary>
-        /// Cached compile time solution for a forked branch.  This is used primarily by LSP cases where
-        /// we fork the workspace solution and request diagnostics for the forked solution.
-        /// </summary>
-        private (int DesignTimeSolutionVersion, BranchId DesignTimeSolutionBranch, Solution CompileTimeSolution)? _forkedBranchCompileTimeCache;
+#if NETCOREAPP
+        private readonly ConditionalWeakTable<Solution, Solution> _designTimeToCompileTimeSoution = new();
+#else
+        // Framework lacks both a .Clear() method.  So for Framework we simulate that by just overwriting this with a
+        // new instance.  This happens under a lock, so everyone sees a consistent dictionary.
+        private ConditionalWeakTable<Solution, Solution> _designTimeToCompileTimeSoution = new();
+#endif
 
         public CompileTimeSolutionProvider(Workspace workspace)
         {
@@ -67,8 +65,11 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     lock (_gate)
                     {
-                        _primaryBranchCompileTimeCache = null;
-                        _forkedBranchCompileTimeCache = null;
+#if NETCOREAPP
+                        _designTimeToCompileTimeSoution.Clear();
+#else
+                        _designTimeToCompileTimeSoution = new();
+#endif
                     }
                 }
             };
@@ -82,80 +83,45 @@ namespace Microsoft.CodeAnalysis.Host
         {
             lock (_gate)
             {
-                var cachedCompileTimeSolution = GetCachedCompileTimeSolution(designTimeSolution);
-
-                // Design time solution hasn't changed since we calculated the last compile-time solution:
-                if (cachedCompileTimeSolution != null)
+                if (!_designTimeToCompileTimeSoution.TryGetValue(designTimeSolution, out var compileTimeSolution))
                 {
-                    return cachedCompileTimeSolution;
-                }
+                    using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var configIdsToRemove);
+                    using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var documentIdsToRemove);
 
-                using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var configIdsToRemove);
-                using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var documentIdsToRemove);
-
-                foreach (var (_, projectState) in designTimeSolution.State.ProjectStates)
-                {
-                    var anyConfigs = false;
-
-                    foreach (var (_, configState) in projectState.AnalyzerConfigDocumentStates.States)
+                    foreach (var (_, projectState) in designTimeSolution.State.ProjectStates)
                     {
-                        if (IsRazorAnalyzerConfig(configState))
-                        {
-                            configIdsToRemove.Add(configState.Id);
-                            anyConfigs = true;
-                        }
-                    }
+                        var anyConfigs = false;
 
-                    // only remove design-time only documents when source-generated ones replace them
-                    if (anyConfigs)
-                    {
-                        foreach (var (_, documentState) in projectState.DocumentStates.States)
+                        foreach (var (_, configState) in projectState.AnalyzerConfigDocumentStates.States)
                         {
-                            if (documentState.Attributes.DesignTimeOnly)
+                            if (IsRazorAnalyzerConfig(configState))
                             {
-                                documentIdsToRemove.Add(documentState.Id);
+                                configIdsToRemove.Add(configState.Id);
+                                anyConfigs = true;
+                            }
+                        }
+
+                        // only remove design-time only documents when source-generated ones replace them
+                        if (anyConfigs)
+                        {
+                            foreach (var (_, documentState) in projectState.DocumentStates.States)
+                            {
+                                if (documentState.Attributes.DesignTimeOnly)
+                                {
+                                    documentIdsToRemove.Add(documentState.Id);
+                                }
                             }
                         }
                     }
+
+                    compileTimeSolution = designTimeSolution
+                        .RemoveAnalyzerConfigDocuments(configIdsToRemove.ToImmutable())
+                        .RemoveDocuments(documentIdsToRemove.ToImmutable());
+
+                    _designTimeToCompileTimeSoution.Add(designTimeSolution, compileTimeSolution);
                 }
 
-                var compileTimeSolution = designTimeSolution
-                    .RemoveAnalyzerConfigDocuments(configIdsToRemove.ToImmutable())
-                    .RemoveDocuments(documentIdsToRemove.ToImmutable());
-
-                UpdateCachedCompileTimeSolution(designTimeSolution, compileTimeSolution);
-
                 return compileTimeSolution;
-            }
-        }
-
-        private Solution? GetCachedCompileTimeSolution(Solution designTimeSolution)
-        {
-            // If the design time solution is for the primary branch, retrieve the last cached solution for it.
-            // Otherwise this is a forked solution, so retrieve the last forked compile time solution we calculated.
-            var cachedCompileTimeSolution = designTimeSolution.BranchId == _workspace.PrimaryBranchId ? _primaryBranchCompileTimeCache : _forkedBranchCompileTimeCache;
-
-            // Verify that the design time solution has not changed since the last calculated compile time solution and that
-            // the design time solution branch matches the branch of the design time solution we calculated the compile time solution for.
-            if (cachedCompileTimeSolution != null
-                    && designTimeSolution.WorkspaceVersion == cachedCompileTimeSolution.Value.DesignTimeSolutionVersion
-                    && designTimeSolution.BranchId == cachedCompileTimeSolution.Value.DesignTimeSolutionBranch)
-            {
-                return cachedCompileTimeSolution.Value.CompileTimeSolution;
-            }
-
-            return null;
-        }
-
-        private void UpdateCachedCompileTimeSolution(Solution designTimeSolution, Solution compileTimeSolution)
-        {
-            if (designTimeSolution.BranchId == _workspace.PrimaryBranchId)
-            {
-                _primaryBranchCompileTimeCache = (designTimeSolution.WorkspaceVersion, designTimeSolution.BranchId, compileTimeSolution);
-            }
-            else
-            {
-                _forkedBranchCompileTimeCache = (designTimeSolution.WorkspaceVersion, designTimeSolution.BranchId, compileTimeSolution);
             }
         }
 

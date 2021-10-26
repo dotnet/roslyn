@@ -128,11 +128,6 @@ namespace Microsoft.CodeAnalysis.Remote
         private async Task SynchronizePrimaryWorkspaceAsync(CancellationToken cancellationToken)
         {
             var solution = _workspace.CurrentSolution;
-            if (solution.BranchId != _workspace.PrimaryBranchId)
-            {
-                return;
-            }
-
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSyntaxContext> : AbstractSymbolCompletionProvider<TSyntaxContext>
         where TSyntaxContext : SyntaxContext
     {
-        protected abstract Task<bool> ShouldPreselectInferredTypesAsync(CompletionContext? completionContext, int position, OptionSet options, CancellationToken cancellationToken);
+        protected abstract Task<bool> ShouldPreselectInferredTypesAsync(CompletionContext? completionContext, int position, CompletionOptions options, CancellationToken cancellationToken);
         protected abstract CompletionItemRules GetCompletionItemRules(ImmutableArray<(ISymbol symbol, bool preselect)> symbols, TSyntaxContext context);
         protected abstract CompletionItemSelectionBehavior PreselectedItemSelectionBehavior { get; }
         protected abstract bool IsInstrinsic(ISymbol symbol);
@@ -29,10 +29,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected sealed override bool ShouldCollectTelemetryForTargetTypeCompletion => true;
 
         protected sealed override async Task<ImmutableArray<(ISymbol symbol, bool preselect)>> GetSymbolsAsync(
-            CompletionContext? completionContext, TSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+            CompletionContext? completionContext, TSyntaxContext context, int position, CompletionOptions options, CancellationToken cancellationToken)
         {
+            var recommendationOptions = options.ToRecommendationServiceOptions();
             var recommender = context.GetLanguageService<IRecommendationService>();
-            var recommendedSymbols = recommender.GetRecommendedSymbolsAtPosition(context.Document, context.SemanticModel, position, options, cancellationToken);
+            var recommendedSymbols = recommender.GetRecommendedSymbolsAtPosition(context.Document, context.SemanticModel, position, recommendationOptions, cancellationToken);
 
             var shouldPreselectInferredTypes = await ShouldPreselectInferredTypesAsync(completionContext, position, options, cancellationToken).ConfigureAwait(false);
             if (!shouldPreselectInferredTypes)
@@ -127,14 +128,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SymbolMatchPriority.PreferType;
         }
 
-        protected sealed override async Task<CompletionDescription> GetDescriptionWorkerAsync(
-            Document document, CompletionItem item, CancellationToken cancellationToken)
+        internal sealed override async Task<CompletionDescription> GetDescriptionWorkerAsync(
+            Document document, CompletionItem item, CompletionOptions options, CancellationToken cancellationToken)
         {
             var position = SymbolCompletionItem.GetContextPosition(item);
             var name = SymbolCompletionItem.GetSymbolName(item);
             var kind = SymbolCompletionItem.GetKind(item);
             var isGeneric = SymbolCompletionItem.GetSymbolIsGeneric(item);
-            var options = document.Project.Solution.Workspace.Options;
             var relatedDocumentIds = document.Project.Solution.GetRelatedDocumentIds(document.Id);
             var typeConvertibilityCache = new Dictionary<ITypeSymbol, bool>(SymbolEqualityComparer.Default);
 
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                     if (bestSymbols.Any())
                     {
-                        if (IsTargetTypeCompletionFilterExperimentEnabled(document.Project.Solution.Options) &&
+                        if (options.TargetTypedCompletionFilter &&
                             TryFindFirstSymbolMatchesTargetTypes(_ => context, bestSymbols, typeConvertibilityCache, out var index) && index > 0)
                         {
                             // Since the first symbol is used to get the item description by default,

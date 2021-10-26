@@ -27,7 +27,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             MyBase.New(s_defaultRules)
         End Sub
 
-        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Dim isStartOfTag = text(characterPosition) = "<"c
             Dim isClosingTag = (text(characterPosition) = "/"c AndAlso characterPosition > 0 AndAlso text(characterPosition - 1) = "<"c)
             Dim isDoubleQuote = text(characterPosition) = """"c

@@ -114,7 +114,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.CancelCommit);
             }
 
-            var serviceRules = completionService.GetRules();
+            var options = CompletionOptions.From(document.Project);
+            var serviceRules = completionService.GetRules(options);
 
             // We can be called before for ShouldCommitCompletion. However, that call does not provide rules applied for the completion item.
             // Now we check for the commit charcter in the context of Rules that could change the list of commit characters.
