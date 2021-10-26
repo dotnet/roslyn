@@ -3,12 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -22,14 +18,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal readonly struct RequestContext
     {
         /// <summary>
-        /// This will be null for non-mutating requests because they're not allowed to change documents
+        /// This will be the <see cref="NonMutatingDocumentChangeTracker"/> for non-mutating requests because they're not allowed to change documents
         /// </summary>
         private readonly IDocumentChangeTracker _documentChangeTracker;
 
         /// <summary>
-        /// Manages the workspaces registered for LSP and handles updates from both LSP text sync and workspace updates.
+        /// Contains the LSP text for all opened LSP documents from when this request was processed in the queue.
         /// </summary>
-        private readonly LspWorkspaceManager _lspWorkspaceManager;
+        /// <remarks>
+        /// This is a snapshot of the source text that reflects the LSP text based on the order of this request in the queue.
+        /// It contains text that is consistent with all prior LSP text sync notifications, but LSP text sync requests
+        /// which are ordered after this one in the queue are not reflected here.
+        /// </remarks>
+        private readonly ImmutableDictionary<Uri, SourceText> _trackedDocuments;
 
         /// <summary>
         /// The solution state that the request should operate on, if the handler requires an LSP solution, or <see langword="null"/> otherwise
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             string? clientName,
             Document? document,
             IDocumentChangeTracker documentChangeTracker,
-            LspWorkspaceManager lspWorkspaceManager,
+            ImmutableDictionary<Uri, SourceText> trackedDocuments,
             ImmutableArray<string> supportedLanguages,
             IGlobalOptionService globalOptions)
         {
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             GlobalOptions = globalOptions;
             _documentChangeTracker = documentChangeTracker;
             _traceInformation = traceInformation;
-            _lspWorkspaceManager = lspWorkspaceManager;
+            _trackedDocuments = trackedDocuments;
         }
 
         public static RequestContext? Create(
@@ -96,13 +97,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             ImmutableArray<string> supportedLanguages,
             IGlobalOptionService globalOptions)
         {
+            // Retrieve the current LSP tracked text as of this request.
+            // This is safe as all creation of request contexts cannot happen concurrently.
+            var trackedDocuments = lspWorkspaceManager.GetTrackedLspText();
+
             // If the handler doesn't need an LSP solution we do two important things:
             // 1. We don't bother building the LSP solution for perf reasons
             // 2. We explicitly don't give the handler a solution or document, even if we could
             //    so they're not accidentally operating on stale solution state.
             if (!requiresLSPSolution)
             {
-                return new RequestContext(solution: null, logger.TraceInformation, clientCapabilities, clientName, document: null, documentChangeTracker, lspWorkspaceManager, supportedLanguages, globalOptions);
+                return new RequestContext(solution: null, logger.TraceInformation, clientCapabilities, clientName, document: null, documentChangeTracker, trackedDocuments, supportedLanguages, globalOptions);
             }
 
             // Go through each registered workspace, find the solution that contains the document that
@@ -133,7 +138,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 clientName,
                 document,
                 documentChangeTracker,
-                lspWorkspaceManager,
+                trackedDocuments,
                 supportedLanguages,
                 globalOptions);
             return context;
@@ -144,36 +149,30 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// Mutating requests are serialized by the execution queue in order to prevent concurrent access.
         /// </summary>
         public void StartTracking(Uri uri, SourceText initialText)
-        {
-            _documentChangeTracker.StartTracking(uri, initialText);
-            _lspWorkspaceManager.TrackLspDocument(uri, initialText);
-        }
+            => _documentChangeTracker.StartTracking(uri, initialText);
 
         /// <summary>
         /// Allows a mutating request to update the contents of a tracked document.
         /// Mutating requests are serialized by the execution queue in order to prevent concurrent access.
         /// </summary>
         public void UpdateTrackedDocument(Uri uri, SourceText changedText)
-        {
-            _documentChangeTracker.UpdateTrackedDocument(uri, changedText);
-            _lspWorkspaceManager.UpdateLspDocument(uri, changedText);
-        }
+            => _documentChangeTracker.UpdateTrackedDocument(uri, changedText);
 
         public SourceText GetTrackedDocumentSourceText(Uri documentUri)
-            => _documentChangeTracker.GetTrackedDocumentSourceText(documentUri);
+        {
+            Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(documentUri), $"Attempted to get text for {documentUri} which is not open.");
+            return _trackedDocuments[documentUri];
+        }
 
         /// <summary>
         /// Allows a mutating request to close a document and stop it being tracked.
         /// Mutating requests are serialized by the execution queue in order to prevent concurrent access.
         /// </summary>
         public void StopTracking(Uri uri)
-        {
-            _documentChangeTracker.StopTracking(uri);
-            _lspWorkspaceManager.StopTrackingLspDocument(uri);
-        }
+            => _documentChangeTracker.StopTracking(uri);
 
         public bool IsTracking(Uri documentUri)
-            => _documentChangeTracker.IsTracking(documentUri);
+            => _trackedDocuments.ContainsKey(documentUri);
 
         /// <summary>
         /// Logs an informational message.
