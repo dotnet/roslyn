@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+            public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
             {
                 get
                 {
