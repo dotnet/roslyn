@@ -406,15 +406,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     analyzedArguments.Free();
                     indexerGroup.Free();
+                    goto done;
                 }
                 lookupResult.Clear();
             }
-            else
-            {
-                // If the argType is missing, we will fallback to the implicit indexer support.
-                found = TryLookupLengthOrCount(syntax, receiverType, lookupResult, out lengthProperty, diagnostics) &&
-                    TryFindIndexOrRangeIndexerFallback(syntax, lookupResult, receiverOpt: null, receiverType, argIsIndex, out patternSymbol, diagnostics);
-            }
+
+            // If the argType is missing or the indexer lookup has failed, we will fallback to the implicit indexer support.
+            found = TryLookupLengthOrCount(syntax, receiverType, lookupResult, out lengthProperty, diagnostics) &&
+                TryFindIndexOrRangeIndexerFallback(syntax, lookupResult, receiverOpt: null, receiverType, argIsIndex, out patternSymbol, diagnostics);
+done:
 
             if (found)
             {

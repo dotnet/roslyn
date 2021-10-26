@@ -1932,6 +1932,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics introduced for C# 9.0
 
         #region diagnostics introduced for C# 10.0
+
         ERR_InheritingFromRecordWithSealedToString = 8912,
         ERR_HiddenPositionalMember = 8913,
         ERR_GlobalUsingInNamespace = 8914,
