@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
             }
 
-            AssertEx.Fail("Unable to find type:" + typeName);
+            Assert.Fail("Unable to find type:" + typeName);
             return default(TypeDefinitionHandle);
         }
 
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
             }
 
-            AssertEx.Fail("Unable to find method:" + methodName);
+            Assert.Fail("Unable to find method:" + methodName);
             return default(MethodDefinitionHandle);
         }
 

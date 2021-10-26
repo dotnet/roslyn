@@ -255,7 +255,7 @@ class G<T>
                 End If
 
                 If symbol Is Nothing Then
-                    AssertEx.Fail("Could not find symbol")
+                    Assert.Fail("Could not find symbol")
                 End If
 
                 If expectedRQName IsNot Nothing Then
