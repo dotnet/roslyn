@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 errorLoggerOpt: null,
                 analyzerConfigOptions: default,
                 globalConfigOptions: default);
-            AssertEx.NotNull(compilation);
+            Assert.NotNull(compilation);
             RoundTripUtil.VerifyCompilationOptions(commonCompiler.Arguments.CompilationOptions, compilation.Options);
 
             RoundTripUtil.VerifyRoundTrip(

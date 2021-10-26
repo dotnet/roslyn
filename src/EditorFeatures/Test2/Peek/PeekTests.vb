@@ -369,7 +369,9 @@ End Module
                 Dim documentResult = DirectCast(Items(index), IDocumentPeekResult)
                 Dim document = _workspace.Documents.FirstOrDefault(Function(d) d.FilePath = documentResult.FilePath)
 
-                AssertEx.NotNull(document, "Peek didn't navigate to a document in source. Navigated to " + documentResult.FilePath + " instead.")
+                If document Is Nothing Then
+                    Assert.Fail("Peek didn't navigate to a document in source. Navigated to " + documentResult.FilePath + " instead.")
+                End If
 
                 Dim startLine As Integer
                 Dim startIndex As Integer

@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
             var previewFactoryService = (PreviewFactoryService)workspace.ExportProvider.GetExportedValue<IPreviewFactoryService>();
             using var diffView = await previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None);
-            AssertEx.NotNull(diffView);
+            Assert.NotNull(diffView);
 
             var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
 

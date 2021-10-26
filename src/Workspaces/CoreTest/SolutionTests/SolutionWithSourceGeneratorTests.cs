@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             workspace.OnSourceGeneratedDocumentOpened(generatedDocumentIdentity, differentOpenTextContainer);
 
             var generatedDocument = differentOpenTextContainer.CurrentText.GetOpenDocumentInCurrentContextWithChanges();
-            AssertEx.NotNull(generatedDocument);
+            Assert.NotNull(generatedDocument);
             var generatedTree = await generatedDocument.GetSyntaxTreeAsync();
 
             // Fetch the compilation from the other project, it should have a compilation reference that

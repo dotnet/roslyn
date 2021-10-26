@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var peBytes = compilation.EmitToArray(new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded));
             var originalReader = new PEReader(peBytes);
             var originalPdbReader = originalReader.GetEmbeddedPdbMetadataReader();
-            AssertEx.NotNull(originalPdbReader);
+            Assert.NotNull(originalPdbReader);
             var factory = LoggerFactory.Create(configure => { });
             var logger = factory.CreateLogger("RoundTripVerification");
             return new CompilationOptionsReader(logger, originalPdbReader, originalReader);

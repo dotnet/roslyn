@@ -255,7 +255,7 @@ End Module")
                     Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
                 }
                 var bytes = File.ReadAllBytes(outFile);
-                AssertEx.NotNull(bytes);
+                Assert.NotNull(bytes);
 
                 return (bytes, finalFlags);
             }

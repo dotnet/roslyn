@@ -774,14 +774,5 @@ namespace Roslyn.Test.Utilities
                 Assert.True(false, builder.ToString());
             }
         }
-
-#nullable enable
-        public static void NotNull<T>([NotNull] T value)
-        {
-            Assert.NotNull(value);
-            Debug.Assert(value is object);
-        }
-
-#nullable disable
     }
 }
