@@ -2256,15 +2256,17 @@ namespace Microsoft.CodeAnalysis.Operations
                 return new InvalidOperation(ImmutableArray<IOperation>.Empty, _semanticModel, syntax, type, placeholder.ConstantValue, isImplicit);
             }
 
-            var placeholderKind = placeholder.ArgumentIndex switch
+            const int NonArgumentIndex = -1;
+
+            var (placeholderKind, argumentIndex) = placeholder.ArgumentIndex switch
             {
-                >= 0 => InterpolatedStringArgumentPlaceholderKind.CallsiteArgument,
-                BoundInterpolatedStringArgumentPlaceholder.InstanceParameter => InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver,
-                BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter => InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument,
+                >= 0 and var index => (InterpolatedStringArgumentPlaceholderKind.CallsiteArgument, index),
+                BoundInterpolatedStringArgumentPlaceholder.InstanceParameter => (InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver, NonArgumentIndex),
+                BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter => (InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument, NonArgumentIndex),
                 _ => throw ExceptionUtilities.UnexpectedValue(placeholder.ArgumentIndex)
             };
 
-            return new InterpolatedStringHandlerArgumentPlaceholderOperation(placeholder.ArgumentIndex, placeholderKind, _semanticModel, syntax, isImplicit);
+            return new InterpolatedStringHandlerArgumentPlaceholderOperation(argumentIndex, placeholderKind, _semanticModel, syntax, isImplicit);
         }
 
         private IOperation CreateBoundInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder placeholder)
