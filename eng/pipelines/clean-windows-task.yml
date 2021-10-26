@@ -1,7 +1,8 @@
 # Clean sources on Windows
 steps:
-  - script: |
-      @echo on
-      rm -r -f $(Build.SourcesDirectory)
+  - powershell: |
+      pushd \
+      rm -r -force $(Build.SourcesDirectory)
       mkdir $(Build.SourcesDirectory)
+      popd
     displayName: Clean sources
