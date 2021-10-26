@@ -747,6 +747,11 @@
         <target state="translated">Metoda „{0}” z blokiem iteratora musi być oznaczona jako „async”, aby zwrócić „{1}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LambdaExplicitReturnTypeVar">
+        <source>The contextual keyword 'var' cannot be used as an explicit lambda return type</source>
+        <target state="new">The contextual keyword 'var' cannot be used as an explicit lambda return type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LambdaWithAttributesToExpressionTree">
         <source>A lambda expression with attributes cannot be converted to an expression tree</source>
         <target state="translated">Nie można przekonwertować wyrażenia lambda z atrybutami na drzewo wyrażeń</target>
@@ -828,8 +833,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString">
-        <source>Newlines are not allowed inside a non-verbatim interpolated string</source>
-        <target state="translated">Wewnątrz niedosłownego ciągu interpolowanego nowe wiersze są niedozwolone</target>
+        <source>Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</source>
+        <target state="new">Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
@@ -1287,6 +1292,11 @@
         <target state="translated">dyrektywa zakresu wierszy</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureNewLinesInInterpolations">
+        <source>newlines in interpolations</source>
+        <target state="new">newlines in interpolations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
         <source>parameterless struct constructors</source>
         <target state="translated">Konstruktory struktury bez parametrów</target>
@@ -1458,8 +1468,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter">
-        <source>Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
-        <target state="translated">Parametr {0} występuje po {1} na liście parametrów, ale jest on używany jako argument dla konwersji procedury obsługi ciągów interpolowanych. Będzie to wymagać od wywołującego zmiany kolejności parametrów za pomocą nazwanych argumentów w lokacji wywołania. Rozważ umieszczenie parametru procedury obsługi ciągu interpolowanego po wszystkich zastosowanych argumentach.</target>
+        <source>Parameter '{0}' occurs after '{1}' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
+        <target state="needs-review-translation">Parametr {0} występuje po {1} na liście parametrów, ale jest on używany jako argument dla konwersji procedury obsługi ciągów interpolowanych. Będzie to wymagać od wywołującego zmiany kolejności parametrów za pomocą nazwanych argumentów w lokacji wywołania. Rozważ umieszczenie parametru procedury obsługi ciągu interpolowanego po wszystkich zastosowanych argumentach.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">

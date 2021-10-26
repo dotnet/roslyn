@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -58,7 +57,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 CancellationToken cancellationToken)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+                var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var startLineNumber = text.Lines.IndexOf(position);
                 return new ItemGetter(overrideCompletionProvider, document, position, text, syntaxTree, startLineNumber, cancellationToken);
             }
@@ -81,8 +81,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     return default;
                 }
 
-                return _provider.FilterOverrides(overridableMembers, returnType)
-                                .SelectAsArray(m => CreateItem(m, semanticModel, startToken, modifiers));
+                return _provider.FilterOverrides(overridableMembers, returnType).
+                       SelectAsArray(m => CreateItem(m, semanticModel, startToken, modifiers));
             }
 
             private CompletionItem CreateItem(
@@ -109,6 +109,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 Accessibility seenAccessibility, out ImmutableArray<ISymbol> overridableMembers)
             {
                 var containingType = semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(startToken.SpanStart, _cancellationToken);
+                Contract.ThrowIfNull(containingType);
+
                 var result = containingType.GetOverridableMembers(_cancellationToken);
 
                 // Filter based on accessibility

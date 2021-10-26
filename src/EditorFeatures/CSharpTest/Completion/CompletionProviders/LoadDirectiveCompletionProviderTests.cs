@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -75,10 +76,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             var position = textWithPositionMarker.IndexOf("$$");
             var text = textWithPositionMarker.Replace("$$", "");
 
-            var services = (IMefHostExportProvider)FeaturesTestCompositions.Features.GetHostServices();
-            var provider = services.GetExports<CompletionProvider, CompletionProviderMetadata>().Single(p => p.Metadata.Language == LanguageNames.CSharp && p.Metadata.Name == nameof(LoadDirectiveCompletionProvider)).Value;
-
-            Assert.Equal(expectedResult, provider.ShouldTriggerCompletion(SourceText.From(text), position, trigger: default, new TestOptionSet()));
+            using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
+            var provider = workspace.ExportProvider.GetExports<CompletionProvider, CompletionProviderMetadata>().Single(p => p.Metadata.Language == LanguageNames.CSharp && p.Metadata.Name == nameof(LoadDirectiveCompletionProvider)).Value;
+            var languageServices = workspace.Services.GetLanguageServices(LanguageNames.CSharp);
+            Assert.Equal(expectedResult, provider.ShouldTriggerCompletion(languageServices, SourceText.From(text), position, trigger: default, CompletionOptions.Default));
         }
     }
 }

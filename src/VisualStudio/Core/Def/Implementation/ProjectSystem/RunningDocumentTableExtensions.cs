@@ -43,9 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             textBuffer = null;
 
-            // The cast from dynamic to object doesn't change semantics, but avoids loading the dynamic binder
-            // which saves us JIT time in this method and an assembly load.
-            if ((object)runningDocumentTable.GetDocumentData(docCookie) is IVsTextBuffer bufferAdapter)
+            if (runningDocumentTable.GetDocumentData(docCookie) is IVsTextBuffer bufferAdapter)
             {
                 textBuffer = editorAdaptersFactoryService.GetDocumentBuffer(bufferAdapter);
                 return textBuffer != null;

@@ -747,6 +747,11 @@
         <target state="translated">Metoda {0} s blokem iterátoru musí být asynchronní, aby vrátila {1}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LambdaExplicitReturnTypeVar">
+        <source>The contextual keyword 'var' cannot be used as an explicit lambda return type</source>
+        <target state="new">The contextual keyword 'var' cannot be used as an explicit lambda return type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LambdaWithAttributesToExpressionTree">
         <source>A lambda expression with attributes cannot be converted to an expression tree</source>
         <target state="translated">Výraz lambda s atributy nejde převést na strom výrazu.</target>
@@ -828,8 +833,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString">
-        <source>Newlines are not allowed inside a non-verbatim interpolated string</source>
-        <target state="translated">Nové řádky se uvnitř nedoslovného interpolovaného řetězce nepovolují.</target>
+        <source>Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</source>
+        <target state="new">Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
@@ -1287,6 +1292,11 @@
         <target state="translated">direktiva line span</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureNewLinesInInterpolations">
+        <source>newlines in interpolations</source>
+        <target state="new">newlines in interpolations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
         <source>parameterless struct constructors</source>
         <target state="translated">konstruktory struktury bez parametrů</target>
@@ -1458,8 +1468,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter">
-        <source>Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
-        <target state="translated">Parametr {0} se v seznamu parametrů nachází za {1}, ale používá se jako argument pro převody obslužných rutin interpolovaných řetězců. To vyžaduje, aby volající změnil pořadí parametrů s pojmenovanými argumenty na lokalitě volání. Doporučujeme, abyste parametr obslužné rutiny interpolovaného řetězce vložili za všechny ostatní zahrnuté argumenty.</target>
+        <source>Parameter '{0}' occurs after '{1}' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
+        <target state="needs-review-translation">Parametr {0} se v seznamu parametrů nachází za {1}, ale používá se jako argument pro převody obslužných rutin interpolovaných řetězců. To vyžaduje, aby volající změnil pořadí parametrů s pojmenovanými argumenty na lokalitě volání. Doporučujeme, abyste parametr obslužné rutiny interpolovaného řetězce vložili za všechny ostatní zahrnuté argumenty.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">

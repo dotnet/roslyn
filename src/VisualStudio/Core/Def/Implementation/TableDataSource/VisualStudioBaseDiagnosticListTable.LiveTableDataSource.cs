@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return key;
                 }
 
-                if (!CheckAggregateKey(key as AggregatedKey, data as DiagnosticsUpdatedArgs))
+                if (!CheckAggregateKey(key as AggregatedKey, data))
                 {
                     RemoveStaledData(data);
 

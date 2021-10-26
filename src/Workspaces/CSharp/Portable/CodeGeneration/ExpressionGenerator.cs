@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return negative
                 ? SyntaxFactory.PrefixUnaryExpression(SyntaxKind.UnaryMinusExpression, literal)
-                : (ExpressionSyntax)literal;
+                : literal;
         }
 
         private static ExpressionSyntax GenerateFieldReference<T>(ITypeSymbol type, T value, IEnumerable<KeyValuePair<T, string>> constants)

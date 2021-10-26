@@ -89,7 +89,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
 
             return new MyCodeAction(
                 FeaturesResources.Extract_method,
-                c => AddRenameAnnotationAsync(result.Document, result.InvocationNameToken, c));
+                c => AddRenameAnnotationAsync(result.Document, result.InvocationNameToken, c),
+                nameof(FeaturesResources.Extract_method));
         }
 
         private static async Task<CodeAction> ExtractLocalFunctionAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
 
             if (localFunctionResult.Succeeded || localFunctionResult.SucceededWithSuggestion)
             {
-                var codeAction = new MyCodeAction(FeaturesResources.Extract_local_function, c => AddRenameAnnotationAsync(localFunctionResult.Document, localFunctionResult.InvocationNameToken, c));
+                var codeAction = new MyCodeAction(FeaturesResources.Extract_local_function, c => AddRenameAnnotationAsync(localFunctionResult.Document, localFunctionResult.InvocationNameToken, c), nameof(FeaturesResources.Extract_local_function));
                 return codeAction;
             }
 
@@ -130,8 +131,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+                : base(title, createChangedDocument, equivalenceKey)
             {
             }
         }

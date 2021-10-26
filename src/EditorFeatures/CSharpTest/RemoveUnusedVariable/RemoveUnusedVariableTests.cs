@@ -723,5 +723,78 @@ class C
 @"
 ", TestOptions.Regular);
         }
+
+        [WorkItem(49827, "https://github.com/dotnet/roslyn/issues/49827")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveUnusedVariableJointDeclaredInForStatementInsideIfStatement()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        if (true)
+            for(int i = 0[|, j = 0|]; i < 1; i++)
+            {
+
+            }
+    }
+}",
+@"class Class
+{
+    void Method()
+    {
+        if (true)
+            for(int i = 0; i < 1; i++)
+            {
+
+            }
+    }
+}");
+        }
+
+        [WorkItem(49827, "https://github.com/dotnet/roslyn/issues/49827")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task DontCrashOnDeclarationInsideIfStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    void Method(bool test)
+    {
+        if (test [|and test|])
+        {
+
+        }
+    }
+}");
+        }
+
+        [WorkItem(56924, "https://github.com/dotnet/roslyn/issues/56924")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveUnusedVariableInCatchInsideBadLocalDeclaration()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method(bool test)
+    {
+        if (test) var x = () => {
+            try { }
+            catch (Exception [|ex|]) { }
+        };
+    }
+}",
+@"class Class
+{
+    void Method(bool test)
+    {
+        if (test) var x = () => {
+            try { }
+            catch (Exception) { }
+        };
+    }
+}");
+        }
     }
 }

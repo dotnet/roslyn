@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -110,7 +111,7 @@ static class C { }
 static class C { }
 ";
 
-            UpdateDocumentText(newMarkup, testLspServer.TestWorkspace);
+            await UpdateDocumentTextAsync(newMarkup, testLspServer.TestWorkspace);
             var editResults = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "2");
 
             var expectedEdit = new LSP.SemanticTokensEdit { Start = 0, DeleteCount = 1, Data = new int[] { 1 } };

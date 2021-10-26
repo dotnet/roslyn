@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                    new IOService(),
                    new PatchService(),
                    new DatabaseFactoryService(),
-                   // Report all exceptions we encounter, but don't crash on them.
-                   FatalError.ReportAndCatch)
+                   // Report all exceptions we encounter, but don't crash on them. Propagate expected cancellation.
+                   FatalError.ReportAndCatchUnlessCanceled)
         {
         }
 
@@ -56,14 +56,14 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             IIOService ioService,
             IPatchService patchService,
             IDatabaseFactoryService databaseFactoryService,
-            Func<Exception, bool> reportAndSwallowException)
+            Func<Exception, CancellationToken, bool> reportAndSwallowExceptionUnlessCanceled)
         {
             _delayService = delayService;
             _ioService = ioService;
             _remoteControlService = remoteControlService;
             _patchService = patchService;
             _databaseFactoryService = databaseFactoryService;
-            _reportAndSwallowException = reportAndSwallowException;
+            _reportAndSwallowExceptionUnlessCanceled = reportAndSwallowExceptionUnlessCanceled;
         }
 
         public ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(

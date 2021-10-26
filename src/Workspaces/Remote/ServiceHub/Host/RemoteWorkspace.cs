@@ -315,6 +315,19 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 OnSolutionAdded(solutionInfo);
 
+                // The call to SetOptions will ensure that the options get pushed into the remote IOptionService
+                // store.  However, we still update our current solution with the options passed in.  This is
+                // due to the fact that the option store will ignore any options it considered unchanged to what
+                // it currently knows about.  This will prevent it from actually going and writing those unchanged
+                // values into Solution.Options.  This is not a correctness issue, but it impacts how checksums and
+                // syncing work in oop.  Currently, the checksum is based off Solution.Options and the values
+                // loaded into it.  If one side has loaded a default value and the other has not, then they will
+                // disagree on their checksum.  This ensures the remote side agrees with the host.
+                //
+                // A better fix in the future is to make all options pure data and remove the general concept of
+                // any part of the system eliding information about any options that have their 'default' value.
+                // https://github.com/dotnet/roslyn/issues/55728
+                this.SetCurrentSolution(this.CurrentSolution.WithOptions(options));
                 SetOptions(options);
 
                 solution = CurrentSolution;

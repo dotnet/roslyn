@@ -5845,6 +5845,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CannotInferDelegateType" xml:space="preserve">
     <value>The delegate type could not be inferred.</value>
   </data>
+  <data name="ERR_LambdaExplicitReturnTypeVar" xml:space="preserve">
+    <value>The contextual keyword 'var' cannot be used as an explicit lambda return type</value>
+  </data>
   <data name="ERR_SingleElementPositionalPatternRequiresDisambiguation" xml:space="preserve">
     <value>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</value>
   </data>
@@ -6765,7 +6768,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>'{0}' is not an interpolated string handler type.</value>
   </data>
   <data name="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter" xml:space="preserve">
-    <value>Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</value>
+    <value>Parameter '{0}' occurs after '{1}' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</value>
   </data>
   <data name="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title" xml:space="preserve">
     <value>Parameter to interpolated string handler conversion occurs after handler parameter</value>
@@ -6852,7 +6855,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>At least one top-level statement must be non-empty.</value>
   </data>
   <data name="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString" xml:space="preserve">
-    <value>Newlines are not allowed inside a non-verbatim interpolated string</value>
+    <value>Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</value>
   </data>
   <data name="IDS_FeatureGenericAttributes" xml:space="preserve">
     <value>generic attributes</value>
@@ -6871,5 +6874,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_CompileTimeCheckedOverflow_Title" xml:space="preserve">
     <value>The operation may overflow at runtime (use 'unchecked' syntax to override)</value>
+  </data>
+  <data name="IDS_FeatureNewLinesInInterpolations" xml:space="preserve">
+    <value>newlines in interpolations</value>
   </data>
 </root>

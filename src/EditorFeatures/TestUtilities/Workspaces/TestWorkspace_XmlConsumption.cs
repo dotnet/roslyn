@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 => string.Format("<member name='{0}'><summary>{0}</summary></member>", documentationMemberID);
 
             public override bool Equals(object obj)
-                => (object)this == obj;
+                => ReferenceEquals(this, obj);
 
             public override int GetHashCode()
                 => RuntimeHelpers.GetHashCode(this);
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 var outputKindAttribute = compilationOptionsElement.Attribute(OutputKindName);
                 if (outputKindAttribute != null)
                 {
-                    outputKind = (OutputKind)Enum.Parse(typeof(OutputKind), (string)outputKindAttribute.Value);
+                    outputKind = (OutputKind)Enum.Parse(typeof(OutputKind), outputKindAttribute.Value);
                 }
 
                 var checkOverflowAttribute = compilationOptionsElement.Attribute(CheckOverflowAttributeName);
@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 var nullableAttribute = compilationOptionsElement.Attribute(NullableAttributeName);
                 if (nullableAttribute != null)
                 {
-                    nullable = (NullableContextOptions)Enum.Parse(typeof(NullableContextOptions), (string)nullableAttribute.Value);
+                    nullable = (NullableContextOptions)Enum.Parse(typeof(NullableContextOptions), nullableAttribute.Value);
                 }
 
                 var outputTypeAttribute = compilationOptionsElement.Attribute(OutputTypeAttributeName);
@@ -655,7 +655,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                     // VB needs Compilation.ParseOptions set (we do the same at the VS layer)
                     return language == LanguageNames.CSharp
-                       ? (CompilationOptions)new CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata, allowUnsafe: allowUnsafe)
+                       ? new CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata, allowUnsafe: allowUnsafe)
                        : new VisualBasicCompilationOptions(OutputKind.WindowsRuntimeMetadata).WithGlobalImports(globalImports).WithRootNamespace(rootNamespace)
                             .WithParseOptions((VisualBasicParseOptions)parseOptions ?? VisualBasicParseOptions.Default);
                 }

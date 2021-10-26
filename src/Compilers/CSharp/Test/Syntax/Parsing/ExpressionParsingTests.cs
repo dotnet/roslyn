@@ -60,11 +60,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestAltInterpolatedVerbatimString_CSharp73()
         {
-            UsingExpression(@"@$""hello""", TestOptions.Regular7_3,
-                // (1,1): error CS8401: To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '8.0' or greater.
-                // @$"hello"
-                Diagnostic(ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable, @"@$""").WithArguments("8.0").WithLocation(1, 1)
-                );
+            var text = @"@$""hello""";
+            CreateCompilation($@"
+class C
+{{
+    void M()
+    {{
+        var v = {text};
+    }}
+}}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
+                // (6,17): error CS8370: Feature 'alternative interpolated verbatim strings' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         var v = @$"hello";
+                Diagnostic(ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable, @"@$""").WithArguments("8.0").WithLocation(6, 17));
+
+            UsingExpression(text, TestOptions.Regular7_3);
 
             N(SyntaxKind.InterpolatedStringExpression);
             {
@@ -81,7 +90,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestAltInterpolatedVerbatimString_CSharp8()
         {
-            UsingExpression(@"@$""hello""", TestOptions.Regular8);
+            var text = @"@$""hello""";
+            CreateCompilation($@"
+class C
+{{
+    void M()
+    {{
+        var v = {text};
+    }}
+}}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)).VerifyDiagnostics();
+
+            UsingExpression(text, TestOptions.Regular8);
             N(SyntaxKind.InterpolatedStringExpression);
             {
                 N(SyntaxKind.InterpolatedVerbatimStringStartToken);
@@ -97,11 +116,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestNestedAltInterpolatedVerbatimString_CSharp73()
         {
-            UsingExpression("$@\"aaa{@$\"bbb\nccc\"}ddd\"", TestOptions.Regular7_3,
-                // (1,8): error CS8401: To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '8.0' or greater.
+            var text = "$@\"aaa{@$\"bbb\nccc\"}ddd\"";
+            CreateCompilation($@"
+class C
+{{
+    void M()
+    {{
+        var v = {text};
+    }}
+}}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
+                // (6, 24): error CS8401: To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '8.0' or greater.
                 // $@"aaa{@$"bbb
-                Diagnostic(ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable, @"@$""").WithArguments("8.0").WithLocation(1, 8)
-                );
+                Diagnostic(ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable, @"@$""").WithArguments("8.0").WithLocation(6, 24));
+
+            UsingExpression(text, TestOptions.Regular7_3);
 
             N(SyntaxKind.InterpolatedStringExpression);
             {
@@ -136,7 +164,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestNestedAltInterpolatedVerbatimString_CSharp8()
         {
-            UsingExpression("$@\"aaa{@$\"bbb\nccc\"}ddd\"", TestOptions.Regular8);
+            var text = "$@\"aaa{@$\"bbb\nccc\"}ddd\"";
+
+            CreateCompilation($@"
+class C
+{{
+    void M()
+    {{
+        var v = {text};
+    }}
+}}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)).VerifyDiagnostics();
+
+            UsingExpression(text, TestOptions.Regular8);
+
             N(SyntaxKind.InterpolatedStringExpression);
             {
                 N(SyntaxKind.InterpolatedVerbatimStringStartToken);

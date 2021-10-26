@@ -947,7 +947,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var configuration = new MockPersistentStorageConfiguration(solution.Id, _persistentFolder.Path, throwOnFailure);
 
             _storageService = GetStorageService((IMefHostExportProvider)solution.Workspace.Services.HostServices, configuration, faultInjector, _persistentFolder.Path);
-            var storage = await _storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), checkBranchId: true, CancellationToken.None);
+            var storage = await _storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), CancellationToken.None);
 
             // If we're injecting faults, we expect things to be strange
             if (faultInjector == null)
@@ -966,7 +966,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var configuration = new MockPersistentStorageConfiguration(solutionKey.Id, _persistentFolder.Path, throwOnFailure: true);
 
             _storageService = GetStorageService((IMefHostExportProvider)workspace.Services.HostServices, configuration, faultInjector, _persistentFolder.Path);
-            var storage = await _storageService.GetStorageAsync(solutionKey, checkBranchId: true, CancellationToken.None);
+            var storage = await _storageService.GetStorageAsync(solutionKey, CancellationToken.None);
 
             // If we're injecting faults, we expect things to be strange
             if (faultInjector == null)

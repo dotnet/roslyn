@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -90,7 +91,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             return SpecializedCollections.SingletonEnumerable(visibleSpanOpt.Value);
         }
 
-        protected override Task ProduceTagsAsync(TaggerContext<IClassificationTag> context)
+        protected override Task ProduceTagsAsync(
+            TaggerContext<IClassificationTag> context, CancellationToken cancellationToken)
         {
             Debug.Assert(context.SpansToTag.IsSingle());
 
@@ -113,7 +115,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             if (workspaceContextService?.IsInLspEditorContext() == true)
                 return Task.CompletedTask;
 
-            return SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, classificationService, _typeMap);
+            return SemanticClassificationUtilities.ProduceTagsAsync(
+                context, spanToTag, classificationService, _typeMap, cancellationToken);
         }
     }
 }
