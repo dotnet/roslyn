@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
             await DidOpen(testLspServer, caretLocation.Uri);
 
             var trackedDocuments = testLspServer.GetQueueAccessor().GetTrackedTexts();
-            Assert.Equal(1, trackedDocuments.Count);
+            Assert.Equal(1, trackedDocuments.Length);
 
             var solution = await GetLSPSolution(testLspServer, caretLocation.Uri);
 
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             await DidOpen(testLspServer, caretLocation.Uri);
 
-            Assert.Equal(1, testLspServer.GetQueueAccessor().GetTrackedTexts().Count);
+            Assert.Equal(1, testLspServer.GetQueueAccessor().GetTrackedTexts().Length);
 
             await DidChange(testLspServer, caretLocation.Uri, (4, 8, "// hi there"));
 

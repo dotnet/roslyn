@@ -58,7 +58,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private readonly AsyncQueue<QueueItem> _queue;
         private readonly CancellationTokenSource _cancelSource;
-        private readonly DocumentChangeTracker _documentChangeTracker;
         private readonly RequestTelemetryLogger _requestTelemetryLogger;
         private readonly IGlobalOptionService _globalOptions;
 
@@ -93,7 +92,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             _queue = new AsyncQueue<QueueItem>();
             _cancelSource = new CancellationTokenSource();
-            _documentChangeTracker = new DocumentChangeTracker();
 
             // Pass the language client instance type name to the telemetry logger to ensure we can
             // differentiate between the different C# LSP servers that have the same client name.
@@ -101,7 +99,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // which is difficult to write telemetry queries for.
             _requestTelemetryLogger = new RequestTelemetryLogger(serverTypeName);
 
-            _lspWorkspaceManager = new LspWorkspaceManager(lspWorkspaceRegistrationService, lspMiscellaneousFilesWorkspace, _documentChangeTracker, logger, _requestTelemetryLogger);
+            _lspWorkspaceManager = new LspWorkspaceManager(logger, lspMiscellaneousFilesWorkspace, lspWorkspaceRegistrationService, _requestTelemetryLogger);
 
             // Start the queue processing
             _ = ProcessQueueAsync();
@@ -307,8 +305,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private RequestContext? CreateRequestContext(QueueItem queueItem)
         {
             var trackerToUse = queueItem.MutatesSolutionState
-                ? (IDocumentChangeTracker)_documentChangeTracker
-                : new NonMutatingDocumentChangeTracker(_documentChangeTracker);
+                ? (IDocumentChangeTracker)_lspWorkspaceManager
+                : new NonMutatingDocumentChangeTracker();
 
             return RequestContext.Create(
                 queueItem.RequiresLSPSolution,
