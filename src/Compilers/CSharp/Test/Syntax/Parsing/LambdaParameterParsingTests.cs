@@ -667,6 +667,7 @@ class C {
             EOF();
         }
 
+        [Fact]
         public void TestLambdaWithNullValidation()
         {
             UsingDeclaration("Func<string, string> func1 = x!! => x + \"1\";", options: TestOptions.RegularPreview);
