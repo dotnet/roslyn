@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp
 {
-    internal record struct SignatureHelpOptions(
+    internal readonly record struct SignatureHelpOptions(
         bool HideAdvancedMembers)
     {
         public static SignatureHelpOptions From(Project project)

@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             SyntaxNode syntax,
             SemanticModel semanticModel,
             ClassificationOptions options,
-            ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            ArrayBuilder<ClassifiedSpan> result,
+            CancellationToken cancellationToken)
         {
             if (syntax is UsingDirectiveSyntax usingDirective)
             {

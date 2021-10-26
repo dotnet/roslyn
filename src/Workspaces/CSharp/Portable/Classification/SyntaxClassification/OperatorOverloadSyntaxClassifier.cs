@@ -25,7 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             SyntaxNode syntax,
             SemanticModel semanticModel,
             ClassificationOptions options,
-            ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            ArrayBuilder<ClassifiedSpan> result,
+            CancellationToken cancellationToken)
         {
             var symbolInfo = semanticModel.GetSymbolInfo(syntax, cancellationToken);
             if (symbolInfo.Symbol is IMethodSymbol methodSymbol

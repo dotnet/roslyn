@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.QuickInfo
 {
-    internal record struct QuickInfoOptions(
+    internal readonly record struct QuickInfoOptions(
         bool ShowRemarksInQuickInfo,
         bool IncludeNavigationHintsInQuickInfo)
     {

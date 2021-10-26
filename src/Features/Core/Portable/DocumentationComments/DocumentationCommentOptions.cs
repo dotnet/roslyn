@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments
 {
-    internal record struct DocumentationCommentOptions(
+    internal readonly record struct DocumentationCommentOptions(
         bool AutoXmlDocCommentGeneration,
         int TabSize,
         bool UseTabs,

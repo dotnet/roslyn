@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 namespace Microsoft.CodeAnalysis.Classification
 {
     [DataContract]
-    internal record struct ClassificationOptions(
+    internal readonly record struct ClassificationOptions(
         [property: DataMember(Order = 0)] bool ClassifyReassignedVariables,
         [property: DataMember(Order = 1)] bool ColorizeRegexPatterns)
     {
