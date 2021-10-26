@@ -182,8 +182,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 return null;
 
             var languageServices = workspace.Services.GetLanguageServices(languageName);
-            var compilationOptions = languageServices.GetRequiredService<ICompilationFactoryService>().GetCompilationOptionsFromPortablePdbMetadata(pdbCompilationOptions);
-            var parseOptions = languageServices.GetRequiredService<ISyntaxTreeFactoryService>().GetParseOptionsFromPortablePdbMetadata(pdbCompilationOptions);
+            var compilationOptions = languageServices.GetRequiredService<ICompilationFactoryService>().TryParsePdbCompilationOptions(pdbCompilationOptions);
+            var parseOptions = languageServices.GetRequiredService<ISyntaxTreeFactoryService>().TryParsePdbParseOptions(pdbCompilationOptions);
 
             var projectId = ProjectId.CreateNewId();
             return ProjectInfo.Create(

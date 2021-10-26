@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -41,10 +42,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         CompilationOptions ICompilationFactoryService.GetDefaultCompilationOptions()
             => s_defaultOptions;
 
-        CompilationOptions? ICompilationFactoryService.GetCompilationOptionsFromPortablePdbMetadata(ImmutableDictionary<string, string> compilationOptionsMetadata)
+        CompilationOptions? ICompilationFactoryService.TryParsePdbCompilationOptions(IReadOnlyDictionary<string, string> compilationOptionsMetadata)
         {
-            if (!Enum.TryParse<OutputKind>(compilationOptionsMetadata.GetValueOrDefault("output-kind"), out var outputKind))
+            if (!compilationOptionsMetadata.TryGetValue("output-kind", out var outputKindString) ||
+                !Enum.TryParse<OutputKind>(outputKindString, out var outputKind))
+            {
                 return null;
+            }
 
             return new CSharpCompilationOptions(outputKind: outputKind);
         }

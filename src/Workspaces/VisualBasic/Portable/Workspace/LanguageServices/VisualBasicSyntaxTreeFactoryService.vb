@@ -2,7 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
+Imports System.Collections.Generic
 Imports System.Composition
 Imports System.IO
 Imports System.Text
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return VisualBasicParseOptions.Default
             End Function
 
-            Public Overrides Function GetParseOptionsFromPortablePdbMetadata(metadata As ImmutableDictionary(Of String, String)) As ParseOptions
+            Public Overrides Function TryParsePdbParseOptions(metadata As IReadOnlyDictionary(Of String, String)) As ParseOptions
                 Dim langVersionString As String = Nothing
                 Dim langVersion As LanguageVersion = Nothing
 
@@ -51,7 +51,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     langVersion = LanguageVersion.[Default]
                 End If
 
-                Dim defineString = metadata.GetValueOrDefault("define", "")
+                Dim defineString As String = Nothing
+                If Not metadata.TryGetValue("define", defineString) Then
+                    Return Nothing
+                End If
+
                 Dim diagnostics As IEnumerable(Of Diagnostic) = Nothing
                 Dim preprocessorSymbols = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(defineString, diagnostics)
                 If diagnostics Is Nothing Then

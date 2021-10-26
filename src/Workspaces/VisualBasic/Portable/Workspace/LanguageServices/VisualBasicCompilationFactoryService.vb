@@ -48,10 +48,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return s_defaultOptions
         End Function
 
-        Public Function GetCompilationOptionsFromPortablePdbMetadata(metadata As ImmutableDictionary(Of String, String)) As CompilationOptions Implements ICompilationFactoryService.GetCompilationOptionsFromPortablePdbMetadata
+        Public Function TryParsePdbCompilationOptions(metadata As IReadOnlyDictionary(Of String, String)) As CompilationOptions Implements ICompilationFactoryService.TryParsePdbCompilationOptions
+            Dim outputKindString As String = Nothing
             Dim outputKind As OutputKind
 
-            If (Not [Enum].TryParse(metadata.GetValueOrDefault("output-kind", ""), outputKind)) Then
+            If Not metadata.TryGetValue("output-kind", outputKindString) OrElse
+               Not [Enum].TryParse(outputKindString, outputKind) Then
                 Return Nothing
             End If
 

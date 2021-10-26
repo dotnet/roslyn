@@ -5,7 +5,7 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Composition;
 using System.IO;
 using System.Text;
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override ParseOptions GetDefaultParseOptionsWithLatestLanguageVersion()
                 => _parseOptionWithLatestLanguageVersion;
 
-            public override ParseOptions GetParseOptionsFromPortablePdbMetadata(ImmutableDictionary<string, string> metadata)
+            public override ParseOptions TryParsePdbParseOptions(IReadOnlyDictionary<string, string> metadata)
             {
                 if (!metadata.TryGetValue("language-version", out var langVersionString) ||
                     !LanguageVersionFacts.TryParse(langVersionString, out var langVersion))
