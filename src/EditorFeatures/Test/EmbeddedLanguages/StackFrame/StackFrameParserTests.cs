@@ -285,27 +285,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 
         [Fact]
         public void TestFileInformation_PartialPath()
-            => Verify(
-                @"M.M() in C:\folder\m.cs:line",
-                methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression("M.M"),
-                    argumentList: EmptyParams),
-
-                eolTokenOpt: EOLToken.With(leadingTrivia: CreateTriviaArray(" in ", @"C:\folder\m.cs", ":", "line")
-                )
-            );
+            => Verify(@"M.M() in C:\folder\m.cs:line", expectFailure: true);
 
         [Fact]
         public void TestFileInformation_PartialPath2()
-            => Verify(
-                @"M.M() in C:\folder\m.cs:",
-                methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression("M.M"),
-                    argumentList: EmptyParams),
+            => Verify(@"M.M() in C:\folder\m.cs:", expectFailure: true);
 
-                 eolTokenOpt: EOLToken.With(leadingTrivia: CreateTriviaArray(" in ", @"C:\folder\m.cs", ":")
-                )
-            );
+        [Fact]
+        public void TestFileInformation_PartialPath3()
+            => Verify(@"M.M() in C:\folder\m.cs:[trailingtrivia]", expectFailure: true);
 
         [Theory]
         [InlineData(@"C:\folder\m.cs", 1)]
@@ -337,32 +325,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 fileInformation: FileInformation(
                     Path(@"C:\folder\m.cs"),
                     ColonToken,
-                    Line(1)),
+                    Line(1).With(trailingTrivia: CreateTriviaArray("[trailingtrivia]"))),
 
-                eolTokenOpt: EOLToken.With(leadingTrivia: CreateTriviaArray("[trailingtrivia]"))
-            );
-
-        [Fact]
-        public void TestFileInformation_TrailingTrivia2()
-            => Verify(
-                @"M.M() in C:\folder\m.cs:[trailingtrivia]",
-                methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression("M.M"),
-                    argumentList: EmptyParams),
-
-                eolTokenOpt: EOLToken.With(leadingTrivia: CreateTriviaArray(" in ", @"C:\folder\m.cs", ":", "[trailingtrivia]"))
+                eolTokenOpt: EOLToken
             );
 
         [Fact]
         public void TestFileInformation_InvalidDirectory()
-            => Verify(
-                @"M.M() in C:\<\m.cs",
-                methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression("M.M"),
-                    argumentList: EmptyParams),
-
-                eolTokenOpt: EOLToken.With(leadingTrivia: CreateTriviaArray(" in ", @"C:\", @"<\m.cs"))
-            );
+            => Verify(@"M.M() in <\m.cs", expectFailure: true);
 
         [Theory]
         [InlineData("")]

@@ -105,46 +105,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return null;
             }
 
-            var inTrivia = _lexer.TryScanInTrivia();
-            var fileInformationNodeOrToken = inTrivia.HasValue
-                ? TryParseFileInformation()
-                : null;
-
-            using var _ = ArrayBuilder<StackFrameTrivia>.GetInstance(out var trailingTriviaBuilder);
-
-            var fileInformation = fileInformationNodeOrToken.Node as StackFrameFileInformationNode;
-
-            if (fileInformation is not null)
-            {
-                Debug.Assert(inTrivia.HasValue);
-                fileInformation = fileInformation.WithLeadingTrivia(inTrivia.Value);
-            }
-            else if (inTrivia.HasValue)
-            {
-                // If the file path wasn't valid make sure to add the consumed tokens to the trailing trivia
-                trailingTriviaBuilder.Add(StackFrameLexer.CreateTrivia(StackFrameKind.SkippedTextTrivia, inTrivia.Value.VirtualChars));
-
-                var fileToken = fileInformationNodeOrToken.Token;
-                if (!fileToken.LeadingTrivia.IsDefaultOrEmpty)
-                {
-                    trailingTriviaBuilder.AddRange(fileToken.LeadingTrivia);
-                }
-
-                trailingTriviaBuilder.Add(StackFrameLexer.CreateTrivia(StackFrameKind.SkippedTextTrivia, fileToken.VirtualChars));
-
-                if (!fileToken.TrailingTrivia.IsDefaultOrEmpty)
-                {
-                    trailingTriviaBuilder.AddRange(fileToken.TrailingTrivia);
-                }
-            }
-
+            var fileInformation = TryParseFileInformation();
             var remainingTrivia = _lexer.TryScanRemainingTrivia();
-            if (remainingTrivia.HasValue)
-            {
-                trailingTriviaBuilder.Add(remainingTrivia.Value);
-            }
 
-            var eolToken = CurrentCharAsToken().With(leadingTrivia: trailingTriviaBuilder.ToImmutable());
+            var eolToken = CurrentCharAsToken().With(leadingTrivia: remainingTrivia.HasValue ? ImmutableArray.Create(remainingTrivia.Value) : ImmutableArray<StackFrameTrivia>.Empty);
 
             Debug.Assert(_lexer.Position == _lexer.Text.Length);
             Debug.Assert(eolToken.Kind == StackFrameKind.EndOfLine);
@@ -442,10 +406,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// Parses text for a valid file path using valid file characters. It's very possible this includes a path that doesn't exist but
         /// forms a valid path identifier. 
         /// 
-        /// Returns tokens in cases where the path is partially parsed but not completed. Returns a <see cref="StackFrameFileInformationNode"/>
-        /// if the file information was fully parsed. 
+        /// Can return if only a path is available but not line numbers, but throws if the value after the path is a colon as the expectation
+        /// is that line number should follow.
         /// </summary>
-        private StackFrameNodeOrToken TryParseFileInformation()
+        private StackFrameFileInformationNode? TryParseFileInformation()
         {
             var path = _lexer.TryScanPath();
             if (!path.HasValue)
@@ -453,34 +417,26 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return null;
             }
 
+            if (path.Value.Kind != StackFrameKind.PathToken)
+            {
+                throw new StackFrameParseException("'In ' trivia was present ");
+            }
+
             if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.ColonToken, out var colonToken))
             {
-                return path.Value;
+                return new(path.Value, null, null);
             }
 
-            var lineIdentifier = _lexer.TryScanLineTrivia();
-            if (!lineIdentifier.HasValue)
+            var lineNumber = _lexer.TryScanLineNumber();
+
+            // TryScanLineNumber can return a token that isn't a number, in which case we want 
+            // to bail in error and consider this malformed.
+            if (!lineNumber.HasValue || lineNumber.Value.Kind != StackFrameKind.NumberToken)
             {
-                // malformed, we have a "<path>: " with no "line " trivia
-                // add the colonToken as trivia to the valid path and return it
-                var colonTrivia = StackFrameLexer.CreateTrivia(StackFrameKind.SkippedTextTrivia, colonToken.VirtualChars);
-                return path.Value.With(trailingTrivia: ImmutableArray.Create(colonTrivia));
+                throw new StackFrameParseException("Expected line number to exist after colon token");
             }
 
-            var numbers = _lexer.TryScanNumbers();
-            if (!numbers.HasValue)
-            {
-                // malformed, we have a "<path>:line " but no following number. 
-                // Add the colon and line trivia as trailing trivia
-                var jointTriviaSpan = new TextSpan(colonToken.GetSpan().Start, colonToken.VirtualChars.Length + lineIdentifier.Value.VirtualChars.Length);
-                var trailingTrivia = StackFrameLexer.CreateTrivia(StackFrameKind.SkippedTextTrivia, _lexer.Text.GetSubSequence(jointTriviaSpan));
-                return path.Value.With(trailingTrivia: ImmutableArray.Create(trailingTrivia));
-            }
-
-            return new StackFrameFileInformationNode(
-                    path.Value,
-                    colonToken,
-                    numbers.Value.With(leadingTrivia: ImmutableArray.Create(lineIdentifier.Value)));
+            return new(path.Value, colonToken, lineNumber.Value);
         }
     }
 }

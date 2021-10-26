@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             return CreateToken(StackFrameKind.IdentifierToken, CreateTrivia(atTrivia, whitespaceTrivia), GetSubSequenceToCurrentPos(startPosition));
         }
 
-        internal StackFrameTrivia? TryScanWhiteSpace()
+        private StackFrameTrivia? TryScanWhiteSpace()
         {
             var startPosition = Position;
 
@@ -243,11 +243,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         }
 
         /// <summary>
-        /// Attempts to parse a path following https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#file-and-directory-names
+        /// Attempts to parse <see cref="StackFrameKind.InTrivia"/> and a path following https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#file-and-directory-names
         /// Uses <see cref="FileInfo"/> as a tool to determine if the path is correct for returning. 
         /// </summary>
         internal StackFrameToken? TryScanPath()
         {
+            var inTrivia = TryScanInTrivia();
+            if (!inTrivia.HasValue)
+            {
+                return null;
+            }
+
             var startPosition = Position;
 
             while (Position < Text.Length)
@@ -283,10 +289,36 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             if (startPosition == Position)
             {
+                return CreateToken(StackFrameKind.None, ImmutableArray.Create(inTrivia.Value), VirtualCharSequence.Empty);
+            }
+
+            return CreateToken(StackFrameKind.PathToken, ImmutableArray.Create(inTrivia.Value), GetSubSequenceToCurrentPos(startPosition));
+        }
+
+        /// <summary>
+        /// Returns a number token with the <see cref="StackFrameKind.LineTrivia"/> and remainging <see cref="StackFrameKind.SkippedTextTrivia"/>
+        /// attached to it. If no numbers are found, returns a <see cref="StackFrameKind.None"/> token with the trivia that was scanned.
+        /// </summary>
+        /// <returns></returns>
+        internal StackFrameToken? TryScanLineNumber()
+        {
+            var lineTrivia = TryScanLineTrivia();
+            if (!lineTrivia.HasValue)
+            {
                 return null;
             }
 
-            return CreateToken(StackFrameKind.PathToken, GetSubSequenceToCurrentPos(startPosition));
+            var numberToken = TryScanNumbers();
+            if (!numberToken.HasValue)
+            {
+                return CreateToken(StackFrameKind.None, ImmutableArray.Create(lineTrivia.Value), VirtualCharSequence.Empty);
+            }
+
+            var remainingTrivia = TryScanRemainingTrivia();
+
+            return numberToken.Value.With(
+                leadingTrivia: ImmutableArray.Create(lineTrivia.Value),
+                trailingTrivia: remainingTrivia.HasValue ? ImmutableArray.Create(remainingTrivia.Value) : ImmutableArray<StackFrameTrivia>.Empty);
         }
 
         internal StackFrameTrivia? TryScanLineTrivia()

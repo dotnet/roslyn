@@ -417,11 +417,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     internal sealed class StackFrameFileInformationNode : StackFrameNode
     {
         public readonly StackFrameToken Path;
-        public readonly StackFrameToken Colon;
-        public readonly StackFrameToken Line;
+        public readonly StackFrameToken? Colon;
+        public readonly StackFrameToken? Line;
 
-        public StackFrameFileInformationNode(StackFrameToken path, StackFrameToken colon, StackFrameToken line) : base(StackFrameKind.FileInformation)
+        public StackFrameFileInformationNode(StackFrameToken path, StackFrameToken? colon, StackFrameToken? line) : base(StackFrameKind.FileInformation)
         {
+            Debug.Assert(colon.HasValue == line.HasValue);
+            Debug.Assert(!line.HasValue || line.Value.Kind == StackFrameKind.NumberToken);
+
             Path = path;
             Colon = colon;
             Line = line;
@@ -436,8 +439,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             => index switch
             {
                 0 => Path,
-                1 => Colon,
-                2 => Line,
+                1 => Colon.HasValue ? Colon.Value : null,
+                2 => Line.HasValue ? Line.Value : null,
                 _ => throw new InvalidOperationException()
             };
 
