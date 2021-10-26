@@ -238,9 +238,9 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Provides a string representation for <see cref="TextSpan"/>.<br></br>
-        /// This representation uses "half-open interval" notation, indicating the endpoint character is not included.<br></br>
-        /// Example: [10..20), indicating the text starts at position 10 and ends at position 20 not included."
+        /// Provides a string representation for <see cref="TextSpan"/>.
+        /// This representation uses "half-open interval" notation, indicating the endpoint character is not included.
+        /// Example: <c>[10..20)</c>, indicating the text starts at position 10 and ends at position 20 not included.
         /// </summary>
         public override string ToString()
         {
