@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis
         /// Formats the names of all types and namespaces in a fully qualified style (including the global alias).
         /// </summary>
         /// <remarks>
-        /// The current behavior will not output the fully qualified style as expected.
+        /// The current behavior will not output the fully qualified style as expected for member symbols (such as properties).
         /// For example, MyNamespace.MyClass.MyPublicProperty will return as MyPublicProperty.
         /// This unexpected result is the cause of memberOptions not being set.
         /// The current behavior displayed here will be maintained for backwards compatibility.
