@@ -32,9 +32,6 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal partial class SolutionState
     {
-        // branch id for this solution
-        private readonly BranchId _branchId;
-
         // the version of the workspace this solution is from
         private readonly int _workspaceVersion;
 
@@ -73,7 +70,6 @@ namespace Microsoft.CodeAnalysis
         private readonly SourceGeneratedDocumentState? _frozenSourceGeneratedDocumentState;
 
         private SolutionState(
-            BranchId branchId,
             int workspaceVersion,
             SolutionServices solutionServices,
             SolutionInfo.SolutionAttributes solutionAttributes,
@@ -88,7 +84,6 @@ namespace Microsoft.CodeAnalysis
             Lazy<HostDiagnosticAnalyzers>? lazyAnalyzers,
             SourceGeneratedDocumentState? frozenSourceGeneratedDocument)
         {
-            _branchId = branchId;
             _workspaceVersion = workspaceVersion;
             _solutionAttributes = solutionAttributes;
             _solutionServices = solutionServices;
@@ -115,13 +110,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         public SolutionState(
-            BranchId primaryBranchId,
             SolutionServices solutionServices,
             SolutionInfo.SolutionAttributes solutionAttributes,
             SerializableOptionSet options,
             IReadOnlyList<AnalyzerReference> analyzerReferences)
             : this(
-                primaryBranchId,
                 workspaceVersion: 0,
                 solutionServices,
                 solutionAttributes,
@@ -146,7 +139,7 @@ namespace Microsoft.CodeAnalysis
 
             // Note: this will potentially have problems if the workspace services are different, as some services
             // get locked-in by document states and project states when first constructed.
-            return CreatePrimarySolution(branchId: workspace.PrimaryBranchId, workspaceVersion: workspaceVersion, services: services);
+            return CreatePrimarySolution(workspaceVersion: workspaceVersion, services: services);
         }
 
         public HostDiagnosticAnalyzers Analyzers => _lazyAnalyzers.Value;
@@ -162,19 +155,6 @@ namespace Microsoft.CodeAnalysis
         public SolutionServices Services => _solutionServices;
 
         public SerializableOptionSet Options { get; }
-
-        /// <summary>
-        /// branch id of this solution
-        ///
-        /// currently, it only supports one level of branching. there is a primary branch of a workspace and all other
-        /// branches that are branched from the primary branch.
-        ///
-        /// one still can create multiple forked solutions from an already branched solution, but versions among those
-        /// can't be reliably used and compared.
-        ///
-        /// version only has a meaning between primary solution and branched one or between solutions from same branch.
-        /// </summary>
-        public BranchId BranchId => _branchId;
 
         /// <summary>
         /// The Workspace this solution is associated with.
@@ -201,12 +181,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IReadOnlyList<ProjectId> ProjectIds { get; }
 
-        // Only run this in debug builds; even the .Any() call across all projects can be expensive when there's a lot of them.
-        [Conditional("DEBUG")]
         private void CheckInvariants()
         {
+            // Run these quick checks all the time.  We need to know immediately if we violate these.
             Contract.ThrowIfFalse(_projectIdToProjectStateMap.Count == ProjectIds.Count);
             Contract.ThrowIfFalse(_projectIdToProjectStateMap.Count == _dependencyGraph.ProjectIds.Count);
+
+            // Only run this in debug builds; even the .Any() call across all projects can be expensive when there's a lot of them.
+
+#if DEBUG
 
             // An id shouldn't point at a tracker for a different project.
             Contract.ThrowIfTrue(_projectIdToTrackerMap.Any(kvp => kvp.Key != kvp.Value.ProjectState.Id));
@@ -216,6 +199,8 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(_projectIdToProjectStateMap.Keys.SetEquals(_dependencyGraph.ProjectIds));
 
             Debug.Assert(_remoteSupportedLanguages.SetEquals(GetRemoteSupportedProjectLanguages(_projectIdToProjectStateMap)));
+
+#endif
         }
 
         private SolutionState Branch(
@@ -230,8 +215,6 @@ namespace Microsoft.CodeAnalysis
             ProjectDependencyGraph? dependencyGraph = null,
             Optional<SourceGeneratedDocumentState?> frozenSourceGeneratedDocument = default)
         {
-            var branchId = GetBranchId();
-
             if (idToProjectStateMap is not null)
             {
                 Contract.ThrowIfNull(remoteSupportedProjectLanguages);
@@ -251,8 +234,7 @@ namespace Microsoft.CodeAnalysis
 
             var analyzerReferencesEqual = AnalyzerReferences.SequenceEqual(analyzerReferences);
 
-            if (branchId == _branchId &&
-                solutionAttributes == _solutionAttributes &&
+            if (solutionAttributes == _solutionAttributes &&
                 projectIds == ProjectIds &&
                 options == Options &&
                 analyzerReferencesEqual &&
@@ -266,7 +248,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new SolutionState(
-                branchId,
                 _workspaceVersion,
                 _solutionServices,
                 solutionAttributes,
@@ -283,19 +264,16 @@ namespace Microsoft.CodeAnalysis
         }
 
         private SolutionState CreatePrimarySolution(
-            BranchId branchId,
             int workspaceVersion,
             SolutionServices services)
         {
-            if (branchId == _branchId &&
-                workspaceVersion == _workspaceVersion &&
+            if (workspaceVersion == _workspaceVersion &&
                 services == _solutionServices)
             {
                 return this;
             }
 
             return new SolutionState(
-                branchId,
                 workspaceVersion,
                 services,
                 _solutionAttributes,
@@ -309,15 +287,6 @@ namespace Microsoft.CodeAnalysis
                 _dependencyGraph,
                 _lazyAnalyzers,
                 frozenSourceGeneratedDocument: null);
-        }
-
-        private BranchId GetBranchId()
-        {
-            // currently we only support one level branching.
-            // my reasonings are
-            // 1. it seems there is no-one who needs sub branches.
-            // 2. this lets us to branch without explicit branch API
-            return _branchId == Workspace.PrimaryBranchId ? BranchId.GetNextId() : _branchId;
         }
 
         /// <summary>
@@ -1520,6 +1489,7 @@ namespace Microsoft.CodeAnalysis
         {
             var projectId = newProjectState.Id;
 
+            Contract.ThrowIfFalse(_projectIdToProjectStateMap.ContainsKey(projectId));
             var newStateMap = _projectIdToProjectStateMap.SetItem(projectId, newProjectState);
 
             // Remote supported languages can only change if the project changes language. This is an unexpected edge
@@ -1538,7 +1508,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (forkTracker)
                 {
-                    newTrackerMap = newTrackerMap.Add(projectId, tracker.Fork(newProjectState, translate));
+                    newTrackerMap = newTrackerMap.Add(projectId, tracker.Fork(_solutionServices, newProjectState, translate));
                 }
             }
 
@@ -1584,7 +1554,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<ProjectId>? dependencies = null;
 
             foreach (var (id, tracker) in _projectIdToTrackerMap)
-                builder.Add(id, CanReuse(id) ? tracker : tracker.Fork(tracker.ProjectState));
+                builder.Add(id, CanReuse(id) ? tracker : tracker.Fork(_solutionServices, tracker.ProjectState));
 
             return builder.ToImmutable();
 
@@ -1708,6 +1678,7 @@ namespace Microsoft.CodeAnalysis
                     var tracker = this.GetCompilationTracker(documentId.ProjectId);
                     var newTracker = tracker.FreezePartialStateWithTree(this, doc, tree, cancellationToken);
 
+                    Contract.ThrowIfFalse(_projectIdToProjectStateMap.ContainsKey(documentId.ProjectId));
                     var newIdToProjectStateMap = _projectIdToProjectStateMap.SetItem(documentId.ProjectId, newTracker.ProjectState);
                     var newLanguages = _remoteSupportedLanguages;
                     var newIdToTrackerMap = _projectIdToTrackerMap.SetItem(documentId.ProjectId, newTracker);

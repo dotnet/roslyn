@@ -127,23 +127,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //
                 // (The right hand side has already been converted to the type expected by the operator.)
 
-                BoundExpression opLHS = isDynamic ? leftRead : MakeConversionNode(
-                    syntax: syntax,
-                    rewrittenOperand: leftRead,
-                    conversion: node.LeftConversion,
-                    rewrittenType: node.Operator.LeftType,
-                    @checked: isChecked);
+                BoundExpression opLHS = leftRead;
+
+                if (!isDynamic && node.LeftConversion is not null)
+                {
+                    Debug.Assert(node.LeftPlaceholder is not null);
+
+                    AddPlaceholderReplacement(node.LeftPlaceholder, leftRead);
+                    opLHS = VisitExpression(node.LeftConversion);
+                    RemovePlaceholderReplacement(node.LeftPlaceholder);
+                }
 
                 BoundExpression operand = MakeBinaryOperator(syntax, node.Operator.Kind, opLHS, loweredRight, node.Operator.ReturnType, node.Operator.Method, node.Operator.ConstrainedToTypeOpt, isCompoundAssignment: true);
 
                 Debug.Assert(node.Left.Type is { });
-                BoundExpression opFinal = MakeConversionNode(
-                    syntax: syntax,
-                    rewrittenOperand: operand,
-                    conversion: node.FinalConversion,
-                    rewrittenType: node.Left.Type,
-                    explicitCastInCode: isDynamic,
-                    @checked: isChecked);
+                BoundExpression opFinal = operand;
+
+                if (node.FinalConversion is not null)
+                {
+                    Debug.Assert(node.FinalPlaceholder is not null);
+
+                    AddPlaceholderReplacement(node.FinalPlaceholder, operand);
+                    opFinal = VisitExpression(node.FinalConversion);
+                    RemovePlaceholderReplacement(node.FinalPlaceholder);
+                }
 
                 return MakeAssignmentOperator(syntax, transformedLHS, opFinal, node.Left.Type, used: used, isChecked: isChecked, isCompoundAssignment: true);
             }

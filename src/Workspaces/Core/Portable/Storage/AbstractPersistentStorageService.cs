@@ -41,12 +41,11 @@ namespace Microsoft.CodeAnalysis.Storage
         protected abstract ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(SolutionKey solutionKey, string workingFolderPath, string databaseFilePath, CancellationToken cancellationToken);
         protected abstract bool ShouldDeleteDatabase(Exception exception);
 
-        public ValueTask<IChecksummedPersistentStorage> GetStorageAsync(SolutionKey solutionKey, bool checkBranchId, CancellationToken cancellationToken)
+        public ValueTask<IChecksummedPersistentStorage> GetStorageAsync(SolutionKey solutionKey, CancellationToken cancellationToken)
         {
-            if (!DatabaseSupported(solutionKey, checkBranchId))
-                return new(NoOpPersistentStorage.GetOrThrow(Configuration.ThrowOnFailure));
-
-            return GetStorageWorkerAsync(solutionKey, cancellationToken);
+            return solutionKey.FilePath == null
+                ? new(NoOpPersistentStorage.GetOrThrow(Configuration.ThrowOnFailure))
+                : GetStorageWorkerAsync(solutionKey, cancellationToken);
         }
 
         internal async ValueTask<IChecksummedPersistentStorage> GetStorageWorkerAsync(SolutionKey solutionKey, CancellationToken cancellationToken)
@@ -94,22 +93,6 @@ namespace Microsoft.CodeAnalysis.Storage
                 // the refcounts, this instance will not be actually disposed.
                 return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(_currentPersistentStorage);
             }
-        }
-
-        private static bool DatabaseSupported(SolutionKey solution, bool checkBranchId)
-        {
-            if (solution.FilePath == null)
-            {
-                return false;
-            }
-
-            if (checkBranchId && !solution.IsPrimaryBranch)
-            {
-                // we only use database for primary solution. (Ex, forked solution will not use database)
-                return false;
-            }
-
-            return true;
         }
 
         private async ValueTask<IChecksummedPersistentStorage> CreatePersistentStorageAsync(

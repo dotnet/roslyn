@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             IGlobalOptionService globalOptions,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
             : base(xamlDispatcherFactory, globalOptions, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)

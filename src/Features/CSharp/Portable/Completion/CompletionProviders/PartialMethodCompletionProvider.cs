@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -19,6 +17,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -32,6 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         public PartialMethodCompletionProvider()
         {
         }
+
+        internal override string Language => LanguageNames.CSharp;
 
         protected override bool IncludeAccessibility(IMethodSymbol method, CancellationToken cancellationToken)
         {
@@ -57,7 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 ?? token.GetAncestor<EventDeclarationSyntax>()
                 ?? token.GetAncestor<PropertyDeclarationSyntax>()
                 ?? token.GetAncestor<IndexerDeclarationSyntax>()
-                ?? (SyntaxNode)token.GetAncestor<MethodDeclarationSyntax>();
+                ?? (SyntaxNode?)token.GetAncestor<MethodDeclarationSyntax>()
+                ?? throw ExceptionUtilities.UnexpectedValue(token);
         }
 
         protected override int GetTargetCaretPosition(SyntaxNode caretTarget)
@@ -72,11 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return tree.FindTokenOnLeftOfPosition(tokenSpanEnd, cancellationToken);
         }
 
-        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            var ch = text[characterPosition];
-            return ch == ' ' || (CompletionUtilities.IsStartingNewWord(text, characterPosition) && options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp));
-        }
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
+            => text[characterPosition] == ' ' ||
+               options.TriggerOnTypingLetters && CompletionUtilities.IsStartingNewWord(text, characterPosition);
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 

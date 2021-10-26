@@ -54,16 +54,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 var dte = GetDTE();
 
-                var activeVisualStudioWindow = (IntPtr)dte.ActiveWindow.HWnd;
+                var activeVisualStudioWindow = dte.ActiveWindow.HWnd;
                 Debug.WriteLine($"DTE.ActiveWindow.HWnd = {activeVisualStudioWindow}");
-
-                if (activeVisualStudioWindow == IntPtr.Zero)
+                if (activeVisualStudioWindow != IntPtr.Zero)
                 {
-                    activeVisualStudioWindow = (IntPtr)dte.MainWindow.HWnd;
-                    Debug.WriteLine($"DTE.MainWindow.HWnd = {activeVisualStudioWindow}");
+                    if (IntegrationHelper.TrySetForegroundWindow(activeVisualStudioWindow))
+                        return;
                 }
 
-                IntegrationHelper.SetForegroundWindow(activeVisualStudioWindow);
+                activeVisualStudioWindow = dte.MainWindow.HWnd;
+                Debug.WriteLine($"DTE.MainWindow.HWnd = {activeVisualStudioWindow}");
+                if (!IntegrationHelper.TrySetForegroundWindow(activeVisualStudioWindow))
+                    throw new InvalidOperationException("Failed to set the foreground window.");
             });
 
         public int GetErrorListErrorCount()

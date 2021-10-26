@@ -217,8 +217,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 var typeSymbols = OfType<ITypeSymbol>(symbols);
 
-                var options = await _document.GetOptionsAsync(searchScope.CancellationToken).ConfigureAwait(false);
-                var hideAdvancedMembers = options.GetOption(CompletionOptions.HideAdvancedMembers);
+                var hideAdvancedMembers = _document.Project.Solution.Options.GetOption(CompletionOptions.Metadata.HideAdvancedMembers, _document.Project.Language);
                 var editorBrowserInfo = new EditorBrowsableInfo(_semanticModel.Compilation);
 
                 // Only keep symbols which are accessible from the current location and that are allowed by the current

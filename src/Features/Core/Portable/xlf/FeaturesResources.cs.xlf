@@ -227,7 +227,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Applying_source_changes_while_the_application_is_running_is_not_supported_by_the_runtime">
         <source>Applying source changes while the application is running is not supported by the runtime.</source>
-        <target state="new">Applying source changes while the application is running is not supported by the runtime.</target>
+        <target state="translated">Použití změn zdroje v době, kdy je aplikace spuštěna, není podporováno modulem runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_requires_restarting_the_application">
@@ -239,6 +239,16 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <source>Asynchronously waits for the task to finish.</source>
         <target state="translated">Asynchronně čeká na dokončení úlohy.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Await_the_preceding_expression">
+        <source>Await the preceding expression</source>
+        <target state="new">Await the preceding expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Await_the_preceding_expression_and_add_ConfigureAwait_0">
+        <source>Await the preceding expression and add ConfigureAwait({0}).</source>
+        <target state="new">Await the preceding expression and add ConfigureAwait({0}).</target>
+        <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
@@ -452,7 +462,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Convert_to_tuple">
         <source>Convert to tuple</source>
-        <target state="new">Convert to tuple</target>
+        <target state="translated">Převést na řazenou kolekci členů</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_type_to_0">
@@ -2893,7 +2903,7 @@ Pokud se specifikátor formátu H použije bez dalších specifikátorů vlastn�
       </trans-unit>
       <trans-unit id="all_anonymous_types_in_container">
         <source>all anonymous types in container</source>
-        <target state="new">all anonymous types in container</target>
+        <target state="translated">všechny anonymní typy v kontejneru</target>
         <note />
       </trans-unit>
       <trans-unit id="and_update_call_sites_directly">
@@ -3054,7 +3064,7 @@ Specifikátor standardního formátu f představuje kombinaci vzorů dlouhého d
       </trans-unit>
       <trans-unit id="just_this_anonymous_type">
         <source>just this anonymous type</source>
-        <target state="new">just this anonymous type</target>
+        <target state="translated">jenom tento anonymní typ</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">
@@ -4173,16 +4183,6 @@ Tato verze se používá zde: {2}.</target>
       <trans-unit id="Add_missing_param_nodes">
         <source>Add missing param nodes</source>
         <target state="translated">Přidat chybějící uzly parametrů</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_containing_scope_async">
-        <source>Make containing scope async</source>
-        <target state="translated">Převést obsažený obor na asynchronní</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_containing_scope_async_return_Task">
-        <source>Make containing scope async (return Task)</source>
-        <target state="translated">Převést obsažený obor na asynchronní (návratová hodnota Task)</target>
         <note />
       </trans-unit>
       <trans-unit id="paren_Unknown_paren">

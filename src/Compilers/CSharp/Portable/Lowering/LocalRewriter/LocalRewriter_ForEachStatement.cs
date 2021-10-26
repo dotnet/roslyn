@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return node;
             }
 
-            BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node);
+            BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node, out _);
             TypeSymbol? nodeExpressionType = collectionExpression.Type;
             Debug.Assert(nodeExpressionType is { });
             if (nodeExpressionType.Kind == SymbolKind.ArrayType)
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ForEachEnumeratorInfo? enumeratorInfo = node.EnumeratorInfoOpt;
             Debug.Assert(enumeratorInfo != null);
 
-            BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node);
+            BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node, out Conversion collectionConversion);
             BoundExpression rewrittenExpression = VisitExpression(collectionExpression);
             BoundStatement? rewrittenBody = VisitStatement(node.Body);
             Debug.Assert(rewrittenBody is { });
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Reference to e.
             BoundLocal boundEnumeratorVar = MakeBoundLocal(forEachSyntax, enumeratorVar, enumeratorType);
 
-            var receiver = ConvertReceiverForInvocation(forEachSyntax, rewrittenExpression, getEnumeratorInfo.Method, enumeratorInfo.CollectionConversion, enumeratorInfo.CollectionType);
+            var receiver = ConvertReceiverForInvocation(forEachSyntax, rewrittenExpression, getEnumeratorInfo.Method, collectionConversion, enumeratorInfo.CollectionType);
 
             // If the GetEnumerator call is an extension method, then the first argument is the receiver. We want to replace
             // the first argument with our converted receiver and pass null as the receiver instead.
@@ -152,20 +152,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             InstrumentForEachStatementCollectionVarDeclaration(node, ref enumeratorVarDecl);
 
             // (V)(T)e.Current
-            BoundExpression iterationVarAssignValue = MakeConversionNode(
-                syntax: forEachSyntax,
-                rewrittenOperand: MakeConversionNode(
-                    syntax: forEachSyntax,
-                    rewrittenOperand: BoundCall.Synthesized(
+            BoundExpression iterationVarAssignValue = ApplyConversionIfNotIdentity(
+                node.ElementConversion,
+                node.ElementPlaceholder,
+                ApplyConversionIfNotIdentity(
+                    enumeratorInfo.CurrentConversion,
+                    enumeratorInfo.CurrentPlaceholder,
+                    BoundCall.Synthesized(
                         syntax: forEachSyntax,
                         receiverOpt: boundEnumeratorVar,
-                        method: enumeratorInfo.CurrentPropertyGetter),
-                    conversion: enumeratorInfo.CurrentConversion,
-                    rewrittenType: elementType,
-                    @checked: node.Checked),
-                conversion: node.ElementConversion,
-                rewrittenType: node.IterationVariableType.Type,
-                @checked: node.Checked);
+                        method: enumeratorInfo.CurrentPropertyGetter)));
 
             // V v = (V)(T)e.Current;  -OR-  (D1 d1, ...) = (V)(T)e.Current;
 
@@ -338,24 +334,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // NB: cast to object missing from spec.  Needed to ignore user-defined operators and box type parameters.
                     // if ((object)e != null) ((IDisposable)e).Dispose(); 
+                    var objectType = _factory.SpecialType(SpecialType.System_Object);
                     alwaysOrMaybeDisposeStmt = RewriteIfStatement(
                         syntax: forEachSyntax,
-                        rewrittenCondition: new BoundBinaryOperator(forEachSyntax,
-                            operatorKind: BinaryOperatorKind.NotEqual,
-                            left: MakeConversionNode(
-                                syntax: forEachSyntax,
-                                rewrittenOperand: boundEnumeratorVar,
-                                conversion: enumeratorInfo.EnumeratorConversion,
-                                rewrittenType: _compilation.GetSpecialType(SpecialType.System_Object),
-                                @checked: false),
-                            right: MakeLiteral(forEachSyntax,
-                                constantValue: ConstantValue.Null,
-                                type: null),
-                            constantValueOpt: null,
-                            methodOpt: null,
-                            constrainedToTypeOpt: null,
-                            resultKind: LookupResultKind.Viable,
-                            type: _compilation.GetSpecialType(SpecialType.System_Boolean)),
+                        rewrittenCondition: _factory.ObjectNotEqual(_factory.Convert(objectType, boundEnumeratorVar), _factory.Null(objectType)),
                         rewrittenConsequence: disposeCallStatement,
                         rewrittenAlternativeOpt: null,
                         hasErrors: false);
@@ -388,7 +370,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression disposableVarInitValue = new BoundAsOperator(forEachSyntax,
                     operand: boundEnumeratorVar,
                     targetType: boundIDisposableTypeExpr,
-                    conversion: Conversion.ExplicitReference, // Explicit so the emitter won't optimize it away.
+                    operandPlaceholder: null,
+                    operandConversion: null,
                     type: idisposableTypeSymbol);
 
                 // IDisposable d = e as IDisposable;
@@ -539,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var forEachSyntax = (CommonForEachStatementSyntax)node.Syntax;
 
-            BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node);
+            BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node, out _);
             NamedTypeSymbol? collectionType = (NamedTypeSymbol?)collectionExpression.Type;
             Debug.Assert(collectionType is { });
 
@@ -572,16 +555,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MakeLiteral(forEachSyntax, ConstantValue.Default(SpecialType.System_Int32), intType));
 
             // (V)a[p]
-            BoundExpression iterationVarInitValue = MakeConversionNode(
-                syntax: forEachSyntax,
-                rewrittenOperand: BoundCall.Synthesized(
+            BoundExpression iterationVarInitValue = ApplyConversionIfNotIdentity(
+                node.ElementConversion,
+                node.ElementPlaceholder,
+                BoundCall.Synthesized(
                     syntax: forEachSyntax,
                     receiverOpt: boundArrayVar,
                     indexerGet,
-                    boundPositionVar),
-                conversion: node.ElementConversion,
-                rewrittenType: node.IterationVariableType.Type,
-                @checked: node.Checked);
+                    boundPositionVar));
 
             // V v = (V)a[p];   /* OR */   (D1 d1, ...) = (V)a[p];
             ImmutableArray<LocalSymbol> iterationVariables = node.IterationVariables;
@@ -745,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var forEachSyntax = (CommonForEachStatementSyntax)node.Syntax;
 
-            BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node);
+            BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node, out _);
             Debug.Assert(collectionExpression.Type is { TypeKind: TypeKind.Array });
 
             ArrayTypeSymbol arrayType = (ArrayTypeSymbol)collectionExpression.Type;
@@ -780,16 +761,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MakeLiteral(forEachSyntax, ConstantValue.Default(SpecialType.System_Int32), intType));
 
             // (V)a[p]
-            BoundExpression iterationVarInitValue = MakeConversionNode(
-                syntax: forEachSyntax,
-                rewrittenOperand: new BoundArrayAccess(
+            BoundExpression iterationVarInitValue = ApplyConversionIfNotIdentity(
+                node.ElementConversion,
+                node.ElementPlaceholder,
+                new BoundArrayAccess(
                     syntax: forEachSyntax,
                     expression: boundArrayVar,
                     indices: ImmutableArray.Create<BoundExpression>(boundPositionVar),
-                    type: arrayType.ElementType),
-                conversion: node.ElementConversion,
-                rewrittenType: node.IterationVariableType.Type,
-                @checked: node.Checked);
+                    type: arrayType.ElementType));
 
             // V v = (V)a[p];   /* OR */   (D1 d1, ...) = (V)a[p];
             ImmutableArray<LocalSymbol> iterationVariables = node.IterationVariables;
@@ -872,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var forEachSyntax = (CommonForEachStatementSyntax)node.Syntax;
 
-            BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node);
+            BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node, out _);
             Debug.Assert(collectionExpression.Type is { TypeKind: TypeKind.Array });
 
             ArrayTypeSymbol arrayType = (ArrayTypeSymbol)collectionExpression.Type;
@@ -937,15 +916,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // (V)a[p_0, p_1, ...]
-            BoundExpression iterationVarInitValue = MakeConversionNode(
-                syntax: forEachSyntax,
-                rewrittenOperand: new BoundArrayAccess(forEachSyntax,
+            BoundExpression iterationVarInitValue = ApplyConversionIfNotIdentity(
+                node.ElementConversion,
+                node.ElementPlaceholder,
+                new BoundArrayAccess(forEachSyntax,
                     expression: boundArrayVar,
                     indices: ImmutableArray.Create((BoundExpression[])boundPositionVar),
-                    type: arrayType.ElementType),
-                conversion: node.ElementConversion,
-                rewrittenType: node.IterationVariableType.Type,
-                @checked: node.Checked);
+                    type: arrayType.ElementType));
 
             // V v = (V)a[p_0, p_1, ...];   /* OR */   (D1 d1, ...) = (V)a[p_0, p_1, ...];
 
@@ -1047,17 +1024,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// initial bound tree.  However, we may be able to optimize away (or entirely disregard) the conversion
         /// so we pull out the bound node for the underlying expression.
         /// </summary>
-        private static BoundExpression GetUnconvertedCollectionExpression(BoundForEachStatement node)
+        private static BoundExpression GetUnconvertedCollectionExpression(BoundForEachStatement node, out Conversion collectionConversion)
         {
-            var boundExpression = node.Expression;
-            if (boundExpression.Kind == BoundKind.Conversion)
-            {
-                return ((BoundConversion)boundExpression).Operand;
-            }
-
-            // Conversion was an identity conversion and the LocalRewriter must have optimized away the
-            // BoundConversion node, we can return the expression itself.
-            return boundExpression;
+            var boundConversion = (BoundConversion)node.Expression;
+            collectionConversion = boundConversion.Conversion;
+            return boundConversion.Operand;
         }
 
         private static BoundLocal MakeBoundLocal(CSharpSyntaxNode syntax, LocalSymbol local, TypeSymbol type)

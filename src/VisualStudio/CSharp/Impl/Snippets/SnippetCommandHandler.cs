@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -42,6 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         IChainedCommandHandler<TypeCharCommandArgs>
     {
         private readonly ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _argumentProviders;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -51,10 +53,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             SVsServiceProvider serviceProvider,
-            [ImportMany] IEnumerable<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders)
+            [ImportMany] IEnumerable<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders,
+            IGlobalOptionService globalOptions)
             : base(threadingContext, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, serviceProvider)
         {
             _argumentProviders = argumentProviders.ToImmutableArray();
+            _globalOptions = globalOptions;
         }
 
         public bool ExecuteCommand(SurroundWithCommandArgs args, CommandExecutionContext context)
@@ -118,7 +122,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         {
             if (!textView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient expansionClient))
             {
-                expansionClient = new SnippetExpansionClient(ThreadingContext, Guids.CSharpLanguageServiceId, textView, subjectBuffer, SignatureHelpControllerProvider, EditorCommandHandlerServiceFactory, EditorAdaptersFactoryService, _argumentProviders);
+                expansionClient = new SnippetExpansionClient(
+                    ThreadingContext,
+                    Guids.CSharpLanguageServiceId,
+                    textView,
+                    subjectBuffer,
+                    SignatureHelpControllerProvider,
+                    EditorCommandHandlerServiceFactory,
+                    EditorAdaptersFactoryService,
+                    _argumentProviders,
+                    _globalOptions);
+
                 textView.Properties.AddProperty(typeof(AbstractSnippetExpansionClient), expansionClient);
             }
 
