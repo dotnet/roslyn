@@ -12,7 +12,6 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
-    <IncludePackageReferencesDuringMarkupCompilation>true</IncludePackageReferencesDuringMarkupCompilation>
     <GitVersionBaseDirectory>$(RepoRootPath)</GitVersionBaseDirectory>
 
     <!-- This entire repo has just one version.json file, so compute the version once and share with all projects in a large build. -->
