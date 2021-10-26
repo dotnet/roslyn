@@ -48,14 +48,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             if (activeSession == null)
             {
                 var bufferType = view.TextBuffer.ContentType.DisplayName;
-                throw new InvalidOperationException(string.Format("No expanded light bulb session found after View.ShowSmartTag.  Buffer content type={0}", bufferType));
+                throw new InvalidOperationException($"No expanded light bulb session found after View.ShowSmartTag.  Buffer content type={bufferType}");
             }
 
             var start = DateTime.Now;
-            IEnumerable<SuggestedActionSet> actionSets = Array.Empty<SuggestedActionSet>();
             while (DateTime.Now - start < Helper.HangMitigatingTimeout)
             {
-                var status = activeSession.TryGetSuggestedActionSets(out actionSets);
+                var status = activeSession.TryGetSuggestedActionSets(out var actionSets);
                 if (status is not QuerySuggestedActionCompletionStatus.Completed and
                               not QuerySuggestedActionCompletionStatus.Canceled)
                 {
@@ -64,12 +63,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 }
 
                 if (status != QuerySuggestedActionCompletionStatus.Completed)
-                    actionSets = Array.Empty<SuggestedActionSet>();
+                    throw new InvalidOperationException($"Querying light bulb for status produced: {status}");
 
-                break;
+                return actionSets;
             }
 
-            return actionSets;
+            throw new InvalidOperationException($"Light bulb never transitioned to completed state.");
         }
     }
 }
