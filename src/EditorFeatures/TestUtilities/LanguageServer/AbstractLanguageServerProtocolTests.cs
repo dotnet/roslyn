@@ -316,9 +316,9 @@ namespace Roslyn.Test.Utilities
             workspace.ChangeSolution(solution);
 
             // Important: We must wait for workspace creation operations to finish.
-            // Otherwise we could have a race where late workspace change events triggered by creation are removing LSP solutions
+            // Otherwise we could have a race where workspace change events triggered by creation are changing the state
             // created by the initial test steps. This can interfere with the expected test state.
-            await WaitForWorkspaceOperations(workspace);
+            await WaitForWorkspaceOperationsAsync(workspace);
 
             return new TestLspServer(workspace);
         }
@@ -326,7 +326,11 @@ namespace Roslyn.Test.Utilities
         protected async Task<TestLspServer> CreateXmlTestLspServerAsync(string xmlContent, string? workspaceKind = null)
         {
             var workspace = TestWorkspace.Create(XElement.Parse(xmlContent), openDocuments: false, composition: Composition, workspaceKind: workspaceKind);
-            await WaitForWorkspaceOperations(workspace);
+
+            // Important: We must wait for workspace creation operations to finish.
+            // Otherwise we could have a race where workspace change events triggered by creation are changing the state
+            // created by the initial test steps. This can interfere with the expected test state.
+            await WaitForWorkspaceOperationsAsync(workspace);
             return new TestLspServer(workspace);
         }
 
@@ -334,11 +338,16 @@ namespace Roslyn.Test.Utilities
         /// Waits for the async operations on the workspace to complete.
         /// This ensures that events like workspace registration / workspace changes are processed by the time we exit this method.
         /// </summary>
-        protected static async Task WaitForWorkspaceOperations(TestWorkspace workspace)
+        protected static async Task WaitForWorkspaceOperationsAsync(TestWorkspace workspace)
+        {
+            var workspaceWaiter = GetWorkspaceWaiter(workspace);
+            await workspaceWaiter.ExpeditedWaitAsync();
+        }
+
+        private static IAsynchronousOperationWaiter GetWorkspaceWaiter(TestWorkspace workspace)
         {
             var operations = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-            var workspaceWaiter = operations.GetWaiter(FeatureAttribute.Workspace);
-            await workspaceWaiter.ExpeditedWaitAsync();
+            return operations.GetWaiter(FeatureAttribute.Workspace);
         }
 
         protected static void AddMappedDocument(Workspace workspace, string markup)
@@ -457,6 +466,9 @@ namespace Roslyn.Test.Utilities
                 _locations = GetAnnotatedLocations(testWorkspace, testWorkspace.CurrentSolution);
                 _requestDispatcher = CreateRequestDispatcher(testWorkspace);
                 _executionQueue = CreateRequestQueue(testWorkspace);
+
+                var workspaceWaiter = GetWorkspaceWaiter(testWorkspace);
+                Assert.False(workspaceWaiter.HasPendingWork);
 
                 // Clear any LSP solutions that were created when the workspace was initialized.
                 // This ensures that the workspace manager starts with a clean slate.

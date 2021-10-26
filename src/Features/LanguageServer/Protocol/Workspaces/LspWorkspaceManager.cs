@@ -427,11 +427,11 @@ internal partial class LspWorkspaceManager : IDisposable
         public LspMiscellaneousFilesWorkspace? GetLspMiscellaneousFilesWorkspace()
             => _manager._lspMiscellaneousFilesWorkspace;
 
-        public Dictionary<Workspace, Solution?> GetWorkspaceState()
+        public ImmutableDictionary<Workspace, Solution?> GetWorkspaceState()
         {
             lock (_manager._gate)
             {
-                return _manager._workspaceToLspSolution;
+                return _manager._workspaceToLspSolution.ToImmutableDictionary();
             }
         }
 

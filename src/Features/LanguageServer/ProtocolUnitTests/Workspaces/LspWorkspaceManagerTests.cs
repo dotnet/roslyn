@@ -330,7 +330,7 @@ class A
             exportProvider: exportProvider);
 
         // Wait for workspace creation operations for the second workspace to complete.
-        await WaitForWorkspaceOperations(testWorkspaceTwo);
+        await WaitForWorkspaceOperationsAsync(testWorkspaceTwo);
 
         // Manually register the workspace since the workspace listener does not listen for this workspace kind.
         var workspaceRegistrationService = exportProvider.GetExport<LspWorkspaceRegistrationService>();
@@ -395,7 +395,7 @@ class A
             exportProvider: exportProvider);
 
         // Wait for workspace creation operations to complete for the second workspace.
-        await WaitForWorkspaceOperations(testWorkspaceTwo);
+        await WaitForWorkspaceOperationsAsync(testWorkspaceTwo);
 
         // Verify both workspaces registered.
         Assert.Null(GetManagerWorkspaceState(testLspServer.TestWorkspace, testLspServer));
@@ -462,7 +462,7 @@ class A
             exportProvider: exportProvider);
 
         // Wait for workspace operations to complete for the second workspace.
-        await WaitForWorkspaceOperations(testWorkspaceTwo);
+        await WaitForWorkspaceOperationsAsync(testWorkspaceTwo);
 
         var firstWorkspaceDocumentUri = ProtocolConversions.GetUriFromFilePath(@"C:\FirstWorkspace.cs");
         var secondWorkspaceDocumentUri = ProtocolConversions.GetUriFromFilePath(@"C:\SecondWorkspace.cs");
@@ -506,7 +506,7 @@ class A
         using var testWorkspace = TestWorkspace.Create(XElement.Parse(workspaceXml), composition: Composition);
 
         // Wait for workspace creation operations to complete.
-        await WaitForWorkspaceOperations(testWorkspace);
+        await WaitForWorkspaceOperationsAsync(testWorkspace);
 
         var documentUri = testWorkspace.CurrentSolution.Projects.First().Documents.First().GetURI();
 
