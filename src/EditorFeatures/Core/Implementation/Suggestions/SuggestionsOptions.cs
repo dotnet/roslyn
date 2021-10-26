@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public static readonly Option2<bool?> Asynchronous = new(FeatureName, nameof(Asynchronous), defaultValue: null,
             new RoamingProfileStorageLocation("TextEditor.Specific.Suggestions.Asynchronous2"));
 
-        public static readonly Option2<bool> AsynchronousQuickActionsDisableFeatureFlag = new(FeatureName, nameof(AsynchronousQuickActionsDisableFeatureFlag), defaultValue: false,
-            new FeatureFlagStorageLocation("Roslyn.AsynchronousQuickActionsDisable"));
+        public static readonly Option2<bool> AsynchronousQuickActionsEnableFeatureFlag = new(FeatureName, nameof(AsynchronousQuickActionsEnableFeatureFlag), defaultValue: false,
+            new FeatureFlagStorageLocation("Roslyn.AsynchronousQuickActionsEnable2"));
     }
 }

@@ -70,8 +70,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             ' Quick Actions
             BindToOption(ComputeQuickActionsAsynchronouslyExperimental, SuggestionsOptions.Asynchronous,
                          Function()
-                             ' If the option has Not been set by the user, check if the option is disabled from experimentation.
-                             Return Not optionStore.GetOption(SuggestionsOptions.AsynchronousQuickActionsDisableFeatureFlag)
+                             ' If the option has Not been set by the user, check if the option is enabled from experimentation.
+                             Return optionStore.GetOption(SuggestionsOptions.AsynchronousQuickActionsEnableFeatureFlag)
                          End Function)
 
             ' Highlighting
