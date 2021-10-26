@@ -267,4 +267,6 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             _fileToDocumentMap.Clear();
         }
     }
+
+    internal sealed record SourceDocument(string FilePath, SourceText? EmbeddedText);
 }
