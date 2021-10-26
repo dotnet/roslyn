@@ -484,6 +484,52 @@ public class C
             });
         }
 
+        [Fact]
+        public async Task EmptyPdb_NullResult()
+        {
+            var source = @"
+public class C
+{
+    public event System.EventHandler [|E|] { add { } remove { } }
+}";
+
+            await RunTestAsync(async path =>
+            {
+                MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
+
+                // Now make the PDB a zero byte file
+                File.WriteAllBytes(GetPdbPath(path), new byte[0]);
+
+                await GenerateFileAndVerifyAsync(project, symbol, source, expectedSpan, expectNullResult: true);
+            });
+        }
+
+        [Fact]
+        public async Task CorruptPdb_NullResult()
+        {
+            var source = @"
+public class C
+{
+    public event System.EventHandler [|E|] { add { } remove { } }
+}";
+
+            await RunTestAsync(async path =>
+            {
+                MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
+
+                // The first four bytes of this are BSJB so it is identified as a portable PDB.
+                // The next two bytes are unimportant, they're just not valid PDB data.
+                var corruptPdb = new byte[] { 66, 83, 74, 66, 68, 87 };
+                File.WriteAllBytes(GetPdbPath(path), corruptPdb);
+
+                await GenerateFileAndVerifyAsync(project, symbol, source, expectedSpan, expectNullResult: true);
+            });
+        }
+
         private static Task TestAsync(
             Location pdbLocation,
             Location sourceLocation,
