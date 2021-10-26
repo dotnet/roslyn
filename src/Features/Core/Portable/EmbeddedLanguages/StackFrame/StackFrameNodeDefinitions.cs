@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         public readonly StackFrameTypeArgumentList? TypeArguments;
         public readonly StackFrameParameterList ArgumentList;
 
-        internal StackFrameMethodDeclarationNode(
+        public StackFrameMethodDeclarationNode(
             StackFrameMemberAccessExpressionNode memberAccessExpression,
             StackFrameTypeArgumentList? typeArguments,
             StackFrameParameterList argumentList)
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
         internal override int ChildCount => 3;
 
-        internal StackFrameGenericTypeIdentifier(StackFrameToken identifier, StackFrameToken arityToken, StackFrameToken arityNumericToken)
+        public StackFrameGenericTypeIdentifier(StackFrameToken identifier, StackFrameToken arityToken, StackFrameToken arityNumericToken)
             : base(StackFrameKind.GenericTypeIdentifier)
         {
             Identifier = identifier;
@@ -274,6 +274,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         }
     }
 
+    /// <summary>
+    /// The type argument list for a method declaration. 
+    /// Ex: MyType.MyMethod[T, U, V](T t, U u, V v) 
+    ///                    ^-----------------------  "[" = Open Token 
+    ///                     ^------^   ------------  "T, U, V" = SeparatedStackFrameNodeList&lt;StackFrameTypeArgumentNode&gt;
+    ///                             ^--------------  "]" = Close Token
+    /// </summary>
     internal sealed class StackFrameTypeArgumentList : StackFrameNode
     {
         public readonly StackFrameToken OpenToken;
@@ -284,6 +291,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         {
             Debug.Assert(openToken.Kind is StackFrameKind.OpenBracketToken or StackFrameKind.LessThanToken);
             Debug.Assert(openToken.Kind == StackFrameKind.OpenBracketToken ? closeToken.Kind == StackFrameKind.CloseBracketToken : closeToken.Kind == StackFrameKind.GreaterThanToken);
+            Debug.Assert(typeArguments.Length > 0);
 
             OpenToken = openToken;
             CloseToken = closeToken;
@@ -322,7 +330,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
         internal override int ChildCount => 1;
 
-        internal StackFrameTypeArgumentNode(StackFrameToken identifier)
+        public StackFrameTypeArgumentNode(StackFrameToken identifier)
             : base(StackFrameKind.TypeIdentifier)
         {
             Identifier = identifier;

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => trivia.HasValue ? ImmutableArray.Create(trivia.Value) : ImmutableArray<StackFrameTrivia>.Empty;
 
         private static ImmutableArray<StackFrameTrivia> CreateTriviaArray(params string[] strings)
-            => strings.Select(s => CreateTrivia(StackFrameKind.TextTrivia, s)).ToImmutableArray();
+            => strings.Select(s => CreateTrivia(StackFrameKind.SkippedTextTrivia, s)).ToImmutableArray();
 
         private static readonly StackFrameToken DotToken = CreateToken(StackFrameKind.DotToken, ".");
         private static readonly StackFrameToken CommaToken = CreateToken(StackFrameKind.CommaToken, ",");

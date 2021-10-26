@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         }
 
         private StackFrameLexer _lexer;
-        private StackFrameToken CurrentToken => _lexer.CurrentCharAsToken();
+        private StackFrameToken CurrentCharAsToken() => _lexer.CurrentCharAsToken();
 
         private StackFrameParser(VirtualCharSequence text)
         {
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return null;
             }
 
-            var inTrivia = _lexer.ScanInTrivia();
+            var inTrivia = _lexer.TryScanInTrivia();
             var fileInformationNodeOrToken = inTrivia.HasValue
                 ? TryParseFileInformation()
                 : null;
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             else if (inTrivia.HasValue)
             {
                 // If the file path wasn't valid make sure to add the consumed tokens to the trailing trivia
-                trailingTriviaBuilder.Add(StackFrameLexer.CreateTrivia(StackFrameKind.TextTrivia, inTrivia.Value.VirtualChars));
+                trailingTriviaBuilder.Add(StackFrameLexer.CreateTrivia(StackFrameKind.SkippedTextTrivia, inTrivia.Value.VirtualChars));
 
                 var fileToken = fileInformationNodeOrToken.Token;
                 if (!fileToken.LeadingTrivia.IsDefaultOrEmpty)
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                     trailingTriviaBuilder.AddRange(fileToken.LeadingTrivia);
                 }
 
-                trailingTriviaBuilder.Add(StackFrameLexer.CreateTrivia(StackFrameKind.TextTrivia, fileToken.VirtualChars));
+                trailingTriviaBuilder.Add(StackFrameLexer.CreateTrivia(StackFrameKind.SkippedTextTrivia, fileToken.VirtualChars));
 
                 if (!fileToken.TrailingTrivia.IsDefaultOrEmpty)
                 {
@@ -138,21 +138,20 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 }
             }
 
-            var remainingTrivia = _lexer.ScanRemainingTrivia();
+            var remainingTrivia = _lexer.TryScanRemainingTrivia();
             if (remainingTrivia.HasValue)
             {
                 trailingTriviaBuilder.Add(remainingTrivia.Value);
             }
 
-            var eolToken = CurrentToken.With(leadingTrivia: trailingTriviaBuilder.ToImmutable());
+            var eolToken = CurrentCharAsToken().With(leadingTrivia: trailingTriviaBuilder.ToImmutable());
 
             Debug.Assert(_lexer.Position == _lexer.Text.Length);
             Debug.Assert(eolToken.Kind == StackFrameKind.EndOfLine);
 
             var root = new StackFrameCompilationUnit(methodDeclaration, fileInformation, eolToken);
 
-            return new StackFrameTree(
-                _lexer.Text, root, ImmutableArray<EmbeddedDiagnostic>.Empty);
+            return new(_lexer.Text, root);
         }
 
         /// <summary>
@@ -202,17 +201,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         {
             Queue<(StackFrameNodeOrToken identifier, StackFrameToken separator)> typeIdentifierNodes = new();
 
-            var currentIdentifier = _lexer.ScanIdentifier(scanAtTrivia: scanAtTrivia, scanWhitespace: true);
+            var currentIdentifier = _lexer.TryScanIdentifier(scanAtTrivia: scanAtTrivia, scanWhitespace: true);
 
             while (currentIdentifier.HasValue && currentIdentifier.Value.Kind == StackFrameKind.IdentifierToken)
             {
                 StackFrameToken? arity = null;
-                if (_lexer.ScanIfMatch(StackFrameKind.GraveAccentToken, out var graveAccentToken))
+                if (_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.GraveAccentToken, out var graveAccentToken))
                 {
-                    arity = _lexer.ScanNumbers();
+                    arity = _lexer.TryScanNumbers();
                     if (!arity.HasValue)
                     {
-                        throw new StackFrameParseException(StackFrameKind.NumberToken, CurrentToken);
+                        throw new StackFrameParseException(StackFrameKind.NumberToken, CurrentCharAsToken());
                     }
                 }
 
@@ -220,16 +219,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                     ? new StackFrameGenericTypeIdentifier(currentIdentifier.Value, graveAccentToken, arity.Value)
                     : currentIdentifier.Value;
 
-                typeIdentifierNodes.Enqueue((identifierNode, CurrentToken));
+                typeIdentifierNodes.Enqueue((identifierNode, CurrentCharAsToken()));
 
                 // Progress the lexer if the current token is a dot token, which 
                 // was already added to the list. 
-                if (!_lexer.ScanIfMatch(StackFrameKind.DotToken, out var _))
+                if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.DotToken, out var _))
                 {
                     break;
                 }
 
-                currentIdentifier = _lexer.ScanIdentifier();
+                currentIdentifier = _lexer.TryScanIdentifier();
             }
 
             if (typeIdentifierNodes.Count == 0)
@@ -270,15 +269,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// starting character depending on output source.
         /// 
         /// ex: MyNamespace.MyClass.MyMethod[T](T t)
+        /// ex: MyNamespace.MyClass.MyMethod&lt;T&lt;(T t)
         /// 
         /// Assumes the identifier "MyMethod" has already been parsed, and the type arguments will need to be parsed. 
-        /// Returns null if no type arguments are found or if they are malformed.
+        /// Returns null if no type arguments are found, and throw a <see cref="StackFrameParseException"/> if they are malformed
         /// </summary>
         private StackFrameTypeArgumentList? TryParseTypeArguments()
         {
-            if (!_lexer.ScanIfMatch(
-                kind => kind is StackFrameKind.OpenBracketToken or StackFrameKind.LessThanToken,
-                out var openToken))
+            if (!_lexer.ScanCurrentCharAsTokenIfMatch(
+                    kind => kind is StackFrameKind.OpenBracketToken or StackFrameKind.LessThanToken,
+                    out var openToken))
             {
                 return null;
             }
@@ -286,14 +286,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             var useCloseBracket = openToken.Kind is StackFrameKind.OpenBracketToken;
 
             using var _ = ArrayBuilder<StackFrameNodeOrToken>.GetInstance(out var builder);
-            var currentIdentifier = _lexer.ScanIdentifier();
+            var currentIdentifier = _lexer.TryScanIdentifier();
             StackFrameToken closeToken = default;
 
             while (currentIdentifier.HasValue && currentIdentifier.Value.Kind == StackFrameKind.IdentifierToken)
             {
                 builder.Add(new StackFrameTypeArgumentNode(currentIdentifier.Value));
 
-                if (_lexer.ScanIfMatch(StackFrameKind.CloseBracketToken, out var closeBracket))
+                if (_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.CloseBracketToken, out var closeBracket))
                 {
                     if (useCloseBracket)
                     {
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                     throw new StackFrameParseException(StackFrameKind.GreaterThanToken, closeBracket);
                 }
 
-                if (_lexer.ScanIfMatch(StackFrameKind.GreaterThanToken, out var greaterThanToken))
+                if (_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.GreaterThanToken, out var greaterThanToken))
                 {
                     if (useCloseBracket)
                     {
@@ -315,8 +315,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                     break;
                 }
 
-                builder.Add(CurrentToken);
-                currentIdentifier = _lexer.ScanIdentifier();
+                builder.Add(CurrentCharAsToken());
+                currentIdentifier = _lexer.TryScanIdentifier();
             }
 
             if (closeToken.IsMissing)
@@ -331,31 +331,32 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// MyNamespace.MyClass.MyMethod[|(string s1, string s2, int i1)|]
         /// Takes parameter declarations from method text and parses them into a <see cref="StackFrameParameterList"/>. 
         /// 
-        /// Returns null in cases where the input is malformed.
+        /// Returns null in cases where the opening paren is not found. Throws <see cref="StackFrameParseException"/> if the 
+        /// opening paren exists but the remaining parameter definitions are malformed.
         /// </summary>
         private StackFrameParameterList? TryParseMethodParameters()
         {
-            if (!_lexer.ScanIfMatch(StackFrameKind.OpenParenToken, scanTrailingWhitespace: true, out var openParen))
+            if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.OpenParenToken, scanTrailingWhitespace: true, out var openParen))
             {
                 return null;
             }
 
-            if (_lexer.ScanIfMatch(StackFrameKind.CloseParenToken, out var closeParen))
+            if (_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.CloseParenToken, out var closeParen))
             {
                 return new StackFrameParameterList(openParen, closeParen, SeparatedStackFrameNodeList<StackFrameParameterNode>.Empty);
             }
 
             using var _ = ArrayBuilder<StackFrameNodeOrToken>.GetInstance(out var builder);
             builder.Add(ParseParameterNode());
-            while (_lexer.ScanIfMatch(StackFrameKind.CommaToken, out var commaToken))
+            while (_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.CommaToken, out var commaToken))
             {
                 builder.Add(commaToken);
                 builder.Add(ParseParameterNode());
             }
 
-            if (!_lexer.ScanIfMatch(StackFrameKind.CloseParenToken, out closeParen))
+            if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.CloseParenToken, out closeParen))
             {
-                throw new StackFrameParseException(StackFrameKind.CloseParenToken, CurrentToken);
+                throw new StackFrameParseException(StackFrameKind.CloseParenToken, CurrentCharAsToken());
             }
 
             var parameters = new SeparatedStackFrameNodeList<StackFrameParameterNode>(builder.ToImmutable());
@@ -376,7 +377,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 throw new StackFrameParseException("Expected type identifier when parsing parameters");
             }
 
-            if (CurrentToken.Kind == StackFrameKind.OpenBracketToken)
+            if (CurrentCharAsToken().Kind == StackFrameKind.OpenBracketToken)
             {
                 var arrayIdentifiers = ParseArrayIdentifiers();
                 typeIdentifier = new StackFrameArrayTypeExpression(typeIdentifier.Value, arrayIdentifiers);
@@ -411,20 +412,20 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             while (true)
             {
-                if (!_lexer.ScanIfMatch(StackFrameKind.OpenBracketToken, scanTrailingWhitespace: true, out var openBracket))
+                if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.OpenBracketToken, scanTrailingWhitespace: true, out var openBracket))
                 {
                     return builder.ToImmutable();
                 }
 
                 commaBuilder.Clear();
-                while (_lexer.ScanIfMatch(StackFrameKind.CommaToken, scanTrailingWhitespace: true, out var commaToken))
+                while (_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.CommaToken, scanTrailingWhitespace: true, out var commaToken))
                 {
                     commaBuilder.Add(commaToken);
                 }
 
-                if (!_lexer.ScanIfMatch(StackFrameKind.CloseBracketToken, scanTrailingWhitespace: true, out var closeBracket))
+                if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.CloseBracketToken, scanTrailingWhitespace: true, out var closeBracket))
                 {
-                    throw new StackFrameParseException(StackFrameKind.CloseBracketToken, CurrentToken);
+                    throw new StackFrameParseException(StackFrameKind.CloseBracketToken, CurrentCharAsToken());
                 }
 
                 builder.Add(new StackFrameArrayRankSpecifier(openBracket, closeBracket, commaBuilder.ToImmutable()));
@@ -436,36 +437,39 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// <summary>
         /// Parses text for a valid file path using valid file characters. It's very possible this includes a path that doesn't exist but
         /// forms a valid path identifier. 
+        /// 
+        /// Returns tokens in cases where the path is partially parsed but not completed. Returns a <see cref="StackFrameFileInformationNode"/>
+        /// if the file information was fully parsed. 
         /// </summary>
         private StackFrameNodeOrToken TryParseFileInformation()
         {
-            var path = _lexer.ScanPath();
+            var path = _lexer.TryScanPath();
             if (!path.HasValue)
             {
                 return null;
             }
 
-            if (!_lexer.ScanIfMatch(StackFrameKind.ColonToken, out var colonToken))
+            if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.ColonToken, out var colonToken))
             {
                 return path.Value;
             }
 
-            var lineIdentifier = _lexer.ScanLineTrivia();
+            var lineIdentifier = _lexer.TryScanLineTrivia();
             if (!lineIdentifier.HasValue)
             {
                 // malformed, we have a "<path>: " with no "line " trivia
                 // add the colonToken as trivia to the valid path and return it
-                var colonTrivia = StackFrameLexer.CreateTrivia(StackFrameKind.TextTrivia, colonToken.VirtualChars);
+                var colonTrivia = StackFrameLexer.CreateTrivia(StackFrameKind.SkippedTextTrivia, colonToken.VirtualChars);
                 return path.Value.With(trailingTrivia: ImmutableArray.Create(colonTrivia));
             }
 
-            var numbers = _lexer.ScanNumbers();
+            var numbers = _lexer.TryScanNumbers();
             if (!numbers.HasValue)
             {
                 // malformed, we have a "<path>:line " but no following number. 
                 // Add the colon and line trivia as trailing trivia
                 var jointTriviaSpan = new TextSpan(colonToken.GetSpan().Start, colonToken.VirtualChars.Length + lineIdentifier.Value.VirtualChars.Length);
-                var trailingTrivia = StackFrameLexer.CreateTrivia(StackFrameKind.TextTrivia, _lexer.Text.GetSubSequence(jointTriviaSpan));
+                var trailingTrivia = StackFrameLexer.CreateTrivia(StackFrameKind.SkippedTextTrivia, _lexer.Text.GetSubSequence(jointTriviaSpan));
                 return path.Value.With(trailingTrivia: ImmutableArray.Create(trailingTrivia));
             }
 

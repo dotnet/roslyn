@@ -10,15 +10,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 {
     internal class StackFrameTree
     {
-        public StackFrameTree(VirtualCharSequence text, StackFrameCompilationUnit root, ImmutableArray<EmbeddedDiagnostic> embeddedDiagnostics)
+        public StackFrameTree(VirtualCharSequence text, StackFrameCompilationUnit root)
         {
             Text = text;
             Root = root;
-            EmbeddedDiagnostics = embeddedDiagnostics;
         }
 
         public VirtualCharSequence Text { get; }
         public StackFrameCompilationUnit Root { get; }
-        public ImmutableArray<EmbeddedDiagnostic> EmbeddedDiagnostics { get; }
     }
 }

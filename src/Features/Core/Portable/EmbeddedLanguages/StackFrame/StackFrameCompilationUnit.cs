@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     /// Any leading "at " is considered trivia of <see cref="MethodDeclaration"/>, and " in " is put as trivia for the <see cref="FileInformationExpression"/>.
     /// Remaining unparsable text is put as leading trivia on the <see cref="EndOfLineToken"/>
     /// </summary>
-    internal class StackFrameCompilationUnit
+    internal class StackFrameCompilationUnit : StackFrameNode
     {
         /// <summary>
         /// Represents the method declaration for a stack frame. Requires at least a member 
@@ -36,10 +37,25 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         public readonly StackFrameToken EndOfLineToken;
 
         public StackFrameCompilationUnit(StackFrameMethodDeclarationNode methodDeclaration, StackFrameFileInformationNode? fileInformationExpression, StackFrameToken endOfLineToken)
+            : base(StackFrameKind.CompilationUnit)
         {
             MethodDeclaration = methodDeclaration;
             FileInformationExpression = fileInformationExpression;
             EndOfLineToken = endOfLineToken;
         }
+
+        internal override int ChildCount => 3;
+
+        public override void Accept(IStackFrameNodeVisitor visitor)
+            => visitor.Visit(this);
+
+        internal override StackFrameNodeOrToken ChildAt(int index)
+            => index switch
+            {
+                0 => MethodDeclaration,
+                1 => FileInformationExpression,
+                2 => EndOfLineToken,
+                _ => throw new InvalidOperationException()
+            };
     }
 }

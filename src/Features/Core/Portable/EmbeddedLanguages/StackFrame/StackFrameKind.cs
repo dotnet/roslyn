@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         None = 0,
 
         // Nodes
-        EndOfLine,
         MethodDeclaration,
         MemberAccess,
         ArrayTypeExpression,
@@ -22,8 +21,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         ParameterList,
         ArrayExpression,
         FileInformation,
+        CompilationUnit,
 
         // Tokens 
+        EndOfLine,
         AmpersandToken,
         OpenBracketToken,
         CloseBracketToken,
@@ -50,6 +51,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         AtTrivia, // "at " portion of the stack frame
         InTrivia, // optional " in " portion of the stack frame
         LineTrivia, // optional "line " string indicating the line number of a file
-        TextTrivia,
+        SkippedTextTrivia, // any skipped text that isn't a node, token, or special kind of trivia already presented
     }
 }
