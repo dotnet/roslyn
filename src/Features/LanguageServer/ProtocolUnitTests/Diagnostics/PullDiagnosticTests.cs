@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -348,6 +349,100 @@ class B {";
             Assert.All(results.Single().Diagnostics, d => Assert.Equal("CSProj1", ((VSDiagnostic)d).Projects.Single().ProjectName));
         }
 
+        [Fact]
+        public async Task TestDocumentDiagnosticsWithChangeInReferencedProject()
+        {
+            var markup1 =
+@"namespace M
+{
+    class A : B { }
+}";
+            var markup2 =
+@"namespace M
+{
+    public class {|caret:|} { }
+}";
+
+            var workspaceXml =
+@$"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"">
+        <Document FilePath=""C:\A.cs"">{markup1}</Document>
+        <ProjectReference>CSProj2</ProjectReference>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj2"">
+        <Document FilePath=""C:\B.cs"">{markup2}</Document>
+    </Project>
+</Workspace>";
+
+            using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution).ConfigureAwait(false);
+            var csproj1Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj1").Single().Documents.First();
+            var csproj2Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj2").Single().Documents.First();
+
+            await testLspServer.OpenDocumentAsync(csproj1Document.GetURI());
+            await testLspServer.OpenDocumentAsync(csproj2Document.GetURI());
+
+            // Verify we a diagnostic in A.cs since B does not exist.
+            var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, csproj1Document.GetURI());
+            Assert.Single(results);
+            Assert.Equal("CS0246", results.Single().Diagnostics.Single().Code);
+
+            // Insert B into B.cs and verify that the error in A.cs is now gone.
+            var locationToReplace = testLspServer.GetLocations("caret").Single().Range;
+            await testLspServer.ReplaceTextAsync(csproj2Document.GetURI(), (locationToReplace, "B"));
+            var originalResultId = results.Single().ResultId;
+            results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, csproj1Document.GetURI(), originalResultId);
+            Assert.Single(results);
+            Assert.Empty(results.Single().Diagnostics);
+            Assert.NotEqual(originalResultId, results.Single().ResultId);
+        }
+
+        [Fact]
+        public async Task TestDocumentDiagnosticsWithChangeInNotReferencedProject()
+        {
+            var markup1 =
+@"namespace M
+{
+    class A : B { }
+}";
+            var markup2 =
+@"namespace M
+{
+    public class {|caret:|} { }
+}";
+
+            var workspaceXml =
+@$"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"">
+        <Document FilePath=""C:\A.cs"">{markup1}</Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj2"">
+        <Document FilePath=""C:\B.cs"">{markup2}</Document>
+    </Project>
+</Workspace>";
+
+            using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution).ConfigureAwait(false);
+            var csproj1Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj1").Single().Documents.First();
+            var csproj2Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj2").Single().Documents.First();
+
+            await testLspServer.OpenDocumentAsync(csproj1Document.GetURI());
+            await testLspServer.OpenDocumentAsync(csproj2Document.GetURI());
+
+            // Verify we get a diagnostic in A since the class B does not exist.
+            var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, csproj1Document.GetURI());
+            Assert.Single(results);
+            Assert.Equal("CS0246", results.Single().Diagnostics.Single().Code);
+
+            // Add B to CSProj2 and verify that we get an unchanged result (still has diagnostic) for A.cs
+            // since CSProj1 does not reference CSProj2
+            var locationToReplace = testLspServer.GetLocations("caret").Single().Range;
+            await testLspServer.ReplaceTextAsync(csproj2Document.GetURI(), (locationToReplace, "B"));
+            var originalResultId = results.Single().ResultId;
+            results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, csproj1Document.GetURI(), originalResultId);
+            Assert.Single(results);
+            Assert.Null(results.Single().Diagnostics);
+            Assert.Equal(originalResultId, results.Single().ResultId);
+        }
+
         #endregion
 
         #region Workspace Diagnostics
@@ -450,9 +545,9 @@ class B {";
             Assert.Null(results2[0].Diagnostics);
             Assert.Null(results2[0].ResultId);
 
-            // Second doc should show up as unchanged.
-            Assert.Null(results2[1].Diagnostics);
-            Assert.Equal(results[1].ResultId, results2[1].ResultId);
+            // Second doc should be changed as the project has changed.
+            Assert.Empty(results[1].Diagnostics);
+            Assert.NotEqual(results[1].ResultId, results2[1].ResultId);
         }
 
         private static VSInternalDiagnosticParams[] CreateDiagnosticParamsFromPreviousReports(VSInternalWorkspaceDiagnosticReport[] results)
@@ -511,10 +606,12 @@ class B {";
 
             Assert.Equal(2, results2.Length);
             Assert.Empty(results2[0].Diagnostics);
-            Assert.Null(results2[1].Diagnostics);
+            // Project has changed, so we re-computed diagnostics as changes in the first file
+            // may have changed results in the second.
+            Assert.Empty(results2[1].Diagnostics);
 
             Assert.NotEqual(results[0].ResultId, results2[0].ResultId);
-            Assert.Equal(results[1].ResultId, results2[1].ResultId);
+            Assert.NotEqual(results[1].ResultId, results2[1].ResultId);
         }
 
         [Fact]
@@ -596,6 +693,119 @@ class A {";
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
             Assert.Equal(1, results[0].Diagnostics.Single().Range.Start.Line);
             Assert.Empty(results[1].Diagnostics);
+        }
+
+        [Fact]
+        public async Task TestWorkspaceDiagnosticsWithChangeInReferencedProject()
+        {
+            var markup1 =
+@"namespace M
+{
+    class A : B { }
+}";
+            var markup2 =
+@"namespace M
+{
+    public class {|caret:|} { }
+}";
+
+            var workspaceXml =
+@$"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"">
+        <Document FilePath=""C:\A.cs"">{markup1}</Document>
+        <ProjectReference>CSProj2</ProjectReference>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj2"">
+        <Document FilePath=""C:\B.cs"">{markup2}</Document>
+    </Project>
+</Workspace>";
+
+            using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution);
+            var csproj2Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj2").Single().Documents.First();
+
+            // Verify we a diagnostic in A.cs since B does not exist
+            // and a diagnostic in B.cs since it is missing the class name.
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
+            AssertEx.NotNull(results);
+            Assert.Equal(2, results.Length);
+            Assert.Equal("CS0246", results[0].Diagnostics.Single().Code);
+            Assert.Equal("CS1001", results[1].Diagnostics.Single().Code);
+
+            // Insert B into B.cs via the workspace.
+            var caretLocation = testLspServer.GetLocations("caret").First().Range;
+            var csproj2DocumentText = await csproj2Document.GetTextAsync();
+            var newCsProj2Document = csproj2Document.WithText(csproj2DocumentText.WithChanges(new TextChange(ProtocolConversions.RangeToTextSpan(caretLocation, csproj2DocumentText), "B")));
+            await testLspServer.TestWorkspace.ChangeDocumentAsync(csproj2Document.Id, newCsProj2Document.Project.Solution);
+
+            // Get updated workspace diagnostics for the change.
+            var previousResultIds = CreateDiagnosticParamsFromPreviousReports(results);
+            results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults: previousResultIds);
+            AssertEx.NotNull(results);
+            Assert.Equal(2, results.Length);
+
+            // Verify diagnostics for A.cs are updated as the type B now exists.
+            Assert.Empty(results[0].Diagnostics);
+            Assert.NotEqual(previousResultIds[0].PreviousResultId, results[0].ResultId);
+
+            // Verify diagnostics for B.cs are updated as the class definition is now correct.
+            Assert.Empty(results[1].Diagnostics);
+            Assert.NotEqual(previousResultIds[1].PreviousResultId, results[1].ResultId);
+        }
+
+        [Fact]
+        public async Task TestWorkspaceDiagnosticsWithChangeInNotReferencedProject()
+        {
+            var markup1 =
+@"namespace M
+{
+    class A : B { }
+}";
+            var markup2 =
+@"namespace M
+{
+    public class {|caret:|} { }
+}";
+
+            var workspaceXml =
+@$"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"">
+        <Document FilePath=""C:\A.cs"">{markup1}</Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj2"">
+        <Document FilePath=""C:\B.cs"">{markup2}</Document>
+    </Project>
+</Workspace>";
+
+            using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution);
+            var csproj2Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj2").Single().Documents.First();
+
+            // Verify we a diagnostic in A.cs since B does not exist
+            // and a diagnostic in B.cs since it is missing the class name.
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
+            AssertEx.NotNull(results);
+            Assert.Equal(2, results.Length);
+            Assert.Equal("CS0246", results[0].Diagnostics.Single().Code);
+            Assert.Equal("CS1001", results[1].Diagnostics.Single().Code);
+
+            // Insert B into B.cs via the workspace.
+            var caretLocation = testLspServer.GetLocations("caret").First().Range;
+            var csproj2DocumentText = await csproj2Document.GetTextAsync();
+            var newCsProj2Document = csproj2Document.WithText(csproj2DocumentText.WithChanges(new TextChange(ProtocolConversions.RangeToTextSpan(caretLocation, csproj2DocumentText), "B")));
+            await testLspServer.TestWorkspace.ChangeDocumentAsync(csproj2Document.Id, newCsProj2Document.Project.Solution);
+
+            // Get updated workspace diagnostics for the change.
+            var previousResultIds = CreateDiagnosticParamsFromPreviousReports(results);
+            results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, previousResultIds);
+            AssertEx.NotNull(results);
+            Assert.Equal(2, results.Length);
+
+            // Verify the diagnostic result for A.cs is unchanged as A.cs does not reference CSProj2.
+            Assert.Null(results[0].Diagnostics);
+            Assert.Equal(previousResultIds[0].PreviousResultId, results[0].ResultId);
+
+            // Verify that the diagnostics result for B.cs reflects the change we made to it.
+            Assert.Empty(results[1].Diagnostics);
+            Assert.NotEqual(previousResultIds[1].PreviousResultId, results[1].ResultId);
         }
 
         #endregion

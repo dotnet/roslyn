@@ -35,14 +35,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected readonly IDiagnosticService DiagnosticService;
 
         /// <summary>
-        /// Lock to protect <see cref="_documentIdToLastResultId"/> and <see cref="_nextDocumentResultId"/>.
+        /// Lock to protect <see cref="_documentIdToLastResult"/> and <see cref="_nextDocumentResultId"/>.
+        /// Since this is a non-mutating request handler it is possible for
+        /// calls to <see cref="HandleRequestAsync(TDiagnosticsParams, RequestContext, CancellationToken)"/>
+        /// to run concurrently.
         /// </summary>
         private readonly object _gate = new();
 
         /// <summary>
-        /// Mapping of a document to the last result id we reported for it.
+        /// Mapping of a document to the last project version and resultId we reported for it.
         /// </summary>
-        private readonly Dictionary<(Workspace workspace, DocumentId documentId), string> _documentIdToLastResultId = new();
+        private readonly Dictionary<(Workspace Workspace, DocumentId DocumentId), (string ResultId, VersionStamp ProjectVersion)> _documentIdToLastResult = new();
 
         /// <summary>
         /// The next available id to label results with.  Note that results are tagged on a per-document bases.  That
@@ -59,7 +62,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             IDiagnosticService diagnosticService)
         {
             DiagnosticService = diagnosticService;
-            DiagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
         }
 
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams diagnosticsParams);
@@ -95,21 +97,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// Generate the right diagnostic tags for a particular diagnostic.
         /// </summary>
         protected abstract DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData);
-
-        private void OnDiagnosticsUpdated(object? sender, DiagnosticsUpdatedArgs updateArgs)
-        {
-            if (updateArgs.DocumentId == null)
-                return;
-
-            // Ensure we do not clear the cached results while the handler is reading (and possibly then writing)
-            // to the cached results.
-            lock (_gate)
-            {
-                // Whenever we hear about changes to a document, drop the data we've stored for it.  We'll recompute it as
-                // necessary on the next request.
-                _documentIdToLastResultId.Remove((updateArgs.Workspace, updateArgs.DocumentId));
-            }
-        }
 
         public async Task<TReport[]?> HandleRequestAsync(
             TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
@@ -148,7 +135,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     continue;
                 }
 
-                if (HaveDiagnosticsChanged(documentToPreviousDiagnosticParams, document, out var newResultId))
+                var currentProjectVersion = await document.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
+                if (HaveDiagnosticsChanged(documentToPreviousDiagnosticParams, document, currentProjectVersion, out var newResultId))
                 {
                     context.TraceInformation($"Diagnostics were changed for document: {document.FilePath}");
                     progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, document, newResultId, cancellationToken).ConfigureAwait(false));
@@ -268,19 +256,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         private bool HaveDiagnosticsChanged(
             Dictionary<Document, VSInternalDiagnosticParams> documentToPreviousDiagnosticParams,
             Document document,
+            VersionStamp currentProjectVersion,
             [NotNullWhen(true)] out string? newResultId)
         {
-            // Read and write the cached resultId to _documentIdToLastResultId in a single transaction
-            // to prevent in-between updates to _documentIdToLastResultId triggered by OnDiagnosticsUpdated.
             lock (_gate)
             {
                 var workspace = document.Project.Solution.Workspace;
+                // Get the resultId used to previously report diagnostics for this document,
+                // then fetch the project version and resultId that were used to last report diagnostics
+                // for this document.
                 if (documentToPreviousDiagnosticParams.TryGetValue(document, out var previousParams) &&
-                       _documentIdToLastResultId.TryGetValue((workspace, document.Id), out var lastReportedResultId) &&
-                       lastReportedResultId == previousParams.PreviousResultId)
+                    previousParams.PreviousResultId != null &&
+                    _documentIdToLastResult.TryGetValue((workspace, document.Id), out var lastResult) &&
+                    lastResult.ResultId == previousParams.PreviousResultId &&
+                    lastResult.ProjectVersion == currentProjectVersion)
                 {
-                    // Our cached resultId for the document matches the resultId the client passed to us.
-                    // This means the diagnostics have not changed and we do not need to re-compute.
+                    // The project version associated with the resultId we last used to report results matches
+                    // with the current project version for this request.  This means diagnostics have not changed
+                    // and we do not need to recompute.
                     newResultId = null;
                     return false;
                 }
@@ -295,7 +288,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 // Note that we can safely update the map before computation as any cancellation or exception
                 // during computation means that the client will never recieve this resultId and so cannot ask us for it.
                 newResultId = $"{GetType().Name}:{_nextDocumentResultId++}";
-                _documentIdToLastResultId[(document.Project.Solution.Workspace, document.Id)] = newResultId;
+                _documentIdToLastResult[(document.Project.Solution.Workspace, document.Id)] = (newResultId, currentProjectVersion);
                 return true;
             }
         }
