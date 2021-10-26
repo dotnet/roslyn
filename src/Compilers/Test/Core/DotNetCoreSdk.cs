@@ -22,6 +22,7 @@ namespace Roslyn.Test.Utilities
 
         static DotNetCoreSdk()
         {
+#if NETCOREAPP
             var dotNetExeName = "dotnet" + (Path.DirectorySeparatorChar == '/' ? "" : ".exe");
 
             bool DotNetExeExists(string? directory)
@@ -40,6 +41,7 @@ namespace Roslyn.Test.Utilities
             {
                 ExePath = Path.Combine(dotNetInstallDir, dotNetExeName);
             }
+#endif
         }
     }
 }
