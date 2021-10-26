@@ -606,7 +606,7 @@ public class C
             var service = workspace.GetService<IMetadataAsSourceFileService>();
             try
             {
-                var file = await service.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, CancellationToken.None).ConfigureAwait(false);
+                var file = await service.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, allowDecompilation: false, CancellationToken.None).ConfigureAwait(false);
 
                 if (expectNullResult)
                 {
