@@ -776,7 +776,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             object? rootNode = DebuggerAttributes.GetFieldValue(ImmutableSegmentedList.Create<string>("1", "2", "3"), "_root")!;
             DebuggerAttributes.ValidateDebuggerDisplayReferences(rootNode);
             PropertyInfo itemProperty = info.Properties.Single(pr => pr.GetCustomAttribute<DebuggerBrowsableAttribute>()!.State == DebuggerBrowsableState.RootHidden);
-            double[]? items = itemProperty.GetValue(info.Instance) as double[];
+            double[]? items = (double[]?)itemProperty.GetValue(info.Instance);
+            Assert.NotNull(items);
             Assert.Equal(list, items);
         }
 

@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
             var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI());
 
+            Assert.NotNull(results);
             Assert.Empty(results);
         }
 
@@ -79,8 +80,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             await OpenDocumentAsync(testLspServer, document);
 
             var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI());
+            var diagnostics = results.Single().Diagnostics;
 
-            Assert.Empty(results.Single().Diagnostics);
+            Assert.NotNull(diagnostics);
+            Assert.Empty(diagnostics);
         }
 
         [Fact]
@@ -99,7 +102,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             testLspServer.TestWorkspace.SetOptions(testLspServer.TestWorkspace.Options.WithChangedOption(DiagnosticOptions.LspPullDiagnosticsFeatureFlag, false));
 
             var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI());
-            Assert.Empty(results.Single().Diagnostics);
+            var diagnostics = results.Single().Diagnostics;
+
+            Assert.NotNull(diagnostics);
+            Assert.Empty(diagnostics);
         }
 
         [Fact]
@@ -212,8 +218,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             await InsertTextAsync(testLspServer, document, buffer.CurrentSnapshot.Length, "}");
 
             results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI());
-            Contract.ThrowIfNull(results);
-            Assert.Empty(results[0].Diagnostics);
+            Assert.NotNull(results);
+            Assert.NotNull(results[0].Diagnostics);
+            Assert.Empty(results[0].Diagnostics!);
         }
 
         [Fact]
@@ -336,16 +343,19 @@ class B {";
             // Set CSProj2 as the active context and get diagnostics.
             testLspServer.TestWorkspace.SetDocumentContext(csproj2Document.Id);
             var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, csproj2Document.GetURI());
-            Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
-            var vsDiagnostic = (LSP.VSDiagnostic)results.Single().Diagnostics.Single();
+            var diagnostics = results.Single().Diagnostics;
+            Assert.Equal("CS1513", diagnostics.Single().Code);
+            var vsDiagnostic = (LSP.VSDiagnostic)diagnostics.Single();
             Assert.Equal("CSProj2", vsDiagnostic.Projects.Single().ProjectName);
 
             // Set CSProj1 as the active context and get diagnostics.
             testLspServer.TestWorkspace.SetDocumentContext(csproj1Document.Id);
             results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, csproj1Document.GetURI());
-            Assert.Equal(2, results.Single().Diagnostics!.Length);
-            Assert.All(results.Single().Diagnostics, d => Assert.Equal("CS1513", d.Code));
-            Assert.All(results.Single().Diagnostics, d => Assert.Equal("CSProj1", ((VSDiagnostic)d).Projects.Single().ProjectName));
+            diagnostics = results.Single().Diagnostics;
+            Assert.NotNull(diagnostics);
+            Assert.Equal(2, diagnostics.Length);
+            Assert.All(diagnostics, d => Assert.Equal("CS1513", d.Code));
+            Assert.All(diagnostics, d => Assert.Equal("CSProj1", ((VSDiagnostic)d).Projects.Single().ProjectName));
         }
 
         #endregion
@@ -363,6 +373,7 @@ class B {";
 
             var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
 
+            Assert.NotNull(results);
             Assert.Empty(results);
         }
 
@@ -380,7 +391,8 @@ class B {";
 
             Assert.Equal(2, results.Length);
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
-            Assert.Empty(results[1].Diagnostics);
+            Assert.NotNull(results[1].Diagnostics);
+            Assert.Empty(results[1].Diagnostics!);
         }
 
         [Fact]
@@ -396,8 +408,10 @@ class B {";
             Contract.ThrowIfNull(results);
 
             Assert.Equal(2, results.Length);
-            Assert.Empty(results[0].Diagnostics);
-            Assert.Empty(results[1].Diagnostics);
+            Assert.NotNull(results[0].Diagnostics);
+            Assert.Empty(results[0].Diagnostics!);
+            Assert.NotNull(results[1].Diagnostics);
+            Assert.Empty(results[1].Diagnostics!);
         }
 
         [Fact]
@@ -438,7 +452,8 @@ class B {";
 
             Assert.Equal(2, results.Length);
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
-            Assert.Empty(results[1].Diagnostics);
+            Assert.NotNull(results[1].Diagnostics);
+            Assert.Empty(results[1].Diagnostics!);
 
             testLspServer.TestWorkspace.OnDocumentRemoved(testLspServer.TestWorkspace.Documents.First().Id);
 
@@ -474,7 +489,8 @@ class B {";
 
             Assert.Equal(2, results.Length);
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
-            Assert.Empty(results[1].Diagnostics);
+            Assert.NotNull(results[1].Diagnostics);
+            Assert.Empty(results[1].Diagnostics!);
 
             var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
             Contract.ThrowIfNull(results2);
@@ -501,7 +517,8 @@ class B {";
 
             Assert.Equal(2, results.Length);
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
-            Assert.Empty(results[1].Diagnostics);
+            Assert.NotNull(results[1].Diagnostics);
+            Assert.Empty(results[1].Diagnostics!);
 
             var buffer = testLspServer.TestWorkspace.Documents.First().GetTextBuffer();
             buffer.Insert(buffer.CurrentSnapshot.Length, "}");
@@ -510,7 +527,8 @@ class B {";
             Contract.ThrowIfNull(results2);
 
             Assert.Equal(2, results2.Length);
-            Assert.Empty(results2[0].Diagnostics);
+            Assert.NotNull(results[0].Diagnostics);
+            Assert.Empty(results2[0].Diagnostics!);
             Assert.Null(results2[1].Diagnostics);
 
             Assert.NotEqual(results[0].ResultId, results2[0].ResultId);
@@ -533,7 +551,8 @@ class B {";
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
             Assert.Equal(new Position { Line = 0, Character = 9 }, results[0].Diagnostics.Single().Range.Start);
 
-            Assert.Empty(results[1].Diagnostics);
+            Assert.NotNull(results[1].Diagnostics);
+            Assert.Empty(results[1].Diagnostics!);
 
             var buffer = testLspServer.TestWorkspace.Documents.First().GetTextBuffer();
             buffer.Insert(0, " ");
@@ -552,7 +571,8 @@ class B {";
             Assert.Equal("CS1513", results2[0].Diagnostics.Single().Code);
             Assert.Equal(new Position { Line = 0, Character = 10 }, results2[0].Diagnostics.Single().Range.Start);
 
-            Assert.Empty(results2[1].Diagnostics);
+            Assert.NotNull(results2[1].Diagnostics);
+            Assert.Empty(results2[1].Diagnostics!);
             Assert.NotEqual(results[1].ResultId, results2[1].ResultId);
         }
 
@@ -595,7 +615,8 @@ class A {";
             Assert.Equal(new Uri("C:/test1.cs"), results[0].TextDocument!.Uri);
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
             Assert.Equal(1, results[0].Diagnostics.Single().Range.Start.Line);
-            Assert.Empty(results[1].Diagnostics);
+            Assert.NotNull(results[1].Diagnostics);
+            Assert.Empty(results[1].Diagnostics!);
         }
 
         #endregion

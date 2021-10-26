@@ -331,6 +331,7 @@ csharp_new_line_before_else=true";
             var analyzerSetting = new AnalyzerSetting(descriptor, ReportDiagnostic.Suppress, updater, Language.CSharp, new SettingLocation(EditorConfigSettings.LocationKind.VisualStudio, null));
             analyzerSetting.ChangeSeverity(DiagnosticSeverity.Error);
             var updates = await updater.GetChangedEditorConfigAsync(default);
+            Assert.NotNull(updates);
             var update = Assert.Single(updates);
             Assert.Equal($"[*.cs]\r\ndotnet_diagnostic.{id}.severity=error", update.NewText);
         }
@@ -350,6 +351,7 @@ csharp_new_line_before_else=true";
                                                   null!);
             setting.ChangeSeverity(DiagnosticSeverity.Error);
             var updates = await updater.GetChangedEditorConfigAsync(default);
+            Assert.NotNull(updates);
             var update = Assert.Single(updates);
             Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=false:error", update.NewText);
             value = "false:error";
@@ -359,6 +361,7 @@ csharp_new_line_before_else=true";
             Assert.True(workspace.TryApplyChanges(newSolution));
             setting.ChangeValue(0);
             updates = await updater.GetChangedEditorConfigAsync(default);
+            Assert.NotNull(updates);
             update = Assert.Single(updates);
             Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=true:error", update.NewText);
         }
@@ -371,6 +374,7 @@ csharp_new_line_before_else=true";
             var setting = WhitespaceSetting.Create(CSharpFormattingOptions2.NewLineForElse, "", TestAnalyzerConfigOptions.Instance, workspace.Options, updater, null!);
             setting.SetValue(false);
             var updates = await updater.GetChangedEditorConfigAsync(default);
+            Assert.NotNull(updates);
             var update = Assert.Single(updates);
             Assert.Equal("[*.cs]\r\ncsharp_new_line_before_else=false", update.NewText);
         }

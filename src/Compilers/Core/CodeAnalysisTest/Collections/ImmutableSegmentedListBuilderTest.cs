@@ -361,7 +361,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             builder.Add("Two");
             DebuggerAttributeInfo info = DebuggerAttributes.ValidateDebuggerTypeProxyProperties(builder);
             PropertyInfo itemProperty = info.Properties.Single(pr => pr.GetCustomAttribute<DebuggerBrowsableAttribute>()!.State == DebuggerBrowsableState.RootHidden);
-            string[]? items = itemProperty.GetValue(info.Instance) as string[];
+            string[]? items = (string[]?)itemProperty.GetValue(info.Instance);
+            Assert.NotNull(items);
             Assert.Equal(builder, items);
         }
 
