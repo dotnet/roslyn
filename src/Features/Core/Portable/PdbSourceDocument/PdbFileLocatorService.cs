@@ -10,6 +10,7 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Threading;
 using System.Threading.Tasks;
+using MessagePack.Formatters;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -30,51 +31,70 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             if (dllStream is null)
                 return Task.FromResult<DocumentDebugInfoReader?>(null);
 
+            Stream? pdbStream = null;
+            DocumentDebugInfoReader? result = null;
             var peReader = new PEReader(dllStream);
-
-            // The simplest possible thing is that the PDB happens to be right next to the DLL. You never know, we might get lucky.
-            var pdbPath = Path.ChangeExtension(dllPath, ".pdb");
-            if (File.Exists(pdbPath))
+            try
             {
-                var pdbStream = IOUtilities.PerformIO(() => File.OpenRead(pdbPath));
 
-                if (pdbStream is null || !IsPortable(pdbStream))
+                // The simplest possible thing is that the PDB happens to be right next to the DLL. You never know, we might get lucky.
+                var pdbPath = Path.ChangeExtension(dllPath, ".pdb");
+                if (File.Exists(pdbPath))
                 {
-                    // TODO: Support non portable PDBs: https://github.com/dotnet/roslyn/issues/55834
-                    pdbStream?.Dispose();
-                    peReader.Dispose();
-                    return Task.FromResult<DocumentDebugInfoReader?>(null);
+                    pdbStream = IOUtilities.PerformIO(() => File.OpenRead(pdbPath));
+
+                    if (pdbStream is not null &&
+                        IsPortable(pdbStream))
+                    {
+                        var pdbReaderProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
+
+                        result = new DocumentDebugInfoReader(peReader, pdbReaderProvider);
+                    }
                 }
 
-                var pdbReaderProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
+                // Otherwise lets see if its an embedded PDB
+                if (result is null)
+                {
+                    var entry = peReader.ReadDebugDirectory().FirstOrDefault(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+                    if (entry.Type != DebugDirectoryEntryType.Unknown)
+                    {
+                        var pdbReaderProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry);
 
-                var result = new DocumentDebugInfoReader(peReader, pdbReaderProvider);
-                return Task.FromResult<DocumentDebugInfoReader?>(result);
+                        result = new DocumentDebugInfoReader(peReader, pdbReaderProvider);
+                    }
+                }
+
+                // TODO: Otherwise call the debugger to find the PDB from a symbol server etc.
+                if (result is null)
+                {
+                    // Debugger needs:
+                    // - PDB MVID
+                    // - PDB Age
+                    // - PDB TimeStamp
+                    // - PDB Path
+                    // - DLL Path
+                    // 
+                    // Most of this info comes from the CodeView Debug Directory from the dll
+                }
             }
-
-            // Otherwise lets see if its an embedded PDB
-            var entry = peReader.ReadDebugDirectory().SingleOrDefault(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
-            if (entry.Type != DebugDirectoryEntryType.Unknown)
+            catch (BadImageFormatException)
             {
-                var pdbReaderProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry);
-
-                var result = new DocumentDebugInfoReader(peReader, pdbReaderProvider);
-                return Task.FromResult<DocumentDebugInfoReader?>(result);
+                // If the PDB is corrupt in some way we can just ignore it, and let the system fall through to another provider
+                // TODO: Log this to the output window: https://github.com/dotnet/roslyn/issues/57352
+                result = null;
+            }
+            finally
+            {
+                // If we're returning a result then it will own the disposal of the reader, but if not
+                // then we need to do it ourselves.
+                if (result is null)
+                {
+                    pdbStream?.Dispose();
+                    peReader.Dispose();
+                }
             }
 
-            // TODO: Call the debugger to get this
-
-            // Debugger needs:
-            // - PDB MVID
-            // - PDB Age
-            // - PDB TimeStamp
-            // - PDB Path
-            // - DLL Path
-            // 
-            // Most of this info comes from the CodeView Debug Directory from the dll
-
-            peReader.Dispose();
-            return Task.FromResult<DocumentDebugInfoReader?>(null);
+            return Task.FromResult<DocumentDebugInfoReader?>(result);
         }
 
         private static bool IsPortable(Stream pdbStream)
