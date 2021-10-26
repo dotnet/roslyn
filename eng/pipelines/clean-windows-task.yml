@@ -1,9 +1,5 @@
 # Clean sources on Windows
 steps:
   - powershell: |
-      Set-PSDebug -Trace 1
-      pushd \
       rm -r -force $(Build.SourcesDirectory)\*
-      mkdir $(Build.SourcesDirectory)
-      popd
     displayName: Clean sources
