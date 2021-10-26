@@ -43,8 +43,16 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            var infoKey = await GetUniqueDocumentKeyAsync(project, topLevelNamedType, signaturesOnly, cancellationToken).ConfigureAwait(false);
-            fileInfo = _keyToInformation.GetOrAdd(infoKey, _ => new MetadataAsSourceGeneratedFileInfo(tempPath, project, topLevelNamedType, signaturesOnly));
+            // If we've been asked for signatures only, then we never want to use the decompiler
+            var useDecompiler = !signaturesOnly && allowDecompilation;
+            if (useDecompiler)
+            {
+                useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == nameof(SuppressIldasmAttribute)
+                    && attribute.AttributeClass.ToNameDisplayString() == typeof(SuppressIldasmAttribute).FullName);
+            }
+
+            var infoKey = await GetUniqueDocumentKeyAsync(project, topLevelNamedType, signaturesOnly: !useDecompiler, cancellationToken).ConfigureAwait(false);
+            fileInfo = _keyToInformation.GetOrAdd(infoKey, _ => new MetadataAsSourceGeneratedFileInfo(tempPath, project, topLevelNamedType, signaturesOnly: !useDecompiler));
 
             _generatedFilenameToInformation[fileInfo.TemporaryFilePath] = fileInfo;
 
@@ -57,14 +65,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                                                                  .GetDocument(temporaryProjectInfoAndDocumentId.Item2);
 
                 Contract.ThrowIfNull(temporaryDocument, "The temporary ProjectInfo didn't contain the document it said it would.");
-
-                // If we've been asked for signatures only, then we never want to use the decompiler
-                var useDecompiler = !signaturesOnly && allowDecompilation;
-                if (useDecompiler)
-                {
-                    useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == nameof(SuppressIldasmAttribute)
-                        && attribute.AttributeClass.ToNameDisplayString() == typeof(SuppressIldasmAttribute).FullName);
-                }
 
                 if (useDecompiler)
                 {
