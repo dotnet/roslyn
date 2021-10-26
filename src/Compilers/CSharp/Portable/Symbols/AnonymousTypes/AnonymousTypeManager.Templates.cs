@@ -349,13 +349,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Process all the templates
                 foreach (var template in builder)
                 {
-                    if (template is AnonymousTypeTemplateSymbol typeTemplate)
+                    foreach (var method in template.SpecialMembers)
                     {
-                        foreach (var method in typeTemplate.SpecialMembers)
-                        {
-                            moduleBeingBuilt.AddSynthesizedDefinition(template, method.GetCciAdapter());
-                        }
+                        moduleBeingBuilt.AddSynthesizedDefinition(template, method.GetCciAdapter());
                     }
+
                     compiler.Visit(template, null);
                 }
             }

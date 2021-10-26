@@ -2756,6 +2756,40 @@ class Program
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(ref int i) => i").WithArguments("System.IntPtr").WithLocation(6, 13));
         }
 
+        [Fact]
+        public void SystemMulticastDelegate_Missing()
+        {
+            var sourceA =
+@"namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public class String { }
+    public class Type { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct IntPtr { }
+    public abstract class Delegate { }
+}";
+            var sourceB =
+@"class Program
+{
+    static void Main()
+    {
+        System.Delegate d;
+        d = (ref int i) => i;
+    }
+}";
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB });
+            comp.VerifyEmitDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // (6,13): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                //         d = (ref int i) => i;
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(ref int i) => i").WithArguments("lambda expression", "System.Delegate").WithLocation(6, 13));
+        }
+
         [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
         [Fact]
         public void OverloadResolution_01()

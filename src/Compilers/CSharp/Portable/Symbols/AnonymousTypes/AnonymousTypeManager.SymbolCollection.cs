@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             bool hasErrors = false;
 
+            ReportErrorOnSymbol(System_Object, diagnostics, ref hasErrors);
             ReportErrorOnSymbol(System_IntPtr, diagnostics, ref hasErrors);
             ReportErrorOnSymbol(System_MulticastDelegate, diagnostics, ref hasErrors);
 
