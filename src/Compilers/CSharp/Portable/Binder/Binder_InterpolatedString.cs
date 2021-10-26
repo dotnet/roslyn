@@ -499,7 +499,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Add the trailing out validity parameter for the first attempt.Note that we intentionally use `diagnostics` for resolving System.Boolean,
             // because we want to track that we're using the type no matter what.
             var boolType = GetSpecialType(SpecialType.System_Boolean, diagnostics, syntax);
-            var trailingConstructorValidityPlaceholder = new BoundInterpolatedStringArgumentPlaceholder(syntax, BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter, valSafeToEscape: LocalScopeDepth, boolType);
+            var trailingConstructorValidityPlaceholder =
+                new BoundInterpolatedStringArgumentPlaceholder(syntax, BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter, valSafeToEscape: LocalScopeDepth, boolType)
+                { WasCompilerGenerated = true };
             var outConstructorAdditionalArguments = additionalConstructorArguments.Add(trailingConstructorValidityPlaceholder);
             refKindsBuilder.Add(RefKind.Out);
             populateArguments(syntax, outConstructorAdditionalArguments, baseStringLength, numFormatHoles, intType, argumentsBuilder);
