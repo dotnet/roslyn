@@ -69,20 +69,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         public StackFrameNodeOrToken this[int index] => NodesAndTokens[index];
 
         public static SeparatedStackFrameNodeList<TNode> Empty => new SeparatedStackFrameNodeList<TNode>();
-
-        public ImmutableArray<TNode> GetNodes()
-        {
-            using var _ = ArrayBuilder<TNode>.GetInstance(out var builder);
-
-            for (var i = 0; i < NodesAndTokens.Length; i = i + 2)
-            {
-                var node = NodesAndTokens[i].Node;
-                RoslynDebug.AssertNotNull(node);
-                builder.Add((TNode)node);
-            }
-
-            return builder.ToImmutable();
-        }
     }
 
     /// <summary>

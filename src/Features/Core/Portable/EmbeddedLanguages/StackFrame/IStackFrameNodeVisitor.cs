@@ -6,6 +6,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 {
     internal interface IStackFrameNodeVisitor
     {
+        void Visit(StackFrameCompilationUnit node);
         void Visit(StackFrameMethodDeclarationNode node);
         void Visit(StackFrameMemberAccessExpressionNode node);
         void Visit(StackFrameTypeArgumentList node);
@@ -15,7 +16,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         void Visit(StackFrameArrayRankSpecifier node);
         void Visit(StackFrameFileInformationNode node);
         void Visit(StackFrameArrayTypeExpression node);
-        void Visit(StackFrameParameterNode stackFrameParameterNode);
-        void Visit(StackFrameCompilationUnit stackFrameCompilationUnit);
+        void Visit(StackFrameParameterNode node);
     }
 }

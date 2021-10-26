@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             var useCloseBracket = openToken.Kind is StackFrameKind.OpenBracketToken;
 
             using var _ = ArrayBuilder<StackFrameNodeOrToken>.GetInstance(out var builder);
-            var currentIdentifier = _lexer.TryScanIdentifier();
+            var currentIdentifier = _lexer.TryScanIdentifier(scanWhitespace: true, scanAtTrivia: false);
             StackFrameToken closeToken = default;
 
             while (currentIdentifier.HasValue && currentIdentifier.Value.Kind == StackFrameKind.IdentifierToken)
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 typeIdentifier = new StackFrameArrayTypeExpression(typeIdentifier.Value, arrayIdentifiers);
             }
 
-            var identifier = _lexer.TryScanIdentifier(scanWhitespace: true);
+            var identifier = _lexer.TryScanIdentifier(scanAtTrivia: false, scanWhitespace: true);
             if (!identifier.HasValue)
             {
                 throw new StackFrameParseException("Expected a parameter identifier");

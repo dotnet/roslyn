@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         None = 0,
 
         // Nodes
+        CompilationUnit,
         MethodDeclaration,
         MemberAccess,
         ArrayTypeExpression,
@@ -21,7 +22,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         ParameterList,
         ArrayExpression,
         FileInformation,
-        CompilationUnit,
 
         // Tokens 
         EndOfLine,

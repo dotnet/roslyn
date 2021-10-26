@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System;
+using static Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame.StackFrameSyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 {
@@ -21,7 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 
     public partial class StackFrameParserTests
     {
-        private static void Verify(string input, StackFrameMethodDeclarationNode? methodDeclaration = null, bool expectFailure = false, StackFrameFileInformationNode? fileInformation = null, StackFrameToken? eolTokenOpt = null)
+        private static void Verify(
+            string input,
+            StackFrameMethodDeclarationNode? methodDeclaration = null,
+            bool expectFailure = false,
+            StackFrameFileInformationNode? fileInformation = null,
+            StackFrameToken? eolTokenOpt = null)
         {
             var tree = StackFrameParser.TryParse(input);
             if (expectFailure)
@@ -57,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 
             AssertEqual(eolToken, tree.Root.EndOfLineToken);
         }
+
         private static void AssertEqual(StackFrameNodeOrToken expected, StackFrameNodeOrToken actual)
         {
             Assert.Equal(expected.IsNode, actual.IsNode);
@@ -163,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             var index = 0;
             List<VirtualChar> enumeratedParsedCharacters = new();
 
-            foreach (var charSeq in EnumerateTree(tree))
+            foreach (var charSeq in Enumerate(tree.Root))
             {
                 foreach (var ch in charSeq)
                 {
@@ -214,42 +221,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             }
         }
 
-        private static IEnumerable<VirtualCharSequence> EnumerateTree(StackFrameTree tree)
-        {
-            var root = tree.Root;
-
-            var methodDeclaration = root.MethodDeclaration;
-            foreach (var seq in Enumerate(methodDeclaration))
-            {
-                yield return seq;
-            }
-
-            if (root.FileInformationExpression is not null)
-            {
-                foreach (var seq in Enumerate(root.FileInformationExpression))
-                {
-                    yield return seq;
-                }
-            }
-
-            foreach (var charSequence in Enumerate(root.EndOfLineToken))
-            {
-                yield return charSequence;
-            }
-        }
-
         private static IEnumerable<VirtualCharSequence> Enumerate(StackFrameNode node)
         {
             foreach (var nodeOrToken in node)
             {
                 if (nodeOrToken.IsNode)
                 {
-                    foreach (var charSequence in Enumerate(nodeOrToken.Node).ToArray())
+                    foreach (var charSequence in Enumerate(nodeOrToken.Node))
                     {
                         yield return charSequence;
                     }
                 }
-                else if (!nodeOrToken.Token.VirtualChars.IsDefaultOrEmpty)
+                else
                 {
                     foreach (var charSequence in Enumerate(nodeOrToken.Token))
                     {
@@ -261,22 +244,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 
         private static IEnumerable<VirtualCharSequence> Enumerate(StackFrameToken token)
         {
-            if (!token.LeadingTrivia.IsDefault)
+            foreach (var trivia in token.LeadingTrivia)
             {
-                foreach (var trivia in token.LeadingTrivia)
-                {
-                    yield return trivia.VirtualChars;
-                }
+                yield return trivia.VirtualChars;
             }
 
             yield return token.VirtualChars;
 
-            if (!token.TrailingTrivia.IsDefault)
+            foreach (var trivia in token.TrailingTrivia)
             {
-                foreach (var trivia in token.TrailingTrivia)
-                {
-                    yield return trivia.VirtualChars;
-                }
+                yield return trivia.VirtualChars;
             }
         }
 

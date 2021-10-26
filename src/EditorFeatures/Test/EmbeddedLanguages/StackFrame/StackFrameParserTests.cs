@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Xunit;
+using static Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame.StackFrameSyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 {
@@ -356,5 +357,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         [InlineData(@"at M.N`9N.P()")] // Invalid character after arity
         public void TestInvalidInputs(string input)
             => Verify(input, expectFailure: true);
+
+        [Theory]
+        [InlineData("at ")]
+        [InlineData(" in ")]
+        public void TestKeywordsAsIdentifiers(string keyword)
+            => Verify(@$"MyNamespace.MyType.MyMethod[{keyword}]({keyword} {keyword})",
+                methodDeclaration: MethodDeclaration(
+                    MemberAccessExpression("MyNamespace.MyType.MyMethod"),
+                    typeArguments: TypeArgumentList(TypeArgument(keyword.Trim())),
+                    argumentList: ParameterList(
+                        OpenParenToken,
+                        CloseParenToken,
+                        Parameter(Identifier(keyword), Identifier(keyword))))
+                );
     }
 }
