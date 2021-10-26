@@ -22,13 +22,15 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [ConditionalWpfFact(typeof(DesktopServiceHubHostOnly))]
+        [Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public override void VerifySyntaxErrorSquiggles()
         {
             base.VerifySyntaxErrorSquiggles();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [ConditionalWpfFact(typeof(DesktopServiceHubHostOnly))]
+        [Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public override void VerifySemanticErrorSquiggles()
         {
             base.VerifySemanticErrorSquiggles();
