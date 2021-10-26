@@ -47,7 +47,7 @@ Get-ChildItem "$PSScriptRoot\..\src\*.*proj","$PSScriptRoot\..\test\*.*proj","$P
             }
         }
     }
-    $targetFrameworks |? { $_ -match 'netcoreapp(\d+\.\d+)' } |% {
+    $targetFrameworks |? { $_ -match 'net(?:coreapp)?(\d+\.\d+)' } |% {
         $v = $Matches[1]
         $runtimeVersions += $v
         if ($v -ge '3.0' -and -not ($IsMacOS -or $IsLinux)) {
