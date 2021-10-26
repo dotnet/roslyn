@@ -86,7 +86,10 @@ stages:
       demands: ImageOverride -equals Build.Server.Amd64.VS2019
 
     steps:
+    - checkout: none
+
     - template: eng/pipelines/clean-windows-task.yml
+
     - template: eng/pipelines/checkout-windows-task.yml
 
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"

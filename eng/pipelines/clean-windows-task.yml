@@ -1,7 +1,5 @@
 # Clean sources on Windows
 steps:
-  - checkout: none
-
   - script: |
       @echo on
       rm -r -f $(Build.SourcesDirectory)

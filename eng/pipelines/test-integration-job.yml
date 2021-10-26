@@ -13,6 +13,8 @@ parameters:
     default: false
 
 steps:
+  - checkout: none
+
   - template: clean-windows-task.yml
 
   - template: checkout-windows-task.yml

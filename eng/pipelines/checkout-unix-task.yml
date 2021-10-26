@@ -1,7 +1,5 @@
 # Shallow checkout sources on Unix
 steps:
-  - checkout: none
-
   - script: |
       set -x
       git init

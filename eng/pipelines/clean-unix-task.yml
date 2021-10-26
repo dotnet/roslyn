@@ -1,7 +1,5 @@
 # Clean sources on unix
 steps:
-  - checkout: none
-
   - script: |
       set -x
       rm -rf $(Build.SourcesDirectory)

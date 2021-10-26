@@ -29,6 +29,8 @@ jobs:
     vmImage: ubuntu-20.04
   timeoutInMinutes: 90
   steps:
+    - checkout: none
+
     - template: clean-unix-task.yml
 
     - task: DownloadPipelineArtifact@2
