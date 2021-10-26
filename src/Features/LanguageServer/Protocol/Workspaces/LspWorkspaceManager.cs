@@ -187,7 +187,8 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
             _trackedDocuments = _trackedDocuments.Add(uri, documentText);
 
             // Make sure we reset/update our LSP incremental solutions now that we potentially have a new document.
-            var updatedSolutions = ResetIncrementalLspSolutions_CalledUnderLock();
+            ResetIncrementalLspSolutions_CalledUnderLock();
+            var updatedSolutions = ComputeIncrementalLspSolutions_CalledUnderLock();
             if (updatedSolutions.Any(solution => solution.GetDocuments(uri).Any()))
             {
                 return;
@@ -215,7 +216,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
 
             // Trigger a fork of all workspaces, the LSP document text may not match the workspace and this document
             // may have been removed / moved to a different workspace.
-            _ = ResetIncrementalLspSolutions_CalledUnderLock();
+            ResetIncrementalLspSolutions_CalledUnderLock();
 
             // If the file was added to the LSP misc files workspace, it needs to be removed as we no longer care about it once closed.
             // If the misc document ended up being added to an actual workspace, we may have already removed it from LSP misc in UpdateLspDocument.
@@ -329,10 +330,10 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
     #endregion
 
     /// <summary>
-    /// Helper to clear out the LSP incremental solution for all registered workspaces and re-fork from the workspace.
+    /// Helper to clear out the LSP incremental solution for all registered workspaces.
     /// Should be called under <see cref="_gate"/>
     /// </summary>
-    private ImmutableArray<Solution> ResetIncrementalLspSolutions_CalledUnderLock()
+    private void ResetIncrementalLspSolutions_CalledUnderLock()
     {
         Contract.ThrowIfFalse(Monitor.IsEntered(_gate));
 
@@ -341,8 +342,6 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
         {
             _workspaceToLspSolution[workspace] = null;
         }
-
-        return ComputeIncrementalLspSolutions_CalledUnderLock();
     }
 
     /// <summary>
@@ -467,7 +466,24 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
         public LspMiscellaneousFilesWorkspace? GetLspMiscellaneousFilesWorkspace()
             => _manager._lspMiscellaneousFilesWorkspace;
 
-        public Dictionary<Workspace, Solution?> GetWorkspaceState()
-            => _manager._workspaceToLspSolution;
+        public ImmutableDictionary<Workspace, Solution?> GetWorkspaceState()
+        {
+            lock (_manager._gate)
+            {
+                return _manager._workspaceToLspSolution.ToImmutableDictionary();
+            }
+        }
+
+        /// <summary>
+        /// Used to ensure that tests start with a consistent state in the LSP manager
+        /// no matter what workspace events were triggered during creation.
+        /// </summary>
+        public void ResetLspSolutions()
+        {
+            lock (_manager._gate)
+            {
+                _manager.ResetIncrementalLspSolutions_CalledUnderLock();
+            }
+        }
     }
 }
