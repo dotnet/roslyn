@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             // Get text loaders for our documents. We do this here because if we can't load any of the files, then
             // we can't provide any results, so there is no point adding a project to the workspace etc.
-            var textLoaderTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(sd)).ToArray();
+            var textLoaderTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(sd, cancellationToken)).ToArray();
             var textLoaders = await Task.WhenAll(textLoaderTasks).ConfigureAwait(false);
             if (textLoaders.Where(t => t is null).Any())
                 return null;
