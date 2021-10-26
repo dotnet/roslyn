@@ -72,6 +72,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableArray<Symbol> GetMembers(string name) => GetMembers().WhereAsArray((member, name) => member.Name == name, name);
 
+            public override bool IsImplicitlyDeclared => true;
+
+            public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
+
             internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
             {
                 if (ReferenceEquals(this, t2))

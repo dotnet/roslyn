@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -101,6 +102,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override IEnumerable<string> MemberNames
             {
                 get { return _nameToSymbols.Keys; }
+            }
+
+            public override bool IsImplicitlyDeclared
+            {
+                get { return false; }
+            }
+
+            public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+            {
+                get
+                {
+                    return GetDeclaringSyntaxReferenceHelper<AnonymousObjectCreationExpressionSyntax>(this.Locations);
+                }
             }
 
             internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)

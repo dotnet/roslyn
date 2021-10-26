@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -79,9 +78,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return 0; }
             }
 
-            public sealed override bool IsImplicitlyDeclared
+            public abstract override bool IsImplicitlyDeclared
             {
-                get { return false; }
+                get;
             }
 
             public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -168,12 +167,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return ImmutableArray.Create<Location>(this.TypeDescriptor.Location); }
             }
 
-            public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+            public abstract override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
             {
-                get
-                {
-                    return GetDeclaringSyntaxReferenceHelper<AnonymousObjectCreationExpressionSyntax>(this.Locations);
-                }
+                get;
             }
 
             public sealed override bool IsStatic
@@ -253,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal sealed override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
             {
-                return this.Manager.System_Object;
+                return BaseTypeNoUseSiteDiagnostics;
             }
 
             internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)

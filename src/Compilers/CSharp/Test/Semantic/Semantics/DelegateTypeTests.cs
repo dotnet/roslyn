@@ -7270,7 +7270,7 @@ class Program
 43
 ");
             verifier.VerifyIL("Program.M1<T>",
-@"    {
+@"{
   // Code size       55 (0x37)
   .maxstack  2
   IL_0000:  ldsfld     ""<anonymous delegate> Program.<>c__0<T>.<>9__0_0""
@@ -7312,7 +7312,7 @@ class Program
   IL_0036:  ret
 }");
             verifier.VerifyIL("Program.M3",
-@" {
+@"{
   // Code size       50 (0x32)
   .maxstack  2
   IL_0000:  ldsfld     ""<anonymous delegate> Program.<>c.<>9__2_0""
@@ -7453,7 +7453,7 @@ class Program
 <>A{00000004}`2[System.Single,System.Int32]
 ");
             verifier.VerifyIL("Program.Main",
-@" {
+@"{
   // Code size      145 (0x91)
   .maxstack  2
   IL_0000:  ldsfld     ""<anonymous delegate> Program.<>c.<>9__0_0""
@@ -7526,7 +7526,7 @@ class Program
 <>F{00000003}`1[System.Int32]
 ");
             verifier.VerifyIL("Program.Main",
-@"  {
+@"{
   // Code size      109 (0x6d)
   .maxstack  2
   IL_0000:  ldsfld     ""System.Func<int> Program.<>c.<>9__1_0""
@@ -7669,7 +7669,7 @@ class Program
 <>F{0000000d}`2[System.Int32,System.Int32]
 ");
             verifier.VerifyIL("Program.Main",
-@" {
+@"{
   // Code size      109 (0x6d)
   .maxstack  2
   IL_0000:  ldsfld     ""<anonymous delegate> Program.<>c.<>9__0_0""
@@ -7735,7 +7735,7 @@ class Program
 <>A{00000003}`1[System.Int32]
 ");
             verifier.VerifyIL("Program.Main",
-@"  {
+@"{
   // Code size      145 (0x91)
   .maxstack  2
   IL_0000:  ldsfld     ""System.Action<int> Program.<>c.<>9__1_0""
@@ -8343,10 +8343,20 @@ class B<T>
 
         private static void VerifyLocalDelegateType(SemanticModel model, VariableDeclaratorSyntax variable, string expectedInvokeMethod)
         {
+            var expectedBaseType = ((CSharpCompilation)model.Compilation).GetSpecialType(SpecialType.System_MulticastDelegate);
+
             var local = (ILocalSymbol)model.GetDeclaredSymbol(variable)!;
             var delegateType = (INamedTypeSymbol)local.Type;
             Assert.Equal(Accessibility.Internal, delegateType.DeclaredAccessibility);
             Assert.Equal(expectedInvokeMethod, delegateType.DelegateInvokeMethod.ToTestDisplayString());
+            Assert.True(delegateType.IsImplicitlyDeclared);
+            Assert.Equal(expectedBaseType.GetPublicSymbol(), delegateType.BaseType);
+
+            var underlyingType = delegateType.GetSymbol<NamedTypeSymbol>();
+            Assert.True(underlyingType.IsImplicitlyDeclared);
+            Assert.Empty(underlyingType.DeclaringSyntaxReferences);
+            Assert.Equal(expectedBaseType, underlyingType.BaseTypeNoUseSiteDiagnostics);
+            Assert.Equal(expectedBaseType, underlyingType.GetDeclaredBaseType(null));
         }
 
         private static void VerifyExpressionType(SemanticModel model, ExpressionSyntax variable, string expectedSymbol, string expectedInvokeMethod)

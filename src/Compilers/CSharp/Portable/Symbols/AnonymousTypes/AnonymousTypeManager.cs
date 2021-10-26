@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Retrieves anonymous type properties types
+        /// Retrieves anonymous type field types.
         /// </summary>
-        internal static ImmutableArray<TypeWithAnnotations> GetAnonymousTypePropertyTypesWithAnnotations(NamedTypeSymbol type)
+        internal static ImmutableArray<TypeWithAnnotations> GetAnonymousTypeFieldTypes(NamedTypeSymbol type)
         {
             Debug.Assert(type.IsAnonymousType);
             var anonymous = (AnonymousTypeOrDelegatePublicSymbol)type;
