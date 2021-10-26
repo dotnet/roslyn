@@ -189,6 +189,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             );
 
         [Fact]
+        public void TestInvalidParameterIdentifier_MemberAccess()
+            => Verify("at ConsoleApp4.MyClass(string my.string.name)", expectFailure: true);
+
+        [Fact]
+        public void TestInvalidParameterIdentifier_TypeArity()
+            => Verify("at ConsoleApp4.MyClass(string s`1)", expectFailure: true);
+
+        [Fact]
         public void TestGenericMethod_Brackets()
             => Verify(
                 @"at ConsoleApp4.MyClass.M[T](T t)",

@@ -193,75 +193,85 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// All of the following are valid identifiers, where "$$" marks the parsing starting point, and "[|" + "|]" mark the endpoints of the parsed identifier including trivia
         ///   * [|$$MyNamespace.MyClass.MyMethod|](string s)
         ///   * MyClass.MyMethod([|$$string |]s)
-        ///   * MyClass.MyMethod(string[| $$s|])
         ///   * [|$$MyClass`1.MyMethod|](string s)
         ///   * [|$$MyClass.MyMethod|][T](T t)
         /// </summary>
         private StackFrameNodeOrToken? TryParseIdentifierExpression(bool scanAtTrivia = false)
         {
-            Queue<(StackFrameNodeOrToken identifier, StackFrameToken separator)> typeIdentifierNodes = new();
-
-            var currentIdentifier = _lexer.TryScanIdentifier(scanAtTrivia: scanAtTrivia, scanWhitespace: true);
-
-            while (currentIdentifier.HasValue && currentIdentifier.Value.Kind == StackFrameKind.IdentifierToken)
-            {
-                StackFrameToken? arity = null;
-                if (_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.GraveAccentToken, out var graveAccentToken))
-                {
-                    arity = _lexer.TryScanNumbers();
-                    if (!arity.HasValue)
-                    {
-                        throw new StackFrameParseException(StackFrameKind.NumberToken, CurrentCharAsToken());
-                    }
-                }
-
-                StackFrameNodeOrToken identifierNode = arity.HasValue
-                    ? new StackFrameGenericTypeIdentifier(currentIdentifier.Value, graveAccentToken, arity.Value)
-                    : currentIdentifier.Value;
-
-                typeIdentifierNodes.Enqueue((identifierNode, CurrentCharAsToken()));
-
-                // Progress the lexer if the current token is a dot token, which 
-                // was already added to the list. 
-                if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.DotToken, out var _))
-                {
-                    break;
-                }
-
-                currentIdentifier = _lexer.TryScanIdentifier();
-            }
-
-            if (typeIdentifierNodes.Count == 0)
+            var currentIdentifer = _lexer.TryScanIdentifier(scanAtTrivia: scanAtTrivia, scanWhitespace: true);
+            if (!currentIdentifer.HasValue)
             {
                 return null;
             }
 
-            var (firstIdentifierNode, firstSeparator) = typeIdentifierNodes.Dequeue();
-            if (typeIdentifierNodes.Count == 0)
+            var lhs = TryScanGenericTypeIdentifier(currentIdentifer.Value)
+                ?? (StackFrameNodeOrToken)currentIdentifer.Value;
+
+            var memberAccess = TryScanMemberAccessExpression(lhs);
+            if (memberAccess is null)
             {
-                return firstIdentifierNode;
+                return lhs;
             }
 
-            // Construct the member access expression from the identifiers in the list
-            var currentSeparator = firstSeparator;
-
-            StackFrameMemberAccessExpressionNode? memberAccessExpression = null;
-
-            while (typeIdentifierNodes.Count != 0)
+            while (true)
             {
-                var previousSeparator = currentSeparator;
-                (var currentIdentifierNode, currentSeparator) = typeIdentifierNodes.Dequeue();
+                var newMemberAccess = TryScanMemberAccessExpression(memberAccess);
+                if (newMemberAccess is null)
+                {
+                    return memberAccess;
+                }
 
-                var leftHandNode = memberAccessExpression is null
-                    ? firstIdentifierNode
-                    : memberAccessExpression;
+                memberAccess = newMemberAccess;
+            }
+        }
 
-                memberAccessExpression = new StackFrameMemberAccessExpressionNode(leftHandNode, previousSeparator, currentIdentifierNode);
+        /// <summary>
+        /// Given an existing left hand side node or token, which can either be 
+        /// an <see cref="StackFrameKind.IdentifierToken"/> or <see cref="StackFrameMemberAccessExpressionNode"/>
+        /// </summary>
+        private StackFrameMemberAccessExpressionNode? TryScanMemberAccessExpression(StackFrameNodeOrToken lhs)
+        {
+            Debug.Assert((lhs.IsNode && lhs.Node is StackFrameMemberAccessExpressionNode) ||
+                         lhs.Token.Kind == StackFrameKind.IdentifierToken);
+
+            if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.DotToken, out var dotToken))
+            {
+                return null;
             }
 
-            RoslynDebug.AssertNotNull(memberAccessExpression);
+            var identifier = _lexer.TryScanIdentifier();
+            if (!identifier.HasValue)
+            {
+                throw new StackFrameParseException(StackFrameKind.IdentifierToken, CurrentCharAsToken());
+            }
 
-            return memberAccessExpression;
+            var rhs = TryScanGenericTypeIdentifier(identifier.Value)
+                ?? (StackFrameNodeOrToken)identifier.Value;
+
+            return new StackFrameMemberAccessExpressionNode(lhs, dotToken, rhs);
+        }
+
+        /// <summary>
+        /// Given an identifier, attempts to parse the type identifier arity for it.
+        /// ex: MyNamespace.MyClass`1.MyMethod()
+        ///                 ^--------------------- MyClass would be the identifier passed in
+        ///                        ^-------------- Grave token
+        ///                         ^------------- Arity token of "1" 
+        /// </summary>
+        private StackFrameGenericTypeIdentifier? TryScanGenericTypeIdentifier(StackFrameToken identifierToken)
+        {
+            if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.GraveAccentToken, out var graveAccentToken))
+            {
+                return null;
+            }
+
+            var arity = _lexer.TryScanNumbers();
+            if (!arity.HasValue)
+            {
+                throw new StackFrameParseException(StackFrameKind.NumberToken, CurrentCharAsToken());
+            }
+
+            return new StackFrameGenericTypeIdentifier(identifierToken, graveAccentToken, arity.Value);
         }
 
         /// <summary>
@@ -383,19 +393,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 typeIdentifier = new StackFrameArrayTypeExpression(typeIdentifier.Value, arrayIdentifiers);
             }
 
-            var identifier = TryParseIdentifierExpression();
+            var identifier = _lexer.TryScanIdentifier(scanWhitespace: true);
             if (!identifier.HasValue)
             {
                 throw new StackFrameParseException("Expected a parameter identifier");
             }
 
-            // Parameter identifiers should only be tokens
-            if (identifier.Value.IsNode)
-            {
-                throw new StackFrameParseException(StackFrameKind.IdentifierToken, identifier.Value);
-            }
-
-            return new StackFrameParameterNode(typeIdentifier.Value, identifier.Value.Token);
+            return new StackFrameParameterNode(typeIdentifier.Value, identifier.Value);
         }
 
         /// <summary>
