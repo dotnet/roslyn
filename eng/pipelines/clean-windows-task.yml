@@ -1,0 +1,9 @@
+# Clean sources on Windows
+steps:
+  - checkout: none
+
+  - script: |
+      @echo on
+      rm -r -f $(Build.SourcesDirectory)
+      mkdir $(Build.SourcesDirectory)
+    displayName: Clean sources

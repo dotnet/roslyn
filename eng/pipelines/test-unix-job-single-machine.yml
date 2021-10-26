@@ -40,7 +40,7 @@ jobs:
     DOTNET_ROLL_FORWARD: LatestMajor
     DOTNET_ROLL_FORWARD_TO_PRERELEASE: 1
   steps:
-    - checkout: none
+    - template: clean-unix-task.yml
 
     - task: DownloadPipelineArtifact@2
       displayName: Download Test Payload

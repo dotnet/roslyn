@@ -29,7 +29,7 @@ jobs:
     vmImage: windows-2019
   timeoutInMinutes: 120
   steps:
-    - checkout: none
+    - template: clean-windows-task.yml
 
     - task: DownloadPipelineArtifact@2
       displayName: Download Test Payload

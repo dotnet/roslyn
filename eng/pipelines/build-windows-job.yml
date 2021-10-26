@@ -31,6 +31,8 @@ jobs:
   timeoutInMinutes: 40
 
   steps:
+    - template: clean-windows-task.yml
+
     - template: checkout-windows-task.yml
 
     - task: PowerShell@2
