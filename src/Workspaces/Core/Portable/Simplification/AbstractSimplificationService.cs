@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             CancellationToken cancellationToken)
         {
             // Debug flag to help processing things serially instead of parallel.
-            var executeSerially = false;
+            var executeSerially = Debugger.IsAttached;
 
             Contract.ThrowIfFalse(nodesAndTokensToReduce.Any());
 

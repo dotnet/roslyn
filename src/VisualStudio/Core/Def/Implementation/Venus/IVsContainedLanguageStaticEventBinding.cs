@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
     /// definitions of GetStaticEventBindingsForObject, because they take optional out params, and
     /// the marshalling was wrong in the PIA.
     /// </summary>
-    [ComImport, Guid("22FF7776-2C9A-48C4-809F-39E5184CC32D"), ComConversionLoss, InterfaceType((short)1)]
+    [ComImport, Guid("22FF7776-2C9A-48C4-809F-39E5184CC32D"), ComConversionLoss, InterfaceType(1)]
     internal interface IVsContainedLanguageStaticEventBinding
     {
         [PreserveSig, MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]

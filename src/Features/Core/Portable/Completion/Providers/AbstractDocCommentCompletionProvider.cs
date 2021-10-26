@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            if (!context.Options.GetOption(CompletionControllerOptions.ShowXmlDocCommentCompletion))
+            if (!context.CompletionOptions.ShowXmlDocCommentCompletion)
             {
                 return;
             }

@@ -45,7 +45,7 @@ class Test {
 
             var document = project.Documents.Single();
             var caretPosition = workspace.DocumentWithCursor.CursorPosition ?? throw new InvalidOperationException();
-            var completions = await completionService.GetCompletionsAsync(document, caretPosition);
+            var (completions, _) = await completionService.GetCompletionsInternalAsync(document, caretPosition, CompletionOptions.Default);
 
             Assert.NotNull(completions);
             var item = Assert.Single(completions.Items.Where(item => item.ProviderName == typeof(DebugAssertTestCompletionProvider).FullName));

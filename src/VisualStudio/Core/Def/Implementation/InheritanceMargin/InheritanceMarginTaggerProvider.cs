@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
@@ -77,7 +78,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         protected override async Task ProduceTagsAsync(
             TaggerContext<InheritanceMarginTag> context,
             DocumentSnapshotSpan spanToTag,
-            int? caretPosition)
+            int? caretPosition,
+            CancellationToken cancellationToken)
         {
             var document = spanToTag.Document;
             if (document == null)
@@ -85,10 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 return;
             }
 
-            var cancellationToken = context.CancellationToken;
-
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
             var optionValue = optionSet.GetOption(FeatureOnOffOptions.ShowInheritanceMargin);
 
             var shouldDisableFeature = optionValue == false;

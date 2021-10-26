@@ -130,12 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Obsolete diagnostics for method group are reported as part of creating the method group conversion.
-                ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
-                if (conversion.Method is not null)
-                {
-                    ReportUseSite(conversion.Method, diagnostics, syntax.Location);
-                }
-                CheckConstraintLanguageVersionAndRuntimeSupportForConversion(syntax, conversion, diagnostics);
+                reportUseSiteDiagnostics(conversion);
 
                 if (conversion.IsAnonymousFunction && source.Kind == BoundKind.UnboundLambda)
                 {
@@ -266,6 +261,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         .WithSuppression(source.IsSuppressed);
                 }
 
+                reportUseSiteDiagnosticsForUnderlyingConversions(conversion);
+
                 return new BoundConversion(
                     syntax,
                     BindToNaturalType(source, diagnostics),
@@ -277,6 +274,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type: destination,
                     hasErrors: hasErrors)
                 { WasCompilerGenerated = wasCompilerGenerated };
+
+                void reportUseSiteDiagnostics(Conversion conversion)
+                {
+                    // Obsolete diagnostics for method group are reported as part of creating the method group conversion.
+                    Debug.Assert(!conversion.IsMethodGroup);
+                    ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
+                    if (conversion.Method is not null)
+                    {
+                        ReportUseSite(conversion.Method, diagnostics, syntax.Location);
+                    }
+                    CheckConstraintLanguageVersionAndRuntimeSupportForConversion(syntax, conversion, diagnostics);
+                }
+
+                void reportUseSiteDiagnosticsForUnderlyingConversions(Conversion conversion)
+                {
+                    var underlyingConversions = conversion.UnderlyingConversions;
+
+                    if (!underlyingConversions.IsDefaultOrEmpty)
+                    {
+                        foreach (var underlying in underlyingConversions)
+                        {
+                            reportUseSiteDiagnosticsForSelfAndUnderlyingConversions(underlying);
+
+                            if (underlying.IsUserDefined)
+                            {
+                                reportUseSiteDiagnosticsForSelfAndUnderlyingConversions(underlying.UserDefinedFromConversion);
+                                reportUseSiteDiagnosticsForSelfAndUnderlyingConversions(underlying.UserDefinedToConversion);
+                                underlying.MarkUnderlyingConversionsChecked();
+                            }
+                        }
+
+                        conversion.MarkUnderlyingConversionsChecked();
+                    }
+
+                    void reportUseSiteDiagnosticsForSelfAndUnderlyingConversions(Conversion conversion)
+                    {
+                        reportUseSiteDiagnostics(conversion);
+                        reportUseSiteDiagnosticsForUnderlyingConversions(conversion);
+                    }
+                }
             }
         }
 
@@ -311,6 +348,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // is actually identical to `S? x = new S();`.
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var conversion = Conversions.ClassifyStandardConversion(null, expr.Type, destination, ref useSiteInfo);
+                Debug.Assert(conversion.IsNullable);
+                Debug.Assert(conversion.UnderlyingConversions.Single().IsIdentity);
+                conversion.MarkUnderlyingConversionsChecked();
                 expr = new BoundConversion(
                     node.Syntax,
                     operand: expr,
@@ -426,8 +466,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var newSwitchArms = builder.ToImmutableAndFree();
             return new BoundConvertedSwitchExpression(
-                source.Syntax, source.Type, targetTyped, conversion, source.Expression, newSwitchArms, source.DecisionDag,
-                source.DefaultLabel, source.ReportedNotExhaustive, destination, hasErrors || source.HasErrors);
+                source.Syntax, source.Type, targetTyped, source.Expression, newSwitchArms, source.DecisionDag,
+                source.DefaultLabel, source.ReportedNotExhaustive, destination, hasErrors || source.HasErrors).WithSuppression(source.IsSuppressed);
         }
 
         private BoundExpression CreateUserDefinedConversion(
@@ -443,6 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(conversionGroup != null);
             Debug.Assert(conversion.IsUserDefined);
 
+            conversion.MarkUnderlyingConversionsChecked();
             if (!conversion.IsValid)
             {
                 if (!hasErrors)
@@ -730,6 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 destinationWithoutNullable = destination.GetNullableUnderlyingType();
                 conversionWithoutNullable = conversion.UnderlyingConversions[0];
+                conversion.MarkUnderlyingConversionsChecked();
             }
 
             Debug.Assert(conversionWithoutNullable.IsTupleLiteralConversion);
@@ -772,6 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var targetElementTypes = targetType.TupleElementTypesWithAnnotations;
             Debug.Assert(targetElementTypes.Length == arguments.Length, "converting a tuple literal to incompatible type?");
             var underlyingConversions = conversionWithoutNullable.UnderlyingConversions;
+            conversionWithoutNullable.MarkUnderlyingConversionsChecked();
 
             for (int i = 0; i < arguments.Length; i++)
             {

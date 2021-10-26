@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var position = SymbolCompletionItem.GetContextPosition(item);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var (dotToken, _) = GetDotAndExpressionStart(root, position);
+            var (dotToken, _) = GetDotAndExpressionStart(root, position, cancellationToken);
 
             var questionToken = dotToken.GetPreviousToken().Kind() == SyntaxKind.QuestionToken
                 ? dotToken.GetPreviousToken()

@@ -444,7 +444,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim document = Me.Workspace.CurrentSolution.Projects.First().Documents.First()
             Dim service = CompletionService.GetService(document)
             Dim roslynItem = GetSelectedItem()
-            Return Await service.GetDescriptionAsync(document, roslynItem)
+            Dim options = CompletionOptions.From(document.Project)
+            Return Await service.GetDescriptionAsync(document, roslynItem, options)
         End Function
 
         Public Sub AssertCompletionItemExpander(isAvailable As Boolean, isSelected As Boolean)
