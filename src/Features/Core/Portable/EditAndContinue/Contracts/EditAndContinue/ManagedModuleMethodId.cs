@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.Contracts
             return Token == other.Token && Version == other.Version;
         }
 
-        public override bool Equals([AllowNull] object obj) => obj is ManagedModuleMethodId method && Equals(method);
+        public override bool Equals(object? obj) => obj is ManagedModuleMethodId method && Equals(method);
 
         public override int GetHashCode() => Token ^ Version;
 

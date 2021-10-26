@@ -87,14 +87,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.Contracts
                 EndColumn == other.EndColumn;
         }
 
-        public override bool Equals([AllowNull] object obj) => obj is SourceSpan span && Equals(span);
+        public override bool Equals(object? obj) => obj is SourceSpan span && Equals(span);
 
         public override int GetHashCode()
         {
             return
                 ((StartLine & 0xffff) << 16) |       // bytes 3, 2 are a hash for start line
                 ((StartColumn & 0xff) << 8) |        // byte 1 is a hash for start column
-                ((EndLine ^ this.EndColumn) % 255);  // byte 0 is a hash for end line and column
+                ((EndLine ^ EndColumn) % 255);  // byte 0 is a hash for end line and column
         }
 
         public static bool operator ==(SourceSpan left, SourceSpan right) => left.Equals(right);

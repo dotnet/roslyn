@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.Contracts
             return Module == other.Module && Method.Equals(other.Method);
         }
 
-        public override bool Equals([AllowNull] object obj) => obj is ManagedMethodId method && Equals(method);
+        public override bool Equals(object? obj) => obj is ManagedMethodId method && Equals(method);
 
         public override int GetHashCode()
         {

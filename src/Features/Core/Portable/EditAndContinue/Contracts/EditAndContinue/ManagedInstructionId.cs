@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.Contracts
             return Method.Equals(other.Method) && ILOffset == other.ILOffset;
         }
 
-        public override bool Equals([AllowNull] object obj) => obj is ManagedInstructionId instr && Equals(instr);
+        public override bool Equals(object? obj) => obj is ManagedInstructionId instr && Equals(instr);
 
         public override int GetHashCode()
         {
