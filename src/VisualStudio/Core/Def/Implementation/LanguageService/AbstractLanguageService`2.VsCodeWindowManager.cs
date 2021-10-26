@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     return;
                 }
 
-                if (ErrorHandler.Failed(_codeWindow.GetBuffer(out var buffer)))
+                if (ErrorHandler.Failed(_codeWindow.GetBuffer(out var buffer)) || buffer == null)
                 {
                     return;
                 }
