@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // Otherwise, check the easiest (but most unlikely) case which is the document exists on the disk
             if (File.Exists(sourceDocument.FilePath))
             {
+                // TODO: Make sure the hash of the file is correct: https://github.com/dotnet/roslyn/issues/57351
                 return Task.FromResult<TextLoader?>(new FileTextLoader(sourceDocument.FilePath, Encoding.UTF8));
             }
 

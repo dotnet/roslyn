@@ -182,6 +182,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 return null;
 
             var languageServices = workspace.Services.GetLanguageServices(languageName);
+
+            // TODO: Use compiler API when available: https://github.com/dotnet/roslyn/issues/57356
             var compilationOptions = languageServices.GetRequiredService<ICompilationFactoryService>().TryParsePdbCompilationOptions(pdbCompilationOptions);
             var parseOptions = languageServices.GetRequiredService<ISyntaxTreeFactoryService>().TryParsePdbParseOptions(pdbCompilationOptions);
 
