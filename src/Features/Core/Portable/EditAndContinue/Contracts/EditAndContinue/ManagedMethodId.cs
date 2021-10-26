@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.Contracts
         }
 
         public ManagedMethodId(Guid module, int token, int version)
-            : this (module, new(token, version))
+            : this(module, new(token, version))
         {
         }
 
