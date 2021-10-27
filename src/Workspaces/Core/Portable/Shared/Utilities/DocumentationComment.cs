@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 var maxPrefix = int.MaxValue;
                 foreach (var line in lines)
                 {
-                    int i = 0;
+                    var i = 0;
                     while (i < line.Length && char.IsWhiteSpace(line[i]))
                     {
                         i++;
