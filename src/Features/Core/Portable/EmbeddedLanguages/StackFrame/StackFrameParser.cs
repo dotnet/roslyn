@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     /// </summary>
     internal partial struct StackFrameParser
     {
+        private record struct ParseResult<T>(bool Success, T Value);
+
         private StackFrameParser(VirtualCharSequence text)
         {
             _lexer = new(text);
@@ -47,11 +49,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             {
                 return new StackFrameParser(text).TryParseTree();
             }
-            catch (StackFrameParseException)
-            {
-                // Should we report why parsing failed here?
-                return null;
-            }
             catch (InsufficientExecutionStackException)
             {
                 return null;
@@ -69,13 +66,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// </summary>
         private StackFrameTree? TryParseTree()
         {
-            var methodDeclaration = TryParseMethodDeclaration();
+            var (_, methodDeclaration) = TryParseMethodDeclaration();
             if (methodDeclaration is null)
             {
                 return null;
             }
 
-            var fileInformation = TryParseFileInformation();
+            var fileInformationResult = TryParseFileInformation();
+            if (!fileInformationResult.Success)
+            {
+                return null;
+            }
+
             var remainingTrivia = _lexer.TryScanRemainingTrivia();
 
             var eolToken = CurrentCharAsToken().With(leadingTrivia: remainingTrivia.HasValue ? ImmutableArray.Create(remainingTrivia.Value) : ImmutableArray<StackFrameTrivia>.Empty);
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             Debug.Assert(_lexer.Position == _lexer.Text.Length);
             Debug.Assert(eolToken.Kind == StackFrameKind.EndOfLine);
 
-            var root = new StackFrameCompilationUnit(methodDeclaration, fileInformation, eolToken);
+            var root = new StackFrameCompilationUnit(methodDeclaration, fileInformationResult.Value, eolToken);
 
             return new(_lexer.Text, root);
         }
@@ -94,65 +96,88 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// 
         /// Ex: [|MyClass.MyMethod(string s)|]
         /// </summary>
-        private StackFrameMethodDeclarationNode? TryParseMethodDeclaration()
+        private ParseResult<StackFrameMethodDeclarationNode?> TryParseMethodDeclaration()
         {
-            var identifierNode = TryParseIdentifierNode(scanAtTrivia: true);
-            if (identifierNode is null)
+            var (success, identifierNode) = TryParseNameNode(scanAtTrivia: true);
+            if (!success)
             {
-                return null;
+                return new(false, null);
             }
 
             if (identifierNode is not StackFrameQualifiedNameNode memberAccessExpression)
             {
-                return null;
+                return new(true, null);
             }
 
-            var typeArguments = TryParseTypeArguments();
-            var arguments = TryParseMethodParameters();
-
-            if (arguments is null)
+            var typeArgumentsResult = TryParseTypeArguments();
+            if (!typeArgumentsResult.Success)
             {
-                return null;
+                return new(false, null);
             }
 
-            return new StackFrameMethodDeclarationNode(memberAccessExpression, typeArguments, arguments);
+            var argumentsResult = TryParseMethodParameters();
+
+            if (!argumentsResult.Success || argumentsResult.Value is null)
+            {
+                return new(false, Value: null);
+            }
+
+            return new(true, new(memberAccessExpression, typeArgumentsResult.Value, argumentsResult.Value));
         }
 
         /// <summary>
-        /// Parses an identifier expression which could either be a <see cref="StackFrameSimpleNameNode"/> or <see cref="StackFrameQualifiedNameNode" />. Combines
-        /// identifiers that are separated by <see cref="StackFrameKind.DotToken"/> into <see cref="StackFrameQualifiedNameNode" />.
+        /// Parses a <see cref="StackFrameNameNode"/> which could either be a <see cref="StackFrameSimpleNameNode"/> or <see cref="StackFrameQualifiedNameNode" />.
         /// 
-        /// Identifiers will be parsed for arity but not generic type arguments.
+        /// Nodes will be parsed for arity but not generic type arguments.
         ///
-        /// All of the following are valid identifiers, where "$$" marks the parsing starting point, and "[|" + "|]" mark the endpoints of the parsed identifier including trivia
+        /// All of the following are valid nodes, where "$$" marks the parsing starting point, and "[|" + "|]" mark the endpoints of the parsed node excluding trivia
         ///   * [|$$MyNamespace.MyClass.MyMethod|](string s)
-        ///   * MyClass.MyMethod([|$$string |]s)
+        ///   * MyClass.MyMethod([|$$string|] s)
+        ///   * MyClass.MyMethod([|$$string[]|] s)
         ///   * [|$$MyClass`1.MyMethod|](string s)
         ///   * [|$$MyClass.MyMethod|][T](T t)
         /// </summary>
-        private StackFrameNameNode? TryParseIdentifierNode(bool scanAtTrivia)
+        private ParseResult<StackFrameNameNode?> TryParseNameNode(bool scanAtTrivia)
         {
             var currentIdentifer = _lexer.TryScanIdentifier(scanAtTrivia: scanAtTrivia, scanLeadingWhitespace: true, scanTrailingWhitespace: false);
             if (!currentIdentifer.HasValue)
             {
-                return null;
+                return new(Success: true, Value: null);
             }
 
-            StackFrameSimpleNameNode? lhs = TryScanGenericTypeIdentifier(currentIdentifer.Value);
+            var identifierParseResult = TryScanGenericTypeIdentifier(currentIdentifer.Value);
+            if (!identifierParseResult.Success)
+            {
+                return new(false, null);
+            }
+
+            StackFrameSimpleNameNode? lhs = identifierParseResult.Value;
             lhs ??= new StackFrameIdentifierNameNode(currentIdentifer.Value);
 
-            var memberAccess = TryScanQualifiedNameNode(lhs);
+            var parseResult = TryScanQualifiedNameNode(lhs);
+            if (!parseResult.Success)
+            {
+                return new(false, null);
+            }
+
+            var memberAccess = parseResult.Value;
             if (memberAccess is null)
             {
-                return lhs;
+                return new(true, lhs);
             }
 
             while (true)
             {
-                var newMemberAccess = TryScanQualifiedNameNode(memberAccess);
+                parseResult = TryScanQualifiedNameNode(memberAccess);
+                if (!parseResult.Success)
+                {
+                    return new(false, null);
+                }
+
+                var newMemberAccess = parseResult.Value;
                 if (newMemberAccess is null)
                 {
-                    return memberAccess;
+                    return new(true, memberAccess);
                 }
 
                 memberAccess = newMemberAccess;
@@ -163,46 +188,55 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// Given an existing left hand side node or token, which can either be 
         /// an <see cref="StackFrameKind.IdentifierToken"/> or <see cref="StackFrameQualifiedNameNode"/>
         /// </summary>
-        private StackFrameQualifiedNameNode? TryScanQualifiedNameNode(StackFrameNameNode lhs)
+        private ParseResult<StackFrameQualifiedNameNode?> TryScanQualifiedNameNode(StackFrameNameNode lhs)
         {
             if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.DotToken, out var dotToken))
             {
-                return null;
+                return new(true, null);
             }
 
             var identifier = _lexer.TryScanIdentifier();
             if (!identifier.HasValue)
             {
-                throw new StackFrameParseException(StackFrameKind.IdentifierToken, CurrentCharAsToken());
+                return new(false, null);
             }
 
-            StackFrameSimpleNameNode? rhs = TryScanGenericTypeIdentifier(identifier.Value);
+            (var success, StackFrameSimpleNameNode? rhs) = TryScanGenericTypeIdentifier(identifier.Value);
+            if (!success)
+            {
+                return new(false, null);
+            }
+
             rhs ??= new StackFrameIdentifierNameNode(identifier.Value);
 
-            return new StackFrameQualifiedNameNode(lhs, dotToken, rhs);
+            return new(true, new(lhs, dotToken, rhs));
         }
 
         /// <summary>
         /// Given an identifier, attempts to parse the type identifier arity for it.
+        /// 
+        /// <code>
         /// ex: MyNamespace.MyClass`1.MyMethod()
         ///                 ^--------------------- MyClass would be the identifier passed in
         ///                        ^-------------- Grave token
         ///                         ^------------- Arity token of "1" 
+        /// </code>
+        /// 
         /// </summary>
-        private StackFrameGenericNameNode? TryScanGenericTypeIdentifier(StackFrameToken identifierToken)
+        private ParseResult<StackFrameGenericNameNode?> TryScanGenericTypeIdentifier(StackFrameToken identifierToken)
         {
             if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.GraveAccentToken, out var graveAccentToken))
             {
-                return null;
+                return new(Success: true, null);
             }
 
             var arity = _lexer.TryScanNumbers();
             if (!arity.HasValue)
             {
-                throw new StackFrameParseException(StackFrameKind.NumberToken, CurrentCharAsToken());
+                return new(Success: false, Value: null);
             }
 
-            return new StackFrameGenericNameNode(identifierToken, graveAccentToken, arity.Value);
+            return new(Success: true, new(identifierToken, graveAccentToken, arity.Value));
         }
 
         /// <summary>
@@ -215,13 +249,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// Assumes the identifier "MyMethod" has already been parsed, and the type arguments will need to be parsed. 
         /// Returns null if no type arguments are found, and throw a <see cref="StackFrameParseException"/> if they are malformed
         /// </summary>
-        private StackFrameTypeArgumentList? TryParseTypeArguments()
+        private ParseResult<StackFrameTypeArgumentList?> TryParseTypeArguments()
         {
             if (!_lexer.ScanCurrentCharAsTokenIfMatch(
                     kind => kind is StackFrameKind.OpenBracketToken or StackFrameKind.LessThanToken,
                     out var openToken))
             {
-                return null;
+                return new(true, null);
             }
 
             var useCloseBracket = openToken.Kind is StackFrameKind.OpenBracketToken;
@@ -242,14 +276,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                         break;
                     }
 
-                    throw new StackFrameParseException(StackFrameKind.GreaterThanToken, closeBracket);
+                    return new(false, null);
                 }
 
                 if (_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.GreaterThanToken, out var greaterThanToken))
                 {
                     if (useCloseBracket)
                     {
-                        throw new StackFrameParseException(StackFrameKind.CloseBracketToken, greaterThanToken);
+                        return new(false, null);
                     }
 
                     closeToken = greaterThanToken;
@@ -262,51 +296,60 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             if (builder.Count == 0)
             {
-                throw new StackFrameParseException(StackFrameKind.TypeArgument, CurrentCharAsToken());
+                return new(false, null);
             }
 
             if (closeToken.IsMissing)
             {
-                throw new StackFrameParseException("No close token for type arguments");
+                return new(false, null);
             }
 
-            return new StackFrameTypeArgumentList(openToken, new SeparatedStackFrameNodeList<StackFrameIdentifierNameNode>(builder.ToImmutable()), closeToken);
+            var separatedList = new SeparatedStackFrameNodeList<StackFrameIdentifierNameNode>(builder.ToImmutable());
+            return new(Success: true, Value: new(openToken, separatedList, closeToken));
         }
 
         /// <summary>
         /// MyNamespace.MyClass.MyMethod[|(string s1, string s2, int i1)|]
-        /// Takes parameter declarations from method text and parses them into a <see cref="StackFrameParameterList"/>. 
-        /// 
-        /// Returns null in cases where the opening paren is not found. Throws <see cref="StackFrameParseException"/> if the 
-        /// opening paren exists but the remaining parameter definitions are malformed.
+        /// Takes parameter declarations from method text and parses them into a <see cref="StackFrameParameterList"/>.
         /// </summary>
-        private StackFrameParameterList? TryParseMethodParameters()
+        private ParseResult<StackFrameParameterList?> TryParseMethodParameters()
         {
             if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.OpenParenToken, scanTrailingWhitespace: true, out var openParen))
             {
-                return null;
+                return new(true, null);
             }
 
             if (_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.CloseParenToken, out var closeParen))
             {
-                return new StackFrameParameterList(openParen, SeparatedStackFrameNodeList<StackFrameParameterNode>.Empty, closeParen);
+                return new(Success: true, Value: new(openParen, SeparatedStackFrameNodeList<StackFrameParameterNode>.Empty, closeParen));
             }
 
             using var _ = ArrayBuilder<StackFrameNodeOrToken>.GetInstance(out var builder);
-            builder.Add(ParseParameterNode());
+            var (success, parameterNode) = ParseParameterNode();
+            if (!success)
+            {
+                return new(false, null);
+            }
+
             while (_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.CommaToken, out var commaToken))
             {
                 builder.Add(commaToken);
-                builder.Add(ParseParameterNode());
+                (success, parameterNode) = ParseParameterNode();
+                if (!success)
+                {
+                    return new(false, null);
+                }
+
+                builder.Add(parameterNode);
             }
 
             if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.CloseParenToken, out closeParen))
             {
-                throw new StackFrameParseException(StackFrameKind.CloseParenToken, CurrentCharAsToken());
+                return new(true, null);
             }
 
             var parameters = new SeparatedStackFrameNodeList<StackFrameParameterNode>(builder.ToImmutable());
-            return new StackFrameParameterList(openParen, parameters, closeParen);
+            return new(true, new(openParen, parameters, closeParen));
         }
 
         /// <summary>
@@ -315,27 +358,32 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         ///     ^--------------^ -- Type = "System.String[]"
         ///                     ^-- Identifier = "s"    
         /// </summary>
-        private StackFrameParameterNode ParseParameterNode()
+        private ParseResult<StackFrameParameterNode?> ParseParameterNode()
         {
-            var typeIdentifier = TryParseIdentifierNode(scanAtTrivia: false);
-            if (typeIdentifier is null)
+            var (success, typeIdentifier) = TryParseNameNode(scanAtTrivia: false);
+            if (!success || typeIdentifier is null)
             {
-                throw new StackFrameParseException("Expected type identifier when parsing parameters");
+                return new(false, null);
             }
 
             if (CurrentCharAsToken().Kind == StackFrameKind.OpenBracketToken)
             {
-                var arrayIdentifiers = ParseArrayIdentifiers();
+                (success, var arrayIdentifiers) = ParseArrayRankSpecifiers();
+                if (!success || arrayIdentifiers.IsDefault)
+                {
+                    return new(false, null);
+                }
+
                 typeIdentifier = new StackFrameArrayTypeExpression(typeIdentifier, arrayIdentifiers);
             }
 
             var identifier = _lexer.TryScanIdentifier(scanAtTrivia: false, scanLeadingWhitespace: true, scanTrailingWhitespace: true);
             if (!identifier.HasValue)
             {
-                throw new StackFrameParseException("Expected a parameter identifier");
+                return new(false, null);
             }
 
-            return new StackFrameParameterNode(typeIdentifier, identifier.Value);
+            return new(true, new(typeIdentifier, identifier.Value));
         }
 
         /// <summary>
@@ -345,7 +393,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         ///                  0: "[,]
         ///                  1: "[]"
         /// </summary>
-        private ImmutableArray<StackFrameArrayRankSpecifier> ParseArrayIdentifiers()
+        private ParseResult<ImmutableArray<StackFrameArrayRankSpecifier>> ParseArrayRankSpecifiers()
         {
             using var _ = ArrayBuilder<StackFrameArrayRankSpecifier>.GetInstance(out var builder);
             using var _1 = ArrayBuilder<StackFrameToken>.GetInstance(out var commaBuilder);
@@ -354,7 +402,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             {
                 if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.OpenBracketToken, scanTrailingWhitespace: true, out var openBracket))
                 {
-                    return builder.ToImmutable();
+                    return new(true, builder.ToImmutable());
                 }
 
                 commaBuilder.Clear();
@@ -365,7 +413,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
                 if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.CloseBracketToken, scanTrailingWhitespace: true, out var closeBracket))
                 {
-                    throw new StackFrameParseException(StackFrameKind.CloseBracketToken, CurrentCharAsToken());
+                    return new(false, default);
                 }
 
                 builder.Add(new StackFrameArrayRankSpecifier(openBracket, closeBracket, commaBuilder.ToImmutable()));
@@ -381,22 +429,22 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// Can return if only a path is available but not line numbers, but throws if the value after the path is a colon as the expectation
         /// is that line number should follow.
         /// </summary>
-        private StackFrameFileInformationNode? TryParseFileInformation()
+        private ParseResult<StackFrameFileInformationNode?> TryParseFileInformation()
         {
             var path = _lexer.TryScanPath();
             if (!path.HasValue)
             {
-                return null;
+                return new(true, null);
             }
 
             if (path.Value.Kind != StackFrameKind.PathToken)
             {
-                throw new StackFrameParseException("'In ' trivia was present ");
+                return new(false, null);
             }
 
             if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.ColonToken, out var colonToken))
             {
-                return new(path.Value, null, null);
+                return new(true, new(path.Value, null, null));
             }
 
             var lineNumber = _lexer.TryScanLineNumber();
@@ -405,10 +453,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             // to bail in error and consider this malformed.
             if (!lineNumber.HasValue || lineNumber.Value.Kind != StackFrameKind.NumberToken)
             {
-                throw new StackFrameParseException("Expected line number to exist after colon token");
+                return new(false, null);
             }
 
-            return new(path.Value, colonToken, lineNumber.Value);
+            return new(true, new(path.Value, colonToken, lineNumber.Value));
         }
     }
 }
