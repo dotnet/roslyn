@@ -3,13 +3,17 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              DataContext="{Binding RelativeSource={RelativeSource Self}}"
              x:ClassModifier="internal"
              mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Styles\ThemedDialogResources.xaml"/>
+                <!-- VS theme -->
+                <StaticResource ResourceKey="{x:Static vsshell:VsResourceKeys.ThemedDialogDefaultStylesKey}" />
+                <!-- Custom tab theme -->
+                <ResourceDictionary Source="Styles\TabControlStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
