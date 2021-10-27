@@ -201,6 +201,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                         i++;
                     }
 
+                    // Don't include all-whitespace lines in the calculation
+                    // They'll be completely trimmed
+                    if (i == line.Length)
+                    {
+                        continue;
+                    }
+
                     maxPrefix = Math.Min(maxPrefix, i);
                 }
 
@@ -223,7 +230,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     }
 
                     var trimmedLine = line.TrimEnd();
-                    builder.Append(trimmedLine, maxPrefix, trimmedLine.Length - maxPrefix);
+                    if (trimmedLine.Length != 0)
+                    {
+                        builder.Append(trimmedLine, maxPrefix, trimmedLine.Length - maxPrefix);
+                    }
                 }
 
                 return builder.ToString();
