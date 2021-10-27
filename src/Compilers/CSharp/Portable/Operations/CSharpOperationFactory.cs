@@ -2270,7 +2270,10 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation CreateBoundSlicePatternOperation(BoundSlicePattern boundNode)
         {
             return new SlicePatternOperation(
-                sliceSymbol: ((Symbol?)boundNode.SliceMethod ?? boundNode.IndexerAccess?.Indexer).GetPublicSymbol(),
+                sliceSymbol: boundNode.Pattern is null ? null :
+                    (boundNode.InputType.IsSZArray()
+                        ? (Symbol?)_semanticModel.Compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T)
+                        : (Symbol?)boundNode.SliceMethod ?? boundNode.IndexerAccess?.Indexer).GetPublicSymbol(),
                 pattern: (IPatternOperation?)Create(boundNode.Pattern),
                 inputType: boundNode.InputType.GetPublicSymbol(),
                 narrowedType: boundNode.NarrowedType.GetPublicSymbol(),

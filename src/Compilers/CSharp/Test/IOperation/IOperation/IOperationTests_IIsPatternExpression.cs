@@ -2141,13 +2141,13 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o 
           IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '42') (InputType: System.Int32, NarrowedType: System.Int32)
             Value:
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
-          ISlicePatternOperation (OperationKind.SlicePattern, Type: null) (Syntax: '.. var slice') (InputType: System.Int32[], NarrowedType: System.Int32[], SliceSymbol: null
+          ISlicePatternOperation (OperationKind.SlicePattern, Type: null) (Syntax: '.. var slice') (InputType: System.Int32[], NarrowedType: System.Int32[], SliceSymbol: T[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<T>(T[] array, System.Range range)
             Pattern:
               IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var slice') (InputType: System.Int32[], NarrowedType: System.Int32[], DeclaredSymbol: System.Int32[]? slice, MatchesNull: True)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
         }
 
