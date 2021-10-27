@@ -16,11 +16,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
     {
         public EmbeddedSeparatedSyntaxNodeList(ImmutableArray<EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>> nodesAndTokens)
         {
-            Contract.ThrowIfTrue(nodesAndTokens.IsDefaultOrEmpty);
+            Contract.ThrowIfTrue(nodesAndTokens.IsDefault);
             NodesAndTokens = nodesAndTokens;
-
-            // Verify size constraints for not empty list. If empty is desired the Empty static field should
-            // be used instead to retrieve an empty EmbeddedSeparatedSyntaxNodeList
             Verify();
 
             var allLength = NodesAndTokens.Length;

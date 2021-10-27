@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             if (!argumentsResult.Success || argumentsResult.Value is null)
             {
-                return new(false, Value: null);
+                return new(false, null);
             }
 
             return new(true, new(memberAccessExpression, typeArgumentsResult.Value, argumentsResult.Value));
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             var currentIdentifer = _lexer.TryScanIdentifier(scanAtTrivia: scanAtTrivia, scanLeadingWhitespace: true, scanTrailingWhitespace: false);
             if (!currentIdentifer.HasValue)
             {
-                return new(Success: true, Value: null);
+                return new(true, null);
             }
 
             var identifierParseResult = TryScanGenericTypeIdentifier(currentIdentifer.Value);
@@ -227,16 +227,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         {
             if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.GraveAccentToken, out var graveAccentToken))
             {
-                return new(Success: true, null);
+                return new(true, null);
             }
 
             var arity = _lexer.TryScanNumbers();
             if (!arity.HasValue)
             {
-                return new(Success: false, Value: null);
+                return new(false, null);
             }
 
-            return new(Success: true, new(identifierToken, graveAccentToken, arity.Value));
+            return new(true, new(identifierToken, graveAccentToken, arity.Value));
         }
 
         /// <summary>
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             }
 
             var separatedList = new SeparatedStackFrameNodeList<StackFrameIdentifierNameNode>(builder.ToImmutable());
-            return new(Success: true, Value: new(openToken, separatedList, closeToken));
+            return new(true, new(openToken, separatedList, closeToken));
         }
 
         /// <summary>
@@ -321,21 +321,23 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             if (_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.CloseParenToken, out var closeParen))
             {
-                return new(Success: true, Value: new(openParen, SeparatedStackFrameNodeList<StackFrameParameterNode>.Empty, closeParen));
+                return new(true, new(openParen, SeparatedStackFrameNodeList<StackFrameParameterNode>.Empty, closeParen));
             }
 
-            using var _ = ArrayBuilder<StackFrameNodeOrToken>.GetInstance(out var builder);
             var (success, parameterNode) = ParseParameterNode();
-            if (!success)
+            if (!success || parameterNode is null)
             {
                 return new(false, null);
             }
+
+            using var _ = ArrayBuilder<StackFrameNodeOrToken>.GetInstance(out var builder);
+            builder.Add(parameterNode);
 
             while (_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.CommaToken, out var commaToken))
             {
                 builder.Add(commaToken);
                 (success, parameterNode) = ParseParameterNode();
-                if (!success)
+                if (!success || parameterNode is null)
                 {
                     return new(false, null);
                 }
