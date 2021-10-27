@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             return new(kind, virtualChars, diagnostics);
         }
 
-        public static ImmutableArray<StackFrameTrivia> CreateTrivia(params StackFrameTrivia?[] triviaArray)
+        private static ImmutableArray<StackFrameTrivia> CreateTrivia(params StackFrameTrivia?[] triviaArray)
         {
             using var _ = ArrayBuilder<StackFrameTrivia>.GetInstance(out var builder);
             foreach (var trivia in triviaArray)
