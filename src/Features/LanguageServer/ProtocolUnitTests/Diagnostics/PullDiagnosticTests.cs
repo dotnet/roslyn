@@ -920,6 +920,61 @@ class A {";
             Assert.Equal(previousResultIds[1].PreviousResultId, results[1].ResultId);
         }
 
+        [Fact]
+        public async Task TestWorkspaceDiagnosticsOrderOfReferencedProjectsReloadedDoesNotMatter()
+        {
+            var markup1 =
+@"namespace M
+{
+    class A : B { }
+}";
+
+            var workspaceXml =
+@$"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"">
+        <Document FilePath=""C:\A.cs"">{markup1}</Document>
+        <ProjectReference>CSProj2</ProjectReference>
+        <ProjectReference>CSProj3</ProjectReference>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj2"">
+        <Document FilePath=""C:\B.cs""></Document>
+    </Project>
+<Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj3"">
+        <Document FilePath=""C:\C.cs""></Document>
+    </Project>
+</Workspace>";
+
+            using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution).ConfigureAwait(false);
+            var csproj2Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj2").Single().Documents.First();
+
+            // Verify we a diagnostic in A.cs since B does not exist
+            // and a diagnostic in B.cs since it is missing the class name.
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
+            AssertEx.NotNull(results);
+            Assert.Equal(3, results.Length);
+            Assert.Equal("CS0246", results[0].Diagnostics.Single().Code);
+
+            // Reload the project via the workspace.
+            var projectInfo = testLspServer.TestWorkspace.Projects.Where(p => p.AssemblyName == "CSProj2").Single().ToProjectInfo();
+            testLspServer.TestWorkspace.OnProjectReloaded(projectInfo);
+            var operations = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+            await operations.GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+
+            // Get updated workspace diagnostics for the change.
+            var previousResults = CreateDiagnosticParamsFromPreviousReports(results);
+            var previousResultIds = previousResults.Select(param => param.PreviousResultId).ToImmutableArray();
+            results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults: previousResults);
+
+            // Verify that since no actual changes have been made we report unchanged diagnostics.
+            AssertEx.NotNull(results);
+            Assert.Equal(3, results.Length);
+
+            // Diagnostics should be unchanged as a referenced project was unloaded and reloaded.  Order should not matter.
+            Assert.Null(results[0].Diagnostics);
+            Assert.All(results, result => Assert.Null(result.Diagnostics));
+            Assert.All(results, result => Assert.True(previousResultIds.Contains(result.ResultId)));
+        }
+
         #endregion
 
         private static async Task<VSInternalDiagnosticReport[]?> RunGetDocumentPullDiagnosticsAsync(

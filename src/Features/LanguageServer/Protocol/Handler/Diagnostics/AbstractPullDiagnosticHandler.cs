@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -345,7 +346,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // Now calculate the checksum for each project that this project references.  The ProjectReferences are
             // included in the project checksum, but it only includes metadata like project id.  So to determine
             // if dependent projects changed, we need to look at the checksum of the project for each reference.
-            foreach (var projectReference in project.ProjectReferences)
+            var orderedProjectReferences = project.ProjectReferences.OrderBy(reference => reference.ProjectId.Id).ToImmutableArray();
+            foreach (var projectReference in orderedProjectReferences)
             {
                 var referencedProject = project.Solution.GetRequiredProject(projectReference.ProjectId);
 
