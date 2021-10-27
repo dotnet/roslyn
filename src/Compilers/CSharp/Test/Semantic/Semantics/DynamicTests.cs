@@ -1078,17 +1078,24 @@ public class C
         var dd = d1 ?? d2;  //-typeExpression: dynamic
                             //-fieldAccess: dynamic
                             //-fieldAccess: dynamic
+                            //-valuePlaceholder: dynamic
+                            //-valuePlaceholder: dynamic
+                            //-conversion: object
                             //-nullCoalescingOperator: dynamic
 
         var sd = s1 ?? d2;  //-typeExpression: dynamic
                             //-fieldAccess: object
                             //-fieldAccess: dynamic
+                            //-valuePlaceholder: object
+                            //-valuePlaceholder: object
                             //-nullCoalescingOperator: dynamic
 
         var ds = d1 ?? s2;  //-typeExpression: dynamic
                             //-fieldAccess: dynamic
                             //-fieldAccess: object
                             //-conversion: dynamic
+                            //-valuePlaceholder: dynamic
+                            //-valuePlaceholder: dynamic
                             //-nullCoalescingOperator: dynamic
     }
 }
@@ -4258,6 +4265,56 @@ class C
                 // (8,39): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
                 //         System.Console.WriteLine(d[in x]);
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "x").WithLocation(8, 39)
+                );
+        }
+
+        [Fact]
+        public void UserDefinedConversion_01()
+        {
+            var source = @"
+dynamic x = true;
+
+if (new C() && x)
+{
+    System.Console.WriteLine(""1"");
+}
+
+System.Console.WriteLine(""2"");
+
+class C
+{
+    [System.Obsolete()]
+    public static implicit operator bool(C c)
+    {
+        System.Console.WriteLine(""op_Implicit"");
+        return false;
+    }
+
+    public static bool operator true(C c)
+    {
+        System.Console.WriteLine(""op_True"");
+        return false;
+    }
+
+    public static bool operator false(C c)
+    {
+        System.Console.WriteLine(""op_False"");
+        return false;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45AndCSharp(source);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"op_Implicit
+op_Implicit
+2
+"
+).VerifyDiagnostics(
+                // (4,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // if (new C() && x)
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.implicit operator bool(C)").WithLocation(4, 5)
                 );
         }
     }

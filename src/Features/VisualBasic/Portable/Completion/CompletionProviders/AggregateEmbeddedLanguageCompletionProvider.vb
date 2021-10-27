@@ -9,16 +9,22 @@ Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-    <ExportCompletionProvider(NameOf(EmbeddedLanguageCompletionProvider), LanguageNames.VisualBasic)>
+    <ExportCompletionProvider(NameOf(AggregateEmbeddedLanguageCompletionProvider), LanguageNames.VisualBasic)>
     <ExtensionOrder(After:=NameOf(InternalsVisibleToCompletionProvider))>
     <[Shared]>
-    Friend Class EmbeddedLanguageCompletionProvider
-        Inherits AbstractEmbeddedLanguageCompletionProvider
+    Friend Class AggregateEmbeddedLanguageCompletionProvider
+        Inherits AbstractAggregateEmbeddedLanguageCompletionProvider
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(<ImportMany> languageServices As IEnumerable(Of Lazy(Of ILanguageService, LanguageServiceMetadata)))
             MyBase.New(languageServices, LanguageNames.VisualBasic)
         End Sub
+
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
     End Class
 End Namespace

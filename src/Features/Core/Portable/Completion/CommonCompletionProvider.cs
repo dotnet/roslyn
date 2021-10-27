@@ -4,9 +4,11 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
@@ -19,28 +21,47 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         private static readonly CompletionItemRules s_suggestionItemRules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
 
-        public override bool ShouldTriggerCompletion(SourceText text, int position, CompletionTrigger trigger, OptionSet options)
+        /// <summary>
+        /// Language used to retrieve <see cref="CompletionOptions"/> from <see cref="OptionSet"/>.
+        /// Null for language agnostic values.
+        /// </summary>
+        internal abstract string Language { get; }
+
+        /// <summary>
+        /// For backwards API compat only, should not be called.
+        /// </summary>
+        public sealed override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
-            switch (trigger.Kind)
-            {
-                case CompletionTriggerKind.Insertion when position > 0:
-                    var insertedCharacterPosition = position - 1;
-                    return IsInsertionTrigger(text, insertedCharacterPosition, options);
-                default:
-                    return false;
-            }
+            Debug.Fail("For backwards API compat only, should not be called");
+            return ShouldTriggerCompletionImpl(text, caretPosition, trigger, CompletionOptions.From(options, Language));
         }
 
-        public virtual bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
+        internal override bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options)
+            => ShouldTriggerCompletionImpl(text, caretPosition, trigger, options);
+
+        private bool ShouldTriggerCompletionImpl(SourceText text, int caretPosition, CompletionTrigger trigger, in CompletionOptions options)
+            => trigger.Kind == CompletionTriggerKind.Insertion &&
+               caretPosition > 0 &&
+               IsInsertionTrigger(text, insertedCharacterPosition: caretPosition - 1, options);
+
+        public virtual bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, CompletionOptions options)
             => false;
 
-        public override async Task<CompletionDescription?> GetDescriptionAsync(
-            Document document, CompletionItem item, CancellationToken cancellationToken)
+        /// <summary>
+        /// For backwards API compat only, should not be called.
+        /// </summary>
+        public sealed override Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        {
+            Debug.Fail("For backwards API compat only, should not be called");
+            return GetDescriptionAsync(document, item, CompletionOptions.From(document.Project.Solution.Options, document.Project.Language), cancellationToken);
+        }
+
+        internal override async Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, CancellationToken cancellationToken)
         {
             // Get the actual description provided by whatever subclass we are.
             // Then, if we would commit text that could be expanded as a snippet, 
             // put that information in the description so that the user knows.
-            var description = await GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false);
+            var description = await GetDescriptionWorkerAsync(document, item, options, cancellationToken).ConfigureAwait(false);
             var parts = await TryAddSnippetInvocationPartAsync(document, item, description.TaggedParts, cancellationToken).ConfigureAwait(false);
 
             return description.WithTaggedParts(parts);
@@ -74,8 +95,8 @@ namespace Microsoft.CodeAnalysis.Completion
             return parts;
         }
 
-        protected virtual Task<CompletionDescription> GetDescriptionWorkerAsync(
-            Document document, CompletionItem item, CancellationToken cancellationToken)
+        internal virtual Task<CompletionDescription> GetDescriptionWorkerAsync(
+            Document document, CompletionItem item, CompletionOptions options, CancellationToken cancellationToken)
         {
             return CommonCompletionItem.HasDescription(item)
                 ? Task.FromResult(CommonCompletionItem.GetDescription(item))

@@ -18,6 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindInterpolatedString(InterpolatedStringExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
+            var startText = node.StringStartToken.Text;
+            if (startText.StartsWith("@$\"") && !Compilation.IsFeatureEnabled(MessageID.IDS_FeatureAltInterpolatedVerbatimStrings))
+            {
+                Error(diagnostics,
+                    ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable,
+                    node.StringStartToken.GetLocation(),
+                    new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureAltInterpolatedVerbatimStrings.RequiredVersion()));
+            }
+
             var builder = ArrayBuilder<BoundExpression>.GetInstance();
             var stringType = GetSpecialType(SpecialType.System_String, diagnostics, node);
             ConstantValue? resultConstant = null;
@@ -29,6 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                var isNonVerbatimInterpolatedString = node.StringStartToken.Kind() != SyntaxKind.InterpolatedVerbatimStringStartToken;
+                var newLinesInInterpolationsAllowed = this.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNewLinesInInterpolations);
+
                 var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
                 foreach (var content in node.Contents)
                 {
@@ -37,6 +49,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case SyntaxKind.Interpolation:
                             {
                                 var interpolation = (InterpolationSyntax)content;
+
+                                // If we're prior to C# 11 then we don't allow newlines in the interpolations of
+                                // non-verbatim interpolated strings.  Check for that here and report an error
+                                // if the interpolation spans multiple lines (and thus must have a newline).
+                                //
+                                // Note: don't bother doing this if the interpolation is otherwise malformed or
+                                // we've already reported some other error within it.  No need to spam the user
+                                // with multiple errors (esp as a malformed interpolation may commonly span multiple
+                                // lines due to error recovery).
+                                if (isNonVerbatimInterpolatedString &&
+                                    !interpolation.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error) &&
+                                    !newLinesInInterpolationsAllowed &&
+                                    !interpolation.OpenBraceToken.IsMissing &&
+                                    !interpolation.CloseBraceToken.IsMissing)
+                                {
+                                    var text = node.SyntaxTree.GetText();
+                                    if (text.Lines.GetLineFromPosition(interpolation.OpenBraceToken.SpanStart).LineNumber !=
+                                        text.Lines.GetLineFromPosition(interpolation.CloseBraceToken.SpanStart).LineNumber)
+                                    {
+                                        diagnostics.Add(
+                                            ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString,
+                                            interpolation.CloseBraceToken.GetLocation(),
+                                            this.Compilation.LanguageVersion.ToDisplayString(),
+                                            new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNewLinesInInterpolations.RequiredVersion()));
+                                    }
+                                }
+
                                 var value = BindValue(interpolation.Expression, diagnostics, BindValueKind.RValue);
 
                                 // We need to ensure the argument is not a lambda, method group, etc. It isn't nice to wait until lowering,

@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundAsOperator As(BoundExpression operand, TypeSymbol type)
         {
-            return new BoundAsOperator(this.Syntax, operand, Type(type), Conversion.ExplicitReference, type) { WasCompilerGenerated = true };
+            return new BoundAsOperator(this.Syntax, operand, Type(type), operandPlaceholder: null, operandConversion: null, type) { WasCompilerGenerated = true };
         }
 
         public BoundIsOperator Is(BoundExpression operand, TypeSymbol type)
@@ -806,7 +806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(left.Type!.Equals(right.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) || left.Type.IsErrorType());
             Debug.Assert(left.Type.IsReferenceType);
 
-            return new BoundNullCoalescingOperator(Syntax, left, right, Conversion.Identity, BoundNullCoalescingOperatorResultKind.LeftType, left.Type) { WasCompilerGenerated = true };
+            return new BoundNullCoalescingOperator(Syntax, left, right, leftPlaceholder: null, leftConversion: null, BoundNullCoalescingOperatorResultKind.LeftType, left.Type) { WasCompilerGenerated = true };
         }
 
         public BoundStatement If(BoundExpression condition, BoundStatement thenClause, BoundStatement? elseClauseOpt = null)
@@ -1287,9 +1287,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion c = Compilation.Conversions.ClassifyConversionFromExpression(arg, type, ref useSiteInfo);
             Debug.Assert(c.Exists);
             Debug.Assert(useSiteInfo.Diagnostics.IsNullOrEmpty());
-
-            // If this happens, we should probably check if the method has ObsoleteAttribute.
-            Debug.Assert(c.Method is null, "Why are we synthesizing a user-defined conversion after initial binding?");
 
             return Convert(type, arg, c);
         }

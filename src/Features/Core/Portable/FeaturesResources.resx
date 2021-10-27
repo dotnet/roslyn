@@ -965,11 +965,12 @@ This version used in: {2}</value>
   <data name="Asynchronously_waits_for_the_task_to_finish" xml:space="preserve">
     <value>Asynchronously waits for the task to finish.</value>
   </data>
-  <data name="Make_containing_scope_async" xml:space="preserve">
-    <value>Make containing scope async</value>
+  <data name="Await_the_preceding_expression" xml:space="preserve">
+    <value>Await the preceding expression</value>
   </data>
-  <data name="Make_containing_scope_async_return_Task" xml:space="preserve">
-    <value>Make containing scope async (return Task)</value>
+  <data name="Await_the_preceding_expression_and_add_ConfigureAwait_0" xml:space="preserve">
+    <value>Await the preceding expression and add ConfigureAwait({0}).</value>
+    <comment>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</comment>
   </data>
   <data name="paren_Unknown_paren" xml:space="preserve">
     <value>(Unknown)</value>

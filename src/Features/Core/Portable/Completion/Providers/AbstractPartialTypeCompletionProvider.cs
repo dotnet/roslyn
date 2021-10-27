@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                          .Any(node => !(node.SyntaxTree == context.SyntaxTree && node.Span.IntersectsWith(context.Position)));
         }
 
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, CancellationToken cancellationToken)
             => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)

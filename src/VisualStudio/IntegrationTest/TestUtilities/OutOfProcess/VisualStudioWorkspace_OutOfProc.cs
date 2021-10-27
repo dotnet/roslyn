@@ -78,17 +78,22 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 value: value);
         }
 
+        public void SetEnableDecompilationOption(bool value)
+        {
+            SetOption("NavigateToDecompiledSources", "FeatureOnOffOptions", value);
+        }
+
         public void SetArgumentCompletionSnippetsOption(bool value)
         {
             SetPerLanguageOption(
-                optionName: CompletionOptions.EnableArgumentCompletionSnippets.Name,
-                feature: CompletionOptions.EnableArgumentCompletionSnippets.Feature,
+                optionName: CompletionViewOptions.EnableArgumentCompletionSnippets.Name,
+                feature: CompletionViewOptions.EnableArgumentCompletionSnippets.Feature,
                 language: LanguageNames.CSharp,
                 value: value);
 
             SetPerLanguageOption(
-                optionName: CompletionOptions.EnableArgumentCompletionSnippets.Name,
-                feature: CompletionOptions.EnableArgumentCompletionSnippets.Feature,
+                optionName: CompletionViewOptions.EnableArgumentCompletionSnippets.Name,
+                feature: CompletionViewOptions.EnableArgumentCompletionSnippets.Feature,
                 language: LanguageNames.VisualBasic,
                 value: value);
         }
@@ -96,8 +101,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SetTriggerCompletionInArgumentLists(bool value)
         {
             SetPerLanguageOption(
-                optionName: CompletionOptions.TriggerInArgumentLists.Name,
-                feature: CompletionOptions.TriggerInArgumentLists.Feature,
+                optionName: CompletionOptions.Metadata.TriggerInArgumentLists.Name,
+                feature: CompletionOptions.Metadata.TriggerInArgumentLists.Feature,
                 language: LanguageNames.CSharp,
                 value: value);
         }
@@ -116,6 +121,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 language: LanguageNames.VisualBasic,
                 value: value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default);
         }
+
+        public void SetFileScopedNamespaces(bool value)
+            => _inProc.SetFileScopedNamespaces(value);
 
         public void SetEnableOpeningSourceGeneratedFilesInWorkspaceExperiment(bool value)
         {

@@ -401,7 +401,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             {
                 var dispatcherFactory = workspace.ExportProvider.GetExportedValue<RequestDispatcherFactory>();
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
-                var lspWorkspaceRegistrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
+                var lspWorkspaceRegistrationService = workspace.ExportProvider.GetExportedValue<LspWorkspaceRegistrationService>();
                 var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<DefaultCapabilitiesProvider>();
 
                 var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream))

@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             IGlobalOptionService globalOptions,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             DefaultCapabilitiesProvider defaultCapabilitiesProvider,
             IThreadingContext threadingContext,
             ILspLoggerFactory lspLoggerFactory)

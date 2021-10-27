@@ -111,7 +111,7 @@ static class C { }
 static class C { }
 ";
 
-            UpdateDocumentText(newMarkup, testLspServer.TestWorkspace);
+            await UpdateDocumentTextAsync(newMarkup, testLspServer.TestWorkspace);
             var editResults = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "2");
 
             var expectedEdit = new LSP.SemanticTokensEdit { Start = 0, DeleteCount = 1, Data = new int[] { 1 } };
