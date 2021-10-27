@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
                 && t1.LeadingTrivia.IsDefault == t2.LeadingTrivia.IsDefault
                 && (t1.LeadingTrivia.IsDefault || t1.LeadingTrivia.SequenceEqual(t2.LeadingTrivia))
                 && t1.VirtualChars == t2.VirtualChars
-                && t1.TrailingTrivia.IsDefault == t2.TrailingTrivia.IsDefault 
+                && t1.TrailingTrivia.IsDefault == t2.TrailingTrivia.IsDefault
                 && (t1.TrailingTrivia.IsDefault || t1.TrailingTrivia.SequenceEqual(t2.TrailingTrivia))
                 && t1.Diagnostics.IsDefault == t2.Diagnostics.IsDefault
                 && (t1.Diagnostics.IsDefault || t1.Diagnostics.SequenceEqual(t2.Diagnostics))

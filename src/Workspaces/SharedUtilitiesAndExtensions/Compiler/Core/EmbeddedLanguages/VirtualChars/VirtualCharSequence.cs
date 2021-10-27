@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
@@ -144,6 +145,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 chars1._leafCharacters,
                 TextSpan.FromBounds(chars1._span.Start, chars2._span.End));
         }
+
+        public override bool Equals(object? obj)
+            => obj is VirtualCharSequence seq && this == seq;
+
+        public override int GetHashCode()
+            => Hash.Combine(_leafCharacters.GetHashCode(), _span.GetHashCode());
 
         public static bool operator ==(VirtualCharSequence v1, VirtualCharSequence v2)
             => v1.Length == v2.Length
