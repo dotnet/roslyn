@@ -3402,7 +3402,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         /// <summary>
         /// If this interpolated string is subject to an interpolated string handler conversion, the construction of the interpolated string handler instance.
-        /// This can be an IInvocationOperation or IDynamicInvocationOperation for valid code, and IInvalidOperation for invalid code.
+        /// This can be an <see cref="IInvocationOperation" />  or <see cref="IDynamicInvocationOperation" /> for valid code, and <see cref="IInvalidOperation" /> for invalid code.
         /// </summary>
         IOperation AppendCall { get; }
     }
@@ -3420,8 +3420,8 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IInterpolatedStringHandlerArgumentPlaceholderOperation : IOperation
     {
         /// <summary>
-        /// The index of the argument of the method call containing the interpolated string handler conversion this placeholder is referencing. -1 if <see cref="PlaceholderKind" /> is
-        /// anything other than <see cref="InterpolatedStringArgumentPlaceholderKind.CallsiteArgument" />.
+        /// The index of the argument of the method call, indexer, or object creation containing the interpolated string handler conversion this placeholder is referencing.
+        /// -1 if <see cref="PlaceholderKind" /> is anything other than <see cref="InterpolatedStringArgumentPlaceholderKind.CallsiteArgument" />.
         /// </summary>
         int ArgumentIndex { get; }
         /// <summary>

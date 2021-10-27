@@ -2189,7 +2189,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             var construction = Create(interpolationData.Construction);
             var content = createContent(conversion.Operand);
-            var isImplicit = conversion.WasCompilerGenerated || conversion.Syntax == conversion.Operand.Syntax;
+            var isImplicit = conversion.WasCompilerGenerated || !conversion.ExplicitCastInCode;
             return new InterpolatedStringHandlerCreationOperation(
                 construction,
                 interpolationData.HasTrailingHandlerValidityParameter,
@@ -2210,26 +2210,27 @@ namespace Microsoft.CodeAnalysis.Operations
                         return new InterpolatedStringAdditionOperation(left, right, _semanticModel, current.Syntax, current.WasCompilerGenerated);
 
                     case BoundInterpolatedString interpolatedString:
-                        var parts = interpolatedString.Parts.SelectAsArray(static IInterpolatedStringContentOperation (part, @this) =>
-                        {
-                            var methodName = part switch
+                        var parts = interpolatedString.Parts.SelectAsArray(
+                            static IInterpolatedStringContentOperation (part, @this) =>
                             {
-                                BoundCall { Method.Name: var name } => name,
-                                BoundDynamicInvocation { Expression: BoundMethodGroup { Name: var name } } => name,
-                                { HasErrors: true } => "",
-                                _ => throw ExceptionUtilities.UnexpectedValue(part.Kind)
-                            };
+                                var methodName = part switch
+                                {
+                                    BoundCall { Method.Name: var name } => name,
+                                    BoundDynamicInvocation { Expression: BoundMethodGroup { Name: var name } } => name,
+                                    { HasErrors: true } => "",
+                                    _ => throw ExceptionUtilities.UnexpectedValue(part.Kind)
+                                };
 
-                            var operationKind = methodName switch
-                            {
-                                "" => OperationKind.InterpolatedStringAppendInvalid,
-                                "AppendLiteral" => OperationKind.InterpolatedStringAppendLiteral,
-                                "AppendFormatted" => OperationKind.InterpolatedStringAppendFormatted,
-                                _ => throw ExceptionUtilities.UnexpectedValue(methodName)
-                            };
+                                var operationKind = methodName switch
+                                {
+                                    "" => OperationKind.InterpolatedStringAppendInvalid,
+                                    BoundInterpolatedString.AppendLiteralMethod => OperationKind.InterpolatedStringAppendLiteral,
+                                    BoundInterpolatedString.AppendFormattedMethod => OperationKind.InterpolatedStringAppendFormatted,
+                                    _ => throw ExceptionUtilities.UnexpectedValue(methodName)
+                                };
 
-                            return new InterpolatedStringAppendOperation(@this.Create(part), operationKind, @this._semanticModel, part.Syntax, isImplicit: true);
-                        }, this);
+                                return new InterpolatedStringAppendOperation(@this.Create(part), operationKind, @this._semanticModel, part.Syntax, isImplicit: true);
+                            }, this);
 
                         return new InterpolatedStringOperation(
                             parts,

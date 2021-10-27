@@ -683,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (part is BoundStringInsert insert)
                     {
-                        methodName = "AppendFormatted";
+                        methodName = BoundInterpolatedString.AppendFormattedMethod;
                         argumentsBuilder.Add(insert.Value);
                         parameterNamesAndLocationsBuilder.Add(null);
                         isLiteral = false;
@@ -709,7 +709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var boundLiteral = (BoundLiteral)part;
                         Debug.Assert(boundLiteral.ConstantValue != null && boundLiteral.ConstantValue.IsString);
                         var literalText = ConstantValueUtils.UnescapeInterpolatedStringLiteral(boundLiteral.ConstantValue.StringValue);
-                        methodName = "AppendLiteral";
+                        methodName = BoundInterpolatedString.AppendLiteralMethod;
                         argumentsBuilder.Add(boundLiteral.Update(ConstantValue.Create(literalText), boundLiteral.Type));
                         isLiteral = true;
                         hasAlignment = false;

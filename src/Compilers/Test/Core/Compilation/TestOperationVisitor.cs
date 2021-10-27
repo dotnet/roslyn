@@ -1138,6 +1138,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.InterpolatedStringHandlerCreation, operation.Kind);
             IEnumerable<IOperation> children = new[] { operation.HandlerCreation, operation.Content };
             AssertEx.Equal(children, operation.Children);
+            Assert.True(operation.HandlerCreation is IObjectCreationOperation or IDynamicObjectCreationOperation or IInvalidOperation);
             Assert.True(operation.Content is IInterpolatedStringAdditionOperation or IInterpolatedStringOperation);
             _ = operation.HandlerCreationHasSuccessParameter;
             _ = operation.HandlerAppendCallsReturnBool;
@@ -1168,7 +1169,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitInterpolatedStringAppend(IInterpolatedStringAppendOperation operation)
         {
             Assert.True(operation.Kind is OperationKind.InterpolatedStringAppendFormatted or OperationKind.InterpolatedStringAppendLiteral or OperationKind.InterpolatedStringAppendInvalid);
-            _ = operation.AppendCall;
+            Assert.True(operation.AppendCall is IInvocationOperation or IDynamicInvocationOperation or IInvalidOperation);
         }
 
         private void VisitPatternCommon(IPatternOperation pattern)
