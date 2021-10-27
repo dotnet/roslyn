@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
                 var document = testLspServer.GetQueueAccessor().GetTrackedTexts().FirstOrDefault();
 
-                Assert.NotNull(document);
+                AssertEx.NotNull(document);
                 Assert.Equal(documentText, document.ToString());
             }
         }
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
                 var document = testLspServer.GetQueueAccessor().GetTrackedTexts().FirstOrDefault();
 
-                Assert.NotNull(document);
+                AssertEx.NotNull(document);
                 Assert.Equal(expected, document.ToString());
             }
         }
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
                 var document = testLspServer.GetQueueAccessor().GetTrackedTexts().FirstOrDefault();
 
-                Assert.NotNull(document);
+                AssertEx.NotNull(document);
                 Assert.Equal(expected, document.ToString());
             }
         }
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
                 var document = testLspServer.GetQueueAccessor().GetTrackedTexts().FirstOrDefault();
 
-                Assert.NotNull(document);
+                AssertEx.NotNull(document);
                 Assert.Equal(expected, document.ToString());
             }
         }
