@@ -42,17 +42,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         public static SeparatedStackFrameNodeList<TNode> Empty { get; } = new();
     }
 
-    /// <summary>
-    /// Root of all expression nodes.
-    /// </summary>
-    internal abstract class StackFrameExpressionNode : StackFrameNode
+    internal abstract class StackFrameDeclarationNode : StackFrameNode
     {
-        protected StackFrameExpressionNode(StackFrameKind kind) : base(kind)
+        protected StackFrameDeclarationNode(StackFrameKind kind) : base(kind)
         {
         }
     }
 
-    internal sealed class StackFrameMethodDeclarationNode : StackFrameNode
+    internal sealed class StackFrameMethodDeclarationNode : StackFrameDeclarationNode
     {
         public readonly StackFrameQualifiedNameNode MemberAccessExpression;
         public readonly StackFrameTypeArgumentList? TypeArguments;
@@ -336,7 +333,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         }
     }
 
-    internal sealed class StackFrameParameterNode : StackFrameExpressionNode
+    internal sealed class StackFrameParameterNode : StackFrameDeclarationNode
     {
         public readonly StackFrameNameNode Type;
         public readonly StackFrameToken Identifier;
@@ -363,7 +360,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             };
     }
 
-    internal sealed class StackFrameParameterList : StackFrameExpressionNode
+    internal sealed class StackFrameParameterList : StackFrameNode
     {
         public readonly StackFrameToken OpenParen;
         public readonly SeparatedStackFrameNodeList<StackFrameParameterNode> Parameters;
