@@ -1846,7 +1846,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitSlicePattern(ISlicePatternOperation operation)
         {
             LogString(nameof(ISlicePatternOperation));
-            LogCommonProperties(operation);
+            LogPatternProperties(operation);
             LogSymbol(operation.SliceSymbol, $", {nameof(operation.SliceSymbol)}");
             LogNewLine();
 
