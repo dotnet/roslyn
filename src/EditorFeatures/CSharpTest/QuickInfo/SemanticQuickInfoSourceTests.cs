@@ -7624,7 +7624,7 @@ line     2"));
             var markup =
 @"using I$$ = IGoo;
 /// <summary>
-/// Normalize    this, and <c>Also        this</c>
+///       Normalize    this, and <c>Also        this</c>
 /// <code>
 /// line 1
 ///     line     2

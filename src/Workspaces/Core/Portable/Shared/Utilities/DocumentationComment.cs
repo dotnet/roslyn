@@ -169,13 +169,25 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             // Find the shortest whitespace prefix and trim it from all the lines
             // Before:
-            //   Line1
-            //    Line2
+            //  <summary>
+            //  Line1
+            //  <code>
+            //     Line2
             //   Line3
+            //  </code>
+            //  </summary>
             // After:
+            //<summary>
             //Line1
-            // Line2
-            //Line3
+            //<code>
+            //   Line2
+            // Line3
+            //</code>
+            //</summary>
+            //
+            // We preserve the formatting to let the AbstractDocumentationCommentFormattingService get the unmangled
+            // <code> blocks.
+            // AbstractDocumentationCommentFormattingService will normalize whitespace for non-code element later.
             private static string TrimEachLine(string text)
             {
                 var lines = text.Split(s_NewLineAsStringArray, StringSplitOptions.RemoveEmptyEntries);
