@@ -6,6 +6,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -55,7 +56,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer));
         }
 
-        protected override async Task ProduceTagsAsync(TaggerContext<ITextMarkerTag> context)
+        protected override async Task ProduceTagsAsync(
+            TaggerContext<ITextMarkerTag> context, CancellationToken cancellationToken)
         {
             Debug.Assert(context.SpansToTag.IsSingle());
 
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             var snapshot = spanToTag.SnapshotSpan.Snapshot;
 
-            var activeStatementSpans = await activeStatementTrackingService.GetAdjustedTrackingSpansAsync(document, snapshot, context.CancellationToken).ConfigureAwait(false);
+            var activeStatementSpans = await activeStatementTrackingService.GetAdjustedTrackingSpansAsync(document, snapshot, cancellationToken).ConfigureAwait(false);
             foreach (var activeStatementSpan in activeStatementSpans)
             {
                 if (activeStatementSpan.IsLeaf)

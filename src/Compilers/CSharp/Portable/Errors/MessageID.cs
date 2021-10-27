@@ -237,7 +237,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureStructFieldInitializers = MessageBase + 12811,
 
         IDS_FeatureGenericAttributes = MessageBase + 12812,
-        IDS_FeatureListPattern = MessageBase + 12813,
+
+        IDS_FeatureNewLinesInInterpolations = MessageBase + 12813,
+        IDS_FeatureListPattern = MessageBase + 12814,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -349,6 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // C# preview features.
                 case MessageID.IDS_FeatureStaticAbstractMembersInInterfaces: // semantic check
                 case MessageID.IDS_FeatureGenericAttributes: // semantic check
+                case MessageID.IDS_FeatureNewLinesInInterpolations: // semantic check
                 case MessageID.IDS_FeatureListPattern: // semantic check
                     return LanguageVersion.Preview;
 
@@ -403,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return LanguageVersion.CSharp9;
 
                 // C# 8.0 features.
-                case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
+                case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings: // semantic check
                 case MessageID.IDS_FeatureCoalesceAssignmentExpression:
                 case MessageID.IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator:
                 case MessageID.IDS_FeatureNullableReferenceTypes: // syntax and semantic check

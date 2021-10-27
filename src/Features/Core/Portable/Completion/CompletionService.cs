@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,7 +42,10 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Gets the current presentation and behavior rules.
         /// </summary>
-        public virtual CompletionRules GetRules() => CompletionRules.Default;
+        public virtual CompletionRules GetRules()
+            => CompletionRules.Default;
+
+        internal abstract CompletionRules GetRules(CompletionOptions options);
 
         /// <summary>
         /// Returns true if the character recently inserted or deleted in the text should trigger completion.
@@ -68,25 +72,28 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Returns true if the character recently inserted or deleted in the text should trigger completion.
         /// </summary>
         /// <param name="project">The project containing the document and text</param>
+        /// <param name="languageServices">Language services</param>
         /// <param name="text">The document text to trigger completion within </param>
         /// <param name="caretPosition">The position of the caret after the triggering action.</param>
         /// <param name="trigger">The potential triggering action.</param>
+        /// <param name="options">Options.</param>
         /// <param name="roles">Optional set of roles associated with the editor state.</param>
-        /// <param name="options">Optional options that override the default options.</param>
         /// <remarks>
         /// We pass the project here to retrieve information about the <see cref="Project.AnalyzerReferences"/>,
         /// <see cref="WorkspaceKind"/> and <see cref="Project.Language"/> which are fast operations.
         /// It should not be used for syntactic or semantic operations.
         /// </remarks>
         internal virtual bool ShouldTriggerCompletion(
-            Project project,
+            Project? project,
+            HostLanguageServices languageServices,
             SourceText text,
             int caretPosition,
             CompletionTrigger trigger,
-            ImmutableHashSet<string>? roles = null,
-            OptionSet? options = null)
+            CompletionOptions options,
+            ImmutableHashSet<string>? roles = null)
         {
-            return ShouldTriggerCompletion(text, caretPosition, trigger, roles, options);
+            Debug.Fail("Backward compat only, should not be called");
+            return ShouldTriggerCompletion(text, caretPosition, trigger, roles, options.ToSet(languageServices.Language));
         }
 
         /// <summary>
@@ -132,13 +139,15 @@ namespace Microsoft.CodeAnalysis.Completion
         internal virtual async Task<(CompletionList? completionList, bool expandItemsAvailable)> GetCompletionsInternalAsync(
              Document document,
              int caretPosition,
+             CompletionOptions options,
              CompletionTrigger trigger = default,
              ImmutableHashSet<string>? roles = null,
-             OptionSet? options = null,
              CancellationToken cancellationToken = default)
         {
-            var completionList = await GetCompletionsAsync(document, caretPosition, trigger, roles, options, cancellationToken).ConfigureAwait(false);
+#pragma warning disable RS0030 // Do not use banned APIs
+            var completionList = await GetCompletionsAsync(document, caretPosition, trigger, roles, options.ToSet(document.Project.Language), cancellationToken).ConfigureAwait(false);
             return (completionList, false);
+#pragma warning restore
         }
 
         /// <summary>
@@ -148,13 +157,21 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <paramref name="item"/> was created against.</param>
         /// <param name="item">The item to get the description for.</param>
         /// <param name="cancellationToken"></param>
-        public virtual Task<CompletionDescription?> GetDescriptionAsync(
+        public Task<CompletionDescription?> GetDescriptionAsync(
             Document document,
             CompletionItem item,
             CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult<CompletionDescription?>(CompletionDescription.Empty);
-        }
+            => GetDescriptionAsync(document, item, CompletionOptions.From(document.Project), cancellationToken);
+
+        /// <summary>
+        /// Gets the description of the item.
+        /// </summary>
+        /// <param name="document">This will be the  original document that
+        /// <paramref name="item"/> was created against.</param>
+        /// <param name="item">The item to get the description for.</param>
+        /// <param name="options">Completion options</param>
+        /// <param name="cancellationToken"></param>
+        internal abstract Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets the change to be applied when the item is committed.

@@ -206,6 +206,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseThrowExpression = "CodeActions.UseThrowExpression";
             public const string CodeActionsWrapping = "CodeActions.Wrapping";
             public const string CodeCleanup = nameof(CodeCleanup);
+            public const string CodeDefinitionWindow = nameof(CodeDefinitionWindow);
             public const string CodeGeneration = nameof(CodeGeneration);
             public const string CodeGenerationSortDeclarations = "CodeGeneration.SortDeclarations";
             public const string CodeLens = nameof(CodeLens);

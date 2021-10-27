@@ -276,8 +276,12 @@ public class Bar3 : Bar2 {}"
                 Add(New TargetMenuItemViewModel("Bar2", KnownMonikers.ClassPublic, "Bar2", Nothing)).Add(New TargetMenuItemViewModel("Bar3", KnownMonikers.ClassPublic, "Bar3", Nothing))
 
             Dim tooltipTextForBar2 = String.Format(ServicesVSResources._0_is_inherited, "class Bar2")
-            Dim targetForBar2 = ImmutableArray.Create(Of MenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Base_Types, KnownMonikers.Overriding, ServicesVSResources.Base_Types)).Add(New TargetMenuItemViewModel("Bar1", KnownMonikers.ClassPublic, "Bar1", Nothing)).
-                Add(New HeaderMenuItemViewModel(ServicesVSResources.Derived_types, KnownMonikers.Overridden, ServicesVSResources.Derived_types)).Add(New TargetMenuItemViewModel("Bar3", KnownMonikers.ClassPublic, "Bar3", Nothing))
+
+            Dim targetForBar2 = ImmutableArray.Create(Of MenuItemViewModel)(
+                New HeaderMenuItemViewModel(ServicesVSResources.Base_Types, KnownMonikers.Overriding, ServicesVSResources.Base_Types)).
+                    Add(New TargetMenuItemViewModel("Bar1", KnownMonikers.ClassPublic, "Bar1", Nothing)).
+                        Add(New HeaderMenuItemViewModel(ServicesVSResources.Derived_types, KnownMonikers.Overridden, ServicesVSResources.Derived_types)).
+                    Add(New TargetMenuItemViewModel("Bar3", KnownMonikers.ClassPublic, "Bar3", Nothing))
 
             Dim tooltipTextForBar3 = String.Format(ServicesVSResources._0_is_inherited, "class Bar3")
             Dim targetForBar3 = ImmutableArray.Create(Of MenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Base_Types, KnownMonikers.Overriding, ServicesVSResources.Base_Types)).
