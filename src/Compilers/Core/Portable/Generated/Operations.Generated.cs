@@ -3367,7 +3367,6 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         /// <summary>
         /// The range indexer or the <c>Slice</c> method used to fetch the slice value.
-        /// Returns <c>null</c> for an array input.
         /// </summary>
         ISymbol? SliceSymbol { get; }
         /// <summary>

@@ -3100,7 +3100,6 @@
       <Comments>
         <summary>
           The range indexer or the <c>Slice</c> method used to fetch the slice value.
-          Returns <c>null</c> for an array input.
         </summary>
       </Comments>
     </Property>
