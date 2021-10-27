@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Xml;
 using XmlNames = Roslyn.Utilities.DocumentationCommentXmlNames;
 
@@ -166,7 +167,35 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 => builder.ParseCallback(reader);
 
             private static string TrimEachLine(string text)
-                => string.Join(Environment.NewLine, text.Split(s_NewLineAsStringArray, StringSplitOptions.RemoveEmptyEntries).Select(i => i.Trim()));
+            {
+                var lines = text.Split(s_NewLineAsStringArray, StringSplitOptions.RemoveEmptyEntries);
+
+                var maxPrefix = int.MaxValue;
+                foreach (var line in lines)
+                {
+                    int i = 0;
+                    while (i < line.Length && char.IsWhiteSpace(line[i]))
+                    {
+                        i++;
+                    }
+
+                    maxPrefix = Math.Min(maxPrefix, i);
+                }
+
+                if (maxPrefix == int.MaxValue)
+                {
+                    return string.Empty;
+                }
+
+                var builder = new StringBuilder();
+                foreach (var line in lines)
+                {
+                    builder.Append(line, maxPrefix, line.Length - maxPrefix);
+                    builder.AppendLine();
+                }
+
+                return builder.ToString();
+            }
 
             private void ParseCallback(XmlReader reader)
             {
