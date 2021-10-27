@@ -210,11 +210,20 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
 
                 using var _ = PooledStringBuilder.GetInstance(out var builder);
-
+                var first = true;
                 foreach (var line in lines)
                 {
-                    builder.Append(line, maxPrefix, line.Length - maxPrefix);
-                    builder.AppendLine();
+                    if (first)
+                    {
+                        first = false;
+                    }
+                    else
+                    {
+                        builder.AppendLine();
+                    }
+
+                    var trimmedLine = line.TrimEnd();
+                    builder.Append(trimmedLine, maxPrefix, trimmedLine.Length - maxPrefix);
                 }
 
                 return builder.ToString();
