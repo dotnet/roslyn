@@ -14,20 +14,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         protected const string HideAdvancedMembers = nameof(HideAdvancedMembers);
 
-        protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(
-            Document document, CompletionItem item, CancellationToken cancellationToken)
+        internal override async Task<CompletionDescription> GetDescriptionWorkerAsync(
+            Document document, CompletionItem item, CompletionOptions options, CancellationToken cancellationToken)
         {
             var position = SymbolCompletionItem.GetContextPosition(item);
 
             // What EditorBrowsable settings were we previously passed in (if it mattered)?
-            var hideAdvancedMembers = false;
-            if (item.Properties.TryGetValue(HideAdvancedMembers, out var hideAdvancedMembersString))
+            if (item.Properties.TryGetValue(HideAdvancedMembers, out var hideAdvancedMembersString) &&
+                bool.TryParse(hideAdvancedMembersString, out var hideAdvancedMembers))
             {
-                bool.TryParse(hideAdvancedMembersString, out hideAdvancedMembers);
+                options = options with { HideAdvancedMembers = hideAdvancedMembers };
             }
-
-            var options = document.Project.Solution.Workspace.Options
-                .WithChangedOption(new OptionKey(CompletionOptions.HideAdvancedMembers, document.Project.Language), hideAdvancedMembers);
 
             var (token, semanticModel, symbols) = await GetSymbolsAsync(document, position, options, cancellationToken).ConfigureAwait(false);
             if (symbols.Length == 0)
@@ -44,6 +41,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         protected abstract Task<(SyntaxToken, SemanticModel?, ImmutableArray<ISymbol>)> GetSymbolsAsync(
-            Document document, int position, OptionSet options, CancellationToken cancellationToken);
+            Document document, int position, CompletionOptions options, CancellationToken cancellationToken);
     }
 }

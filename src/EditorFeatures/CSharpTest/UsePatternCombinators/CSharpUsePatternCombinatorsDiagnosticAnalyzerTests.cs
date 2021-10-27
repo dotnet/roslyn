@@ -125,7 +125,7 @@ class C
         }
 
         [InlineData("nullable == 1 || 2 == nullable", "nullable is 1 or 2")]
-        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
         public async Task TestOnNullableExpression(string expression, string expected)
         {
             await TestAllOnExpressionAsync(expression, expected);

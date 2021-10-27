@@ -567,10 +567,7 @@ done:
             if (convertedExpression.Type is null && constantValueOpt != ConstantValue.Null)
             {
                 Debug.Assert(hasErrors);
-                convertedExpression = new BoundConversion(
-                    convertedExpression.Syntax, convertedExpression, Conversion.NoConversion, isBaseConversion: false, @checked: false,
-                    explicitCastInCode: false, constantValueOpt: constantValueOpt, conversionGroupOpt: null, type: CreateErrorType(), hasErrors: true)
-                { WasCompilerGenerated = true };
+                convertedExpression = BindToTypeForErrorRecovery(convertedExpression);
             }
 
             return convertedExpression;

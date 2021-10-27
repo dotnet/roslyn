@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             if (_context.IsEnumTypeMemberAccessContext)
                 return GetSymbolsOffOfExpression(name);
 
-            if (ShouldBeTreatedAsTypeInsteadOfExpression(name, out var nameBinding, out var container))
+            if (name.ShouldNameExpressionBeTreatedAsExpressionInsteadOfType(_context.SemanticModel, out var nameBinding, out var container))
                 return GetSymbolsOffOfBoundExpression(name, name, nameBinding, container, unwrapNullable: false);
 
             // We're in a name-only context, since if we were an expression we'd be a
@@ -291,46 +291,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
 
             return new RecommendedSymbols(symbols);
-        }
-
-        /// <summary>
-        /// DeterminesCheck if we're in an interesting situation like this:
-        /// <code>
-        ///     int i = 5;
-        ///     i.          // -- here
-        ///     List ml = new List();
-        /// </code>
-        /// The problem is that "i.List" gets parsed as a type.  In this case we need to try binding again as if "i" is
-        /// an expression and not a type.  In order to do that, we need to speculate as to what 'i' meant if it wasn't
-        /// part of a local declaration's type.
-        /// <para/>
-        /// Another interesting case is something like:
-        /// <code>
-        ///      stringList.
-        ///      await Test2();
-        /// </code>
-        /// Here "stringList.await" is thought of as the return type of a local function.
-        /// </summary>
-        private bool ShouldBeTreatedAsTypeInsteadOfExpression(
-            ExpressionSyntax name,
-            out SymbolInfo leftHandBinding,
-            out ITypeSymbol? container)
-        {
-            if (name.IsFoundUnder<LocalFunctionStatementSyntax>(d => d.ReturnType) ||
-                name.IsFoundUnder<LocalDeclarationStatementSyntax>(d => d.Declaration.Type) ||
-                name.IsFoundUnder<FieldDeclarationSyntax>(d => d.Declaration.Type))
-            {
-                leftHandBinding = _context.SemanticModel.GetSpeculativeSymbolInfo(
-                    name.SpanStart, name, SpeculativeBindingOption.BindAsExpression);
-
-                container = _context.SemanticModel.GetSpeculativeTypeInfo(
-                    name.SpanStart, name, SpeculativeBindingOption.BindAsExpression).Type;
-                return true;
-            }
-
-            leftHandBinding = default;
-            container = null;
-            return false;
         }
 
         private RecommendedSymbols GetSymbolsOffOfExpression(ExpressionSyntax? originalExpression)
@@ -527,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
         private ITypeSymbol? GetContainerForUnnamedSymbols(SemanticModel semanticModel, ExpressionSyntax originalExpression)
         {
-            return ShouldBeTreatedAsTypeInsteadOfExpression(originalExpression, out _, out var container)
+            return originalExpression.ShouldNameExpressionBeTreatedAsExpressionInsteadOfType(_context.SemanticModel, out _, out var container)
                 ? container
                 : semanticModel.GetTypeInfo(originalExpression, _cancellationToken).Type;
         }

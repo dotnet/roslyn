@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         public event Action<Solution>? SolutionCommitted;
 
         /// <summary>
-        /// Import <see cref="IHostWorkspaceProvider"/> lazily so that the host does not need to implement it 
+        /// Import <see cref="IHostWorkspaceProvider"/> lazily so that the host does not need to implement it
         /// unless the host implements debugger components.
         /// </summary>
         public EditAndContinueLanguageService(

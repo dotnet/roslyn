@@ -122,6 +122,11 @@
         <target state="translated">Deklarovat jako s možnou hodnotou null</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_types_in_project">
+        <source>Enable nullable reference types in project</source>
+        <target state="new">Enable nullable reference types in project</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_return_type">
         <source>Fix return type</source>
         <target state="translated">Opravit návratový typ</target>
@@ -161,6 +166,16 @@
         <source>Reverse 'for' statement</source>
         <target state="translated">Obrátit příkaz for</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Selection_cannot_include_global_statements">
+        <source>Selection cannot include global statements</source>
+        <target state="new">Selection cannot include global statements</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_cannot_include_top_level_statements">
+        <source>Selection cannot include top-level statements</source>
+        <target state="new">Selection cannot include top-level statements</target>
+        <note />
       </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
         <source>Simplify lambda expression</source>

@@ -100,17 +100,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             // build text for RelatedSpan
             if (quickInfoItem.RelatedSpans.Any() && context?.Document is Document document)
             {
-                var classifiedSpanList = new List<ClassifiedSpan>();
+                var textRuns = new List<ClassifiedTextRun>();
+                var spanSeparatorNeededBefore = false;
                 foreach (var span in quickInfoItem.RelatedSpans)
                 {
                     var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(document, span, cancellationToken).ConfigureAwait(false);
-                    classifiedSpanList.AddRange(classifiedSpans);
-                }
 
-                var tabSize = document.Project.Solution.Options.GetOption(FormattingOptions.TabSize, document.Project.Language);
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var spans = IndentationHelper.GetSpansWithAlignedIndentation(text, classifiedSpanList.ToImmutableArray(), tabSize);
-                var textRuns = spans.Select(s => new ClassifiedTextRun(s.ClassificationType, text.GetSubText(s.TextSpan).ToString(), ClassifiedTextRunStyle.UseClassificationFont));
+                    var tabSize = document.Project.Solution.Options.GetOption(FormattingOptions.TabSize, document.Project.Language);
+                    var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var spans = IndentationHelper.GetSpansWithAlignedIndentation(text, classifiedSpans.ToImmutableArray(), tabSize);
+                    var textRunsOfSpan = spans.Select(s => new ClassifiedTextRun(s.ClassificationType, text.GetSubText(s.TextSpan).ToString(), ClassifiedTextRunStyle.UseClassificationFont)).ToList();
+                    if (textRunsOfSpan.Count > 0)
+                    {
+                        if (spanSeparatorNeededBefore)
+                        {
+                            textRuns.Add(new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, "\r\n", ClassifiedTextRunStyle.UseClassificationFont));
+                        }
+
+                        textRuns.AddRange(textRunsOfSpan);
+                        spanSeparatorNeededBefore = true;
+                    }
+                }
 
                 if (textRuns.Any())
                 {

@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
         <source>Do not prefer 'this.' or 'Me.'</source>
-        <target state="needs-review-translation">不首选 "this." 或 "Me."</target>
+        <target state="translated">不首选 "this." 或 "Me."</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_show_this_message_again">
@@ -99,17 +99,17 @@
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">
         <source>In arithmetic operators</source>
-        <target state="new">In arithmetic operators</target>
+        <target state="translated">在算术运算符中</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
         <source>In other binary operators</source>
-        <target state="new">In other binary operators</target>
+        <target state="translated">在其他二进制运算符中</target>
         <note />
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators</source>
-        <target state="new">In relational operators</target>
+        <target state="translated">在关系运算符中</target>
         <note />
       </trans-unit>
       <trans-unit id="Indentation_Size">
@@ -174,7 +174,7 @@
       </trans-unit>
       <trans-unit id="No">
         <source>No</source>
-        <target state="new">No</target>
+        <target state="translated">否</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -189,12 +189,12 @@
       </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
         <source>Prefer 'is null' for reference equality checks</source>
-        <target state="new">Prefer 'is null' for reference equality checks</target>
+        <target state="translated">引用相等检查偏好 “is null”</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_this_or_Me">
         <source>Prefer 'this.' or 'Me.'</source>
-        <target state="new">Prefer 'this.' or 'Me.'</target>
+        <target state="translated">首选 "this." 或 "Me."</target>
         <note />
       </trans-unit>
       <trans-unit id="Preprocessor_Text">
@@ -209,22 +209,22 @@
       </trans-unit>
       <trans-unit id="Qualify_event_access_with_this_or_Me">
         <source>Qualify event access with 'this' or 'Me'</source>
-        <target state="new">Qualify event access with 'this' or 'Me'</target>
+        <target state="translated">使用 "this" 限定事件访问</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_field_access_with_this_or_Me">
         <source>Qualify field access with 'this' or 'Me'</source>
-        <target state="new">Qualify field access with 'this' or 'Me'</target>
+        <target state="translated">使用 "this" 或 "Me" 限定字段访问</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_method_access_with_this_or_Me">
         <source>Qualify method access with 'this' or 'Me'</source>
-        <target state="new">Qualify method access with 'this' or 'Me'</target>
+        <target state="translated">使用 "this" 或 "Me" 限定方法访问</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_property_access_with_this_or_Me">
         <source>Qualify property access with 'this' or 'Me'</source>
-        <target state="new">Qualify property access with 'this' or 'Me'</target>
+        <target state="translated">使用 "this" 或 "Me" 限定属性访问</target>
         <note />
       </trans-unit>
       <trans-unit id="Reassigned_variable">
@@ -529,7 +529,7 @@
       </trans-unit>
       <trans-unit id="Yes">
         <source>Yes</source>
-        <target state="new">Yes</target>
+        <target state="translated">是</target>
         <note />
       </trans-unit>
       <trans-unit id="You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file">
@@ -1484,11 +1484,6 @@ Do you want to proceed?</source>
         <target state="translated">大纲</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_Tracking_Cancellation">
-        <source>Rename Tracking Cancellation</source>
-        <target state="translated">重命名跟踪取消</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Regex_Comment">
         <source>Regex - Comment</source>
         <target state="translated">正则表达式 - 注释</target>
@@ -1532,6 +1527,11 @@ Do you want to proceed?</source>
       <trans-unit id="Regex_OtherEscape">
         <source>Regex - Other Escape</source>
         <target state="translated">正则表达式 - 其他转义</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_Tracking_Cancellation">
+        <source>Rename Tracking Cancellation</source>
+        <target state="translated">重命名跟踪取消</target>
         <note />
       </trans-unit>
       <trans-unit id="Signature_Help">
