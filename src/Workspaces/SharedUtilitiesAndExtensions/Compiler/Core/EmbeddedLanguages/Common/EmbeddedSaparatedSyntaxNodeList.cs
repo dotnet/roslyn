@@ -1,0 +1,108 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using Roslyn.Utilities;
+
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
+{
+    internal abstract class EmbeddedSeparatedSyntaxNodeList<TSyntaxKind, TSyntaxNode, TList>
+        where TSyntaxKind : struct
+        where TSyntaxNode : EmbeddedSyntaxNode<TSyntaxKind, TSyntaxNode>
+        where TList : EmbeddedSeparatedSyntaxNodeList<TSyntaxKind, TSyntaxNode, TList>
+    {
+        public EmbeddedSeparatedSyntaxNodeList(ImmutableArray<EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>> nodesAndTokens)
+        {
+            Contract.ThrowIfTrue(nodesAndTokens.IsDefaultOrEmpty);
+            NodesAndTokens = nodesAndTokens;
+
+            // Verify size constraints for not empty list. If empty is desired the Empty static field should
+            // be used instead to retrieve an empty EmbeddedSeparatedSyntaxNodeList
+            Verify();
+
+            var allLength = NodesAndTokens.Length;
+            Length = (allLength + 1) / 2;
+            SeparatorLength = allLength / 2;
+        }
+
+        protected EmbeddedSeparatedSyntaxNodeList()
+        {
+            NodesAndTokens = ImmutableArray<EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>>.Empty;
+        }
+
+        [Conditional("DEBUG")]
+        private void Verify()
+        {
+            for (var i = 0; i < NodesAndTokens.Length; i++)
+            {
+                if ((i & 1) == 0)
+                {
+                    // All even values should be TNode
+                    Debug.Assert(NodesAndTokens[i].IsNode);
+                    Debug.Assert(NodesAndTokens[i].Node is EmbeddedSyntaxNode<TSyntaxKind, TSyntaxNode>);
+                }
+                else
+                {
+                    // All odd values should be separator tokens 
+                    Debug.Assert(!NodesAndTokens[i].IsNode);
+                    Debug.Assert(NodesAndTokens[i].Token != default);
+                }
+            }
+        }
+
+        public ImmutableArray<EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>> NodesAndTokens { get; }
+        public int Length { get; }
+        public int SeparatorLength { get; }
+
+        /// <summary>
+        /// Retrieves only nodes, skipping the separator tokens
+        /// </summary>
+        public EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode> this[int index]
+        {
+            get
+            {
+                if (index < Length && index > 0)
+                {
+                    // x2 here to get only even indexed numbers. Follows same logic 
+                    // as SeparatedSyntaxList in that the separator tokens are not returned
+                    return NodesAndTokens[index * 2];
+                }
+
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
+        }
+
+        public Enumerator GetEnumerator() => new(this);
+
+        public struct Enumerator
+        {
+            private readonly EmbeddedSeparatedSyntaxNodeList<TSyntaxKind, TSyntaxNode, TList> _list;
+            private int _currentIndex;
+
+            public Enumerator(EmbeddedSeparatedSyntaxNodeList<TSyntaxKind, TSyntaxNode, TList> list)
+            {
+                _list = list;
+                _currentIndex = -1;
+                Current = default;
+            }
+
+            public EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode> Current { get; private set; }
+
+            public bool MoveNext()
+            {
+                _currentIndex++;
+                if (_currentIndex >= _list.Length)
+                {
+                    Current = null;
+                    return false;
+                }
+
+                Current = _list[_currentIndex];
+                return true;
+            }
+        }
+    }
+}

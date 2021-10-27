@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 {
@@ -69,5 +72,26 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 
         public TextSpan GetSpan()
             => EmbeddedSyntaxHelpers.GetSpan(this.VirtualChars);
+
+        public static bool operator ==(EmbeddedSyntaxToken<TSyntaxKind> t1, EmbeddedSyntaxToken<TSyntaxKind> t2)
+            => t1.Kind.Equals(t2.Kind)
+                && t1.LeadingTrivia.SequenceEqual(t2.LeadingTrivia)
+                && t1.VirtualChars == t2.VirtualChars
+                && t1.TrailingTrivia.SequenceEqual(t2.TrailingTrivia)
+                && t1.Diagnostics.SequenceEqual(t2.Diagnostics)
+                && t1.Value == t2.Value;
+
+        public static bool operator !=(EmbeddedSyntaxToken<TSyntaxKind> t1, EmbeddedSyntaxToken<TSyntaxKind> t2)
+            => !(t1 == t2);
+
+        public override bool Equals(object? obj)
+            => obj is EmbeddedSyntaxToken<TSyntaxKind> t && this == t;
+
+        public override int GetHashCode()
+            => Hash.Combine(Kind.GetHashCode(),
+                Hash.Combine(LeadingTrivia.GetHashCode(),
+                Hash.Combine(VirtualChars.GetHashCode(),
+                Hash.Combine(TrailingTrivia.GetHashCode(),
+                Hash.Combine(Diagnostics.GetHashCode(), Value?.GetHashCode() ?? 0)))));
     }
 }

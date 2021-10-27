@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                         yield return charSequence;
                     }
                 }
-                else
+                else if (nodeOrToken.Token != default)
                 {
                     foreach (var charSequence in Enumerate(nodeOrToken.Token))
                     {

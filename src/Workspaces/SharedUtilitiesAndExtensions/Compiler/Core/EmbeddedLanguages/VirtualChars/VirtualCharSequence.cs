@@ -144,5 +144,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 chars1._leafCharacters,
                 TextSpan.FromBounds(chars1._span.Start, chars2._span.End));
         }
+
+        public static bool operator ==(VirtualCharSequence v1, VirtualCharSequence v2)
+            => v1.Length == v2.Length
+            && v1._span == v2._span
+            && v1._leafCharacters == v2._leafCharacters;
+
+        public static bool operator !=(VirtualCharSequence v1, VirtualCharSequence v2)
+            => !(v1 == v2);
     }
 }

@@ -25,50 +25,21 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         }
 
         public abstract void Accept(IStackFrameNodeVisitor visitor);
-
-        public StackFrameNodeOrToken this[int index] => ChildAt(index);
-        public StackFrameNodeOrToken this[Index index] => this[index.GetOffset(this.ChildCount)];
     }
 
-    internal sealed class SeparatedStackFrameNodeList<TNode> where TNode : StackFrameNode
+    internal sealed class SeparatedStackFrameNodeList<TNode> : EmbeddedSeparatedSyntaxNodeList<StackFrameKind, StackFrameNode, SeparatedStackFrameNodeList<TNode>>
+        where TNode : EmbeddedSyntaxNode<StackFrameKind, StackFrameNode>
     {
-        public SeparatedStackFrameNodeList(ImmutableArray<StackFrameNodeOrToken> nodesAndTokens)
+        public SeparatedStackFrameNodeList(ImmutableArray<StackFrameNodeOrToken> nodeOrTokens)
+            : base(nodeOrTokens)
         {
-            Contract.ThrowIfTrue(nodesAndTokens.IsDefaultOrEmpty);
-            NodesAndTokens = nodesAndTokens;
-
-#if DEBUG
-            // Length should represent (nodes.Length) + (nodes.Length - 1), where the latter 
-            // represents the number of separator tokens
-            Debug.Assert(nodesAndTokens.Length % 2 == 1);
-            for (var i = 0; i < nodesAndTokens.Length; i++)
-            {
-                if (i % 2 == 0)
-                {
-                    // All even values should be TNode
-                    Debug.Assert(nodesAndTokens[i].IsNode);
-                    Debug.Assert(nodesAndTokens[i].Node is TNode);
-                }
-                else
-                {
-                    // All odd values should be separator tokens 
-                    Debug.Assert(!nodesAndTokens[i].IsNode);
-                    Debug.Assert(!nodesAndTokens[i].Token.IsMissing);
-                }
-            }
-#endif
         }
 
-        private SeparatedStackFrameNodeList()
+        private SeparatedStackFrameNodeList() : base()
         {
-            NodesAndTokens = ImmutableArray<StackFrameNodeOrToken>.Empty;
         }
 
-        public ImmutableArray<StackFrameNodeOrToken> NodesAndTokens { get; }
-        public int Length => NodesAndTokens.Length;
-        public StackFrameNodeOrToken this[int index] => NodesAndTokens[index];
-
-        public static SeparatedStackFrameNodeList<TNode> Empty => new SeparatedStackFrameNodeList<TNode>();
+        public static SeparatedStackFrameNodeList<TNode> Empty { get; } = new();
     }
 
     /// <summary>

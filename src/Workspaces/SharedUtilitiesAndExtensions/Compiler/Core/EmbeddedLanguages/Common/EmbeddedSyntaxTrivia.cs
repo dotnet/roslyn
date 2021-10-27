@@ -29,5 +29,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             VirtualChars = virtualChars;
             Diagnostics = diagnostics;
         }
+
+        public static bool operator ==(EmbeddedSyntaxTrivia<TSyntaxKind> t1, EmbeddedSyntaxTrivia<TSyntaxKind> t2) 
+            => t1.Kind.Equals(t2.Kind)
+                && t1.VirtualChars.Equals(t2.VirtualChars);
+
+        public static bool operator !=(EmbeddedSyntaxTrivia<TSyntaxKind> t1, EmbeddedSyntaxTrivia<TSyntaxKind> t2)
+            => !(t1 == t2);
     }
 }
