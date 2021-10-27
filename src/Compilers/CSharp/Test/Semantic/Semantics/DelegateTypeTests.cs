@@ -8254,6 +8254,41 @@ class Program
         {
             var source =
 @"using System;
+delegate ref object D();
+class Program
+{
+    static void M(Delegate d) { Report(d); }
+    static void M(D d) { Report(d); }
+    static ref object F() => throw null;
+    static void Main()
+    {
+        M(F);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, validator: validator, expectedOutput: "D");
+
+            static void validator(PEAssembly assembly)
+            {
+                var reader = assembly.GetMetadataReader();
+                var actualTypes = reader.GetTypeDefNames().Select(h => reader.GetString(h)).ToArray();
+
+                string[] expectedTypes = new[] { "<Module>", "D", "Program", };
+                AssertEx.Equal(expectedTypes, actualTypes);
+            }
+        }
+
+        /// <summary>
+        /// Synthesized delegate types should only be emitted if referenced in the assembly.
+        /// </summary>
+        [Fact]
+        [WorkItem(55896, "https://github.com/dotnet/roslyn/issues/55896")]
+        public void SynthesizedDelegateTypes_22()
+        {
+            var source =
+@"using System;
 delegate void D2(object x, ref object y);
 delegate void D4(out object x, ref object y);
 class Program
@@ -8295,7 +8330,7 @@ D4");
         /// </summary>
         [Fact]
         [WorkItem(55896, "https://github.com/dotnet/roslyn/issues/55896")]
-        public void SynthesizedDelegateTypes_22()
+        public void SynthesizedDelegateTypes_23()
         {
             var source =
 @"using System;
@@ -8334,14 +8369,13 @@ class Program
                 var reader = assembly.GetMetadataReader();
                 var actualTypes = reader.GetTypeDefNames().Select(h => reader.GetString(h)).ToArray();
 
-                // Ideally <>c should be dropped as well.
                 string[] expectedTypes = new[] { "<Module>", "Program", "<>c", };
                 AssertEx.Equal(expectedTypes, actualTypes);
             }
         }
 
         [Fact]
-        public void SynthesizedDelegateTypes_23()
+        public void SynthesizedDelegateTypes_24()
         {
             var source =
 @"using System;
@@ -8399,6 +8433,66 @@ class B<T>
             Assert.Equal(expectedSymbol, symbol.ToTestDisplayString());
             var type = (INamedTypeSymbol)model.GetTypeInfo(variable).Type!;
             Assert.Equal(expectedInvokeMethod, type.DelegateInvokeMethod.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void Invoke_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        var d = (ref object obj) => obj;
+        object obj = 1;
+        var value = d.Invoke(ref obj);
+        Console.WriteLine(value);
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"1");
+        }
+
+        [Fact]
+        public void Invoke_02()
+        {
+            var source =
+@"#nullable enable
+using System;
+class Program
+{
+    static void Main()
+    {
+        var d1 = (ref int x) => x;
+        var d2 = d1.Invoke;
+        Console.WriteLine(d2.GetType());
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"<>F{00000001}`2[System.Int32,System.Int32]");
+        }
+
+        [Fact]
+        public void With()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        var d1 = (int x) => x;
+        d1 = d1 with { };
+        var d2 = (ref int x) => x;
+        d2 = d2 with { };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,14): error CS8858: The receiver type 'Func<int, int>' is not a valid record type and is not a struct type.
+                //         d1 = d1 with { };
+                Diagnostic(ErrorCode.ERR_CannotClone, "d1").WithArguments("System.Func<int, int>").WithLocation(6, 14),
+                // (8,14): error CS8858: The receiver type '<anonymous delegate>' is not a valid record type and is not a struct type.
+                //         d2 = d2 with { };
+                Diagnostic(ErrorCode.ERR_CannotClone, "d2").WithArguments("<anonymous delegate>").WithLocation(8, 14));
         }
 
         [Fact]

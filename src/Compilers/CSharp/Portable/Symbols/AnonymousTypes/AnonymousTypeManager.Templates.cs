@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Maps delegate signature shape (number of parameters and their ref-ness) to a synthesized generic delegate symbol.
-        /// Unlike anonymous types synthesized delegates are not available through symbol APIs. They are only used in lowered bound trees.
         /// Currently used for dynamic call-sites and inferred delegate types whose signature doesn't match any of the well-known Func or Action types.
         /// </summary>
         private ConcurrentDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> _lazySynthesizedDelegates;
