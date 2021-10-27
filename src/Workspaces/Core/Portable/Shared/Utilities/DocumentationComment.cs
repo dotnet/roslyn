@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Xml;
+using Microsoft.CodeAnalysis.PooledObjects;
 using XmlNames = Roslyn.Utilities.DocumentationCommentXmlNames;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
@@ -166,6 +167,15 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             private static void ParseCallback(XmlReader reader, CommentBuilder builder)
                 => builder.ParseCallback(reader);
 
+            // Find the shortest whitespace prefix and trim it from all the lines
+            // Before:
+            //   Line1
+            //    Line2
+            //   Line3
+            // After:
+            //Line1
+            // Line2
+            //Line3
             private static string TrimEachLine(string text)
             {
                 var lines = text.Split(s_NewLineAsStringArray, StringSplitOptions.RemoveEmptyEntries);
@@ -187,7 +197,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     return string.Empty;
                 }
 
-                var builder = new StringBuilder();
+                using var _ = PooledStringBuilder.GetInstance(out var builder);
+
                 foreach (var line in lines)
                 {
                     builder.Append(line, maxPrefix, line.Length - maxPrefix);
