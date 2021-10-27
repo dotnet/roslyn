@@ -180,6 +180,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         public static StackFrameTypeArgumentNode TypeArgument(string identifier)
             => new(CreateToken(StackFrameKind.IdentifierToken, identifier));
 
+        public static StackFrameTypeArgumentNode TypeArgument(StackFrameToken identifier)
+            => new(identifier);
+
         public static StackFrameFileInformationNode FileInformation(StackFrameToken path, StackFrameToken colon, StackFrameToken line)
             => new(path.With(leadingTrivia: CreateTriviaArray(InTrivia)), colon, line);
 

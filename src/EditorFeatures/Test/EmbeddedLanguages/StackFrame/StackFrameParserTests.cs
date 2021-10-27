@@ -360,16 +360,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 
         [Theory]
         [InlineData("at ")]
-        [InlineData(" in ")]
+        [InlineData("in ")]
+        [InlineData("line ")]
         public void TestKeywordsAsIdentifiers(string keyword)
             => Verify(@$"MyNamespace.MyType.MyMethod[{keyword}]({keyword} {keyword})",
                 methodDeclaration: MethodDeclaration(
                     MemberAccessExpression("MyNamespace.MyType.MyMethod"),
-                    typeArguments: TypeArgumentList(TypeArgument(keyword.Trim())),
+                    typeArguments: TypeArgumentList(TypeArgument(Identifier(keyword.Trim(), trailingTrivia: SpaceTrivia()))),
                     argumentList: ParameterList(
                         OpenParenToken,
                         CloseParenToken,
-                        Parameter(Identifier(keyword), Identifier(keyword))))
+                        Parameter(
+                            Identifier(keyword.Trim()),
+                            Identifier(keyword.Trim(), leadingTrivia: SpaceTrivia(2), trailingTrivia: SpaceTrivia()))))
                 );
     }
 }

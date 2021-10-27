@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             TypeArguments = typeArguments;
         }
 
-        internal override int ChildCount => TypeArguments.Length + 2;
+        internal override int ChildCount => TypeArguments.NodesAndTokens.Length + 2;
 
         public override void Accept(IStackFrameNodeVisitor visitor)
             => visitor.Visit(this);
@@ -277,7 +277,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return CloseToken;
             }
 
-            return TypeArguments[index - 1];
+            // Includes both the nodes and separator tokens as children
+            return TypeArguments.NodesAndTokens[index - 1];
         }
     }
 
@@ -348,7 +349,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             Parameters = parameters;
         }
 
-        internal override int ChildCount => 2 + Parameters.Length;
+        internal override int ChildCount => 2 + Parameters.NodesAndTokens.Length;
 
         public override void Accept(IStackFrameNodeVisitor visitor)
         {
@@ -367,7 +368,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return CloseParen;
             }
 
-            return Parameters[index - 1];
+            // Include both nodes and tokens here as children of the StackFrameParameterList
+            return Parameters.NodesAndTokens[index - 1];
         }
     }
 

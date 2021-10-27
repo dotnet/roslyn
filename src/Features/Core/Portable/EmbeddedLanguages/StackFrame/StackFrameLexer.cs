@@ -53,13 +53,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         }
 
         public StackFrameToken? TryScanIdentifier()
-            => TryScanIdentifier(scanAtTrivia: false, scanWhitespace: false);
+            => TryScanIdentifier(scanAtTrivia: false, scanLeadingWhitespace: false, scanTrailingWhitespace: false);
 
-        public StackFrameToken? TryScanIdentifier(bool scanAtTrivia, bool scanWhitespace)
+        public StackFrameToken? TryScanIdentifier(bool scanAtTrivia, bool scanLeadingWhitespace, bool scanTrailingWhitespace)
         {
             var originalPosition = Position;
             var atTrivia = scanAtTrivia ? TryScanAtTrivia() : null;
-            var leadingWhitespace = scanWhitespace ? TryScanWhiteSpace() : null;
+            var leadingWhitespace = scanLeadingWhitespace ? TryScanWhiteSpace() : null;
 
             var startPosition = Position;
             var ch = CurrentChar;
@@ -78,12 +78,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 ch = CurrentChar;
             }
 
-            var trailingWhitespace = scanWhitespace ? TryScanWhiteSpace() : null;
+            var identifierSequence = GetSubSequenceToCurrentPos(startPosition);
+            var trailingWhitespace = scanTrailingWhitespace ? TryScanWhiteSpace() : null;
 
             return CreateToken(
                 StackFrameKind.IdentifierToken,
                 leadingTrivia: CreateTrivia(atTrivia, leadingWhitespace),
-                GetSubSequenceToCurrentPos(startPosition),
+                identifierSequence,
                 trailingTrivia: CreateTrivia(trailingWhitespace));
         }
 

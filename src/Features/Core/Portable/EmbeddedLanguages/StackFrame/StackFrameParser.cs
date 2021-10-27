@@ -160,9 +160,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         ///   * [|$$MyClass`1.MyMethod|](string s)
         ///   * [|$$MyClass.MyMethod|][T](T t)
         /// </summary>
-        private StackFrameNodeOrToken? TryParseIdentifierExpression(bool scanAtTrivia = false)
+        private StackFrameNodeOrToken? TryParseIdentifierExpression(bool scanAtTrivia)
         {
-            var currentIdentifer = _lexer.TryScanIdentifier(scanAtTrivia: scanAtTrivia, scanWhitespace: true);
+            var currentIdentifer = _lexer.TryScanIdentifier(scanAtTrivia: scanAtTrivia, scanLeadingWhitespace: true, scanTrailingWhitespace: false);
             if (!currentIdentifer.HasValue)
             {
                 return null;
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             var useCloseBracket = openToken.Kind is StackFrameKind.OpenBracketToken;
 
             using var _ = ArrayBuilder<StackFrameNodeOrToken>.GetInstance(out var builder);
-            var currentIdentifier = _lexer.TryScanIdentifier(scanWhitespace: true, scanAtTrivia: false);
+            var currentIdentifier = _lexer.TryScanIdentifier(scanAtTrivia: false, scanLeadingWhitespace: true, scanTrailingWhitespace: true);
             StackFrameToken closeToken = default;
 
             while (currentIdentifier.HasValue && currentIdentifier.Value.Kind == StackFrameKind.IdentifierToken)
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// </summary>
         private StackFrameParameterNode ParseParameterNode()
         {
-            var typeIdentifier = TryParseIdentifierExpression();
+            var typeIdentifier = TryParseIdentifierExpression(scanAtTrivia: false);
             if (!typeIdentifier.HasValue)
             {
                 throw new StackFrameParseException("Expected type identifier when parsing parameters");
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 typeIdentifier = new StackFrameArrayTypeExpression(typeIdentifier.Value, arrayIdentifiers);
             }
 
-            var identifier = _lexer.TryScanIdentifier(scanAtTrivia: false, scanWhitespace: true);
+            var identifier = _lexer.TryScanIdentifier(scanAtTrivia: false, scanLeadingWhitespace: true, scanTrailingWhitespace: true);
             if (!identifier.HasValue)
             {
                 throw new StackFrameParseException("Expected a parameter identifier");

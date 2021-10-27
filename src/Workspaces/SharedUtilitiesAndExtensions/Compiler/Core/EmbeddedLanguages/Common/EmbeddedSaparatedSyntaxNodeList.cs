@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         {
             get
             {
-                if (index < Length && index > 0)
+                if (index < Length && index >= 0)
                 {
                     // x2 here to get only even indexed numbers. Follows same logic 
                     // as SeparatedSyntaxList in that the separator tokens are not returned
