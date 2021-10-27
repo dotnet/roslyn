@@ -23,6 +23,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             SolutionCrawlerOptions.BackgroundAnalysisScopeOption,
             SolutionCrawlerOptions.SolutionBackgroundAnalysisScopeOption,
-            SolutionCrawlerOptions.DefaultBackgroundAnalysisScopeFeatureFlag);
+            SolutionCrawlerOptions.ActiveFileAsDefaultBackgroundAnalysisScopeFeatureFlag);
     }
 }

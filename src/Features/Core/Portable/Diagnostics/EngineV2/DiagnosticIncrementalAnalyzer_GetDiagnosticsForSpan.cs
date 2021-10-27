@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                  CancellationToken cancellationToken)
             {
                 var stateSets = owner._stateManager
-                                     .GetOrCreateStateSets(document.Project).Where(s => !DiagnosticAnalyzerInfoCache.IsAnalyzerSuppressedForProject(s.Analyzer, document.Project));
+                                     .GetOrCreateStateSets(document.Project).Where(s => !AnalyzerHelper.IsAnalyzerSuppressedForProject(s.Analyzer, document.Project));
 
                 // filter to specific diagnostic it is looking for
                 if (diagnosticId != null)

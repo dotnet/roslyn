@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 // Perf optimization: Check whether analyzer is suppressed for project or document and avoid getting diagnostics if suppressed.
-                if (DiagnosticAnalyzerInfoCache.IsAnalyzerSuppressedForProject(stateSet.Analyzer, document.Project) ||
+                if (AnalyzerHelper.IsAnalyzerSuppressedForProject(stateSet.Analyzer, document.Project) ||
                     IsAnalyzerSuppressedForDocument(stateSet.Analyzer, analysisScope, isActiveDocument, isOpenDocument, isGeneratedRazorDocument))
                 {
                     return new DocumentAnalysisData(version, existingData.Items, ImmutableArray<DiagnosticData>.Empty);
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     BackgroundAnalysisScope.None => isOpenDocument && analyzer.IsCompilerAnalyzer(),
 
                     // All analyzers, including compiler analyzer, are enabled for all open documents.
-                    BackgroundAnalysisScope.OpenFilesAndProjects => isOpenDocument,
+                    BackgroundAnalysisScope.OpenFiles => isOpenDocument,
 
                     // All analyzers, including compiler analyzer, are enabled for all documents.
                     BackgroundAnalysisScope.FullSolution => true,

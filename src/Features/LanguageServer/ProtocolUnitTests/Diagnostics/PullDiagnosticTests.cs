@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         {
             var markup =
 @"class A {";
-            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects);
+            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFiles);
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         {
             var markup =
 @"class A {";
-            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects);
+            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFiles);
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         {
             var markup =
 @"class A {";
-            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects, pullDiagnostics: false);
+            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFiles, pullDiagnostics: false);
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         {
             var markup =
 @"class A {";
-            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects, DiagnosticMode.Default);
+            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFiles, DiagnosticMode.Default);
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         {
             var markup =
 @"class A {";
-            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects, DiagnosticMode.Default);
+            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFiles, DiagnosticMode.Default);
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         {
             var markup =
 @"class A {";
-            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects);
+            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFiles);
             var workspace = testLspServer.TestWorkspace;
 
             // Calling GetTextBuffer will effectively open the file.
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         {
             var markup =
 @"class A {";
-            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects);
+            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFiles);
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         {
             var markup =
 @"class A {";
-            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects);
+            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFiles);
 
             // Calling GetTextBuffer will effectively open the file.
             var buffer = testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         {
             var markup =
 @"class A {";
-            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects);
+            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFiles);
 
             // Calling GetTextBuffer will effectively open the file.
             var buffer = testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             var markup =
 @"#line 1 ""test.txt""
 class A {";
-            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects);
+            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFiles);
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -288,7 +288,7 @@ class A {";
         {
             var markup =
 @"class A {";
-            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects);
+            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFiles);
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -322,7 +322,7 @@ class B {";
     </Project>
 </Workspace>";
 
-            using var testLspServer = CreateTestWorkspaceFromXml(workspaceXml, BackgroundAnalysisScope.OpenFilesAndProjects);
+            using var testLspServer = CreateTestWorkspaceFromXml(workspaceXml, BackgroundAnalysisScope.OpenFiles);
 
             var csproj1Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj1").Single().Documents.First();
             var csproj2Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj2").Single().Documents.First();
@@ -359,7 +359,7 @@ class B {";
 @"class A {";
             var markup2 = "";
             using var testLspServer = CreateTestWorkspaceWithDiagnostics(
-                new[] { markup1, markup2 }, BackgroundAnalysisScope.OpenFilesAndProjects);
+                new[] { markup1, markup2 }, BackgroundAnalysisScope.OpenFiles);
 
             var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
 

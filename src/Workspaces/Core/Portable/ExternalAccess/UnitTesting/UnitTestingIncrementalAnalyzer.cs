@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
         public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
             => _implementation.NeedsReanalysisOnOptionChanged(sender, new UnitTestingOptionChangedEventArgsWrapper(e));
 
-        public bool NeedsReanalysisOnActiveDocumentChanged => false;
+        public bool IsDocumentAnalysisDependentOnItBeingActiveDocumentOrNot => false;
 
         public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             => _implementation.NewSolutionSnapshotAsync(solution, cancellationToken);

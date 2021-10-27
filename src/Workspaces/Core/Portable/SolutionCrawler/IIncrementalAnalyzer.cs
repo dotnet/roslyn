@@ -30,6 +30,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken);
 
         bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e);
-        bool NeedsReanalysisOnActiveDocumentChanged { get; }
+
+        /// <summary>
+        /// Flag indicating if the analysis result for documents are dependent on whether or not it is an active document.
+        /// </summary>
+        bool IsDocumentAnalysisDependentOnItBeingActiveDocumentOrNot { get; }
     }
 }

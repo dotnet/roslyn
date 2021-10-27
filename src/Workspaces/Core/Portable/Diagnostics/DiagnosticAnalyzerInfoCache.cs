@@ -109,31 +109,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             => analyzer.IsCompilerAnalyzer() ||
                analyzer is IBuiltInAnalyzer ||
                descriptors.Length > 0 && descriptors[0].ImmutableCustomTags().Any(t => t == WellKnownDiagnosticTags.Telemetry);
-
-        /// <summary>
-        /// Return true if the given <paramref name="analyzer"/> is suppressed for the given project.
-        /// NOTE: This API is intended to be used only for performance optimization.
-        /// </summary>
-        public static bool IsAnalyzerSuppressedForProject(DiagnosticAnalyzer analyzer, Project project)
-        {
-            var options = project.CompilationOptions;
-            if (options == null || analyzer == FileContentLoadAnalyzer.Instance || analyzer.IsCompilerAnalyzer())
-            {
-                return false;
-            }
-
-            // Check if user has disabled analyzer execution for this project or via options.
-            if (!project.State.RunAnalyzers || SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) == BackgroundAnalysisScope.None)
-            {
-                return true;
-            }
-
-            // NOTE: Previously we used to return "CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(options)"
-            //       on this code path, which returns true if analyzer is suppressed through compilation options.
-            //       However, this check is no longer correct as analyzers can be enabled/disabled for individual
-            //       documents through .editorconfig files. So we pessimistically assume analyzer is not suppressed
-            //       and let the core analyzer driver in the compiler layer handle skipping redundant analysis callbacks.
-            return false;
-        }
     }
 }

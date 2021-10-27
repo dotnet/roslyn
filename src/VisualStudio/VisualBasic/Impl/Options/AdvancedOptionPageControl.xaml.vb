@@ -45,11 +45,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             ' Analysis
             Dim onNullBackgroundAnalysisScope = Function()
                                                     ' Get the default background analysis scope based on the feature flag
-                                                    Return If(optionStore.GetOption(SolutionCrawlerOptions.DefaultBackgroundAnalysisScopeFeatureFlag), BackgroundAnalysisScope.ActiveFile, BackgroundAnalysisScope.Default)
+                                                    Return If(optionStore.GetOption(SolutionCrawlerOptions.ActiveFileAsDefaultBackgroundAnalysisScopeFeatureFlag), BackgroundAnalysisScope.ActiveFile, BackgroundAnalysisScope.Default)
                                                 End Function
             BindToOption(Background_analysis_scope_none, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.None, LanguageNames.VisualBasic, onNullBackgroundAnalysisScope)
             BindToOption(Background_analysis_scope_active_file, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.ActiveFile, LanguageNames.VisualBasic, onNullBackgroundAnalysisScope)
-            BindToOption(Background_analysis_scope_open_files, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.OpenFilesAndProjects, LanguageNames.VisualBasic, onNullBackgroundAnalysisScope)
+            BindToOption(Background_analysis_scope_open_files, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.OpenFiles, LanguageNames.VisualBasic, onNullBackgroundAnalysisScope)
             BindToOption(Background_analysis_scope_full_solution, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution, LanguageNames.VisualBasic, onNullBackgroundAnalysisScope)
 
             BindToOption(DisplayDiagnosticsInline, InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.VisualBasic)

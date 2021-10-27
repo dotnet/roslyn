@@ -212,12 +212,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return;
 
                 RoslynDebug.AssertNotNull(activeDocumentId);
+
+                // When the analysis scope is set to 'ActiveFile' and the active document changes,
+                // analysis results might change for the analyzers whose document analysis results depends on
+                // whether or not the document is active. We trigger reanalysis for the active document for these analyzers.
+                var scope = new ReanalyzeScope(documentIds: new[] { activeDocumentId });
                 var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(activeProject);
                 if (analysisScope == BackgroundAnalysisScope.ActiveFile)
                 {
-                    // When the active document changes and we are only analyzing the active file, trigger a document
-                    // reanalysis event to reanalyze the newly-active file.
-                    var scope = new ReanalyzeScope(documentIds: new[] { activeDocumentId });
                     foreach (var analyzer in _documentAndProjectWorkerProcessor.AnalyzersForActiveDocumentChanged)
                     {
                         Reanalyze(analyzer, scope, highPriority: true);

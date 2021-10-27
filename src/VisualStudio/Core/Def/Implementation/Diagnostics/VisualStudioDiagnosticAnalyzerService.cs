@@ -146,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.ActiveFile);
 
         private void OnSetAnalysisScopeOpenDocumentsStatus(object sender, EventArgs e)
-            => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.OpenFilesAndProjects);
+            => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.OpenFiles);
 
         private void OnSetAnalysisScopeEntireSolutionStatus(object sender, EventArgs e)
             => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.FullSolution);
@@ -185,7 +185,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 command.Text = GetBackgroundAnalysisScope(_workspace) switch
                 {
                     BackgroundAnalysisScope.ActiveFile => ServicesVSResources.Default_Current_Document,
-                    BackgroundAnalysisScope.OpenFilesAndProjects => ServicesVSResources.Default_Open_Documents,
+                    BackgroundAnalysisScope.OpenFiles => ServicesVSResources.Default_Open_Documents,
                     BackgroundAnalysisScope.FullSolution => ServicesVSResources.Default_Entire_Solution,
                     BackgroundAnalysisScope.None => ServicesVSResources.Default_None,
                     _ => ServicesVSResources.Default_,
@@ -227,7 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             => OnSetAnalysisScope(BackgroundAnalysisScope.ActiveFile);
 
         private void OnSetAnalysisScopeOpenDocuments(object sender, EventArgs args)
-            => OnSetAnalysisScope(BackgroundAnalysisScope.OpenFilesAndProjects);
+            => OnSetAnalysisScope(BackgroundAnalysisScope.OpenFiles);
 
         private void OnSetAnalysisScopeEntireSolution(object sender, EventArgs args)
             => OnSetAnalysisScope(BackgroundAnalysisScope.FullSolution);

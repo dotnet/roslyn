@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _gate = new object();
                         _lazyAnalyzers = lazyAnalyzers;
                         _lazyAnalyzersForActiveDocumentChanged = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(
-                            () => Analyzers.WhereAsArray(a => a.NeedsReanalysisOnActiveDocumentChanged));
+                            () => Analyzers.WhereAsArray(a => a.IsDocumentAnalysisDependentOnItBeingActiveDocumentOrNot));
 
                         Processor = processor;
                         Processor._documentTracker.NonRoslynBufferTextChanged += OnNonRoslynBufferTextChanged;
@@ -73,10 +73,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             var analyzers = _lazyAnalyzers.Value;
                             _lazyAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => analyzers.Add(analyzer));
 
-                            if (analyzer.NeedsReanalysisOnActiveDocumentChanged)
+                            if (analyzer.IsDocumentAnalysisDependentOnItBeingActiveDocumentOrNot)
                             {
-                                analyzers = _lazyAnalyzersForActiveDocumentChanged.Value;
-                                _lazyAnalyzersForActiveDocumentChanged = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => analyzers.Add(analyzer));
+                                _lazyAnalyzersForActiveDocumentChanged = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(
+                                    () => Analyzers.WhereAsArray(a => a.IsDocumentAnalysisDependentOnItBeingActiveDocumentOrNot));
                             }
                         }
                     }

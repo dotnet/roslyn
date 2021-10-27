@@ -652,7 +652,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             {
                 case BackgroundAnalysisScope.None:
                 case BackgroundAnalysisScope.ActiveFile:
-                case BackgroundAnalysisScope.OpenFilesAndProjects:
+                case BackgroundAnalysisScope.OpenFiles:
                     workspace.OpenAdditionalDocument(firstAdditionalDocument.Id);
                     await incrementalAnalyzer.AnalyzeNonSourceDocumentAsync(firstAdditionalDocument, InvocationReasons.SyntaxChanged, CancellationToken.None);
                     break;
@@ -670,8 +670,8 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             var expectedCount = (analysisScope, testMultiple) switch
             {
                 (BackgroundAnalysisScope.ActiveFile or BackgroundAnalysisScope.None, _) => 0,
-                (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, false) => 1,
-                (BackgroundAnalysisScope.OpenFilesAndProjects, true) => 2,
+                (BackgroundAnalysisScope.OpenFiles or BackgroundAnalysisScope.FullSolution, false) => 1,
+                (BackgroundAnalysisScope.OpenFiles, true) => 2,
                 (BackgroundAnalysisScope.FullSolution, true) => 4,
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -690,7 +690,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     {
                         Assert.Empty(applicableDiagnostics);
                     }
-                    else if (analysisScope == BackgroundAnalysisScope.OpenFilesAndProjects &&
+                    else if (analysisScope == BackgroundAnalysisScope.OpenFiles &&
                         firstAdditionalDocument != additionalDoc)
                     {
                         Assert.Empty(applicableDiagnostics);
@@ -768,7 +768,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
                     break;
 
-                case BackgroundAnalysisScope.OpenFilesAndProjects:
+                case BackgroundAnalysisScope.OpenFiles:
                     workspace.OpenDocument(document.Id);
                     await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
                     break;
@@ -874,7 +874,7 @@ class A
                     await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
                     break;
 
-                case BackgroundAnalysisScope.OpenFilesAndProjects:
+                case BackgroundAnalysisScope.OpenFiles:
                     workspace.OpenDocument(document.Id);
                     await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
                     break;

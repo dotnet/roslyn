@@ -13,25 +13,25 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// Analyzers are executed only for currently active document.
         /// Compiler analyzer is treated specially and executed for all open documents.
         /// </summary>
-        ActiveFile,
+        ActiveFile = 0,
 
         /// <summary>
         /// All analyzers, including compiler analyzer, are executed for all open documents.
         /// </summary>
-        OpenFilesAndProjects,
+        OpenFiles = 1,
 
         /// <summary>
         /// All analyzers, including compiler analyzer, are executed for all documents in the current solution.
         /// </summary>
-        FullSolution,
+        FullSolution = 2,
 
         /// <summary>
         /// Analyzers are disabled for all documents.
         /// Compiler analyzer is treated specially and executed for all open documents.
         /// </summary>
-        None,
+        None = 3,
 
         Minimal = None,
-        Default = OpenFilesAndProjects,
+        Default = OpenFiles,
     }
 }

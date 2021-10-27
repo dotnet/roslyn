@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// <summary>
         /// Feature flag to control the default background analysis scope for the current user.
         /// </summary>
-        public static readonly Option2<bool> DefaultBackgroundAnalysisScopeFeatureFlag = new(
-            nameof(SolutionCrawlerOptions), nameof(DefaultBackgroundAnalysisScopeFeatureFlag), defaultValue: false,
-            storageLocation: new FeatureFlagStorageLocation("Roslyn.DefaultBackgroundAnalysisScopeFeatureFlag"));
+        public static readonly Option2<bool> ActiveFileAsDefaultBackgroundAnalysisScopeFeatureFlag = new(
+            nameof(SolutionCrawlerOptions), nameof(ActiveFileAsDefaultBackgroundAnalysisScopeFeatureFlag), defaultValue: false,
+            storageLocation: new FeatureFlagStorageLocation("Roslyn.ActiveFileAsDefaultBackgroundAnalysisScopeFeatureFlag"));
 
         /// <summary>
         /// Option to turn configure background analysis scope for the current solution.
@@ -72,8 +72,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return analysisScope.Value;
                     }
 
-                    var isExperimentEnabled = options.GetOption(DefaultBackgroundAnalysisScopeFeatureFlag);
-                    return isExperimentEnabled ? BackgroundAnalysisScope.ActiveFile : BackgroundAnalysisScope.Default;
+                    var isActiveFileDefaultScope = options.GetOption(ActiveFileAsDefaultBackgroundAnalysisScopeFeatureFlag);
+                    return isActiveFileDefaultScope ? BackgroundAnalysisScope.ActiveFile : BackgroundAnalysisScope.Default;
             }
         }
 
