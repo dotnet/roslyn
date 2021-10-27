@@ -4451,5 +4451,29 @@ class C { }",
                 testHost,
                 Namespace("NS"));
         }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(57184, "https://github.com/dotnet/roslyn/issues/57184")]
+        public async Task MethodGroupClassifications(TestHost testHost)
+        {
+            await TestAsync(
+@"var f = m;
+Delegate d = m;
+MulticastDelegate md = m;
+ICloneable c = m;
+object obj = m;
+
+int m(string s) => s.Length; ",
+                testHost,
+                Keyword("var"),
+                Method("m"),
+                Method("m"),
+                Method("m"),
+                Method("m"),
+                Method("m"),
+                Parameter("s"),
+                Property("Length"));
+        }
     }
 }

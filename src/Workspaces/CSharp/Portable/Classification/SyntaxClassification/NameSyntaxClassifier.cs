@@ -59,7 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 TryClassifySymbol(name, symbolInfo, semanticModel, result, cancellationToken) ||
                 TryClassifyFromIdentifier(name, symbolInfo, result) ||
                 TryClassifyValueIdentifier(name, symbolInfo, result) ||
-                TryClassifyNameOfIdentifier(name, symbolInfo, result);
+                TryClassifyNameOfIdentifier(name, symbolInfo, result) ||
+                TryClassifyMethodGroupAssignment(name, symbolInfo, result);
         }
 
         private bool TryClassifySymbol(
@@ -314,6 +315,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 if (identifierName.IsRightSideOfAnyAssignExpression() || identifierName.IsVariableDeclaratorValue())
                 {
                     result.Add(new ClassifiedSpan(token.Span, ClassificationTypeNames.Keyword));
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool TryClassifyMethodGroupAssignment(
+            NameSyntax name,
+            SymbolInfo symbolInfo,
+            ArrayBuilder<ClassifiedSpan> result)
+        {
+            // If the syntax matches "var x = m" or "x = m", and there is a candidate symbol
+            // for m that is a method then classify it as such.
+            if (name is IdentifierNameSyntax identifierName &&
+                symbolInfo.Symbol == null &&
+                symbolInfo.CandidateSymbols.Length == 1 &&
+                symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure &&
+                symbolInfo.CandidateSymbols[0] is IMethodSymbol methodSymbol)
+            {
+                if (identifierName.IsRightSideOfAnyAssignExpression() || identifierName.IsVariableDeclaratorValue())
+                {
+                    result.Add(new ClassifiedSpan(identifierName.Identifier.Span, GetClassificationForMethod(methodSymbol)));
                     return true;
                 }
             }
