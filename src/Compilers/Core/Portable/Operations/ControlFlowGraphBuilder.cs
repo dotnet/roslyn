@@ -1534,8 +1534,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             IOperation conditionOp;
             if (ITypeSymbolHelpers.IsNullableType(parameter.Type))
             {
-                var nullableHasValue = ((IMethodSymbol)_compilation.CommonGetSpecialTypeMember(SpecialMember.System_Nullable_T_get_HasValue))?.Construct(parameter.Type);
-                if (nullableHasValue is null)
+                // PROTOTYPE(param-nullchecking): is there a better way to get the HasValue symbol here?
+                var nullableType = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(parameter.Type);
+                var nullableHasValueProperty = nullableType.GetMembers(nameof(Nullable<int>.HasValue)).FirstOrDefault() as IPropertySymbol;
+                var nullableHasValueGet = nullableHasValueProperty?.GetMethod;
+                if (nullableHasValueGet is null)
                 {
                     conditionOp = new UnaryOperation(
                     UnaryOperatorKind.Not,
@@ -1560,7 +1563,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     conditionOp = new UnaryOperation(
                     UnaryOperatorKind.Not,
                     new InvocationOperation(
-                        targetMethod: nullableHasValue,
+                        targetMethod: nullableHasValueGet,
                         instance: paramReference,
                         isVirtual: false,
                         arguments: ImmutableArray<IArgumentOperation>.Empty,
