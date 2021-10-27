@@ -7622,7 +7622,7 @@ line     2"));
         public async Task DoNotNormalizeLeadingWhitespaceForCode()
         {
             var markup =
-@"using I$$ = IGoo;
+                @"using I$$ = IGoo;
 /// <summary>
 ///       Normalize    this, and <c>Also        this</c>
 /// <code>
@@ -7638,6 +7638,20 @@ interface IGoo {  }";
 
 line 1
     line     2"));
+        }
+
+        [WorkItem(57262, "https://github.com/dotnet/roslyn/issues/57262")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ParsesEmptySummary()
+        {
+            var markup =
+                @"using I$$ = IGoo;
+/// <summary></summary>
+interface IGoo {  }";
+
+            await TestAsync(markup,
+                MainDescription("interface IGoo"),
+                Documentation(""));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
