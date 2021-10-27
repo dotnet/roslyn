@@ -841,7 +841,7 @@ done:
 
             foreach (var parameter in Parameters)
             {
-                ParameterHelpers.AddNullCheckingErrorsToParameter(diagnostics.DiagnosticBag, parameter);
+                ParameterHelpers.ReportParameterNullCheckingErrors(diagnostics.DiagnosticBag, parameter);
             }
         }
 

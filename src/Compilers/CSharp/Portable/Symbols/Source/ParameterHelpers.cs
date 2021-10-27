@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // PROTOTYPE(param-nullchecking): consider whether we should adjust the set of locations where we call this
-        internal static void AddNullCheckingErrorsToParameter(DiagnosticBag diagnostics, ParameterSymbol parameter)
+        internal static void ReportParameterNullCheckingErrors(DiagnosticBag diagnostics, ParameterSymbol parameter)
         {
             if (!parameter.IsNullChecked)
             {

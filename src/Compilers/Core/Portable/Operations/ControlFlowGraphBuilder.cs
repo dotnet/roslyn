@@ -1535,8 +1535,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             if (ITypeSymbolHelpers.IsNullableType(parameter.Type))
             {
                 // PROTOTYPE(param-nullchecking): is there a better way to get the HasValue symbol here?
-                var nullableType = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(parameter.Type);
-                var nullableHasValueProperty = nullableType.GetMembers(nameof(Nullable<int>.HasValue)).FirstOrDefault() as IPropertySymbol;
+                // This way doesn't work with compilation.MakeMemberMissing for testing
+                var nullableHasValueProperty = parameter.Type.GetMembers(nameof(Nullable<int>.HasValue)).FirstOrDefault() as IPropertySymbol;
                 var nullableHasValueGet = nullableHasValueProperty?.GetMethod;
                 if (nullableHasValueGet is null)
                 {

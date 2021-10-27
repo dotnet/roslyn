@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, parameters, diagnostics, modifyCompilation: false);
             foreach (var parameter in parameters)
             {
-                ParameterHelpers.AddNullCheckingErrorsToParameter(diagnostics.DiagnosticBag, parameter);
+                ParameterHelpers.ReportParameterNullCheckingErrors(diagnostics.DiagnosticBag, parameter);
             }
             // Note: we don't need to warn on annotations used in #nullable disable context for local functions, as this is handled in binding already
 

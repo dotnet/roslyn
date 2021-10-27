@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var parameter in _parameters)
             {
                 parameter.ForceComplete(locationOpt: null, cancellationToken: default);
-                ParameterHelpers.AddNullCheckingErrorsToParameter(addTo.DiagnosticBag, parameter);
+                ParameterHelpers.ReportParameterNullCheckingErrors(addTo.DiagnosticBag, parameter);
             }
 
             GetAttributes();

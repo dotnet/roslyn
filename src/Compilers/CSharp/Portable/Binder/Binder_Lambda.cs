@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasSignature = true;
                     var simple = (SimpleLambdaExpressionSyntax)syntax;
                     namesBuilder.Add(simple.Parameter.Identifier.ValueText);
-                    if (simple.Parameter.ExclamationExclamationToken.IsKind(SyntaxKind.ExclamationExclamationToken))
+                    if (isNullChecked(simple.Parameter))
                     {
                         nullCheckedOpt = ImmutableArray.Create(true);
                     }
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     namesBuilder.Add(p.Identifier.ValueText);
                     typesBuilder.Add(type);
                     refKindsBuilder.Add(refKind);
-                    nullCheckedBuilder.Add(p.ExclamationExclamationToken.IsKind(SyntaxKind.ExclamationExclamationToken));
+                    nullCheckedBuilder.Add(isNullChecked(p));
                     attributesBuilder.Add(syntax.Kind() == SyntaxKind.ParenthesizedLambdaExpression ? p.AttributeLists : default);
                 }
 
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     refKinds = refKindsBuilder.ToImmutable();
                 }
 
-                if (nullCheckedBuilder.Any(isNullChecked => isNullChecked))
+                if (nullCheckedBuilder.Contains(true))
                 {
                     nullCheckedOpt = nullCheckedBuilder.ToImmutable();
                 }
@@ -222,6 +222,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             namesBuilder.Free();
 
             return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, types, names, discardsOpt, nullCheckedOpt, isAsync, isStatic);
+
+            static bool isNullChecked(ParameterSyntax parameter)
+                => parameter.ExclamationExclamationToken.IsKind(SyntaxKind.ExclamationExclamationToken);
 
             static ImmutableArray<bool> computeDiscards(SeparatedSyntaxList<ParameterSyntax> parameters, int underscoresCount)
             {
