@@ -241,20 +241,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        internal void AddDocumentToDocumentsNotFromFiles(DocumentId documentId)
+        internal void AddDocumentToDocumentsNotFromFiles_NoLock(DocumentId documentId)
         {
-            using (_gate.DisposableWait())
-            {
-                _documentsNotFromFiles = _documentsNotFromFiles.Add(documentId);
-            }
+            Debug.Assert(_gate.CurrentCount == 0);
+
+            _documentsNotFromFiles = _documentsNotFromFiles.Add(documentId);
         }
 
-        internal void RemoveDocumentToDocumentsNotFromFiles(DocumentId documentId)
+        internal void RemoveDocumentToDocumentsNotFromFiles_NoLock(DocumentId documentId)
         {
-            using (_gate.DisposableWait())
-            {
-                _documentsNotFromFiles = _documentsNotFromFiles.Remove(documentId);
-            }
+            Debug.Assert(_gate.CurrentCount == 0);
+            _documentsNotFromFiles = _documentsNotFromFiles.Remove(documentId);
         }
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
