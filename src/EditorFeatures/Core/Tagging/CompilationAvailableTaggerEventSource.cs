@@ -3,21 +3,29 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
+namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
+
     /// <summary>
-    /// Tagger event that fires once the compilation is ready for a particular project.  Used to trigger a
-    /// reclassification pass as classification may show either cached classifications (from a previous session), or
-    /// incomplete classifications due to frozen-partial compilations being used.
+    /// Tagger event that fires once the compilation is available in the remote OOP process for a particular project.
+    /// Used to trigger things such as:
+    /// <list type="bullet">
+    /// <item>reclassification pass as classification may show either cached classifications (from a  previous session),
+    /// or incomplete classifications due to frozen-partial compilations being used.</item>
+    /// <item>recomputation of navigation bar items due to frozen-partial compilations being used.</item>
+    /// <item>recomputation of inheritance margin items due to frozen-partial compilations being used.</item>
+    /// </list>
     /// </summary>
     internal class CompilationAvailableTaggerEventSource : ITaggerEventSource
     {
@@ -92,10 +100,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 if (cancellationToken.IsCancellationRequested)
                     return;
 
-                await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                if (client != null)
+                {
+                    var result = await client.TryInvokeAsync<IRemoteCompilationAvailableService>(
+                        document.Project,
+                        (service, solutionInfo, cancellationToken) => service.ComputeCompilationAsync(solutionInfo, document.Project.Id, cancellationToken),
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (!result)
+                        return;
+                }
+                else
+                {
+                    // if we can't get the client, just compute the compilation locally and fire the event once we have it.
+                    await ComputeCompilationInCurrentProcessAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                }
+
+                // now that we know we have an full compilation, retrigger the tagger so it can show accurate results with the 
+                // full information about this project.
                 this.Changed?.Invoke(this, new TaggerEventArgs());
             }, cancellationToken);
             task.CompletesAsyncOperation(token);
         }
+
+        // this method is super basic.  but it ensures that the remote impl and the local impl always agree.
+        public static Task ComputeCompilationInCurrentProcessAsync(Project project, CancellationToken cancellationToken)
+            => project.GetCompilationAsync(cancellationToken);
     }
 }
