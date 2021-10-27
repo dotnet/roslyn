@@ -288,16 +288,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             using (_gate.DisposableWait())
             {
-                if (_projectSystemNameToProjectsMap.TryGetValue(projectName, out var projects))
+                return GetProjectWithHierarchyAndName_NoLock(hierarchy, projectName);
+            }
+        }
+
+        private VisualStudioProject? GetProjectWithHierarchyAndName_NoLock(IVsHierarchy hierarchy, string projectName)
+        {
+            if (_projectSystemNameToProjectsMap.TryGetValue(projectName, out var projects))
+            {
+                foreach (var project in projects)
                 {
-                    foreach (var project in projects)
+                    if (_projectToHierarchyMap.TryGetValue(project.Id, out var projectHierarchy))
                     {
-                        if (_projectToHierarchyMap.TryGetValue(project.Id, out var projectHierarchy))
+                        if (projectHierarchy == hierarchy)
                         {
-                            if (projectHierarchy == hierarchy)
-                            {
-                                return project;
-                            }
+                            return project;
                         }
                     }
                 }
