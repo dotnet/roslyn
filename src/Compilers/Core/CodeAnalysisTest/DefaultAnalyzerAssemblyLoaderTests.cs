@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             loader.AddDependencyLocation(analyzerDependencyFile.Path);
 
             var analyzerMainReference = new AnalyzerFileReference(analyzerMainFile.Path, loader);
-            analyzerMainReference.AnalyzerLoadFailed += (_, e) => AssertEx.Fail(e.Exception!.Message);
+            analyzerMainReference.AnalyzerLoadFailed += (_, e) => Assert.Fail(e.Exception!.Message);
             var analyzerDependencyReference = new AnalyzerFileReference(analyzerDependencyFile.Path, loader);
-            analyzerDependencyReference.AnalyzerLoadFailed += (_, e) => AssertEx.Fail(e.Exception!.Message);
+            analyzerDependencyReference.AnalyzerLoadFailed += (_, e) => Assert.Fail(e.Exception!.Message);
 
             var analyzers = analyzerMainReference.GetAnalyzersForAllLanguages();
             Assert.Equal(1, analyzers.Length);

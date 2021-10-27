@@ -36,17 +36,17 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
         // Assert that the solution is forked with the new text on open.
         var forkedSolution = GetManagerWorkspaceState(testLspServer.TestWorkspace, testLspServer);
-        AssertEx.NotNull(forkedSolution);
+        Assert.NotNull(forkedSolution);
         Assert.NotEqual(testLspServer.TestWorkspace.CurrentSolution, forkedSolution);
 
         var lspDocument = GetLspDocument(documentUri, testLspServer);
-        AssertEx.NotNull(lspDocument);
+        Assert.NotNull(lspDocument);
         Assert.Equal("LSP text", (await lspDocument.GetTextAsync(CancellationToken.None)).ToString());
 
         // Verify LSP text changes are reflected in the opened document.
         await testLspServer.InsertTextAsync(documentUri, (0, 0, "More text"));
         lspDocument = GetLspDocument(documentUri, testLspServer);
-        AssertEx.NotNull(lspDocument);
+        Assert.NotNull(lspDocument);
         Assert.Equal("More textLSP text", (await lspDocument.GetTextAsync(CancellationToken.None)).ToString());
 
         // Close the document in LSP and verify all LSP tracked changes are now gone.
@@ -75,8 +75,8 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
         var firstDocumentWithChange = GetLspDocument(firstDocumentUri, testLspServer);
         var secondDocumentUnchanged = GetLspDocument(secondDocumentUri, testLspServer);
-        AssertEx.NotNull(firstDocumentWithChange);
-        AssertEx.NotNull(secondDocumentUnchanged);
+        Assert.NotNull(firstDocumentWithChange);
+        Assert.NotNull(secondDocumentUnchanged);
 
         // Verify that the document that we inserted text into had a version change.
         Assert.NotEqual(firstDocumentInitialVersion, await firstDocumentWithChange.GetSyntaxVersionAsync(CancellationToken.None));
@@ -109,12 +109,12 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
         // Verify that the LSP solution has the LSP text from the open document.
         var openedDocument = GetLspDocument(firstDocumentUri, testLspServer);
-        AssertEx.NotNull(openedDocument);
+        Assert.NotNull(openedDocument);
         Assert.Equal("LSP text", (await openedDocument.GetTextAsync(CancellationToken.None)).ToString());
 
         // Verify that the LSP solution has the workspace text in the closed document.
         secondDocument = GetLspDocument(secondDocumentUri, testLspServer);
-        AssertEx.NotNull(secondDocument);
+        Assert.NotNull(secondDocument);
         Assert.Equal("Two is now three!", (await secondDocument.GetTextAsync()).ToString());
     }
 
@@ -139,7 +139,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
         // Verify that the new LSP solution has the updated project info.
         openedDocument = GetLspDocument(documentUri, testLspServer);
-        AssertEx.NotNull(openedDocument);
+        Assert.NotNull(openedDocument);
         Assert.Equal("LSP text", (await openedDocument.GetTextAsync(CancellationToken.None)).ToString());
         Assert.Equal("NewCSProj1", openedDocument.Project.AssemblyName);
     }
@@ -218,7 +218,7 @@ class A
 
         // Assert that the LSP incremental solution is still present since we have not heard the workspace event.
         lspDocument = GetLspDocument(documentUri, testLspServer);
-        AssertEx.NotNull(lspDocument);
+        Assert.NotNull(lspDocument);
         Assert.Equal("Test", lspDocument.Project.AssemblyName);
 
         // Actually send the project changed event.
@@ -229,7 +229,7 @@ class A
 
         // Verify that the project change event is reflected in LSP.
         lspDocument = GetLspDocument(documentUri, testLspServer);
-        AssertEx.NotNull(lspDocument);
+        Assert.NotNull(lspDocument);
         Assert.Equal("NewCSProj1", lspDocument.Project.AssemblyName);
     }
 
@@ -252,7 +252,7 @@ class A
         // Verify that the lsp server forks again from the workspace and picks up the new document in the correct workspace on document open.
         await testLspServer.OpenDocumentAsync(newDocumentUri);
         var lspDocument = GetLspDocument(newDocumentUri, testLspServer);
-        AssertEx.NotNull(lspDocument);
+        Assert.NotNull(lspDocument);
         Assert.Equal(testLspServer.TestWorkspace, lspDocument.Project.Solution.Workspace);
     }
 
@@ -273,14 +273,14 @@ class A
 
         // Verify it is in the lsp misc workspace.
         var miscDocument = GetLspDocument(newDocumentUri, testLspServer);
-        AssertEx.NotNull(miscDocument);
+        Assert.NotNull(miscDocument);
         Assert.Equal(testLspServer.GetManagerAccessor().GetLspMiscellaneousFilesWorkspace(), miscDocument.Project.Solution.Workspace);
         Assert.Equal("LSP text", (await miscDocument.GetTextAsync(CancellationToken.None)).ToString());
 
         // Make a change and verify the misc document is updated.
         await testLspServer.InsertTextAsync(newDocumentUri, (0, 0, "More LSP text"));
         miscDocument = GetLspDocument(newDocumentUri, testLspServer);
-        AssertEx.NotNull(miscDocument);
+        Assert.NotNull(miscDocument);
         var miscText = await miscDocument.GetTextAsync(CancellationToken.None);
         Assert.Equal("More LSP textLSP text", miscText.ToString());
 
@@ -292,7 +292,7 @@ class A
 
         // Verify that the newly added document in the registered workspace is returned.
         var document = GetLspDocument(newDocumentUri, testLspServer);
-        AssertEx.NotNull(document);
+        Assert.NotNull(document);
         Assert.Equal(testLspServer.TestWorkspace, document.Project.Solution.Workspace);
         Assert.Equal(newDocumentId, document.Id);
         // Verify we still are using the tracked LSP text for the document.
@@ -336,7 +336,7 @@ class A
 
         // Verify the host workspace returned is the workspace with kind host.
         var hostSolution = GetLspHostSolution(testLspServer);
-        AssertEx.NotNull(hostSolution);
+        Assert.NotNull(hostSolution);
         Assert.Equal("FirstWorkspaceProject", hostSolution.Projects.First().Name);
     }
 
@@ -402,12 +402,12 @@ class A
 
         // Verify we can get both documents from their respective workspaces.
         var firstDocument = GetLspDocument(firstWorkspaceDocumentUri, testLspServer);
-        AssertEx.NotNull(firstDocument);
+        Assert.NotNull(firstDocument);
         Assert.Equal(firstWorkspaceDocumentUri, firstDocument.GetURI());
         Assert.Equal(testLspServer.TestWorkspace, firstDocument.Project.Solution.Workspace);
 
         var secondDocument = GetLspDocument(secondWorkspaceDocumentUri, testLspServer);
-        AssertEx.NotNull(secondDocument);
+        Assert.NotNull(secondDocument);
         Assert.Equal(secondWorkspaceDocumentUri, secondDocument.GetURI());
         Assert.Equal(testWorkspaceTwo, secondDocument.Project.Solution.Workspace);
 
@@ -416,7 +416,7 @@ class A
 
         // The first document should now different text.
         var changedFirstDocument = GetLspDocument(firstWorkspaceDocumentUri, testLspServer);
-        AssertEx.NotNull(changedFirstDocument);
+        Assert.NotNull(changedFirstDocument);
         var changedFirstDocumentText = await changedFirstDocument.GetTextAsync(CancellationToken.None);
         var firstDocumentText = await firstDocument.GetTextAsync(CancellationToken.None);
         Assert.NotEqual(firstDocumentText, changedFirstDocumentText);
@@ -458,12 +458,12 @@ class A
 
         // Verify we can get both documents from their respective workspaces.
         var firstDocument = GetLspDocument(firstWorkspaceDocumentUri, testLspServer);
-        AssertEx.NotNull(firstDocument);
+        Assert.NotNull(firstDocument);
         Assert.Equal(firstWorkspaceDocumentUri, firstDocument.GetURI());
         Assert.Equal(testLspServer.TestWorkspace, firstDocument.Project.Solution.Workspace);
 
         var secondDocument = GetLspDocument(secondWorkspaceDocumentUri, testLspServer);
-        AssertEx.NotNull(secondDocument);
+        Assert.NotNull(secondDocument);
         Assert.Equal(secondWorkspaceDocumentUri, secondDocument.GetURI());
         Assert.Equal(testWorkspaceTwo, secondDocument.Project.Solution.Workspace);
 
@@ -473,7 +473,7 @@ class A
 
         // The second document should have an updated project assembly name.
         var secondDocumentChangedProject = GetLspDocument(secondWorkspaceDocumentUri, testLspServer);
-        AssertEx.NotNull(secondDocumentChangedProject);
+        Assert.NotNull(secondDocumentChangedProject);
         Assert.Equal("NewCSProj1", secondDocumentChangedProject.Project.AssemblyName);
         Assert.NotEqual(secondDocument, secondDocumentChangedProject);
 
@@ -507,7 +507,7 @@ class A
         var documentServerOne = await OpenDocumentAndVerifyLspTextAsync(documentUri, testLspServerOne, "Server one text");
 
         var documentServerTwo = GetLspDocument(documentUri, testLspServerTwo);
-        AssertEx.NotNull(documentServerTwo);
+        Assert.NotNull(documentServerTwo);
         Assert.Equal("Original text", (await documentServerTwo.GetTextAsync(CancellationToken.None)).ToString());
 
         // Verify workspace updates are reflected in both servers.
@@ -520,10 +520,10 @@ class A
 
         // Verify LSP solution has the project changes.
         documentServerOne = GetLspDocument(documentUri, testLspServerOne);
-        AssertEx.NotNull(documentServerOne);
+        Assert.NotNull(documentServerOne);
         Assert.Equal(newAssemblyName, documentServerOne.Project.AssemblyName);
         documentServerTwo = GetLspDocument(documentUri, testLspServerTwo);
-        AssertEx.NotNull(documentServerTwo);
+        Assert.NotNull(documentServerTwo);
         Assert.Equal(newAssemblyName, documentServerTwo.Project.AssemblyName);
     }
 
@@ -536,7 +536,7 @@ class A
 
         // Verify we can find the document with correct text in the new LSP solution.
         var lspDocument = GetLspDocument(documentUri, testLspServer);
-        AssertEx.NotNull(lspDocument);
+        Assert.NotNull(lspDocument);
         Assert.Equal(openText, (await lspDocument.GetTextAsync(CancellationToken.None)).ToString());
         return lspDocument;
     }

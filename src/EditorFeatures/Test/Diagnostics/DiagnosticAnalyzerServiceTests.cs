@@ -374,7 +374,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                         syntax |= diagnostics[0].Id == NoNameAnalyzer.s_syntaxRule.Id;
                         return;
                     default:
-                        AssertEx.Fail("shouldn't reach here");
+                        Assert.Fail("shouldn't reach here");
                         return;
                 }
             };
@@ -1178,7 +1178,7 @@ class A
                     semantic |= diagnostics[0].Id == Analyzer.s_semanticRule.Id;
                     break;
                 default:
-                    AssertEx.Fail("shouldn't reach here");
+                    Assert.Fail("shouldn't reach here");
                     break;
             }
 

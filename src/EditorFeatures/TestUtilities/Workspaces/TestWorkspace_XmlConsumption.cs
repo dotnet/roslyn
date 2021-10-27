@@ -792,7 +792,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
             else if (testDocumentServiceProvider != null)
             {
-                AssertEx.Fail($"The document attributes on file {fileName} conflicted");
+                Assert.Fail($"The document attributes on file {fileName} conflicted");
             }
 
             return new TestHostDocument(

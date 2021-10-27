@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
         {
             if (expectedOrderedItemsMetadataReference == null || expectedOrderedItemsSameSolution == null)
             {
-                AssertEx.Fail("Expected signature help items must be provided for EditorBrowsable tests. If there are no expected items, provide an empty IEnumerable rather than null.");
+                Assert.Fail("Expected signature help items must be provided for EditorBrowsable tests. If there are no expected items, provide an empty IEnumerable rather than null.");
             }
 
             await TestSignatureHelpWithMetadataReferenceHelperAsync(markup, referencedCode, expectedOrderedItemsMetadataReference, sourceLanguage, referencedLanguage, hideAdvancedMembers);
@@ -405,7 +405,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
                 return;
             }
 
-            AssertEx.NotNull(items, "Signature help provider returned null for items. Did you forget $$ in the test or is the test otherwise malformed, e.g. quotes not escaped?");
+            if (items == null)
+            {
+                Assert.Fail("Signature help provider returned null for items. Did you forget $$ in the test or is the test otherwise malformed, e.g. quotes not escaped?");
+            }
 
             // Verify the span
             if (textSpan != null)

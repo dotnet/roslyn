@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             if (expectedSpans.Length != unnecessaryLocations.Length)
             {
-                AssertEx.Fail(BuildFailureMessage(expectedSpans, WellKnownDiagnosticTags.Unnecessary, markupKey, initialMarkupWithoutSpans, diagnostics));
+                Assert.Fail(BuildFailureMessage(expectedSpans, WellKnownDiagnosticTags.Unnecessary, markupKey, initialMarkupWithoutSpans, diagnostics));
             }
 
             for (var i = 0; i < expectedSpans.Length; i++)
@@ -675,7 +675,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                         }
                         else
                         {
-                            AssertEx.Fail($"Could not find document with name '{doc.Name}'");
+                            Assert.Fail($"Could not find document with name '{doc.Name}'");
                         }
 
                         var expectedDocument = expectedDocuments.Single();

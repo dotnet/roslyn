@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.StackTraceExplorer
             Assert.Single(result.ParsedFrames);
 
             var stackFrame = result.ParsedFrames[0] as ParsedStackFrame;
-            AssertEx.NotNull(stackFrame);
+            Assert.NotNull(stackFrame);
 
             var symbol = await stackFrame.ResolveSymbolAsync(workspace.CurrentSolution, CancellationToken.None);
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.StackTraceExplorer
             var semanticModel = await doc.GetRequiredSemanticModelAsync(CancellationToken.None);
 
             var expectedSymbol = semanticModel.GetDeclaredSymbol(node);
-            AssertEx.NotNull(expectedSymbol);
+            Assert.NotNull(expectedSymbol);
 
             Assert.Equal(expectedSymbol, symbol);
         }
@@ -470,27 +470,27 @@ class C
             Assert.Equal(6, result.ParsedFrames.Length);
 
             var ignoredFrame1 = result.ParsedFrames[0] as IgnoredFrame;
-            AssertEx.NotNull(ignoredFrame1);
+            Assert.NotNull(ignoredFrame1);
             Assert.Equal(@"Exception occurred while loading solution options: System.Runtime.InteropServices.COMException (0x8000FFFF): Catastrophic failure (Exception from HRESULT: 0x8000FFFF (E_UNEXPECTED))", ignoredFrame1.OriginalText);
 
             var parsedFrame2 = result.ParsedFrames[1] as ParsedStackFrame;
-            AssertEx.NotNull(parsedFrame2);
+            Assert.NotNull(parsedFrame2);
             Assert.Equal(@"at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)", parsedFrame2.OriginalText);
 
             var parsedFrame3 = result.ParsedFrames[2] as ParsedStackFrame;
-            AssertEx.NotNull(parsedFrame3);
+            Assert.NotNull(parsedFrame3);
             Assert.Equal(@"at Microsoft.VisualStudio.Shell.Package.Initialize()", parsedFrame3.OriginalText);
 
             var ignoredFrame4 = result.ParsedFrames[3] as IgnoredFrame;
-            AssertEx.NotNull(ignoredFrame4);
+            Assert.NotNull(ignoredFrame4);
             Assert.Equal(@"--- End of stack trace from previous location where exception was thrown ---", ignoredFrame4.OriginalText);
 
             var parsedFrame5 = result.ParsedFrames[4] as ParsedStackFrame;
-            AssertEx.NotNull(parsedFrame5);
+            Assert.NotNull(parsedFrame5);
             Assert.Equal(@"at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw<string>()", parsedFrame5.OriginalText);
 
             var parsedFrame6 = result.ParsedFrames[5] as ParsedStackFrame;
-            AssertEx.NotNull(parsedFrame6);
+            Assert.NotNull(parsedFrame6);
             Assert.Equal(@"at Microsoft.VisualStudio.Telemetry.WindowsErrorReporting.WatsonReport.GetClrWatsonExceptionInfo(Exception exceptionObject)", parsedFrame6.OriginalText);
         }
     }

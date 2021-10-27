@@ -136,11 +136,11 @@ namespace Roslyn.Test.Utilities
 
             if (expected == null)
             {
-                Fail("expected was null, but actual wasn't\r\n" + message);
+                Assert.Fail("expected was null, but actual wasn't\r\n" + message);
             }
             else if (actual == null)
             {
-                Fail("actual was null, but expected wasn't\r\n" + message);
+                Assert.Fail("actual was null, but expected wasn't\r\n" + message);
             }
             else
             {
@@ -148,10 +148,10 @@ namespace Roslyn.Test.Utilities
                     comparer.Equals(expected, actual) :
                     AssertEqualityComparer<T>.Equals(expected, actual)))
                 {
-                    Fail("Expected and actual were different.\r\n" +
-                         "Expected:\r\n" + expected + "\r\n" +
-                         "Actual:\r\n" + actual + "\r\n" +
-                         message);
+                    Assert.Fail("Expected and actual were different.\r\n" +
+                                "Expected:\r\n" + expected + "\r\n" +
+                                "Actual:\r\n" + actual + "\r\n" +
+                                 message);
                 }
             }
         }
@@ -276,7 +276,7 @@ namespace Roslyn.Test.Utilities
         {
             if (ReferenceEquals(expected, actual))
             {
-                Fail("expected and actual references are identical\r\n" + message);
+                Assert.Fail("expected and actual references are identical\r\n" + message);
             }
 
             if (expected == null || actual == null)
@@ -285,7 +285,7 @@ namespace Roslyn.Test.Utilities
             }
             else if (SequenceEqual(expected, actual, comparer))
             {
-                Fail("expected and actual sequences match\r\n" + message);
+                Assert.Fail("expected and actual sequences match\r\n" + message);
             }
         }
 
@@ -493,16 +493,6 @@ namespace Roslyn.Test.Utilities
             return string.Join(separator, list.Select(itemInspector));
         }
 
-        public static void Fail(string message)
-        {
-            throw new Xunit.Sdk.XunitException(message);
-        }
-
-        public static void Fail(string format, params object[] args)
-        {
-            throw new Xunit.Sdk.XunitException(string.Format(format, args));
-        }
-
         public static void NotNull<T>(T @object, string message = null)
         {
             Assert.False(AssertEqualityComparer<T>.IsNull(@object), message);
@@ -700,7 +690,7 @@ namespace Roslyn.Test.Utilities
             var list = items.ToList();
             if (list.Count != 0)
             {
-                Fail($"Expected 0 items but found {list.Count}: {message}\r\nItems:\r\n    {string.Join("\r\n    ", list)}");
+                Assert.Fail($"Expected 0 items but found {list.Count}: {message}\r\nItems:\r\n    {string.Join("\r\n    ", list)}");
             }
         }
 
@@ -774,14 +764,5 @@ namespace Roslyn.Test.Utilities
                 Assert.True(false, builder.ToString());
             }
         }
-
-#nullable enable
-        public static void NotNull<T>([NotNull] T value)
-        {
-            Assert.NotNull(value);
-            Debug.Assert(value is object);
-        }
-
-#nullable disable
     }
 }

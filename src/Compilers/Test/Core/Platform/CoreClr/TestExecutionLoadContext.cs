@@ -19,6 +19,7 @@ using System.Runtime.Loader;
 using System.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
+using Xunit;
 
 namespace Roslyn.Test.Utilities.CoreClr
 {
@@ -65,7 +66,10 @@ namespace Roslyn.Test.Utilities.CoreClr
             var mainAssembly = LoadImageAsAssembly(mainImage);
             var entryPoint = mainAssembly.EntryPoint;
 
-            AssertEx.NotNull(entryPoint, "Attempting to execute an assembly that has no entrypoint; is your test trying to execute a DLL?");
+            if (entryPoint == null)
+            {
+                Assert.Fail("Attempting to execute an assembly that has no entrypoint; is your test trying to execute a DLL?");
+            }
 
             int exitCode = 0;
             SharedConsole.CaptureOutput(() =>

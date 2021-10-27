@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
 
             var result = await RunOnAutoInsertAsync(testLspServer, characterTyped, locationTyped, insertSpaces, tabSize);
 
-            AssertEx.NotNull(result);
+            Assert.NotNull(result);
             Assert.Equal(InsertTextFormat.Snippet, result.TextEditFormat);
             var actualText = ApplyTextEdits(new[] { result.TextEdit }, documentText);
             Assert.Equal(expected, actualText);

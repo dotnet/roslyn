@@ -16,8 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             If expectedNewTokens.Count <> actualNewTokens.Count Then
                 Dim expectedDisplay = String.Join(" ", expectedNewTokens.Select(Function(t) t.ToString()))
                 Dim actualDisplay = String.Join(" ", actualNewTokens.Select(Function(t) t.ToString()))
-                Roslyn.Test.Utilities.AssertEx.Fail("Wrong token count. Expected '{0}', Actual '{1}', Expected Text: '{2}', Actual Text: '{3}'",
-                    expectedNewTokens.Count, actualNewTokens.Count, expectedDisplay, actualDisplay)
+                Assert.Fail($"Wrong token count. Expected '{expectedNewTokens.Count}', Actual '{actualNewTokens.Count}', Expected Text: '{expectedDisplay}', Actual Text: '{actualDisplay}'")
             End If
 
             For i = 0 To actualNewTokens.Count - 1
