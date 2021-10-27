@@ -52,6 +52,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Hash.Combine(Input.GetHashCode(), this.Symbol?.GetHashCode() ?? 0);
         }
 
+        /// <summary>
+        /// Are we evaluating the same value?
+        /// See <see cref="BoundDagTemp.IsSameValue"/>.
+        /// </summary>
+        public abstract bool IsSameValueEvaluation(BoundDagEvaluation other);
+
 #if DEBUG
         private int _id = -1;
 
@@ -94,6 +100,58 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.IsEquivalentTo(obj) &&
                 // base.IsEquivalentTo checks the kind field, so the following cast is safe
                 this.Index == ((BoundDagIndexEvaluation)obj).Index;
+        }
+
+        public override bool IsSameValueEvaluation(BoundDagEvaluation other)
+        {
+            return this == other ||
+                other is BoundDagIndexEvaluation e &&
+                this.Index == e.Index &&
+                this.Property.Equals(e.Property, TypeCompareKind.AllIgnoreOptions) &&
+                this.Input.IsSameValue(e.Input);
+        }
+    }
+
+    partial class BoundDagFieldEvaluation
+    {
+        public override bool IsSameValueEvaluation(BoundDagEvaluation other)
+        {
+            return this == other ||
+                other is BoundDagFieldEvaluation e &&
+                (this.Field.CorrespondingTupleField ?? this.Field).Equals(e.Field.CorrespondingTupleField ?? e.Field, TypeCompareKind.AllIgnoreOptions) &&
+                this.Input.IsSameValue(e.Input);
+        }
+    }
+
+    partial class BoundDagPropertyEvaluation
+    {
+        public override bool IsSameValueEvaluation(BoundDagEvaluation other)
+        {
+            return this == other ||
+                other is BoundDagPropertyEvaluation e &&
+                this.Property.Equals(e.Property, TypeCompareKind.AllIgnoreOptions) &&
+                this.Input.IsSameValue(e.Input);
+        }
+    }
+
+    partial class BoundDagDeconstructEvaluation
+    {
+        public override bool IsSameValueEvaluation(BoundDagEvaluation other)
+        {
+            return this == other ||
+                other is BoundDagDeconstructEvaluation e &&
+                this.DeconstructMethod.Equals(e.DeconstructMethod, TypeCompareKind.AllIgnoreOptions) &&
+                this.Input.IsSameValue(e.Input);
+        }
+    }
+
+    partial class BoundDagTypeEvaluation
+    {
+        public override bool IsSameValueEvaluation(BoundDagEvaluation other)
+        {
+            return this == other ||
+                other is BoundDagTypeEvaluation e &&
+                this.Input.IsSameValue(e.Input);
         }
     }
 

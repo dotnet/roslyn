@@ -1174,6 +1174,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             trueTestImpliesTrueOther = false;
             falseTestImpliesTrueOther = false;
 
+<<<<<<< HEAD
+=======
+            // if the tests are for unrelated things, there is no implication from one to the other
+            if (!test.Input.IsSameValue(other.Input))
+            {
+                Debug.Assert(!test.Input.Equals(other.Input));
+                return;
+            }
+
+            // For null tests or type tests we just need to make sure we are looking at the same instance,
+            // for other tests the projected type should also match
+            if (test is not (BoundDagNonNullTest or BoundDagExplicitNullTest) &&
+                other is not (BoundDagNonNullTest or BoundDagExplicitNullTest) &&
+                (test is not BoundDagTypeTest || other is not BoundDagTypeTest) &&
+                !test.Input.Type.Equals(other.Input.Type, TypeCompareKind.AllIgnoreOptions))
+            {
+                Debug.Assert(!test.Input.Equals(other.Input));
+                return;
+            }
+
+>>>>>>> origin/main
             switch (test)
             {
                 case BoundDagNonNullTest _:

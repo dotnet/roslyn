@@ -21,14 +21,14 @@ jobs:
     jobName: Build_Windows_Debug
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
-    queueName: BuildPool.Windows.10.Amd64.Open
+    queueName: Build.Windows.10.Amd64.Open
 
 - template: eng/pipelines/build-windows-job.yml
   parameters:
     jobName: Build_Windows_Release
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
-    queueName: BuildPool.Windows.10.Amd64.Open
+    queueName: Build.Windows.10.Amd64.Open
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -117,7 +117,7 @@ jobs:
     jobName: Build_Unix_Debug
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
-    queueName: BuildPool.Ubuntu.1804.Amd64.Open
+    queueName: Build.Ubuntu.1804.Amd64.Open
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:
@@ -136,7 +136,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
     testArguments: --testCoreClr
-    queueName: 'BuildPool.Ubuntu.1804.amd64.Open'
+    queueName: 'Build.Ubuntu.1804.amd64.Open'
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:
@@ -153,8 +153,8 @@ jobs:
 
 - job: Correctness_Determinism
   pool:
-    name: NetCorePublic-Pool
-    queue: BuildPool.Windows.Amd64.VS2022.Pre.Open
+    name: NetCore1ESPool-Svc-Public
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
@@ -169,8 +169,8 @@ jobs:
 
 - job: Correctness_Build
   pool:
-    name: NetCorePublic-Pool
-    queue: BuildPool.Windows.Amd64.VS2022.Pre.Open
+    name: NetCore1ESPool-Svc-Public
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
@@ -201,8 +201,8 @@ jobs:
 
 - job: Correctness_Rebuild
   pool:
-    name: NetCorePublic-Pool
-    queue: BuildPool.Windows.10.Amd64.Open
+    name: NetCore1ESPool-Svc-Public
+    demands: ImageOverride -equals Build.Windows.10.Amd64.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
