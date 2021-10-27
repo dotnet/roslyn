@@ -3,18 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 {
-
     using StackFrameNodeOrToken = EmbeddedSyntaxNodeOrToken<StackFrameKind, StackFrameNode>;
     using StackFrameToken = EmbeddedSyntaxToken<StackFrameKind>;
     using StackFrameTrivia = EmbeddedSyntaxTrivia<StackFrameKind>;
@@ -24,42 +21,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     /// defined as a string line in a StackTrace. See https://docs.microsoft.com/en-us/dotnet/api/system.environment.stacktrace for 
     /// more documentation on dotnet stack traces. 
     /// </summary>
-    internal struct StackFrameParser
+    internal partial struct StackFrameParser
     {
-        private class StackFrameParseException : Exception
-        {
-            public StackFrameParseException(StackFrameKind expectedKind, StackFrameNodeOrToken actual)
-                : this($"Expected {expectedKind} instead of {GetDetails(actual)}")
-            {
-            }
-
-            private static string GetDetails(StackFrameNodeOrToken actual)
-            {
-                if (actual.IsNode)
-                {
-                    var node = actual.Node;
-                    return $"'{node.Kind}' at {node.GetSpan().Start}";
-                }
-                else
-                {
-                    var token = actual.Token;
-                    return $"'{token.VirtualChars.CreateString()}' at {token.GetSpan().Start}";
-                }
-            }
-
-            public StackFrameParseException(string message)
-                : base(message)
-            {
-            }
-        }
-
-        private StackFrameLexer _lexer;
-        private StackFrameToken CurrentCharAsToken() => _lexer.CurrentCharAsToken();
-
         private StackFrameParser(VirtualCharSequence text)
         {
             _lexer = new(text);
         }
+
+        private StackFrameLexer _lexer;
+        private StackFrameToken CurrentCharAsToken() => _lexer.CurrentCharAsToken();
 
         /// <summary>
         /// Given an input text, and set of options, parses out a fully representative syntax tree 
@@ -126,13 +96,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// </summary>
         private StackFrameMethodDeclarationNode? TryParseMethodDeclaration()
         {
-            var identifierExpression = TryParseIdentifierExpression(scanAtTrivia: true);
-            if (!(identifierExpression.HasValue && identifierExpression.Value.IsNode))
+            var identifierNode = TryParseIdentifierNode(scanAtTrivia: true);
+            if (identifierNode is null)
             {
                 return null;
             }
 
-            if (identifierExpression.Value.Node is not StackFrameMemberAccessExpressionNode memberAccessExpression)
+            if (identifierNode is not StackFrameQualifiedNameNode memberAccessExpression)
             {
                 return null;
             }
@@ -149,8 +119,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         }
 
         /// <summary>
-        /// Parses an identifier expression which could either be a <see cref="StackFrameBaseIdentifierNode"/> or <see cref="StackFrameMemberAccessExpressionNode" />. Combines
-        /// identifiers that are separated by <see cref="StackFrameKind.DotToken"/> into <see cref="StackFrameMemberAccessExpressionNode" />.
+        /// Parses an identifier expression which could either be a <see cref="StackFrameSimpleNameNode"/> or <see cref="StackFrameQualifiedNameNode" />. Combines
+        /// identifiers that are separated by <see cref="StackFrameKind.DotToken"/> into <see cref="StackFrameQualifiedNameNode" />.
         /// 
         /// Identifiers will be parsed for arity but not generic type arguments.
         ///
@@ -160,7 +130,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         ///   * [|$$MyClass`1.MyMethod|](string s)
         ///   * [|$$MyClass.MyMethod|][T](T t)
         /// </summary>
-        private StackFrameNodeOrToken? TryParseIdentifierExpression(bool scanAtTrivia)
+        private StackFrameNameNode? TryParseIdentifierNode(bool scanAtTrivia)
         {
             var currentIdentifer = _lexer.TryScanIdentifier(scanAtTrivia: scanAtTrivia, scanLeadingWhitespace: true, scanTrailingWhitespace: false);
             if (!currentIdentifer.HasValue)
@@ -168,10 +138,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return null;
             }
 
-            var lhs = TryScanGenericTypeIdentifier(currentIdentifer.Value)
-                ?? (StackFrameNodeOrToken)currentIdentifer.Value;
+            StackFrameSimpleNameNode? lhs = TryScanGenericTypeIdentifier(currentIdentifer.Value);
+            lhs ??= new StackFrameIdentifierNameNode(currentIdentifer.Value);
 
-            var memberAccess = TryScanMemberAccessExpression(lhs);
+            var memberAccess = TryScanQualifiedNameNode(lhs);
             if (memberAccess is null)
             {
                 return lhs;
@@ -179,7 +149,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             while (true)
             {
-                var newMemberAccess = TryScanMemberAccessExpression(memberAccess);
+                var newMemberAccess = TryScanQualifiedNameNode(memberAccess);
                 if (newMemberAccess is null)
                 {
                     return memberAccess;
@@ -191,13 +161,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
         /// <summary>
         /// Given an existing left hand side node or token, which can either be 
-        /// an <see cref="StackFrameKind.IdentifierToken"/> or <see cref="StackFrameMemberAccessExpressionNode"/>
+        /// an <see cref="StackFrameKind.IdentifierToken"/> or <see cref="StackFrameQualifiedNameNode"/>
         /// </summary>
-        private StackFrameMemberAccessExpressionNode? TryScanMemberAccessExpression(StackFrameNodeOrToken lhs)
+        private StackFrameQualifiedNameNode? TryScanQualifiedNameNode(StackFrameNameNode lhs)
         {
-            Debug.Assert((lhs.IsNode && lhs.Node is StackFrameMemberAccessExpressionNode) ||
-                         lhs.Token.Kind == StackFrameKind.IdentifierToken);
-
             if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.DotToken, out var dotToken))
             {
                 return null;
@@ -209,10 +176,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 throw new StackFrameParseException(StackFrameKind.IdentifierToken, CurrentCharAsToken());
             }
 
-            var rhs = TryScanGenericTypeIdentifier(identifier.Value)
-                ?? (StackFrameNodeOrToken)identifier.Value;
+            StackFrameSimpleNameNode? rhs = TryScanGenericTypeIdentifier(identifier.Value);
+            rhs ??= new StackFrameIdentifierNameNode(identifier.Value);
 
-            return new StackFrameMemberAccessExpressionNode(lhs, dotToken, rhs);
+            return new StackFrameQualifiedNameNode(lhs, dotToken, rhs);
         }
 
         /// <summary>
@@ -222,7 +189,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         ///                        ^-------------- Grave token
         ///                         ^------------- Arity token of "1" 
         /// </summary>
-        private StackFrameGenericTypeIdentifier? TryScanGenericTypeIdentifier(StackFrameToken identifierToken)
+        private StackFrameGenericNameNode? TryScanGenericTypeIdentifier(StackFrameToken identifierToken)
         {
             if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.GraveAccentToken, out var graveAccentToken))
             {
@@ -235,7 +202,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 throw new StackFrameParseException(StackFrameKind.NumberToken, CurrentCharAsToken());
             }
 
-            return new StackFrameGenericTypeIdentifier(identifierToken, graveAccentToken, arity.Value);
+            return new StackFrameGenericNameNode(identifierToken, graveAccentToken, arity.Value);
         }
 
         /// <summary>
@@ -265,7 +232,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             while (currentIdentifier.HasValue && currentIdentifier.Value.Kind == StackFrameKind.IdentifierToken)
             {
-                builder.Add(new StackFrameTypeArgumentNode(currentIdentifier.Value));
+                builder.Add(new StackFrameIdentifierNameNode(currentIdentifier.Value));
 
                 if (_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.CloseBracketToken, out var closeBracket))
                 {
@@ -293,12 +260,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 currentIdentifier = _lexer.TryScanIdentifier();
             }
 
-            if (closeToken.IsMissing)
+            if (builder.Count == 0)
             {
-                return null;
+                throw new StackFrameParseException(StackFrameKind.TypeArgument, CurrentCharAsToken());
             }
 
-            return new StackFrameTypeArgumentList(openToken, new SeparatedStackFrameNodeList<StackFrameTypeArgumentNode>(builder.ToImmutable()), closeToken);
+            if (closeToken.IsMissing)
+            {
+                throw new StackFrameParseException("No close token for type arguments");
+            }
+
+            return new StackFrameTypeArgumentList(openToken, new SeparatedStackFrameNodeList<StackFrameIdentifierNameNode>(builder.ToImmutable()), closeToken);
         }
 
         /// <summary>
@@ -317,7 +289,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             if (_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.CloseParenToken, out var closeParen))
             {
-                return new StackFrameParameterList(openParen, closeParen, SeparatedStackFrameNodeList<StackFrameParameterNode>.Empty);
+                return new StackFrameParameterList(openParen, SeparatedStackFrameNodeList<StackFrameParameterNode>.Empty, closeParen);
             }
 
             using var _ = ArrayBuilder<StackFrameNodeOrToken>.GetInstance(out var builder);
@@ -334,7 +306,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             }
 
             var parameters = new SeparatedStackFrameNodeList<StackFrameParameterNode>(builder.ToImmutable());
-            return new StackFrameParameterList(openParen, closeParen, parameters);
+            return new StackFrameParameterList(openParen, parameters, closeParen);
         }
 
         /// <summary>
@@ -345,8 +317,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// </summary>
         private StackFrameParameterNode ParseParameterNode()
         {
-            var typeIdentifier = TryParseIdentifierExpression(scanAtTrivia: false);
-            if (!typeIdentifier.HasValue)
+            var typeIdentifier = TryParseIdentifierNode(scanAtTrivia: false);
+            if (typeIdentifier is null)
             {
                 throw new StackFrameParseException("Expected type identifier when parsing parameters");
             }
@@ -354,7 +326,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             if (CurrentCharAsToken().Kind == StackFrameKind.OpenBracketToken)
             {
                 var arrayIdentifiers = ParseArrayIdentifiers();
-                typeIdentifier = new StackFrameArrayTypeExpression(typeIdentifier.Value, arrayIdentifiers);
+                typeIdentifier = new StackFrameArrayTypeExpression(typeIdentifier, arrayIdentifiers);
             }
 
             var identifier = _lexer.TryScanIdentifier(scanAtTrivia: false, scanLeadingWhitespace: true, scanTrailingWhitespace: true);
@@ -363,7 +335,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 throw new StackFrameParseException("Expected a parameter identifier");
             }
 
-            return new StackFrameParameterNode(typeIdentifier.Value, identifier.Value);
+            return new StackFrameParameterNode(typeIdentifier, identifier.Value);
         }
 
         /// <summary>

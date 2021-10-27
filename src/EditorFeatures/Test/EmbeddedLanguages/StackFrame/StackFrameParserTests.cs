@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => Verify(
                 @"at ConsoleApp4.MyClass.M()",
                 methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression("ConsoleApp4.MyClass.M", leadingTrivia: AtTrivia),
+                    QualifiedName("ConsoleApp4.MyClass.M", leadingTrivia: AtTrivia),
                     argumentList: EmptyParams)
                 );
 
@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => Verify(
                 $"at ConsoleApp4.{typeName}`{arity}.M()",
                 methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression(
-                        MemberAccessExpression(
+                    QualifiedName(
+                        QualifiedName(
                             Identifier("ConsoleApp4", leadingTrivia: AtTrivia),
                             GenericType(typeName, arity)),
                         Identifier("M")),
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => Verify(
                 @"at ConsoleApp4.MyClass.M() some other text",
                 methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression("ConsoleApp4.MyClass.M", leadingTrivia: AtTrivia),
+                    QualifiedName("ConsoleApp4.MyClass.M", leadingTrivia: AtTrivia),
                     argumentList: EmptyParams),
 
                 eolTokenOpt: EOLToken.With(leadingTrivia: CreateTriviaArray(" some other text"))
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => Verify(
                 @"at ConsoleApp4.MyClass.M() inC:\My\Path\C.cs:line 26",
                 methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression("ConsoleApp4.MyClass.M", leadingTrivia: AtTrivia),
+                    QualifiedName("ConsoleApp4.MyClass.M", leadingTrivia: AtTrivia),
                     argumentList: EmptyParams),
 
                 eolTokenOpt: EOLToken.With(leadingTrivia: CreateTriviaArray(@" inC:\My\Path\C.cs:line 26"))
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => Verify(
                 @"at ConsoleApp4.MyClass.M()in C:\My\Path\C.cs:line 26",
                 methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression("ConsoleApp4.MyClass.M", leadingTrivia: AtTrivia),
+                    QualifiedName("ConsoleApp4.MyClass.M", leadingTrivia: AtTrivia),
                     argumentList: EmptyParams),
 
                 eolTokenOpt: EOLToken.With(leadingTrivia: CreateTriviaArray(@"in C:\My\Path\C.cs:line 26"))
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => Verify(
                 @"ConsoleApp4.MyClass.M()",
                 methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression("ConsoleApp4.MyClass.M"),
+                    QualifiedName("ConsoleApp4.MyClass.M"),
                     argumentList: EmptyParams)
                 );
 
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => Verify(
                 @"ConsoleApp4.MyClass.M(  )",
                 methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression("ConsoleApp4.MyClass.M"),
+                    QualifiedName("ConsoleApp4.MyClass.M"),
                     argumentList: ParameterList(
                         OpenParenToken.With(trailingTrivia: CreateTriviaArray(SpaceTrivia(2))),
                         CloseParenToken))
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => Verify(
                 @" ConsoleApp4.MyClass.M()",
                 methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression("ConsoleApp4.MyClass.M", leadingTrivia: SpaceTrivia()),
+                    QualifiedName("ConsoleApp4.MyClass.M", leadingTrivia: SpaceTrivia()),
                     argumentList: EmptyParams)
                 );
 
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => Verify(
                 @"  ConsoleApp4.MyClass.M()",
                 methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression("ConsoleApp4.MyClass.M", leadingTrivia: SpaceTrivia(2)),
+                    QualifiedName("ConsoleApp4.MyClass.M", leadingTrivia: SpaceTrivia(2)),
                     argumentList: EmptyParams)
                 );
 
@@ -112,18 +112,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => Verify(
                 @"at ConsoleApp4.MyClass.M(string s)",
                 methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression(
-                        MemberAccessExpression(
+                    QualifiedName(
+                        QualifiedName(
                             Identifier("ConsoleApp4", leadingTrivia: AtTrivia),
                             Identifier("MyClass")),
                         Identifier("M")),
 
                     argumentList: ParameterList(
-                        OpenParenToken,
-                        CloseParenToken,
                         Parameter(
                             Identifier("string"),
-                            Identifier("s", leadingTrivia: SpaceTrivia())))
+                            IdentifierToken("s", leadingTrivia: SpaceTrivia())))
                     )
                 );
 
@@ -132,21 +130,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => Verify(
                 @"at ConsoleApp4.MyClass.M(string s, string t)",
                 methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression(
-                        MemberAccessExpression(
+                    QualifiedName(
+                        QualifiedName(
                             Identifier("ConsoleApp4", leadingTrivia: AtTrivia),
                             Identifier("MyClass")),
                         Identifier("M")),
 
                     argumentList: ParameterList(
-                        OpenParenToken,
-                        CloseParenToken,
                         Parameter(
                             Identifier("string"),
-                            Identifier("s", leadingTrivia: SpaceTrivia())),
+                            IdentifierToken("s", leadingTrivia: SpaceTrivia())),
                         Parameter(
                             Identifier("string", leadingTrivia: SpaceTrivia()),
-                            Identifier("t", leadingTrivia: SpaceTrivia())))
+                            IdentifierToken("t", leadingTrivia: SpaceTrivia())))
                     )
                 );
 
@@ -155,17 +151,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => Verify(
                 @"at ConsoleApp4.MyClass.M(string[] s)",
                 methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression(
-                        MemberAccessExpression(
+                    QualifiedName(
+                        QualifiedName(
                             Identifier("ConsoleApp4", leadingTrivia: AtTrivia),
                             Identifier("MyClass")),
                         Identifier("M")),
 
                     argumentList: ParameterList(
-                        OpenParenToken,
-                        CloseParenToken,
                             Parameter(ArrayExpression(Identifier("string"), ArrayRankSpecifier(trailingTrivia: SpaceTrivia())),
-                            Identifier("s")))
+                            IdentifierToken("s")))
                 )
             );
 
@@ -174,18 +168,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => Verify(
                 @"at ConsoleApp4.MyClass.M(string[,] s)",
                 methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression(
-                        MemberAccessExpression(
+                    QualifiedName(
+                        QualifiedName(
                             Identifier("ConsoleApp4", leadingTrivia: AtTrivia),
                             Identifier("MyClass")),
                         Identifier("M")),
 
                     argumentList: ParameterList(
-                        OpenParenToken,
-                        CloseParenToken,
                         Parameter(
                             ArrayExpression(Identifier("string"), ArrayRankSpecifier(1, trailingTrivia: SpaceTrivia())),
-                            Identifier("s")))
+                            IdentifierToken("s")))
                 )
             );
 
@@ -202,18 +194,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => Verify(
                 @"at ConsoleApp4.MyClass.M[T](T t)",
                 methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression(
-                        MemberAccessExpression(
+                    QualifiedName(
+                        QualifiedName(
                             Identifier("ConsoleApp4", leadingTrivia: AtTrivia),
                             Identifier("MyClass")),
                         Identifier("M")),
                     typeArguments: TypeArgumentList(TypeArgument("T")),
                     argumentList: ParameterList(
-                        OpenParenToken,
-                        CloseParenToken,
                         Parameter(
                             Identifier("T"),
-                            Identifier("t", leadingTrivia: SpaceTrivia())))
+                            IdentifierToken("t", leadingTrivia: SpaceTrivia())))
                 )
             );
 
@@ -222,18 +212,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => Verify(
                 @"at ConsoleApp4.MyClass.M<T>(T t)",
                 methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression(
-                        MemberAccessExpression(
+                    QualifiedName(
+                        QualifiedName(
                             Identifier("ConsoleApp4", leadingTrivia: AtTrivia),
                             Identifier("MyClass")),
                         Identifier("M")),
                     typeArguments: TypeArgumentList(useBrackets: false, TypeArgument("T")),
                     argumentList: ParameterList(
-                        OpenParenToken,
-                        CloseParenToken,
                         Parameter(
                             Identifier("T"),
-                            Identifier("t", leadingTrivia: SpaceTrivia())))
+                            IdentifierToken("t", leadingTrivia: SpaceTrivia())))
                 )
             );
 
@@ -250,14 +238,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => Verify(
                 @$"at {identifierName}.{identifierName}[{identifierName}]({identifierName} {identifierName})",
                 methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression($"{identifierName}.{identifierName}", leadingTrivia: AtTrivia),
+                    QualifiedName($"{identifierName}.{identifierName}", leadingTrivia: AtTrivia),
                     typeArguments: TypeArgumentList(TypeArgument(identifierName)),
                     argumentList: ParameterList(
-                        OpenParenToken,
-                        CloseParenToken,
                         Parameter(
                             Identifier(identifierName),
-                            Identifier(identifierName, leadingTrivia: SpaceTrivia())))
+                            IdentifierToken(identifierName, leadingTrivia: SpaceTrivia())))
                 )
             );
 
@@ -266,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => Verify(
                 @"Microsoft.VisualStudio.DesignTools.SurfaceDesigner.Tools.EventRouter.ScopeElement_MouseUp.AnonymousMethod__0()",
                 methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression("Microsoft.VisualStudio.DesignTools.SurfaceDesigner.Tools.EventRouter.ScopeElement_MouseUp.AnonymousMethod__0"),
+                    QualifiedName("Microsoft.VisualStudio.DesignTools.SurfaceDesigner.Tools.EventRouter.ScopeElement_MouseUp.AnonymousMethod__0"),
                     argumentList: EmptyParams)
             );
 
@@ -275,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => Verify(
                 @"M.M() in C:\folder\m.cs:line 1",
                 methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression("M.M"),
+                    QualifiedName("M.M"),
                     argumentList: EmptyParams),
 
                 fileInformation: FileInformation(
@@ -306,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => Verify(
                 $"M.M() in {path}:line {line}",
                 methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression("M.M"),
+                    QualifiedName("M.M"),
                     argumentList: EmptyParams),
 
                 fileInformation: FileInformation(
@@ -320,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => Verify(
                 @"M.M() in C:\folder\m.cs:line 1[trailingtrivia]",
                 methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression("M.M"),
+                    QualifiedName("M.M"),
                     argumentList: EmptyParams),
 
                 fileInformation: FileInformation(
@@ -365,14 +351,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         public void TestKeywordsAsIdentifiers(string keyword)
             => Verify(@$"MyNamespace.MyType.MyMethod[{keyword}]({keyword} {keyword})",
                 methodDeclaration: MethodDeclaration(
-                    MemberAccessExpression("MyNamespace.MyType.MyMethod"),
-                    typeArguments: TypeArgumentList(TypeArgument(Identifier(keyword.Trim(), trailingTrivia: SpaceTrivia()))),
+                    QualifiedName("MyNamespace.MyType.MyMethod"),
+                    typeArguments: TypeArgumentList(TypeArgument(IdentifierToken(keyword.Trim(), trailingTrivia: SpaceTrivia()))),
                     argumentList: ParameterList(
-                        OpenParenToken,
-                        CloseParenToken,
                         Parameter(
                             Identifier(keyword.Trim()),
-                            Identifier(keyword.Trim(), leadingTrivia: SpaceTrivia(2), trailingTrivia: SpaceTrivia()))))
+                            IdentifierToken(keyword.Trim(), leadingTrivia: SpaceTrivia(2), trailingTrivia: SpaceTrivia()))))
                 );
     }
 }

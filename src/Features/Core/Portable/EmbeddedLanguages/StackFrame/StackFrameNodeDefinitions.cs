@@ -54,12 +54,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
     internal sealed class StackFrameMethodDeclarationNode : StackFrameNode
     {
-        public readonly StackFrameMemberAccessExpressionNode MemberAccessExpression;
+        public readonly StackFrameQualifiedNameNode MemberAccessExpression;
         public readonly StackFrameTypeArgumentList? TypeArguments;
         public readonly StackFrameParameterList ArgumentList;
 
         public StackFrameMethodDeclarationNode(
-            StackFrameMemberAccessExpressionNode memberAccessExpression,
+            StackFrameQualifiedNameNode memberAccessExpression,
             StackFrameTypeArgumentList? typeArguments,
             StackFrameParameterList argumentList)
             : base(StackFrameKind.MethodDeclaration)
@@ -84,18 +84,45 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
              };
     }
 
-    internal sealed class StackFrameMemberAccessExpressionNode : StackFrameExpressionNode
+    /// <summary>
+    /// Base class for all name nodes
+    /// </summary>
+    internal abstract class StackFrameNameNode : StackFrameNode
     {
-        public readonly StackFrameNodeOrToken Left;
-        public readonly StackFrameToken Operator;
-        public readonly StackFrameNodeOrToken Right;
-
-        public StackFrameMemberAccessExpressionNode(StackFrameNodeOrToken left, StackFrameToken operatorToken, StackFrameNodeOrToken right) : base(StackFrameKind.MemberAccess)
+        protected StackFrameNameNode(StackFrameKind kind) : base(kind)
         {
-            Debug.Assert(left.IsNode || left.Token.Kind == StackFrameKind.IdentifierToken);
-            Debug.Assert(right.IsNode || right.Token.Kind == StackFrameKind.IdentifierToken);
+        }
+    }
+
+    /// <summary>
+    /// Base class for <see cref="StackFrameIdentifierNameNode"/> and <see cref="StackFrameGenericNameNode"/>
+    /// </summary>
+    internal abstract class StackFrameSimpleNameNode : StackFrameNameNode
+    {
+        public readonly StackFrameToken Identifier;
+
+        protected StackFrameSimpleNameNode(StackFrameToken identifier, StackFrameKind kind) : base(kind)
+        {
+            Debug.Assert(identifier.Kind == StackFrameKind.IdentifierToken);
+            Identifier = identifier;
+        }
+    }
+
+    /// <summary>
+    /// Represents a qualified name, such as "MyClass.MyMethod"
+    /// </summary>
+    internal sealed class StackFrameQualifiedNameNode : StackFrameNameNode
+    {
+        public readonly StackFrameNameNode Left;
+        public readonly StackFrameToken DotToken;
+        public readonly StackFrameSimpleNameNode Right;
+
+        public StackFrameQualifiedNameNode(StackFrameNameNode left, StackFrameToken dotToken, StackFrameSimpleNameNode right) : base(StackFrameKind.MemberAccess)
+        {
+            Debug.Assert(dotToken.Kind == StackFrameKind.DotToken);
+
             Left = left;
-            Operator = operatorToken;
+            DotToken = dotToken;
             Right = right;
         }
 
@@ -108,31 +135,55 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             => index switch
             {
                 0 => Left,
-                1 => Operator,
+                1 => DotToken,
                 2 => Right,
                 _ => throw new InvalidOperationException()
             };
     }
 
-    internal abstract class StackFrameBaseIdentifierNode : StackFrameExpressionNode
+    /// <summary>
+    /// The simplest identifier node, which wraps a <see cref="StackFrameKind.IdentifierToken" />
+    /// </summary>
+    internal sealed class StackFrameIdentifierNameNode : StackFrameSimpleNameNode
     {
-        protected StackFrameBaseIdentifierNode(StackFrameKind kind) : base(kind)
+        internal override int ChildCount => 1;
+
+        public StackFrameIdentifierNameNode(StackFrameToken identifier)
+            : base(identifier, StackFrameKind.TypeIdentifier)
         {
         }
+
+        public override void Accept(IStackFrameNodeVisitor visitor)
+            => visitor.Visit(this);
+
+        internal override StackFrameNodeOrToken ChildAt(int index)
+            => index switch
+            {
+                0 => Identifier,
+                _ => throw new InvalidOperationException()
+            };
     }
 
-    internal sealed class StackFrameGenericTypeIdentifier : StackFrameBaseIdentifierNode
+    /// <summary>
+    /// An identifier with an arity, such as "MyNamespace.MyClass`1" 
+    /// </summary>
+    internal sealed class StackFrameGenericNameNode : StackFrameSimpleNameNode
     {
-        public readonly StackFrameToken Identifier;
+        /// <summary>
+        /// The "`" token in arity identifiers. Must be <see cref="StackFrameKind.GraveAccentToken"/>
+        /// </summary>
         public readonly StackFrameToken ArityToken;
+
         public readonly StackFrameToken ArityNumericToken;
 
         internal override int ChildCount => 3;
 
-        public StackFrameGenericTypeIdentifier(StackFrameToken identifier, StackFrameToken arityToken, StackFrameToken arityNumericToken)
-            : base(StackFrameKind.GenericTypeIdentifier)
+        public StackFrameGenericNameNode(StackFrameToken identifier, StackFrameToken arityToken, StackFrameToken arityNumericToken)
+            : base(identifier, StackFrameKind.GenericTypeIdentifier)
         {
-            Identifier = identifier;
+            Debug.Assert(arityToken.Kind == StackFrameKind.GraveAccentToken);
+            Debug.Assert(arityNumericToken.Kind == StackFrameKind.NumberToken);
+
             ArityToken = arityToken;
             ArityNumericToken = arityNumericToken;
         }
@@ -153,14 +204,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     /// <summary>
     /// Represents an array type declaration, such as string[,][]
     /// </summary>
-    internal sealed class StackFrameArrayTypeExpression : StackFrameExpressionNode
+    internal sealed class StackFrameArrayTypeExpression : StackFrameNameNode
     {
         /// <summary>
         /// The type identifier without the array indicators.
         /// string[][]
         /// ^----^
         /// </summary>
-        public readonly StackFrameNodeOrToken TypeIdentifier;
+        public readonly StackFrameNameNode TypeIdentifier;
 
         /// <summary>
         /// Each unique array identifier for the type
@@ -170,7 +221,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// </summary>
         public ImmutableArray<StackFrameArrayRankSpecifier> ArrayExpressions;
 
-        public StackFrameArrayTypeExpression(StackFrameNodeOrToken typeIdentifier, ImmutableArray<StackFrameArrayRankSpecifier> arrayExpressions) : base(StackFrameKind.ArrayTypeExpression)
+        public StackFrameArrayTypeExpression(StackFrameNameNode typeIdentifier, ImmutableArray<StackFrameArrayRankSpecifier> arrayExpressions) : base(StackFrameKind.ArrayTypeExpression)
         {
             Contract.ThrowIfTrue(arrayExpressions.IsDefaultOrEmpty);
             TypeIdentifier = typeIdentifier;
@@ -180,9 +231,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         internal override int ChildCount => 1 + ArrayExpressions.Length;
 
         public override void Accept(IStackFrameNodeVisitor visitor)
-        {
-            visitor.Visit(this);
-        }
+            => visitor.Visit(this);
 
         internal override StackFrameNodeOrToken ChildAt(int index)
             => index switch
@@ -191,11 +240,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 _ => ArrayExpressions[index - 1]
             };
     }
-    internal sealed class StackFrameArrayRankSpecifier : StackFrameExpressionNode
+
+    internal sealed class StackFrameArrayRankSpecifier : StackFrameNode
     {
         public readonly StackFrameToken OpenBracket;
         public readonly StackFrameToken CloseBracket;
-        public ImmutableArray<StackFrameToken> CommaTokens;
+        public readonly ImmutableArray<StackFrameToken> CommaTokens;
 
         public StackFrameArrayRankSpecifier(StackFrameToken openBracket, StackFrameToken closeBracket, ImmutableArray<StackFrameToken> commaTokens)
             : base(StackFrameKind.ArrayExpression)
@@ -203,7 +253,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             Contract.ThrowIfTrue(commaTokens.IsDefault);
             Debug.Assert(openBracket.Kind == StackFrameKind.OpenBracketToken);
             Debug.Assert(closeBracket.Kind == StackFrameKind.CloseBracketToken);
-            Debug.Assert(commaTokens.All(t => t.Kind == StackFrameKind.CommaToken));
+            Debug.Assert(commaTokens.All(static t => t.Kind == StackFrameKind.CommaToken));
 
             OpenBracket = openBracket;
             CloseBracket = closeBracket;
@@ -233,26 +283,30 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
     /// <summary>
     /// The type argument list for a method declaration. 
+    /// 
+    /// <code>
     /// Ex: MyType.MyMethod[T, U, V](T t, U u, V v) 
     ///                    ^-----------------------  "[" = Open Token 
     ///                     ^------^   ------------  "T, U, V" = SeparatedStackFrameNodeList&lt;StackFrameTypeArgumentNode&gt;
     ///                             ^--------------  "]" = Close Token
+    /// </code>
+    /// 
     /// </summary>
     internal sealed class StackFrameTypeArgumentList : StackFrameNode
     {
         public readonly StackFrameToken OpenToken;
+        public readonly SeparatedStackFrameNodeList<StackFrameIdentifierNameNode> TypeArguments;
         public readonly StackFrameToken CloseToken;
-        public readonly SeparatedStackFrameNodeList<StackFrameTypeArgumentNode> TypeArguments;
 
-        public StackFrameTypeArgumentList(StackFrameToken openToken, SeparatedStackFrameNodeList<StackFrameTypeArgumentNode> typeArguments, StackFrameToken closeToken) : base(StackFrameKind.TypeArgument)
+        public StackFrameTypeArgumentList(StackFrameToken openToken, SeparatedStackFrameNodeList<StackFrameIdentifierNameNode> typeArguments, StackFrameToken closeToken) : base(StackFrameKind.TypeArgument)
         {
             Debug.Assert(openToken.Kind is StackFrameKind.OpenBracketToken or StackFrameKind.LessThanToken);
-            Debug.Assert(openToken.Kind == StackFrameKind.OpenBracketToken ? closeToken.Kind == StackFrameKind.CloseBracketToken : closeToken.Kind == StackFrameKind.GreaterThanToken);
             Debug.Assert(typeArguments.Length > 0);
+            Debug.Assert(openToken.Kind == StackFrameKind.OpenBracketToken ? closeToken.Kind == StackFrameKind.CloseBracketToken : closeToken.Kind == StackFrameKind.GreaterThanToken);
 
             OpenToken = openToken;
-            CloseToken = closeToken;
             TypeArguments = typeArguments;
+            CloseToken = closeToken;
         }
 
         internal override int ChildCount => TypeArguments.NodesAndTokens.Length + 2;
@@ -282,40 +336,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         }
     }
 
-    internal sealed class StackFrameTypeArgumentNode : StackFrameBaseIdentifierNode
-    {
-        public readonly StackFrameToken Identifier;
-
-        internal override int ChildCount => 1;
-
-        public StackFrameTypeArgumentNode(StackFrameToken identifier)
-            : base(StackFrameKind.TypeIdentifier)
-        {
-            Identifier = identifier;
-        }
-
-        public override void Accept(IStackFrameNodeVisitor visitor)
-            => visitor.Visit(this);
-
-        internal override StackFrameNodeOrToken ChildAt(int index)
-            => index switch
-            {
-                0 => Identifier,
-                _ => throw new InvalidOperationException()
-            };
-    }
-
     internal sealed class StackFrameParameterNode : StackFrameExpressionNode
     {
-        public readonly StackFrameNodeOrToken Type;
+        public readonly StackFrameNameNode Type;
         public readonly StackFrameToken Identifier;
 
         internal override int ChildCount => 2;
 
-        public StackFrameParameterNode(StackFrameNodeOrToken type, StackFrameToken identifier)
+        public StackFrameParameterNode(StackFrameNameNode type, StackFrameToken identifier)
             : base(StackFrameKind.Parameter)
         {
-            Debug.Assert(type.IsNode || !type.Token.IsMissing);
+            Debug.Assert(identifier.Kind == StackFrameKind.IdentifierToken);
             Type = type;
             Identifier = identifier;
         }
@@ -335,18 +366,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     internal sealed class StackFrameParameterList : StackFrameExpressionNode
     {
         public readonly StackFrameToken OpenParen;
-        public readonly StackFrameToken CloseParen;
         public readonly SeparatedStackFrameNodeList<StackFrameParameterNode> Parameters;
+        public readonly StackFrameToken CloseParen;
 
-        public StackFrameParameterList(StackFrameToken openToken, StackFrameToken closeToken, SeparatedStackFrameNodeList<StackFrameParameterNode> parameters)
+        public StackFrameParameterList(StackFrameToken openToken, SeparatedStackFrameNodeList<StackFrameParameterNode> parameters, StackFrameToken closeToken)
             : base(StackFrameKind.ParameterList)
         {
             Debug.Assert(openToken.Kind == StackFrameKind.OpenParenToken);
             Debug.Assert(closeToken.Kind == StackFrameKind.CloseParenToken);
 
             OpenParen = openToken;
-            CloseParen = closeToken;
             Parameters = parameters;
+            CloseParen = closeToken;
         }
 
         internal override int ChildCount => 2 + Parameters.NodesAndTokens.Length;
@@ -402,10 +433,5 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 2 => Line.HasValue ? Line.Value : null,
                 _ => throw new InvalidOperationException()
             };
-
-        internal StackFrameFileInformationNode WithLeadingTrivia(StackFrameTrivia inTrivia)
-            => new(Path.With(leadingTrivia: ImmutableArray.Create(inTrivia)),
-                Colon,
-                Line);
     }
 }

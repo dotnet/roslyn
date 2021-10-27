@@ -8,11 +8,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     {
         void Visit(StackFrameCompilationUnit node);
         void Visit(StackFrameMethodDeclarationNode node);
-        void Visit(StackFrameMemberAccessExpressionNode node);
+        void Visit(StackFrameQualifiedNameNode node);
         void Visit(StackFrameTypeArgumentList node);
         void Visit(StackFrameParameterList node);
-        void Visit(StackFrameGenericTypeIdentifier node);
-        void Visit(StackFrameTypeArgumentNode node);
+        void Visit(StackFrameGenericNameNode node);
+        void Visit(StackFrameIdentifierNameNode node);
         void Visit(StackFrameArrayRankSpecifier node);
         void Visit(StackFrameFileInformationNode node);
         void Visit(StackFrameArrayTypeExpression node);
