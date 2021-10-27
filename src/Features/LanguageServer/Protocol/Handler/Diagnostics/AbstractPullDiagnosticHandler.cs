@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -40,12 +42,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// calls to <see cref="HandleRequestAsync(TDiagnosticsParams, RequestContext, CancellationToken)"/>
         /// to run concurrently.
         /// </summary>
-        private readonly object _gate = new();
+        private readonly SemaphoreSlim _semaphore = new(1);
 
         /// <summary>
-        /// Mapping of a document to the last project version and resultId we reported for it.
+        /// Mapping of a document to the data used to make the last diagnostic report:
+        ///   1.  The resultId reported to the client.
+        ///   2.  The <see cref="Project.GetDependentVersionAsync(CancellationToken)"/> of the project snapshot that was used to calculate diagnostics.
+        ///       Note that this version can change even when nothing has actually changed (for example, forking the LSP text, reloading the same project).
+        ///       So we additionally store:
+        ///   3.  A checksum representing the project and its dependencies from <see cref="CalculateDependentProjectChecksumAsync(Project, CancellationToken)"/>.
+        /// This is used to determine if we need to re-calculate diagnostics.
         /// </summary>
-        private readonly Dictionary<(Workspace Workspace, DocumentId DocumentId), (string ResultId, VersionStamp ProjectVersion)> _documentIdToLastResult = new();
+        private readonly Dictionary<(Workspace workspace, DocumentId documentId), (string resultId, VersionStamp projectDependentVersion, Checksum projectDependentChecksum)> _documentIdToLastResult = new();
 
         /// <summary>
         /// The next available id to label results with.  Note that results are tagged on a per-document bases.  That
@@ -135,8 +143,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     continue;
                 }
 
-                var currentProjectVersion = await document.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
-                if (HaveDiagnosticsChanged(documentToPreviousDiagnosticParams, document, currentProjectVersion, out var newResultId))
+                var newResultId = await GetNewResultIdAsync(documentToPreviousDiagnosticParams, document, cancellationToken).ConfigureAwait(false);
+                if (newResultId != null)
                 {
                     context.TraceInformation($"Diagnostics were changed for document: {document.FilePath}");
                     progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, document, newResultId, cancellationToken).ConfigureAwait(false));
@@ -247,36 +255,48 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         }
 
         /// <summary>
-        /// Returns true if diagnostics have changed since the last request and if so,
-        /// calculates a new resultId to use for subsequent computation and caches it.
+        /// If diagnostics have changed since the last request this calculates and returns a new
+        /// non-null resultId to use for subsequent computation and caches it.
         /// </summary>
         /// <param name="documentToPreviousDiagnosticParams">the resultIds the client sent us.</param>
         /// <param name="document">the document we are currently calculating results for.</param>
-        /// <param name="newResultId">the resultId to report new diagnostics with if changed.</param>
-        private bool HaveDiagnosticsChanged(
+        /// <returns>Null when diagnostics are unchanged, otherwise returns a non-null new resultId.</returns>
+        private async Task<string?> GetNewResultIdAsync(
             Dictionary<Document, VSInternalDiagnosticParams> documentToPreviousDiagnosticParams,
             Document document,
-            VersionStamp currentProjectVersion,
-            [NotNullWhen(true)] out string? newResultId)
+            CancellationToken cancellationToken)
         {
-            lock (_gate)
+            var workspace = document.Project.Solution.Workspace;
+            var currentProjectDependentVersion = await document.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
+            using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                var workspace = document.Project.Solution.Workspace;
-                // Get the resultId used to previously report diagnostics for this document,
-                // then fetch the project version and resultId that were used to last report diagnostics
-                // for this document.
+                var lazyCurrentProjectDependentChecksum = new AsyncLazy<Checksum>(c => CalculateDependentProjectChecksumAsync(document.Project, c), cacheResult: true);
                 if (documentToPreviousDiagnosticParams.TryGetValue(document, out var previousParams) &&
                     previousParams.PreviousResultId != null &&
                     _documentIdToLastResult.TryGetValue((workspace, document.Id), out var lastResult) &&
-                    lastResult.ResultId == previousParams.PreviousResultId &&
-                    lastResult.ProjectVersion == currentProjectVersion)
+                    lastResult.resultId == previousParams.PreviousResultId)
                 {
-                    // The project version associated with the resultId we last used to report results matches
-                    // with the current project version for this request.  This means diagnostics have not changed
-                    // and we do not need to recompute.
-                    newResultId = null;
-                    return false;
+                    if (lastResult.projectDependentVersion == currentProjectDependentVersion)
+                    {
+                        // The client's resultId matches our cached resultId and the project dependent version is an
+                        // exact match for our current project dependent version (meaning the project and none of its dependencies
+                        // have changed, or even forked, since we last calculated diagnostics).
+                        // We return early here to avoid calculating checksums as we know nothing is changed.
+                        return null;
+                    }
+
+                    // The current project dependent version does not match the last reported.  This may be because we've forked
+                    // or reloaded a project, so fall back to calculating project checksums to determine if anything is actually changed.
+                    var lazyResult = await lazyCurrentProjectDependentChecksum.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                    if (lastResult.projectDependentChecksum == lazyResult)
+                    {
+                        // Checksums match which means content has not changed and we do not need to re-calculate.
+                        return null;
+                    }
                 }
+
+                // Client didn't give us a resultId, we have nothing cached, or what we had cached didn't match the current project.
+                // We need to calculate diagnostics and store what we calculated the diagnostics for.
 
                 // Keep track of the diagnostics we reported here so that we can short-circuit producing diagnostics for
                 // the same diagnostic set in the future.  Use a custom result-id per type (doc diagnostics or workspace
@@ -287,10 +307,55 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 //
                 // Note that we can safely update the map before computation as any cancellation or exception
                 // during computation means that the client will never recieve this resultId and so cannot ask us for it.
-                newResultId = $"{GetType().Name}:{_nextDocumentResultId++}";
-                _documentIdToLastResult[(document.Project.Solution.Workspace, document.Id)] = (newResultId, currentProjectVersion);
-                return true;
+                var newResultId = $"{GetType().Name}:{_nextDocumentResultId++}";
+                var currentProjectDependentChecksum = await lazyCurrentProjectDependentChecksum.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                _documentIdToLastResult[(document.Project.Solution.Workspace, document.Id)] = (newResultId, currentProjectDependentVersion, currentProjectDependentChecksum);
+                return newResultId;
             }
+        }
+
+        /// <summary>
+        /// Calculates a checksum that contains a project's checksum along with all of the checksums for referenced projects.
+        /// </summary>
+        /// <remarks>
+        /// This checksum calculation is used to determine if a diagnostics need to be recalculated based on the last reported checksum.
+        /// The goal is to ensure that changes to
+        ///    1.  To files inside the current project
+        ///    2.  Project properties of the current project
+        ///    3.  Visible files in referenced projects
+        ///    4.  Project properties in referenced projects
+        /// are accurately reflected in the metadata we keep so that comparing solutions accurately tells us when we need to recompute diagnostics.   
+        /// 
+        /// This method of checking for changes has a few important properties that differentiate it from other methods of determining project version.
+        ///    1.  Changes to methods inside the current project will be reflected to compute updated diagnostics.
+        ///        <see cref="Project.GetDependentSemanticVersionAsync(CancellationToken)"/> does not change as it only returns top level changes.
+        ///    2.  Reloading a project without making any changes will re-use cached diagnostics.
+        ///        <see cref="Project.GetDependentSemanticVersionAsync(CancellationToken)"/> changes as the project is removed, then added resulting in a version change.
+        ///        
+        /// Since diagnostic calculations happen OOP, these checksums already have been (or will be) created to do the diagnostics calculation anyway.
+        /// </remarks>
+        private static async Task<Checksum> CalculateDependentProjectChecksumAsync(Project project, CancellationToken cancellationToken)
+        {
+            using var tempChecksumArray = TemporaryArray<Checksum>.Empty;
+
+            // Get the checksum for the project itself.
+            var projectChecksum = await project.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+            tempChecksumArray.Add(projectChecksum);
+
+            // Now calculate the checksum for each project that this project references.  The ProjectReferences are
+            // included in the project checksum, but it only includes metadata like project id.  So to determine
+            // if dependent projects changed, we need to look at the checksum of the project for each reference.
+            foreach (var projectReference in project.ProjectReferences)
+            {
+                var referencedProject = project.Solution.GetRequiredProject(projectReference.ProjectId);
+
+                // Note that these checksums should only actually be calculated once, if the project is unchanged
+                // the same checksum will be returned.
+                var referencedProjectChecksum = await referencedProject.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+                tempChecksumArray.Add(referencedProjectChecksum);
+            }
+
+            return Checksum.Create(tempChecksumArray.ToImmutableAndClear());
         }
 
         private VSDiagnostic ConvertDiagnostic(Document document, SourceText text, DiagnosticData diagnosticData)
