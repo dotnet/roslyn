@@ -10,7 +10,6 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Threading;
 using System.Threading.Tasks;
-using MessagePack.Formatters;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
