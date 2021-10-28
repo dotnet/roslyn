@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 {
@@ -118,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 }
             }
 
-            Frame? GetTabItem(object tag)
+            Frame GetTabItem(object tag)
             {
                 if (ReferenceEquals(tag, WhitespaceControl))
                 {
@@ -133,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                     return AnalyzersFrame;
                 }
 
-                return null;
+                throw ExceptionUtilities.Unreachable;
             }
         }
     }
