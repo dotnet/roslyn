@@ -8496,7 +8496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var method = GetUniqueSignatureFromMethodGroup(node);
             if (method is { } &&
-                GetMethodGroupOrLambdaDelegateType(method.RefKind, method.ReturnsVoid ? default : method.ReturnTypeWithAnnotations, method.ParameterRefKinds, method.ParameterTypesWithAnnotations) is { } delegateType)
+                GetMethodGroupOrLambdaDelegateType(node.Syntax, method.RefKind, method.ReturnTypeWithAnnotations, method.ParameterRefKinds, method.ParameterTypesWithAnnotations) is { } delegateType)
             {
                 return delegateType;
             }
@@ -8581,16 +8581,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // This method was adapted from LoweredDynamicOperationFactory.GetDelegateType().
         internal NamedTypeSymbol? GetMethodGroupOrLambdaDelegateType(
+            SyntaxNode syntax,
             RefKind returnRefKind,
-            TypeWithAnnotations returnTypeOpt,
+            TypeWithAnnotations returnType,
             ImmutableArray<RefKind> parameterRefKinds,
             ImmutableArray<TypeWithAnnotations> parameterTypes)
         {
+            Debug.Assert(ContainingMemberOrLambda is { });
             Debug.Assert(parameterRefKinds.IsDefault || parameterRefKinds.Length == parameterTypes.Length);
-            Debug.Assert(returnTypeOpt.Type?.IsVoidType() != true); // expecting !returnTypeOpt.HasType rather than System.Void
+            Debug.Assert(returnType.Type is { }); // Expecting System.Void rather than null return type.
 
-            bool returnsVoid = !returnTypeOpt.HasType;
-            var typeArguments = returnsVoid ? parameterTypes : parameterTypes.Add(returnTypeOpt);
+            bool returnsVoid = returnType.Type.IsVoidType();
+            var typeArguments = returnsVoid ? parameterTypes : parameterTypes.Add(returnType);
 
             if (returnsVoid && returnRefKind != RefKind.None)
             {
@@ -8607,6 +8609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool hasByRefParameters = !parameterRefKinds.IsDefault && parameterRefKinds.Any(refKind => refKind != RefKind.None);
 
+            // Use System.Action<...> or System.Func<...> if possible.
             if (returnRefKind == RefKind.None && !hasByRefParameters)
             {
                 var wkDelegateType = returnsVoid ?
@@ -8629,23 +8632,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var refKinds = (hasByRefParameters || returnRefKind != RefKind.None) ? RefKindVector.Create(parameterTypes.Length + (returnsVoid ? 0 : 1)) : default;
-            Debug.Assert(Enumerable.Range(0, refKinds.Capacity).All(i => refKinds[i] == RefKind.None));
-
-            if (hasByRefParameters)
+            // Synthesize a delegate type for other cases.
+            var fieldsBuilder = ArrayBuilder<AnonymousTypeField>.GetInstance(parameterTypes.Length + 1);
+            var location = syntax.Location;
+            for (int i = 0; i < parameterTypes.Length; i++)
             {
-                for (int i = 0; i < parameterRefKinds.Length; i++)
-                {
-                    refKinds[i] = parameterRefKinds[i];
-                }
+                fieldsBuilder.Add(new AnonymousTypeField(name: "", location, parameterTypes[i], parameterRefKinds.IsDefault ? RefKind.None : parameterRefKinds[i]));
             }
-            if (returnRefKind != RefKind.None)
-            {
-                refKinds[parameterTypes.Length] = returnRefKind;
-            }
+            fieldsBuilder.Add(new AnonymousTypeField(name: "", location, returnType, returnRefKind));
 
-            var synthesizedType = Compilation.AnonymousTypeManager.SynthesizeDelegate(parameterCount: parameterTypes.Length, refKinds, returnsVoid, generation: 0);
-            return synthesizedType.Construct(typeArguments);
+            var typeDescr = new AnonymousTypeDescriptor(fieldsBuilder.ToImmutableAndFree(), location);
+            return Compilation.AnonymousTypeManager.ConstructAnonymousDelegateSymbol(typeDescr);
 
             static bool isValidTypeArgument(TypeSymbol? type)
             {

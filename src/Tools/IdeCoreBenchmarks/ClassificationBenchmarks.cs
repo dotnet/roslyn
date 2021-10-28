@@ -10,27 +10,28 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using AnalyzerRunner;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Diagnosers;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
-using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Storage;
+using Microsoft.CodeAnalysis.Text;
 
 namespace IdeCoreBenchmarks
 {
     [MemoryDiagnoser]
-    public class NavigateToBenchmarks
+    public class ClassificationBenchmarks
     {
         string _solutionPath;
         MSBuildWorkspace _workspace;
+        Solution _solution;
 
         [GlobalSetup]
         public void GlobalSetup()
@@ -64,12 +65,13 @@ namespace IdeCoreBenchmarks
         private async Task LoadSolutionAsync()
         {
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            _solutionPath = Path.Combine(roslynRoot, @"Roslyn.sln");
+            var solutionPath = Path.Combine(roslynRoot, "Roslyn.sln");
 
-            if (!File.Exists(_solutionPath))
+            if (!File.Exists(solutionPath))
                 throw new ArgumentException("Couldn't find Roslyn.sln");
 
-            Console.Write("Found Roslyn.sln: " + Process.GetCurrentProcess().Id);
+            Console.WriteLine("Found Roslyn.sln: " + Process.GetCurrentProcess().Id);
+
             var assemblies = MSBuildMefHostServices.DefaultAssemblies
                 .Add(typeof(AnalyzerRunnerHelper).Assembly)
                 .Add(typeof(FindReferencesBenchmarks).Assembly);
@@ -78,7 +80,7 @@ namespace IdeCoreBenchmarks
             _workspace = MSBuildWorkspace.Create(new Dictionary<string, string>
                 {
                     // Use the latest language version to force the full set of available analyzers to run on the project.
-                    { "LangVersion", "9.0" },
+                    { "LangVersion", "preview" },
                 }, services);
 
             if (_workspace == null)
@@ -90,61 +92,37 @@ namespace IdeCoreBenchmarks
             Console.WriteLine("Opening roslyn.  Attach to: " + Process.GetCurrentProcess().Id);
 
             var start = DateTime.Now;
-            var solution = _workspace.OpenSolutionAsync(_solutionPath, progress: null, CancellationToken.None).Result;
+            _solution = await _workspace.OpenSolutionAsync(solutionPath, progress: null, CancellationToken.None);
             Console.WriteLine("Finished opening roslyn: " + (DateTime.Now - start));
+        }
 
-            // Force a storage instance to be created.  This makes it simple to go examine it prior to any operations we
-            // perform, including seeing how big the initial string table is.
-            var storageService = _workspace.Services.GetPersistentStorageService(_workspace.CurrentSolution.Options);
-            if (storageService == null)
-                throw new ArgumentException("Couldn't get storage service");
+        protected static async Task<ImmutableArray<ClassifiedSpan>> GetSemanticClassificationsAsync(Document document, TextSpan span)
+        {
+            var service = document.GetRequiredLanguageService<IClassificationService>();
+            var options = ClassificationOptions.From(document.Project);
+            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var result);
+            await service.AddSemanticClassificationsAsync(document, span, options, result, CancellationToken.None);
+            return result.ToImmutable();
+        }
 
-            using (var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(_workspace.CurrentSolution), CancellationToken.None))
+        [Benchmark]
+        public void ClassifyDocument()
+        {
+            var project = _solution.Projects.First(p => p.AssemblyName == "Microsoft.CodeAnalysis");
+            foreach (var document in project.Documents)
             {
-                Console.WriteLine("Sucessfully got persistent storage instance");
+                var text = document.GetTextAsync().Result.ToString();
+                var span = new TextSpan(0, text.Length);
+                _ = GetSemanticClassificationsAsync(document, span);
             }
         }
 
         [IterationCleanup]
-        public void IterationCleanup()
+        public void Cleanup()
         {
-            _workspace.Dispose();
+            _workspace?.Dispose();
             _workspace = null;
-        }
-
-        [Benchmark]
-
-        public async Task RunNavigateTo()
-        {
-            Console.WriteLine("Starting navigate to");
-
-            var start = DateTime.Now;
-            // Search each project with an independent threadpool task.
-            var searchTasks = _workspace.CurrentSolution.Projects.Select(
-                p => Task.Run(() => SearchAsync(p, priorityDocuments: ImmutableArray<Document>.Empty), CancellationToken.None)).ToArray();
-
-            var result = await Task.WhenAll(searchTasks).ConfigureAwait(false);
-            var sum = result.Sum();
-
-            //start = DateTime.Now;
-            Console.WriteLine("Num results: " + (DateTime.Now - start));
-        }
-
-        private async Task<int> SearchAsync(Project project, ImmutableArray<Document> priorityDocuments)
-        {
-            var service = project.LanguageServices.GetService<INavigateToSearchService>();
-            var results = new List<INavigateToSearchResult>();
-            await service.SearchProjectAsync(
-                project, priorityDocuments, "Syntax", service.KindsProvided,
-                r =>
-                {
-                    lock (results)
-                        results.Add(r);
-
-                    return Task.CompletedTask;
-                }, isFullyLoaded: true, CancellationToken.None);
-
-            return results.Count;
+            _solution = null;
         }
     }
 }
