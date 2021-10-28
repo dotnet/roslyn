@@ -209,17 +209,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         }
 
         protected virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)
-        {
-            // Keep legacy shape for TypeScript.  Once they adapt to the obsoletes and move to overriding this method
-            // we can remove once TypeScript finishes https://github.com/dotnet/roslyn/issues/57180.
-            context.CancellationToken = cancellationToken;
-            return ProduceTagsAsync(context, spanToTag, caretPosition);
-        }
-
-        /// <summary>
-        /// Remove once TypeScript finishes https://github.com/dotnet/roslyn/issues/57180.
-        /// </summary>
-        protected virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition)
             => Task.CompletedTask;
 
         internal TestAccessor GetTestAccessor()
