@@ -111,15 +111,15 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                     return;
                 }
 
-                if (GetTabItem(previousTabItem.Tag) is Frame prevFrame &&
-                    GetTabItem(selectedTabItem.Tag) is Frame currentFrame)
+                if (GetTabItem(previousTabItem.Tag) is ContentPresenter prevFrame &&
+                    GetTabItem(selectedTabItem.Tag) is ContentPresenter currentFrame)
                 {
                     prevFrame.Visibility = Visibility.Hidden;
                     currentFrame.Visibility = Visibility.Visible;
                 }
             }
 
-            Frame GetTabItem(object tag)
+            ContentPresenter GetTabItem(object tag)
             {
                 if (ReferenceEquals(tag, WhitespaceControl))
                 {
