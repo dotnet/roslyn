@@ -246,8 +246,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// ex: MyNamespace.MyClass.MyMethod[T](T t)
         /// ex: MyNamespace.MyClass.MyMethod&lt;T&lt;(T t)
         /// 
-        /// Assumes the identifier "MyMethod" has already been parsed, and the type arguments will need to be parsed. 
-        /// Returns null if no type arguments are found, and throw a <see cref="StackFrameParseException"/> if they are malformed
+        /// Assumes the identifier "MyMethod" has already been parsed, and the type arguments will need to be parsed.
         /// </summary>
         private ParseResult<StackFrameTypeArgumentList?> TryParseTypeArguments()
         {
