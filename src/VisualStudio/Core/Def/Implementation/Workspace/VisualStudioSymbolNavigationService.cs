@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             // Generate new source or retrieve existing source for the symbol in question
             var allowDecompilation = project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources);
-            var result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, allowDecompilation, cancellationToken).WaitAndGetResult(cancellationToken);
+            var result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, allowDecompilation, cancellationToken).WaitAndGetResult(cancellationToken);
 
             var vsRunningDocumentTable4 = IServiceProviderExtensions.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>(_serviceProvider);
             var fileAlreadyOpen = vsRunningDocumentTable4.IsMonikerValid(result.FilePath);
@@ -127,6 +127,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var documentCookie = vsRunningDocumentTable4.GetDocumentCookie(result.FilePath);
 
             var vsTextBuffer = (IVsTextBuffer)vsRunningDocumentTable4.GetDocumentData(documentCookie);
+
+            // Set the buffer to read only, just in case the file isn't
+            ErrorHandler.ThrowOnFailure(vsTextBuffer.GetStateFlags(out var flags));
+            flags |= (int)BUFFERSTATEFLAGS.BSF_USER_READONLY;
+            ErrorHandler.ThrowOnFailure(vsTextBuffer.SetStateFlags(flags));
+
             var textBuffer = _editorAdaptersFactory.GetDataBuffer(vsTextBuffer);
 
             if (!fileAlreadyOpen)
