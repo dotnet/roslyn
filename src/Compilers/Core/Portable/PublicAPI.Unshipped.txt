@@ -5,6 +5,7 @@ Microsoft.CodeAnalysis.Compilation.EmitDifference(Microsoft.CodeAnalysis.Emit.Em
 Microsoft.CodeAnalysis.Emit.EmitDifferenceResult.ChangedTypes.get -> System.Collections.Immutable.ImmutableArray<System.Reflection.Metadata.TypeDefinitionHandle>
 Microsoft.CodeAnalysis.Emit.EmitDifferenceResult.UpdatedMethods.get -> System.Collections.Immutable.ImmutableArray<System.Reflection.Metadata.MethodDefinitionHandle>
 Microsoft.CodeAnalysis.Emit.SemanticEditKind.Replace = 4 -> Microsoft.CodeAnalysis.Emit.SemanticEditKind
+Microsoft.CodeAnalysis.FlowAnalysis.IFlowCaptureReferenceOperation.IsInitialization.get -> bool
 Microsoft.CodeAnalysis.GeneratorAttribute.GeneratorAttribute(string! firstLanguage, params string![]! additionalLanguages) -> void
 Microsoft.CodeAnalysis.GeneratorAttribute.Languages.get -> string![]!
 Microsoft.CodeAnalysis.GeneratorDriver.ReplaceAdditionalText(Microsoft.CodeAnalysis.AdditionalText! oldText, Microsoft.CodeAnalysis.AdditionalText! newText) -> Microsoft.CodeAnalysis.GeneratorDriver!

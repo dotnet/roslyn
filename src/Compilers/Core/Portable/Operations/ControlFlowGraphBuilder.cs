@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         private IOperation? _forToLoopBinaryOperatorRightOperand;
         private IOperation? _currentAggregationGroup;
         private bool _forceImplicit; // Force all rewritten nodes to be marked as implicit regardless of their original state.
+        private PooledDictionary<IOperation, IOperation>? _placeholderDictionary;
 
         private readonly CaptureIdDispenser _captureIdDispenser;
 
@@ -73,6 +74,25 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 Debug.Assert(_currentRegion != null);
                 return _currentRegion;
             }
+        }
+
+        private IOperation GetPlaceholder(IOperation key)
+        {
+            Debug.Assert(_placeholderDictionary is not null);
+            return _placeholderDictionary[key];
+        }
+
+        private void AddPlaceholder(IOperation key, IOperation value)
+        {
+            Debug.Assert(value is IFlowCaptureReferenceOperation or IInvalidOperation);
+            (_placeholderDictionary ??= PooledDictionary<IOperation, IOperation>.GetInstance()).Add(key, value);
+        }
+
+        private void RemovePlaceholder(IOperation key)
+        {
+            Debug.Assert(_placeholderDictionary is not null);
+            var result = _placeholderDictionary.Remove(key);
+            Debug.Assert(result);
         }
 
         private bool IsImplicit(IOperation operation)
@@ -158,6 +178,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             builder._evalStack.Free();
             builder._regionMap.Free();
             builder._labeledBlocks?.Free();
+            Debug.Assert(builder._placeholderDictionary is null or { Count: 0 });
+            builder._placeholderDictionary?.Free();
 
             return new ControlFlowGraph(body, parent, builder._captureIdDispenser, ToImmutableBlocks(blocks), region,
                                         localFunctions.ToImmutableAndFree(), localFunctionsMap.ToImmutable(),
@@ -6322,12 +6344,167 @@ oneMoreTime:
 
         public override IOperation? VisitInterpolatedStringHandlerCreation(IInterpolatedStringHandlerCreationOperation operation, int? captureIdForResult)
         {
-            return VisitNoneOperation(operation, captureIdForResult);
+            // We turn the interpolated string into a call to create the handler type, a series of append calls (potentially with branches, depending on the
+            // handler semantics), and then evaluate to the handler flow capture temp.
+
+            SpillEvalStack();
+            RegionBuilder resultRegion = CurrentRegionRequired;
+            var handlerCaptureId = captureIdForResult ?? GetNextCaptureId(resultRegion);
+
+            var constructorRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime);
+            EnterRegion(constructorRegion);
+
+            BasicBlockBuilder? resultBlock = null;
+            if (operation.HandlerCreationHasSuccessParameter || operation.HandlerAppendCallsReturnBool)
+            {
+                resultBlock = new BasicBlockBuilder(BasicBlockKind.Block);
+            }
+
+            // Any placeholders for arguments should have already been created, except for the out parameter if it exists.
+            int outParameterFlowCapture = -1;
+            IOperation? outParameterPlaceholder = null;
+
+            if (operation.HandlerCreationHasSuccessParameter)
+            {
+                // Only successful constructor binds will have a trailing parameter
+                Debug.Assert(operation.HandlerCreation is IObjectCreationOperation);
+                outParameterFlowCapture = GetNextCaptureId(constructorRegion);
+                IArgumentOperation outParameterArgument = ((IObjectCreationOperation)operation.HandlerCreation).Arguments[^1];
+                Debug.Assert(outParameterArgument.Parameter!.RefKind == RefKind.Out);
+                Debug.Assert(outParameterArgument.Parameter!.Type.SpecialType == SpecialType.System_Boolean);
+                outParameterPlaceholder = outParameterArgument.Value;
+                Debug.Assert(outParameterPlaceholder is IInterpolatedStringHandlerArgumentPlaceholderOperation { PlaceholderKind: InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument });
+                AddPlaceholder(outParameterPlaceholder, new FlowCaptureReferenceOperation(outParameterFlowCapture, outParameterPlaceholder.Syntax, outParameterPlaceholder.Type, constantValue: null, isInitialization: true));
+            }
+
+            VisitAndCapture(operation.HandlerCreation, handlerCaptureId);
+
+            if (operation.HandlerCreationHasSuccessParameter)
+            {
+                // Branch on the success parameter to the next block
+                Debug.Assert(resultBlock != null);
+                Debug.Assert(outParameterPlaceholder != null);
+                Debug.Assert(outParameterFlowCapture != -1);
+
+                // if (!outParameterFlowCapture) goto resultBlock;
+                ConditionalBranch(new FlowCaptureReferenceOperation(outParameterFlowCapture, outParameterPlaceholder.Syntax, outParameterPlaceholder.Type, constantValue: null), jumpIfTrue: false, resultBlock);
+                // else goto next block;
+                LeaveRegionsUpTo(resultRegion);
+                AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block), linkToPrevious: true);
+            }
+            else
+            {
+                LeaveRegionsUpTo(resultRegion);
+            }
+
+            if (operation.HandlerCreationHasSuccessParameter)
+            {
+                RemovePlaceholder(outParameterPlaceholder!);
+            }
+
+            var appendCalls = collectAppendCalls(operation);
+
+            int appendCallsLength = appendCalls.Length;
+            for (var i = 0; i < appendCallsLength; i++)
+            {
+                var appendCall = appendCalls[i];
+                if (operation.HandlerAppendCallsReturnBool)
+                {
+                    Debug.Assert(resultBlock != null);
+
+                    if (i == appendCallsLength - 1)
+                    {
+                        // No matter the result, we're going to the result block next. So just visit the statement, and if the current block can be
+                        // combined with the result block, the compaction machinery will take care of it
+                        VisitStatement(appendCall.AppendCall);
+                        AppendNewBlock(resultBlock, linkToPrevious: true);
+                    }
+                    else
+                    {
+                        // if (!appendCall()) goto result else goto next block
+                        ConditionalBranch(VisitRequired(appendCall.AppendCall), jumpIfTrue: false, resultBlock);
+                        AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block), linkToPrevious: true);
+                    }
+                }
+                else
+                {
+                    VisitStatement(appendCall.AppendCall);
+
+                    if (i == appendCallsLength - 1 && operation.HandlerCreationHasSuccessParameter)
+                    {
+                        Debug.Assert(resultBlock != null);
+                        AppendNewBlock(resultBlock, linkToPrevious: true);
+                    }
+                }
+            }
+
+            return new FlowCaptureReferenceOperation(handlerCaptureId, operation.Syntax, operation.Type, operation.GetConstantValue());
+
+            static ImmutableArray<IInterpolatedStringAppendOperation> collectAppendCalls(IInterpolatedStringHandlerCreationOperation creation)
+            {
+                var appendCalls = ArrayBuilder<IInterpolatedStringAppendOperation>.GetInstance();
+                if (creation.Content is IInterpolatedStringOperation interpolatedString)
+                {
+                    // Simple case
+                    appendStringCalls(interpolatedString, appendCalls);
+                    return appendCalls.ToImmutableAndFree();
+                }
+
+                var stack = ArrayBuilder<IInterpolatedStringAdditionOperation>.GetInstance();
+                pushLeftNodes((IInterpolatedStringAdditionOperation)creation.Content, stack);
+
+                while (stack.TryPop(out var currentAddition))
+                {
+                    switch (currentAddition.Left)
+                    {
+                        case IInterpolatedStringOperation interpolatedString1:
+                            appendStringCalls(interpolatedString1, appendCalls);
+                            break;
+                        case IInterpolatedStringAdditionOperation:
+                            break;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(currentAddition.Left.Kind);
+                    }
+
+                    switch (currentAddition.Right)
+                    {
+                        case IInterpolatedStringOperation interpolatedString1:
+                            appendStringCalls(interpolatedString1, appendCalls);
+                            break;
+                        case IInterpolatedStringAdditionOperation additionOperation:
+                            pushLeftNodes(additionOperation, stack);
+                            break;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(currentAddition.Left.Kind);
+                    }
+                }
+
+                stack.Free();
+                return appendCalls.ToImmutableAndFree();
+
+                static void appendStringCalls(IInterpolatedStringOperation interpolatedString, ArrayBuilder<IInterpolatedStringAppendOperation> appendCalls)
+                {
+                    foreach (var part in interpolatedString.Parts)
+                    {
+                        appendCalls.Add((IInterpolatedStringAppendOperation)part);
+                    }
+                }
+
+                static void pushLeftNodes(IInterpolatedStringAdditionOperation addition, ArrayBuilder<IInterpolatedStringAdditionOperation> stack)
+                {
+                    IInterpolatedStringAdditionOperation? current = addition;
+                    while (current != null)
+                    {
+                        stack.Push(current);
+                        current = current.Left as IInterpolatedStringAdditionOperation;
+                    }
+                }
+            }
         }
 
         public override IOperation? VisitInterpolatedStringAddition(IInterpolatedStringAdditionOperation operation, int? captureIdForResult)
         {
-            return VisitNoneOperation(operation, captureIdForResult);
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override IOperation? VisitInterpolatedStringAppend(IInterpolatedStringAppendOperation operation, int? captureIdForResult)
@@ -6337,7 +6514,8 @@ oneMoreTime:
 
         public override IOperation? VisitInterpolatedStringHandlerArgumentPlaceholder(IInterpolatedStringHandlerArgumentPlaceholderOperation operation, int? captureIdForResult)
         {
-            return VisitNoneOperation(operation, captureIdForResult);
+            Debug.Assert(_placeholderDictionary != null);
+            return PlaceholderDictionary[operation];
         }
 
         public override IOperation VisitInterpolatedString(IInterpolatedStringOperation operation, int? captureIdForResult)
@@ -6387,9 +6565,6 @@ oneMoreTime:
                         Debug.Assert(interpolatedStringText.Text is ILiteralOperation or IConversionOperation { Operand: ILiteralOperation });
                         var rewrittenInterpolationText = VisitRequired(interpolatedStringText.Text, argument: null);
                         rewrittenElement = new InterpolatedStringTextOperation(rewrittenInterpolationText, semanticModel: null, element.Syntax, IsImplicit(element));
-                        break;
-                    case IInterpolatedStringAppendOperation interpolatedStringAppend:
-                        rewrittenElement = new InterpolatedStringAppendOperation(VisitRequired(interpolatedStringAppend.AppendCall), interpolatedStringAppend.Kind, semanticModel: null, interpolatedStringAppend.Syntax, IsImplicit(interpolatedStringAppend));
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(element.Kind);

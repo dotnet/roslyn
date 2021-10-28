@@ -814,6 +814,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         longLivedIds.Add(id);
                     }
 
+                    if (reference.IsInitialization)
+                    {
+                        state.Add(id);
+                    }
+
                     AssertTrueWithGraph(state.Contains(id) || isCaptureFromEnclosingGraph(id) || isEmptySwitchExpressionResult(reference),
                         $"Operation [{operationIndex}] in [{getBlockId(block)}] uses not initialized capture [{id.Value}].", finalGraph);
 
