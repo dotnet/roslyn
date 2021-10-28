@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -11,10 +13,10 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using BenchmarkDotNet.Attributes;
+using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -25,12 +27,12 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 
-namespace IdeBenchmarks
+namespace IdeBenchmarks.InheritanceMargin
 {
     [MemoryDiagnoser]
-    public class InheritanceMarginGlyphBenchMarks
+    public class InheritanceMarginGlyphBenchmarks
     {
-        private const int MemberCount = 200;
+        private const int MemberCount = 500;
         private const int Iterations = 10;
         private const double WidthAndHeightOfGlyph = 18;
 
@@ -47,7 +49,7 @@ namespace IdeBenchmarks
         private IUIThreadOperationExecutor _operationExecutor;
         private IAsynchronousOperationListener _listener;
 
-        public InheritanceMarginGlyphBenchMarks()
+        public InheritanceMarginGlyphBenchmarks()
         {
             _wpfApp = null!;
             _threadingContext = null!;
@@ -116,14 +118,30 @@ namespace IdeBenchmarks
             });
         }
 
+        [Benchmark]
+        public void BenchmarkInheritanceMarginItemGeneration()
+        {
+            // QueryVisualStudioInstances returns Visual Studio installations on .NET Framework, and .NET Core SDK
+            // installations on .NET Core. We use the one with the most recent version.
+            var msBuildInstance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(x => x.Version).First();
+
+            MSBuildLocator.RegisterInstance(msBuildInstance);
+
+            var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
+            var solutionPath = Path.Combine(roslynRoot, @"C:\github\roslyn\Compilers.sln");
+
+            if (!File.Exists(solutionPath))
+                throw new ArgumentException("Couldn't find Compilers.sln.");
+
+            Console.Write("Found Compilers.sln: " + Process.GetCurrentProcess().Id);
+
+        }
+
         private async Task PrepareGlyphRequiredDataAsync(CancellationToken cancellationToken)
         {
             var testFile = CreateTestFile();
             using var workspace = TestWorkspace.CreateCSharp(testFile);
-            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-            var languageService = document.Project.GetRequiredLanguageService<IInheritanceMarginService>();
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var items = await languageService.GetInheritanceMemberItemsAsync(document, root.Span, cancellationToken).ConfigureAwait(false);
+            var items = await BenchmarksHelpers.GenerateInheritanceMarginItemsAsync(workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
 
             using var _ = Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder<InheritanceMarginTag>.GetInstance(out var builder);
             foreach (var grouping in items.GroupBy(i => i.LineNumber))
@@ -145,7 +163,7 @@ namespace IdeBenchmarks
 
         private void RunOnUIThread(Action action)
         {
-#pragma warning disable VSTHRD001
+#pragma warning disable VSTHRD001 // Only used for Benchmark purpose
             _wpfApp.Dispatcher.Invoke(() =>
 #pragma warning restore VSTHRD001
             {
@@ -221,7 +239,6 @@ namespace IdeBenchmarks
 ");
 
             builder.Append('}');
-
             return builder.ToString();
         }
     }
