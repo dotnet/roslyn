@@ -758,7 +758,7 @@ class A {";
             var markup1 =
 @"namespace M
 {
-    public class A : C
+    public class A
     {
     }
 }";
@@ -795,12 +795,11 @@ class A {";
             using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution).ConfigureAwait(false);
             var csproj3Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj3").Single().Documents.First();
 
-            // Verify we a diagnostic in A.cs since B does not exist
-            // and a diagnostic in B.cs since it is missing the class name.
+            // Verify we have a diagnostic in C.cs initially.
             var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
             AssertEx.NotNull(results);
             Assert.Equal(3, results.Length);
-            Assert.Equal("CS0246", results[0].Diagnostics.Single().Code);
+            Assert.Empty(results[0].Diagnostics);
             Assert.Empty(results[1].Diagnostics);
             Assert.Equal("CS1001", results[2].Diagnostics.Single().Code);
 
@@ -816,15 +815,14 @@ class A {";
             AssertEx.NotNull(results);
             Assert.Equal(3, results.Length);
 
-            // Verify diagnostics for A.cs are updated as the type C now exists in a dependency of a dependency.
+            // Verify that new diagnostics are returned for all files (even though the diagnostics for the first two files are the same)
+            // since we re-calculate when transitive project dependencies change.
             Assert.Empty(results[0].Diagnostics);
             Assert.NotEqual(previousResultIds[0].PreviousResultId, results[0].ResultId);
 
-            // Verify we get updated diagnostics for B.cs since a project dependency changed.
-            Assert.Empty(results[0].Diagnostics);
+            Assert.Empty(results[1].Diagnostics);
             Assert.NotEqual(previousResultIds[1].PreviousResultId, results[1].ResultId);
 
-            // Verify diagnostics for C.cs are updated as the class definition is now correct.
             Assert.Empty(results[2].Diagnostics);
             Assert.NotEqual(previousResultIds[2].PreviousResultId, results[2].ResultId);
         }
