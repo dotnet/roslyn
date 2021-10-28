@@ -29,7 +29,7 @@
     <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="$(BenchmarkDotNetDiagnosticsWindowsVersion)" />
     <!-- This is to avoid a version conflict during build -->
     <PackageReference Include="System.CodeDom" Version="$(SystemCodeDomVersion)" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="$(MicrosoftBuildFrameworkVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="$(RefOnlyMicrosoftBuildFrameworkVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
     <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
     <PackageReference Include="System.Buffers" Version="$(SystemBuffersVersion)" />

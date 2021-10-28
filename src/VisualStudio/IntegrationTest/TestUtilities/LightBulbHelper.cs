@@ -4,9 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
@@ -51,24 +53,32 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 throw new InvalidOperationException($"No expanded light bulb session found after View.ShowSmartTag.  Buffer content type={bufferType}");
             }
 
-            var start = DateTime.Now;
-            while (DateTime.Now - start < Helper.HangMitigatingTimeout)
+            var asyncSession = (IAsyncLightBulbSession)activeSession;
+            var tcs = new TaskCompletionSource<List<SuggestedActionSet>>();
+
+            EventHandler<SuggestedActionsUpdatedArgs>? handler = null;
+            handler = (s, e) =>
             {
-                var status = activeSession.TryGetSuggestedActionSets(out var actionSets);
-                if (status is not QuerySuggestedActionCompletionStatus.Completed and
-                              not QuerySuggestedActionCompletionStatus.Canceled)
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(1));
-                    continue;
-                }
+                // ignore these.  we care about when the lightbulb items are all completed.
+                if (e.Status == QuerySuggestedActionCompletionStatus.InProgress)
+                    return;
 
-                if (status != QuerySuggestedActionCompletionStatus.Completed)
-                    throw new InvalidOperationException($"Querying light bulb for status produced: {status}");
+                if (e.Status == QuerySuggestedActionCompletionStatus.Completed)
+                    tcs.SetResult(e.ActionSets.ToList());
+                else
+                    tcs.SetException(new InvalidOperationException($"Light bulb transitioned to non-complete state: {e.Status}"));
 
-                return actionSets;
-            }
+                asyncSession.SuggestedActionsUpdated -= handler;
+            };
 
-            throw new InvalidOperationException($"Light bulb never transitioned to completed state.");
+            asyncSession.SuggestedActionsUpdated += handler;
+
+            // Calling PopulateWithData ensures the underlying session will call SuggestedActionsUpdated at least once
+            // with the latest data computed.  This is needed so that if the lightbulb computation is already complete
+            // that we hear about the results.
+            asyncSession.PopulateWithData(overrideRequestedActionCategories: null, operationContext: null);
+
+            return await tcs.Task.WithTimeout(Helper.HangMitigatingTimeout).ConfigureAwait(false);
         }
     }
 }
