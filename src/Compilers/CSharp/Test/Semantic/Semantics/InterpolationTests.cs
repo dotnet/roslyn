@@ -14299,7 +14299,7 @@ public partial struct CustomHandler
             comp.VerifyDiagnostics(
                 // (5,22): error CS8976: Interpolated string handler conversions that reference the instance being indexed cannot be used in nested member initializers.
                 // _ = new C1 { C2 = { [$"literal{1}"] = { A = 1, B = 2 } } };
-                Diagnostic(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInNestedObjectInitializers, @"$""literal{1}""").WithLocation(5, 22)
+                Diagnostic(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInNestedObjectInitializers, expression).WithLocation(5, 22)
             );
         }
 
