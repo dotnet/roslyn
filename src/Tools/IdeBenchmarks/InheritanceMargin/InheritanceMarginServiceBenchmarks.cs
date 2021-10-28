@@ -3,15 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
@@ -43,15 +42,19 @@ namespace IdeBenchmarks.InheritanceMargin
             _useExportProviderAttribute.Before(null);
 
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            var solutionPath = Path.Combine(roslynRoot, "Roslyn.sln");
+            var solutionPath = Path.Combine(roslynRoot, "Compilers.sln");
 
             if (!File.Exists(solutionPath))
-                throw new ArgumentException("Couldn't find Roslyn.sln");
+                throw new ArgumentException("Couldn't find Compilers.sln");
 
-            Console.WriteLine("Found Roslyn.sln");
+            Console.WriteLine("Found Compilers.sln");
+            var assemblies = MSBuildMefHostServices.DefaultAssemblies
+                .AddRange(EditorTestCompositions.EditorFeatures.Assemblies)
+                .Distinct();
 
-            var workspace = MSBuildWorkspace.Create(EditorTestCompositions.EditorFeatures.GetHostServices());
-
+            var hostService = MefHostServices.Create(assemblies);
+            var workspace = MSBuildWorkspace.Create(hostService);
+            Console.WriteLine("Created workspace");
             _solution = workspace.OpenSolutionAsync(solutionPath).Result;
         }
 

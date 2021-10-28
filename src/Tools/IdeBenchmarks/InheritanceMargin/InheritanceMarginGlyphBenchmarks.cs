@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -13,11 +11,9 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using BenchmarkDotNet.Attributes;
-using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin;
@@ -118,25 +114,6 @@ namespace IdeBenchmarks.InheritanceMargin
             });
         }
 
-        [Benchmark]
-        public void BenchmarkInheritanceMarginItemGeneration()
-        {
-            // QueryVisualStudioInstances returns Visual Studio installations on .NET Framework, and .NET Core SDK
-            // installations on .NET Core. We use the one with the most recent version.
-            var msBuildInstance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(x => x.Version).First();
-
-            MSBuildLocator.RegisterInstance(msBuildInstance);
-
-            var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            var solutionPath = Path.Combine(roslynRoot, @"C:\github\roslyn\Compilers.sln");
-
-            if (!File.Exists(solutionPath))
-                throw new ArgumentException("Couldn't find Compilers.sln.");
-
-            Console.Write("Found Compilers.sln: " + Process.GetCurrentProcess().Id);
-
-        }
-
         private async Task PrepareGlyphRequiredDataAsync(CancellationToken cancellationToken)
         {
             var testFile = CreateTestFile();
@@ -173,6 +150,7 @@ namespace IdeBenchmarks.InheritanceMargin
 
         private Task SetupWpfApplicaitonAsync()
         {
+            // Ensure we only create one Application
             if (Application.Current == null)
             {
                 var tcs = new TaskCompletionSource<bool>();
