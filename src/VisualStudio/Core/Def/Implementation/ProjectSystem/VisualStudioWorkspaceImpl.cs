@@ -243,14 +243,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void AddDocumentToDocumentsNotFromFiles_NoLock(DocumentId documentId)
         {
-            Debug.Assert(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
             _documentsNotFromFiles = _documentsNotFromFiles.Add(documentId);
         }
 
         internal void RemoveDocumentToDocumentsNotFromFiles_NoLock(DocumentId documentId)
         {
-            Debug.Assert(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
             _documentsNotFromFiles = _documentsNotFromFiles.Remove(documentId);
         }
 
@@ -1590,7 +1590,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private ProjectReferenceInformation GetReferenceInfo_NoLock(ProjectId projectId)
         {
-            Debug.Assert(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
             return _projectReferenceInfoMap.GetOrAdd(projectId, _ => new ProjectReferenceInformation());
         }
@@ -1599,7 +1599,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             string? languageName;
 
-            Debug.Assert(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
             languageName = CurrentSolution.GetRequiredProject(projectId).Language;
 
@@ -1717,7 +1717,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Constraint = "Avoid calling " + nameof(CodeAnalysis.Solution.GetProject) + " to avoid realizing all projects.")]
         private void ConvertMetadataReferencesToProjectReferences_NoLock(ProjectId projectId, string outputPath)
         {
-            Debug.Assert(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
             var modifiedSolution = this.CurrentSolution;
             using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectIdsChanged);
@@ -1757,7 +1757,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Constraint = "Avoid calling " + nameof(CodeAnalysis.Solution.GetProject) + " to avoid realizing all projects.")]
         private bool CanConvertMetadataReferenceToProjectReference_NoLock(ProjectId projectIdWithMetadataReference, ProjectId referencedProjectId)
         {
-            Debug.Assert(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
             // We can never make a project reference ourselves. This isn't a meaningful scenario, but if somebody does this by accident
             // we do want to throw exceptions.
@@ -1808,7 +1808,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Constraint = "Update ConvertedProjectReferences in place to avoid duplicate list allocations.")]
         private void ConvertProjectReferencesToMetadataReferences_NoLock(ProjectId projectId, string outputPath)
         {
-            Debug.Assert(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
             var modifiedSolution = this.CurrentSolution;
             using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectIdsChanged);
@@ -1854,7 +1854,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             // Any conversion to or from project references must be done under the global workspace lock,
             // since that needs to be coordinated with updating all projects simultaneously.
-            Debug.Assert(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
             if (_projectsByOutputPath.TryGetValue(path, out var ids) && ids.Distinct().Count() == 1)
             {
@@ -1886,7 +1886,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             // Any conversion to or from project references must be done under the global workspace lock,
             // since that needs to be coordinated with updating all projects simultaneously.
-            Debug.Assert(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
             var projectReferenceInformation = GetReferenceInfo_NoLock(referencingProject);
             foreach (var convertedProject in projectReferenceInformation.ConvertedProjectReferences)
