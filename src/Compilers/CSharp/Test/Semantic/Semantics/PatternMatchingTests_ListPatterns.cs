@@ -1638,6 +1638,65 @@ class X
     }
 
     [Fact]
+    public void ListPattern_ValEscape()
+    {
+        CreateCompilationWithMscorlibAndSpan(@"
+using System;
+public ref struct R
+{
+    public int Length => throw null;
+    public R this[int i] => throw null;
+    public R Slice(int i, int j) => throw null;
+    public static implicit operator R(Span<int> span) => throw null;
+}
+public class C
+{
+    public void M1(ref Span<int> s)
+    {
+        Span<int> outer = stackalloc int[100];
+        if (outer is [] list) s = list; // error 1
+    }
+    public void M2(ref R r)
+    {
+        R outer = stackalloc int[100];
+        if (outer is [var element, .. var slice] list)
+        {
+            r = element; // error 2
+            r = slice; // error 3
+            r = list; // error 4       
+        } 
+    }
+    public void M1b(ref Span<int> s)
+    {
+        Span<int> outer = default;
+        if (outer is [] list) s = list; // OK
+    }
+    public void M2b(ref R r)
+    {
+        R outer = default;
+        if (outer is [var element, .. var slice] list)
+        {
+            r = element; // OK
+            r = slice; // OK
+            r = list; // OK     
+        } 
+    }
+}").VerifyDiagnostics(
+            // (15,35): error CS8352: Cannot use local 'list' in this context because it may expose referenced variables outside of their declaration scope
+            //         if (outer is [] list) s = list; // error 1
+            Diagnostic(ErrorCode.ERR_EscapeLocal, "list").WithArguments("list").WithLocation(15, 35),
+            // (22,17): error CS8352: Cannot use local 'element' in this context because it may expose referenced variables outside of their declaration scope
+            //             r = element; // error 2
+            Diagnostic(ErrorCode.ERR_EscapeLocal, "element").WithArguments("element").WithLocation(22, 17),
+            // (23,17): error CS8352: Cannot use local 'slice' in this context because it may expose referenced variables outside of their declaration scope
+            //             r = slice; // error 3
+            Diagnostic(ErrorCode.ERR_EscapeLocal, "slice").WithArguments("slice").WithLocation(23, 17),
+            // (24,17): error CS8352: Cannot use local 'list' in this context because it may expose referenced variables outside of their declaration scope
+            //             r = list; // error 4
+            Diagnostic(ErrorCode.ERR_EscapeLocal, "list").WithArguments("list").WithLocation(24, 17));
+    }
+
+    [Fact]
     public void BadConstant()
     {
         var source = @"

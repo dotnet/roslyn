@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RelationalPatternSyntax p => BindRelationalPattern(p, inputType, hasErrors, diagnostics),
                 TypePatternSyntax p => BindTypePattern(p, inputType, hasErrors, diagnostics),
                 ListPatternSyntax p => BindListPattern(p, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics),
-                SlicePatternSyntax p => BindSlicePattern(p, inputType, permitDesignations, ref hasErrors, misplaced: true, diagnostics),
+                SlicePatternSyntax p => BindSlicePattern(p, inputType, inputValEscape, permitDesignations, ref hasErrors, misplaced: true, diagnostics),
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
             };
         }
@@ -186,6 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundPattern BindSlicePattern(
             SlicePatternSyntax node,
             TypeSymbol inputType,
+            uint inputValEscape,
             bool permitDesignations,
             ref bool hasErrors,
             bool misplaced,
@@ -234,8 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_UnsupportedTypeForSlicePattern, node, inputType);
                 }
 
-                // PROTOTYPE(list-patterns) ExternalScope?
-                pattern = BindPattern(node.Pattern, sliceType, ExternalScope, permitDesignations, hasErrors, diagnostics);
+                pattern = BindPattern(node.Pattern, sliceType, GetValEscape(sliceType, inputValEscape), permitDesignations, hasErrors, diagnostics);
             }
 
             return new BoundSlicePattern(node, pattern, indexerAccess, sliceMethod, inputType: inputType, narrowedType: inputType, hasErrors);
@@ -244,6 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<BoundPattern> BindListPatternSubpatterns(
             SeparatedSyntaxList<PatternSyntax> subpatterns,
             TypeSymbol inputType,
+            uint inputValEscape,
             TypeSymbol elementType,
             bool permitDesignations,
             ref bool hasErrors,
@@ -257,13 +258,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundPattern boundPattern;
                 if (pattern is SlicePatternSyntax slice)
                 {
-                    boundPattern = BindSlicePattern(slice, inputType, permitDesignations, ref hasErrors, misplaced: sawSlice, diagnostics);
+                    boundPattern = BindSlicePattern(slice, inputType, GetValEscape(inputType, inputValEscape), permitDesignations, ref hasErrors, misplaced: sawSlice, diagnostics: diagnostics);
                     sawSlice = true;
                 }
                 else
                 {
-                    // PROTOTYPE(list-patterns) ExternalScope?
-                    boundPattern = BindPattern(pattern, elementType, ExternalScope, permitDesignations, hasErrors, diagnostics);
+                    boundPattern = BindPattern(pattern, elementType, GetValEscape(elementType, inputValEscape), permitDesignations, hasErrors, diagnostics);
                 }
 
                 builder.Add(boundPattern);
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ImmutableArray<BoundPattern> subpatterns = BindListPatternSubpatterns(
-                node.Patterns, inputType: narrowedType, elementType: elementType,
+                node.Patterns, inputType: narrowedType, inputValEscape, elementType: elementType,
                 permitDesignations, ref hasErrors, out bool sawSlice, diagnostics);
 
             BindPatternDesignation(
