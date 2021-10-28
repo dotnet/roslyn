@@ -20,7 +20,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
-            <RowDefinition Height="*" MaxHeight="22" />
+            <RowDefinition Height="*" MaxHeight="32" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <TabControl x:Name="SettingsEditorTabs"
@@ -39,7 +39,7 @@
                      Header="{Binding AnalyzersTabTitle}"
                      Tag="{Binding AnalyzersControl}" />
         </TabControl>
-        <StackPanel x:Name="SettingsEditorSearch" Grid.Row="1" Margin="20,0,0,0" Orientation="Horizontal">
+        <StackPanel x:Name="SettingsEditorSearch" Grid.Row="1" Margin="20,8,0,0" Orientation="Horizontal">
             <Border x:Name="SearchControl"
                     MinWidth="200"
                     MaxWidth="400"
