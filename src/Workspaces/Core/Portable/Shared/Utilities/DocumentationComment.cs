@@ -203,6 +203,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     if (firstNonWhitespaceOffset == null)
                         continue;
 
+                    // note: this code presumes all whitespace should be treated uniformly (for example that a tab and
+                    // a space are equivalent).  If that turns out to be an issue we will need to revise this to determine
+                    // an appropriate strategy for trimming here.
                     maxPrefix = Math.Min(maxPrefix, firstNonWhitespaceOffset.Value);
                 }
 
