@@ -5,7 +5,7 @@
 using System;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.SearchSettings;
+using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 
@@ -43,11 +43,13 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 
             public void ProvideSearchSettings(IVsUIDataSource pSearchSettings)
             {
-                pSearchSettings.ControlMinWidth(_controlMinWidth);
-                pSearchSettings.ControlMaxWidth(_controlMaxWidth);
-                pSearchSettings.MaximumMRUItems(25);
-                pSearchSettings.SearchWatermark(ServicesVSResources.Search_Settings);
-                pSearchSettings.ControlBorderThickness("1");
+                if (pSearchSettings is SearchSettingsDataSource dataSource)
+                {
+                    dataSource.ControlMaxWidth = (uint)_controlMaxWidth;
+                    dataSource.ControlMinWidth = (uint)_controlMinWidth;
+                    dataSource.MaximumMRUItems = 25;
+                    dataSource.SearchWatermark = ServicesVSResources.Search_Settings;
+                }
             }
 
             public bool OnNavigationKeyDown(uint dwNavigationKey, uint dwModifiers) => false;
