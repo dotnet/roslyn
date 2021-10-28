@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.IO;
 using System.Text;
@@ -46,6 +47,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override ParseOptions GetDefaultParseOptionsWithLatestLanguageVersion()
                 => _parseOptionWithLatestLanguageVersion;
+
+            public override ParseOptions TryParsePdbParseOptions(IReadOnlyDictionary<string, string> metadata)
+            {
+                if (!metadata.TryGetValue("language-version", out var langVersionString) ||
+                    !LanguageVersionFacts.TryParse(langVersionString, out var langVersion))
+                {
+                    langVersion = LanguageVersion.Default;
+                }
+
+                return new CSharpParseOptions(
+                    languageVersion: langVersion,
+                    preprocessorSymbols: metadata.TryGetValue("define", out var defines) ? defines.Split(',') : null);
+            }
 
             public override SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, Encoding encoding, SyntaxNode root)
             {
