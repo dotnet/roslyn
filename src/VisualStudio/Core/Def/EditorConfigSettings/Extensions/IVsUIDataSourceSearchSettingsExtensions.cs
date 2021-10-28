@@ -19,15 +19,15 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.SearchSet
             => SetBoolValue(source, SearchSettingsDataSource.PropertyNames.SearchUseMRU, value);
 
         /// <summary>
-        /// Sets the Thickness of the padding around the search box.
-        /// Default="0".
+        /// Sets the Thickness of the search control's border.
+        /// Default="1".
         /// </summary>
         public static void ControlBorderThickness(this IVsUIDataSource source, string value)
             => SetStringValue(source, SearchSettingsDataSource.PropertyNames.ControlBorderThickness, value);
 
         /// <summary>
-        /// Sets the Thickness of the search control's border.
-        /// Default="1".
+        /// Sets the Thickness of the padding around the search box.
+        /// Default="0".
         /// </summary>
         public static void ControlPaddingThickness(this IVsUIDataSource source, string value)
             => SetStringValue(source, SearchSettingsDataSource.PropertyNames.ControlPaddingThickness, value);
@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.SearchSet
         /// </summary>
         public static void ForwardEnterKeyOnSearchStart(this IVsUIDataSource source, bool value)
             => SetBoolValue(source, SearchSettingsDataSource.PropertyNames.ForwardEnterKeyOnSearchStart, value);
-            
+
         /// <summary>
         /// Sets whether the search button is visible in the search control. 
         /// Default=True.
