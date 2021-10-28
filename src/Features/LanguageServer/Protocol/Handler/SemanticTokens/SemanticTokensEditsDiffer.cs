@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             int[] newTokens)
         {
             using var _1 = ArrayBuilder<DiffEdit>.GetInstance(out var edits);
-            using var _2 = ArrayBuilder<Task<DiffEdit[]>>.GetInstance(out var tasks);
+            using var _2 = ArrayBuilder<Task<ImmutableArray<DiffEdit>>>.GetInstance(out var tasks);
 
             // Partition the token sets into smaller pieces so we can do more processing concurrently.
             var numSets = Math.Max(oldTokens.Length / MaxArraySize, newTokens.Length / MaxArraySize) + 1;
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 return (oldTokensSubset, newTokensSubset);
             }
 
-            static DiffEdit[] AdjustEditPositions(
+            static ImmutableArray<DiffEdit> AdjustEditPositions(
                 int[] oldTokens,
                 int setNum,
                 IReadOnlyList<DiffEdit> currentEditSet)
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     };
                 });
 
-                return adjustedEdits.ToArray();
+                return adjustedEdits;
             }
         }
     }
