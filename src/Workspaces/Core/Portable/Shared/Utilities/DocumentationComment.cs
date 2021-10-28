@@ -10,6 +10,7 @@ using System.Text;
 using System.Xml;
 using Microsoft.CodeAnalysis.PooledObjects;
 using XmlNames = Roslyn.Utilities.DocumentationCommentXmlNames;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
@@ -195,45 +196,29 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 var maxPrefix = int.MaxValue;
                 foreach (var line in lines)
                 {
-                    var i = 0;
-                    while (i < line.Length && char.IsWhiteSpace(line[i]))
-                    {
-                        i++;
-                    }
+                    var firstNonWhitespaceOffset = line.GetFirstNonWhitespaceOffset();
 
                     // Don't include all-whitespace lines in the calculation
                     // They'll be completely trimmed
-                    if (i == line.Length)
-                    {
+                    if (firstNonWhitespaceOffset == null)
                         continue;
-                    }
 
-                    maxPrefix = Math.Min(maxPrefix, i);
+                    maxPrefix = Math.Min(maxPrefix, firstNonWhitespaceOffset.Value);
                 }
 
                 if (maxPrefix == int.MaxValue)
-                {
                     return string.Empty;
-                }
 
                 using var _ = PooledStringBuilder.GetInstance(out var builder);
-                var first = true;
-                foreach (var line in lines)
+                for (var i = 0; i < lines.Length; i++)
                 {
-                    if (first)
-                    {
-                        first = false;
-                    }
-                    else
-                    {
+                    var line = lines[i];
+                    if (i != 0)
                         builder.AppendLine();
-                    }
 
                     var trimmedLine = line.TrimEnd();
                     if (trimmedLine.Length != 0)
-                    {
                         builder.Append(trimmedLine, maxPrefix, trimmedLine.Length - maxPrefix);
-                    }
                 }
 
                 return builder.ToString();
