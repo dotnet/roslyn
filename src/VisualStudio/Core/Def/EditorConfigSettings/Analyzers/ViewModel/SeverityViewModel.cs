@@ -20,11 +20,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
 
         private readonly int _selectedSeverityIndex;
 
-        private string? _selectedSeverityValue;
-
         private readonly AnalyzerSetting _setting;
 
         public string[] Severities => s_severities;
+
+        private string? _selectedSeverityValue;
 
         public string SelectedSeverityValue
         {
