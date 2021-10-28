@@ -4799,6 +4799,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                         defaultArguments = indexer.DefaultArguments;
                         expanded = indexer.Expanded;
 
+                        // If this is not for a new instance and any of the arguments is an interpolated string handler that takes the receiver
+                        // as an argument for creation, we disallow this. During lowering, indexer arguments are evaluated before the receiver
+                        // for this scenario, and we therefore can't get the receiver at the point it will be needed for the constructor.
+                        if (!implicitReceiver.IsNewInstance)
+                        {
+                            foreach (var argument in arguments)
+                            {
+                                if (argument is BoundConversion { Conversion.IsInterpolatedStringHandler: true, Operand: var operand })
+                                {
+                                    var handlerPlaceholders = operand switch
+                                    {
+                                        BoundBinaryOperator { InterpolatedStringHandlerData: { } data } => data.ArgumentPlaceholders,
+                                        BoundInterpolatedString { InterpolationData: { } data } => data.ArgumentPlaceholders,
+                                        _ => throw ExceptionUtilities.UnexpectedValue(operand.Kind)
+                                    };
+
+                                    if (handlerPlaceholders.Any(placeholder => placeholder.ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.InstanceParameter))
+                                    {
+                                        diagnostics.Add(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInNestedObjectInitializers, argument.Syntax.Location);
+                                        hasErrors = true;
+                                    }
+                                }
+                            }
+                        }
+
                         break;
                     }
 
