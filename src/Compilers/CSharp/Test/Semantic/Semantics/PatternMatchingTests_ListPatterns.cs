@@ -3495,9 +3495,6 @@ class C
         // Note: we don't try to explain nested slice patterns right now so all these just produce a fallback example
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyEmitDiagnostics(
-                // (20,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-                //         _ = this switch // we didn't test for [.. null] but we're looking for an example with Length=1. // 1
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(20, 18),
                 // (27,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
                 //         _ = this switch // didn't test for [.. [not null]] // // 2
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(27, 18),
@@ -3510,9 +3507,6 @@ class C
                 // (46,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
                 //         _ = this switch // didn't test for [_, .. null, _, _, _] // we're trying to construct an example with Length=4, the slice may not be null // 5
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(46, 18),
-                // (52,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-                //         _ = this switch // we should consider this switch exhaustive // 6
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(52, 18),
                 // (58,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
                 //         _ = this switch // didn't test for [_, .. [_, null], _] // 7
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(58, 18),
@@ -3521,10 +3515,7 @@ class C
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(64, 18),
                 // (70,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
                 //         _ = this switch // didn't test for [_, .. [_, null, _], _] // 9
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(70, 18),
-                // (76,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-                //         _ = this switch // didn't test for [.. null, _] // we're trying to construct an example with Length=1 but a null slice // 10
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(76, 18)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(70, 18)
             );
     }
 
@@ -4895,45 +4886,70 @@ class C
             { Length: not 1 }  => 0,
             [<0, ..] => 0,
             [..[>= 0]] or [..null] => 1,
-            [_] => 2, // unreachable
+            [_] => 2, // unreachable 1
         };
-        _ = a switch // exhaustive
+        _ = a switch 
         {
             { Length: not 1 }  => 0,
             [<0, ..] => 0,
             [..[>= 0]] => 1,
-            [_] => 2,
+            [_] => 2,  // unreachable 2
         };
     }
 }" + TestSources.GetSubArray;
         var comp = CreateCompilationWithIndexAndRange(src);
         comp.VerifyEmitDiagnostics(
-            // (11,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-            //             [_] => 2, // unreachable
-            Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[_]").WithLocation(11, 13));
+                // (11,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             [_] => 2, // unreachable
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[_]").WithLocation(11, 13),
+                // (18,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             [_] => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[_]").WithLocation(18, 13)
+                );
 
-        VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-
-@"[0]: t0 != null ? [1] : [12]
+        AssertEx.Multiple(
+            () => VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 != null ? [1] : [11]
 [1]: t1 = t0.Length; [2]
-[2]: t1 == 1 ? [3] : [11]
+[2]: t1 == 1 ? [3] : [10]
 [3]: t2 = t0[0]; [4]
 [4]: t2 < 0 ? [5] : [6]
 [5]: leaf <arm> `[<0, ..] => 0`
 [6]: t3 = DagSliceEvaluation(t0); [7]
-[7]: t3 != null ? [8] : [10]
-[8]: t4 = t3.Length; [9]
-[9]: t5 = t3[0]; [10]
-[10]: leaf <arm> `[..[>= 0]] or [..null] => 1`
-[11]: leaf <arm> `{ Length: not 1 }  => 0`
-[12]: leaf <default> `a switch
+[7]: t4 = t3.Length; [8]
+[8]: t5 = t3[0]; [9]
+[9]: leaf <arm> `[..[>= 0]] or [..null] => 1`
+[10]: leaf <arm> `{ Length: not 1 }  => 0`
+[11]: leaf <default> `a switch
         {
             { Length: not 1 }  => 0,
             [<0, ..] => 0,
             [..[>= 0]] or [..null] => 1,
-            [_] => 2, // unreachable
+            [_] => 2, // unreachable 1
         }`
-");
+", index: 0),
+
+            () => VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 != null ? [1] : [11]
+[1]: t1 = t0.Length; [2]
+[2]: t1 == 1 ? [3] : [10]
+[3]: t2 = t0[0]; [4]
+[4]: t2 < 0 ? [5] : [6]
+[5]: leaf <arm> `[<0, ..] => 0`
+[6]: t3 = DagSliceEvaluation(t0); [7]
+[7]: t4 = t3.Length; [8]
+[8]: t5 = t3[0]; [9]
+[9]: leaf <arm> `[..[>= 0]] => 1`
+[10]: leaf <arm> `{ Length: not 1 }  => 0`
+[11]: leaf <default> `a switch 
+        {
+            { Length: not 1 }  => 0,
+            [<0, ..] => 0,
+            [..[>= 0]] => 1,
+            [_] => 2,  // unreachable 2
+        }`
+", index: 1)
+        );
     }
 
     [Fact]
@@ -5380,54 +5396,41 @@ class C
     }
 
     [Theory]
-    [CombinatorialData]
+    [PairwiseData]
     public void Subsumption_Slice_00(
-        [CombinatorialValues(
-                "[1,2,3]",
-                "[1,2,3,..[]]",
-                "[1,2,..[],3]",
-                "[1,..[],2,3]",
-                "[..[],1,2,3]",
-                "[1,..[2,3]]",
-                "[..[1,2],3]",
-                "[..[1,2,3]]",
-                "[..[..[1,2,3]]]",
-                "[..[1,2,3,..[]]]",
-                "[..[1,2,..[],3]]",
-                "[..[1,..[],2,3]]",
-                "[..[..[],1,2,3]]",
-                "[..[1,..[2,3]]]",
-                "[..[..[1,2],3]]",
-                "[1, ..[2], 3]",
-                "[1, ..[2, ..[3]]]",
-                "[1, ..[2, ..[], 3]]")]
-            string case1,
-        [CombinatorialValues(
-                "[1,2,3]",
-                "[1,2,3,..[]]",
-                "[1,2,..[],3]",
-                "[1,..[],2,3]",
-                "[..[],1,2,3]",
-                "[1,..[2,3]]",
-                "[..[1,2],3]",
-                "[..[1,2,3]]",
-                "[..[..[1,2,3]]]",
-                "[..[1,2,3,..[]]]",
-                "[..[1,2,..[],3]]",
-                "[..[1,..[],2,3]]",
-                "[..[..[],1,2,3]]",
-                "[..[1,..[2,3]]]",
-                "[..[..[1,2],3]]",
-                "[1, ..[2], 3]",
-                "[1, ..[2, ..[3]]]",
-                "[1, ..[2, ..[], 3]]")]
-            string case2)
+        [CombinatorialRange(0, 18)] int c1,
+        [CombinatorialRange(0, 18)] int c2,
+        [CombinatorialValues("System.Span<int>", "int[]")] string type)
     {
+        var cases = new string[18]
+        {
+           "[1,2,3]",
+           "[1,2,3,..[]]",
+           "[1,2,..[],3]",
+           "[1,..[],2,3]",
+           "[..[],1,2,3]",
+           "[1,..[2,3]]",
+           "[..[1,2],3]",
+           "[..[1,2,3]]",
+           "[..[..[1,2,3]]]",
+           "[..[1,2,3,..[]]]",
+           "[..[1,2,..[],3]]",
+           "[..[1,..[],2,3]]",
+           "[..[..[],1,2,3]]",
+           "[..[1,..[2,3]]]",
+           "[..[..[1,2],3]]",
+           "[1, ..[2], 3]",
+           "[1, ..[2, ..[3]]]",
+           "[1, ..[2, ..[], 3]]"
+        };
+
+        var case1 = cases[c1];
+        var case2 = cases[c2];
+
         var src = @"
-using System;
 class C
 {
-    void Test(Span<int> a)
+    void Test(" + type + @" a)
     {
         switch (a)
         {
@@ -5437,10 +5440,10 @@ class C
         }
     }
 }";
-        var comp = CreateCompilationWithIndexAndRangeAndSpan(src, parseOptions: TestOptions.RegularWithListPatterns);
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { src, TestSources.GetSubArray }, parseOptions: TestOptions.RegularWithListPatterns);
         comp.VerifyEmitDiagnostics(
-            // (10,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
-            Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, case2).WithLocation(10, 18)
+            // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+            Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, case2).WithLocation(9, 18)
             );
     }
 
@@ -5464,6 +5467,42 @@ class C
             // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
             //             case [..[var v]]: break;
             Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[..[var v]]").WithLocation(9, 18));
+    }
+
+    [Fact]
+    public void Subsumption_Slice_02()
+    {
+        var source = @"
+using System;
+
+IOuter outer = null;
+switch (outer)
+{
+    case [..[..[10],20]]:
+        break;
+    case [..[10],20]: // 1
+        break;
+}
+
+interface IOuter
+{
+    int Length { get; }
+    IInner Slice(int a, int b);
+    object this[int i] { get; }
+}
+interface IInner
+{
+   int Count { get; }
+   IOuter this[Range r] { get; }
+   object this[Index i] { get; }
+}
+";
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray }, options: TestOptions.DebugExe);
+        comp.VerifyEmitDiagnostics(
+                // (9,10): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //     case [..[10],20]: // 1
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[..[10],20]").WithLocation(9, 10)
+                );
     }
 
     [Fact]
