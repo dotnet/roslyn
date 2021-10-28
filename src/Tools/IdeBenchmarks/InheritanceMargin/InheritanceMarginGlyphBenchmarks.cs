@@ -61,16 +61,13 @@ namespace IdeBenchmarks.InheritanceMargin
         }
 
         [GlobalSetup]
-        public void Setup()
-        {
-            SetupWpfApplicaitonAsync().Wait();
-        }
+        public Task SetupAsync() => SetupWpfApplicaitonAsync();
 
         [IterationSetup]
-        public void IterationSetup()
+        public Task IterationSetupAsync()
         {
             _useExportProviderAttribute.Before(null);
-            PrepareGlyphRequiredDataAsync(CancellationToken.None).Wait();
+            return PrepareGlyphRequiredDataAsync(CancellationToken.None);
         }
 
         [IterationCleanup]

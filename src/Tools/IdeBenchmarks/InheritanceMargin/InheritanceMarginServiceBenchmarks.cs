@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
@@ -42,19 +43,18 @@ namespace IdeBenchmarks.InheritanceMargin
             _useExportProviderAttribute.Before(null);
 
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            var solutionPath = Path.Combine(roslynRoot, "Compilers.sln");
+            var solutionPath = Path.Combine(roslynRoot, @"src\Tools\IdeCoreBenchmarks\Assets\Microsoft.CodeAnalysis.sln");
 
             if (!File.Exists(solutionPath))
-                throw new ArgumentException("Couldn't find Compilers.sln");
+                throw new ArgumentException("Couldn't find solution.");
 
-            Console.WriteLine("Found Compilers.sln");
+            Console.WriteLine("Found solution.");
             var assemblies = MSBuildMefHostServices.DefaultAssemblies
                 .AddRange(EditorTestCompositions.EditorFeatures.Assemblies)
                 .Distinct();
 
             var hostService = MefHostServices.Create(assemblies);
             var workspace = MSBuildWorkspace.Create(hostService);
-            Console.WriteLine("Created workspace");
             _solution = workspace.OpenSolutionAsync(solutionPath).Result;
         }
 
@@ -65,11 +65,11 @@ namespace IdeBenchmarks.InheritanceMargin
         }
 
         [Benchmark]
-        public void BenchmarkInheritanceMarginService()
+        public async Task BenchmarkInheritanceMarginServiceAsync()
         {
-            var items = BenchmarksHelpers.GenerateInheritanceMarginItemsAsync(
+            var items = await BenchmarksHelpers.GenerateInheritanceMarginItemsAsync(
                            _solution,
-                           CancellationToken.None).Result;
+                           CancellationToken.None).ConfigureAwait(false);
             Console.WriteLine($"Total {items.Length} items are generated.");
         }
     }
