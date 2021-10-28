@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
                     // The current project dependent version does not match the last reported.  This may be because we've forked
                     // or reloaded a project, so fall back to calculating project checksums to determine if anything is actually changed.
-                    var aggregateChecksum = await GetOrCalculateProjectDependentChecksumAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                    var aggregateChecksum = await GetDependentChecksumAsync(document.Project, cancellationToken).ConfigureAwait(false);
                     if (lastResult.projectDependentChecksum == aggregateChecksum)
                     {
                         // Checksums match which means content has not changed and we do not need to re-calculate.
@@ -318,13 +318,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 // Note that we can safely update the map before computation as any cancellation or exception
                 // during computation means that the client will never recieve this resultId and so cannot ask us for it.
                 var newResultId = $"{GetType().Name}:{_nextDocumentResultId++}";
-                var currentProjectDependentChecksum = await GetOrCalculateProjectDependentChecksumAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                var currentProjectDependentChecksum = await GetDependentChecksumAsync(document.Project, cancellationToken).ConfigureAwait(false);
                 _documentIdToLastResult[(document.Project.Solution.Workspace, document.Id)] = (newResultId, currentProjectDependentVersion, currentProjectDependentChecksum);
                 return newResultId;
 
-                async Task<Checksum> GetOrCalculateProjectDependentChecksumAsync(Project project, CancellationToken cancellationToken)
+                async Task<Checksum> GetDependentChecksumAsync(Project project, CancellationToken cancellationToken)
                 {
-                    var aggregateChecksum = _projectToProjectDependentChecksum.GetValue(project, p => new AsyncLazy<Checksum>(c => CalculateDependentProjectChecksumAsync(p, c), cacheResult: true));
+                    var aggregateChecksum = _projectToProjectDependentChecksum.GetValue(project, static p => new AsyncLazy<Checksum>(c => CalculateDependentProjectChecksumAsync(p, c), cacheResult: true));
                     return await aggregateChecksum.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // Calculate a checksum this project and for each dependent project that could affect diagnostics for this project.
             // Ensure that the checksum calculation orders the projects consistently so that order changes (like unload / reload) don't change checksums.
             var transitiveDependencies = project.Solution.GetProjectDependencyGraph().GetProjectsThatThisProjectTransitivelyDependsOn(project.Id);
-            var orderedProjectIds = transitiveDependencies.Add(project.Id).OrderBy(p => p.Id).ToImmutableArray();
+            var orderedProjectIds = transitiveDependencies.Add(project.Id).OrderBy(p => p.Id);
             foreach (var projectId in orderedProjectIds)
             {
                 var referencedProject = project.Solution.GetRequiredProject(projectId);
