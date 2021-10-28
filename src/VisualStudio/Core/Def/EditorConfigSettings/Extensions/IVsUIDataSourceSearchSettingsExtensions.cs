@@ -54,6 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.SearchSet
         /// </summary>
         public static void ForwardEnterKeyOnSearchStart(this IVsUIDataSource source, bool value)
             => SetBoolValue(source, SearchSettingsDataSource.PropertyNames.ForwardEnterKeyOnSearchStart, value);
+            
         /// <summary>
         /// Sets whether the search button is visible in the search control. 
         /// Default=True.
