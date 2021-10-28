@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -210,8 +211,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 }
             }
 
-            protected override void InlineAllDelegateAnonymousTypes()
+            protected override void InlineAllDelegateAnonymousTypes(SemanticModel semanticModel, int position, IStructuralTypeDisplayService structuralTypeDisplayService, Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> groupMap)
             {
+                // In C#, anonymous delegates are typically represented with System.Action<> or System.Func<>,
+                // and we prefer to display those types rather than a structural delegate type.
             }
 
             protected override SymbolDisplayFormat MinimallyQualifiedFormat => s_minimallyQualifiedFormat;
