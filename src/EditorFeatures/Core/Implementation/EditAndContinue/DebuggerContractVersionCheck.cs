@@ -4,7 +4,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using Microsoft.VisualStudio.Debugger.Contracts;
+using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
