@@ -158,6 +158,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         public StackFrameTrivia? TryScanAtTrivia()
             // TODO: Handle multiple languages? Right now we're going to only parse english
             => TryScanStringTrivia("at ", StackFrameKind.AtTrivia);
+
         public StackFrameTrivia? TryScanInTrivia()
             // TODO: Handle multiple languages? Right now we're going to only parse english
             => TryScanStringTrivia(" in ", StackFrameKind.InTrivia);
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             if (startPosition == Position)
             {
-                return CreateToken(StackFrameKind.None, ImmutableArray.Create(inTrivia.Value), VirtualCharSequence.Empty);
+                return CreateToken(StackFrameKind.InvalidPathToken, ImmutableArray.Create(inTrivia.Value), VirtualCharSequence.Empty);
             }
 
             return CreateToken(StackFrameKind.PathToken, ImmutableArray.Create(inTrivia.Value), GetSubSequenceToCurrentPos(startPosition));

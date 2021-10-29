@@ -14,6 +14,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         where TSyntaxNode : EmbeddedSyntaxNode<TSyntaxKind, TSyntaxNode>
         where TList : EmbeddedSeparatedSyntaxNodeList<TSyntaxKind, TSyntaxNode, TList>
     {
+        public ImmutableArray<EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>> NodesAndTokens { get; }
+        public int Length { get; }
+        public int SeparatorLength { get; }
+
         public EmbeddedSeparatedSyntaxNodeList(ImmutableArray<EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>> nodesAndTokens)
         {
             Contract.ThrowIfTrue(nodesAndTokens.IsDefault);
@@ -50,14 +54,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             }
         }
 
-        public ImmutableArray<EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>> NodesAndTokens { get; }
-        public int Length { get; }
-        public int SeparatorLength { get; }
 
         /// <summary>
         /// Retrieves only nodes, skipping the separator tokens
         /// </summary>
-        public EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode> this[int index]
+        public TSyntaxNode this[int index]
         {
             get
             {
@@ -65,7 +66,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
                 {
                     // x2 here to get only even indexed numbers. Follows same logic 
                     // as SeparatedSyntaxList in that the separator tokens are not returned
-                    return NodesAndTokens[index * 2];
+                    var nodeOrToken = NodesAndTokens[index * 2];
+                    Debug.Assert(nodeOrToken.IsNode);
+                    return nodeOrToken.Node;
                 }
 
                 throw new ArgumentOutOfRangeException(nameof(index));

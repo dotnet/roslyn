@@ -57,21 +57,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 
         public static readonly StackFrameParameterList EmptyParams = ParameterList(OpenParenToken, CloseParenToken);
 
-        public static StackFrameParameterNode Parameter(StackFrameNameNode type, StackFrameToken identifier)
+        public static StackFrameParameterDeclarationNode Parameter(StackFrameNameNode type, StackFrameToken identifier)
             => new(type, identifier);
 
-        public static StackFrameParameterList ParameterList(params StackFrameParameterNode[] parameters)
+        public static StackFrameParameterList ParameterList(params StackFrameParameterDeclarationNode[] parameters)
             => ParameterList(OpenParenToken, CloseParenToken, parameters);
 
-        public static StackFrameParameterList ParameterList(StackFrameToken openToken, StackFrameToken closeToken, params StackFrameParameterNode[] parameters)
+        public static StackFrameParameterList ParameterList(StackFrameToken openToken, StackFrameToken closeToken, params StackFrameParameterDeclarationNode[] parameters)
         {
             var separatedList = parameters.Length == 0
-                ? SeparatedStackFrameNodeList<StackFrameParameterNode>.Empty
+                ? SeparatedStackFrameNodeList<StackFrameParameterDeclarationNode>.Empty
                 : new(CommaSeparateList(parameters));
 
             return new(openToken, separatedList, closeToken);
 
-            static ImmutableArray<StackFrameNodeOrToken> CommaSeparateList(StackFrameParameterNode[] parameters)
+            static ImmutableArray<StackFrameNodeOrToken> CommaSeparateList(StackFrameParameterDeclarationNode[] parameters)
             {
                 var builder = ImmutableArray.CreateBuilder<StackFrameNodeOrToken>();
                 builder.Add(parameters[0]);

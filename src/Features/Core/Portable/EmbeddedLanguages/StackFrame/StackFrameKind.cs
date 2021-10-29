@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         ForwardSlashToken,
         IdentifierToken,
         PathToken,
+        InvalidPathToken,
         NumberToken,
 
         // Trivia

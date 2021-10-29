@@ -169,20 +169,20 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// <summary>
         /// The "`" token in arity identifiers. Must be <see cref="StackFrameKind.GraveAccentToken"/>
         /// </summary>
-        public readonly StackFrameToken ArityToken;
+        public readonly StackFrameToken GraveAccentToken;
 
-        public readonly StackFrameToken ArityNumericToken;
+        public readonly StackFrameToken NumberToken;
 
         internal override int ChildCount => 3;
 
-        public StackFrameGenericNameNode(StackFrameToken identifier, StackFrameToken arityToken, StackFrameToken arityNumericToken)
+        public StackFrameGenericNameNode(StackFrameToken identifier, StackFrameToken graveAccentToken, StackFrameToken numberToken)
             : base(identifier, StackFrameKind.GenericTypeIdentifier)
         {
-            Debug.Assert(arityToken.Kind == StackFrameKind.GraveAccentToken);
-            Debug.Assert(arityNumericToken.Kind == StackFrameKind.NumberToken);
+            Debug.Assert(graveAccentToken.Kind == StackFrameKind.GraveAccentToken);
+            Debug.Assert(numberToken.Kind == StackFrameKind.NumberToken);
 
-            ArityToken = arityToken;
-            ArityNumericToken = arityNumericToken;
+            GraveAccentToken = graveAccentToken;
+            NumberToken = numberToken;
         }
 
         public override void Accept(IStackFrameNodeVisitor visitor)
@@ -192,8 +192,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             => index switch
             {
                 0 => Identifier,
-                1 => ArityToken,
-                2 => ArityNumericToken,
+                1 => GraveAccentToken,
+                2 => NumberToken,
                 _ => throw new InvalidOperationException()
             };
     }
@@ -333,14 +333,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         }
     }
 
-    internal sealed class StackFrameParameterNode : StackFrameDeclarationNode
+    internal sealed class StackFrameParameterDeclarationNode : StackFrameDeclarationNode
     {
         public readonly StackFrameNameNode Type;
         public readonly StackFrameToken Identifier;
 
         internal override int ChildCount => 2;
 
-        public StackFrameParameterNode(StackFrameNameNode type, StackFrameToken identifier)
+        public StackFrameParameterDeclarationNode(StackFrameNameNode type, StackFrameToken identifier)
             : base(StackFrameKind.Parameter)
         {
             Debug.Assert(identifier.Kind == StackFrameKind.IdentifierToken);
@@ -363,10 +363,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     internal sealed class StackFrameParameterList : StackFrameNode
     {
         public readonly StackFrameToken OpenParen;
-        public readonly SeparatedStackFrameNodeList<StackFrameParameterNode> Parameters;
+        public readonly SeparatedStackFrameNodeList<StackFrameParameterDeclarationNode> Parameters;
         public readonly StackFrameToken CloseParen;
 
-        public StackFrameParameterList(StackFrameToken openToken, SeparatedStackFrameNodeList<StackFrameParameterNode> parameters, StackFrameToken closeToken)
+        public StackFrameParameterList(StackFrameToken openToken, SeparatedStackFrameNodeList<StackFrameParameterDeclarationNode> parameters, StackFrameToken closeToken)
             : base(StackFrameKind.ParameterList)
         {
             Debug.Assert(openToken.Kind == StackFrameKind.OpenParenToken);
