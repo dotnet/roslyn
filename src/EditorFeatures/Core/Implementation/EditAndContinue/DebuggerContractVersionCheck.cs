@@ -4,7 +4,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.VisualStudio.Debugger.Contracts;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
