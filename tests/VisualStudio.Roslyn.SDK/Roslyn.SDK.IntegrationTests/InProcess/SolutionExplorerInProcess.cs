@@ -135,12 +135,12 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>();
-            var solution = (EnvDTE80.Solution2)dte.Solution;
-            var solutionFullName = solution.FullName;
-            var solutionFileFullPath = string.IsNullOrEmpty(solutionFullName)
-                ? throw new InvalidOperationException()
-                : solutionFullName;
+            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>();
+            ErrorHandler.ThrowOnFailure(solution.GetSolutionInfo(out _, out var solutionFileFullPath, out _));
+            if (string.IsNullOrEmpty(solutionFileFullPath))
+            {
+                throw new InvalidOperationException();
+            }
 
             return Path.GetDirectoryName(solutionFileFullPath);
         }
@@ -149,8 +149,8 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>();
-            var localeID = dte.LocaleID;
+            var hostLocale = await GetRequiredGlobalServiceAsync<SUIHostLocale, IUIHostLocale>();
+            ErrorHandler.ThrowOnFailure(hostLocale.GetUILocale(out var localeID));
 
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
             builder[WellKnownProjectTemplates.ClassLibrary] = $@"Windows\{localeID}\ClassLibrary.zip";
@@ -166,8 +166,8 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>();
-            var localeID = dte.LocaleID;
+            var hostLocale = await GetRequiredGlobalServiceAsync<SUIHostLocale, IUIHostLocale>();
+            ErrorHandler.ThrowOnFailure(hostLocale.GetUILocale(out var localeID));
 
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
             builder[WellKnownProjectTemplates.ClassLibrary] = $@"Windows\{localeID}\ClassLibrary.zip";

@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.Testing
             await base.DisposeAsync();
         }
 
-        [VsFact]
+        [IdeFact(MinVersion = TestVersion, MaxVersion = TestVersion)]
         public async Task CreateFromTemplateAsync()
         {
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests));
-            await TestServices.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.ClassLibrary, languageName: LanguageNames.CSharp);
+            await TestServices.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.CSharpNetCoreClassLibrary, languageName: LanguageNames.CSharp);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
             await TestServices.Editor.SetTextAsync(@"using System");
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.Equal(1, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR));
         }
 
-        [VsFact]
+        [IdeFact(MinVersion = TestVersion, MaxVersion = TestVersion)]
         public async Task CreateAnalyzerFromCSharpTemplateAsync()
         {
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests));
@@ -61,13 +61,11 @@ namespace Microsoft.CodeAnalysis.Testing
 
             // Currently have two analyzer warnings in the template.
             var warnings = await TestServices.ErrorList.GetBuildErrorsAsync(__VSERRORCATEGORY.EC_WARNING);
-            var expected = @"(Compiler) TestProjAnalyzer.cs(29, 57): warning RS1025: Configure generated code analysis
-(Compiler) TestProjAnalyzer.cs(29, 57): warning RS1026: Enable concurrent execution";
-            new XUnitVerifier().EqualOrDiff(expected, string.Join(Environment.NewLine, warnings));
-            Assert.Equal(2, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));
+            new XUnitVerifier().EqualOrDiff(string.Empty, string.Join(Environment.NewLine, warnings));
+            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));
         }
 
-        [VsFact]
+        [IdeFact(MinVersion = TestVersion, MaxVersion = TestVersion)]
         public async Task CreateRefactoringFromCSharpTemplateAsync()
         {
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests));
@@ -83,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));
         }
 
-        [VsFact]
+        [IdeFact(MinVersion = TestVersion, MaxVersion = TestVersion)]
         public async Task CreateStandaloneToolFromCSharpTemplateAsync()
         {
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests));
@@ -99,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));
         }
 
-        [VsFact]
+        [IdeFact(MinVersion = TestVersion, MaxVersion = TestVersion)]
         public async Task CreateAnalyzerFromVisualBasicTemplateAsync()
         {
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests));
@@ -117,13 +115,11 @@ namespace Microsoft.CodeAnalysis.Testing
 
             // Currently have two analyzer warnings in the template.
             var warnings = await TestServices.ErrorList.GetBuildErrorsAsync(__VSERRORCATEGORY.EC_WARNING);
-            var expected = @"(Compiler) TestProjAnalyzer.vb(32, 37): warning RS1025: Configure generated code analysis
-(Compiler) TestProjAnalyzer.vb(32, 37): warning RS1026: Enable concurrent execution";
-            new XUnitVerifier().EqualOrDiff(expected, string.Join(Environment.NewLine, warnings));
-            Assert.Equal(2, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));
+            new XUnitVerifier().EqualOrDiff(string.Empty, string.Join(Environment.NewLine, warnings));
+            Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));
         }
 
-        [VsFact]
+        [IdeFact(MinVersion = TestVersion, MaxVersion = TestVersion)]
         public async Task CreateRefactoringFromVisualBasicTemplateAsync()
         {
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests));
@@ -139,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));
         }
 
-        [VsFact]
+        [IdeFact(MinVersion = TestVersion, MaxVersion = TestVersion)]
         public async Task CreateStandaloneToolFromVisualBasicTemplateAsync()
         {
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests));
