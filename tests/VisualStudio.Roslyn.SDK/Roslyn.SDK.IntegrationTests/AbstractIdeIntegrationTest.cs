@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <summary>
         /// A long timeout used to avoid hangs in tests, where a test failure manifests as an operation never occurring.
         /// </summary>
-        public static readonly TimeSpan HangMitigatingTimeout = TimeSpan.FromMinutes(1);
+        public static readonly TimeSpan HangMitigatingTimeout = TimeSpan.FromMinutes(4);
 
         private JoinableTaskContext? _joinableTaskContext;
         private JoinableTaskCollection? _joinableTaskCollection;
