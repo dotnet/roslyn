@@ -30,19 +30,5 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             VirtualChars = virtualChars;
             Diagnostics = diagnostics;
         }
-
-        public override bool Equals(object? obj)
-            => obj is EmbeddedSyntaxTrivia<TSyntaxKind> trivia && this == trivia;
-
-        public override int GetHashCode()
-            => Hash.Combine(Kind.GetHashCode(),
-               Hash.Combine(VirtualChars.GetHashCode(), Diagnostics.GetHashCode()));
-
-        public static bool operator ==(EmbeddedSyntaxTrivia<TSyntaxKind> t1, EmbeddedSyntaxTrivia<TSyntaxKind> t2)
-            => t1.Kind.Equals(t2.Kind)
-                && t1.VirtualChars.Equals(t2.VirtualChars);
-
-        public static bool operator !=(EmbeddedSyntaxTrivia<TSyntaxKind> t1, EmbeddedSyntaxTrivia<TSyntaxKind> t2)
-            => !(t1 == t2);
     }
 }

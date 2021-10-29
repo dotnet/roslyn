@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
                 {
                     // All odd values should be separator tokens 
                     Debug.Assert(!NodesAndTokens[i].IsNode);
-                    Debug.Assert(NodesAndTokens[i].Token != default);
                 }
             }
         }
