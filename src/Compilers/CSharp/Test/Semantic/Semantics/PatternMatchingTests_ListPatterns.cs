@@ -4620,25 +4620,23 @@ class C
         CompileAndVerify(comp, expectedOutput: expectedOutput);
 
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
-@"[0]: t0 != null ? [1] : [18]
+@"[0]: t0 != null ? [1] : [16]
 [1]: t1 = t0.Length; [2]
-[2]: t1 == 3 ? [3] : [12]
+[2]: t1 == 3 ? [3] : [10]
 [3]: t2 = t0[0]; [4]
-[4]: t2 == 1 ? [5] : [18]
+[4]: t2 == 1 ? [5] : [16]
 [5]: t3 = t0[1]; [6]
-[6]: t3 == 2 ? [7] : [15]
+[6]: t3 == 2 ? [7] : [13]
 [7]: t4 = t0[2]; [8]
-[8]: t4 == 3 ? [9] : [10]
+[8]: t4 == 3 ? [9] : [16]
 [9]: leaf `case [1, 2, 3]:`
-[10]: t5 = t0[-1]; [11]
-[11]: t5 <-- t4; [18]
-[12]: t1 >= 2 ? [13] : [18]
-[13]: t2 = t0[0]; [14]
-[14]: t2 == 1 ? [15] : [18]
-[15]: t5 = t0[-1]; [16]
-[16]: t5 == 3 ? [17] : [18]
-[17]: leaf `case [1, .., 3]:`
-[18]: leaf `default`
+[10]: t1 >= 2 ? [11] : [16]
+[11]: t2 = t0[0]; [12]
+[12]: t2 == 1 ? [13] : [16]
+[13]: t5 = t0[-1]; [14]
+[14]: t5 == 3 ? [15] : [16]
+[15]: leaf `case [1, .., 3]:`
+[16]: leaf `default`
 ");
     }
 
@@ -4675,19 +4673,17 @@ class C
         CompileAndVerify(comp, expectedOutput: expectedOutput);
 
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
-@"[0]: t0 != null ? [1] : [12]
+@"[0]: t0 != null ? [1] : [10]
 [1]: t1 = t0.Length; [2]
-[2]: t1 == 1 ? [3] : [8]
+[2]: t1 == 1 ? [3] : [6]
 [3]: t2 = t0[0]; [4]
-[4]: t2 == 42 ? [5] : [6]
+[4]: t2 == 42 ? [5] : [10]
 [5]: leaf `case [42]:`
-[6]: t3 = t0[-1]; [7]
-[7]: t3 <-- t2; [12]
-[8]: t1 >= 1 ? [9] : [12]
-[9]: t3 = t0[-1]; [10]
-[10]: t3 == 42 ? [11] : [12]
-[11]: leaf `case [..,42]:`
-[12]: leaf `default`
+[6]: t1 >= 1 ? [7] : [10]
+[7]: t3 = t0[-1]; [8]
+[8]: t3 == 42 ? [9] : [10]
+[9]: leaf `case [..,42]:`
+[10]: leaf `default`
 ");
     }
 
@@ -4918,20 +4914,19 @@ class C
 
         VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
 
-@"[0]: t0 != null ? [1] : [13]
+@"[0]: t0 != null ? [1] : [12]
 [1]: t1 = t0.Length; [2]
-[2]: t1 == 1 ? [3] : [12]
+[2]: t1 == 1 ? [3] : [11]
 [3]: t2 = t0[0]; [4]
 [4]: t2 < 0 ? [5] : [6]
 [5]: leaf <arm> `[<0, ..] => 0`
 [6]: t3 = DagSliceEvaluation(t0); [7]
-[7]: t3 != null ? [8] : [11]
+[7]: t3 != null ? [8] : [10]
 [8]: t4 = t3.Length; [9]
 [9]: t5 = t3[0]; [10]
-[10]: t5 <-- t2; [11]
-[11]: leaf <arm> `[..[>= 0]] or [..null] => 1`
-[12]: leaf <arm> `{ Length: not 1 }  => 0`
-[13]: leaf <default> `a switch
+[10]: leaf <arm> `[..[>= 0]] or [..null] => 1`
+[11]: leaf <arm> `{ Length: not 1 }  => 0`
+[12]: leaf <default> `a switch
         {
             { Length: not 1 }  => 0,
             [<0, ..] => 0,
@@ -5043,34 +5038,33 @@ class C
             Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[[42]]").WithLocation(9, 18));
 
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
-@"[0]: t0 != null ? [1] : [27]
+@"[0]: t0 != null ? [1] : [26]
 [1]: t1 = t0.Length; [2]
-[2]: t1 >= 1 ? [3] : [27]
+[2]: t1 >= 1 ? [3] : [26]
 [3]: t2 = t0[-1]; [4]
-[4]: t2 != null ? [5] : [24]
+[4]: t2 != null ? [5] : [23]
 [5]: t3 = t2.Length; [6]
-[6]: t3 >= 1 ? [7] : [19]
+[6]: t3 >= 1 ? [7] : [18]
 [7]: t4 = t2[-1]; [8]
 [8]: t4 == 42 ? [9] : [10]
 [9]: leaf `case [.., [.., 42]]:`
-[10]: t1 == 1 ? [11] : [27]
+[10]: t1 == 1 ? [11] : [26]
 [11]: t5 = t0[0]; [12]
 [12]: t5 <-- t2; [13]
 [13]: t7 = t5.Length; [14]
 [14]: t7 <-- t3; [15]
-[15]: t7 == 1 ? [16] : [27]
+[15]: t7 == 1 ? [16] : [26]
 [16]: t9 = t5[0]; [17]
-[17]: t3 <-- t7; [18]
-[18]: t9 <-- t4; [27]
-[19]: t1 == 1 ? [20] : [27]
-[20]: t5 = t0[0]; [21]
-[21]: t5 <-- t2; [22]
-[22]: t7 = t5.Length; [23]
-[23]: t7 <-- t3; [27]
-[24]: t1 == 1 ? [25] : [27]
-[25]: t5 = t0[0]; [26]
-[26]: t5 <-- t2; [27]
-[27]: leaf <break> `switch (a)
+[17]: t9 <-- t4; [26]
+[18]: t1 == 1 ? [19] : [26]
+[19]: t5 = t0[0]; [20]
+[20]: t5 <-- t2; [21]
+[21]: t7 = t5.Length; [22]
+[22]: t7 <-- t3; [26]
+[23]: t1 == 1 ? [24] : [26]
+[24]: t5 = t0[0]; [25]
+[25]: t5 <-- t2; [26]
+[26]: leaf <break> `switch (a)
         {
             case [.., [.., 42]]:
             case [[42]]:
@@ -5111,6 +5105,278 @@ class C
 ";
         var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact]
+    [WorkItem(51192, "https://github.com/dotnet/roslyn/issues/51192")]
+    public void Subsumption_17()
+    {
+        var source =
+@"using System;
+public class X
+{
+    public static void Main()
+    {
+        object[] o = null;
+        switch (o)
+        {
+            case [.., I1 and Base]:
+                break;
+            case [Derived s]: // 1
+                break;
+        }
+
+        switch (o)
+        {
+            case [.., Base and I1]:
+                break;
+            case [Derived s]: // 2
+                break;
+        }
+
+        switch (o)
+        {
+            case [.., Base and not null]:
+                break;
+            case [Derived s]: // 3
+                break;
+        }
+
+        switch (o) {
+            case [.., ValueType and int and 1]:
+                break;
+            case [int and 1]: // 4
+                break;
+        }
+
+        switch (o) {
+            case [.., int and 1]:
+                break;
+            case [ValueType and int and 1]: // 5
+                break;
+        }
+
+        switch (o)
+        {
+            case [.., I2 and Base]:
+                break;
+            case [Derived s]: // 6
+                break;
+        }
+
+        switch (o)
+        {
+            case [.., I2 and Base { F1: 1 }]:
+                break;
+            case [Derived { F2: 1 }]:
+                break;
+            case [Derived { P1: 1 }]:
+                break;
+            case [Derived { F1: 1 } s]: // 7
+                break;
+        }
+
+        switch (o)
+        {
+            case [.., I2 and Base { P1: 1 }]:
+                break;
+            case [Derived { F1: 1 }]:
+                break;
+            case [Derived { P2: 1 }]:
+                break;
+            case [Derived { P1: 1 } s]: // 8
+                break;
+        }
+
+        switch (o)
+        {
+            case [.., I2 and Base(1, _)]:
+                break;
+            case [Derived(2, _)]:
+                break;
+            case [Derived(1, _, _)]:
+                break;
+            case [Derived(1, _) s]: // 9
+                break;
+        }
+
+        switch (o)
+        {
+            case [.., I2 and Base { F3: (1, _) }]:
+                break;
+            case [Derived { F3: (_, 1) }]:
+                break;
+            case [Derived { F3: (1, _) } s]: // 10
+                break;
+        }
+
+        switch (o)
+        {
+            case [.., I2 and Base]:
+                break;
+            case [Base and I2]: // 11
+                break;
+        }
+
+        switch (o)
+        {
+            case [.., Base and I2]:
+                break;
+            case [I2 and Base]: // 12
+                break;
+        }
+
+        object obj = null;
+        switch (obj)
+        {
+            case I1 and Base and [.., I1 and Base]:
+                break;
+            case Derived and [Derived s]: // 13
+                break;
+        }
+
+        switch (obj)
+        {
+            case Base and I1 and [.., Base and I1]:
+                break;
+            case Derived and [Derived s]: // OK, we're calling into different indexers
+                break;
+        }
+
+        switch (obj)
+        {
+            case Base and not null and [.., Base and not null]:
+                break;
+            case Derived and [Derived s]: // 14
+                break;
+        }
+
+        object[][] a = null;
+        switch (a)
+        {
+            case [.., [.., I1 and Base]]:
+                break;
+            case [[Derived]]: // 15
+                break;
+        }
+    }
+}
+
+interface I1 : System.Collections.IList {}
+interface I2 {}
+
+class Base : System.Collections.ArrayList, I1
+{
+    public int F1 = 0;
+    public int F2 = 0;
+    public object F3 = null;
+    public int P1 {get; set;}
+    public int P2 {get; set;}
+    public void Deconstruct(out int x, out int y) => throw null;
+    public void Deconstruct(out int x, out int y, out int z) => throw null;
+}
+
+class Derived : Base, I2
+{
+}
+";
+        var compilation = CreateCompilation(new[] { source, _iTupleSource }, options: TestOptions.DebugExe);
+        compilation.VerifyDiagnostics(
+                // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [Derived s]: // 1
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[Derived s]").WithLocation(11, 18),
+                // (19,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [Derived s]: // 2
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[Derived s]").WithLocation(19, 18),
+                // (27,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [Derived s]: // 3
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[Derived s]").WithLocation(27, 18),
+                // (34,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [int and 1]: // 4
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[int and 1]").WithLocation(34, 18),
+                // (41,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [ValueType and int and 1]: // 5
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[ValueType and int and 1]").WithLocation(41, 18),
+                // (49,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [Derived s]: // 6
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[Derived s]").WithLocation(49, 18),
+                // (61,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [Derived { F1: 1 } s]: // 7
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[Derived { F1: 1 } s]").WithLocation(61, 18),
+                // (73,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [Derived { P1: 1 } s]: // 8
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[Derived { P1: 1 } s]").WithLocation(73, 18),
+                // (85,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [Derived(1, _) s]: // 9
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[Derived(1, _) s]").WithLocation(85, 18),
+                // (95,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [Derived { F3: (1, _) } s]: // 10
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[Derived { F3: (1, _) } s]").WithLocation(95, 18),
+                // (103,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [Base and I2]: // 11
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[Base and I2]").WithLocation(103, 18),
+                // (111,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [I2 and Base]: // 12
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[I2 and Base]").WithLocation(111, 18),
+                // (120,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived and [Derived s]: // 13
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived and [Derived s]").WithLocation(120, 18),
+                // (136,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived and [Derived s]: // 14
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived and [Derived s]").WithLocation(136, 18),
+                // (145,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [[Derived]]: // 15
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[[Derived]]").WithLocation(145, 18)
+                );
+    }
+
+    [Fact]
+    public void Subsumption_18()
+    {
+        var src = @"
+class C
+{
+    void Test(int[] a)
+    {
+        switch (a)
+        {
+            case [.., 0]:
+            case [<0, ..]:
+            case [.., >0]:
+            case [_]:         
+                break;
+        };
+    }
+}";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+                // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [_]:         
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[_]").WithLocation(11, 18));
+        VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
+@"[0]: t0 != null ? [1] : [14]
+[1]: t1 = t0.Length; [2]
+[2]: t1 >= 1 ? [3] : [14]
+[3]: t2 = t0[-1]; [4]
+[4]: t2 == 0 ? [5] : [6]
+[5]: leaf `case [.., 0]:`
+[6]: t3 = t0[0]; [7]
+[7]: t1 == 1 ? [8] : [10]
+[8]: t3 <-- t2; [9]
+[9]: t3 < 0 ? [11] : [13]
+[10]: t3 < 0 ? [11] : [12]
+[11]: leaf `case [<0, ..]:`
+[12]: t2 > 0 ? [13] : [14]
+[13]: leaf `case [.., >0]:`
+[14]: leaf <break> `switch (a)
+        {
+            case [.., 0]:
+            case [<0, ..]:
+            case [.., >0]:
+            case [_]:         
+                break;
+        }`
+");
     }
 
     [Theory]

@@ -1444,7 +1444,7 @@ done:
                 }
                 else
                 {
-                    member = LookupMembersForPropertyPattern(inputType, expr, diagnostics, ref hasErrors);
+                    member = LookupMembersForPropertyPattern(inputType, expr, diagnostics, ref inputValEscape, ref hasErrors);
                     memberType = member.Type;
                     // If we're dealing with the member that makes the type countable, and the type is also indexable, then it will be assumed to always return a non-negative value
                     if (memberType.SpecialType == SpecialType.System_Int32 &&
@@ -1461,7 +1461,7 @@ done:
                     }
                 }
 
-                BoundPattern boundPattern = BindPattern(pattern, memberType, GetValEscape(memberType, inputValEscape), permitDesignations, hasErrors, diagnostics);
+                BoundPattern boundPattern = BindPattern(pattern, memberType, inputValEscape, permitDesignations, hasErrors, diagnostics);
                 builder.Add(new BoundPropertySubpattern(p, member, isLengthOrCount, boundPattern));
             }
 
@@ -1469,7 +1469,7 @@ done:
         }
 
         private BoundPropertySubpatternMember LookupMembersForPropertyPattern(
-            TypeSymbol inputType, ExpressionSyntax expr, BindingDiagnosticBag diagnostics, ref bool hasErrors)
+            TypeSymbol inputType, ExpressionSyntax expr, BindingDiagnosticBag diagnostics, ref uint inputValEscape, ref bool hasErrors)
         {
             BoundPropertySubpatternMember? receiver = null;
             Symbol? symbol = null;
@@ -1479,7 +1479,7 @@ done:
                     symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
                     break;
                 case MemberAccessExpressionSyntax { Name: IdentifierNameSyntax name } memberAccess when memberAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression):
-                    receiver = LookupMembersForPropertyPattern(inputType, memberAccess.Expression, diagnostics, ref hasErrors);
+                    receiver = LookupMembersForPropertyPattern(inputType, memberAccess.Expression, diagnostics, ref inputValEscape, ref hasErrors);
                     symbol = BindPropertyPatternMember(receiver.Type.StrippedType(), name, ref hasErrors, diagnostics);
                     break;
                 default:
@@ -1495,6 +1495,8 @@ done:
                 _ => CreateErrorType()
             };
 
+            // Note: since we're recursing on the receiver, the val escape correctly flows from inside out.
+            inputValEscape = GetValEscape(memberType, inputValEscape);
             return new BoundPropertySubpatternMember(expr, receiver, symbol, type: memberType, hasErrors);
         }
 
