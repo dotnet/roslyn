@@ -677,9 +677,9 @@
         <target state="translated">Metoda procedury obsługi ciągu interpolowanego "{0}" ma nieprawidłową postać. Nie zwraca ona wartości "void" lub "bool".</target>
         <note>void and bool are keywords</note>
       </trans-unit>
-      <trans-unit id="ERR_InterpolatedStringsReferencingInstanceCannotBeInNestedObjectInitializers">
-        <source>Interpolated string handler conversions that reference the instance being indexed cannot be used in nested member initializers.</source>
-        <target state="new">Interpolated string handler conversions that reference the instance being indexed cannot be used in nested member initializers.</target>
+      <trans-unit id="ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers">
+        <source>Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</source>
+        <target state="new">Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">

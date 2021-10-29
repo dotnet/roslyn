@@ -677,9 +677,9 @@
         <target state="translated">補間された文字列ハンドラー メソッド '{0}' の形式が正しくありません。'void' または 'bool' を返すことはありません。</target>
         <note>void and bool are keywords</note>
       </trans-unit>
-      <trans-unit id="ERR_InterpolatedStringsReferencingInstanceCannotBeInNestedObjectInitializers">
-        <source>Interpolated string handler conversions that reference the instance being indexed cannot be used in nested member initializers.</source>
-        <target state="new">Interpolated string handler conversions that reference the instance being indexed cannot be used in nested member initializers.</target>
+      <trans-unit id="ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers">
+        <source>Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</source>
+        <target state="new">Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
