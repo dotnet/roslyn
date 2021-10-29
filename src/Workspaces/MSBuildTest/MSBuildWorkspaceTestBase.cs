@@ -154,7 +154,13 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         protected static MSBuildWorkspace CreateMSBuildWorkspace(params (string key, string value)[] additionalProperties)
         {
             var workspace = MSBuildWorkspace.Create(CreateProperties(additionalProperties));
-            workspace.WorkspaceFailed += (s, e) => throw new Exception($"Workspace failure {e.Diagnostic.Kind}:{e.Diagnostic.Message}");
+            workspace.WorkspaceFailed += (s, e) =>
+            {
+                if (e.Diagnostic.Kind == WorkspaceDiagnosticKind.Failure)
+                {
+                    //throw new Exception($"Workspace failure {e.Diagnostic.Message}");
+                }
+            };
             return workspace;
         }
 

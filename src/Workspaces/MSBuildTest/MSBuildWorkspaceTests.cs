@@ -705,7 +705,7 @@ class C1
             Assert.Empty(project.ProjectReferences);
         }
 
-        [ConditionalFact(typeof(MSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(MSBuildInstalled), AlwaysSkip ="Xaml tasks currently not running"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_WithXaml()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -898,7 +898,7 @@ class C1
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var solutionFilePath = GetSolutionFileName(@"http://localhost/Invalid/InvalidSolution.sln");
 
-            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await Assert.ThrowsAsync<FileNotFoundException>(async () =>
             {
                 using var workspace = CreateMSBuildWorkspace();
                 await workspace.OpenSolutionAsync(solutionFilePath);
@@ -1007,7 +1007,7 @@ class C1
             using var workspace = CreateMSBuildWorkspace();
             workspace.SkipUnrecognizedProjects = false;
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() => workspace.OpenSolutionAsync(solutionFilePath));
+            await Assert.ThrowsAsync<FileNotFoundException>(() => workspace.OpenSolutionAsync(solutionFilePath));
         }
 
         [ConditionalFact(typeof(MSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
