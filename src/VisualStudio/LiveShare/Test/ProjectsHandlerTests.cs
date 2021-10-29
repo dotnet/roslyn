@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
         [Fact]
         public async Task TestProjectsAsync()
         {
-            using var testLspServer = CreateTestLspServer(string.Empty, out var _);
+            using var testLspServer = await CreateTestLspServerAsync(string.Empty);
             var solution = testLspServer.GetCurrentSolution();
             var expected = solution.Projects.Select(p => CreateLspProject(p)).ToArray();
 

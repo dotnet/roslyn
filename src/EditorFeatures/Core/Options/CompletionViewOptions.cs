@@ -25,7 +25,8 @@ namespace Microsoft.CodeAnalysis.Completion
             public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
                 ShowCompletionItemFilters,
                 HighlightMatchingPortionsOfCompletionListItems,
-                EnableArgumentCompletionSnippets);
+                EnableArgumentCompletionSnippets,
+                BlockForCompletionItems);
         }
 
         private const string FeatureName = "CompletionOptions";
@@ -42,5 +43,9 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly PerLanguageOption2<bool?> EnableArgumentCompletionSnippets =
             new(FeatureName, nameof(EnableArgumentCompletionSnippets), defaultValue: null,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.EnableArgumentCompletionSnippets"));
+
+        public static readonly PerLanguageOption2<bool> BlockForCompletionItems =
+            new(FeatureName, nameof(BlockForCompletionItems), defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BlockForCompletionItems"));
     }
 }

@@ -43,7 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
@@ -129,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, CancellationToken cancellationToken)
             => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         private static bool IsValid(ImmutableArray<IParameterSymbol> parameterList, ISet<string> existingNamedParameters)

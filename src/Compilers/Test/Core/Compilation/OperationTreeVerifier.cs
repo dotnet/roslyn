@@ -1774,6 +1774,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.Parts, "Parts", logElementCount: true);
         }
 
+        public override void VisitInterpolatedStringHandlerCreation(IInterpolatedStringHandlerCreationOperation operation)
+        {
+            LogString(nameof(IInterpolatedStringHandlerCreationOperation));
+            LogString($" (HandlerAppendCallsReturnBool: {operation.HandlerAppendCallsReturnBool}, HandlerCreationHasSuccessParameter: {operation.HandlerCreationHasSuccessParameter})");
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.HandlerCreation, "Creation");
+            Visit(operation.Content, "Content");
+        }
+
+        public override void VisitInterpolatedStringAddition(IInterpolatedStringAdditionOperation operation)
+        {
+            LogString(nameof(IInterpolatedStringAdditionOperation));
+            LogCommonPropertiesAndNewLine(operation);
+            Visit(operation.Left, "Left");
+            Visit(operation.Right, "Right");
+        }
+
         public override void VisitInterpolatedStringText(IInterpolatedStringTextOperation operation)
         {
             LogString(nameof(IInterpolatedStringTextOperation));
@@ -1799,6 +1817,28 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 Assert.Equal(OperationKind.Literal, ((IConversionOperation)operation.FormatString).Operand.Kind);
             }
+        }
+
+        public override void VisitInterpolatedStringAppend(IInterpolatedStringAppendOperation operation)
+        {
+            LogString(nameof(IInterpolatedStringAppendOperation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.AppendCall, "AppendCall");
+        }
+
+        public override void VisitInterpolatedStringHandlerArgumentPlaceholder(IInterpolatedStringHandlerArgumentPlaceholderOperation operation)
+        {
+            LogString(nameof(IInterpolatedStringHandlerArgumentPlaceholderOperation));
+            if (operation.PlaceholderKind is InterpolatedStringArgumentPlaceholderKind.CallsiteArgument)
+            {
+                LogString($" (ArgumentIndex: {operation.ArgumentIndex})");
+            }
+            else
+            {
+                LogString($" ({operation.PlaceholderKind})");
+            }
+            LogCommonPropertiesAndNewLine(operation);
         }
 
         public override void VisitConstantPattern(IConstantPatternOperation operation)

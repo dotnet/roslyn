@@ -97,6 +97,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // items should be pushed higher up, and less important items shouldn't take up that much space.
                     var currentActionCount = 0;
 
+                    using var _ = ArrayBuilder<SuggestedActionSet>.GetInstance(out var lowPrioritySets);
+
                     // Collectors are in priority order.  So just walk them from highest to lowest.
                     foreach (var collector in collectors)
                     {
@@ -122,8 +124,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                             await foreach (var set in allSets)
                             {
-                                currentActionCount += set.Actions.Count();
-                                collector.Add(set);
+                                if (priority == CodeActionRequestPriority.High && set.Priority == SuggestedActionSetPriority.Low)
+                                {
+                                    // if we're processing the high pri bucket, but we get action sets for lower pri
+                                    // groups, then keep track of them and add them in later when we get to that group.
+                                    lowPrioritySets.Add(set);
+                                }
+                                else
+                                {
+                                    currentActionCount += set.Actions.Count();
+                                    collector.Add(set);
+                                }
+                            }
+
+                            if (priority == CodeActionRequestPriority.Normal)
+                            {
+                                // now, add any low pri items we've been waiting on to the final group.
+                                foreach (var set in lowPrioritySets)
+                                {
+                                    currentActionCount += set.Actions.Count();
+                                    collector.Add(set);
+                                }
                             }
                         }
 

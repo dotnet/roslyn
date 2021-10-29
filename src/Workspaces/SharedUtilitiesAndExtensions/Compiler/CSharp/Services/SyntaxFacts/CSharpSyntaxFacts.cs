@@ -232,6 +232,28 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsExecutableStatement([NotNullWhen(true)] SyntaxNode? node)
             => node is StatementSyntax;
 
+        public bool IsGlobalStatement([NotNullWhen(true)] SyntaxNode? node)
+           => node is GlobalStatementSyntax;
+
+        public bool AreStatementsInSameContainer(SyntaxNode firstStatement, SyntaxNode secondStatement)
+        {
+            Debug.Assert(IsStatement(firstStatement));
+            Debug.Assert(IsStatement(secondStatement));
+
+            if (firstStatement.Parent == secondStatement.Parent)
+                return true;
+
+            if (IsGlobalStatement(firstStatement.Parent)
+                && IsGlobalStatement(secondStatement.Parent)
+                && firstStatement.Parent.Parent == secondStatement.Parent.Parent)
+            {
+                return true;
+            }
+
+            return false;
+
+        }
+
         public bool IsMethodBody([NotNullWhen(true)] SyntaxNode? node)
         {
             if (node is BlockSyntax or

@@ -124,6 +124,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
             {
                 await _asyncListener.Delay(TimeSpan.FromMilliseconds(250), cancellationToken).ConfigureAwait(false);
 
+                // If it's not open, don't do anything, since if we are going to show locations in metadata that might
+                // be expensive. This doesn't cause a functional issue, since opening the window clears whatever was previously there
+                // so the user won't notice we weren't doing anything when it was open.
+                if (!await _codeDefinitionWindowService.IsWindowOpenAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    return;
+                }
+
                 var document = pointInRoslynSnapshot.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document == null)
                 {
@@ -198,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
             else if (_metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
             {
                 var allowDecompilation = document.Project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources);
-                var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(document.Project, symbol, allowDecompilation, cancellationToken).ConfigureAwait(false);
+                var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(document.Project, symbol, signaturesOnly: false, allowDecompilation, cancellationToken).ConfigureAwait(false);
                 var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                 return ImmutableArray.Create(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), declarationFile.FilePath, identifierSpan.Start));
             }

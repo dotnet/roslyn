@@ -112,25 +112,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
             }
 
+            var options = CompletionOptions.From(document.Project);
+
             // The Editor supports the option per textView.
             // There could be mixed desired behavior per textView and even per same completion session.
             // The right fix would be to send this information as a result of the method. 
             // Then, the Editor would choose the right behavior for mixed cases.
-            _textView.Options.GlobalOptions.SetOptionValue(NonBlockingCompletionEditorOption, !_globalOptions.GetOption(CompletionGlobalOptions.BlockForCompletionItems, service.Language));
+            _textView.Options.GlobalOptions.SetOptionValue(NonBlockingCompletionEditorOption, !_globalOptions.GetOption(CompletionViewOptions.BlockForCompletionItems, service.Language));
 
             // In case of calls with multiple completion services for the same view (e.g. TypeScript and C#), those completion services must not be called simultaneously for the same session.
             // Therefore, in each completion session we use a list of commit character for a specific completion service and a specific content type.
-            _textView.Properties[PotentialCommitCharacters] = service.GetRules().DefaultCommitCharacters;
+            _textView.Properties[PotentialCommitCharacters] = service.GetRules(options).DefaultCommitCharacters;
 
             // Reset a flag which means a snippet triggered by ? + Tab.
             // Set it later if met the condition.
             _snippetCompletionTriggeredIndirectly = false;
 
-            CheckForExperimentStatus(_textView, document);
+            CheckForExperimentStatus(_textView, options);
 
             var sourceText = document.GetTextSynchronously(cancellationToken);
 
-            return ShouldTriggerCompletion(trigger, triggerLocation, sourceText, document, service, document.Project.Solution.Options)
+            return ShouldTriggerCompletion(trigger, triggerLocation, sourceText, document, service, options)
                 ? new AsyncCompletionData.CompletionStartData(
                     participation: AsyncCompletionData.CompletionParticipation.ProvidesItems,
                     applicableToSpan: new SnapshotSpan(
@@ -139,14 +141,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 : AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
 
             // For telemetry reporting purpose
-            static void CheckForExperimentStatus(ITextView textView, Document document)
+            static void CheckForExperimentStatus(ITextView textView, in CompletionOptions options)
             {
-                var options = document.Project.Solution.Options;
+                textView.Properties[TargetTypeFilterExperimentEnabled] = options.TargetTypedCompletionFilter;
 
-                textView.Properties[TargetTypeFilterExperimentEnabled] = options.GetOption(CompletionOptions.TargetTypedCompletionFilterFeatureFlag);
-
-                var importCompletionOptionValue = options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
-                var importCompletionExperimentValue = options.GetOption(CompletionOptions.TypeImportCompletionFeatureFlag);
+                var importCompletionOptionValue = options.ShowItemsFromUnimportedNamespaces;
+                var importCompletionExperimentValue = options.TypeImportCompletion;
                 var isTypeImportEnababled = importCompletionOptionValue == true || (importCompletionOptionValue == null && importCompletionExperimentValue);
                 textView.Properties[TypeImportCompletionEnabled] = isTypeImportEnababled;
             }
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             SourceText sourceText,
             Document document,
             CompletionService completionService,
-            OptionSet options)
+            in CompletionOptions options)
         {
             // The trigger reason guarantees that user wants a completion.
             if (trigger.Reason is AsyncCompletionData.CompletionTriggerReason.Invoke or
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Otherwise, tab should not be a completion trigger.
             if (trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Insertion && trigger.Character == '\t')
             {
-                return TryInvokeSnippetCompletion(completionService, document, sourceText, triggerLocation.Position);
+                return TryInvokeSnippetCompletion(completionService, document, sourceText, triggerLocation.Position, options);
             }
 
             var roslynTrigger = Helpers.GetRoslynTrigger(trigger, triggerLocation);
@@ -193,9 +193,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         private bool TryInvokeSnippetCompletion(
-            CompletionService completionService, Document document, SourceText text, int caretPoint)
+            CompletionService completionService, Document document, SourceText text, int caretPoint, in CompletionOptions options)
         {
-            var rules = completionService.GetRules();
+            var rules = completionService.GetRules(options);
             // Do not invoke snippet if the corresponding rule is not set in options.
             if (rules.SnippetsRule != SnippetsRule.IncludeAfterTypingIdentifierQuestionTab)
             {
@@ -272,23 +272,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 roslynTrigger = new CompletionTrigger(CompletionTriggerKind.Snippets);
             }
 
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var options = documentOptions
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, isExpanded);
+            var options = CompletionOptions.From(document.Project) with
+            {
+                IsExpandedCompletion = isExpanded
+            };
 
             if (_isDebuggerTextView)
             {
-                options = options
-                    .WithChangedOption(CompletionControllerOptions.FilterOutOfScopeLocals, false)
-                    .WithChangedOption(CompletionControllerOptions.ShowXmlDocCommentCompletion, false);
+                options = options with
+                {
+                    FilterOutOfScopeLocals = false,
+                    ShowXmlDocCommentCompletion = false
+                };
             }
 
             var (completionList, expandItemsAvailable) = await completionService.GetCompletionsInternalAsync(
                 document,
                 triggerLocation,
+                options,
                 roslynTrigger,
                 _roles,
-                options,
                 cancellationToken).ConfigureAwait(false);
 
             ImmutableArray<VSCompletionItem> items;
@@ -386,7 +389,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (service == null)
                 return null;
 
-            var description = await service.GetDescriptionAsync(document, roslynItem, cancellationToken).ConfigureAwait(false);
+            var options = CompletionOptions.From(document.Project);
+            var description = await service.GetDescriptionAsync(document, roslynItem, options, cancellationToken).ConfigureAwait(false);
             if (description == null)
                 return null;
 
