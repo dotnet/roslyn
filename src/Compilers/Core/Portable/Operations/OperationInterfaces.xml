@@ -558,7 +558,7 @@
       </summary>
     </Comments>
   </Node>
-  <Node Name="IRaiseEventOperation" Base="IOperation" ChildrenOrder="EventReference,Arguments">
+  <Node Name="IRaiseEventOperation" Base="IArgumentProvidingOperation" ChildrenOrder="EventReference,Arguments">
     <Comments>
       <summary>
         Represents an operation for raising an event.
@@ -640,7 +640,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IInvocationOperation" Base="IOperation" ChildrenOrder="Instance,Arguments" HasType="true">
+  <Node Name="IInvocationOperation" Base="IArgumentProvidingOperation" ChildrenOrder="Instance,Arguments" HasType="true">
     <Comments>
       <summary>
         Represents an invocation of a method.
@@ -747,6 +747,18 @@
       </Comments>
     </Property>
   </Node>
+  <AbstractNode Name="IArgumentProvidingOperation" Base="IOperation" SkipClassGeneration="true" >
+    <Comments>
+        <summary>
+            Common interface to represent operations with arguments
+        </summary>
+    </Comments>
+    <Property Name="Arguments" Type="ImmutableArray&lt;IArgumentOperation&gt;" SkipGeneration="true">
+        <Comments>
+            <summary>Arguments of the operation.</summary>
+        </Comments>
+    </Property>
+  </AbstractNode>
   <AbstractNode Name="IMemberReferenceOperation" Base="IOperation" >
     <Comments>
       <summary>
@@ -3057,7 +3069,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IFunctionPointerInvocationOperation" Base="IOperation" ChildrenOrder="InvokedPointer,Arguments" HasType="true">
+  <Node Name="IFunctionPointerInvocationOperation" Base="IArgumentProvidingOperation" ChildrenOrder="InvokedPointer,Arguments" HasType="true">
     <Comments>
       <summary>
         Represents an invocation of a function pointer.

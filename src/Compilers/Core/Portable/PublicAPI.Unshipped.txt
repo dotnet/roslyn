@@ -72,6 +72,8 @@ Microsoft.CodeAnalysis.LineMapping.LineMapping() -> void
 Microsoft.CodeAnalysis.LineMapping.LineMapping(Microsoft.CodeAnalysis.Text.LinePositionSpan span, int? characterOffset, Microsoft.CodeAnalysis.FileLinePositionSpan mappedSpan) -> void
 Microsoft.CodeAnalysis.LineMapping.MappedSpan.get -> Microsoft.CodeAnalysis.FileLinePositionSpan
 Microsoft.CodeAnalysis.LineMapping.Span.get -> Microsoft.CodeAnalysis.Text.LinePositionSpan
+Microsoft.CodeAnalysis.Operations.IArgumentProvidingOperation
+Microsoft.CodeAnalysis.Operations.IArgumentProvidingOperation.Arguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.IArgumentOperation!>
 Microsoft.CodeAnalysis.Operations.IFunctionPointerInvocationOperation
 Microsoft.CodeAnalysis.Operations.IFunctionPointerInvocationOperation.Arguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.IArgumentOperation!>
 Microsoft.CodeAnalysis.Operations.IFunctionPointerInvocationOperation.InvokedPointer.get -> Microsoft.CodeAnalysis.IOperation!
