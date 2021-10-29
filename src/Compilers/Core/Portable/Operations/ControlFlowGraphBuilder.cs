@@ -5657,11 +5657,24 @@ oneMoreTime:
                                            operation.Type, IsImplicit(operation));
         }
 
+        private (IOperation? visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) VisitFunctionPointerWithArguments(IOperation? instance, ImmutableArray<IArgumentOperation> arguments)
+        {
+            if (instance != null)
+            {
+                PushOperand(VisitRequired(instance));
+            }
+
+            ImmutableArray<IArgumentOperation> visitedArguments = VisitArguments(arguments);
+            IOperation? visitedInstance = instance == null ? null : PopOperand();
+
+            return (visitedInstance, visitedArguments);
+        }
+
         public override IOperation? VisitFunctionPointerInvocation(IFunctionPointerInvocationOperation operation, int? argument)
         {
             EvalStackFrame frame = PushStackFrame();
             IOperation? pointer = operation.Target;
-            (IOperation? visitedPointer, ImmutableArray<IArgumentOperation> visitedArguments) = VisitInstanceWithArguments(pointer, operation.Arguments);
+            (IOperation? visitedPointer, ImmutableArray<IArgumentOperation> visitedArguments) = VisitFunctionPointerWithArguments(pointer, operation.Arguments);
             PopStackFrame(frame);
             return new FunctionPointerInvocationOperation(visitedPointer!, visitedArguments, semanticModel: null, operation.Syntax,
                                            operation.Type, IsImplicit(operation));
