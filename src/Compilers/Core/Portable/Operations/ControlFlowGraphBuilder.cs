@@ -5673,8 +5673,8 @@ oneMoreTime:
         public override IOperation? VisitFunctionPointerInvocation(IFunctionPointerInvocationOperation operation, int? argument)
         {
             EvalStackFrame frame = PushStackFrame();
-            IOperation? pointer = operation.Target;
-            (IOperation? visitedPointer, ImmutableArray<IArgumentOperation> visitedArguments) = VisitFunctionPointerWithArguments(pointer, operation.Arguments);
+            IOperation? target = operation.Target;
+            (IOperation? visitedPointer, ImmutableArray<IArgumentOperation> visitedArguments) = VisitFunctionPointerWithArguments(target, operation.Arguments);
             PopStackFrame(frame);
             return new FunctionPointerInvocationOperation(visitedPointer!, visitedArguments, semanticModel: null, operation.Syntax,
                                            operation.Type, IsImplicit(operation));
