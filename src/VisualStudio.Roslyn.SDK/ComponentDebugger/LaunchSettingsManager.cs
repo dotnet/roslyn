@@ -38,22 +38,5 @@ namespace Roslyn.ComponentDebugger
             }
             return targetProject;
         }
-
-        public void WriteProjectForLaunch(IWritableLaunchProfile profile, UnconfiguredProject targetProject)
-        {
-            if (profile is null)
-            {
-                throw new System.ArgumentNullException(nameof(profile));
-            }
-
-            if (targetProject is null)
-            {
-                throw new System.ArgumentNullException(nameof(targetProject));
-            }
-
-            var rootedPath = _owningProject.MakeRelative(targetProject.FullPath);
-            profile.OtherSettings[Constants.TargetProjectKeyName] = rootedPath;
-        }
-
     }
 }

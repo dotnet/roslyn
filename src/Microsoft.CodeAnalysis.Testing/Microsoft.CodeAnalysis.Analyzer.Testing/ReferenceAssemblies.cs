@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     public sealed partial class ReferenceAssemblies
     {
-        private const string ReferenceAssembliesPackageVersion = "1.0.0";
+        private const string ReferenceAssembliesPackageVersion = "1.0.2";
 
         private static readonly FileSystemSemaphore Semaphore = new FileSystemSemaphore(Path.Combine(Path.GetTempPath(), "test-packages", ".lock"));
 
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         var downloadResult = await downloadResource.GetDownloadResourceResultAsync(
                             packageToInstall,
                             new PackageDownloadContext(cacheContext),
-                            SettingsUtility.GetGlobalPackagesFolder(settings),
+                            temporaryPackagesFolder,
                             logger,
                             cancellationToken);
 
@@ -577,6 +577,26 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 public static ReferenceAssemblies WindowsForms { get; }
                     = Default.AddAssemblies(ImmutableArray.Create("System.Drawing", "System.Windows.Forms"));
+            }
+
+            public static class Net35
+            {
+                public static ReferenceAssemblies Default { get; }
+                    = new ReferenceAssemblies(
+                        "net35",
+                        new PackageIdentity(
+                            "Microsoft.NETFramework.ReferenceAssemblies.net35",
+                            ReferenceAssembliesPackageVersion),
+                        Path.Combine("build", ".NETFramework", "v3.5"))
+                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
+                    .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Xml", "System.Xml.Linq"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.VisualBasic, ImmutableArray.Create("Microsoft.VisualBasic"));
+
+                public static ReferenceAssemblies WindowsForms { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("System.Deployment", "System.Drawing", "System.Windows.Forms"));
+
+                public static ReferenceAssemblies Wpf { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("PresentationCore", "PresentationFramework", "WindowsBase"));
             }
 
             public static class Net40
@@ -865,7 +885,74 @@ namespace Microsoft.CodeAnalysis.Testing
                         Path.Combine("ref", "net5.0"));
                 });
 
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet60 =
+                new Lazy<ReferenceAssemblies>(() =>
+                {
+                    if (!NuGetFramework.Parse("net6.0").IsPackageBased)
+                    {
+                        // The NuGet version provided at runtime does not recognize the 'net6.0' target framework
+                        throw new NotSupportedException("The 'net6.0' target framework is not supported by this version of NuGet.");
+                    }
+
+                    return new ReferenceAssemblies(
+                        "net6.0",
+                        new PackageIdentity(
+                            "Microsoft.NETCore.App.Ref",
+                            "6.0.0-rc.1.21451.13"),
+                        Path.Combine("ref", "net6.0"));
+                });
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet60Windows =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net60.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.WindowsDesktop.App.Ref", "6.0.0-rc.1.21451.3"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet60Android =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net60.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.Android.Ref", "31.0.100-rc.1.12"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet60iOS =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net60.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.iOS.Ref", "15.0.100-rc.1.1534"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet60MacOS =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net60.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.macOS.Ref", "12.0.100-rc.1.1534"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet60MacCatalyst =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net60.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.MacCatalyst.Ref", "15.0.100-rc.1.1534"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet60TvOS =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net60.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.tvOS.Ref", "15.0.100-rc.1.1534"))));
+
             public static ReferenceAssemblies Net50 => _lazyNet50.Value;
+
+            public static ReferenceAssemblies Net60 => _lazyNet60.Value;
+
+            public static ReferenceAssemblies Net60Windows => _lazyNet60Windows.Value;
+
+            public static ReferenceAssemblies Net60Android => _lazyNet60Android.Value;
+
+            public static ReferenceAssemblies Net60iOS => _lazyNet60iOS.Value;
+
+            public static ReferenceAssemblies Net60MacOS => _lazyNet60MacOS.Value;
+
+            public static ReferenceAssemblies Net60MacCatalyst => _lazyNet60MacCatalyst.Value;
+
+            public static ReferenceAssemblies Net60TvOS => _lazyNet60TvOS.Value;
         }
 
         public static class NetStandard
