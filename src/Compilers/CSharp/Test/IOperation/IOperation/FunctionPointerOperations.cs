@@ -205,9 +205,10 @@ unsafe class C
             var fktPointerOp = (IFunctionPointerInvocationOperation)actualOperation;
             var signature = fktPointerOp.GetFunctionPointerSignature();
 
+            Assert.NotNull(syntaxNode);
             Assert.Equal(1, signature.Parameters.Length);
-            Assert.True(signature.Parameters[0].Type.SpecialType == SpecialType.System_String);
-            Assert.True(signature.ReturnType.SpecialType == SpecialType.System_Void);
+            Assert.Equal(SpecialType.System_String, signature.Parameters[0].Type.SpecialType);
+            Assert.Equal(SpecialType.System_Void, signature.ReturnType.SpecialType);
         }
 
         [Fact]
