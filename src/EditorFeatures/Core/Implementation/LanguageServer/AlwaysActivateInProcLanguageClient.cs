@@ -5,11 +5,12 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -80,6 +81,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             // when not running the experimental LSP editor.  This ensures NavigateTo uses the existing editor APIs.
             // However, when the experimental LSP editor is enabled we want LSP to power NavigateTo, so we set DisableGoToWorkspaceSymbols=false.
             serverCapabilities.DisableGoToWorkspaceSymbols = !isLspEditorEnabled;
+
+            var isLspSemanticTokensEnabled = GlobalOptions.GetOption(LspOptions.LspSemanticTokensFeatureFlag);
+            if (isLspSemanticTokensEnabled)
+            {
+                serverCapabilities.SemanticTokensOptions = new SemanticTokensOptions
+                {
+                    Full = new SemanticTokensFullOptions { Delta = true },
+                    Range = true,
+                    Legend = new SemanticTokensLegend
+                    {
+                        TokenTypes = SemanticTokenTypes.AllTypes.Concat(SemanticTokensHelpers.RoslynCustomTokenTypes).ToArray(),
+                        TokenModifiers = new string[] { SemanticTokenModifiers.Static }
+                    }
+                };
+            }
 
             return serverCapabilities;
         }

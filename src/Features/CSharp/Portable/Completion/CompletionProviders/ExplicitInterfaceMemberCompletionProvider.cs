@@ -42,7 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
             => text[characterPosition] == '.';
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('.');
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return (memberString, "");
         }
 
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, CancellationToken cancellationToken)
             => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         public override Task<TextChange?> GetTextChangeAsync(

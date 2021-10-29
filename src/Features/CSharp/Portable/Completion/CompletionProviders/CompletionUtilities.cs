@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return dotToken;
         }
 
-        internal static bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
+        internal static bool IsTriggerCharacter(SourceText text, int characterPosition, in CompletionOptions options)
         {
             var ch = text[characterPosition];
             if (ch == '.')
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return true;
             }
 
-            if (options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp) && IsStartingNewWord(text, characterPosition))
+            if (options.TriggerOnTypingLetters && IsStartingNewWord(text, characterPosition))
             {
                 return true;
             }
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         internal static ImmutableHashSet<char> CommonTriggerCharactersWithArgumentList { get; } = ImmutableHashSet.Create('.', '#', '>', ':', '(', '[', ' ');
 
-        internal static bool IsTriggerCharacterOrArgumentListCharacter(SourceText text, int characterPosition, OptionSet options)
+        internal static bool IsTriggerCharacterOrArgumentListCharacter(SourceText text, int characterPosition, in CompletionOptions options)
             => IsTriggerCharacter(text, characterPosition, options) || IsArgumentListCharacter(text, characterPosition);
 
         private static bool IsArgumentListCharacter(SourceText text, int characterPosition)
@@ -105,12 +105,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal static bool IsArgumentListCharacter(char ch)
             => ch is '(' or '[' or ' ';
 
-        internal static bool IsTriggerAfterSpaceOrStartOfWordCharacter(SourceText text, int characterPosition, OptionSet options)
+        internal static bool IsTriggerAfterSpaceOrStartOfWordCharacter(SourceText text, int characterPosition, in CompletionOptions options)
         {
             // Bring up on space or at the start of a word.
             var ch = text[characterPosition];
             return SpaceTypedNotBeforeWord(ch, text, characterPosition) ||
-                (IsStartingNewWord(text, characterPosition) && options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp));
+                (IsStartingNewWord(text, characterPosition) && options.TriggerOnTypingLetters);
         }
 
         internal static ImmutableHashSet<char> SpaceTriggerCharacter => ImmutableHashSet.Create(' ');

@@ -26,7 +26,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     public async Task TestForksOnDidOpenAndDidCloseAsync()
     {
         var markup = "";
-        using var testLspServer = CreateTestLspServer(markup, out _);
+        using var testLspServer = await CreateTestLspServerAsync(markup);
         var documentUri = testLspServer.GetCurrentSolution().Projects.First().Documents.First().GetURI();
 
         // Verify that the workspace is registered with no lsp solution.
@@ -53,7 +53,8 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         // The document should be reset to the workspace's state.
         await testLspServer.CloseDocumentAsync(documentUri);
         var newSolution = GetManagerWorkspaceState(testLspServer.TestWorkspace, testLspServer);
-        Assert.Equal(testLspServer.GetCurrentSolution(), newSolution);
+        Assert.Null(newSolution);
+        Assert.Equal(testLspServer.GetCurrentSolution(), GetLspDocument(documentUri, testLspServer)!.Project.Solution);
     }
 
     [Fact]
@@ -61,7 +62,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     {
         var markupOne = "One";
         var markupTwo = "Two";
-        using var testLspServer = CreateTestLspServer(new string[] { markupOne, markupTwo }, out _);
+        using var testLspServer = await CreateTestLspServerAsync(new string[] { markupOne, markupTwo });
         var firstDocumentUri = testLspServer.GetCurrentSolution().Projects.First().Documents.Single(d => d.FilePath!.Contains("test1")).GetURI();
         var secondDocumentUri = testLspServer.GetCurrentSolution().Projects.First().Documents.Single(d => d.FilePath!.Contains("test2")).GetURI();
 
@@ -91,7 +92,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     {
         var markupOne = "One";
         var markupTwo = "Two";
-        using var testLspServer = CreateTestLspServer(new string[] { markupOne, markupTwo }, out _);
+        using var testLspServer = await CreateTestLspServerAsync(new string[] { markupOne, markupTwo });
         var firstDocumentUri = testLspServer.GetCurrentSolution().Projects.First().Documents.Single(d => d.FilePath!.Contains("test1")).GetURI();
 
         var secondDocument = testLspServer.GetCurrentSolution().Projects.First().Documents.Single(d => d.FilePath!.Contains("test2"));
@@ -122,7 +123,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     public async Task TestForksOnProjectChangesAsync()
     {
         var markup = "One";
-        using var testLspServer = CreateTestLspServer(markup, out _);
+        using var testLspServer = await CreateTestLspServerAsync(markup);
         var documentUri = testLspServer.GetCurrentSolution().Projects.First().Documents.Single(d => d.FilePath!.Contains("test1")).GetURI();
 
         // Open the document via LSP and verify the initial project name.
@@ -147,19 +148,32 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     [Fact]
     public async Task TestForksOnOptionChangesChangesAsync()
     {
-        var markup = "p{|caret:|}}";
-        using var testLspServer = CreateTestLspServer(markup, out var caretLocation);
+        var markup =
+@"using System;
+class A
+{
+    void M()
+    {
+        DateTime.Now.ToString(""{|caret:|});
+    }
+}";
+        using var testLspServer = await CreateTestLspServerAsync(markup);
         var documentUri = testLspServer.GetCurrentSolution().Projects.First().Documents.Single(d => d.FilePath!.Contains("test1")).GetURI();
 
         // Open the document via LSP to create the initial LSP solution.
-        await OpenDocumentAndVerifyLspTextAsync(documentUri, testLspServer, "p");
+        await OpenDocumentAndVerifyLspTextAsync(documentUri, testLspServer, markup);
 
-        var completionParams = CreateCompletionParams(caretLocation["caret"].Single(), VSInternalCompletionInvokeKind.Typing, "p", CompletionTriggerKind.Invoked);
+        var completionParams = CreateCompletionParams(
+                testLspServer.GetLocations("caret").Single(),
+                invokeKind: VSInternalCompletionInvokeKind.Typing,
+                triggerCharacter: "\"",
+                triggerKind: CompletionTriggerKind.TriggerCharacter);
         var completionItems = await CompletionTests.RunGetCompletionsAsync(testLspServer, completionParams);
-        Assert.True(completionItems.Items.Length > 1);
+        Assert.Contains(completionItems.Items, item => item.Label == "d");
 
         // Modify an option via the workspace.
-        var solutionWithChangedOption = testLspServer.TestWorkspace.CurrentSolution.WithOptions(testLspServer.TestWorkspace.Options.WithChangedOption(LspOptions.MaxCompletionListSize, 1));
+        var solutionWithChangedOption = testLspServer.TestWorkspace.CurrentSolution.WithOptions(
+            testLspServer.TestWorkspace.Options.WithChangedOption(CodeAnalysis.Completion.CompletionOptions.Metadata.ProvideDateAndTimeCompletions, LanguageNames.CSharp, false));
         await testLspServer.TestWorkspace.ChangeSolutionAsync(solutionWithChangedOption);
 
         // Assert that the LSP incremental solution is cleared.
@@ -167,14 +181,14 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
         // Verify that we fork again from the workspace and the new LSP solution has the new text and respects the updated option.
         completionItems = await CompletionTests.RunGetCompletionsAsync(testLspServer, completionParams);
-        Assert.True(completionItems.Items.Length == 1);
+        Assert.Null(completionItems);
     }
 
     [Fact]
     public async Task TestDoesNotForkOnOpenDocumentWorkspaceEventAsync()
     {
         var markup = "One";
-        using var testLspServer = CreateTestLspServer(markup, out _);
+        using var testLspServer = await CreateTestLspServerAsync(markup);
         var firstDocumentUri = testLspServer.GetCurrentSolution().Projects.First().Documents.Single(d => d.FilePath!.Contains("test1")).GetURI();
 
         // Open the document via LSP to create the initial LSP solution.
@@ -192,7 +206,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     public async Task TestForksEventuallyWithDelayedWorkspaceEventAsync()
     {
         var markup = "One";
-        using var testLspServer = CreateTestLspServer(markup, out _);
+        using var testLspServer = await CreateTestLspServerAsync(markup);
         var documentUri = testLspServer.GetCurrentSolution().Projects.First().Documents.Single(d => d.FilePath!.Contains("test1")).GetURI();
 
         // Open the document via LSP and ensure it has the original assembly name.
@@ -224,7 +238,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     public async Task TestDidOpenFindsAddedWorkspaceDocumentAsync()
     {
         var markup = "One";
-        using var testLspServer = CreateTestLspServer(markup, out _);
+        using var testLspServer = await CreateTestLspServerAsync(markup);
         var documentUri = testLspServer.GetCurrentSolution().Projects.First().Documents.Single(d => d.FilePath!.Contains("test1")).GetURI();
 
         // Open the document via LSP to create the initial LSP solution.
@@ -247,7 +261,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     public async Task TestDocumentOpenedBeforeAddedToWorkspaceAsync()
     {
         var markup = "One";
-        using var testLspServer = CreateTestLspServer(markup, out _);
+        using var testLspServer = await CreateTestLspServerAsync(markup);
 
         // Create a new document, but do not update the workspace solution yet.
         var newDocumentId = DocumentId.CreateNewId(testLspServer.TestWorkspace.CurrentSolution.ProjectIds[0]);
@@ -288,7 +302,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     }
 
     [Fact]
-    public void TestUsesRegisteredHostWorkspace()
+    public async Task TestUsesRegisteredHostWorkspace()
     {
         var firstWorkspaceXml =
 @$"<Workspace>
@@ -304,7 +318,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     </Project>
 </Workspace>";
 
-        using var testLspServer = CreateXmlTestLspServer(firstWorkspaceXml, out _);
+        using var testLspServer = await CreateXmlTestLspServerAsync(firstWorkspaceXml);
         // Verify 1 workspace registered to start with.
         Assert.Equal(1, testLspServer.GetManagerAccessor().GetWorkspaceState().Count);
 
@@ -314,6 +328,11 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
             XElement.Parse(secondWorkspaceXml),
             workspaceKind: "OtherWorkspaceKind",
             exportProvider: exportProvider);
+
+        // Wait for workspace creation operations for the second workspace to complete.
+        await WaitForWorkspaceOperationsAsync(testWorkspaceTwo);
+
+        // Manually register the workspace since the workspace listener does not listen for this workspace kind.
         var workspaceRegistrationService = exportProvider.GetExport<LspWorkspaceRegistrationService>();
         workspaceRegistrationService.Value.Register(testWorkspaceTwo);
 
@@ -328,7 +347,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     }
 
     [Fact]
-    public void TestWorkspaceRequestFailsWhenHostWorkspaceMissing()
+    public async Task TestWorkspaceRequestFailsWhenHostWorkspaceMissing()
     {
         var firstWorkspaceXml =
 @$"<Workspace>
@@ -337,7 +356,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     </Project>
 </Workspace>";
 
-        using var testLspServer = CreateXmlTestLspServer(firstWorkspaceXml, out _, workspaceKind: WorkspaceKind.MiscellaneousFiles);
+        using var testLspServer = await CreateXmlTestLspServerAsync(firstWorkspaceXml, workspaceKind: WorkspaceKind.MiscellaneousFiles);
         var exportProvider = testLspServer.TestWorkspace.ExportProvider;
 
         var workspaceRegistrationService = exportProvider.GetExport<LspWorkspaceRegistrationService>();
@@ -367,13 +386,16 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     </Project>
 </Workspace>";
 
-        using var testLspServer = CreateXmlTestLspServer(firstWorkspaceXml, out _);
+        using var testLspServer = await CreateXmlTestLspServerAsync(firstWorkspaceXml);
         var exportProvider = testLspServer.TestWorkspace.ExportProvider;
 
         using var testWorkspaceTwo = TestWorkspace.Create(
             XElement.Parse(secondWorkspaceXml),
             workspaceKind: WorkspaceKind.MSBuild,
             exportProvider: exportProvider);
+
+        // Wait for workspace creation operations to complete for the second workspace.
+        await WaitForWorkspaceOperationsAsync(testWorkspaceTwo);
 
         // Verify both workspaces registered.
         Assert.Null(GetManagerWorkspaceState(testLspServer.TestWorkspace, testLspServer));
@@ -430,7 +452,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     </Project>
 </Workspace>";
 
-        using var testLspServer = CreateXmlTestLspServer(firstWorkspaceXml, out _);
+        using var testLspServer = await CreateXmlTestLspServerAsync(firstWorkspaceXml);
 
         var exportProvider = testLspServer.TestWorkspace.ExportProvider;
 
@@ -438,6 +460,9 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
             XElement.Parse(secondWorkspaceXml),
             workspaceKind: WorkspaceKind.MSBuild,
             exportProvider: exportProvider);
+
+        // Wait for workspace operations to complete for the second workspace.
+        await WaitForWorkspaceOperationsAsync(testWorkspaceTwo);
 
         var firstWorkspaceDocumentUri = ProtocolConversions.GetUriFromFilePath(@"C:\FirstWorkspace.cs");
         var secondWorkspaceDocumentUri = ProtocolConversions.GetUriFromFilePath(@"C:\SecondWorkspace.cs");
@@ -479,6 +504,10 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 </Workspace>";
 
         using var testWorkspace = TestWorkspace.Create(XElement.Parse(workspaceXml), composition: Composition);
+
+        // Wait for workspace creation operations to complete.
+        await WaitForWorkspaceOperationsAsync(testWorkspace);
+
         var documentUri = testWorkspace.CurrentSolution.Projects.First().Documents.First().GetURI();
 
         using var testLspServerOne = new TestLspServer(testWorkspace);
