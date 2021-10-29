@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
                     // as SeparatedSyntaxList in that the separator tokens are not returned
                     var nodeOrToken = NodesAndTokens[index * 2];
                     Debug.Assert(nodeOrToken.IsNode);
+                    RoslynDebug.AssertNotNull(nodeOrToken.Node);
                     return nodeOrToken.Node;
                 }
 
