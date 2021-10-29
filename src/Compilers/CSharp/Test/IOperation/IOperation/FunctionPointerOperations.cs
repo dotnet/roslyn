@@ -6,6 +6,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -185,6 +186,28 @@ IAddressOfOperation (OperationKind.AddressOf, Type: null, IsInvalid) (Syntax: '&
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void FunctionPointerInvocationSignatureTest()
+        {
+            var comp = CreateFunctionPointerCompilation(@"
+unsafe class C
+{
+    public string Prop { get; }
+    void M(delegate*<string, void> ptr)
+    {
+        /*<bind>*/ptr(Prop)/*</bind>*/;
+    }
+}");
+            var (actualOperation, syntaxNode) = GetOperationAndSyntaxForTest<InvocationExpressionSyntax>(comp);
+
+            var fktPointerOp = (IFunctionPointerInvocationOperation)actualOperation;
+            var signature = fktPointerOp.GetFunctionPointerSignature();
+
+            Assert.Equal(1, signature.Parameters.Length);
+            Assert.True(signature.Parameters[0].Type.SpecialType == SpecialType.System_String);
+            Assert.True(signature.ReturnType.SpecialType == SpecialType.System_Void);
         }
 
         [Fact]
