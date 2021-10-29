@@ -17,8 +17,8 @@ pr:
 jobs:
 - job: VS_Integration
   pool:
-    name: NetCorePublic-Pool
-    queue: BuildPool.Windows.VS2019.Pre.Scouting.Open
+    name: NetCore1ESPool-Svc-Public
+    demands: ImageOverride -equals Build.Windows.VS2019.Pre.Scouting.Open
   strategy:
     maxParallel: 4
     matrix:
