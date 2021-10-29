@@ -3336,7 +3336,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Invoked pointer.
         /// </summary>
-        IOperation InvokedPointer { get; }
+        IOperation Target { get; }
         /// <summary>
         /// Arguments of the invocation. Arguments are in evaluation order.
         /// </summary>
@@ -7626,20 +7626,20 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class FunctionPointerInvocationOperation : Operation, IFunctionPointerInvocationOperation
     {
-        internal FunctionPointerInvocationOperation(IOperation invokedPointer, ImmutableArray<IArgumentOperation> arguments, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal FunctionPointerInvocationOperation(IOperation target, ImmutableArray<IArgumentOperation> arguments, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
-            InvokedPointer = SetParentOperation(invokedPointer, this);
+            Target = SetParentOperation(target, this);
             Arguments = SetParentOperation(arguments, this);
             Type = type;
         }
-        public IOperation InvokedPointer { get; }
+        public IOperation Target { get; }
         public ImmutableArray<IArgumentOperation> Arguments { get; }
         protected override IOperation GetCurrent(int slot, int index)
             => slot switch
             {
-                0 when InvokedPointer != null
-                    => InvokedPointer,
+                0 when Target != null
+                    => Target,
                 1 when index < Arguments.Length
                     => Arguments[index],
                 _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
@@ -7649,7 +7649,7 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (previousSlot)
             {
                 case -1:
-                    if (InvokedPointer != null) return (true, 0, 0);
+                    if (Target != null) return (true, 0, 0);
                     else goto case 0;
                 case 0:
                     if (!Arguments.IsEmpty) return (true, 1, 0);
@@ -8230,7 +8230,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitFunctionPointerInvocation(IFunctionPointerInvocationOperation operation, object? argument)
         {
             var internalOperation = (FunctionPointerInvocationOperation)operation;
-            return new FunctionPointerInvocationOperation(Visit(internalOperation.InvokedPointer), VisitArray(internalOperation.Arguments), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new FunctionPointerInvocationOperation(Visit(internalOperation.Target), VisitArray(internalOperation.Arguments), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
     }
     #endregion
