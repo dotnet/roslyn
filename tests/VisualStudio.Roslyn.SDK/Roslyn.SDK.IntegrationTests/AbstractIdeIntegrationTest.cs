@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     public abstract class AbstractIdeIntegrationTest : IAsyncLifetime, IDisposable
     {
-        protected const VisualStudioVersion TestVersion = VisualStudioVersion.VS2019;
+        protected const VisualStudioVersion TestVersion = VisualStudioVersion.VS2022;
 
         /// <summary>
         /// A long timeout used to avoid hangs in tests, where a test failure manifests as an operation never occurring.
