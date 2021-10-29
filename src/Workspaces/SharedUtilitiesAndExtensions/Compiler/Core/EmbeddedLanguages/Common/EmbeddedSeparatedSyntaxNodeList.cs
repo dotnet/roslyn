@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             }
         }
 
-
         /// <summary>
         /// Retrieves only nodes, skipping the separator tokens
         /// </summary>
