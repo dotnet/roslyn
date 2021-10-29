@@ -208,8 +208,7 @@
                       and hence suppress this warning until we get closer to release and a more
                       thorough documentation story
         -->
-        <!-- PROTOTYPE(list-patterns) PublicAPIs -->
-        <NoWarn>$(NoWarn);1573;1591;1701;RS0016</NoWarn>
+        <NoWarn>$(NoWarn);1573;1591;1701</NoWarn>
       </PropertyGroup>
       <PropertyGroup>
         <DefineConstants Condition="'$(InitialDefineConstants)' != ''">$(DefineConstants);$(InitialDefineConstants)</DefineConstants>
