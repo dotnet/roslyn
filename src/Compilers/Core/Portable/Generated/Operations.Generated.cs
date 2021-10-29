@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.</para>
     /// </remarks>
-    public interface IRaiseEventOperation : IArgumentProvidingOperation
+    public interface IRaiseEventOperation : IOperation
     {
         /// <summary>
         /// Reference to the event to be raised.
@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays.
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
-        ImmutableArray<IArgumentOperation> IArgumentProvidingOperation.Arguments { get; }
+        ImmutableArray<IArgumentOperation> Arguments { get; }
     }
     /// <summary>
     /// Represents a textual literal numeric, string, etc.
@@ -707,7 +707,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.</para>
     /// </remarks>
-    public interface IInvocationOperation : IArgumentProvidingOperation
+    public interface IInvocationOperation : IOperation
     {
         /// <summary>
         /// Method to be invoked.
@@ -807,20 +807,6 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Referenced parameter.
         /// </summary>
         IParameterSymbol Parameter { get; }
-    }
-    /// <summary>
-    /// Common interface to represent operations with arguments
-    /// </summary>
-    /// <remarks>
-    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
-    /// change it in the future.</para>
-    /// </remarks>
-    public interface IArgumentProvidingOperation : IOperation
-    {
-        /// <summary>
-        /// Arguments of the operation.
-        /// </summary>
-        ImmutableArray<IArgumentOperation> Arguments { get; }
     }
     /// <summary>
     /// Represents a reference to a member of a class, struct, or interface.
@@ -3345,7 +3331,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.</para>
     /// </remarks>
-    public interface IFunctionPointerInvocationOperation : IArgumentProvidingOperation
+    public interface IFunctionPointerInvocationOperation : IOperation
     {
         /// <summary>
         /// Invoked pointer.
@@ -4168,7 +4154,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitConversion(this);
         public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitConversion(this, argument);
     }
-    internal sealed partial class InvocationOperation : BaseArgumentProvidingOperation, IInvocationOperation
+    internal sealed partial class InvocationOperation : Operation, IInvocationOperation
     {
         internal InvocationOperation(IMethodSymbol targetMethod, IOperation? instance, bool isVirtual, ImmutableArray<IArgumentOperation> arguments, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
@@ -7638,7 +7624,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitWith(this);
         public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitWith(this, argument);
     }
-    internal sealed partial class FunctionPointerInvocationOperation : BaseArgumentProvidingOperation, IFunctionPointerInvocationOperation
+    internal sealed partial class FunctionPointerInvocationOperation : Operation, IFunctionPointerInvocationOperation
     {
         internal FunctionPointerInvocationOperation(IOperation invokedPointer, ImmutableArray<IArgumentOperation> arguments, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
