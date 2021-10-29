@@ -1461,13 +1461,8 @@ done:
                     }
                 }
 
-<<<<<<< HEAD
-                BoundPattern boundPattern = BindPattern(pattern, memberType, GetValEscape(memberType, inputValEscape), permitDesignations, hasErrors, diagnostics);
-                builder.Add(new BoundPropertySubpattern(p, member, isLengthOrCount, boundPattern));
-=======
                 BoundPattern boundPattern = BindPattern(pattern, memberType, inputValEscape, permitDesignations, hasErrors, diagnostics);
-                builder.Add(new BoundPropertySubpattern(p, member, boundPattern));
->>>>>>> origin/main
+                builder.Add(new BoundPropertySubpattern(p, member, isLengthOrCount, boundPattern));
             }
 
             return builder.ToImmutableAndFree();

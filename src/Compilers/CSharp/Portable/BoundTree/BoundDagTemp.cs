@@ -40,40 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Index == other.Index;
         }
 
-        /// <summary>
-        /// Determine if two <see cref="BoundDagTemp"/>s represent the same value for the purpose of a pattern evaluation.
-        /// </summary>
-        public bool IsSameValue(BoundDagTemp other)
-        {
-            var current = originalInput(this);
-            other = originalInput(other);
-
-            if ((object)current == other)
-            {
-                return true;
-            }
-
-            return current.Index == other.Index &&
-                (current.Source, other.Source) switch
-                {
-                    (null, null) => true,
-                    ({ } s1, { } s2) => s1.IsSameValueEvaluation(s2),
-                    _ => false
-                };
-
-            static BoundDagTemp originalInput(BoundDagTemp input)
-            {
-                // Type evaluations do not change identity
-                while (input.Source is BoundDagTypeEvaluation source)
-                {
-                    Debug.Assert(input.Index == 0);
-                    input = source.Input;
-                }
-
-                return input;
-            }
-        }
-
         public override int GetHashCode()
         {
             return Hash.Combine(this.Type.GetHashCode(), Hash.Combine(this.Source?.GetHashCode() ?? 0, this.Index));
