@@ -916,7 +916,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                    Parent: IFlowCaptureOperation,
                                    Constructor.ContainingType: INamedTypeSymbol ctorContainingType,
                                    Arguments: { Length: >= 3 } arguments,
-                                   Syntax: CSharp.Syntax.InterpolatedStringExpressionSyntax
+                                   Syntax: CSharp.Syntax.InterpolatedStringExpressionSyntax or CSharp.Syntax.BinaryExpressionSyntax
                                }
                            }
                        }
