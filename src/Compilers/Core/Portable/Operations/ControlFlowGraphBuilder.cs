@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -2044,9 +2044,161 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return visitedArray;
         }
 
-        private ImmutableArray<IArgumentOperation> VisitArguments(ImmutableArray<IArgumentOperation> arguments)
+        private (IOperation? VisitedReceiver, ImmutableArray<IArgumentOperation> Arguments) VisitInstanceWithArguments(IOperation? instance, ImmutableArray<IArgumentOperation> arguments)
         {
-            return VisitArray(arguments, UnwrapArgument, RewriteArgumentFromArray);
+            return VisitArgumentsWithVisitedInstance(arguments, Visit(instance));
+        }
+
+        private (IOperation? VisitedReceiver, ImmutableArray<IArgumentOperation> Arguments) VisitArgumentsWithVisitedInstance(ImmutableArray<IArgumentOperation> arguments, IOperation? visitedInstance)
+        {
+            VisitAndPushArgumentsWithVisitedInstance(arguments, visitedInstance);
+            var visitedArguments = PopArray(arguments, RewriteArgumentFromArray);
+            return (visitedInstance == null ? null : PopOperand(), visitedArguments);
+        }
+
+        private void VisitAndPushArgumentsWithVisitedInstance(ImmutableArray<IArgumentOperation> arguments, IOperation? visitedInstance)
+        {
+            if (hasInterpolatedStringHandlerArgument(arguments.AsSpan()))
+            {
+                visitAndCaptureArgumentsWithInterpolatedStringHandler();
+            }
+            else
+            {
+                if (visitedInstance != null)
+                {
+                    PushOperand(visitedInstance);
+                }
+                VisitAndPushArray(arguments, UnwrapArgument);
+            }
+
+            void visitAndCaptureArgumentsWithInterpolatedStringHandler()
+            {
+                SpillEvalStack();
+                IFlowCaptureReferenceOperation? capturedInstance;
+                switch (visitedInstance)
+                {
+                    case null:
+                        capturedInstance = null;
+                        break;
+                    case IFlowCaptureReferenceOperation existingReference:
+                        capturedInstance = existingReference;
+                        break;
+                    default:
+                        var captureId = GetNextCaptureId(CurrentRegionRequired);
+                        CaptureResultIfNotAlready(visitedInstance.Syntax, captureId, visitedInstance);
+                        capturedInstance = new FlowCaptureReferenceOperation(captureId, visitedInstance.Syntax, visitedInstance.Type, visitedInstance.GetConstantValue());
+                        break;
+                }
+
+                var visitedArguments = ArrayBuilder<IOperation>.GetInstance(arguments.Length);
+                var placeholderKeys = ArrayBuilder<IOperation>.GetInstance();
+
+                int i;
+                for (i = 0; i < arguments.Length; i++)
+                {
+                    var argument = arguments[i].Value;
+
+                    if (argument is not IInterpolatedStringHandlerCreationOperation { HandlerCreation: IObjectCreationOperation handlerConstructor })
+                    {
+                        visitedArguments.Add(VisitAndCapture(argument));
+                    }
+                    else
+                    {
+                        foreach (var constructorArgument in handlerConstructor.Arguments)
+                        {
+                            if (constructorArgument.Value is IInterpolatedStringHandlerArgumentPlaceholderOperation argumentPlaceholder)
+                            {
+                                switch (argumentPlaceholder.PlaceholderKind)
+                                {
+                                    case InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver:
+                                        if (capturedInstance != null)
+                                        {
+                                            AddPlaceholder(argumentPlaceholder, (IFlowCaptureReferenceOperation)capturedInstance);
+                                        }
+                                        else
+                                        {
+                                            // Can happen if we're in an indexer object initializer (an error scenario where the instance isn't yet available).
+                                            AddPlaceholder(argumentPlaceholder, new InvalidOperation(
+                                                ImmutableArray<IOperation>.Empty,
+                                                semanticModel: null,
+                                                syntax: argumentPlaceholder.Syntax,
+                                                type: argumentPlaceholder.Type,
+                                                constantValue: argumentPlaceholder.GetConstantValue(),
+                                                isImplicit: true));
+                                        }
+
+                                        placeholderKeys.Add(argumentPlaceholder);
+                                        break;
+
+                                    case InterpolatedStringArgumentPlaceholderKind.CallsiteArgument:
+                                        if (argumentPlaceholder.ArgumentIndex >= i)
+                                        {
+                                            // Out of position argument: just capture an invalid operation and reference it from the constructor
+                                            AddPlaceholder(argumentPlaceholder, new InvalidOperation(
+                                                ImmutableArray<IOperation>.Empty,
+                                                semanticModel: null,
+                                                syntax: argumentPlaceholder.Syntax,
+                                                type: argumentPlaceholder.Type,
+                                                constantValue: argumentPlaceholder.GetConstantValue(),
+                                                isImplicit: true));
+                                        }
+                                        else
+                                        {
+                                            AddPlaceholder(argumentPlaceholder, (IFlowCaptureReferenceOperation)visitedArguments[argumentPlaceholder.ArgumentIndex]);
+                                        }
+                                        placeholderKeys.Add(argumentPlaceholder);
+                                        break;
+                                }
+                            }
+                        }
+
+                        IOperation visitedArgument = VisitRequired(argument);
+                        Debug.Assert(visitedArgument is IFlowCaptureReferenceOperation);
+                        visitedArguments.Add(visitedArgument);
+
+                        foreach (var key in placeholderKeys)
+                        {
+                            RemovePlaceholder(key);
+                        }
+
+                        placeholderKeys.Clear();
+
+                        var nextIndex = i + 1;
+                        if (nextIndex == arguments.Length || !hasInterpolatedStringHandlerArgument(arguments.AsSpan()[nextIndex..]))
+                        {
+                            i = nextIndex;
+                            break;
+                        }
+                    }
+                }
+
+                Debug.Assert(i == visitedArguments.Count);
+
+                placeholderKeys.Free();
+
+                if (capturedInstance != null)
+                {
+                    PushOperand(capturedInstance);
+                }
+
+                foreach (var visitedArgument in visitedArguments)
+                {
+                    PushOperand(visitedArgument);
+                }
+
+                visitedArguments.Free();
+
+                for (; i < arguments.Length; i++)
+                {
+                    PushOperand(VisitRequired(UnwrapArgument(arguments[i])));
+                }
+            }
+
+            static bool hasInterpolatedStringHandlerArgument(ReadOnlySpan<IArgumentOperation> arguments)
+            {
+                return arguments.Any(static arg => arg.Value is IInterpolatedStringHandlerCreationOperation { HandlerCreation: IObjectCreationOperation { Arguments: { } creationArgs } }
+                                                   && creationArgs.Any(creationArg => creationArg.Value is IInterpolatedStringHandlerArgumentPlaceholderOperation { PlaceholderKind: not InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument }));
+            }
         }
 
         private static IOperation UnwrapArgument(IArgumentOperation argument)
@@ -4019,7 +4171,9 @@ oneMoreTime:
 
                 if (method != null)
                 {
-                    var args = disposeMethod is object ? VisitArguments(disposeArguments) : ImmutableArray<IArgumentOperation>.Empty;
+                    (value, var args) = disposeMethod is object
+                        ? ((IOperation, ImmutableArray<IArgumentOperation>))VisitArgumentsWithVisitedInstance(disposeArguments, value)!
+                        : (value, ImmutableArray<IArgumentOperation>.Empty);
                     var invocation = new InvocationOperation(method, value, isVirtual: disposeMethod?.IsVirtual ?? true,
                                                              args, semanticModel: null, value.Syntax,
                                                              method.ReturnType, isImplicit: true);
@@ -4401,9 +4555,11 @@ oneMoreTime:
             {
                 if (info?.CurrentProperty != null)
                 {
+                    var instance = info.CurrentProperty.IsStatic ? null : enumeratorRef;
+                    var visitedArguments = makeArguments(info.CurrentArguments, ref instance);
                     return new PropertyReferenceOperation(info.CurrentProperty,
-                                                          makeArguments(info.CurrentArguments),
-                                                          info.CurrentProperty.IsStatic ? null : enumeratorRef,
+                                                          visitedArguments,
+                                                          instance,
                                                           semanticModel: null,
                                                           operation.LoopControlVariable.Syntax,
                                                           info.CurrentProperty.Type, isImplicit: true);
@@ -4464,17 +4620,19 @@ oneMoreTime:
             InvocationOperation makeInvocation(SyntaxNode syntax, IMethodSymbol method, IOperation? instanceOpt, ImmutableArray<IArgumentOperation> arguments)
             {
                 Debug.Assert(method.IsStatic == (instanceOpt == null));
+                var visitedArguments = makeArguments(arguments, ref instanceOpt);
                 return new InvocationOperation(method, instanceOpt,
-                                                isVirtual: method.IsVirtual || method.IsAbstract || method.IsOverride,
-                                                makeArguments(arguments), semanticModel: null, syntax,
-                                                method.ReturnType, isImplicit: true);
+                                               isVirtual: method.IsVirtual || method.IsAbstract || method.IsOverride,
+                                               visitedArguments, semanticModel: null, syntax,
+                                               method.ReturnType, isImplicit: true);
             }
 
-            ImmutableArray<IArgumentOperation> makeArguments(ImmutableArray<IArgumentOperation> arguments)
+            ImmutableArray<IArgumentOperation> makeArguments(ImmutableArray<IArgumentOperation> arguments, ref IOperation? instanceOpt)
             {
                 if (arguments != null)
                 {
-                    return VisitArguments(arguments);
+                    (instanceOpt, var visitedArguments) = VisitArgumentsWithVisitedInstance(arguments, instanceOpt);
+                    return visitedArguments;
                 }
 
                 return ImmutableArray<IArgumentOperation>.Empty;
@@ -5679,19 +5837,6 @@ oneMoreTime:
                                            operation.Type, IsImplicit(operation));
         }
 
-        private (IOperation? visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) VisitInstanceWithArguments(IOperation? instance, ImmutableArray<IArgumentOperation> arguments)
-        {
-            if (instance != null)
-            {
-                PushOperand(VisitRequired(instance));
-            }
-
-            ImmutableArray<IArgumentOperation> visitedArguments = VisitArguments(arguments);
-            IOperation? visitedInstance = instance == null ? null : PopOperand();
-
-            return (visitedInstance, visitedArguments);
-        }
-
         internal override IOperation VisitNoPiaObjectCreation(INoPiaObjectCreationOperation operation, int? argument)
         {
             EvalStackFrame frame = PushStackFrame();
@@ -5704,7 +5849,7 @@ oneMoreTime:
         {
             EvalStackFrame frame = PushStackFrame();
             EvalStackFrame argumentsFrame = PushStackFrame();
-            ImmutableArray<IArgumentOperation> visitedArgs = VisitArguments(operation.Arguments);
+            (_, ImmutableArray<IArgumentOperation> visitedArgs) = VisitInstanceWithArguments(instance: null, operation.Arguments);
             PopStackFrame(argumentsFrame);
             // Initializer is removed from the tree and turned into a series of statements that assign to the created instance
             IOperation initializedInstance = new ObjectCreationOperation(operation.Constructor, initializer: null, visitedArgs, semanticModel: null,
@@ -5881,7 +6026,10 @@ oneMoreTime:
                         if (memberReference.Kind == OperationKind.PropertyReference)
                         {
                             // We assume all arguments have side effects and spill them. We only avoid recapturing things that have already been captured once.
-                            VisitAndPushArray(((IPropertyReferenceOperation)memberReference).Arguments, UnwrapArgument);
+                            // We do not pass an instance here, as the instance is not yet available. For arguments that need the instance (such as interpolated
+                            // string handlers), they will handle the missing instance by substituting an IInvalidOperation
+
+                            VisitAndPushArgumentsWithVisitedInstance(((IPropertyReferenceOperation)memberReference).Arguments, visitedInstance: null);
                             SpillEvalStack();
                         }
 
@@ -6515,7 +6663,13 @@ oneMoreTime:
         public override IOperation? VisitInterpolatedStringHandlerArgumentPlaceholder(IInterpolatedStringHandlerArgumentPlaceholderOperation operation, int? captureIdForResult)
         {
             Debug.Assert(_placeholderDictionary != null);
-            return PlaceholderDictionary[operation];
+            return operation.PlaceholderKind switch
+            {
+                InterpolatedStringArgumentPlaceholderKind.CallsiteArgument or InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver =>
+                    OperationCloner.CloneOperation(GetPlaceholder(operation)),
+                InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument => GetPlaceholder(operation),
+                _ => throw ExceptionUtilities.UnexpectedValue(operation.PlaceholderKind)
+            };
         }
 
         public override IOperation VisitInterpolatedString(IInterpolatedStringOperation operation, int? captureIdForResult)
@@ -6838,14 +6992,9 @@ oneMoreTime:
             StartVisitingStatement(operation);
 
             EvalStackFrame frame = PushStackFrame();
-            var instance = operation.EventReference.Event.IsStatic ? null : operation.EventReference.Instance;
-            if (instance != null)
-            {
-                PushOperand(VisitRequired(instance));
-            }
 
-            ImmutableArray<IArgumentOperation> visitedArguments = VisitArguments(operation.Arguments);
-            IOperation? visitedInstance = instance == null ? null : PopOperand();
+            (IOperation? visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) =
+                VisitInstanceWithArguments(operation.EventReference.Event.IsStatic ? null : operation.EventReference.Instance, operation.Arguments);
             var visitedEventReference = new EventReferenceOperation(operation.EventReference.Event, visitedInstance,
                 semanticModel: null, operation.EventReference.Syntax, operation.EventReference.Type, IsImplicit(operation.EventReference));
 

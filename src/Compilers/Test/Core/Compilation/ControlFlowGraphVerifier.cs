@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
@@ -829,7 +830,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                      isIncrementedNullableForToLoopControlVariable(reference) ||
                                      isConditionalAccessReceiver(reference) ||
                                      isCoalesceAssignmentTarget(reference) ||
-                                     isObjectInitializerInitializedObjectTarget(reference)) &&
+                                     isObjectInitializerInitializedObjectTarget(reference) ||
+                                     isInterpolatedStringArgumentCapture(reference)) &&
                                  block.EnclosingRegion.EnclosingRegion.CaptureIds.Contains(id)),
                         $"Operation [{operationIndex}] in [{getBlockId(block)}] uses capture [{id.Value}] from another region. Should the regions be merged?", finalGraph);
                 }
@@ -895,6 +897,33 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     Parent: InitializerExpressionSyntax { Parent: CSharp.Syntax.ObjectCreationExpressionSyntax },
                     Left: var left
                 } && left == referenceSyntax;
+            }
+
+            bool isInterpolatedStringArgumentCapture(IFlowCaptureReferenceOperation reference)
+            {
+                if (reference.Language != LanguageNames.CSharp)
+                {
+                    return false;
+                }
+
+#pragma warning disable IDE0055 // Fix formatting
+                return reference is
+                       {
+                           Parent: IArgumentOperation
+                           {
+                               Parent: IObjectCreationOperation
+                               {
+                                   Parent: IFlowCaptureOperation,
+                                   Constructor.ContainingType: INamedTypeSymbol ctorContainingType,
+                                   Arguments: { Length: >= 3 } arguments,
+                                   Syntax: CSharp.Syntax.InterpolatedStringExpressionSyntax
+                               }
+                           }
+                       }
+                       && ctorContainingType.GetSymbol().IsInterpolatedStringHandlerType
+                       && arguments[0].Value.Type.SpecialType == SpecialType.System_Int32
+                       && arguments[1].Value.Type.SpecialType == SpecialType.System_Int32;
+#pragma warning restore IDE0055
             }
 
             bool isFirstOperandOfDynamicOrUserDefinedLogicalOperator(IFlowCaptureReferenceOperation reference)
