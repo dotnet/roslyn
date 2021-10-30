@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var signature = operation.GetFunctionPointerSignature();
             Assert.NotNull(signature);
-            Assert.Equal(((IFunctionPointerTypeSymbol)operation.Target.Type!).Signature, signature);
+            Assert.Same(((IFunctionPointerTypeSymbol)operation.Target.Type!).Signature, signature);
 
             AssertEx.Equal(children, operation.Children);
         }
