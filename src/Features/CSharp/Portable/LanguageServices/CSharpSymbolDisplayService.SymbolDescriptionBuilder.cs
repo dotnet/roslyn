@@ -10,8 +10,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -39,10 +41,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             public SymbolDescriptionBuilder(
                 SemanticModel semanticModel,
                 int position,
-                Workspace workspace,
+                HostWorkspaceServices workspaceServices,
                 IStructuralTypeDisplayService structuralTypeDisplayService,
+                SymbolDescriptionOptions options,
                 CancellationToken cancellationToken)
-                : base(semanticModel, position, workspace, structuralTypeDisplayService, cancellationToken)
+                : base(semanticModel, position, workspaceServices, structuralTypeDisplayService, options, cancellationToken)
             {
             }
 
@@ -191,8 +194,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                     if (semanticModel != null)
                     {
                         return await Classifier.GetClassifiedSymbolDisplayPartsAsync(
-                            semanticModel, equalsValue.Value.Span,
-                            Workspace, cancellationToken: CancellationToken).ConfigureAwait(false);
+                            Services, semanticModel, equalsValue.Value.Span,
+                            Options.ClassificationOptions, cancellationToken: CancellationToken).ConfigureAwait(false);
                     }
                 }
 

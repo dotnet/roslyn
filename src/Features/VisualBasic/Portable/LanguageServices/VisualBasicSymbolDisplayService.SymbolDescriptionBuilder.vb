@@ -5,6 +5,8 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Classification.Classifiers
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -28,10 +30,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
 
             Public Sub New(semanticModel As SemanticModel,
                            position As Integer,
-                           workspace As Workspace,
+                           services As HostWorkspaceServices,
                            structuralTypeDisplayService As IStructuralTypeDisplayService,
+                           options As SymbolDescriptionOptions,
                            cancellationToken As CancellationToken)
-                MyBase.New(semanticModel, position, workspace, structuralTypeDisplayService, cancellationToken)
+                MyBase.New(semanticModel, position, services, structuralTypeDisplayService, options, cancellationToken)
             End Sub
 
             Protected Overrides Sub AddDeprecatedPrefix()
@@ -157,8 +160,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                     Dim semanticModel = GetSemanticModel(equalsValue.SyntaxTree)
                     If semanticModel IsNot Nothing Then
                         Return Await Classifier.GetClassifiedSymbolDisplayPartsAsync(
-                            semanticModel, equalsValue.Value.Span,
-                            Me.Workspace, cancellationToken:=Me.CancellationToken).ConfigureAwait(False)
+                            Services, semanticModel, equalsValue.Value.Span, Options.ClassificationOptions, CancellationToken).ConfigureAwait(False)
                     End If
                 End If
 
