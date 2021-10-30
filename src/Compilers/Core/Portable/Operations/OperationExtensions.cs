@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Helper function to simplify the access to the function pointer signature of an FunctionPointerInvocationOperation
         /// </summary>
-        public static IMethodSymbol GetFunctionPointerSignature(this IFunctionPointerInvocationOperation functionPointer)
+        public static IMethodSymbol? GetFunctionPointerSignature(this IFunctionPointerInvocationOperation functionPointer)
         {
-            return ((IFunctionPointerTypeSymbol)functionPointer.Target.Type!).Signature;
+            return ((IFunctionPointerTypeSymbol?)functionPointer.Target.Type)?.Signature;
         }
 
         /// <summary>

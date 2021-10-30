@@ -510,8 +510,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<IOperation> children = new[] { operation.Target }.Concat(operation.Arguments);
 
             var signature = operation.GetFunctionPointerSignature();
-            Assert.NotNull(signature);
-            Assert.Same(((IFunctionPointerTypeSymbol)operation.Target.Type!).Signature, signature);
+            Assert.Same(((IFunctionPointerTypeSymbol?)operation.Target.Type)?.Signature, signature);
 
             AssertEx.Equal(children, operation.Children);
         }
