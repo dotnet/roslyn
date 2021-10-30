@@ -5657,27 +5657,25 @@ oneMoreTime:
                                            operation.Type, IsImplicit(operation));
         }
 
-        private (IOperation? visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) VisitFunctionPointerWithArguments(IOperation? instance, ImmutableArray<IArgumentOperation> arguments)
-        {
-            if (instance != null)
-            {
-                PushOperand(VisitRequired(instance));
-            }
-
-            ImmutableArray<IArgumentOperation> visitedArguments = VisitArguments(arguments);
-            IOperation? visitedInstance = instance == null ? null : PopOperand();
-
-            return (visitedInstance, visitedArguments);
-        }
-
         public override IOperation? VisitFunctionPointerInvocation(IFunctionPointerInvocationOperation operation, int? argument)
         {
             EvalStackFrame frame = PushStackFrame();
             IOperation? target = operation.Target;
-            (IOperation? visitedPointer, ImmutableArray<IArgumentOperation> visitedArguments) = VisitFunctionPointerWithArguments(target, operation.Arguments);
+            (IOperation? visitedPointer, ImmutableArray<IArgumentOperation> visitedArguments) = handlePointerAndArguments(target, operation.Arguments);
             PopStackFrame(frame);
             return new FunctionPointerInvocationOperation(visitedPointer!, visitedArguments, semanticModel: null, operation.Syntax,
                                            operation.Type, IsImplicit(operation));
+
+            (IOperation? visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) handlePointerAndArguments(IOperation instance,
+                ImmutableArray<IArgumentOperation> arguments)
+            {
+                PushOperand(VisitRequired(instance));
+
+                ImmutableArray<IArgumentOperation> visitedArguments = VisitArguments(arguments);
+                IOperation? visitedInstance = PopOperand();
+
+                return (visitedInstance, visitedArguments);
+            }
         }
 
         private (IOperation? visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) VisitInstanceWithArguments(IOperation? instance, ImmutableArray<IArgumentOperation> arguments)
