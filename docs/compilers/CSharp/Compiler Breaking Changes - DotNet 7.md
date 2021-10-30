@@ -12,3 +12,25 @@
 
     class var { }
     ```
+
+2. In Visual Studio 17.1, indexers that take an interpolated string handler and require the receiver as an input for the constructor cannot be used in an object initializer.
+
+    ```cs
+    using System.Runtime.CompilerServices;
+    _ = new C { [$""] = 1 }; // error: Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.
+
+    class C
+    {
+        public int this[[InterpolatedStringHandlerArgument("")] CustomHandler c]
+        {
+            get => throw null;
+            set => throw null;
+        }
+    }
+
+    [InterpolatedStringHandler]
+    class CustomHandler
+    {
+        public CustomHandler(int literalLength, int formattedCount, C c) {}
+    }
+    ```
