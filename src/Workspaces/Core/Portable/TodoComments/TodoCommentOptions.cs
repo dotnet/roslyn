@@ -11,21 +11,18 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 {
-    internal static class TodoCommentOptions
-    {
-        public static readonly Option<string> TokenList = new(nameof(TodoCommentOptions), nameof(TokenList), defaultValue: "");
-    }
-
     [ExportSolutionOptionProvider, Shared]
-    internal class TodoCommentOptionsProvider : IOptionProvider
+    internal sealed class TodoCommentOptions : IOptionProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TodoCommentOptionsProvider()
+        public TodoCommentOptions()
         {
         }
 
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            TodoCommentOptions.TokenList);
+        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
+            TokenList);
+
+        public static readonly Option<string> TokenList = new(nameof(TodoCommentOptions), nameof(TokenList), defaultValue: "");
     }
 }
