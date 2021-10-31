@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -81,8 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var other => other,
             };
 
-        internal override SyntaxNode YieldReturnStatement(SyntaxNode expressionOpt = null)
-            => SyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, (ExpressionSyntax)expressionOpt);
+        internal override SyntaxNode YieldReturnStatement(SyntaxNode expression)
+            => SyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, (ExpressionSyntax)expression);
 
         /// <summary>
         /// C# always requires a type to be present with a local declaration.  (Even if that type is
