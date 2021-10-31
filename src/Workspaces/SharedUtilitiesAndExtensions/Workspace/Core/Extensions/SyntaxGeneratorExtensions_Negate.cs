@@ -115,8 +115,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var syntaxFacts = generatorInternal.SyntaxFacts;
             syntaxFacts.GetPartsOfBinaryExpression(expressionNode, out var leftOperand, out var operatorToken, out var rightOperand);
 
-            var binaryOperation = semanticModel.GetOperation(expressionNode, cancellationToken) as IBinaryOperation;
-            if (binaryOperation == null)
+            var operation = semanticModel.GetOperation(expressionNode, cancellationToken);
+            if (operation is not IBinaryOperation binaryOperation)
             {
                 // x is y   ->    x is not y
                 if (syntaxFacts.IsIsExpression(expressionNode) && syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
