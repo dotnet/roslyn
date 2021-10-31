@@ -129,16 +129,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (!s_negatedBinaryMap.TryGetValue(binaryOperation.OperatorKind, out var negatedKind))
                 return generator.LogicalNotExpression(expressionNode);
 
-            var negateOperands = false;
-            switch (binaryOperation.OperatorKind)
-            {
-                case BinaryOperatorKind.Or:
-                case BinaryOperatorKind.And:
-                case BinaryOperatorKind.ConditionalAnd:
-                case BinaryOperatorKind.ConditionalOr:
-                    negateOperands = true;
-                    break;
-            }
+            var negateOperands =
+                binaryOperation.OperatorKind is BinaryOperatorKind.Or or
+                                                BinaryOperatorKind.And or
+                                                BinaryOperatorKind.ConditionalAnd or
+                                                BinaryOperatorKind.ConditionalOr;
 
             //Workaround for https://github.com/dotnet/roslyn/issues/23956
             //Issue to remove this when above is merged
