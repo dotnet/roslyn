@@ -135,17 +135,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                                                 BinaryOperatorKind.ConditionalAnd or
                                                 BinaryOperatorKind.ConditionalOr;
 
-            //Workaround for https://github.com/dotnet/roslyn/issues/23956
-            //Issue to remove this when above is merged
-            if (binaryOperation.OperatorKind == BinaryOperatorKind.Or && syntaxFacts.IsLogicalOrExpression(expressionNode))
-            {
-                negatedKind = BinaryOperatorKind.ConditionalAnd;
-            }
-            else if (binaryOperation.OperatorKind == BinaryOperatorKind.And && syntaxFacts.IsLogicalAndExpression(expressionNode))
-            {
-                negatedKind = BinaryOperatorKind.ConditionalOr;
-            }
-
             if (negateOperands)
             {
                 leftOperand = generator.Negate(generatorInternal, leftOperand, semanticModel, cancellationToken);
