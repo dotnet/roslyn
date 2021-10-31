@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -17,22 +16,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class SyntaxGeneratorExtensions
     {
-        private const string LongLength = "LongLength";
-
-        private static readonly Dictionary<BinaryOperatorKind, BinaryOperatorKind> s_negatedBinaryMap =
-            new Dictionary<BinaryOperatorKind, BinaryOperatorKind>()
-            {
-                { BinaryOperatorKind.Equals, BinaryOperatorKind.NotEquals },
-                { BinaryOperatorKind.NotEquals, BinaryOperatorKind.Equals },
-                { BinaryOperatorKind.LessThan, BinaryOperatorKind.GreaterThanOrEqual },
-                { BinaryOperatorKind.GreaterThan, BinaryOperatorKind.LessThanOrEqual },
-                { BinaryOperatorKind.LessThanOrEqual, BinaryOperatorKind.GreaterThan },
-                { BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThan },
-                { BinaryOperatorKind.Or, BinaryOperatorKind.And },
-                { BinaryOperatorKind.And, BinaryOperatorKind.Or },
-                { BinaryOperatorKind.ConditionalOr, BinaryOperatorKind.ConditionalAnd },
-                { BinaryOperatorKind.ConditionalAnd, BinaryOperatorKind.ConditionalOr },
-            };
+        private static readonly ImmutableDictionary<BinaryOperatorKind, BinaryOperatorKind> s_negatedBinaryMap =
+            ImmutableDictionary<BinaryOperatorKind, BinaryOperatorKind>.Empty
+                .Add(BinaryOperatorKind.Equals, BinaryOperatorKind.NotEquals)
+                .Add(BinaryOperatorKind.NotEquals, BinaryOperatorKind.Equals)
+                .Add(BinaryOperatorKind.LessThan, BinaryOperatorKind.GreaterThanOrEqual)
+                .Add(BinaryOperatorKind.GreaterThan, BinaryOperatorKind.LessThanOrEqual)
+                .Add(BinaryOperatorKind.LessThanOrEqual, BinaryOperatorKind.GreaterThan)
+                .Add(BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThan)
+                .Add(BinaryOperatorKind.Or, BinaryOperatorKind.And)
+                .Add(BinaryOperatorKind.And, BinaryOperatorKind.Or)
+                .Add(BinaryOperatorKind.ConditionalOr, BinaryOperatorKind.ConditionalAnd)
+                .Add(BinaryOperatorKind.ConditionalAnd, BinaryOperatorKind.ConditionalOr);
 
         public static SyntaxNode Negate(
             this SyntaxGenerator generator,
@@ -130,48 +125,44 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             if (!s_negatedBinaryMap.TryGetValue(binaryOperation.OperatorKind, out var negatedKind))
-            {
                 return generator.LogicalNotExpression(expressionNode);
-            }
-            else
+
+            var negateOperands = false;
+            switch (binaryOperation.OperatorKind)
             {
-                var negateOperands = false;
-                switch (binaryOperation.OperatorKind)
-                {
-                    case BinaryOperatorKind.Or:
-                    case BinaryOperatorKind.And:
-                    case BinaryOperatorKind.ConditionalAnd:
-                    case BinaryOperatorKind.ConditionalOr:
-                        negateOperands = true;
-                        break;
-                }
-
-                //Workaround for https://github.com/dotnet/roslyn/issues/23956
-                //Issue to remove this when above is merged
-                if (binaryOperation.OperatorKind == BinaryOperatorKind.Or && syntaxFacts.IsLogicalOrExpression(expressionNode))
-                {
-                    negatedKind = BinaryOperatorKind.ConditionalAnd;
-                }
-                else if (binaryOperation.OperatorKind == BinaryOperatorKind.And && syntaxFacts.IsLogicalAndExpression(expressionNode))
-                {
-                    negatedKind = BinaryOperatorKind.ConditionalOr;
-                }
-
-                if (negateOperands)
-                {
-                    leftOperand = generator.Negate(generatorInternal, leftOperand, semanticModel, cancellationToken);
-                    rightOperand = generator.Negate(generatorInternal, rightOperand, semanticModel, cancellationToken);
-                }
-
-                var newBinaryExpressionSyntax = negatedKind is BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals
-                    ? generatorInternal.NegateEquality(generator, expressionNode, leftOperand, negatedKind, rightOperand)
-                    : NewBinaryOperation(binaryOperation, leftOperand, negatedKind, rightOperand, generator);
-                newBinaryExpressionSyntax = newBinaryExpressionSyntax.WithTriviaFrom(expressionNode);
-
-                var newToken = syntaxFacts.GetOperatorTokenOfBinaryExpression(newBinaryExpressionSyntax);
-                var newTokenWithTrivia = newToken.WithTriviaFrom(operatorToken);
-                return newBinaryExpressionSyntax.ReplaceToken(newToken, newTokenWithTrivia);
+                case BinaryOperatorKind.Or:
+                case BinaryOperatorKind.And:
+                case BinaryOperatorKind.ConditionalAnd:
+                case BinaryOperatorKind.ConditionalOr:
+                    negateOperands = true;
+                    break;
             }
+
+            //Workaround for https://github.com/dotnet/roslyn/issues/23956
+            //Issue to remove this when above is merged
+            if (binaryOperation.OperatorKind == BinaryOperatorKind.Or && syntaxFacts.IsLogicalOrExpression(expressionNode))
+            {
+                negatedKind = BinaryOperatorKind.ConditionalAnd;
+            }
+            else if (binaryOperation.OperatorKind == BinaryOperatorKind.And && syntaxFacts.IsLogicalAndExpression(expressionNode))
+            {
+                negatedKind = BinaryOperatorKind.ConditionalOr;
+            }
+
+            if (negateOperands)
+            {
+                leftOperand = generator.Negate(generatorInternal, leftOperand, semanticModel, cancellationToken);
+                rightOperand = generator.Negate(generatorInternal, rightOperand, semanticModel, cancellationToken);
+            }
+
+            var newBinaryExpressionSyntax = negatedKind is BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals
+                ? generatorInternal.NegateEquality(generator, expressionNode, leftOperand, negatedKind, rightOperand)
+                : NewBinaryOperation(binaryOperation, leftOperand, negatedKind, rightOperand, generator);
+            newBinaryExpressionSyntax = newBinaryExpressionSyntax.WithTriviaFrom(expressionNode);
+
+            var newToken = syntaxFacts.GetOperatorTokenOfBinaryExpression(newBinaryExpressionSyntax);
+            var newTokenWithTrivia = newToken.WithTriviaFrom(operatorToken);
+            return newBinaryExpressionSyntax.ReplaceToken(newToken, newTokenWithTrivia);
         }
 
         private static SyntaxNode GetNegationOfBinaryPattern(
@@ -296,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 BinaryOperatorKind.And => generator.BitwiseAndExpression(leftOperand, rightOperand),
                 BinaryOperatorKind.ConditionalOr => generator.LogicalOrExpression(leftOperand, rightOperand),
                 BinaryOperatorKind.ConditionalAnd => generator.LogicalAndExpression(leftOperand, rightOperand),
-                _ => null,
+                _ => throw ExceptionUtilities.UnexpectedValue(operationKind),
             };
         }
 
@@ -310,24 +301,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             BinaryOperatorKind operationKind)
         {
             if (binaryOperation == null)
-            {
                 return false;
-            }
 
             var rightOperand = RemoveImplicitConversion(binaryOperation.RightOperand);
             var leftOperand = RemoveImplicitConversion(binaryOperation.LeftOperand);
 
-            switch (operationKind)
+            return operationKind switch
             {
-                case BinaryOperatorKind.LessThanOrEqual when rightOperand.IsNumericLiteral():
-                    return CanSimplifyToLengthEqualsZeroExpression(
-                        leftOperand, (ILiteralOperation)rightOperand);
-                case BinaryOperatorKind.GreaterThanOrEqual when leftOperand.IsNumericLiteral():
-                    return CanSimplifyToLengthEqualsZeroExpression(
-                        rightOperand, (ILiteralOperation)leftOperand);
-            }
-
-            return false;
+                BinaryOperatorKind.LessThanOrEqual when rightOperand.IsNumericLiteral()
+                    => CanSimplifyToLengthEqualsZeroExpression(leftOperand, (ILiteralOperation)rightOperand),
+                BinaryOperatorKind.GreaterThanOrEqual when leftOperand.IsNumericLiteral()
+                    => CanSimplifyToLengthEqualsZeroExpression(rightOperand, (ILiteralOperation)leftOperand),
+                _ => false,
+            };
         }
 
         private static IOperation RemoveImplicitConversion(IOperation operation)
@@ -346,11 +332,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 if (variableExpression is IPropertyReferenceOperation propertyOperation)
                 {
                     var property = propertyOperation.Property;
-                    if ((property.Name is (nameof(Array.Length)) or LongLength))
+                    if (property.Name is nameof(Array.Length) or nameof(Array.LongLength))
                     {
                         var containingType = property.ContainingType;
                         if (containingType?.SpecialType == SpecialType.System_Array ||
-                            containingType.SpecialType == SpecialType.System_String)
+                            containingType?.SpecialType == SpecialType.System_String)
                         {
                             return true;
                         }
@@ -358,16 +344,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 var type = variableExpression.Type;
-                if (type != null)
+                switch (type?.SpecialType)
                 {
-                    switch (type.SpecialType)
-                    {
-                        case SpecialType.System_Byte:
-                        case SpecialType.System_UInt16:
-                        case SpecialType.System_UInt32:
-                        case SpecialType.System_UInt64:
-                            return true;
-                    }
+                    case SpecialType.System_Byte:
+                    case SpecialType.System_UInt16:
+                    case SpecialType.System_UInt32:
+                    case SpecialType.System_UInt64:
+                        return true;
                 }
             }
 
