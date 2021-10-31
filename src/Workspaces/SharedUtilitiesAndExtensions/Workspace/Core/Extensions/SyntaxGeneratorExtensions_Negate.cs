@@ -17,17 +17,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static partial class SyntaxGeneratorExtensions
     {
         private static readonly ImmutableDictionary<BinaryOperatorKind, BinaryOperatorKind> s_negatedBinaryMap =
-            ImmutableDictionary<BinaryOperatorKind, BinaryOperatorKind>.Empty
-                .Add(BinaryOperatorKind.Equals, BinaryOperatorKind.NotEquals)
-                .Add(BinaryOperatorKind.NotEquals, BinaryOperatorKind.Equals)
-                .Add(BinaryOperatorKind.LessThan, BinaryOperatorKind.GreaterThanOrEqual)
-                .Add(BinaryOperatorKind.GreaterThan, BinaryOperatorKind.LessThanOrEqual)
-                .Add(BinaryOperatorKind.LessThanOrEqual, BinaryOperatorKind.GreaterThan)
-                .Add(BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThan)
-                .Add(BinaryOperatorKind.Or, BinaryOperatorKind.And)
-                .Add(BinaryOperatorKind.And, BinaryOperatorKind.Or)
-                .Add(BinaryOperatorKind.ConditionalOr, BinaryOperatorKind.ConditionalAnd)
-                .Add(BinaryOperatorKind.ConditionalAnd, BinaryOperatorKind.ConditionalOr);
+            new Dictionary<BinaryOperatorKind, BinaryOperatorKind>
+            {
+                { BinaryOperatorKind.Equals, BinaryOperatorKind.NotEquals },
+                { BinaryOperatorKind.NotEquals, BinaryOperatorKind.Equals },
+                { BinaryOperatorKind.LessThan, BinaryOperatorKind.GreaterThanOrEqual },
+                { BinaryOperatorKind.GreaterThan, BinaryOperatorKind.LessThanOrEqual },
+                { BinaryOperatorKind.LessThanOrEqual, BinaryOperatorKind.GreaterThan },
+                { BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThan },
+                { BinaryOperatorKind.Or, BinaryOperatorKind.And },
+                { BinaryOperatorKind.And, BinaryOperatorKind.Or },
+                { BinaryOperatorKind.ConditionalOr, BinaryOperatorKind.ConditionalAnd },
+                { BinaryOperatorKind.ConditionalAnd, BinaryOperatorKind.ConditionalOr },
+            }.ToImmutableDictionary();
 
         public static SyntaxNode Negate(
             this SyntaxGenerator generator,
