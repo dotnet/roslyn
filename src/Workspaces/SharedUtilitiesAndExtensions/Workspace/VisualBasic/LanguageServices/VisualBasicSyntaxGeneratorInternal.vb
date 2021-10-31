@@ -128,17 +128,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function NegateEquality(generator As SyntaxGenerator, node As SyntaxNode, left As SyntaxNode, negatedKind As Operations.BinaryOperatorKind, right As SyntaxNode) As SyntaxNode
-            If negatedKind = BinaryOperatorKind.Equals Then
-                Return If(node.IsKind(SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression),
-                    generator.ValueEqualsExpression(left, right),
-                    generator.ReferenceEqualsExpression(left, right))
-            ElseIf negatedKind = BinaryOperatorKind.NotEquals Then
-                Return If(node.IsKind(SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression),
-                    generator.ValueNotEqualsExpression(left, right),
-                    generator.ReferenceNotEqualsExpression(left, right))
-            Else
-                Throw ExceptionUtilities.UnexpectedValue(negatedKind)
-            End If
+            Select Case negatedKind
+                Case BinaryOperatorKind.Equals
+                    Return If(node.IsKind(SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression),
+                        generator.ValueEqualsExpression(left, right),
+                        generator.ReferenceEqualsExpression(left, right))
+                Case BinaryOperatorKind.NotEquals
+                    Return If(node.IsKind(SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression),
+                        generator.ValueNotEqualsExpression(left, right),
+                        generator.ReferenceNotEqualsExpression(left, right))
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(negatedKind)
+            End Select
         End Function
 
 #Region "Patterns"
