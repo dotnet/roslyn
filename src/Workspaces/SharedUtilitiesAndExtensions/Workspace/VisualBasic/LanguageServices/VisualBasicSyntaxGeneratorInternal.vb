@@ -7,6 +7,7 @@ Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -124,6 +125,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Overrides Function Type(typeSymbol As ITypeSymbol, typeContext As Boolean) As SyntaxNode
             Return If(typeContext, typeSymbol.GenerateTypeSyntax(), typeSymbol.GenerateExpressionSyntax())
+        End Function
+
+        Public Overrides Function NegateEquality(generator As SyntaxGenerator, node As SyntaxNode, left As SyntaxNode, negatedKind As Operations.BinaryOperatorKind, right As SyntaxNode) As SyntaxNode
+            If negatedKind = BinaryOperatorKind.Equals Then
+                If node.IsKind(SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression) Then
+                    Return generator.ValueEqualsExpression(left, right)
+                Else
+                    Return generator.ReferenceEqualsExpression(left, right)
+                End If
+            ElseIf negatedKind = BinaryOperatorKind.NotEquals Then
+                If node.IsKind(SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression) Then
+                    Return generator.ValueNotEqualsExpression(left, right)
+                Else
+                    Return generator.ReferenceNotEqualsExpression(left, right)
+                End If
+            Else
+                Throw ExceptionUtilities.UnexpectedValue(negatedKind)
+            End If
         End Function
 
 #Region "Patterns"

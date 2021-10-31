@@ -157,16 +157,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     negatedKind = BinaryOperatorKind.ConditionalOr;
                 }
 
-                var newLeftOperand = leftOperand;
-                var newRightOperand = rightOperand;
                 if (negateOperands)
                 {
-                    newLeftOperand = generator.Negate(generatorInternal, leftOperand, semanticModel, cancellationToken);
-                    newRightOperand = generator.Negate(generatorInternal, rightOperand, semanticModel, cancellationToken);
+                    leftOperand = generator.Negate(generatorInternal, leftOperand, semanticModel, cancellationToken);
+                    rightOperand = generator.Negate(generatorInternal, rightOperand, semanticModel, cancellationToken);
                 }
 
-                var newBinaryExpressionSyntax = NewBinaryOperation(binaryOperation, newLeftOperand, negatedKind, newRightOperand, generator)
-                    .WithTriviaFrom(expressionNode);
+                var newBinaryExpressionSyntax = negatedKind is BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals
+                    ? generatorInternal.NegateEquality(generator, expressionNode, leftOperand, negatedKind, rightOperand)
+                    : NewBinaryOperation(binaryOperation, leftOperand, negatedKind, rightOperand, generator);
+                newBinaryExpressionSyntax = newBinaryExpressionSyntax.WithTriviaFrom(expressionNode);
 
                 var newToken = syntaxFacts.GetOperatorTokenOfBinaryExpression(newBinaryExpressionSyntax);
                 var newTokenWithTrivia = newToken.WithTriviaFrom(operatorToken);
@@ -282,39 +282,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SyntaxNode rightOperand,
             SyntaxGenerator generator)
         {
-            switch (operationKind)
+            return operationKind switch
             {
-                case BinaryOperatorKind.Equals:
-                    return binaryOperation.LeftOperand.Type?.IsValueType == true && binaryOperation.RightOperand.Type?.IsValueType == true
-                        ? generator.ValueEqualsExpression(leftOperand, rightOperand)
-                        : generator.ReferenceEqualsExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.NotEquals:
-                    return binaryOperation.LeftOperand.Type?.IsValueType == true && binaryOperation.RightOperand.Type?.IsValueType == true
-                        ? generator.ValueNotEqualsExpression(leftOperand, rightOperand)
-                        : generator.ReferenceNotEqualsExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.LessThanOrEqual:
-                    return IsSpecialCaseBinaryExpression(binaryOperation, operationKind)
-                        ? generator.ValueEqualsExpression(leftOperand, rightOperand)
-                        : generator.LessThanOrEqualExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.GreaterThanOrEqual:
-                    return IsSpecialCaseBinaryExpression(binaryOperation, operationKind)
-                        ? generator.ValueEqualsExpression(leftOperand, rightOperand)
-                        : generator.GreaterThanOrEqualExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.LessThan:
-                    return generator.LessThanExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.GreaterThan:
-                    return generator.GreaterThanExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.Or:
-                    return generator.BitwiseOrExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.And:
-                    return generator.BitwiseAndExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.ConditionalOr:
-                    return generator.LogicalOrExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.ConditionalAnd:
-                    return generator.LogicalAndExpression(leftOperand, rightOperand);
-            }
-
-            return null;
+                BinaryOperatorKind.LessThanOrEqual => IsSpecialCaseBinaryExpression(binaryOperation, operationKind)
+                    ? generator.ValueEqualsExpression(leftOperand, rightOperand)
+                    : generator.LessThanOrEqualExpression(leftOperand, rightOperand),
+                BinaryOperatorKind.GreaterThanOrEqual => IsSpecialCaseBinaryExpression(binaryOperation, operationKind)
+                    ? generator.ValueEqualsExpression(leftOperand, rightOperand)
+                    : generator.GreaterThanOrEqualExpression(leftOperand, rightOperand),
+                BinaryOperatorKind.LessThan => generator.LessThanExpression(leftOperand, rightOperand),
+                BinaryOperatorKind.GreaterThan => generator.GreaterThanExpression(leftOperand, rightOperand),
+                BinaryOperatorKind.Or => generator.BitwiseOrExpression(leftOperand, rightOperand),
+                BinaryOperatorKind.And => generator.BitwiseAndExpression(leftOperand, rightOperand),
+                BinaryOperatorKind.ConditionalOr => generator.LogicalOrExpression(leftOperand, rightOperand),
+                BinaryOperatorKind.ConditionalAnd => generator.LogicalAndExpression(leftOperand, rightOperand),
+                _ => null,
+            };
         }
 
         /// <summary>

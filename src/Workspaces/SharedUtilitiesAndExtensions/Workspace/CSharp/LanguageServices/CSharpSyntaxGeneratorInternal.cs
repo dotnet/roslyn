@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
@@ -134,6 +135,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxNode Type(ITypeSymbol typeSymbol, bool typeContext)
             => typeContext ? typeSymbol.GenerateTypeSyntax() : typeSymbol.GenerateExpressionSyntax();
+
+        public override SyntaxNode NegateEquality(SyntaxGenerator generator, SyntaxNode binaryExpression, SyntaxNode left, BinaryOperatorKind negatedKind, SyntaxNode right)
+            => negatedKind switch
+            {
+                BinaryOperatorKind.Equals => generator.ReferenceEqualsExpression(left, right),
+                BinaryOperatorKind.NotEquals => generator.ReferenceNotEqualsExpression(left, right),
+                _ => throw ExceptionUtilities.UnexpectedValue(negatedKind),
+            };
 
         #region Patterns
 
