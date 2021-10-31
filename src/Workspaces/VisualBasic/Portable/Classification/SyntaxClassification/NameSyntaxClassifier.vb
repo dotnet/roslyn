@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             Dim classifiedSpan As ClassifiedSpan
 
             Dim symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken)
-            Dim symbol = TryGetSymbol(node, symbolInfo, semanticModel)
+            Dim symbol = TryGetSymbol(node, symbolInfo)
 
             If symbol Is Nothing Then
                 If TryClassifyIdentifier(node, semanticModel, cancellationToken, classifiedSpan) Then

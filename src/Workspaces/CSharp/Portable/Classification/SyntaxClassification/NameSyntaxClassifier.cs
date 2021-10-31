@@ -71,15 +71,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         {
             if (symbolInfo.CandidateReason is
                 CandidateReason.Ambiguous or
-                CandidateReason.MemberGroup or
-                CandidateReason.OverloadResolutionFailure)
+                CandidateReason.MemberGroup)
             {
                 return TryClassifyAmbiguousSymbol(name, symbolInfo, semanticModel, result, cancellationToken);
             }
 
             // Only classify if we get one good symbol back, or if it bound to a constructor symbol with
             // overload resolution/accessibility errors, or bound to type/constructor and type wasn't creatable.
-            var symbol = TryGetSymbol(name, symbolInfo, semanticModel);
+            var symbol = TryGetSymbol(name, symbolInfo);
             if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
             {
                 result.Add(classifiedSpan);
