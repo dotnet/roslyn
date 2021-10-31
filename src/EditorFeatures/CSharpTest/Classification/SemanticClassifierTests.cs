@@ -291,7 +291,9 @@ class C
 class C
 {
     dynamic<int> d;
-}", testHost);
+}",
+                testHost,
+                Class("dynamic"));
         }
 
         [Theory]
@@ -1975,12 +1977,12 @@ class Serializable
 {
 }
 
-[NonSerialized]           // Binds to global::NonSerializedAttribute; not colorized
+[NonSerialized]           // Binds to global::NonSerializedAttribute; colorized
 class NonSerializedAttribute
 {
 }
 
-[NonSerializedAttribute]  // Binds to global::NonSerializedAttribute; not colorized
+[NonSerializedAttribute]  // Binds to global::NonSerializedAttribute; colorized
 class NonSerializedAttribute
 {
 }
@@ -1998,6 +2000,8 @@ class ObsoleteAttribute : Attribute
                 Namespace("System"),
                 Class("Serializable"),
                 Class("SerializableAttribute"),
+                Class("NonSerialized"),
+                Class("NonSerializedAttribute"),
                 Class("Obsolete"),
                 Class("Attribute"),
                 Class("ObsoleteAttribute"),
