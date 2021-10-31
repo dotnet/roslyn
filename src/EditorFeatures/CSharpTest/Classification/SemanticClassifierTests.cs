@@ -1461,7 +1461,8 @@ class C
             await TestInMethodAsync(@"global::System.String.Clone("");",
                 testHost,
                 Namespace("System"),
-                Class("String"));
+                Class("String"),
+                Method("Clone"));
         }
 
         [Theory]
@@ -2589,7 +2590,8 @@ struct Type<T>
     }
 }",
                 testHost,
-                Keyword("var"));
+                Keyword("var"),
+                Method("nameof"));
         }
 
         [WpfFact]
@@ -4463,17 +4465,18 @@ Delegate d = m;
 MulticastDelegate md = m;
 ICloneable c = m;
 object obj = m;
+m(m);
 
-int m(string s) => s.Length; ",
+int m(Delegate d) { }",
                 testHost,
-                Keyword("var"),
-                Method("m"),
-                Method("m"),
-                Method("m"),
-                Method("m"),
-                Method("m"),
-                Parameter("s"),
-                Property("Length"));
+                    Keyword("var"),
+                    Method("m"),
+                    Method("m"),
+                    Method("m"),
+                    Method("m"),
+                    Method("m"),
+                    Method("m"),
+                    Method("m"));
         }
     }
 }
