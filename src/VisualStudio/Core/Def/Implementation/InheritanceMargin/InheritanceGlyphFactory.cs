@@ -30,6 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IUIThreadOperationExecutor _operationExecutor;
         private readonly IWpfTextView _textView;
         private readonly IAsynchronousOperationListener _listener;
+        private readonly IGlobalOptionService _globalOptions;
 
         public InheritanceGlyphFactory(
             IThreadingContext threadingContext,
@@ -38,6 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IClassificationFormatMap classificationFormatMap,
             IUIThreadOperationExecutor operationExecutor,
             IWpfTextView textView,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListener listener)
         {
             _threadingContext = threadingContext;
@@ -46,6 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _classificationFormatMap = classificationFormatMap;
             _operationExecutor = operationExecutor;
             _textView = textView;
+            _globalOptions = globalOptions;
             _listener = listener;
         }
 
@@ -56,20 +59,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 return null;
             }
 
-            var workspace = _textView.TextBuffer.GetWorkspace();
-            if (workspace == null)
-            {
-                return null;
-            }
-
-            var optionService = workspace.Services.GetRequiredService<IOptionService>();
             // The life cycle of the glyphs in Indicator Margin is controlled by the editor,
             // so in order to get the glyphs removed when FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin is off,
             // we need
             // 1. Generate tags when this option changes.
             // 2. Always return null here to force the editor to remove the glyphs.
-            var combineWithIndicatorMargin = optionService.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin);
-            if (!combineWithIndicatorMargin)
+            if (!_globalOptions.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin))
+            {
+                return null;
+            }
+
+            if (_textView.TextBuffer.GetWorkspace() == null)
             {
                 return null;
             }

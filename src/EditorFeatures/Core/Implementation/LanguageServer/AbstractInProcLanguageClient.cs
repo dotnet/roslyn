@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         private readonly IDiagnosticService? _diagnosticService;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
         private readonly AbstractRequestDispatcherFactory _requestDispatcherFactory;
-        private readonly ILspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
+        private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
 
         protected readonly IGlobalOptionService GlobalOptions;
 
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             IGlobalOptionService globalOptions,
             IDiagnosticService? diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext,
             string? diagnosticsClientName)
@@ -139,7 +139,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 this,
                 serverStream,
                 serverStream,
-                _lspWorkspaceRegistrationService,
                 _lspLoggerFactory,
                 _diagnosticsClientName,
                 cancellationToken).ConfigureAwait(false);
@@ -170,7 +169,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             AbstractInProcLanguageClient languageClient,
             Stream inputStream,
             Stream outputStream,
-            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             ILspLoggerFactory lspLoggerFactory,
             string? clientName,
             CancellationToken cancellationToken)
@@ -190,7 +188,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             var server = languageClient.Create(
                 jsonRpc,
                 languageClient,
-                lspWorkspaceRegistrationService,
                 logger);
 
             jsonRpc.StartListening();
@@ -200,14 +197,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public ILanguageServerTarget Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
-            ILspWorkspaceRegistrationService workspaceRegistrationService,
             ILspLogger logger)
         {
             return new VisualStudioInProcLanguageServer(
                 _requestDispatcherFactory,
                 jsonRpc,
                 capabilitiesProvider,
-                workspaceRegistrationService,
+                _lspWorkspaceRegistrationService,
                 GlobalOptions,
                 _listenerProvider,
                 logger,

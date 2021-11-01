@@ -24,6 +24,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             MyBase.New(VisualBasicSyntaxFacts.Instance)
         End Sub
 
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CommonTriggerChars
 
         Protected Overrides Function GetSpanStart(declaration As SyntaxNode) As Integer

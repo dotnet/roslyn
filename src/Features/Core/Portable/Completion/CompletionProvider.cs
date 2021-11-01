@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
@@ -43,15 +45,17 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="caretPosition">The position of the caret after the triggering action.</param>
         /// <param name="trigger">The triggering action.</param>
         /// <param name="options">The set of options in effect.</param>
-        internal virtual bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
-            => ShouldTriggerCompletion(text, caretPosition, trigger, options);
+        internal virtual bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options)
+#pragma warning disable RS0030 // Do not use banned APIs
+            => ShouldTriggerCompletion(text, caretPosition, trigger, options.ToSet(languageServices.Language));
+#pragma warning restore
 
         /// <summary>
         /// This allows Completion Providers that indicated they were triggered textually to use syntax to
         /// confirm they are really triggered, or decide they are not actually triggered and should become 
         /// an augmenting provider instead.
         /// </summary>
-        internal virtual async Task<bool> IsSyntacticTriggerCharacterAsync(Document document, int caretPosition, CompletionTrigger trigger, OptionSet options, CancellationToken cancellationToken)
+        internal virtual async Task<bool> IsSyntacticTriggerCharacterAsync(Document document, int caretPosition, CompletionTrigger trigger, CompletionOptions options, CancellationToken cancellationToken)
             => ShouldTriggerCompletion(document.Project.LanguageServices, await document.GetTextAsync(cancellationToken).ConfigureAwait(false), caretPosition, trigger, options);
 
         /// <summary>
@@ -59,6 +63,11 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public virtual Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => Task.FromResult<CompletionDescription?>(CompletionDescription.Empty);
+
+        internal virtual Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+#pragma warning disable RS0030 // Do not used banned APIs
+            => GetDescriptionAsync(document, item, cancellationToken);
+#pragma warning restore
 
         /// <summary>
         /// Gets the change to be applied when the specified item is committed.

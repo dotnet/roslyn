@@ -4,10 +4,12 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -41,7 +43,10 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Gets the current presentation and behavior rules.
         /// </summary>
-        public virtual CompletionRules GetRules() => CompletionRules.Default;
+        public virtual CompletionRules GetRules()
+            => CompletionRules.Default;
+
+        internal abstract CompletionRules GetRules(CompletionOptions options);
 
         /// <summary>
         /// Returns true if the character recently inserted or deleted in the text should trigger completion.
@@ -85,10 +90,11 @@ namespace Microsoft.CodeAnalysis.Completion
             SourceText text,
             int caretPosition,
             CompletionTrigger trigger,
-            OptionSet options,
+            CompletionOptions options,
             ImmutableHashSet<string>? roles = null)
         {
-            return ShouldTriggerCompletion(text, caretPosition, trigger, roles, options);
+            Debug.Fail("Backward compat only, should not be called");
+            return ShouldTriggerCompletion(text, caretPosition, trigger, roles, options.ToSet(languageServices.Language));
         }
 
         /// <summary>
@@ -134,13 +140,15 @@ namespace Microsoft.CodeAnalysis.Completion
         internal virtual async Task<(CompletionList? completionList, bool expandItemsAvailable)> GetCompletionsInternalAsync(
              Document document,
              int caretPosition,
+             CompletionOptions options,
              CompletionTrigger trigger = default,
              ImmutableHashSet<string>? roles = null,
-             OptionSet? options = null,
              CancellationToken cancellationToken = default)
         {
-            var completionList = await GetCompletionsAsync(document, caretPosition, trigger, roles, options, cancellationToken).ConfigureAwait(false);
+#pragma warning disable RS0030 // Do not use banned APIs
+            var completionList = await GetCompletionsAsync(document, caretPosition, trigger, roles, options.ToSet(document.Project.Language), cancellationToken).ConfigureAwait(false);
             return (completionList, false);
+#pragma warning restore
         }
 
         /// <summary>
@@ -150,13 +158,22 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <paramref name="item"/> was created against.</param>
         /// <param name="item">The item to get the description for.</param>
         /// <param name="cancellationToken"></param>
-        public virtual Task<CompletionDescription?> GetDescriptionAsync(
+        public Task<CompletionDescription?> GetDescriptionAsync(
             Document document,
             CompletionItem item,
             CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult<CompletionDescription?>(CompletionDescription.Empty);
-        }
+            => GetDescriptionAsync(document, item, CompletionOptions.From(document.Project), SymbolDescriptionOptions.From(document.Project), cancellationToken);
+
+        /// <summary>
+        /// Gets the description of the item.
+        /// </summary>
+        /// <param name="document">This will be the  original document that
+        /// <paramref name="item"/> was created against.</param>
+        /// <param name="item">The item to get the description for.</param>
+        /// <param name="options">Completion options</param>
+        /// <param name="displayOptions">Display options</param>
+        /// <param name="cancellationToken"></param>
+        internal abstract Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets the change to be applied when the item is committed.

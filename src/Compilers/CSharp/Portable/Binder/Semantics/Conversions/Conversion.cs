@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal readonly MethodSymbol? _conversionMethod;
             internal readonly ImmutableArray<Conversion> _nestedConversionsOpt;
+#if DEBUG
+            internal bool _nestedConversionsChecked;
+#endif
 
             //no effect on Equals/GetHashCode
             internal readonly UserDefinedConversionResult _conversionResult;
@@ -73,14 +76,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private class DeconstructionUncommonData : UncommonData
         {
-            internal DeconstructionUncommonData(DeconstructMethodInfo deconstructMethodInfoOpt, ImmutableArray<Conversion> nestedConversions)
-                : base(isExtensionMethod: false, isArrayIndex: false, conversionResult: default, conversionMethod: null, nestedConversions)
+            internal DeconstructionUncommonData(DeconstructMethodInfo deconstructMethodInfoOpt, ImmutableArray<(BoundValuePlaceholder? placeholder, BoundExpression? conversion)> deconstructConversionInfo)
+                : base(isExtensionMethod: false, isArrayIndex: false, conversionResult: default, conversionMethod: null, nestedConversions: default)
             {
-                Debug.Assert(!nestedConversions.IsDefaultOrEmpty);
+                Debug.Assert(!deconstructConversionInfo.IsDefaultOrEmpty);
                 DeconstructMethodInfo = deconstructMethodInfoOpt;
+                DeconstructConversionInfo = deconstructConversionInfo;
             }
 
             internal readonly DeconstructMethodInfo DeconstructMethodInfo;
+            internal readonly ImmutableArray<(BoundValuePlaceholder? placeholder, BoundExpression? conversion)> DeconstructConversionInfo;
         }
 
         private Conversion(
@@ -133,12 +138,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 nestedConversions: nestedConversions);
         }
 
-        internal Conversion(ConversionKind kind, DeconstructMethodInfo deconstructMethodInfo, ImmutableArray<Conversion> nestedConversions)
+        internal Conversion(ConversionKind kind, DeconstructMethodInfo deconstructMethodInfo, ImmutableArray<(BoundValuePlaceholder? placeholder, BoundExpression? conversion)> deconstructConversionInfo)
         {
             Debug.Assert(kind == ConversionKind.Deconstruction);
 
             this._kind = kind;
-            _uncommonData = new DeconstructionUncommonData(deconstructMethodInfo, nestedConversions);
+            _uncommonData = new DeconstructionUncommonData(deconstructMethodInfo, deconstructConversionInfo);
         }
 
         internal Conversion SetConversionMethod(MethodSymbol conversionMethod)
@@ -355,6 +360,60 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        [Conditional("DEBUG")]
+        internal void AssertUnderlyingConversionsChecked()
+        {
+#if DEBUG
+            Debug.Assert(_uncommonData?._nestedConversionsChecked ?? true);
+#endif
+        }
+
+        [Conditional("DEBUG")]
+        internal void AssertUnderlyingConversionsCheckedRecursive()
+        {
+            AssertUnderlyingConversionsChecked();
+
+            var underlyingConversions = UnderlyingConversions;
+
+            if (!underlyingConversions.IsDefaultOrEmpty)
+            {
+                foreach (var underlying in underlyingConversions)
+                {
+                    underlying.AssertUnderlyingConversionsCheckedRecursive();
+                }
+            }
+        }
+
+        [Conditional("DEBUG")]
+        internal void MarkUnderlyingConversionsChecked()
+        {
+#if DEBUG
+            Debug.Assert(_uncommonData is not null);
+            _uncommonData._nestedConversionsChecked = true;
+#endif
+        }
+
+        [Conditional("DEBUG")]
+        internal void MarkUnderlyingConversionsCheckedRecursive()
+        {
+#if DEBUG
+            if (_uncommonData is not null)
+            {
+                _uncommonData._nestedConversionsChecked = true;
+
+                var underlyingConversions = UnderlyingConversions;
+
+                if (!underlyingConversions.IsDefaultOrEmpty)
+                {
+                    foreach (var underlying in underlyingConversions)
+                    {
+                        underlying.MarkUnderlyingConversionsCheckedRecursive();
+                    }
+                }
+            }
+#endif
+        }
+
         internal MethodSymbol? Method
         {
             get
@@ -410,6 +469,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var uncommonData = (DeconstructionUncommonData?)_uncommonData;
                 return uncommonData == null ? default : uncommonData.DeconstructMethodInfo;
+            }
+        }
+
+        internal ImmutableArray<(BoundValuePlaceholder? placeholder, BoundExpression? conversion)> DeconstructConversionInfo
+        {
+            get
+            {
+                var uncommonData = (DeconstructionUncommonData?)_uncommonData;
+                return uncommonData == null ? default : uncommonData.DeconstructConversionInfo;
             }
         }
 

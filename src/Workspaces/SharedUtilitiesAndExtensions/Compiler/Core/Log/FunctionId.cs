@@ -532,5 +532,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SuggestedActions_GetSuggestedActionsAsync = 500,
 
         NavigateTo_CacheItemsMiss = 510,
+
+        AssetService_Perf = 520,
     }
 }

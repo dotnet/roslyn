@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <summary>
         /// Returns an appropriate error code if scanning this verbatim literal ran into an error.
         /// </summary>
-        private ErrorCode? ScanVerbatimStringLiteral(ref TokenInfo info, bool allowNewlines)
+        private ErrorCode? ScanVerbatimStringLiteral(ref TokenInfo info)
         {
             _builder.Length = 0;
 
@@ -178,14 +178,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // starting point. And finish lexing this string.
                     error ??= ErrorCode.ERR_UnterminatedStringLit;
                     break;
-                }
-
-                // If we hit a new line when it's not allowed.  Give an error at that new line, but keep on consuming
-                // the verbatim literal to the end to avoid the contents of the string being lexed as C# (which will
-                // cause a ton of cascaded errors).  Only need to do this on the first newline we hit.
-                if (!allowNewlines && SyntaxFacts.IsNewLine(ch))
-                {
-                    error ??= ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString;
                 }
 
                 TextWindow.AdvanceChar();
@@ -272,7 +264,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             private readonly Lexer _lexer;
             private bool _isVerbatim;
-            private bool _allowNewlines;
 
             /// <summary>
             /// There are two types of errors we can encounter when trying to scan out an interpolated string (and its
@@ -285,18 +276,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             public SyntaxDiagnosticInfo? Error;
             private bool EncounteredUnrecoverableError;
 
-            public InterpolatedStringScanner(
-                Lexer lexer,
-                bool isVerbatim)
+            public InterpolatedStringScanner(Lexer lexer, bool isVerbatim)
             {
                 _lexer = lexer;
                 _isVerbatim = isVerbatim;
-                _allowNewlines = isVerbatim;
             }
 
             private bool IsAtEnd()
             {
-                return IsAtEnd(_isVerbatim && _allowNewlines);
+                return IsAtEnd(_isVerbatim);
             }
 
             private bool IsAtEnd(bool allowNewline)
@@ -529,15 +517,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     char ch = _lexer.TextWindow.PeekChar();
 
-                    // See if we ran into a disallowed new line.  If so, this is recoverable, so just skip past it but
-                    // give a good message about the issue.  This will prevent a lot of cascading issues with the
-                    // remainder of the interpolated string that comes on the following lines.
-                    var allowNewLines = _isVerbatim && _allowNewlines;
-                    if (!allowNewLines && SyntaxFacts.IsNewLine(ch))
-                    {
-                        TrySetRecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, width: 0, ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString));
-                    }
-
+                    // Note: within a hole newlines are always allowed.  The restriction on if newlines are allowed or not
+                    // is only within a text-portion of the interpolated string.
                     if (IsAtEnd(allowNewline: true))
                     {
                         // the caller will complain
@@ -558,17 +539,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 var interpolations = (ArrayBuilder<Interpolation>?)null;
                                 var info = default(TokenInfo);
                                 bool wasVerbatim = _isVerbatim;
-                                bool wasAllowNewlines = _allowNewlines;
                                 try
                                 {
                                     _isVerbatim = isVerbatimSubstring;
-                                    _allowNewlines &= _isVerbatim;
                                     ScanInterpolatedStringLiteralTop(interpolations, ref info, closeQuoteMissing: out _);
                                 }
                                 finally
                                 {
                                     _isVerbatim = wasVerbatim;
-                                    _allowNewlines = wasAllowNewlines;
                                 }
                                 continue;
                             }
@@ -618,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 // to be a normal verbatim string, so we can continue on an attempt to understand the
                                 // outer interpolated string properly.
                                 var discarded = default(TokenInfo);
-                                var errorCode = _lexer.ScanVerbatimStringLiteral(ref discarded, _allowNewlines);
+                                var errorCode = _lexer.ScanVerbatimStringLiteral(ref discarded);
                                 if (errorCode is ErrorCode code)
                                 {
                                     TrySetRecoverableError(_lexer.MakeError(nestedStringPosition, width: 2, code));
@@ -631,17 +609,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 var interpolations = (ArrayBuilder<Interpolation>?)null;
                                 var info = default(TokenInfo);
                                 bool wasVerbatim = _isVerbatim;
-                                bool wasAllowNewlines = _allowNewlines;
                                 try
                                 {
                                     _isVerbatim = true;
-                                    _allowNewlines = true;
                                     ScanInterpolatedStringLiteralTop(interpolations, ref info, closeQuoteMissing: out _);
                                 }
                                 finally
                                 {
                                     _isVerbatim = wasVerbatim;
-                                    _allowNewlines = wasAllowNewlines;
                                 }
                                 continue;
                             }
@@ -651,15 +626,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             switch (_lexer.TextWindow.PeekChar(1))
                             {
                                 case '/':
-                                    if (!_isVerbatim || !_allowNewlines)
-                                    {
-                                        // error: single-line comment not allowed in an interpolated string.
-                                        // report the error but keep going for good error recovery.
-                                        TrySetRecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, 2, ErrorCode.ERR_SingleLineCommentInExpressionHole));
-                                    }
+                                    _lexer.TextWindow.AdvanceChar(); // skip /
+                                    _lexer.TextWindow.AdvanceChar(); // skip /
 
-                                    _lexer.TextWindow.AdvanceChar(); // skip /
-                                    _lexer.TextWindow.AdvanceChar(); // skip /
+                                    // read up to the end of the line.
                                     while (!IsAtEnd(allowNewline: false))
                                     {
                                         _lexer.TextWindow.AdvanceChar(); // skip // comment character
@@ -709,26 +679,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _lexer.TextWindow.AdvanceChar();
                 while (true)
                 {
-                    var ch = _lexer.TextWindow.PeekChar();
-
-                    // See if we ran into a disallowed new line.  If so, this is recoverable, so just skip past it but
-                    // give a good message about the issue.  This will prevent a lot of cascading issues with the remainder
-                    // of the interpolated string that comes on the following lines.
-                    var allowNewLines = _isVerbatim && _allowNewlines;
-                    if (!allowNewLines && SyntaxFacts.IsNewLine(ch))
-                    {
-                        TrySetRecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, width: 0, ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString));
-                    }
-
+                    // Note: if we reach the end of the file without hitting */ just bail out.  It's not necessary for
+                    // us to report any issues, as this code is just being used to find the end of the interpolation hole.
+                    // When the full parse happens, the lexer will grab the string inside the interpolation hole and 
+                    // pass it to the regular parser.  This parser will then see the unterminated /* and will report the
+                    // error for it.
                     if (IsAtEnd(allowNewline: true))
-                    {
-                        return; // let the caller complain about the unterminated quote
-                    }
+                        return;
 
+                    var ch = _lexer.TextWindow.PeekChar();
                     _lexer.TextWindow.AdvanceChar();
                     if (ch == '*' && _lexer.TextWindow.PeekChar() == '/')
                     {
-                        _lexer.TextWindow.AdvanceChar(); // skip */
+                        _lexer.TextWindow.AdvanceChar();
                         return;
                     }
                 }

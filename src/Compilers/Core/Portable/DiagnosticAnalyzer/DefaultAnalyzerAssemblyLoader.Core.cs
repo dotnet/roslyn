@@ -71,6 +71,8 @@ namespace Microsoft.CodeAnalysis
                "System.Xml.XDocument",
                "System.Xml.XPath.XDocument");
 
+        internal virtual ImmutableHashSet<string> AssemblySimpleNamesToBeLoadedInCompilerContext => CompilerAssemblySimpleNames;
+
         // This is the context where compiler (and some of its dependencies) are being loaded into, which might be different from AssemblyLoadContext.Default.
         private static readonly AssemblyLoadContext s_compilerLoadContext = AssemblyLoadContext.GetLoadContext(typeof(DefaultAnalyzerAssemblyLoader).GetTypeInfo().Assembly)!;
 
@@ -119,7 +121,7 @@ namespace Microsoft.CodeAnalysis
             protected override Assembly? Load(AssemblyName assemblyName)
             {
                 var simpleName = assemblyName.Name!;
-                if (CompilerAssemblySimpleNames.Contains(simpleName))
+                if (_loader.AssemblySimpleNamesToBeLoadedInCompilerContext.Contains(simpleName))
                 {
                     // Delegate to the compiler's load context to load the compiler or anything
                     // referenced by the compiler

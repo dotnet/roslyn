@@ -9,6 +9,7 @@ using System.Linq;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -27,17 +28,23 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         private readonly IClassificationTypeRegistryService _classificationRegistryService;
         private readonly IClassificationFormatMap _formatMap;
         private readonly ITagAggregator<IEndOfLineAdornmentTag> _endLineTagAggregator;
+        private readonly IGlobalOptionService _globalOptions;
 
         public InlineDiagnosticsAdornmentManager(
-            IThreadingContext threadingContext, IWpfTextView textView, IViewTagAggregatorFactoryService tagAggregatorFactoryService,
-            IAsynchronousOperationListener asyncListener, string adornmentLayerName,
+            IThreadingContext threadingContext,
+            IWpfTextView textView,
+            IViewTagAggregatorFactoryService tagAggregatorFactoryService,
+            IAsynchronousOperationListener asyncListener,
+            string adornmentLayerName,
             IClassificationFormatMapService classificationFormatMapService,
-            IClassificationTypeRegistryService classificationTypeRegistryService)
+            IClassificationTypeRegistryService classificationTypeRegistryService,
+            IGlobalOptionService globalOptions)
             : base(threadingContext, textView, tagAggregatorFactoryService, asyncListener, adornmentLayerName)
         {
             _classificationRegistryService = classificationTypeRegistryService;
             _formatMap = classificationFormatMapService.GetClassificationFormatMap(textView);
             _formatMap.ClassificationFormatMappingChanged += OnClassificationFormatMappingChanged;
+            _globalOptions = globalOptions;
             TextView.ViewportWidthChanged += TextView_ViewportWidthChanged;
 
             _endLineTagAggregator = tagAggregatorFactoryService.CreateTagAggregator<IEndOfLineAdornmentTag>(textView);
@@ -72,39 +79,19 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 return;
             }
 
-            if (!TryTextView_ViewportWidthChanged(out var workspace, out var document))
+            var document = TextView.TextBuffer.AsTextContainer()?.GetOpenDocumentInCurrentContext();
+            if (document is null)
             {
                 AdornmentLayer.RemoveAllAdornments();
                 return;
             }
 
-            var option = workspace.Options.GetOption(InlineDiagnosticsOptions.Location, document.Project.Language);
+            var option = _globalOptions.GetOption(InlineDiagnosticsOptions.Location, document.Project.Language);
             if (option == InlineDiagnosticsLocations.PlacedAtEndOfEditor)
             {
                 var normalizedCollectionSpan = new NormalizedSnapshotSpanCollection(TextView.TextViewLines.FormattedSpan);
                 UpdateSpans_CallOnlyOnUIThread(normalizedCollectionSpan, removeOldTags: true);
             }
-        }
-
-        private bool TryTextView_ViewportWidthChanged(
-            [NotNullWhen(true)] out Workspace? workspace,
-            [NotNullWhen(true)] out Document? document)
-        {
-            var sourceContainer = TextView.TextBuffer.AsTextContainer();
-            workspace = null;
-            document = null;
-            if (sourceContainer is null)
-            {
-                return false;
-            }
-
-            if (!Workspace.TryGetWorkspace(sourceContainer, out workspace))
-            {
-                return false;
-            }
-
-            document = sourceContainer.GetOpenDocumentInCurrentContext();
-            return document != null;
         }
 
         private void OnClassificationFormatMappingChanged(object sender, EventArgs e)
