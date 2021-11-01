@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.UnitTests.TestFiles;
@@ -514,8 +515,11 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             // Assert that there is a single project loaded.
             Assert.Single(workspace.CurrentSolution.ProjectIds);
 
-            // Assert that the project does not have any diagnostics in Program.cs
+            // Assert that the project is a console app
             Assert.Equal(OutputKind.ConsoleApplication, project.CompilationOptions.OutputKind);
+            // Assert that the console app is targeting C# 8
+            var csharpParseOptions = Assert.IsType<CSharpParseOptions>(project.ParseOptions);
+            Assert.Equal(CSharp.LanguageVersion.CSharp8, csharpParseOptions.LanguageVersion);
 
             File.WriteAllText(projectFilePath, @"
 <Project Sdk=""Microsoft.NET.Sdk"">
@@ -528,7 +532,13 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 ");
 
             var newProject = await workspace.ReloadProjectAsync(project.Id);
+
+            // Assert that the project is now a library
             Assert.Equal(OutputKind.DynamicallyLinkedLibrary, newProject.CompilationOptions.OutputKind);
+
+            // Assert that the library is targeting C# 7.3
+            var newCSharpParseOptions = Assert.IsType<CSharpParseOptions>(newProject.ParseOptions);
+            Assert.Equal(CSharp.LanguageVersion.CSharp7_3, newCSharpParseOptions.LanguageVersion);
         }
     }
 }
