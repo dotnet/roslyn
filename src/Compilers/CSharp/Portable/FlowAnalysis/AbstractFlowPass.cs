@@ -1433,9 +1433,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitIndexOrRangeIndexerFallbackAccess(BoundIndexOrRangeIndexerFallbackAccess node)
+        public override BoundNode VisitIndexOrRangeImplicitIndexerAccess(BoundIndexOrRangeImplicitIndexerAccess node)
         {
-            // Index or Range fallback indexers evaluate the following in order:
+            // Index or Range implicit indexers evaluate the following in order:
             // 1. The receiver
             // 2. The Count or Length method off the receiver
             // 3. The argument to the access
@@ -1444,11 +1444,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = GetReadMethod(node.LengthOrCountProperty);
             VisitReceiverAfterCall(node.Receiver, method);
             VisitRvalue(node.Argument);
-            method = node.PatternSymbol switch
+            method = node.UnderlyingIndexerOrSliceSymbol switch
             {
                 PropertySymbol p => GetReadMethod(p),
                 MethodSymbol m => m,
-                _ => throw ExceptionUtilities.UnexpectedValue(node.PatternSymbol)
+                _ => throw ExceptionUtilities.UnexpectedValue(node.UnderlyingIndexerOrSliceSymbol)
             };
             VisitReceiverAfterCall(node.Receiver, method);
 

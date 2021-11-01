@@ -1556,11 +1556,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         propertySymbol = indexerAccess.Indexer;
                     }
                     break;
-                case BoundKind.IndexOrRangeIndexerFallbackAccess:
+                case BoundKind.IndexOrRangeImplicitIndexerAccess:
                     {
-                        var patternIndexer = (BoundIndexOrRangeIndexerFallbackAccess)expr;
+                        var patternIndexer = (BoundIndexOrRangeImplicitIndexerAccess)expr;
                         receiver = patternIndexer.Receiver;
-                        propertySymbol = (PropertySymbol)patternIndexer.PatternSymbol;
+                        propertySymbol = (PropertySymbol)patternIndexer.UnderlyingIndexerOrSliceSymbol;
                     }
                     break;
                 default:

@@ -7740,7 +7740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!lookupResult.IsMultiViable)
             {
-                if (TryBindIndexOrRangeIndexerFallback(
+                if (TryBindIndexOrRangeImplicitIndexer(
                     node,
                     expr,
                     analyzedArguments,
@@ -7912,7 +7912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!analyzedArguments.HasErrors)
                 {
-                    if (TryBindIndexOrRangeIndexerFallback(
+                    if (TryBindIndexOrRangeImplicitIndexer(
                         syntax,
                         receiverOpt,
                         analyzedArguments,
@@ -8022,12 +8022,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private bool TryBindIndexOrRangeIndexerFallback(
+        private bool TryBindIndexOrRangeImplicitIndexer(
             SyntaxNode syntax,
             BoundExpression? receiverOpt,
             AnalyzedArguments arguments,
             BindingDiagnosticBag diagnostics,
-            [NotNullWhen(true)] out BoundIndexOrRangeIndexerFallbackAccess? indexerFallbackAccess)
+            [NotNullWhen(true)] out BoundIndexOrRangeImplicitIndexerAccess? indexerFallbackAccess)
         {
             indexerFallbackAccess = null;
 
@@ -8055,13 +8055,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool argIsIndex = argIsIndexNotRange.Value();
-            if (!TryFindIndexOrRangeIndexerFallback(syntax, receiverOpt, receiverType, argIsIndex: argIsIndex,
+            if (!TryFindIndexOrRangeImplicitIndexer(syntax, receiverOpt, receiverType, argIsIndex: argIsIndex,
                 out PropertySymbol? lengthOrCountProperty, out Symbol? patternSymbol, diagnostics))
             {
                 return false;
             }
 
-            indexerFallbackAccess = new BoundIndexOrRangeIndexerFallbackAccess(
+            indexerFallbackAccess = new BoundIndexOrRangeImplicitIndexerAccess(
                 syntax,
                 receiverOpt,
                 lengthOrCountProperty,
@@ -8097,9 +8097,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Finds pattern-based fallback indexer and Length/Count property.
+        /// Finds pattern-based implicit indexer and Length/Count property.
         /// </summary>
-        private bool TryFindIndexOrRangeIndexerFallback(
+        private bool TryFindIndexOrRangeImplicitIndexer(
             SyntaxNode syntax,
             BoundExpression? receiverOpt,
             TypeSymbol receiverType,
@@ -8121,7 +8121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lookupResult = LookupResult.GetInstance();
 
             if (TryLookupLengthOrCount(syntax, receiverType, lookupResult, out lengthOrCountProperty, diagnostics) &&
-                TryFindIndexOrRangeIndexerFallback(syntax, lookupResult, receiverOpt, receiverType, argIsIndex, out patternSymbol, diagnostics))
+                TryFindIndexOrRangeImplicitIndexer(syntax, lookupResult, receiverOpt, receiverType, argIsIndex, out patternSymbol, diagnostics))
             {
                 var lengthAccess = new BoundPropertyAccess(syntax, receiverOpt, lengthOrCountProperty, LookupResultKind.Viable, lengthOrCountProperty.Type);
                 CheckPropertyValueKind(syntax, lengthAccess, BindValueKind.RValue, checkingReceiver: false, diagnostics);
@@ -8136,11 +8136,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Finds pattern-based fallback indexer:
+        /// Finds pattern-based implicit indexer:
         /// - for Index indexer, this will find `this[int]`.
         /// - for Range indexer, this will find `Slice(int, int)` or `string.Substring(int, int)`.
         /// </summary>
-        private bool TryFindIndexOrRangeIndexerFallback(
+        private bool TryFindIndexOrRangeImplicitIndexer(
             SyntaxNode syntax,
             LookupResult lookupResult,
             BoundExpression? receiverOpt,

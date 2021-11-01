@@ -404,19 +404,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 indexerAccess.Type);
         }
 
-        private BoundExpression TransformIndexerFallbackAccess(
-            BoundIndexOrRangeIndexerFallbackAccess indexerAccess,
+        private BoundExpression TransformImplicitIndexerAccess(
+            BoundIndexOrRangeImplicitIndexerAccess indexerAccess,
             ArrayBuilder<BoundExpression> stores,
             ArrayBuilder<LocalSymbol> temps,
             bool isDynamicAssignment)
         {
-            // A fallback indexer is fundamentally a sequence which ends in either
-            // a conventional indexer access or a method call. The lowering of a
-            // fallback indexer already lowers everything we need into temps, so
+            // An implicit indexer is fundamentally a sequence which ends in either
+            // a conventional indexer access or a method call. The lowering of an
+            // implicit indexer already lowers everything we need into temps, so
             // the only thing we need to do is lift the stores and temps out of
             // the sequence, and use the final expression as the new argument
 
-            var sequence = VisitIndexOrRangeIndexerFallbackAccess(indexerAccess, isLeftOfAssignment: true);
+            var sequence = VisitIndexOrRangeImplicitIndexerAccess(indexerAccess, isLeftOfAssignment: true);
             stores.AddRange(sequence.SideEffects);
             temps.AddRange(sequence.Locals);
             return TransformCompoundAssignmentLHS(sequence.Value, stores, temps, isDynamicAssignment);
@@ -585,10 +585,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.IndexOrRangeIndexerFallbackAccess:
+                case BoundKind.IndexOrRangeImplicitIndexerAccess:
                     {
-                        var patternIndexerAccess = (BoundIndexOrRangeIndexerFallbackAccess)originalLHS;
-                        RefKind refKind = patternIndexerAccess.PatternSymbol switch
+                        var patternIndexerAccess = (BoundIndexOrRangeImplicitIndexerAccess)originalLHS;
+                        RefKind refKind = patternIndexerAccess.UnderlyingIndexerOrSliceSymbol switch
                         {
                             PropertySymbol p => p.RefKind,
                             MethodSymbol m => m.RefKind,
@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         };
                         if (refKind == RefKind.None)
                         {
-                            return TransformIndexerFallbackAccess(patternIndexerAccess, stores, temps, isDynamicAssignment);
+                            return TransformImplicitIndexerAccess(patternIndexerAccess, stores, temps, isDynamicAssignment);
                         }
                     }
                     break;

@@ -8695,7 +8695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode? VisitIndexOrRangeIndexerFallbackAccess(BoundIndexOrRangeIndexerFallbackAccess node)
+        public override BoundNode? VisitIndexOrRangeImplicitIndexerAccess(BoundIndexOrRangeImplicitIndexerAccess node)
         {
             BoundExpression receiver = node.Receiver;
             var receiverType = VisitRvalueWithState(receiver).Type;
@@ -8704,14 +8704,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             _ = CheckPossibleNullReceiver(receiver);
 
             VisitRvalue(node.Argument);
-            var patternSymbol = node.PatternSymbol;
+            var patternSymbol = node.UnderlyingIndexerOrSliceSymbol;
             if (receiverType is object)
             {
                 patternSymbol = AsMemberOfType(receiverType, patternSymbol);
             }
 
             SetLvalueResultType(node, patternSymbol.GetTypeOrReturnType());
-            SetUpdatedSymbol(node, node.PatternSymbol, patternSymbol);
+            SetUpdatedSymbol(node, node.UnderlyingIndexerOrSliceSymbol, patternSymbol);
             return null;
         }
 

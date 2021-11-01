@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lookupResult.Clear();
 
                     var analyzedArguments = AnalyzedArguments.GetInstance();
-                    analyzedArguments.Arguments.Add(new BoundIndexOrRangeIndexerFallbackValuePlaceholder(syntax, argType));
+                    analyzedArguments.Arguments.Add(new BoundIndexOrRangeImplicitIndexerValuePlaceholder(syntax, argType));
                     var receiver = new BoundImplicitReceiver(syntax, receiverType);
                     BoundExpression boundAccess = BindIndexerOrIndexedPropertyAccess(syntax, receiver, indexerGroup, analyzedArguments, bindingDiagnostics);
                     switch (boundAccess)
@@ -395,9 +395,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             break;
 
-                        case BoundIndexOrRangeIndexerFallbackAccess boundIndexOrRangeIndexerFallbackAccess:
-                            lengthProperty = boundIndexOrRangeIndexerFallbackAccess.LengthOrCountProperty;
-                            patternSymbol = boundIndexOrRangeIndexerFallbackAccess.PatternSymbol;
+                        case BoundIndexOrRangeImplicitIndexerAccess boundIndexOrRangeImplicitIndexerAccess:
+                            lengthProperty = boundIndexOrRangeImplicitIndexerAccess.LengthOrCountProperty;
+                            patternSymbol = boundIndexOrRangeImplicitIndexerAccess.UnderlyingIndexerOrSliceSymbol;
                             found = true;
                             break;
 
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If the argType is missing or the indexer lookup has failed, we will fallback to the implicit indexer support.
             found = TryLookupLengthOrCount(syntax, receiverType, lookupResult, out lengthProperty, diagnostics) &&
-                TryFindIndexOrRangeIndexerFallback(syntax, lookupResult, receiverOpt: null, receiverType, argIsIndex, out patternSymbol, diagnostics);
+                TryFindIndexOrRangeImplicitIndexer(syntax, lookupResult, receiverOpt: null, receiverType, argIsIndex, out patternSymbol, diagnostics);
 done:
 
             if (found)
@@ -425,8 +425,8 @@ done:
                 {
                     if (patternSymbol is not null)
                     {
-                        var indexerFallbackAccess = new BoundIndexOrRangeIndexerFallbackAccess(syntax, new BoundImplicitReceiver(syntax, receiverType),
-                            lengthProperty, patternSymbol, argument: new BoundIndexOrRangeIndexerFallbackValuePlaceholder(syntax, argType), patternSymbol.GetTypeOrReturnType().Type);
+                        var indexerFallbackAccess = new BoundIndexOrRangeImplicitIndexerAccess(syntax, new BoundImplicitReceiver(syntax, receiverType),
+                            lengthProperty, patternSymbol, argument: new BoundIndexOrRangeImplicitIndexerValuePlaceholder(syntax, argType), patternSymbol.GetTypeOrReturnType().Type);
 
                         if (!CheckValueKind(syntax, indexerFallbackAccess, BindValueKind.RValue, checkingReceiver: false, bindingDiagnostics))
                         {
