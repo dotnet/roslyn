@@ -341,6 +341,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         [InlineData(@"at M.M(string[[]] s)")]
         [InlineData(@"at M.N`.P()")] // Missing numeric for arity 
         [InlineData(@"at M.N`9N.P()")] // Invalid character after arity
+        [InlineData("M.N.P.()")] // Trailing . with no identifier before arguments
+        [InlineData("M.N(X.Y. x)")] // Trailing . in argument type
+        [InlineData("M.N[T.Y]()")] // Generic type arguments should not be qualified types
+        [InlineData("M.N(X.Y x.y)")] // argument names should not be qualified
         public void TestInvalidInputs(string input)
             => Verify(input, expectFailure: true);
 

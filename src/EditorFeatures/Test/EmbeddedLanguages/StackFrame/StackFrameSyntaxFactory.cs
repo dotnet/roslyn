@@ -100,6 +100,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         public static StackFrameQualifiedNameNode QualifiedName(string s, ImmutableArray<StackFrameTrivia> leadingTrivia, ImmutableArray<StackFrameTrivia> trailingTrivia)
         {
             StackFrameNameNode? current = null;
+            Assert.True(s.Contains('.'));
+
             var identifiers = s.Split('.');
             for (var i = 0; i < identifiers.Length; i++)
             {

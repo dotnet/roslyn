@@ -127,12 +127,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// 
         /// Nodes will be parsed for arity but not generic type arguments.
         ///
+        /// <code>
         /// All of the following are valid nodes, where "$$" marks the parsing starting point, and "[|" + "|]" mark the endpoints of the parsed node excluding trivia
         ///   * [|$$MyNamespace.MyClass.MyMethod|](string s)
         ///   * MyClass.MyMethod([|$$string|] s)
         ///   * MyClass.MyMethod([|$$string[]|] s)
         ///   * [|$$MyClass`1.MyMethod|](string s)
         ///   * [|$$MyClass.MyMethod|][T](T t)
+        /// </code>
+        /// 
         /// </summary>
         private ParseResult<StackFrameNameNode> TryParseNameNode(bool scanAtTrivia)
         {
