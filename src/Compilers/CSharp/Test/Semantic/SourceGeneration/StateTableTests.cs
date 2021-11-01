@@ -401,15 +401,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         {
             var options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10);
             var c = CSharpCompilation.Create("empty");
-            var state = new GeneratorDriverState(options,
+            var state = new GeneratorDriverState(new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None),
+                    options,
                     CompilerAnalyzerConfigOptionsProvider.Empty,
                     ImmutableArray<ISourceGenerator>.Empty,
                     ImmutableArray<IIncrementalGenerator>.Empty,
                     ImmutableArray<AdditionalText>.Empty,
                     ImmutableArray<GeneratorState>.Empty,
                     previous,
-                    disabledOutputs: IncrementalGeneratorOutputKind.None,
-                    runtime: TimeSpan.Zero);
+                    elapsedTime: TimeSpan.Zero,
+                    cancelled: false);
 
             return new DriverStateTable.Builder(c, state, ImmutableArray<ISyntaxInputNode>.Empty);
         }

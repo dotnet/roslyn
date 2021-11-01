@@ -2121,5 +2121,138 @@ class C { }
             driver = driver.RunGenerators(compilation);
             Assert.Single(referenceList, modifiedRef.Display);
         }
+
+        [Fact]
+        public void Generator_Driver_Supports_Graceful_Cancellation()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            CancellationTokenSource cts = new CancellationTokenSource();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => cts.Cancel());
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator.AsSourceGenerator() }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, true));
+            driver = driver.RunGenerators(compilation, cts.Token);
+
+            Assert.True(cts.Token.IsCancellationRequested);
+
+            var runResult = driver.GetRunResult();
+            Assert.IsType<GeneratorDriverRunResult.CancelledResult>(runResult);
+            Assert.Empty(runResult.Results);
+        }
+
+        [Fact]
+        public void Generator_Driver_Ignores_Cancelled_Results()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            CancellationTokenSource cts = new CancellationTokenSource();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => { context.AddSource("gen", ""); cts.Cancel(); });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator.AsSourceGenerator() }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, true));
+            driver = driver.RunGenerators(compilation, cts.Token);
+
+            Assert.True(cts.Token.IsCancellationRequested);
+
+            var runResult = driver.GetRunResult();
+            Assert.IsType<GeneratorDriverRunResult.CancelledResult>(runResult);
+            Assert.Empty(runResult.Results);
+        }
+
+        [Fact]
+        public void Generator_Driver_Does_Not_Run_Generators_After_Cancellation()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            CancellationTokenSource cts = new CancellationTokenSource();
+
+            bool invoked = false;
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => cts.Cancel());
+            });
+
+            var generator2 = new PipelineCallbackGenerator2(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => invoked = true);
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator.AsSourceGenerator(), generator2.AsSourceGenerator() }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, true));
+            driver = driver.RunGenerators(compilation, cts.Token);
+
+            Assert.True(cts.Token.IsCancellationRequested);
+
+            var runResult = driver.GetRunResult();
+            Assert.IsType<GeneratorDriverRunResult.CancelledResult>(runResult);
+            Assert.Empty(runResult.Results);
+            Assert.False(invoked);
+        }
+
+        [Fact]
+        public void Generator_Driver_Uses_Partial_Results_From_Previous_Cancellation()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            CancellationTokenSource cts = new CancellationTokenSource();
+            int callCount = 0;
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => { callCount++; context.AddSource("gen1", ""); });
+            });
+
+            var generator2 = new PipelineCallbackGenerator2(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => cts.Cancel());
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator.AsSourceGenerator(), generator2.AsSourceGenerator() }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, true));
+            driver = driver.RunGenerators(compilation, cts.Token);
+
+            Assert.True(cts.Token.IsCancellationRequested);
+
+            var runResult = driver.GetRunResult();
+            Assert.IsType<GeneratorDriverRunResult.CancelledResult>(runResult);
+            Assert.Empty(runResult.Results);
+            Assert.Equal(1, callCount);
+
+            // re-run with the partial results and confirm that the cached results are not re-computed, but we still get run results
+            driver = driver.RunGenerators(compilation, cancellationToken: default);
+            var runResult2 = driver.GetRunResult();
+
+            Assert.Equal(2, runResult2.Results.Length);
+            Assert.Equal(1, callCount);
+        }
     }
 }

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
         internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts, GeneratorDriverOptions driverOptions)
         {
             (var filteredGenerators, var incrementalGenerators) = GetIncrementalGenerators(generators, SourceExtension);
-            _state = new GeneratorDriverState(parseOptions, optionsProvider, filteredGenerators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[filteredGenerators.Length]), DriverStateTable.Empty, driverOptions.DisabledOutputs, elapsedTime: TimeSpan.Zero, cancelled: false);
+            _state = new GeneratorDriverState(driverOptions, parseOptions, optionsProvider, filteredGenerators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[filteredGenerators.Length]), DriverStateTable.Empty, elapsedTime: TimeSpan.Zero, cancelled: false);
         }
 
         public GeneratorDriver RunGenerators(Compilation compilation, CancellationToken cancellationToken = default)
@@ -129,6 +129,13 @@ namespace Microsoft.CodeAnalysis
 
         public GeneratorDriverRunResult GetRunResult()
         {
+            if (_state.Cancelled)
+            {
+                Debug.Assert(_state.Options.EnableGracefulCancellation);
+
+                return new GeneratorDriverRunResult.CancelledResult(_state.ElapsedTime, getCancelledRunResult(_state));
+            }
+
             var results = _state.Generators.ZipAsArray(
                             _state.GeneratorStates,
                             (generator, generatorState)
@@ -137,7 +144,7 @@ namespace Microsoft.CodeAnalysis
                                                           exception: generatorState.Exception,
                                                           generatedSources: getGeneratorSources(generatorState),
                                                           elapsedTime: generatorState.ElapsedTime));
-            return new GeneratorDriverRunResult(results, _state.ElapsedTime, _state.Cancelled);
+            return new GeneratorDriverRunResult(results, _state.ElapsedTime);
 
             static ImmutableArray<GeneratedSourceResult> getGeneratorSources(GeneratorState generatorState)
             {
@@ -151,6 +158,19 @@ namespace Microsoft.CodeAnalysis
                     sources.Add(new GeneratedSourceResult(tree.Tree, tree.Text, tree.HintName));
                 }
                 return sources.ToImmutableAndFree();
+            }
+
+            static GeneratorRunResult? getCancelledRunResult(GeneratorDriverState driverState)
+            {
+                for (int i = 0; i < driverState.GeneratorStates.Length; i++)
+                {
+                    if (driverState.GeneratorStates[i].Cancelled)
+                    {
+                        return new GeneratorRunResult(driverState.Generators[i], ImmutableArray<GeneratedSourceResult>.Empty, ImmutableArray<Diagnostic>.Empty, exception: null, elapsedTime: driverState.GeneratorStates[i].ElapsedTime);
+                    }
+                }
+
+                return null;
             }
         }
 
@@ -260,11 +280,11 @@ namespace Microsoft.CodeAnalysis
                 {
                     stateBuilder[i] = SetGeneratorException(MessageProvider, stateBuilder[i], state.Generators[i], ufe.InnerException, diagnosticsBag, generatorTimer.Elapsed);
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException) when (state.Options.EnableGracefulCancellation)
                 {
                     // when cancelled, we record the time it spent generating, but don't include anything that was partially generated.
-                    // this allows us to know if a await runnning generator is frequently causing the cacnellation
-                    stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatorState.InputNodes, generatorState.OutputNodes, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray<Diagnostic>.Empty, generatorTimer.Elapsed);
+                    // this allows us to know if a runnning generator is frequently causing the cancellation
+                    stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatorState.InputNodes, generatorState.OutputNodes, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray<Diagnostic>.Empty, generatorTimer.Elapsed, cancelled: true);
                     cancelled = true;
                     break;
                 }
@@ -281,9 +301,10 @@ namespace Microsoft.CodeAnalysis
             foreach (var outputNode in outputNodes)
             {
                 // if we're looking for this output kind, and it has not been explicitly disabled
-                if (outputKind.HasFlag(outputNode.Kind) && !_state.DisabledOutputs.HasFlag(outputNode.Kind))
+                if (outputKind.HasFlag(outputNode.Kind) && !_state.Options.DisabledOutputs.HasFlag(outputNode.Kind))
                 {
                     outputNode.AppendOutputs(context, cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
                 }
             }
             return context;

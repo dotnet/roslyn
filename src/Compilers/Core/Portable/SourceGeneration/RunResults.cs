@@ -19,11 +19,10 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableArray<SyntaxTree> _lazyGeneratedTrees;
 
-        internal GeneratorDriverRunResult(ImmutableArray<GeneratorRunResult> results, TimeSpan elapsedTime, bool cancelled)
+        internal GeneratorDriverRunResult(ImmutableArray<GeneratorRunResult> results, TimeSpan elapsedTime)
         {
             this.Results = results;
             this.ElapsedTime = elapsedTime;
-            this.WasCancelled = cancelled;
         }
 
         /// <summary>
@@ -35,16 +34,6 @@ namespace Microsoft.CodeAnalysis
         /// The wall clock time that this generator pass took to execute.
         /// </summary>
         public TimeSpan ElapsedTime { get; }
-
-
-        /// <summary>
-        /// <see langword="true"/> if the generator pass was cancelled before completion.
-        /// </summary>
-        /// <remarks>
-        /// These run results are likely to be incomplete, depending on when the cancellation was triggered, and <see cref="Results"/>
-        /// will only have entries for generators that succesfully ran or any generator that was running during cancellation.
-        /// </remarks>
-        public bool WasCancelled { get; }
 
         /// <summary>
         /// The <see cref="Diagnostic"/>s produced by all generators run during this generation pass.
@@ -80,6 +69,17 @@ namespace Microsoft.CodeAnalysis
                 }
                 return _lazyGeneratedTrees;
             }
+        }
+
+        public sealed class CancelledResult : GeneratorDriverRunResult
+        {
+            internal CancelledResult(TimeSpan elapsedTime, GeneratorRunResult? cancelledOn)
+                : base(ImmutableArray<GeneratorRunResult>.Empty, elapsedTime)
+            {
+                LastGeneratorRunning = cancelledOn;
+            }
+
+            public GeneratorRunResult? LastGeneratorRunning { get; }
         }
     }
 

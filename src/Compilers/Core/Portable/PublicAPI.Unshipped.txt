@@ -13,9 +13,10 @@ Microsoft.CodeAnalysis.GeneratorDriver.WithUpdatedParseOptions(Microsoft.CodeAna
 Microsoft.CodeAnalysis.GeneratorDriverOptions
 Microsoft.CodeAnalysis.GeneratorDriverOptions.GeneratorDriverOptions() -> void
 Microsoft.CodeAnalysis.GeneratorDriverOptions.GeneratorDriverOptions(Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind disabledOutputs) -> void
-Microsoft.CodeAnalysis.GeneratorDriverRunResult.Cancelled.get -> bool
+Microsoft.CodeAnalysis.GeneratorDriverOptions.GeneratorDriverOptions(Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind disabledOutputs, bool enableGracefulCancellation) -> void
+Microsoft.CodeAnalysis.GeneratorDriverRunResult.CancelledResult
+Microsoft.CodeAnalysis.GeneratorDriverRunResult.CancelledResult.LastGeneratorRunning.get -> Microsoft.CodeAnalysis.GeneratorRunResult?
 Microsoft.CodeAnalysis.GeneratorDriverRunResult.ElapsedTime.get -> System.TimeSpan
-Microsoft.CodeAnalysis.GeneratorDriverRunResult.WasCancelled.get -> bool
 Microsoft.CodeAnalysis.GeneratorExtensions
 Microsoft.CodeAnalysis.GeneratorRunResult.ElapsedTime.get -> System.TimeSpan
 Microsoft.CodeAnalysis.IFieldSymbol.FixedSize.get -> int
@@ -126,6 +127,7 @@ Microsoft.CodeAnalysis.SyntaxValueProvider.CreateSyntaxProvider<T>(System.Func<M
 Microsoft.CodeAnalysis.SyntaxValueProvider.SyntaxValueProvider() -> void
 override Microsoft.CodeAnalysis.Text.TextChangeRange.ToString() -> string!
 readonly Microsoft.CodeAnalysis.GeneratorDriverOptions.DisabledOutputs -> Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind
+readonly Microsoft.CodeAnalysis.GeneratorDriverOptions.EnableGracefulCancellation -> bool
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Compare(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> int
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Equals(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> bool
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetGenerators(string! language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new generator state that contains information, constant trees and an execution pipeline
         /// </summary>
         public GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<ISyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes)
-            : this(info, postInitTrees, inputNodes, outputNodes, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray<Diagnostic>.Empty, exception: null, elapsedTime: TimeSpan.Zero)
+            : this(info, postInitTrees, inputNodes, outputNodes, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray<Diagnostic>.Empty, exception: null, elapsedTime: TimeSpan.Zero, cancelled: false)
         {
         }
 
@@ -40,19 +40,19 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new generator state that contains an exception and the associated diagnostic
         /// </summary>
         public GeneratorState(GeneratorInfo info, Exception e, Diagnostic error, TimeSpan elapsedTime)
-            : this(info, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray<ISyntaxInputNode>.Empty, ImmutableArray<IIncrementalGeneratorOutputNode>.Empty, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray.Create(error), exception: e, elapsedTime)
+            : this(info, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray<ISyntaxInputNode>.Empty, ImmutableArray<IIncrementalGeneratorOutputNode>.Empty, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray.Create(error), exception: e, elapsedTime, cancelled: false)
         {
         }
 
         /// <summary>
         /// Creates a generator state that contains results
         /// </summary>
-        public GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<ISyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, ImmutableArray<GeneratedSyntaxTree> generatedTrees, ImmutableArray<Diagnostic> diagnostics, TimeSpan elapsedTime)
-            : this(info, postInitTrees, inputNodes, outputNodes, generatedTrees, diagnostics, exception: null, elapsedTime)
+        public GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<ISyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, ImmutableArray<GeneratedSyntaxTree> generatedTrees, ImmutableArray<Diagnostic> diagnostics, TimeSpan elapsedTime, bool cancelled = false)
+            : this(info, postInitTrees, inputNodes, outputNodes, generatedTrees, diagnostics, exception: null, elapsedTime, cancelled)
         {
         }
 
-        private GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<ISyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, ImmutableArray<GeneratedSyntaxTree> generatedTrees, ImmutableArray<Diagnostic> diagnostics, Exception? exception, TimeSpan elapsedTime)
+        private GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<ISyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, ImmutableArray<GeneratedSyntaxTree> generatedTrees, ImmutableArray<Diagnostic> diagnostics, Exception? exception, TimeSpan elapsedTime, bool cancelled)
         {
             this.Initialized = true;
             this.PostInitTrees = postInitTrees;
@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis
             this.Diagnostics = diagnostics;
             this.Exception = exception;
             this.ElapsedTime = elapsedTime;
+            this.Cancelled = cancelled;
         }
 
         internal bool Initialized { get; }
@@ -80,6 +81,8 @@ namespace Microsoft.CodeAnalysis
         internal Exception? Exception { get; }
 
         internal TimeSpan ElapsedTime { get; }
+
+        internal bool Cancelled { get; }
 
         internal ImmutableArray<Diagnostic> Diagnostics { get; }
     }

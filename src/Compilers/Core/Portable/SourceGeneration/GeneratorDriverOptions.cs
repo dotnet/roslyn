@@ -15,9 +15,18 @@ namespace Microsoft.CodeAnalysis
     {
         public readonly IncrementalGeneratorOutputKind DisabledOutputs;
 
+        public readonly bool EnableGracefulCancellation;
+
         public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs)
+            : this(disabledOutputs, enableGracefulCancellation: false)
+        {
+        }
+
+        public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs, bool enableGracefulCancellation)
         {
             DisabledOutputs = disabledOutputs;
+            EnableGracefulCancellation = enableGracefulCancellation;
         }
+
     }
 }
