@@ -314,10 +314,17 @@ namespace Microsoft.CodeAnalysis.Operations
                                 break;
                         }
                     }
-
                     ImmutableArray<IOperation> children = GetIOperationChildren(boundNode);
-                    return new NoneOperation(children, _semanticModel, boundNode.Syntax, type: null, constantValue, isImplicit: isImplicit);
-
+                    ITypeSymbol? type;
+                    if (boundNode is BoundExpression boundExpr)
+                    {
+                        type = boundExpr.GetPublicTypeSymbol();
+                    }
+                    else
+                    {
+                        type = null;
+                    }
+                    return new NoneOperation(children, _semanticModel, boundNode.Syntax, type: type, constantValue, isImplicit: isImplicit);
                 default:
                     // If you're hitting this because the IOperation test hook has failed, see
                     // <roslyn-root>/docs/Compilers/IOperation Test Hook.md for instructions on how to fix.
