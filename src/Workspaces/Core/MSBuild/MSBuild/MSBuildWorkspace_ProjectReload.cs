@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
@@ -24,7 +25,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 _ = SetCurrentSolution((solution) =>
                 {
-                    var projectToUpdate = solution.GetProject(projectInfo.Id);
+                    var projectFilePath = projectInfo.FilePath;
+                    var projectToUpdate = solution.Projects.Where(p => p.FilePath == projectFilePath).SingleOrDefault();
                     RoslynDebug.AssertNotNull(projectToUpdate);
                     var oldCheckSum = projectToUpdate.State.GetStateChecksumsAsync(default).GetAwaiter().GetResult();
                     var newCheckSum = projectInfo.GetChecksum(serialization);
