@@ -65,14 +65,14 @@ variables:
 stages:
 - stage: build
   displayName: Build and Test
+  pool:
+    name: NetCore1ESPool-Svc-Internal
+    demands: ImageOverride -equals Build.Server.Amd64.VS2017
 
   jobs:
   - job: OfficialBuild
     displayName: Official Build
     timeoutInMinutes: 360
-    pool:
-      name: NetCore1ESPool-Svc-Internal
-      demands: ImageOverride -equals Build.Server.Amd64.VS2017
 
     steps:
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
