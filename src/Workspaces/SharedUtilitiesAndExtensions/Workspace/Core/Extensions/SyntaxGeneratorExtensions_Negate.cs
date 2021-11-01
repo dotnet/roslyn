@@ -129,13 +129,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (!s_negatedBinaryMap.TryGetValue(binaryOperation.OperatorKind, out var negatedKind))
                 return generator.LogicalNotExpression(expressionNode);
 
-            var negateOperands =
-                binaryOperation.OperatorKind is BinaryOperatorKind.Or or
+            if (binaryOperation.OperatorKind is BinaryOperatorKind.Or or
                                                 BinaryOperatorKind.And or
                                                 BinaryOperatorKind.ConditionalAnd or
-                                                BinaryOperatorKind.ConditionalOr;
-
-            if (negateOperands)
+                                                BinaryOperatorKind.ConditionalOr)
             {
                 leftOperand = generator.Negate(generatorInternal, leftOperand, semanticModel, cancellationToken);
                 rightOperand = generator.Negate(generatorInternal, rightOperand, semanticModel, cancellationToken);
@@ -143,12 +140,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             var newBinaryExpressionSyntax = negatedKind is BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals
                 ? generatorInternal.NegateEquality(generator, expressionNode, leftOperand, negatedKind, rightOperand)
-                : NewBinaryOperation(binaryOperation, leftOperand, negatedKind, rightOperand, generator);
+                : NegateRelational(generator, binaryOperation, leftOperand, negatedKind, rightOperand);
             newBinaryExpressionSyntax = newBinaryExpressionSyntax.WithTriviaFrom(expressionNode);
 
             var newToken = syntaxFacts.GetOperatorTokenOfBinaryExpression(newBinaryExpressionSyntax);
-            var newTokenWithTrivia = newToken.WithTriviaFrom(operatorToken);
-            return newBinaryExpressionSyntax.ReplaceToken(newToken, newTokenWithTrivia);
+            return newBinaryExpressionSyntax.ReplaceToken(
+                newToken,
+                newToken.WithTriviaFrom(operatorToken));
         }
 
         private static SyntaxNode GetNegationOfBinaryPattern(
@@ -252,12 +250,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return true;
         }
 
-        private static SyntaxNode NewBinaryOperation(
+        private static SyntaxNode NegateRelational(
+            SyntaxGenerator generator,
             IBinaryOperation binaryOperation,
             SyntaxNode leftOperand,
             BinaryOperatorKind operationKind,
-            SyntaxNode rightOperand,
-            SyntaxGenerator generator)
+            SyntaxNode rightOperand)
         {
             return operationKind switch
             {
