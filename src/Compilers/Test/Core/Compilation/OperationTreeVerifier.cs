@@ -97,7 +97,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             // Type
             LogString(", ");
-            LogType(operation.Type);
+            if (operation.Kind == OperationKind.None)
+            {
+                //TODO: this should be removed!
+                //We need to update the tests to allow Types on NoneOperations
+                LogType(null);
+            }
+            else
+            {
+                LogType(operation.Type);
+            }
 
             // ConstantValue
             if (operation.ConstantValue.HasValue)
