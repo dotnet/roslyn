@@ -87,25 +87,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.GlobalFlowStateDictionaryAnal
         /// <summary>
         /// Intersect the state of the analysisEntity in <param name="value1"/> and <param name="value2"/>.
         /// </summary>
-        /// <remarks>
-        /// This will only intersect the value of the common analysisEntity of value1 and value2.
-        /// If different analysisEntities are presented, they will be merged.
-        /// e.g.
-        /// {
-        ///     "entity1" : [1, 2, 3]
-        ///     "entity2" : "1"
-        /// }
-        /// {
-        ///     "entity1" : [2, 3, 4]
-        ///     "entity3" : "1"
-        /// }
-        /// After intersection, the result would be
-        /// {
-        ///     "entity1" : [2, 3]
-        ///     "entity2" : "1"
-        ///     "entity3" : "1"
-        /// }
-        /// </remarks>
         public static GlobalFlowStateDictionaryAnalysisValue Intersect(GlobalFlowStateDictionaryAnalysisValue value1, GlobalFlowStateDictionaryAnalysisValue value2)
         {
             var builder = ImmutableDictionary.CreateBuilder<AnalysisEntity, TrackingInvocationSet>();
