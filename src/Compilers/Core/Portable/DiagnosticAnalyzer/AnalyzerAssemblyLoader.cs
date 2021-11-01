@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// When overridden in a derived class, allows substituting an assembly path after we've
         /// identified the context to load an assembly in, but before the assembly is actually
-        /// loaded from disk.
+        /// loaded from disk. This is used to substitute out the original path with the shadow-copied version.
         /// </summary>
         protected virtual string GetPathToLoad(string fullPath)
         {
