@@ -705,7 +705,7 @@ class C1
             Assert.Empty(project.ProjectReferences);
         }
 
-        [ConditionalFact(typeof(MSBuildInstalled), AlwaysSkip ="Xaml tasks currently not running"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(MSBuildInstalled), AlwaysSkip = "Xaml tasks currently not running"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_WithXaml()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
