@@ -52,8 +52,8 @@ stages:
         - visualstudio
         - DotNetFramework
       ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-        name: NetCoreInternal-Pool
-        queue: BuildPool.Windows.10.Amd64.VS2019.Pre
+        name: NetCore1ESPool-Svc-Internal
+        demands: ImageOverride -demands Build.Windows.10.Amd64.VS2019.Pre
 
     steps:        
     # Make sure our two pipelines generate builds with distinct build numbers to avoid confliction.
