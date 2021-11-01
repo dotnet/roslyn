@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (targets == default)
             {
-                targets = Targets.Default;
+                targets = Targets.Restore;
             }
 
             using var _1 = ArrayBuilder<Project>.GetInstance(out var projectsToReload);
