@@ -26,8 +26,8 @@ jobs:
 - job: ${{ parameters.jobName }}
   dependsOn: ${{ parameters.buildJobName }}
   pool:
-    name: NetCorePublic-Pool
-    queue: ${{ parameters.queueName }}
+    name: NetCore1ESPool-Svc-Public
+    demands: ImageOverride -demands ${{ parameters.queueName }}
   timeoutInMinutes: 120
   steps:
     - checkout: none

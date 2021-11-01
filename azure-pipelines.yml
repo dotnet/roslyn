@@ -142,8 +142,8 @@ jobs:
 
 - job: Correctness_Determinism
   pool:
-    name: NetCorePublic-Pool
-    queue: BuildPool.Windows.10.Amd64.VS2017.Open
+    name: NetCore1ESPool-Svc-Public
+    demands: ImageOverride -equals Build.Windows.10.Amd64.VS2017.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
@@ -158,8 +158,8 @@ jobs:
 
 - job: Correctness_Build
   pool:
-    name: NetCorePublic-Pool
-    queue: BuildPool.Windows.10.Amd64.VS2017.Open
+    name: NetCore1ESPool-Svc-Public
+    demands: ImageOverride -equals Build.Windows.10.Amd64.VS2017.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
@@ -190,8 +190,8 @@ jobs:
 
 - job: Correctness_SourceBuild
   pool:
-   name: NetCorePublic-Pool
-   queue: BuildPool.Ubuntu.1604.amd64.Open
+   name: NetCore1ESPool-Svc-Public
+   demands: ImageOverride -equals Build.Ubuntu.1604.amd64.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-unix-task.yml
