@@ -1558,14 +1558,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case BoundKind.IndexOrRangeImplicitIndexerAccess:
                     {
-                        var patternIndexer = (BoundIndexOrRangeImplicitIndexerAccess)expr;
-                        receiver = patternIndexer.Receiver;
-                        propertySymbol = (PropertySymbol)patternIndexer.UnderlyingIndexerOrSliceSymbol;
+                        var implicitIndexerAccess = (BoundIndexOrRangeImplicitIndexerAccess)expr;
+                        receiver = implicitIndexerAccess.Receiver;
+                        propertySymbol = (PropertySymbol)implicitIndexerAccess.UnderlyingIndexerOrSliceSymbol;
                     }
                     break;
                 default:
                     receiver = null;
-                    propertySymbol = null;
                     propertySyntax = null;
                     return null;
             }

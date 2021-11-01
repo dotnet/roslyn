@@ -954,12 +954,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((BoundIndexerAccess)expr).Indexer.RefKind != RefKind.None;
 
                 case BoundKind.IndexOrRangeImplicitIndexerAccess:
-                    var patternIndexer = (BoundIndexOrRangeImplicitIndexerAccess)expr;
-                    var refKind = patternIndexer.UnderlyingIndexerOrSliceSymbol switch
+                    var implicitIndexerAccess = (BoundIndexOrRangeImplicitIndexerAccess)expr;
+                    var refKind = implicitIndexerAccess.UnderlyingIndexerOrSliceSymbol switch
                     {
                         PropertySymbol p => p.RefKind,
                         MethodSymbol m => m.RefKind,
-                        _ => throw ExceptionUtilities.UnexpectedValue(patternIndexer.UnderlyingIndexerOrSliceSymbol)
+                        _ => throw ExceptionUtilities.UnexpectedValue(implicitIndexerAccess.UnderlyingIndexerOrSliceSymbol)
                     };
                     return refKind != RefKind.None;
 

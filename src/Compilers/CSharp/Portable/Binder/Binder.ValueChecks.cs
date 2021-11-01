@@ -590,12 +590,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics);
 
                 case BoundKind.IndexOrRangeImplicitIndexerAccess:
-                    var patternIndexer = (BoundIndexOrRangeImplicitIndexerAccess)expr;
+                    var implicitIndexerAccess = (BoundIndexOrRangeImplicitIndexerAccess)expr;
                     // If we got here this should be an implicit indexer taking a Range,
                     // meaning that the pattern symbol must be a method (either Slice or Substring)
                     return CheckMethodReturnValueKind(
-                        (MethodSymbol)patternIndexer.UnderlyingIndexerOrSliceSymbol,
-                        patternIndexer.Syntax,
+                        (MethodSymbol)implicitIndexerAccess.UnderlyingIndexerOrSliceSymbol,
+                        implicitIndexerAccess.Syntax,
                         node,
                         valueKind,
                         checkingReceiver,
@@ -2619,17 +2619,17 @@ moreArguments:
                         isRefEscape: false);
 
                 case BoundKind.IndexOrRangeImplicitIndexerAccess:
-                    var patternIndexer = (BoundIndexOrRangeImplicitIndexerAccess)expr;
-                    var parameters = patternIndexer.UnderlyingIndexerOrSliceSymbol switch
+                    var implicitIndexerAccess = (BoundIndexOrRangeImplicitIndexerAccess)expr;
+                    var parameters = implicitIndexerAccess.UnderlyingIndexerOrSliceSymbol switch
                     {
                         PropertySymbol p => p.Parameters,
                         MethodSymbol m => m.Parameters,
-                        _ => throw ExceptionUtilities.UnexpectedValue(patternIndexer.UnderlyingIndexerOrSliceSymbol)
+                        _ => throw ExceptionUtilities.UnexpectedValue(implicitIndexerAccess.UnderlyingIndexerOrSliceSymbol)
                     };
 
                     return GetInvocationEscapeScope(
-                        patternIndexer.UnderlyingIndexerOrSliceSymbol,
-                        patternIndexer.Receiver,
+                        implicitIndexerAccess.UnderlyingIndexerOrSliceSymbol,
+                        implicitIndexerAccess.Receiver,
                         parameters,
                         default,
                         default,
@@ -3041,9 +3041,9 @@ moreArguments:
                         isRefEscape: false);
 
                 case BoundKind.IndexOrRangeImplicitIndexerAccess:
-                    var patternIndexer = (BoundIndexOrRangeImplicitIndexerAccess)expr;
-                    var patternSymbol = patternIndexer.UnderlyingIndexerOrSliceSymbol;
-                    var parameters = patternSymbol switch
+                    var implicitIndexerAccess = (BoundIndexOrRangeImplicitIndexerAccess)expr;
+                    var underlyingIndexerOrSliceSymbol = implicitIndexerAccess.UnderlyingIndexerOrSliceSymbol;
+                    var parameters = underlyingIndexerOrSliceSymbol switch
                     {
                         PropertySymbol p => p.Parameters,
                         MethodSymbol m => m.Parameters,
@@ -3051,11 +3051,11 @@ moreArguments:
                     };
 
                     return CheckInvocationEscape(
-                        patternIndexer.Syntax,
-                        patternSymbol,
-                        patternIndexer.Receiver,
+                        implicitIndexerAccess.Syntax,
+                        underlyingIndexerOrSliceSymbol,
+                        implicitIndexerAccess.Receiver,
                         parameters,
-                        ImmutableArray.Create(patternIndexer.Argument),
+                        ImmutableArray.Create(implicitIndexerAccess.Argument),
                         default,
                         default,
                         checkingReceiver,

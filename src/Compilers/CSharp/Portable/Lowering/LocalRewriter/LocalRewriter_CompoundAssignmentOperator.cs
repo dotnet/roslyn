@@ -587,8 +587,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IndexOrRangeImplicitIndexerAccess:
                     {
-                        var patternIndexerAccess = (BoundIndexOrRangeImplicitIndexerAccess)originalLHS;
-                        RefKind refKind = patternIndexerAccess.UnderlyingIndexerOrSliceSymbol switch
+                        var implicitIndexerAccess = (BoundIndexOrRangeImplicitIndexerAccess)originalLHS;
+                        RefKind refKind = implicitIndexerAccess.UnderlyingIndexerOrSliceSymbol switch
                         {
                             PropertySymbol p => p.RefKind,
                             MethodSymbol m => m.RefKind,
@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         };
                         if (refKind == RefKind.None)
                         {
-                            return TransformImplicitIndexerAccess(patternIndexerAccess, stores, temps, isDynamicAssignment);
+                            return TransformImplicitIndexerAccess(implicitIndexerAccess, stores, temps, isDynamicAssignment);
                         }
                     }
                     break;

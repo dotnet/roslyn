@@ -214,9 +214,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     sliceType = inputType;
                 }
-                else if (TryBindIndexerForPattern(node, inputType, argIsIndex: false, out indexerAccess, out Symbol? patternSymbol, lengthProperty: out _, diagnostics, ref hasErrors))
+                else if (TryBindIndexerForPattern(node, inputType, argIsIndex: false, out indexerAccess, out Symbol? indexerOrSliceSymbol, lengthProperty: out _, diagnostics, ref hasErrors))
                 {
-                    if (patternSymbol is MethodSymbol method)
+                    if (indexerOrSliceSymbol is MethodSymbol method)
                     {
                         sliceMethod = method;
                         sliceType = method.ReturnType;
@@ -297,9 +297,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementType = ((ArrayTypeSymbol)inputType).ElementType;
                 hasErrors |= !TryGetSpecialTypeMember(Compilation, SpecialMember.System_Array__Length, node, diagnostics, out lengthProperty);
             }
-            else if (TryBindIndexerForPattern(node, narrowedType, argIsIndex: true, out indexerAccess, out Symbol? patternSymbol, out lengthProperty, diagnostics, ref hasErrors))
+            else if (TryBindIndexerForPattern(node, narrowedType, argIsIndex: true, out indexerAccess, out Symbol? indexerOrSliceSymbol, out lengthProperty, diagnostics, ref hasErrors))
             {
-                if (patternSymbol is PropertySymbol indexer)
+                if (indexerOrSliceSymbol is PropertySymbol indexer)
                 {
                     indexerSymbol = indexer;
                     elementType = indexer.Type;
@@ -338,14 +338,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol receiverType,
             bool argIsIndex,
             out BoundIndexerAccess? indexerAccess,
-            out Symbol? patternSymbol,
+            out Symbol? indexerOrSliceSymbol,
             [NotNullWhen(true)] out PropertySymbol? lengthProperty,
             BindingDiagnosticBag diagnostics,
             ref bool hasErrors)
         {
             Debug.Assert(!receiverType.IsErrorType());
             indexerAccess = null;
-            patternSymbol = null;
+            indexerOrSliceSymbol = null;
             lengthProperty = null;
             bool found = false;
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case BoundIndexOrRangeImplicitIndexerAccess boundIndexOrRangeImplicitIndexerAccess:
                             lengthProperty = boundIndexOrRangeImplicitIndexerAccess.LengthOrCountProperty;
-                            patternSymbol = boundIndexOrRangeImplicitIndexerAccess.UnderlyingIndexerOrSliceSymbol;
+                            indexerOrSliceSymbol = boundIndexOrRangeImplicitIndexerAccess.UnderlyingIndexerOrSliceSymbol;
                             found = true;
                             break;
 
@@ -413,22 +413,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If the argType is missing or the indexer lookup has failed, we will fallback to the implicit indexer support.
             found = TryLookupLengthOrCount(syntax, receiverType, lookupResult, out lengthProperty, diagnostics) &&
-                TryFindIndexOrRangeImplicitIndexer(syntax, lookupResult, receiverOpt: null, receiverType, argIsIndex, out patternSymbol, diagnostics);
+                TryFindIndexOrRangeImplicitIndexer(syntax, lookupResult, receiverOpt: null, receiverType, argIsIndex, out indexerOrSliceSymbol, diagnostics);
 done:
 
             if (found)
             {
-                Debug.Assert(indexerAccess is not null ^ patternSymbol is not null);
+                Debug.Assert(indexerAccess is not null ^ indexerOrSliceSymbol is not null);
                 Debug.Assert(lengthProperty is not null);
 
                 if (!hasErrors)
                 {
-                    if (patternSymbol is not null)
+                    if (indexerOrSliceSymbol is not null)
                     {
-                        var indexerFallbackAccess = new BoundIndexOrRangeImplicitIndexerAccess(syntax, new BoundImplicitReceiver(syntax, receiverType),
-                            lengthProperty, patternSymbol, argument: new BoundIndexOrRangeImplicitIndexerValuePlaceholder(syntax, argType), patternSymbol.GetTypeOrReturnType().Type);
+                        var implicitIndexerAccess = new BoundIndexOrRangeImplicitIndexerAccess(syntax, new BoundImplicitReceiver(syntax, receiverType),
+                            lengthProperty, indexerOrSliceSymbol, argument: new BoundIndexOrRangeImplicitIndexerValuePlaceholder(syntax, argType), indexerOrSliceSymbol.GetTypeOrReturnType().Type);
 
-                        if (!CheckValueKind(syntax, indexerFallbackAccess, BindValueKind.RValue, checkingReceiver: false, bindingDiagnostics))
+                        if (!CheckValueKind(syntax, implicitIndexerAccess, BindValueKind.RValue, checkingReceiver: false, bindingDiagnostics))
                         {
                             hasErrors = true;
                         }
@@ -1485,7 +1485,7 @@ done:
                             bool ignoredHasErrors = false;
                             isLengthOrCount = receiverType.IsSZArray()
                                 ? ReferenceEquals(memberSymbol, Compilation.GetSpecialTypeMember(SpecialMember.System_Array__Length))
-                                : TryBindIndexerForPattern(node, receiverType, argIsIndex: true, indexerAccess: out _, patternSymbol: out _, out PropertySymbol? lengthProperty, BindingDiagnosticBag.Discarded, ref ignoredHasErrors) &&
+                                : TryBindIndexerForPattern(node, receiverType, argIsIndex: true, indexerAccess: out _, indexerOrSliceSymbol: out _, out PropertySymbol? lengthProperty, BindingDiagnosticBag.Discarded, ref ignoredHasErrors) &&
                                   memberSymbol.Equals(lengthProperty, TypeCompareKind.ConsiderEverything); // If Length and Count are both present, only the former is assumed to be non-negative.
                         }
                     }

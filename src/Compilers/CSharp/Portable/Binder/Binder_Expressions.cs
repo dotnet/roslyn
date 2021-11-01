@@ -7745,9 +7745,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expr,
                     analyzedArguments,
                     diagnostics,
-                    out var indexerFallbackAccess))
+                    out var implicitIndexerAccess))
                 {
-                    indexerAccessExpression = indexerFallbackAccess;
+                    indexerAccessExpression = implicitIndexerAccess;
                 }
                 else
                 {
@@ -7917,9 +7917,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         receiverOpt,
                         analyzedArguments,
                         diagnostics,
-                        out var indexerFallbackAccess))
+                        out var implicitIndexerAccess))
                     {
-                        return indexerFallbackAccess;
+                        return implicitIndexerAccess;
                     }
                     else
                     {
@@ -8027,9 +8027,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? receiverOpt,
             AnalyzedArguments arguments,
             BindingDiagnosticBag diagnostics,
-            [NotNullWhen(true)] out BoundIndexOrRangeImplicitIndexerAccess? indexerFallbackAccess)
+            [NotNullWhen(true)] out BoundIndexOrRangeImplicitIndexerAccess? implicitIndexerAccess)
         {
-            indexerFallbackAccess = null;
+            implicitIndexerAccess = null;
 
             // Verify a few things up-front, namely that we have a single argument
             // to this indexer that has an Index or Range type and that there is
@@ -8056,18 +8056,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool argIsIndex = argIsIndexNotRange.Value();
             if (!TryFindIndexOrRangeImplicitIndexer(syntax, receiverOpt, receiverType, argIsIndex: argIsIndex,
-                out PropertySymbol? lengthOrCountProperty, out Symbol? patternSymbol, diagnostics))
+                out PropertySymbol? lengthOrCountProperty, out Symbol? indexerOrSliceSymbol, diagnostics))
             {
                 return false;
             }
 
-            indexerFallbackAccess = new BoundIndexOrRangeImplicitIndexerAccess(
+            implicitIndexerAccess = new BoundIndexOrRangeImplicitIndexerAccess(
                 syntax,
                 receiverOpt,
                 lengthOrCountProperty,
-                patternSymbol,
+                indexerOrSliceSymbol,
                 BindToNaturalType(argument, diagnostics),
-                patternSymbol.GetTypeOrReturnType().Type);
+                indexerOrSliceSymbol.GetTypeOrReturnType().Type);
 
             if (!argIsIndex)
             {
@@ -8105,7 +8105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol receiverType,
             bool argIsIndex,
             [NotNullWhen(true)] out PropertySymbol? lengthOrCountProperty,
-            [NotNullWhen(true)] out Symbol? patternSymbol,
+            [NotNullWhen(true)] out Symbol? indexerOrSliceSymbol,
             BindingDiagnosticBag diagnostics)
         {
             // SPEC:
@@ -8121,7 +8121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lookupResult = LookupResult.GetInstance();
 
             if (TryLookupLengthOrCount(syntax, receiverType, lookupResult, out lengthOrCountProperty, diagnostics) &&
-                TryFindIndexOrRangeImplicitIndexer(syntax, lookupResult, receiverOpt, receiverType, argIsIndex, out patternSymbol, diagnostics))
+                TryFindIndexOrRangeImplicitIndexer(syntax, lookupResult, receiverOpt, receiverType, argIsIndex, out indexerOrSliceSymbol, diagnostics))
             {
                 var lengthAccess = new BoundPropertyAccess(syntax, receiverOpt, lengthOrCountProperty, LookupResultKind.Viable, lengthOrCountProperty.Type);
                 CheckPropertyValueKind(syntax, lengthAccess, BindValueKind.RValue, checkingReceiver: false, diagnostics);
@@ -8130,7 +8130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            patternSymbol = null;
+            indexerOrSliceSymbol = null;
             lookupResult.Free();
             return false;
         }
@@ -8146,7 +8146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? receiverOpt,
             TypeSymbol receiverType,
             bool argIsIndex,
-            [NotNullWhen(true)] out Symbol? patternSymbol,
+            [NotNullWhen(true)] out Symbol? indexerOrSliceSymbol,
             BindingDiagnosticBag diagnostics)
         {
             var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
@@ -8178,7 +8178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             original.Parameters[0] is { Type: { SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.None })
                         {
                             // note: implicit copy check on the indexer accessor happens in CheckPropertyValueKind
-                            patternSymbol = property;
+                            indexerOrSliceSymbol = property;
                             property.AddUseSiteInfo(ref useSiteInfo);
                             diagnostics.Add(syntax, useSiteInfo);
                             ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: false);
@@ -8194,7 +8194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var substring = (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_String__Substring);
                 if (substring is object)
                 {
-                    patternSymbol = substring;
+                    indexerOrSliceSymbol = substring;
                     return true;
                 }
             }
@@ -8227,7 +8227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             original.Parameters[0] is { Type: { SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.None } &&
                             original.Parameters[1] is { Type: { SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.None })
                         {
-                            patternSymbol = method;
+                            indexerOrSliceSymbol = method;
                             method.AddUseSiteInfo(ref useSiteInfo);
                             diagnostics.Add(syntax, useSiteInfo);
                             ReportDiagnosticsIfObsolete(diagnostics, method, syntax, hasBaseReceiver: false);
@@ -8238,7 +8238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            patternSymbol = null;
+            indexerOrSliceSymbol = null;
             return false;
         }
 

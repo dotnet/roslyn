@@ -1981,14 +1981,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SymbolInfoFactory.Create(symbols, resultKind, isDynamic);
         }
 
-        private static SymbolInfo GetSymbolInfoForSubpattern(Symbol subpatternSymbol)
+        private static SymbolInfo GetSymbolInfoForSubpattern(Symbol subunderlyingIndexerOrSliceSymbol)
         {
-            if (subpatternSymbol?.OriginalDefinition is ErrorTypeSymbol originalErrorType)
+            if (subunderlyingIndexerOrSliceSymbol?.OriginalDefinition is ErrorTypeSymbol originalErrorType)
             {
                 return new SymbolInfo(symbol: null, originalErrorType.CandidateSymbols.GetPublicSymbols(), originalErrorType.ResultKind.ToCandidateReason());
             }
 
-            return new SymbolInfo(subpatternSymbol.GetPublicSymbol(), CandidateReason.None);
+            return new SymbolInfo(subunderlyingIndexerOrSliceSymbol.GetPublicSymbol(), CandidateReason.None);
         }
 
         private SymbolInfo GetSymbolInfoForDeconstruction(BoundRecursivePattern pat)

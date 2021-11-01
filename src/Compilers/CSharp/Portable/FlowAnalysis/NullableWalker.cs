@@ -8704,14 +8704,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             _ = CheckPossibleNullReceiver(receiver);
 
             VisitRvalue(node.Argument);
-            var patternSymbol = node.UnderlyingIndexerOrSliceSymbol;
+            var underlyingIndexerOrSliceSymbol = node.UnderlyingIndexerOrSliceSymbol;
             if (receiverType is object)
             {
-                patternSymbol = AsMemberOfType(receiverType, patternSymbol);
+                underlyingIndexerOrSliceSymbol = AsMemberOfType(receiverType, underlyingIndexerOrSliceSymbol);
             }
 
-            SetLvalueResultType(node, patternSymbol.GetTypeOrReturnType());
-            SetUpdatedSymbol(node, node.UnderlyingIndexerOrSliceSymbol, patternSymbol);
+            SetLvalueResultType(node, underlyingIndexerOrSliceSymbol.GetTypeOrReturnType());
+            SetUpdatedSymbol(node, node.UnderlyingIndexerOrSliceSymbol, underlyingIndexerOrSliceSymbol);
             return null;
         }
 

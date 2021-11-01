@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class PatternMatchingTests3 : PatternMatchingTestBase
     {
         [Fact]
-        public void PropertyUnderlyingIndexerOrSliceSymbolInfo_01()
+        public void PropertyPatternSymbolInfo_01()
         {
             var source =
 @"
@@ -66,7 +66,7 @@ class Point
         }
 
         [Fact]
-        public void PropertyUnderlyingIndexerOrSliceSymbolInfo_02()
+        public void PropertyPatternSymbolInfo_02()
         {
             var source =
 @"
@@ -131,7 +131,7 @@ interface Point : I1, I2
         }
 
         [Fact]
-        public void PropertyUnderlyingIndexerOrSliceSymbolInfo_03()
+        public void PropertyPatternSymbolInfo_03()
         {
             var source =
 @"
@@ -178,7 +178,7 @@ class Point
         }
 
         [Fact]
-        public void PositionalUnderlyingIndexerOrSliceSymbolInfo_01()
+        public void PositionalPatternSymbolInfo_01()
         {
             var source =
 @"
@@ -223,7 +223,7 @@ class Point
         }
 
         [Fact]
-        public void PositionalUnderlyingIndexerOrSliceSymbolInfo_02()
+        public void PositionalPatternSymbolInfo_02()
         {
             var source =
 @"
@@ -276,7 +276,7 @@ class Point
         }
 
         [Fact]
-        public void PositionalUnderlyingIndexerOrSliceSymbolInfo_03()
+        public void PositionalPatternSymbolInfo_03()
         {
             var source =
 @"
@@ -317,7 +317,7 @@ class Program
         }
 
         [Fact]
-        public void PositionalUnderlyingIndexerOrSliceSymbolInfo_04()
+        public void PositionalPatternSymbolInfo_04()
         {
             var source =
 @"
