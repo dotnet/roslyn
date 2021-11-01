@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.Options;
 using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
+using Microsoft.CodeAnalysis;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
@@ -27,29 +29,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var metadataReferenceChecksums = ChecksumCache.GetOrCreate<ChecksumCollection>(projectInfo.MetadataReferences, _ => new ChecksumCollection(projectInfo.MetadataReferences.Select(r => serializer.CreateChecksum(r, default)).ToArray()));
             var analyzerReferenceChecksums = ChecksumCache.GetOrCreate<ChecksumCollection>(projectInfo.AnalyzerReferences, _ => new ChecksumCollection(projectInfo.AnalyzerReferences.Select(r => serializer.CreateChecksum(r, default)).ToArray()));
 
-            var documentChecksums = new ChecksumCollection(projectInfo.Documents.SelectAsArray(documentInfo =>
-            {
-                var infoChecksum = serializer.CreateChecksum(documentInfo.Attributes, default);
-                var sourceText = SourceText.From(File.OpenRead(documentInfo.FilePath));
-                var textChecksum = serializer.CreateChecksum(sourceText, default);
-                return new DocumentStateChecksums(infoChecksum, textChecksum);
-            }).ToArray());
-
-            var additionalChecksums = new ChecksumCollection(projectInfo.AdditionalDocuments.SelectAsArray(documentInfo =>
-            {
-                var infoChecksum = serializer.CreateChecksum(documentInfo.Attributes, default);
-                var sourceText = SourceText.From(File.OpenRead(documentInfo.FilePath));
-                var textChecksum = serializer.CreateChecksum(sourceText, default);
-                return new DocumentStateChecksums(infoChecksum, textChecksum);
-            }).ToArray());
-
-            var analyzerConfigDocumentChecksums = new ChecksumCollection(projectInfo.AdditionalDocuments.SelectAsArray(documentInfo =>
-            {
-                var infoChecksum = serializer.CreateChecksum(documentInfo.Attributes, default);
-                var sourceText = SourceText.From(File.OpenRead(documentInfo.FilePath));
-                var textChecksum = serializer.CreateChecksum(sourceText, default);
-                return new DocumentStateChecksums(infoChecksum, textChecksum);
-            }).ToArray());
+            var documentChecksums = GetChecksumCollection(projectInfo.Documents, serializer);
+            var additionalChecksums = GetChecksumCollection(projectInfo.AdditionalDocuments, serializer);
+            var analyzerConfigDocumentChecksums = GetChecksumCollection(projectInfo.AnalyzerConfigDocuments, serializer);
 
             return new ProjectStateChecksums(infoChecksum,
                                              compilationOptionsChecksum,
@@ -60,6 +42,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
                                              analyzerReferenceChecksums,
                                              additionalChecksums,
                                              analyzerConfigDocumentChecksums);
+
+            static ChecksumCollection GetChecksumCollection(IReadOnlyList<DocumentInfo> documents, ISerializerService serializer)
+                => new(documents.SelectAsArray(documentInfo => GetDocumentInfoChecksum(documentInfo, serializer)).ToArray());
+
+            static Checksum GetDocumentInfoChecksum(DocumentInfo documentInfo, ISerializerService serializer)
+            {
+                var infoChecksum = serializer.CreateChecksum(documentInfo.Attributes, default);
+                var sourceText = SourceText.From(File.OpenRead(documentInfo.FilePath));
+                var textChecksum = serializer.CreateChecksum(sourceText, default);
+                return new DocumentStateChecksums(infoChecksum, textChecksum).Checksum;
+            }
         }
     }
 }
