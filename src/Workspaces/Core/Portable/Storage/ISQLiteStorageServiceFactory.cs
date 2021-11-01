@@ -11,6 +11,6 @@ namespace Microsoft.CodeAnalysis.Storage
     /// </summary>
     internal interface ISQLiteStorageServiceFactory : IWorkspaceService
     {
-        IChecksummedPersistentStorageService Create(IPersistentStorageConfiguration configuration);
+        IChecksummedPersistentStorageService GetService();
     }
 }

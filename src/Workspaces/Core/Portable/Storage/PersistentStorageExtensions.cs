@@ -20,19 +20,16 @@ namespace Microsoft.CodeAnalysis.Storage
         {
             var configuration = services.GetRequiredService<IPersistentStorageConfiguration>();
 
-            switch (database)
+            return database switch
             {
-                case StorageDatabase.SQLite:
-                    return services.GetService<ISQLiteStorageServiceFactory>()?.Create(configuration) ??
-                           NoOpPersistentStorageService.GetOrThrow(configuration);
-
-                case StorageDatabase.CloudCache:
-                    return services.GetService<ICloudCacheStorageServiceFactory>()?.Create(configuration) ??
-                           NoOpPersistentStorageService.GetOrThrow(configuration);
-
-                default:
-                    return NoOpPersistentStorageService.GetOrThrow(configuration);
-            }
+                StorageDatabase.SQLite
+                    => services.GetService<ISQLiteStorageServiceFactory>()?.GetService() ??
+                       NoOpPersistentStorageService.GetOrThrow(configuration),
+                StorageDatabase.CloudCache
+                    => services.GetService<ICloudCacheStorageServiceFactory>()?.Create(configuration) ??
+                       NoOpPersistentStorageService.GetOrThrow(configuration),
+                _ => NoOpPersistentStorageService.GetOrThrow(configuration),
+            };
         }
     }
 }
