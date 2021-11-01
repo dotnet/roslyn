@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             : base(threadingContext,
                    workspace,
                    globalOptions,
-                   SymbolSearchOptions.Enabled,
+                   SymbolSearchGlobalOptions.Enabled,
                    SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
                    SymbolSearchOptions.SuggestForTypesInNuGetPackages)
         {

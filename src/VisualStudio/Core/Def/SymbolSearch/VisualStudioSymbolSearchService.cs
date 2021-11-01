@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             VisualStudioWorkspaceImpl workspace,
             IGlobalOptionService globalOptions,
             VSShell.SVsServiceProvider serviceProvider)
-            : base(threadingContext, workspace, globalOptions, SymbolSearchOptions.Enabled,
+            : base(threadingContext, workspace, globalOptions, SymbolSearchGlobalOptions.Enabled,
                   SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, SymbolSearchOptions.SuggestForTypesInNuGetPackages)
         {
             _workspace = workspace;
