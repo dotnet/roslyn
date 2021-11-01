@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         public static StackFrameParameterList ParameterList(StackFrameToken openToken, StackFrameToken closeToken, params StackFrameParameterDeclarationNode[] parameters)
         {
             var separatedList = parameters.Length == 0
-                ? SeparatedStackFrameNodeList<StackFrameParameterDeclarationNode>.Empty
+                ? EmbeddedSeparatedSyntaxNodeList<StackFrameKind, StackFrameNode, StackFrameParameterDeclarationNode>.Empty
                 : new(CommaSeparateList(parameters));
 
             return new(openToken, separatedList, closeToken);
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 builder.Add(typeArgument);
             }
 
-            var typeArgumentsList = new SeparatedStackFrameNodeList<StackFrameIdentifierNameNode>(builder.ToImmutable());
+            var typeArgumentsList = new EmbeddedSeparatedSyntaxNodeList<StackFrameKind, StackFrameNode, StackFrameIdentifierNameNode>(builder.ToImmutable());
 
             return new(openToken, typeArgumentsList, closeToken);
         }
