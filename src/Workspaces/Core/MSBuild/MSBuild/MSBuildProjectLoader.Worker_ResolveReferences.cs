@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -183,7 +184,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     => new(GetProjectReferences(), GetMetadataReferences());
             }
 
-            private async Task<ResolvedReferences> ResolveReferencesAsync(ProjectId id, ProjectFileInfo projectFileInfo, CommandLineArguments commandLineArgs, CancellationToken cancellationToken)
+            private async Task<ResolvedReferences> ResolveReferencesAsync(ProjectId id, ProjectFileInfo projectFileInfo, CommandLineArguments commandLineArgs, bool reload, CancellationToken cancellationToken)
             {
                 // First, gather all of the metadata references from the command-line arguments.
                 var resolvedMetadataReferences = commandLineArgs.ResolveMetadataReferences(
@@ -227,7 +228,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         }
 
                         // Finally, we'll try to load and reference the project.
-                        if (await TryLoadAndAddReferenceAsync(id, projectReferencePath, aliases, builder, cancellationToken).ConfigureAwait(false))
+                        if (await TryLoadAndAddReferenceAsync(id, projectReferencePath, aliases, builder, reload, cancellationToken).ConfigureAwait(false))
                         {
                             continue;
                         }
@@ -255,9 +256,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 return builder.ToResolvedReferences();
             }
 
-            private async Task<bool> TryLoadAndAddReferenceAsync(ProjectId id, string projectReferencePath, ImmutableArray<string> aliases, ResolvedReferencesBuilder builder, CancellationToken cancellationToken)
+            private async Task<bool> TryLoadAndAddReferenceAsync(ProjectId id, string projectReferencePath, ImmutableArray<string> aliases, ResolvedReferencesBuilder builder, bool reload, CancellationToken cancellationToken)
             {
-                var projectReferenceInfos = await LoadProjectInfosFromPathAsync(projectReferencePath, _discoveredProjectOptions, cancellationToken).ConfigureAwait(false);
+                var projectReferenceInfos = await LoadProjectInfosFromPathAsync(projectReferencePath, _discoveredProjectOptions, reload, cancellationToken).ConfigureAwait(false);
 
                 if (projectReferenceInfos.IsEmpty)
                 {

@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 discoveredProjectOptions: reportingOptions,
                 preferMetadataForReferencesOfDiscoveredProjects: false);
 
-            var projects = await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
+            var projects = await worker.LoadAsync(false, cancellationToken).ConfigureAwait(false);
 
             // construct workspace from loaded project infos
             return SolutionInfo.Create(
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 discoveredProjectOptions,
                 this.LoadMetadataForReferencedProjects);
 
-            return await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
+            return await worker.LoadAsync(false, cancellationToken).ConfigureAwait(false);
         }
 
         internal async Task<ImmutableArray<ProjectInfo>> LoadProjectInfoAsync(
@@ -327,6 +327,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             ProjectMap? projectMap,
             IProgress<ProjectLoadProgress>? progress,
             ILogger? msbuildLogger,
+            bool reload,
             CancellationToken cancellationToken)
         {
             var requestedProjectOptions = DiagnosticReportingOptions.ThrowForAll;
@@ -355,7 +356,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 discoveredProjectOptions,
                 this.LoadMetadataForReferencedProjects);
 
-            return await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
+            return await worker.LoadAsync(reload, cancellationToken).ConfigureAwait(false);
         }
     }
 }

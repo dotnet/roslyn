@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 return result;
             }
 
-            public async Task<ImmutableArray<ProjectInfo>> LoadAsync(CancellationToken cancellationToken)
+            public async Task<ImmutableArray<ProjectInfo>> LoadAsync(bool reload, CancellationToken cancellationToken)
             {
                 var results = ImmutableArray.CreateBuilder<ProjectInfo>();
                 var processedPaths = new HashSet<string>(PathUtilities.Comparer);
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                             continue;
                         }
 
-                        var projectFileInfos = await LoadProjectInfosFromPathAsync(absoluteProjectPath, _requestedProjectOptions, cancellationToken).ConfigureAwait(false);
+                        var projectFileInfos = await LoadProjectInfosFromPathAsync(absoluteProjectPath, _requestedProjectOptions, reload, cancellationToken).ConfigureAwait(false);
 
                         results.AddRange(projectFileInfos);
                     }
@@ -230,10 +230,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             private async Task<ImmutableArray<ProjectInfo>> LoadProjectInfosFromPathAsync(
-                string projectPath, DiagnosticReportingOptions reportingOptions, CancellationToken cancellationToken)
+                string projectPath, DiagnosticReportingOptions reportingOptions, bool reload, CancellationToken cancellationToken)
             {
-                if (_projectMap.TryGetProjectInfosByProjectPath(projectPath, out var results) ||
-                    _pathToDiscoveredProjectInfosMap.TryGetValue(projectPath, out results))
+                if (!reload &&
+                    (_projectMap.TryGetProjectInfosByProjectPath(projectPath, out var results) ||
+                     _pathToDiscoveredProjectInfosMap.TryGetValue(projectPath, out results)))
                 {
                     return results;
                 }
@@ -271,7 +272,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 foreach (var (id, fileInfo) in idsAndFileInfos)
                 {
-                    var projectInfo = await CreateProjectInfoAsync(fileInfo, id, addDiscriminator, cancellationToken).ConfigureAwait(false);
+                    var projectInfo = await CreateProjectInfoAsync(fileInfo, id, addDiscriminator, reload, cancellationToken).ConfigureAwait(false);
 
                     builder.Add(projectInfo);
                     _projectMap.AddProjectInfo(projectInfo);
@@ -284,7 +285,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 return results;
             }
 
-            private Task<ProjectInfo> CreateProjectInfoAsync(ProjectFileInfo projectFileInfo, ProjectId projectId, bool addDiscriminator, CancellationToken cancellationToken)
+            private Task<ProjectInfo> CreateProjectInfoAsync(ProjectFileInfo projectFileInfo, ProjectId projectId, bool addDiscriminator, bool reload, CancellationToken cancellationToken)
             {
                 var language = projectFileInfo.Language;
                 var projectPath = projectFileInfo.FilePath;
@@ -380,7 +381,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                     var analyzerReferences = ResolveAnalyzerReferences(commandLineArgs);
 
-                    var resolvedReferences = await ResolveReferencesAsync(projectId, projectFileInfo, commandLineArgs, cancellationToken).ConfigureAwait(false);
+                    var resolvedReferences = await ResolveReferencesAsync(projectId, projectFileInfo, commandLineArgs, reload, cancellationToken).ConfigureAwait(false);
 
                     return ProjectInfo.Create(
                         projectId,

@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var projectMap = ProjectMap.Create(this.CurrentSolution);
             var projectFilePaths = projectsToReload.SelectAsArray(p => p.FilePath);
             // None of the project file paths should be null
-            var projectInfos = await _loader.LoadProjectInfoAsync(projectFilePaths!, targets, projectMap, progress, msbuildLogger, cancellationToken).ConfigureAwait(false);
+            var projectInfos = await _loader.LoadProjectInfoAsync(projectFilePaths!, targets, projectMap, progress, msbuildLogger, true, cancellationToken).ConfigureAwait(false);
 
             var updatedProjects = UpdateProjects(this, projectInfos);
 
