@@ -53,12 +53,7 @@ namespace Microsoft.CodeAnalysis
 
         #endregion
 
-        private Assembly LoadFromPathUnchecked(string fullPath)
-        {
-            return LoadFromPathUncheckedCore(fullPath);
-        }
-
-        private Assembly LoadFromPathUncheckedCore(string fullPath, AssemblyIdentity? identity = null)
+        private Assembly LoadFromPathUnchecked(string fullPath, AssemblyIdentity? identity = null)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
 
@@ -203,7 +198,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (requestedIdentity.Equals(candidateIdentity))
                 {
-                    return LoadFromPathUncheckedCore(candidatePath, candidateIdentity);
+                    return LoadFromPathUnchecked(candidatePath, candidateIdentity);
                 }
             }
 
