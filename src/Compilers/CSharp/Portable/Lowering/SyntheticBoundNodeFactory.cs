@@ -1583,6 +1583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression MakeNullableHasValue(SyntaxNode syntax, BoundExpression expression)
         {
+            // PROTOTYPE(param-nullchecking): consider restoring the 'private' accessibility of 'static LocalRewriter.UnsafeGetNullableMethod()'
             return BoundCall.Synthesized(syntax, expression, LocalRewriter.UnsafeGetNullableMethod(syntax, expression.Type, CodeAnalysis.SpecialMember.System_Nullable_T_get_HasValue, Compilation, Diagnostics));
         }
 
@@ -1653,7 +1654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression call = MakeNullableHasValue(syntax, nullable);
             BoundExpression result = kind == BinaryOperatorKind.NullableNullNotEqual ?
                 call :
-                new BoundUnaryOperator(syntax, UnaryOperatorKind.BoolLogicalNegation, call, ConstantValue.NotAvailable, null, LookupResultKind.Viable, returnType);
+                new BoundUnaryOperator(syntax, UnaryOperatorKind.BoolLogicalNegation, call, ConstantValue.NotAvailable, methodOpt: null, constrainedToTypeOpt: null, LookupResultKind.Viable, returnType);
 
             return result;
         }

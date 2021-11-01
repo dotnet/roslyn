@@ -53,6 +53,7 @@ Microsoft.CodeAnalysis.IncrementalValueProvider<TValue>.IncrementalValueProvider
 Microsoft.CodeAnalysis.IncrementalValueProviderExtensions
 Microsoft.CodeAnalysis.IncrementalValuesProvider<TValues>
 Microsoft.CodeAnalysis.IncrementalValuesProvider<TValues>.IncrementalValuesProvider() -> void
+Microsoft.CodeAnalysis.IParameterSymbol.IsNullChecked.get -> bool
 Microsoft.CodeAnalysis.ISymbol.MetadataToken.get -> int
 Microsoft.CodeAnalysis.ISyntaxContextReceiver
 Microsoft.CodeAnalysis.ISyntaxContextReceiver.OnVisitSyntaxNode(Microsoft.CodeAnalysis.GeneratorSyntaxContext context) -> void

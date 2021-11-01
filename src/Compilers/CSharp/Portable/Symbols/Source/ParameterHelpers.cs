@@ -138,9 +138,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckParameterModifiers(parameterSyntax, diagnostics, parsingFunctionPointer);
 
                 var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword);
-                if (refKind != RefKind.None && parameterSyntax.ExclamationExclamationToken.Kind() != SyntaxKind.None)
+                if (refKind != RefKind.None && parameterSyntax is ParameterSyntax { ExclamationExclamationToken: var exExToken, Identifier: var identifier } && exExToken.Kind() != SyntaxKind.None)
                 {
-                    diagnostics.Add(ErrorCode.ERR_NullCheckingOnByRefParameter, parameterSyntax.ExclamationExclamationToken.GetLocation(), parameterSyntax.Identifier.ValueText);
+                    diagnostics.Add(ErrorCode.ERR_NullCheckingOnByRefParameter, exExToken.GetLocation(), identifier.ValueText);
                 }
                 if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
                 {
@@ -189,11 +189,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_IllegalRefParam, refnessKeyword.GetLocation());
                 }
 
-                if (parameterSyntax.ExclamationExclamationToken.Kind() == SyntaxKind.ExclamationExclamationToken)
+                if (parameterSyntax is ParameterSyntax { ExclamationExclamationToken: var exExToken1, Identifier: var identifier1 } && exExToken1.Kind() == SyntaxKind.ExclamationExclamationToken)
                 {
                     if (owner.IsAbstract || owner.IsPartialDefinition() || owner.IsExtern)
                     {
-                        diagnostics.Add(ErrorCode.ERR_MustNullCheckInImplementation, parameterSyntax.Identifier.GetLocation(), parameterSyntax.Identifier.ValueText);
+                        diagnostics.Add(ErrorCode.ERR_MustNullCheckInImplementation, identifier1.GetLocation(), identifier1.ValueText);
                     }
                 }
 
@@ -789,16 +789,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return refKind;
         }
 
-        internal static void AddNullCheckingErrorsToParameter(DiagnosticBag diagnostics, ParameterSymbol parameter)
+        // PROTOTYPE(param-nullchecking): consider whether we should adjust the set of locations where we call this
+        internal static void ReportParameterNullCheckingErrors(DiagnosticBag diagnostics, ParameterSymbol parameter)
         {
             if (!parameter.IsNullChecked)
             {
                 return;
             }
             Location location = parameter.Locations.FirstOrNone();
-            if (Binder.GetWellKnownTypeMember(parameter.DeclaringCompilation, WellKnownMember.System_ArgumentNullException__ctorString, out DiagnosticInfo diag) is null)
+            // PROTOTYPE(param-nullchecking): can we simplify with the other overload?
+            if (Binder.GetWellKnownTypeMember(parameter.DeclaringCompilation, WellKnownMember.System_ArgumentNullException__ctorString, out UseSiteInfo<AssemblySymbol> useSiteInfo) is null)
             {
-                diagnostics.Add(diag, location);
+                diagnostics.Add(useSiteInfo.DiagnosticInfo, location);
             }
             if (parameter.Type.IsValueType)
             {

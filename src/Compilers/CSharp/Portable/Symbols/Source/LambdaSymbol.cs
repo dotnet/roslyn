@@ -281,6 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var parameter in _parameters)
             {
                 parameter.ForceComplete(locationOpt: null, cancellationToken: default);
+                ParameterHelpers.ReportParameterNullCheckingErrors(addTo.DiagnosticBag, parameter);
             }
 
             GetAttributes();
@@ -354,9 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var location = unboundLambda.ParameterLocation(p);
                 var locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create<Location>(location);
 
-                var parameter = new LambdaParameterSymbol(owner: this, attributeLists, type, ordinal: p, refKind, name, unboundLambda.ParameterIsDiscard(p), locations);
-                ParameterHelpers.AddNullCheckingErrorsToParameter(diagnostics, parameter);
-
+                var parameter = new LambdaParameterSymbol(owner: this, attributeLists, type, ordinal: p, refKind, name, unboundLambda.ParameterIsDiscard(p), unboundLambda.ParameterIsNullChecked(p), locations);
                 builder.Add(parameter);
             }
 

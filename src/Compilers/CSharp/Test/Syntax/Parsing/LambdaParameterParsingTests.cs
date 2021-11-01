@@ -667,6 +667,7 @@ class C {
             EOF();
         }
 
+        [Fact]
         public void TestLambdaWithNullValidation()
         {
             UsingDeclaration("Func<string, string> func1 = x!! => x + \"1\";", options: TestOptions.RegularPreview);
@@ -1817,6 +1818,73 @@ class C {
                 }
                 N(SyntaxKind.SemicolonToken);
             }
+        }
+
+        [Fact]
+        public void AsyncAwaitInLambda()
+        {
+            UsingStatement(@"F(async () => await Task.FromResult(4));");
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "F");
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                            {
+                                N(SyntaxKind.AsyncKeyword);
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.AwaitExpression);
+                                {
+                                    N(SyntaxKind.AwaitKeyword);
+                                    N(SyntaxKind.InvocationExpression);
+                                    {
+                                        N(SyntaxKind.SimpleMemberAccessExpression);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Task");
+                                            }
+                                            N(SyntaxKind.DotToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "FromResult");
+                                            }
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.Argument);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "4");
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
         }
     }
 }

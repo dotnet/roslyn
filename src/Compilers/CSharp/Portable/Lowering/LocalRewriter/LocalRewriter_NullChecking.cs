@@ -11,13 +11,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
-        private BoundBlock RewriteNullChecking(BoundBlock block)
+        private BoundBlock? RewriteNullChecking(BoundBlock? block)
         {
             if (block is null)
             {
                 return null;
             }
 
+            Debug.Assert(_factory.CurrentFunction is not null);
             var statementList = TryConstructNullCheckedStatementList(_factory.CurrentFunction.Parameters, block.Statements, _factory);
             if (statementList.IsDefault)
             {
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                                          ImmutableArray<BoundStatement> existingStatements,
                                                                                          SyntheticBoundNodeFactory factory)
         {
-            ArrayBuilder<BoundStatement> statementList = null;
+            ArrayBuilder<BoundStatement>? statementList = null;
             foreach (ParameterSymbol param in parameters)
             {
                 if (param.IsNullChecked)
