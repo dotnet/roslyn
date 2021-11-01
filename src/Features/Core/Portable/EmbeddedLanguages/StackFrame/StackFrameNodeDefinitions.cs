@@ -27,21 +27,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         public abstract void Accept(IStackFrameNodeVisitor visitor);
     }
 
-    internal sealed class SeparatedStackFrameNodeList<TNode> : EmbeddedSeparatedSyntaxNodeList<StackFrameKind, StackFrameNode, SeparatedStackFrameNodeList<TNode>>
-        where TNode : EmbeddedSyntaxNode<StackFrameKind, StackFrameNode>
-    {
-        public SeparatedStackFrameNodeList(ImmutableArray<StackFrameNodeOrToken> nodeOrTokens)
-            : base(nodeOrTokens)
-        {
-        }
-
-        private SeparatedStackFrameNodeList() : base()
-        {
-        }
-
-        public static SeparatedStackFrameNodeList<TNode> Empty { get; } = new();
-    }
-
     internal abstract class StackFrameDeclarationNode : StackFrameNode
     {
         protected StackFrameDeclarationNode(StackFrameKind kind) : base(kind)
@@ -292,10 +277,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     internal sealed class StackFrameTypeArgumentList : StackFrameNode
     {
         public readonly StackFrameToken OpenToken;
-        public readonly SeparatedStackFrameNodeList<StackFrameIdentifierNameNode> TypeArguments;
+        public readonly EmbeddedSeparatedSyntaxNodeList<StackFrameKind, StackFrameNode, StackFrameIdentifierNameNode> TypeArguments;
         public readonly StackFrameToken CloseToken;
 
-        public StackFrameTypeArgumentList(StackFrameToken openToken, SeparatedStackFrameNodeList<StackFrameIdentifierNameNode> typeArguments, StackFrameToken closeToken) : base(StackFrameKind.TypeArgument)
+        public StackFrameTypeArgumentList(
+            StackFrameToken openToken,
+            EmbeddedSeparatedSyntaxNodeList<StackFrameKind, StackFrameNode, StackFrameIdentifierNameNode> typeArguments,
+            StackFrameToken closeToken)
+            : base(StackFrameKind.TypeArgument)
         {
             Debug.Assert(openToken.Kind is StackFrameKind.OpenBracketToken or StackFrameKind.LessThanToken);
             Debug.Assert(typeArguments.Length > 0);
@@ -363,10 +352,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     internal sealed class StackFrameParameterList : StackFrameNode
     {
         public readonly StackFrameToken OpenParen;
-        public readonly SeparatedStackFrameNodeList<StackFrameParameterDeclarationNode> Parameters;
+        public readonly EmbeddedSeparatedSyntaxNodeList<StackFrameKind, StackFrameNode, StackFrameParameterDeclarationNode> Parameters;
         public readonly StackFrameToken CloseParen;
 
-        public StackFrameParameterList(StackFrameToken openToken, SeparatedStackFrameNodeList<StackFrameParameterDeclarationNode> parameters, StackFrameToken closeToken)
+        public StackFrameParameterList(
+            StackFrameToken openToken,
+            EmbeddedSeparatedSyntaxNodeList<StackFrameKind, StackFrameNode, StackFrameParameterDeclarationNode> parameters,
+            StackFrameToken closeToken)
             : base(StackFrameKind.ParameterList)
         {
             Debug.Assert(openToken.Kind == StackFrameKind.OpenParenToken);

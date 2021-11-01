@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return ParseResult<StackFrameTypeArgumentList>.Abort;
             }
 
-            var separatedList = new SeparatedStackFrameNodeList<StackFrameIdentifierNameNode>(builder.ToImmutable());
+            var separatedList = new EmbeddedSeparatedSyntaxNodeList<StackFrameKind, StackFrameNode, StackFrameIdentifierNameNode>(builder.ToImmutable());
             return new(new(openToken, separatedList, closeToken));
         }
 
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             if (_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.CloseParenToken, out var closeParen))
             {
-                return new(new(openParen, SeparatedStackFrameNodeList<StackFrameParameterDeclarationNode>.Empty, closeParen));
+                return new(new(openParen, EmbeddedSeparatedSyntaxNodeList<StackFrameKind, StackFrameNode, StackFrameParameterDeclarationNode>.Empty, closeParen));
             }
 
             using var _ = ArrayBuilder<StackFrameNodeOrToken>.GetInstance(out var builder);
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return ParseResult<StackFrameParameterList>.Empty;
             }
 
-            var parameters = new SeparatedStackFrameNodeList<StackFrameParameterDeclarationNode>(builder.ToImmutable());
+            var parameters = new EmbeddedSeparatedSyntaxNodeList<StackFrameKind, StackFrameNode, StackFrameParameterDeclarationNode>(builder.ToImmutable());
             return new(new(openParen, parameters, closeParen));
         }
 

@@ -9,29 +9,29 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 {
-    internal abstract class EmbeddedSeparatedSyntaxNodeList<TSyntaxKind, TSyntaxNode, TList>
+    internal struct EmbeddedSeparatedSyntaxNodeList<TSyntaxKind, TSyntaxNode, TDerivedNode>
         where TSyntaxKind : struct
         where TSyntaxNode : EmbeddedSyntaxNode<TSyntaxKind, TSyntaxNode>
-        where TList : EmbeddedSeparatedSyntaxNodeList<TSyntaxKind, TSyntaxNode, TList>
+        where TDerivedNode : TSyntaxNode
     {
         public ImmutableArray<EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>> NodesAndTokens { get; }
         public int Length { get; }
         public int SeparatorLength { get; }
 
-        public EmbeddedSeparatedSyntaxNodeList(ImmutableArray<EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>> nodesAndTokens)
+        public static readonly EmbeddedSeparatedSyntaxNodeList<TSyntaxKind, TSyntaxNode, TDerivedNode> Empty
+            = new(ImmutableArray<EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>>.Empty);
+
+        public EmbeddedSeparatedSyntaxNodeList(
+            ImmutableArray<EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>> nodesAndTokens)
         {
             Contract.ThrowIfTrue(nodesAndTokens.IsDefault);
             NodesAndTokens = nodesAndTokens;
-            Verify();
 
             var allLength = NodesAndTokens.Length;
             Length = (allLength + 1) / 2;
             SeparatorLength = allLength / 2;
-        }
 
-        protected EmbeddedSeparatedSyntaxNodeList()
-        {
-            NodesAndTokens = ImmutableArray<EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>>.Empty;
+            Verify();
         }
 
         [Conditional("DEBUG")]
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         /// <summary>
         /// Retrieves only nodes, skipping the separator tokens
         /// </summary>
-        public TSyntaxNode this[int index]
+        public TDerivedNode this[int index]
         {
             get
             {
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
                     var nodeOrToken = NodesAndTokens[index * 2];
                     Debug.Assert(nodeOrToken.IsNode);
                     RoslynDebug.AssertNotNull(nodeOrToken.Node);
-                    return nodeOrToken.Node;
+                    return (TDerivedNode)nodeOrToken.Node;
                 }
 
                 throw new ArgumentOutOfRangeException(nameof(index));
@@ -78,24 +78,24 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 
         public struct Enumerator
         {
-            private readonly EmbeddedSeparatedSyntaxNodeList<TSyntaxKind, TSyntaxNode, TList> _list;
+            private readonly EmbeddedSeparatedSyntaxNodeList<TSyntaxKind, TSyntaxNode, TDerivedNode> _list;
             private int _currentIndex;
 
-            public Enumerator(EmbeddedSeparatedSyntaxNodeList<TSyntaxKind, TSyntaxNode, TList> list)
+            public Enumerator(EmbeddedSeparatedSyntaxNodeList<TSyntaxKind, TSyntaxNode, TDerivedNode> list)
             {
                 _list = list;
                 _currentIndex = -1;
-                Current = default;
+                Current = null!;
             }
 
-            public EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode> Current { get; private set; }
+            public TDerivedNode Current { get; private set; }
 
             public bool MoveNext()
             {
                 _currentIndex++;
                 if (_currentIndex >= _list.Length)
                 {
-                    Current = null;
+                    Current = null!;
                     return false;
                 }
 
