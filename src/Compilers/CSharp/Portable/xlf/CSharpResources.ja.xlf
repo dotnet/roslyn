@@ -677,6 +677,11 @@
         <target state="translated">補間された文字列ハンドラー メソッド '{0}' の形式が正しくありません。'void' または 'bool' を返すことはありません。</target>
         <note>void and bool are keywords</note>
       </trans-unit>
+      <trans-unit id="ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers">
+        <source>Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</source>
+        <target state="new">Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
         <source>'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</source>
         <target state="translated">'{0}' は有効な関数ポインターの戻り値の型修飾子ではありません。有効な修飾子は 'ref ' および 'ref readonly' です。</target>

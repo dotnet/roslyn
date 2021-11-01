@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
@@ -53,15 +54,15 @@ namespace Microsoft.CodeAnalysis.Completion
         public sealed override Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             Debug.Fail("For backwards API compat only, should not be called");
-            return GetDescriptionAsync(document, item, CompletionOptions.From(document.Project.Solution.Options, document.Project.Language), cancellationToken);
+            return GetDescriptionAsync(document, item, CompletionOptions.From(document.Project), SymbolDescriptionOptions.From(document.Project), cancellationToken);
         }
 
-        internal override async Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, CancellationToken cancellationToken)
+        internal override async Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
         {
             // Get the actual description provided by whatever subclass we are.
             // Then, if we would commit text that could be expanded as a snippet, 
             // put that information in the description so that the user knows.
-            var description = await GetDescriptionWorkerAsync(document, item, options, cancellationToken).ConfigureAwait(false);
+            var description = await GetDescriptionWorkerAsync(document, item, options, displayOptions, cancellationToken).ConfigureAwait(false);
             var parts = await TryAddSnippetInvocationPartAsync(document, item, description.TaggedParts, cancellationToken).ConfigureAwait(false);
 
             return description.WithTaggedParts(parts);
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         internal virtual Task<CompletionDescription> GetDescriptionWorkerAsync(
-            Document document, CompletionItem item, CompletionOptions options, CancellationToken cancellationToken)
+            Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
         {
             return CommonCompletionItem.HasDescription(item)
                 ? Task.FromResult(CommonCompletionItem.GetDescription(item))

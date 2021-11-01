@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             // even emitted in the final lsif hover information.
             var workspace = languageServices.WorkspaceServices.Workspace;
             workspace.SetOptions(workspace.Options.WithChangedOption(
-                QuickInfoOptions.IncludeNavigationHintsInQuickInfo, false));
+                QuickInfoOptions.Metadata.IncludeNavigationHintsInQuickInfo, false));
 
             var tasks = new List<Task>();
             foreach (var syntaxTree in compilation.SyntaxTrees)
@@ -234,7 +234,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     // See https://github.com/Microsoft/language-server-protocol/blob/main/indexFormat/specification.md#resultset for an example.
                     if (symbolResultsTracker.ResultSetNeedsInformationalEdgeAdded(symbolForLinkedResultSet, Methods.TextDocumentHoverName))
                     {
-                        var hover = await HoverHandler.GetHoverAsync(semanticModel, syntaxToken.SpanStart, languageServices, CancellationToken.None);
+                        var displayOptions = SymbolDescriptionOptions.From(options, languageServices.Language);
+                        var hover = await HoverHandler.GetHoverAsync(semanticModel, syntaxToken.SpanStart, displayOptions, languageServices, CancellationToken.None);
                         if (hover != null)
                         {
                             var hoverResult = new HoverResult(hover, idFactory);

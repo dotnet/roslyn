@@ -45,11 +45,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         public object State { get; set; }
 
-        /// <summary>
-        /// Remove once TypeScript finishes https://github.com/dotnet/roslyn/issues/57180.
-        /// </summary>
-        public CancellationToken CancellationToken { get; internal set; }
-
         // For testing only.
         internal TaggerContext(
             Document document, ITextSnapshot snapshot,

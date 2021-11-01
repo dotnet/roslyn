@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -75,8 +76,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
 
         protected abstract Task<bool> IsExclusiveAsync(Document document, int position, CancellationToken cancellationToken);
 

@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
         public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var displayOptions = SymbolDescriptionOptions.From(document.Project);
 
             var displayAllOverride = options.GetOption(InlineHintsOptions.DisplayAllOverride);
 
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                         result.Add(new InlineHint(
                             new TextSpan(position, 0),
                             ImmutableArray.Create(new TaggedText(TextTags.Text, parameter.Name + ": ")),
-                            InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken))));
+                            InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
                     }
                 }
             }
