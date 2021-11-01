@@ -315,15 +315,11 @@ namespace Microsoft.CodeAnalysis.Operations
                         }
                     }
                     ImmutableArray<IOperation> children = GetIOperationChildren(boundNode);
-                    ITypeSymbol? type;
-                    if (boundNode is BoundExpression boundExpr)
+                    ITypeSymbol? type = boundNode switch
                     {
-                        type = boundExpr.GetPublicTypeSymbol();
-                    }
-                    else
-                    {
-                        type = null;
-                    }
+                        BoundExpression boundExpr => boundExpr.GetPublicTypeSymbol(),
+                        _ => null
+                    };
                     return new NoneOperation(children, _semanticModel, boundNode.Syntax, type: type, constantValue, isImplicit: isImplicit);
                 default:
                     // If you're hitting this because the IOperation test hook has failed, see
