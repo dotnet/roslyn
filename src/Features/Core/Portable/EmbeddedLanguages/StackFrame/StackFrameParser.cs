@@ -165,6 +165,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             var memberAccess = parseResult.Value;
             if (memberAccess is null)
             {
+                Debug.Assert(lhs is StackFrameSimpleNameNode);
                 return new(lhs);
             }
 
@@ -179,6 +180,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 var newMemberAccess = parseResult.Value;
                 if (newMemberAccess is null)
                 {
+                    Debug.Assert(memberAccess is StackFrameQualifiedNameNode);
                     return new(memberAccess);
                 }
 
