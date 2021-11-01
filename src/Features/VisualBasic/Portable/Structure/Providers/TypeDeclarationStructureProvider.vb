@@ -14,9 +14,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
                                                   typeDeclaration As TypeStatementSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
-                                                  optionProvider As BlockStructureOptionProvider,
+                                                  options As BlockStructureOptions,
                                                   cancellationToken As CancellationToken)
-            CollectCommentsRegions(typeDeclaration, spans, optionProvider)
+            CollectCommentsRegions(typeDeclaration, spans, options)
 
             Dim block = TryCast(typeDeclaration.Parent, TypeBlockSyntax)
             If Not block?.EndBlockStatement.IsMissing Then
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                     block, bannerNode:=typeDeclaration, autoCollapse:=False,
                     type:=BlockTypes.Type, isCollapsible:=True))
 
-                CollectCommentsRegions(block.EndBlockStatement, spans, optionProvider)
+                CollectCommentsRegions(block.EndBlockStatement, spans, options)
             End If
         End Sub
     End Class

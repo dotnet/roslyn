@@ -34,6 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         private readonly Lazy<IReferenceCleanupService> _lazyReferenceCleanupService;
         private readonly RemoveUnusedReferencesDialogProvider _unusedReferenceDialogProvider;
         private readonly VisualStudioWorkspace _workspace;
+        private readonly IGlobalOptionService _globalOptions;
         private readonly IUIThreadOperationExecutor _threadOperationExecutor;
         private IServiceProvider? _serviceProvider;
 
@@ -42,11 +43,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         public RemoveUnusedReferencesCommandHandler(
             RemoveUnusedReferencesDialogProvider unusedReferenceDialogProvider,
             IUIThreadOperationExecutor threadOperationExecutor,
-            VisualStudioWorkspace workspace)
+            VisualStudioWorkspace workspace,
+            IGlobalOptionService globalOptions)
         {
             _unusedReferenceDialogProvider = unusedReferenceDialogProvider;
             _threadOperationExecutor = threadOperationExecutor;
             _workspace = workspace;
+            _globalOptions = globalOptions;
 
             _lazyReferenceCleanupService = new(() => workspace.Services.GetRequiredService<IReferenceCleanupService>());
         }
@@ -70,8 +73,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             var command = (OleMenuCommand)sender;
 
             // If the option hasn't been expicitly set then fallback to whether this is enabled as part of an experiment.
-            var isOptionEnabled = _workspace.Options.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferences)
-                ?? _workspace.Options.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferencesFeatureFlag);
+            var isOptionEnabled = _globalOptions.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferences)
+                ?? _globalOptions.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferencesFeatureFlag);
 
             var isDotNetCpsProject = VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy) &&
                 hierarchy.IsCapabilityMatch("CPS") &&

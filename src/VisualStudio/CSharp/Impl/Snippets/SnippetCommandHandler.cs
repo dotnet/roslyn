@@ -43,7 +43,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         IChainedCommandHandler<TypeCharCommandArgs>
     {
         private readonly ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _argumentProviders;
-        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -55,10 +54,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             SVsServiceProvider serviceProvider,
             [ImportMany] IEnumerable<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders,
             IGlobalOptionService globalOptions)
-            : base(threadingContext, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, serviceProvider)
+            : base(threadingContext, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, globalOptions, serviceProvider)
         {
             _argumentProviders = argumentProviders.ToImmutableArray();
-            _globalOptions = globalOptions;
         }
 
         public bool ExecuteCommand(SurroundWithCommandArgs args, CommandExecutionContext context)
@@ -131,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                     EditorCommandHandlerServiceFactory,
                     EditorAdaptersFactoryService,
                     _argumentProviders,
-                    _globalOptions);
+                    GlobalOptions);
 
                 textView.Properties.AddProperty(typeof(AbstractSnippetExpansionClient), expansionClient);
             }

@@ -3,8 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Editor.InlineHints
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.InlineHints
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
     <[UseExportProvider]>
@@ -14,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineHintsTests)}.{NameOf(Me.VerifyParamHints)} creates asynchronous taggers")
 
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
-                    InlineHintsOptions.EnabledForParameters,
+                    InlineParameterHintsOptions.Metadata.EnabledForParameters,
                     workspace.CurrentSolution.Projects().First().Language,
                     optionIsEnabled)))
 
@@ -48,11 +50,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
         Protected Async Function VerifyTypeHints(test As XElement, Optional optionIsEnabled As Boolean = True, Optional ephemeral As Boolean = False) As Task
             Using workspace = TestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineHintsTests)}.{NameOf(Me.VerifyTypeHints)} creates asynchronous taggers")
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
 
                 Dim language = workspace.CurrentSolution.Projects().First().Language
+
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.Options.WithChangedOption(InlineHintsOptions.EnabledForTypes, language, optionIsEnabled AndAlso Not ephemeral).
-                                  WithChangedOption(InlineHintsOptions.DisplayAllOverride, ephemeral)))
+                    workspace.CurrentSolution.Options.WithChangedOption(InlineTypeHintsOptions.Metadata.EnabledForTypes, language, optionIsEnabled AndAlso Not ephemeral)))
+
+                globalOptions.SetGlobalOption(New OptionKey(InlineHintsGlobalStateOption.DisplayAllOverride), ephemeral)
 
                 Dim hostDocument = workspace.Documents.Single()
                 Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot

@@ -13,8 +13,20 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    internal static class LoggerOptions
+    [ExportGlobalOptionProvider, Shared]
+    internal sealed class LoggerOptions : IOptionProvider
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public LoggerOptions()
+        {
+        }
+
+        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
+            EtwLoggerKey,
+            TraceLoggerKey,
+            OutputWindowLoggerKey);
+
         private const string LocalRegistryPath = @"Roslyn\Internal\Performance\Logger\";
 
         public static readonly Option<bool> EtwLoggerKey = new(nameof(LoggerOptions), nameof(EtwLoggerKey), defaultValue: true,
@@ -25,20 +37,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public static readonly Option<bool> OutputWindowLoggerKey = new(nameof(LoggerOptions), nameof(OutputWindowLoggerKey), defaultValue: false,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "OutputWindowLogger"));
-    }
-
-    [ExportOptionProvider, Shared]
-    internal class LoggerOptionsProvider : IOptionProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LoggerOptionsProvider()
-        {
-        }
-
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            LoggerOptions.EtwLoggerKey,
-            LoggerOptions.TraceLoggerKey,
-            LoggerOptions.OutputWindowLoggerKey);
     }
 }

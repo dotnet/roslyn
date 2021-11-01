@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -64,9 +65,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
 
             var eventSource = CreateEventSource();
             var taggerProvider = new TestTaggerProvider(
-                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                workspace.GetService<IThreadingContext>(),
                 tagProducer,
                 eventSource,
+                workspace.GetService<IGlobalOptionService>(),
                 asyncListener);
 
             var document = workspace.Documents.First();
@@ -152,8 +154,9 @@ class Program
                 IThreadingContext threadingContext,
                 Callback callback,
                 ITaggerEventSource eventSource,
+                IGlobalOptionService globalOptions,
                 IAsynchronousOperationListener asyncListener)
-                : base(threadingContext, asyncListener)
+                : base(threadingContext, globalOptions, asyncListener)
             {
                 _callback = callback;
                 _eventSource = eventSource;
