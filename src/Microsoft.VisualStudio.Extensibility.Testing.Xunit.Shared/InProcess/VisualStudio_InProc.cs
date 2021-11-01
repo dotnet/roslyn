@@ -61,14 +61,20 @@ namespace Xunit.InProcess
 
                 var activeVisualStudioWindow = (IntPtr)dte.ActiveWindow.HWnd;
                 Debug.WriteLine($"DTE.ActiveWindow.HWnd = {activeVisualStudioWindow}");
-
-                if (activeVisualStudioWindow == IntPtr.Zero)
+                if (activeVisualStudioWindow != IntPtr.Zero)
                 {
-                    activeVisualStudioWindow = (IntPtr)dte.MainWindow.HWnd;
-                    Debug.WriteLine($"DTE.MainWindow.HWnd = {activeVisualStudioWindow}");
+                    if (TrySetForegroundWindow(activeVisualStudioWindow))
+                    {
+                        return;
+                    }
                 }
 
-                SetForegroundWindow(activeVisualStudioWindow);
+                activeVisualStudioWindow = (IntPtr)dte.MainWindow.HWnd;
+                Debug.WriteLine($"DTE.MainWindow.HWnd = {activeVisualStudioWindow}");
+                if (!TrySetForegroundWindow(activeVisualStudioWindow))
+                {
+                    throw new InvalidOperationException("Failed to set the foreground window.");
+                }
             });
         }
 
@@ -119,7 +125,7 @@ namespace Xunit.InProcess
             });
         }
 
-        private static void SetForegroundWindow(IntPtr window)
+        private static bool TrySetForegroundWindow(IntPtr window)
         {
             var activeWindow = NativeMethods.GetLastActivePopup(window);
             activeWindow = NativeMethods.IsWindowVisible(activeWindow) ? activeWindow : window;
@@ -155,9 +161,11 @@ namespace Xunit.InProcess
 
                 if (!NativeMethods.SetForegroundWindow(activeWindow))
                 {
-                    throw new InvalidOperationException("Failed to set the foreground window.");
+                    return false;
                 }
             }
+
+            return true;
         }
     }
 }
