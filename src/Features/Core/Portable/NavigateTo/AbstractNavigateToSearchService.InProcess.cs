@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
     {
         /// <summary>
         /// Cached map from document key to the (potentially stale) syntax tree index for it we use prior to the 
-        /// full solution becoming available.
+        /// full solution becoming available.  Once the full solution is available, this will be cleared to drop
+        /// all cached data.
         /// </summary>
         private static readonly ConcurrentDictionary<DocumentId, AsyncLazy<SyntaxTreeIndex?>> s_documentKeyToIndex = new();
 
