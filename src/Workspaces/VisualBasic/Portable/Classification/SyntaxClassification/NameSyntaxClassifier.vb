@@ -21,9 +21,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             GetType(LabelSyntax))
 
         Public Overrides Sub AddClassifications(
-                workspace As Workspace,
                 syntax As SyntaxNode,
                 semanticModel As SemanticModel,
+                options As ClassificationOptions,
                 result As ArrayBuilder(Of ClassifiedSpan),
                 cancellationToken As CancellationToken)
 

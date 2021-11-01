@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
     internal partial class ReferenceHighlightingViewTaggerProvider : AsynchronousViewTaggerProvider<NavigableHighlightTag>
     {
+        private readonly IGlobalOptionService _globalOptions;
+
         // Whenever an edit happens, clear all highlights.  When moving the caret, preserve 
         // highlights if the caret stays within an existing tag.
         protected override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
@@ -49,9 +51,11 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public ReferenceHighlightingViewTaggerProvider(
             IThreadingContext threadingContext,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            IGlobalOptionService globalOptions)
             : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.ReferenceHighlighting))
         {
+            _globalOptions = globalOptions;
         }
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.Medium;
@@ -102,10 +106,6 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             }
 
             var caretPosition = context.CaretPosition.Value;
-            if (!Workspace.TryGetWorkspace(caretPosition.Snapshot.AsText().Container, out var workspace))
-            {
-                return Task.CompletedTask;
-            }
 
             // GetSpansToTag may have produced no actual spans to tag.  Be resilient to that.
             var document = context.SpansToTag.FirstOrDefault(vt => vt.SnapshotSpan.Snapshot == caretPosition.Snapshot).Document;
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             }
 
             // Don't produce tags if the feature is not enabled.
-            if (!workspace.Options.GetOption(FeatureOnOffOptions.ReferenceHighlighting, document.Project.Language))
+            if (!_globalOptions.GetOption(FeatureOnOffOptions.ReferenceHighlighting, document.Project.Language))
             {
                 return Task.CompletedTask;
             }
@@ -132,13 +132,15 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             }
 
             // Otherwise, we need to go produce all tags.
-            return ProduceTagsAsync(context, caretPosition, document, cancellationToken);
+            var options = DocumentHighlightingOptions.From(document.Project);
+            return ProduceTagsAsync(context, caretPosition, document, options, cancellationToken);
         }
 
-        internal static async Task ProduceTagsAsync(
+        private static async Task ProduceTagsAsync(
             TaggerContext<NavigableHighlightTag> context,
             SnapshotPoint position,
             Document document,
+            DocumentHighlightingOptions options,
             CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
@@ -154,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
                         // we're looking at
                         var documentsToSearch = ImmutableHashSet.CreateRange(context.SpansToTag.Select(vt => vt.Document).WhereNotNull());
                         var documentHighlightsList = await service.GetDocumentHighlightsAsync(
-                            document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
+                            document, position, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
                         if (documentHighlightsList != null)
                         {
                             foreach (var documentHighlights in documentHighlightsList)

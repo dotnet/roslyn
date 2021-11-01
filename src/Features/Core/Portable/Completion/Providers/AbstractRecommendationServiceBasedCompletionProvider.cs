@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Recommendations;
@@ -129,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         internal sealed override async Task<CompletionDescription> GetDescriptionWorkerAsync(
-            Document document, CompletionItem item, CompletionOptions options, CancellationToken cancellationToken)
+            Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
         {
             var position = SymbolCompletionItem.GetContextPosition(item);
             var name = SymbolCompletionItem.GetSymbolName(item);
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                             bestSymbols = bestSymbols.Insert(0, firstMatch);
                         }
 
-                        return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols.SelectAsArray(t => t.symbol), document, context.SemanticModel, cancellationToken).ConfigureAwait(false);
+                        return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols.SelectAsArray(t => t.symbol), document, context.SemanticModel, displayOptions, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

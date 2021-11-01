@@ -6878,4 +6878,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureNewLinesInInterpolations" xml:space="preserve">
     <value>newlines in interpolations</value>
   </data>
+  <data name="ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers" xml:space="preserve">
+    <value>Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</value>
+  </data>
 </root>

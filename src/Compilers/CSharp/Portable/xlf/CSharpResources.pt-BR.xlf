@@ -677,6 +677,11 @@
         <target state="translated">O método do manipulador de cadeia de caracteres interpolada '{0}' está malformado. Ele não retorna 'void' ou 'bool'.</target>
         <note>void and bool are keywords</note>
       </trans-unit>
+      <trans-unit id="ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers">
+        <source>Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</source>
+        <target state="new">Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
         <source>'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</source>
         <target state="translated">'{0}' não é um modificador de tipo de retorno de ponteiro de função válido. Os modificadores válidos são 'ref' e 'ref readonly'.</target>

@@ -13,7 +13,9 @@ using Microsoft.CodeAnalysis.Options.Providers;
 namespace Microsoft.CodeAnalysis.Classification
 {
     [DataContract]
-    internal readonly struct ClassificationOptions
+    internal readonly record struct ClassificationOptions(
+        [property: DataMember(Order = 0)] bool ClassifyReassignedVariables,
+        [property: DataMember(Order = 1)] bool ColorizeRegexPatterns)
     {
         [ExportOptionProvider, Shared]
         internal sealed class Metadata : IOptionProvider
@@ -25,25 +27,31 @@ namespace Microsoft.CodeAnalysis.Classification
             }
 
             public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-                ClassifyReassignedVariables);
+                ClassifyReassignedVariables,
+                ColorizeRegexPatterns);
+
+            private const string FeatureName = "ClassificationOptions";
 
             public static PerLanguageOption2<bool> ClassifyReassignedVariables =
-               new(nameof(ClassificationOptions), nameof(ClassifyReassignedVariables), defaultValue: false,
-                   storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(ClassificationOptions)}.{nameof(ClassifyReassignedVariables)}"));
+               new(FeatureName, "ClassifyReassignedVariables", defaultValue: false,
+                   storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.ClassificationOptions.ClassifyReassignedVariables"));
+
+            public static PerLanguageOption2<bool> ColorizeRegexPatterns =
+                new("RegularExpressionsOptions", "ColorizeRegexPatterns", defaultValue: true,
+                    storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ColorizeRegexPatterns"));
         }
 
-        [DataMember(Order = 0)]
-        public readonly bool ClassifyReassignedVariables;
-
-        public ClassificationOptions(bool classifyReassignedVariables)
-        {
-            ClassifyReassignedVariables = classifyReassignedVariables;
-        }
+        public static readonly ClassificationOptions Default
+          = new(
+              ClassifyReassignedVariables: Metadata.ClassifyReassignedVariables.DefaultValue,
+              ColorizeRegexPatterns: Metadata.ColorizeRegexPatterns.DefaultValue);
 
         public static ClassificationOptions From(Project project)
             => From(project.Solution.Options, project.Language);
 
         public static ClassificationOptions From(OptionSet options, string language)
-            => new(options.GetOption(Metadata.ClassifyReassignedVariables, language));
+            => new(
+                ClassifyReassignedVariables: options.GetOption(Metadata.ClassifyReassignedVariables, language),
+                ColorizeRegexPatterns: options.GetOption(Metadata.ColorizeRegexPatterns, language));
     }
 }
