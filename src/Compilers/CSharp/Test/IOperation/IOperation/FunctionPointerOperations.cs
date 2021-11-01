@@ -212,6 +212,44 @@ unsafe class C
         }
 
         [Fact]
+        public void FunctionPointerUnsafe()
+        {
+            var comp = CreateFunctionPointerCompilation(@"
+using System;
+static unsafe class C
+{
+    static int Getter(int i) => i;
+    static void Print(delegate*<int, int>* p)
+    {
+        for (int i = 0; i < 3; i++)
+            Console.Write(/*<bind>*/p[i](i)/*</bind>*/);
+    }
+
+    static void Main()
+    {
+        delegate*<int, int>* p = stackalloc delegate*<int, int>[] { &Getter, &Getter, &Getter };
+        Print(p);
+    }
+}
+");
+            var expectedOperationTree = @"
+IFunctionPointerInvocationOperation (OperationKind.FunctionPointerInvocation, Type: System.Int32) (Syntax: 'p[i](i)')
+  Target:
+    IOperation:  (OperationKind.None, Type: null) (Syntax: 'p[i]')
+      Children(2):
+          IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: delegate*<System.Int32, System.Int32>*) (Syntax: 'p')
+          ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: ) (OperationKind.Argument, Type: null) (Syntax: 'i')
+        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            ";
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[0]);
+        }
+
+        [Fact]
         public void FunctionPointerInvocation()
         {
             var comp = CreateFunctionPointerCompilation(@"
