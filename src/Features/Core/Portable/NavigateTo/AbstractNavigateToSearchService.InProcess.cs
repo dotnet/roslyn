@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -23,6 +24,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 {
     internal abstract partial class AbstractNavigateToSearchService
     {
+        /// <summary>
+        /// Cached map from document key to the (potentially stale) syntax tree index for it we use prior to the 
+        /// full solution becoming available.
+        /// </summary>
+        private static readonly ConcurrentDictionary<DocumentId, AsyncLazy<SyntaxTreeIndex?>> s_documentKeyToIndex = new();
+
         private static ImmutableArray<(PatternMatchKind roslynKind, NavigateToMatchKind vsKind)> s_kindPairs =
             ImmutableArray.Create(
                 (PatternMatchKind.Exact, NavigateToMatchKind.Exact),
@@ -60,6 +67,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Document? searchDocument, string pattern, IImmutableSet<string> kinds,
             Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
         {
+            // We're doing a real search over the fully loaded solution now.  No need to hold onto the cached map
+            // of potentially stale indices.
+            s_documentKeyToIndex.Clear();
+
             // If the user created a dotted pattern then we'll grab the last part of the name
             var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
 
@@ -156,8 +167,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    var index = await SyntaxTreeIndex.LoadAsync(
-                        services, documentKey, checksum: null, database, stringTable, cancellationToken).ConfigureAwait(false);
+                    var asyncLazy = s_documentKeyToIndex.GetOrAdd(
+                        documentKey.Id,
+                        _ => new AsyncLazy<SyntaxTreeIndex?>(c => SyntaxTreeIndex.LoadAsync(
+                            services, documentKey, checksum: null, database, stringTable, c), cacheResult: true));
+                    var index = await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
                     if (index == null)
                         return;
 
