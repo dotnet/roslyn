@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
         public enum UseEnhancedColors
         {
-            Migrated = -2,
+            MigratedFromVS2019ColorScheme = -3,
+            MigratedFromUseEnhancedColors = -2,
             DoNotUse = -1,
             Default = 0,
             Use = 1

@@ -121,37 +121,20 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 return;
             }
 
-            // If the color scheme has updated, apply the scheme.
-            if (TryGetUpdatedColorScheme(out var colorScheme))
-            {
-                var colorSchemeRegistryItems = _colorSchemeRegistryItems.GetValue(CancellationToken.None);
-                _settings.ApplyColorScheme(colorScheme.Value, colorSchemeRegistryItems[colorScheme.Value]);
-            }
-        }
-
-        /// <summary>
-        /// Returns true if the color scheme needs updating.
-        /// </summary>
-        /// <param name="colorScheme">The color scheme to update with.</param>
-        private bool TryGetUpdatedColorScheme([NotNullWhen(returnValue: true)] out SchemeName? colorScheme)
-        {
             // The color scheme that is currently applied to the registry
             var appliedColorScheme = _settings.GetAppliedColorScheme();
 
             // If this is a supported theme then, use the users configured scheme, otherwise fallback to the VS 2017.
             // Custom themes would be based on the MEF exported color information for classifications which matches the VS 2017 theme.
-            var configuredColorScheme = IsSupportedTheme()
+            var colorScheme = IsSupportedTheme()
                 ? _settings.GetConfiguredColorScheme()
                 : SchemeName.VisualStudio2017;
 
-            if (appliedColorScheme == configuredColorScheme)
+            if (appliedColorScheme != colorScheme)
             {
-                colorScheme = null;
-                return false;
+                var colorSchemeRegistryItems = _colorSchemeRegistryItems.GetValue(CancellationToken.None);
+                _settings.ApplyColorScheme(colorScheme, colorSchemeRegistryItems[colorScheme]);
             }
-
-            colorScheme = configuredColorScheme;
-            return true;
         }
 
         public bool IsSupportedTheme()
