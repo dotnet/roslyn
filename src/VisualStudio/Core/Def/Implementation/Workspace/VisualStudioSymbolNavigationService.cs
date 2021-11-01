@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             // Generate new source or retrieve existing source for the symbol in question
-            var allowDecompilation = project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources);
+            var allowDecompilation = _globalOptions.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources);
             var result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, allowDecompilation, cancellationToken).WaitAndGetResult(cancellationToken);
 
             var vsRunningDocumentTable4 = IServiceProviderExtensions.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>(_serviceProvider);

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Structure;
@@ -46,8 +47,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             IThreadingContext threadingContext,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Outlining))
+            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.Outlining))
         {
             EditorOptionsFactoryService = editorOptionsFactoryService;
             ProjectionBufferFactoryService = projectionBufferFactoryService;
@@ -63,13 +65,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             if (openDocument == null)
                 return false;
 
-            var workspace = openDocument.Project.Solution.Workspace;
-            if (!workspace.Options.GetOption(FeatureOnOffOptions.Outlining, openDocument.Project.Language))
+            if (!GlobalOptions.GetOption(FeatureOnOffOptions.Outlining, openDocument.Project.Language))
                 return false;
 
             // If we're a metadata-as-source doc, we need to compute the initial set of tags synchronously
             // so that we can collapse all the .IsImplementation tags to keep the UI clean and condensed.
-            var isMetadataAsSource = workspace.Kind == WorkspaceKind.MetadataAsSource;
+            var isMetadataAsSource = openDocument.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
             if (isMetadataAsSource)
                 return true;
 
@@ -116,13 +117,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 TaggerEventSources.OnTextChanged(subjectBuffer),
                 TaggerEventSources.OnParseOptionChanged(subjectBuffer),
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowOutliningForCodeLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowOutliningForDeclarationLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowOutliningForCommentsAndPreprocessorRegions),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions));
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowBlockStructureGuidesForCodeLevelConstructs),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowBlockStructureGuidesForDeclarationLevelConstructs),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowOutliningForCodeLevelConstructs),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowOutliningForDeclarationLevelConstructs),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowOutliningForCommentsAndPreprocessorRegions),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.CollapseRegionsWhenCollapsingToDefinitions));
         }
 
         protected sealed override async Task ProduceTagsAsync(

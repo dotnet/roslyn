@@ -2,41 +2,27 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
                     xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0">
+
     <!-- Inherit Themed Dialog styles -->
-    <Style TargetType="Button" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogButtonStyleKey}}" />
-    <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogCheckBoxStyleKey}}" />
-    <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogComboBoxStyleKey}}" />
-    <Style TargetType="GridViewColumnHeader" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogGridViewColumnHeaderStyleKey}}" />
-    <Style TargetType="Hyperlink" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogHyperlinkStyleKey}}" />
-    <Style TargetType="Label" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogLabelStyleKey}}" />
-    <Style TargetType="ListBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogListBoxStyleKey}}" />
-    <Style TargetType="ListView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogListViewStyleKey}}" />
-    <Style TargetType="ListViewItem" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogListViewItemStyleKey}}" />
-    <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogRadioButtonStyleKey}}" />
-    <Style TargetType="ScrollBar" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ScrollBarStyleKey}}"/>
-    <Style TargetType="TextBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTextBoxStyleKey}}" />
-    <Style TargetType="TreeView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewStyleKey}}" />
-    <Style TargetType="TreeViewItem" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewItemStyleKey}}" />
     <Style TargetType="TabControl" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTabControlNavigationStyleKey}}" />
-    
-    <!-- Custom tab theme -->
+
     <Style x:Key="ControlsFocusVisualStyle" TargetType="{x:Type Control}">
         <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUITextKey}}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate>
                     <Rectangle x:Name="ControlFocusVisualRectangle"
-              Stroke="{TemplateBinding Foreground}"
-              StrokeThickness="1"
-              StrokeDashArray="1 2"
-              SnapsToDevicePixels="true"/>
+                      Stroke="{TemplateBinding Foreground}"
+                      StrokeThickness="1"
+                      StrokeDashArray="1 2"
+                      SnapsToDevicePixels="true"/>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
     <Style TargetType="TabItem">
-        <Setter Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
-        <Setter Property="FontSize" Value="{DynamicResource VsFont.EnvironmentFontSize}"/>
+        <Setter Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUIBackgroundKey}}" />
+        <Setter Property="FontSize" Value="{DynamicResource {x:Static vsshell:VsFonts.Environment122PercentFontSizeKey}}"/>
         <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUITextKey}}" />
         <Setter Property="Padding" Value="20,0,20,0" />
         <Setter Property="FocusVisualStyle" Value="{DynamicResource ControlsFocusVisualStyle}" />
@@ -64,16 +50,22 @@
                     <ControlTemplate.Triggers>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="true" />
-                            </MultiDataTrigger.Conditions>
-                            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:CommonDocumentColors.InnerTabInactiveHoverTextBrushKey }}" />
-                        </MultiDataTrigger>
-                        <MultiDataTrigger>
-                            <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Self}}" Value="true"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Visibility" TargetName="_underline" Value="Visible" />
-                            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:CommonDocumentColors.InnerTabTextFocusedBrushKey }}" />
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:CommonDocumentColors.InnerTabSelectedTextBrushKey }}" />
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsKeyboardFocused, RelativeSource={RelativeSource Self}}" Value="true" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:CommonDocumentColors.InnerTabTextFocusedBrushKey}}" />
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="true" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:CommonDocumentColors.InnerTabTextHoverBrushKey }}" />
                         </MultiDataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

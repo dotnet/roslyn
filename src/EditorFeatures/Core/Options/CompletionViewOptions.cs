@@ -11,23 +11,20 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    internal static class CompletionViewOptions
+    [ExportGlobalOptionProvider, Shared]
+    internal sealed class CompletionViewOptions : IOptionProvider
     {
-        [ExportOptionProvider, Shared]
-        internal sealed class Provider : IOptionProvider
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CompletionViewOptions()
         {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Provider()
-            {
-            }
-
-            public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-                ShowCompletionItemFilters,
-                HighlightMatchingPortionsOfCompletionListItems,
-                EnableArgumentCompletionSnippets,
-                BlockForCompletionItems);
         }
+
+        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
+            ShowCompletionItemFilters,
+            HighlightMatchingPortionsOfCompletionListItems,
+            EnableArgumentCompletionSnippets,
+            BlockForCompletionItems);
 
         private const string FeatureName = "CompletionOptions";
 

@@ -86,9 +86,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             FormattingOptions.IndentationSize,
             CompletionOptions.Metadata.HideAdvancedMembers,
             CompletionOptions.Metadata.TriggerOnTyping,
-            SignatureHelpOptions.ShowSignatureHelp,
-            NavigationBarOptions.ShowNavigationBar,
-            BraceCompletionOptions.Enable,
+            SignatureHelpViewOptions.ShowSignatureHelp,
+            NavigationBarViewOptions.ShowNavigationBar
         };
 
         int IVsTextManagerEvents4.OnUserPreferencesChanged4(
@@ -153,17 +152,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 return languagePreference.fAutoListMembers != 0;
             }
-            else if (option == SignatureHelpOptions.ShowSignatureHelp)
+            else if (option == SignatureHelpViewOptions.ShowSignatureHelp)
             {
                 return languagePreference.fAutoListParams != 0;
             }
-            else if (option == NavigationBarOptions.ShowNavigationBar)
+            else if (option == NavigationBarViewOptions.ShowNavigationBar)
             {
                 return languagePreference.fDropdownBar != 0;
-            }
-            else if (option == BraceCompletionOptions.Enable)
-            {
-                return languagePreference.fBraceCompletion != 0;
             }
             else
             {
@@ -208,17 +203,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 languagePreference.fAutoListMembers = Convert.ToUInt32((bool)value ? 1 : 0);
             }
-            else if (option == SignatureHelpOptions.ShowSignatureHelp)
+            else if (option == SignatureHelpViewOptions.ShowSignatureHelp)
             {
                 languagePreference.fAutoListParams = Convert.ToUInt32((bool)value ? 1 : 0);
             }
-            else if (option == NavigationBarOptions.ShowNavigationBar)
+            else if (option == NavigationBarViewOptions.ShowNavigationBar)
             {
                 languagePreference.fDropdownBar = Convert.ToUInt32((bool)value ? 1 : 0);
-            }
-            else if (option == BraceCompletionOptions.Enable)
-            {
-                languagePreference.fBraceCompletion = Convert.ToUInt32((bool)value ? 1 : 0);
             }
             else
             {

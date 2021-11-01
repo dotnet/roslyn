@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -567,7 +568,8 @@ if (true)
             int position)
         {
             var provider = CreateProvider();
-            Assert.Null(await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, CancellationToken.None)));
+            var options = SymbolDescriptionOptions.From(document.Project);
+            Assert.Null(await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, options, CancellationToken.None)));
         }
 
         protected override async Task AssertContentIsAsync(
@@ -578,7 +580,8 @@ if (true)
             string expectedDocumentationComment = null)
         {
             var provider = CreateProvider();
-            var info = await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, CancellationToken.None));
+            var options = SymbolDescriptionOptions.From(document.Project);
+            var info = await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, options, CancellationToken.None));
             Assert.NotNull(info);
             Assert.NotEqual(0, info.RelatedSpans.Length);
 
