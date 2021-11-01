@@ -496,5 +496,39 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 Assert.Equal(projectRefFilePath, project.Solution.GetProject(projectRefId).FilePath);
             }
         }
+
+        [ConditionalFact(typeof(MSBuildInstalled), typeof(DotNetCoreSdk.IsAvailable))]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
+        public async Task TestReloadProject_NetCoreApp()
+        {
+            CreateFiles(GetNetCoreApp2Files());
+
+            var projectFilePath = GetSolutionFileName("Project.csproj");
+
+            DotNetRestore("Project.csproj");
+
+            using var workspace = CreateMSBuildWorkspace();
+            var project = await workspace.OpenProjectAsync(projectFilePath);
+
+            // Assert that there is a single project loaded.
+            Assert.Single(workspace.CurrentSolution.ProjectIds);
+
+            // Assert that the project does not have any diagnostics in Program.cs
+            Assert.Equal(OutputKind.ConsoleApplication, project.CompilationOptions.OutputKind);
+
+            File.WriteAllText(projectFilePath, @"
+<Project Sdk=""Microsoft.NET.Sdk"">
+
+  <PropertyGroup>
+     <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+</Project>
+");
+
+            var newProject = await workspace.ReloadProjectAsync(project.Id);
+            Assert.Equal(OutputKind.DynamicallyLinkedLibrary, newProject.CompilationOptions.OutputKind);
+        }
     }
 }
