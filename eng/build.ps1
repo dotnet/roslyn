@@ -396,6 +396,7 @@ function TestUsingRunTests() {
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
     } else {
+      $args += " --tfm net6.0-windows"
       $args += " --include '\.UnitTests'"
     }
   }
