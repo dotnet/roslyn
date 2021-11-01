@@ -16,13 +16,14 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.CodeAnalysis.Testing
 {
-    [VsTestSettings(UIThread = true, Version = "2019")]
     public abstract class AbstractIdeIntegrationTest : IAsyncLifetime, IDisposable
     {
+        protected const VisualStudioVersion TestVersion = VisualStudioVersion.VS2022;
+
         /// <summary>
         /// A long timeout used to avoid hangs in tests, where a test failure manifests as an operation never occurring.
         /// </summary>
-        public static readonly TimeSpan HangMitigatingTimeout = TimeSpan.FromMinutes(1);
+        public static readonly TimeSpan HangMitigatingTimeout = TimeSpan.FromMinutes(4);
 
         private JoinableTaskContext? _joinableTaskContext;
         private JoinableTaskCollection? _joinableTaskCollection;
