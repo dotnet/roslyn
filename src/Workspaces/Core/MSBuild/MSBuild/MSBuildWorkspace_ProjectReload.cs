@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -70,57 +70,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // changed analyzer references
             project = project.WithAnalyzerReferences(newProjectInfo.AnalyzerReferences);
 
-            // changed documents
-            if (oldCheckSum.Documents.Checksum != newCheckSum.Documents.Checksum)
-            {
-                project = await UpdateDocumentsAsync(
-                    workspace,
-                    project,
-                    newProjectInfo.Documents,
-                    project.State.DocumentStates,
-                    oldCheckSum.Documents,
-                    newCheckSum.Documents,
-                    (solution, documents) => solution.AddDocuments(documents),
-                    (solution, documentId) => solution.RemoveDocument(documentId)).ConfigureAwait(false);
-            }
-
-            // changed additional documents
-            if (oldCheckSum.AdditionalDocuments.Checksum != newCheckSum.AdditionalDocuments.Checksum)
-            {
-                project = await UpdateDocumentsAsync(
-                    workspace,
-                    project,
-                    newProjectInfo.AdditionalDocuments,
-                    project.State.AdditionalDocumentStates,
-                    oldCheckSum.AdditionalDocuments,
-                    newCheckSum.AdditionalDocuments,
-                    (solution, documents) => solution.AddAdditionalDocuments(documents),
-                    (solution, documentId) => solution.RemoveAdditionalDocument(documentId)).ConfigureAwait(false);
-            }
-
-            // changed analyzer config documents
-            if (oldCheckSum.AnalyzerConfigDocuments.Checksum != newCheckSum.AnalyzerConfigDocuments.Checksum)
-            {
-                project = await UpdateDocumentsAsync(
-                    workspace,
-                    project,
-                    newProjectInfo.AnalyzerConfigDocuments,
-                    project.State.AnalyzerConfigDocumentStates,
-                    oldCheckSum.AnalyzerConfigDocuments,
-                    newCheckSum.AnalyzerConfigDocuments,
-                    (solution, documents) => solution.AddAnalyzerConfigDocuments(documents),
-                    (solution, documentId) => solution.RemoveAnalyzerConfigDocument(documentId)).ConfigureAwait(false);
-            }
-
             return project;
         }
 
         private static Project UpdateProjectAttributes(Project project, ProjectInfo.ProjectAttributes attributes)
         {
-            // there is no API to change these once project is created
-            Contract.ThrowIfFalse(project.State.ProjectInfo.Attributes.Id == attributes.Id);
-            Contract.ThrowIfFalse(project.State.ProjectInfo.Attributes.Language == attributes.Language);
-            Contract.ThrowIfFalse(project.State.ProjectInfo.Attributes.IsSubmission == attributes.IsSubmission);
             var projectId = project.Id;
 
             project = project.Solution.WithProjectName(projectId, attributes.Name).GetProject(projectId)!;
