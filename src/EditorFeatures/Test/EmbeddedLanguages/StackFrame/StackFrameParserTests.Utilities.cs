@@ -232,12 +232,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                         yield return charSequence;
                     }
                 }
-                else if (nodeOrToken.Token != default)
+                else if (nodeOrToken.Token.Kind != StackFrameKind.None)
                 {
                     foreach (var charSequence in Enumerate(nodeOrToken.Token))
                     {
                         yield return charSequence;
                     }
+                }
+                else
+                {
+                    // If we encounter a None token make sure it has default values
+                    Assert.True(nodeOrToken.Token.IsMissing);
+                    Assert.True(nodeOrToken.Token.LeadingTrivia.IsDefault);
+                    Assert.True(nodeOrToken.Token.TrailingTrivia.IsDefault);
+                    Assert.Null(nodeOrToken.Token.Value);
+                    Assert.True(nodeOrToken.Token.VirtualChars.IsDefault);
                 }
             }
         }
