@@ -12,17 +12,32 @@ using Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks;
 
 namespace CloudCache
 {
-    [ExportWorkspaceService(typeof(ICloudCacheStorageServiceFactory), ServiceLayer.Host), Shared]
-    internal class IdeCoreBenchmarksCloudCacheServiceProvider : ICloudCacheStorageServiceFactory
+    [ExportWorkspaceServiceFactory(typeof(ICloudCacheStorageServiceProvider), ServiceLayer.Host), Shared]
+    internal class IdeCoreBenchmarksCloudCacheServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public IdeCoreBenchmarksCloudCacheServiceProvider()
+        public IdeCoreBenchmarksCloudCacheServiceFactory()
         {
-            Console.WriteLine($"Instantiated {nameof(IdeCoreBenchmarksCloudCacheServiceProvider)}");
+            Console.WriteLine($"Instantiated {nameof(IdeCoreBenchmarksCloudCacheServiceFactory)}");
         }
 
-        public AbstractPersistentStorageService Create(IPersistentStorageConfiguration configuration)
-            => new MockCloudCachePersistentStorageService(configuration, @"C:\github\roslyn");
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        {
+            return new ServiceProvider(workspaceServices.GetRequiredService<IPersistentStorageConfiguration>());
+        }
+
+        private class ServiceProvider : ICloudCacheStorageServiceProvider
+        {
+            private readonly MockCloudCachePersistentStorageService _service;
+
+            public ServiceProvider(IPersistentStorageConfiguration configuration)
+            {
+                _service = new MockCloudCachePersistentStorageService(configuration, @"C:\github\roslyn");
+            }
+
+            public AbstractPersistentStorageService GetService()
+                => _service;
+        }
     }
 }

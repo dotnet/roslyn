@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     internal sealed class SQLitePersistentStorageService : AbstractSQLitePersistentStorageService
     {
-        [ExportWorkspaceServiceFactory(typeof(ISQLiteStorageServiceFactory)), Shared]
+        [ExportWorkspaceServiceFactory(typeof(ISQLiteStorageServiceProvider)), Shared]
         internal sealed class ServiceFactory : IWorkspaceServiceFactory
         {
             private readonly SQLiteConnectionPoolService _connectionPoolService;
@@ -34,23 +34,23 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new Factory(_connectionPoolService, workspaceServices.GetRequiredService<IPersistentStorageConfiguration>(), _asyncListener);
-        }
+                => new Provider(_connectionPoolService, workspaceServices.GetRequiredService<IPersistentStorageConfiguration>(), _asyncListener);
 
-        private class Factory : ISQLiteStorageServiceFactory
-        {
-            private readonly IChecksummedPersistentStorageService _service;
-
-            public Factory(
-                SQLiteConnectionPoolService connectionPoolService,
-                IPersistentStorageConfiguration configuration,
-                IAsynchronousOperationListener asyncListener)
+            private class Provider : ISQLiteStorageServiceProvider
             {
-                _service = new SQLitePersistentStorageService(connectionPoolService, configuration, asyncListener);
-            }
+                private readonly IChecksummedPersistentStorageService _service;
 
-            public IChecksummedPersistentStorageService GetService()
-                => _service;
+                public Provider(
+                    SQLiteConnectionPoolService connectionPoolService,
+                    IPersistentStorageConfiguration configuration,
+                    IAsynchronousOperationListener asyncListener)
+                {
+                    _service = new SQLitePersistentStorageService(connectionPoolService, configuration, asyncListener);
+                }
+
+                public IChecksummedPersistentStorageService GetService()
+                    => _service;
+            }
         }
 
         private const string StorageExtension = "sqlite3";

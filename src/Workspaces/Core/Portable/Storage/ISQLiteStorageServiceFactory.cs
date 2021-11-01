@@ -7,9 +7,9 @@ using Microsoft.CodeAnalysis.Host;
 namespace Microsoft.CodeAnalysis.Storage
 {
     /// <summary>
-    /// Factory for SQLite storage service - intentionally not included under SQLite directory since all sources under it are excluded from source build.
+    /// Provider for SQLite storage service - intentionally not included under SQLite directory since all sources under it are excluded from source build.
     /// </summary>
-    internal interface ISQLiteStorageServiceFactory : IWorkspaceService
+    internal interface ISQLiteStorageServiceProvider : IWorkspaceService
     {
         IChecksummedPersistentStorageService GetService();
     }

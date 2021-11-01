@@ -23,10 +23,10 @@ namespace Microsoft.CodeAnalysis.Storage
             return database switch
             {
                 StorageDatabase.SQLite
-                    => services.GetService<ISQLiteStorageServiceFactory>()?.GetService() ??
+                    => services.GetService<ISQLiteStorageServiceProvider>()?.GetService() ??
                        NoOpPersistentStorageService.GetOrThrow(configuration),
                 StorageDatabase.CloudCache
-                    => services.GetService<ICloudCacheStorageServiceFactory>()?.Create(configuration) ??
+                    => services.GetService<ICloudCacheStorageServiceProvider>()?.GetService() ??
                        NoOpPersistentStorageService.GetOrThrow(configuration),
                 _ => NoOpPersistentStorageService.GetOrThrow(configuration),
             };

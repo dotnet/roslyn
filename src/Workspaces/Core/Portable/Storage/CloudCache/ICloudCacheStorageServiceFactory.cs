@@ -6,8 +6,8 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Storage.CloudCache
 {
-    internal interface ICloudCacheStorageServiceFactory : IWorkspaceService
+    internal interface ICloudCacheStorageServiceProvider : IWorkspaceService
     {
-        AbstractPersistentStorageService Create(IPersistentStorageConfiguration configuration);
+        AbstractPersistentStorageService GetService();
     }
 }

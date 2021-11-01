@@ -20,47 +20,60 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Storage
 {
-    [ExportWorkspaceService(typeof(ICloudCacheStorageServiceFactory), WorkspaceKind.RemoteWorkspace), Shared]
-    internal class RemoteCloudCacheStorageServiceFactory : ICloudCacheStorageServiceFactory
+    internal class RemoteCloudCachePersistentStorageService : AbstractCloudCachePersistentStorageService
     {
-        private readonly IGlobalServiceBroker _globalServiceBroker;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteCloudCacheStorageServiceFactory(IGlobalServiceBroker globalServiceBroker)
-        {
-            _globalServiceBroker = globalServiceBroker;
-        }
-
-        public AbstractPersistentStorageService Create(IPersistentStorageConfiguration configuration)
-            => new RemoteCloudCachePersistentStorageService(_globalServiceBroker, configuration);
-
-        private class RemoteCloudCachePersistentStorageService : AbstractCloudCachePersistentStorageService
+        [ExportWorkspaceServiceFactory(typeof(ICloudCacheStorageServiceProvider), WorkspaceKind.RemoteWorkspace), Shared]
+        internal class ServiceFactory : IWorkspaceServiceFactory
         {
             private readonly IGlobalServiceBroker _globalServiceBroker;
 
-            public RemoteCloudCachePersistentStorageService(IGlobalServiceBroker globalServiceBroker, IPersistentStorageConfiguration configuration)
-                : base(configuration)
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public ServiceFactory(IGlobalServiceBroker globalServiceBroker)
             {
                 _globalServiceBroker = globalServiceBroker;
             }
 
-            protected override async ValueTask<ICacheService> CreateCacheServiceAsync(string solutionFolder, CancellationToken cancellationToken)
+            public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+                => new ServiceProvider(_globalServiceBroker, workspaceServices.GetRequiredService<IPersistentStorageConfiguration>());
+
+            private class ServiceProvider : ICloudCacheStorageServiceProvider
             {
-                var serviceBroker = _globalServiceBroker.Instance;
+                private readonly RemoteCloudCachePersistentStorageService _service;
+
+                public ServiceProvider(IGlobalServiceBroker globalServiceBroker, IPersistentStorageConfiguration configuration)
+                    => _service = new RemoteCloudCachePersistentStorageService(globalServiceBroker, configuration);
+
+                public AbstractPersistentStorageService GetService()
+                    => _service;
+            }
+        }
+
+        private readonly IGlobalServiceBroker _globalServiceBroker;
+
+        public RemoteCloudCachePersistentStorageService(
+            IGlobalServiceBroker globalServiceBroker,
+            IPersistentStorageConfiguration configuration)
+            : base(configuration)
+        {
+            _globalServiceBroker = globalServiceBroker;
+        }
+
+        protected override async ValueTask<ICacheService> CreateCacheServiceAsync(string solutionFolder, CancellationToken cancellationToken)
+        {
+            var serviceBroker = _globalServiceBroker.Instance;
 
 #pragma warning disable ISB001 // Dispose of proxies
-                // cache service will be disposed inside RemoteCloudCacheService.Dispose
-                var cacheService = await serviceBroker.GetProxyAsync<ICacheService>(
-                    VisualStudioServices.VS2019_10.CacheService,
-                    // replace with CacheService.RelativePathBaseActivationArgKey once available.
-                    new ServiceActivationOptions { ActivationArguments = ImmutableDictionary<string, string>.Empty.Add("RelativePathBase", solutionFolder) },
-                    cancellationToken).ConfigureAwait(false);
+            // cache service will be disposed inside RemoteCloudCacheService.Dispose
+            var cacheService = await serviceBroker.GetProxyAsync<ICacheService>(
+                VisualStudioServices.VS2019_10.CacheService,
+                // replace with CacheService.RelativePathBaseActivationArgKey once available.
+                new ServiceActivationOptions { ActivationArguments = ImmutableDictionary<string, string>.Empty.Add("RelativePathBase", solutionFolder) },
+                cancellationToken).ConfigureAwait(false);
 #pragma warning restore ISB001 // Dispose of proxies
 
-                Contract.ThrowIfNull(cacheService);
-                return cacheService;
-            }
+            Contract.ThrowIfNull(cacheService);
+            return cacheService;
         }
     }
 }
