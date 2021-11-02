@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             // We're doing a real search over the fully loaded solution now.  No need to hold onto the cached map
             // of potentially stale indices.
-            Volatile.Write(ref s_cachedIndexMap, null);
-            Volatile.Write(ref s_stringTable, null);
+            ClearCachedData();
+            ClearCachedData();
 
             // If the user created a dotted pattern then we'll grab the last part of the name
             var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
@@ -85,6 +85,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // do this after the other documents.
             var generatedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
             await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, generatedDocs.ToSet<Document>(), cancellationToken).ConfigureAwait(false);
+        }
+
+        private static void ClearCachedData()
+        {
+            Volatile.Write(ref s_cachedIndexMap, null);
+            Volatile.Write(ref s_stringTable, null);
         }
 
         private static async Task ProcessDocumentsAsync(

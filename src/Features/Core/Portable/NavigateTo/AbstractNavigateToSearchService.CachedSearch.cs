@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -33,6 +34,23 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         /// </summary>
         private static StringTable? s_stringTable = new();
 
+        private static void ClearCachedData()
+        {
+            // Volatiles are technically not necessary due to automatic fencing of reference-type writes.  However,
+            // i prefer the explicitness here as we are reading and writing these fields from different threads.
+            Volatile.Write(ref s_cachedIndexMap, null);
+            Volatile.Write(ref s_stringTable, null);
+        }
+
+        private static bool ShouldSearchCachedDocuments(
+            [NotNullWhen(true)] out CachedIndexMap? cachedIndexMap,
+            [NotNullWhen(true)] out StringTable? stringTable)
+        {
+            cachedIndexMap = Volatile.Read(ref s_cachedIndexMap);
+            stringTable = Volatile.Read(ref s_stringTable);
+            return cachedIndexMap != null && stringTable != null;
+        }
+
         public static async Task SearchCachedDocumentsInCurrentProcessAsync(
             IChecksummedPersistentStorageService storageService,
             ImmutableArray<DocumentKey> documentKeys,
@@ -42,11 +60,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Func<RoslynNavigateToItem, Task> onItemFound,
             CancellationToken cancellationToken)
         {
-            // Retrieve the string table we use to dedupe strings.  If we can't get it, that means the solution has 
-            // fully loaded and we've switched over to normal navto lookup.
-            var cachedIndexMap = Volatile.Read(ref s_cachedIndexMap);
-            var stringTable = Volatile.Read(ref s_stringTable);
-            if (cachedIndexMap == null || stringTable == null)
+            // Quick abort if OOP is now fully loaded.
+            if (!ShouldSearchCachedDocuments(out _, out _))
                 return;
 
             var highPriDocsSet = priorityDocumentKeys.ToSet();
@@ -57,23 +72,21 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
             await SearchCachedDocumentsInCurrentProcessAsync(
-                cachedIndexMap, stringTable, storageService, priorityDocumentKeys,
-                patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, cancellationToken).ConfigureAwait(false);
+                storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
+                onItemFound, priorityDocumentKeys, cancellationToken).ConfigureAwait(false);
 
             await SearchCachedDocumentsInCurrentProcessAsync(
-                cachedIndexMap, stringTable, storageService, lowPriDocs,
-                patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, cancellationToken).ConfigureAwait(false);
+                storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
+                onItemFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task SearchCachedDocumentsInCurrentProcessAsync(
-            CachedIndexMap cachedIndexMap,
-            StringTable stringTable,
             IChecksummedPersistentStorageService storageService,
-            ImmutableArray<DocumentKey> documentKeys,
             string patternName,
             string patternContainer,
             DeclaredSymbolInfoKindSet kinds,
             Func<RoslynNavigateToItem, Task> onItemFound,
+            ImmutableArray<DocumentKey> documentKeys,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
@@ -82,7 +95,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    var index = await GetIndexAsync(cachedIndexMap, stringTable, storageService, documentKey, cancellationToken).ConfigureAwait(false);
+                    var index = await GetIndexAsync(storageService, documentKey, cancellationToken).ConfigureAwait(false);
                     if (index == null)
                         return;
 
@@ -95,12 +108,16 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private static Task<SyntaxTreeIndex?> GetIndexAsync(
-            CachedIndexMap cachedIndexMap,
-            StringTable stringTable,
             IChecksummedPersistentStorageService storageService,
             DocumentKey documentKey,
             CancellationToken cancellationToken)
         {
+            // Retrieve the string table we use to dedupe strings.  If we can't get it, that means the solution has 
+            // fully loaded and we've switched over to normal navto lookup.
+
+            if (!ShouldSearchCachedDocuments(out var cachedIndexMap, out var stringTable))
+                return SpecializedTasks.Null<SyntaxTreeIndex>();
+
             // Add the async lazy to compute the index for this document.  Or, return the existing cached one if already
             // present.  This ensures that subsequent searches that are run while the solution is still loading are fast
             // and avoid the cost of loading from the persistence service every time.
