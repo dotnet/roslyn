@@ -34,6 +34,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\GlobalFlowStateDictionaryAnalysis\GlobalFlowStateDictionaryAnalysisValueDomain.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\GlobalFlowStateDictionaryAnalysis\GlobalFlowStateDictionaryBlockAnalysisResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\GlobalFlowStateDictionaryAnalysis\GlobalFlowStateDictionaryFlowOperationVisitor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\GlobalFlowStateDictionaryAnalysis\InvocationEntity.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\GlobalFlowStateDictionaryAnalysis\InvocationSetHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\GlobalFlowStateDictionaryAnalysis\TrackingInvocationSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PointsToAnalysis\PointsToAnalysisKind.cs" />

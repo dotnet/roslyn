@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.GlobalFlowStateDictionaryAnalysis
 {
@@ -48,7 +49,20 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.GlobalFlowStateDictionaryAnal
             }
 
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
-                analyzerOptions, rule, cfg, wellKnownTypeProvider.Compilation, interproceduralAnalysisKind);
+                analyzerOptions,
+                rule,
+                cfg,
+                wellKnownTypeProvider.Compilation,
+                interproceduralAnalysisKind);
+
+            var pointsToAnalysisResult = PointsToAnalysis.TryGetOrComputeResult(
+                cfg,
+                owningSymbol,
+                analyzerOptions,
+                wellKnownTypeProvider,
+                PointsToAnalysisKind.PartialWithoutTrackingFieldsAndProperties,
+                interproceduralAnalysisConfig,
+                interproceduralAnalysisPredicate);
 
             var analysisContext = new GlobalFlowStateDictionaryAnalysisContext(
                 GlobalFlowStateDictionaryAnalysisValueDomain.Instance,
@@ -61,7 +75,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.GlobalFlowStateDictionaryAnal
                 predicateAnalysis: false,
                 exceptionPathsAnalysis: false,
                 copyAnalysisResult: null,
-                pointsToAnalysisResult: null,
+                pointsToAnalysisResult: pointsToAnalysisResult,
                 valueContentAnalysisResult: null,
                 tryGetOrComputeAnalysisResult: c => TryGetOrComputeAnalysisResult(c, createOperationVisitor),
                 interproceduralAnalysisPredicate: interproceduralAnalysisPredicate);

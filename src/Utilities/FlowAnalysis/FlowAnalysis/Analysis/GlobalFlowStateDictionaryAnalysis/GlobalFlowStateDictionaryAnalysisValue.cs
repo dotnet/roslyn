@@ -11,18 +11,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.GlobalFlowStateDictionaryAnal
     {
         /// <summary>
         /// The core analysis value of <see cref="GlobalFlowStateDictionaryAnalysis"/>.
-        /// Key is the <see cref="AnalysisEntity"/> tracked my the analysis. Value is the state of the <see cref="AnalysisEntity"/>.
+        /// Key is the <see cref="InvocationEntity"/> tracked my the analysis. Value is the state of the <see cref="AnalysisEntity"/>.
         /// </summary>
-        public ImmutableDictionary<AnalysisEntity, TrackingInvocationSet> TrackedEntities { get; }
+        public ImmutableDictionary<InvocationEntity, TrackingInvocationSet> TrackedEntities { get; }
 
         public GlobalFlowStateDictionaryAnalysisValueKind Kind { get; }
 
-        public static readonly GlobalFlowStateDictionaryAnalysisValue Empty = new(ImmutableDictionary<AnalysisEntity, TrackingInvocationSet>.Empty, GlobalFlowStateDictionaryAnalysisValueKind.Empty);
+        public static readonly GlobalFlowStateDictionaryAnalysisValue Empty = new(ImmutableDictionary<InvocationEntity, TrackingInvocationSet>.Empty, GlobalFlowStateDictionaryAnalysisValueKind.Empty);
 
-        public static readonly GlobalFlowStateDictionaryAnalysisValue Unknown = new(ImmutableDictionary<AnalysisEntity, TrackingInvocationSet>.Empty, GlobalFlowStateDictionaryAnalysisValueKind.Unknown);
+        public static readonly GlobalFlowStateDictionaryAnalysisValue Unknown = new(ImmutableDictionary<InvocationEntity, TrackingInvocationSet>.Empty, GlobalFlowStateDictionaryAnalysisValueKind.Unknown);
 
         public GlobalFlowStateDictionaryAnalysisValue(
-            ImmutableDictionary<AnalysisEntity, TrackingInvocationSet> trackedEntities,
+            ImmutableDictionary<InvocationEntity, TrackingInvocationSet> trackedEntities,
             GlobalFlowStateDictionaryAnalysisValueKind kind)
         {
             TrackedEntities = trackedEntities;
@@ -61,7 +61,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.GlobalFlowStateDictionaryAnal
                 return value1;
             }
 
-            using var builder = PooledDictionary<AnalysisEntity, TrackingInvocationSet>.GetInstance();
+            using var builder = PooledDictionary<InvocationEntity, TrackingInvocationSet>.GetInstance();
             foreach (var kvp in value2.TrackedEntities)
             {
                 builder[kvp.Key] = kvp.Value;
@@ -89,8 +89,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.GlobalFlowStateDictionaryAnal
         /// </summary>
         public static GlobalFlowStateDictionaryAnalysisValue Intersect(GlobalFlowStateDictionaryAnalysisValue value1, GlobalFlowStateDictionaryAnalysisValue value2)
         {
-            var builder = ImmutableDictionary.CreateBuilder<AnalysisEntity, TrackingInvocationSet>();
-            var intersectedKeys = new HashSet<AnalysisEntity>();
+            var builder = ImmutableDictionary.CreateBuilder<InvocationEntity, TrackingInvocationSet>();
+            var intersectedKeys = new HashSet<InvocationEntity>();
 
             foreach (var kvp in value1.TrackedEntities)
             {
