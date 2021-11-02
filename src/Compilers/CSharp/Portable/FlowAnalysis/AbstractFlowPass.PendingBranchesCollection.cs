@@ -115,14 +115,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         yield return branch;
                     }
-                    if (_branchesToLabel is { })
+                    foreach (var branches in _branchesToLabel.Values)
                     {
-                        foreach (var branches in _branchesToLabel.Values)
+                        foreach (var branch in branches)
                         {
-                            foreach (var branch in branches)
-                            {
-                                yield return branch;
-                            }
+                            yield return branch;
                         }
                     }
                 }
