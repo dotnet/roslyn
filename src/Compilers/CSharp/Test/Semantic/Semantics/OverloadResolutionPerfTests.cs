@@ -693,14 +693,8 @@ class C
             //             case 0:
             //                 index++;
             //                 goto L0;
-            //             case 1:
-            //                 index++;
-            //                 goto L1;
-            //             // repeat for case 2:, ..., case 1498:
+            //             // repeat for case 1:, ..., case 1499:
             //             // ...
-            //             case 1499:
-            //                 index++;
-            //                 goto L4;
             //             default:
             //                 break;
             //         }
