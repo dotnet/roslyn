@@ -57,10 +57,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
             await SearchCachedDocumentsInCurrentProcessAsync(
-                cachedIndexMap, stringTable, storageService, priorityDocumentKeys, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, cancellationToken).ConfigureAwait(false);
+                cachedIndexMap, stringTable, storageService, priorityDocumentKeys,
+                patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, cancellationToken).ConfigureAwait(false);
 
             await SearchCachedDocumentsInCurrentProcessAsync(
-                cachedIndexMap, stringTable, storageService, lowPriDocs, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, cancellationToken).ConfigureAwait(false);
+                cachedIndexMap, stringTable, storageService, lowPriDocs,
+                patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task SearchCachedDocumentsInCurrentProcessAsync(
