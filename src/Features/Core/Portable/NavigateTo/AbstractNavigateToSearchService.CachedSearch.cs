@@ -114,7 +114,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             // Retrieve the string table we use to dedupe strings.  If we can't get it, that means the solution has 
             // fully loaded and we've switched over to normal navto lookup.
-
             if (!ShouldSearchCachedDocuments(out var cachedIndexMap, out var stringTable))
                 return SpecializedTasks.Null<SyntaxTreeIndex>();
 
