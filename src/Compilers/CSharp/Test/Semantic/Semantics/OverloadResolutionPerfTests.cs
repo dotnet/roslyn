@@ -662,6 +662,51 @@ class C
         {
             const int nLabels = 1500;
 
+            // #nullable enable
+            // class Program
+            // {
+            //     static int GetIndex() => 0;
+            //     static void Main()
+            //     {
+            //         int index = 0;
+            //         int tmp1;
+            //         int tmp2; // unused
+            //         goto L3;
+            // L0:
+            //         if (index < 64) goto LSwitch;
+            // L1:
+            //         tmp1 = GetIndex();
+            //         if (index != tmp1)
+            //         {
+            //             if (index < 64) goto LSwitch;
+            //             goto L0;
+            //         }
+            // // repeat for L2:, ..., L1498:
+            // // ...
+            // L1499:
+            //         tmp1 = GetIndex();
+            //         return;
+            // LSwitch:
+            //         int tmp3 = index + 1;
+            //         switch (GetIndex())
+            //         {
+            //             case 0:
+            //                 index++;
+            //                 goto L0;
+            //             case 1:
+            //                 index++;
+            //                 goto L1;
+            //             // repeat for case 2:, ..., case 1498:
+            //             // ...
+            //             case 1499:
+            //                 index++;
+            //                 goto L4;
+            //             default:
+            //                 break;
+            //         }
+            //     }
+            // }
+
             var builder = new StringBuilder();
             builder.AppendLine("#nullable enable");
             builder.AppendLine("class Program");
