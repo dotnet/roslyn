@@ -364,6 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     originalBinder: this,
                     diagnose: false,
                     ref useSiteInfo);
+                diagnostics.Add(syntax, useSiteInfo);
 
                 if (lookupResult.IsMultiViable)
                 {
@@ -393,6 +394,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 found = true;
                                 break;
                             }
+
+                            // TODO2 useSiteInfo?
                             break;
 
                         case BoundIndexOrRangePatternIndexerAccess boundIndexOrRangePatternIndexerAccess:

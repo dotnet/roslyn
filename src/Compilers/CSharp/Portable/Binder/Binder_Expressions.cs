@@ -7734,6 +7734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupOptions lookupOptions = expr.Kind == BoundKind.BaseReference ? LookupOptions.UseBaseReferenceAccessibility : LookupOptions.Default;
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupMembersWithFallback(lookupResult, expr.Type, WellKnownMemberNames.Indexer, arity: 0, useSiteInfo: ref useSiteInfo, options: lookupOptions);
+            diagnostics.Add(node, useSiteInfo);
 
             // Store, rather than return, so that we can release resources.
             BoundExpression indexerAccessExpression;
@@ -7751,13 +7752,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    diagnostics.Add(node, useSiteInfo);
                     indexerAccessExpression = BadIndexerExpression(node, expr, analyzedArguments, lookupResult.Error, diagnostics);
                 }
             }
             else
             {
-                diagnostics.Add(node, useSiteInfo);
                 ArrayBuilder<PropertySymbol> indexerGroup = ArrayBuilder<PropertySymbol>.GetInstance();
                 foreach (Symbol symbol in lookupResult.Symbols)
                 {
@@ -7888,6 +7887,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowRefOmittedArguments = receiverOpt.IsExpressionOfComImportType();
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.OverloadResolution.PropertyOverloadResolution(propertyGroup, receiverOpt, analyzedArguments, overloadResolutionResult, allowRefOmittedArguments, ref useSiteInfo);
+            diagnostics.Add(syntax, useSiteInfo);
             BoundExpression propertyAccess;
 
             if (analyzedArguments.HasDynamicArgument && overloadResolutionResult.HasAnyApplicableMember)
@@ -7939,8 +7939,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             memberGroup: candidates,
                             typeContainingConstructor: null,
                             delegateTypeBeingInvoked: null);
-
-                        diagnostics.Add(syntax, useSiteInfo);
                     }
                 }
 
@@ -7961,8 +7959,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                diagnostics.Add(syntax, useSiteInfo);
-
                 MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
                 PropertySymbol property = resolutionResult.Member;
                 RefKind? receiverRefKind = receiverOpt?.GetRefKind();
@@ -8229,7 +8225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             indexerOrSliceSymbol = method;
                             method.AddUseSiteInfo(ref useSiteInfo);
-                            diagnostics.Add(syntax, useSiteInfo);
+                            diagnostics.ReportUseSite(method, syntax);
                             ReportDiagnosticsIfObsolete(diagnostics, method, syntax, hasBaseReceiver: false);
                             CheckImplicitThisCopyInReadOnlyMember(receiverOpt, method, diagnostics);
                             return true;
