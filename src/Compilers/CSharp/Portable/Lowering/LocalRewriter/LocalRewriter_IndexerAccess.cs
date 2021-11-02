@@ -161,12 +161,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
-        public override BoundNode VisitIndexOrRangeImplicitIndexerAccess(BoundIndexOrRangeImplicitIndexerAccess node)
+        public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
         {
-            return VisitIndexOrRangeImplicitIndexerAccess(node, isLeftOfAssignment: false);
+            return VisitIndexOrRangePatternIndexerAccess(node, isLeftOfAssignment: false);
         }
 
-        private BoundSequence VisitIndexOrRangeImplicitIndexerAccess(BoundIndexOrRangeImplicitIndexerAccess node, bool isLeftOfAssignment)
+        private BoundSequence VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node, bool isLeftOfAssignment)
         {
             if (TypeSymbol.Equals(
                 node.Argument.Type,
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Syntax,
                     node.Receiver,
                     node.LengthOrCountProperty,
-                    (PropertySymbol)node.UnderlyingIndexerOrSliceSymbol,
+                    (PropertySymbol)node.PatternSymbol,
                     node.Argument,
                     isLeftOfAssignment: isLeftOfAssignment);
             }
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return VisitRangeImplicitIndexerAccess(
                     node.Receiver,
                     node.LengthOrCountProperty,
-                    (MethodSymbol)node.UnderlyingIndexerOrSliceSymbol,
+                    (MethodSymbol)node.PatternSymbol,
                     node.Argument);
             }
         }

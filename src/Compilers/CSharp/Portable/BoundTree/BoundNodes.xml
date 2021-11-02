@@ -134,7 +134,7 @@
   This node is used to represent an expression of a certain type, when attempting to bind its Index or Range implicit indexer
   It does survive past initial binding but will be replaced with a synthesized argument in DAG lowering.
   -->
-  <Node Name="BoundIndexOrRangeImplicitIndexerValuePlaceholder" Base="BoundValuePlaceholderBase">
+  <Node Name="BoundIndexOrRangeIndexerPatternValuePlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
@@ -2009,12 +2009,12 @@
     <Field Name="OriginalIndexersOpt" Type="ImmutableArray&lt;PropertySymbol&gt;" Null="allow" SkipInNullabilityRewriter="true"/>
   </Node>
 
-  <Node Name="BoundIndexOrRangeImplicitIndexerAccess" Base="BoundExpression">
+  <Node Name="BoundIndexOrRangePatternIndexerAccess" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow" />
 
     <Field Name="Receiver" Type="BoundExpression" Null="disallow" />
     <Field Name="LengthOrCountProperty" Type="PropertySymbol" Null="disallow" />
-    <Field Name="UnderlyingIndexerOrSliceSymbol" Type="Symbol" Null="disallow" />
+    <Field Name="PatternSymbol" Type="Symbol" Null="disallow" />
     <Field Name="Argument" Type="BoundExpression" Null="disallow" />
   </Node>
 

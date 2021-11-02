@@ -1433,7 +1433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitIndexOrRangeImplicitIndexerAccess(BoundIndexOrRangeImplicitIndexerAccess node)
+        public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
         {
             // Index or Range implicit indexers evaluate the following in order:
             // 1. The receiver
@@ -1444,11 +1444,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = GetReadMethod(node.LengthOrCountProperty);
             VisitReceiverAfterCall(node.Receiver, method);
             VisitRvalue(node.Argument);
-            method = node.UnderlyingIndexerOrSliceSymbol switch
+            method = node.PatternSymbol switch
             {
                 PropertySymbol p => GetReadMethod(p),
                 MethodSymbol m => m,
-                _ => throw ExceptionUtilities.UnexpectedValue(node.UnderlyingIndexerOrSliceSymbol)
+                _ => throw ExceptionUtilities.UnexpectedValue(node.PatternSymbol)
             };
             VisitReceiverAfterCall(node.Receiver, method);
 

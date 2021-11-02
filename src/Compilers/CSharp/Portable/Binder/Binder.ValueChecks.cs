@@ -398,16 +398,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.IndexerAccess:
                     return CheckPropertyValueKind(node, expr, valueKind, checkingReceiver, diagnostics);
 
-                case BoundKind.IndexOrRangeImplicitIndexerAccess:
-                    var implicitIndexer = (BoundIndexOrRangeImplicitIndexerAccess)expr;
-                    if (implicitIndexer.UnderlyingIndexerOrSliceSymbol.Kind == SymbolKind.Property)
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    var implicitIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
+                    if (implicitIndexer.PatternSymbol.Kind == SymbolKind.Property)
                     {
-                        // If this is an Index indexer, UnderlyingIndexerOrSliceSymbol should be a property, pointing to the
+                        // If this is an Index indexer, PatternSymbol should be a property, pointing to the
                         // implicit indexer. If it's a Range access, it will be a method, pointing to a Slice method
                         // and it's handled below as part of invocations.
                         return CheckPropertyValueKind(node, expr, valueKind, checkingReceiver, diagnostics);
                     }
-                    Debug.Assert(implicitIndexer.UnderlyingIndexerOrSliceSymbol.Kind == SymbolKind.Method);
+                    Debug.Assert(implicitIndexer.PatternSymbol.Kind == SymbolKind.Method);
                     break;
 
                 case BoundKind.EventAccess:
@@ -589,12 +589,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         checkingReceiver,
                         diagnostics);
 
-                case BoundKind.IndexOrRangeImplicitIndexerAccess:
-                    var implicitIndexerAccess = (BoundIndexOrRangeImplicitIndexerAccess)expr;
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    var implicitIndexerAccess = (BoundIndexOrRangePatternIndexerAccess)expr;
                     // If we got here this should be an implicit indexer taking a Range,
                     // meaning that the pattern symbol must be a method (either Slice or Substring)
                     return CheckMethodReturnValueKind(
-                        (MethodSymbol)implicitIndexerAccess.UnderlyingIndexerOrSliceSymbol,
+                        (MethodSymbol)implicitIndexerAccess.PatternSymbol,
                         implicitIndexerAccess.Syntax,
                         node,
                         valueKind,
@@ -2347,12 +2347,12 @@ moreArguments:
                         diagnostics,
                         isRefEscape: true);
 
-                case BoundKind.IndexOrRangeImplicitIndexerAccess:
-                    var implicitIndexer = (BoundIndexOrRangeImplicitIndexerAccess)expr;
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    var implicitIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
                     RefKind refKind;
                     ImmutableArray<ParameterSymbol> parameters;
 
-                    switch (implicitIndexer.UnderlyingIndexerOrSliceSymbol)
+                    switch (implicitIndexer.PatternSymbol)
                     {
                         case PropertySymbol p:
                             refKind = p.RefKind;
@@ -2373,7 +2373,7 @@ moreArguments:
 
                     return CheckInvocationEscape(
                         implicitIndexer.Syntax,
-                        implicitIndexer.UnderlyingIndexerOrSliceSymbol,
+                        implicitIndexer.PatternSymbol,
                         implicitIndexer.Receiver,
                         parameters,
                         ImmutableArray.Create<BoundExpression>(implicitIndexer.Argument),
@@ -2618,17 +2618,17 @@ moreArguments:
                         scopeOfTheContainingExpression,
                         isRefEscape: false);
 
-                case BoundKind.IndexOrRangeImplicitIndexerAccess:
-                    var implicitIndexerAccess = (BoundIndexOrRangeImplicitIndexerAccess)expr;
-                    var parameters = implicitIndexerAccess.UnderlyingIndexerOrSliceSymbol switch
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    var implicitIndexerAccess = (BoundIndexOrRangePatternIndexerAccess)expr;
+                    var parameters = implicitIndexerAccess.PatternSymbol switch
                     {
                         PropertySymbol p => p.Parameters,
                         MethodSymbol m => m.Parameters,
-                        _ => throw ExceptionUtilities.UnexpectedValue(implicitIndexerAccess.UnderlyingIndexerOrSliceSymbol)
+                        _ => throw ExceptionUtilities.UnexpectedValue(implicitIndexerAccess.PatternSymbol)
                     };
 
                     return GetInvocationEscapeScope(
-                        implicitIndexerAccess.UnderlyingIndexerOrSliceSymbol,
+                        implicitIndexerAccess.PatternSymbol,
                         implicitIndexerAccess.Receiver,
                         parameters,
                         default,
@@ -3040,9 +3040,9 @@ moreArguments:
                         diagnostics,
                         isRefEscape: false);
 
-                case BoundKind.IndexOrRangeImplicitIndexerAccess:
-                    var implicitIndexerAccess = (BoundIndexOrRangeImplicitIndexerAccess)expr;
-                    var underlyingIndexerOrSliceSymbol = implicitIndexerAccess.UnderlyingIndexerOrSliceSymbol;
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    var implicitIndexerAccess = (BoundIndexOrRangePatternIndexerAccess)expr;
+                    var underlyingIndexerOrSliceSymbol = implicitIndexerAccess.PatternSymbol;
                     var parameters = underlyingIndexerOrSliceSymbol switch
                     {
                         PropertySymbol p => p.Parameters,

@@ -953,13 +953,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.IndexerAccess:
                     return ((BoundIndexerAccess)expr).Indexer.RefKind != RefKind.None;
 
-                case BoundKind.IndexOrRangeImplicitIndexerAccess:
-                    var implicitIndexerAccess = (BoundIndexOrRangeImplicitIndexerAccess)expr;
-                    var refKind = implicitIndexerAccess.UnderlyingIndexerOrSliceSymbol switch
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    var implicitIndexerAccess = (BoundIndexOrRangePatternIndexerAccess)expr;
+                    var refKind = implicitIndexerAccess.PatternSymbol switch
                     {
                         PropertySymbol p => p.RefKind,
                         MethodSymbol m => m.RefKind,
-                        _ => throw ExceptionUtilities.UnexpectedValue(implicitIndexerAccess.UnderlyingIndexerOrSliceSymbol)
+                        _ => throw ExceptionUtilities.UnexpectedValue(implicitIndexerAccess.PatternSymbol)
                     };
                     return refKind != RefKind.None;
 
@@ -1048,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode? VisitIndexOrRangeImplicitIndexerValuePlaceholder(BoundIndexOrRangeImplicitIndexerValuePlaceholder node)
+            public override BoundNode? VisitIndexOrRangeIndexerPatternValuePlaceholder(BoundIndexOrRangeIndexerPatternValuePlaceholder node)
             {
                 Fail(node);
                 return null;

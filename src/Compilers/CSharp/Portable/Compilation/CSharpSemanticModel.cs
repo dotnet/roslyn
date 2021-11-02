@@ -3427,16 +3427,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.IndexOrRangeImplicitIndexerAccess:
+                case BoundKind.IndexOrRangePatternIndexerAccess:
                     {
-                        var indexerAccess = (BoundIndexOrRangeImplicitIndexerAccess)boundNode;
+                        var indexerAccess = (BoundIndexOrRangePatternIndexerAccess)boundNode;
 
                         resultKind = indexerAccess.ResultKind;
 
-                        // The only time a BoundIndexOrRangeImplicitIndexerAccess is created, overload resolution succeeded
+                        // The only time a BoundIndexOrRangePatternIndexerAccess is created, overload resolution succeeded
                         // and returned only 1 result
-                        Debug.Assert(indexerAccess.UnderlyingIndexerOrSliceSymbol is object);
-                        symbols = ImmutableArray.Create<Symbol>(indexerAccess.UnderlyingIndexerOrSliceSymbol);
+                        Debug.Assert(indexerAccess.PatternSymbol is object);
+                        symbols = ImmutableArray.Create<Symbol>(indexerAccess.PatternSymbol);
                     }
                     break;
 

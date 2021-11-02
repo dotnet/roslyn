@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression TransformImplicitIndexerAccess(
-            BoundIndexOrRangeImplicitIndexerAccess indexerAccess,
+            BoundIndexOrRangePatternIndexerAccess indexerAccess,
             ArrayBuilder<BoundExpression> stores,
             ArrayBuilder<LocalSymbol> temps,
             bool isDynamicAssignment)
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the only thing we need to do is lift the stores and temps out of
             // the sequence, and use the final expression as the new argument
 
-            var sequence = VisitIndexOrRangeImplicitIndexerAccess(indexerAccess, isLeftOfAssignment: true);
+            var sequence = VisitIndexOrRangePatternIndexerAccess(indexerAccess, isLeftOfAssignment: true);
             stores.AddRange(sequence.SideEffects);
             temps.AddRange(sequence.Locals);
             return TransformCompoundAssignmentLHS(sequence.Value, stores, temps, isDynamicAssignment);
@@ -585,10 +585,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.IndexOrRangeImplicitIndexerAccess:
+                case BoundKind.IndexOrRangePatternIndexerAccess:
                     {
-                        var implicitIndexerAccess = (BoundIndexOrRangeImplicitIndexerAccess)originalLHS;
-                        RefKind refKind = implicitIndexerAccess.UnderlyingIndexerOrSliceSymbol switch
+                        var implicitIndexerAccess = (BoundIndexOrRangePatternIndexerAccess)originalLHS;
+                        RefKind refKind = implicitIndexerAccess.PatternSymbol switch
                         {
                             PropertySymbol p => p.RefKind,
                             MethodSymbol m => m.RefKind,

@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loweredLeft = VisitIndexerAccess((BoundIndexerAccess)left, isLeftOfAssignment: true);
                     break;
 
-                case BoundKind.IndexOrRangeImplicitIndexerAccess:
-                    loweredLeft = VisitIndexOrRangeImplicitIndexerAccess(
-                        (BoundIndexOrRangeImplicitIndexerAccess)left,
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    loweredLeft = VisitIndexOrRangePatternIndexerAccess(
+                        (BoundIndexOrRangePatternIndexerAccess)left,
                         isLeftOfAssignment: true);
                     break;
 

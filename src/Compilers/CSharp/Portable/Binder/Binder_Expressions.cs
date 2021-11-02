@@ -8027,7 +8027,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? receiverOpt,
             AnalyzedArguments arguments,
             BindingDiagnosticBag diagnostics,
-            [NotNullWhen(true)] out BoundIndexOrRangeImplicitIndexerAccess? implicitIndexerAccess)
+            [NotNullWhen(true)] out BoundIndexOrRangePatternIndexerAccess? implicitIndexerAccess)
         {
             implicitIndexerAccess = null;
 
@@ -8061,7 +8061,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            implicitIndexerAccess = new BoundIndexOrRangeImplicitIndexerAccess(
+            implicitIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
                 syntax,
                 receiverOpt,
                 lengthOrCountProperty,

@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lookupResult.Clear();
 
                     var analyzedArguments = AnalyzedArguments.GetInstance();
-                    analyzedArguments.Arguments.Add(new BoundIndexOrRangeImplicitIndexerValuePlaceholder(syntax, argType));
+                    analyzedArguments.Arguments.Add(new BoundIndexOrRangeIndexerPatternValuePlaceholder(syntax, argType));
                     var receiver = new BoundImplicitReceiver(syntax, receiverType);
                     BoundExpression boundAccess = BindIndexerOrIndexedPropertyAccess(syntax, receiver, indexerGroup, analyzedArguments, bindingDiagnostics);
                     switch (boundAccess)
@@ -395,9 +395,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             break;
 
-                        case BoundIndexOrRangeImplicitIndexerAccess boundIndexOrRangeImplicitIndexerAccess:
-                            lengthProperty = boundIndexOrRangeImplicitIndexerAccess.LengthOrCountProperty;
-                            indexerOrSliceSymbol = boundIndexOrRangeImplicitIndexerAccess.UnderlyingIndexerOrSliceSymbol;
+                        case BoundIndexOrRangePatternIndexerAccess boundIndexOrRangePatternIndexerAccess:
+                            lengthProperty = boundIndexOrRangePatternIndexerAccess.LengthOrCountProperty;
+                            indexerOrSliceSymbol = boundIndexOrRangePatternIndexerAccess.PatternSymbol;
                             found = true;
                             break;
 
@@ -425,8 +425,8 @@ done:
                 {
                     if (indexerOrSliceSymbol is not null)
                     {
-                        var implicitIndexerAccess = new BoundIndexOrRangeImplicitIndexerAccess(syntax, new BoundImplicitReceiver(syntax, receiverType),
-                            lengthProperty, indexerOrSliceSymbol, argument: new BoundIndexOrRangeImplicitIndexerValuePlaceholder(syntax, argType), indexerOrSliceSymbol.GetTypeOrReturnType().Type);
+                        var implicitIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(syntax, new BoundImplicitReceiver(syntax, receiverType),
+                            lengthProperty, indexerOrSliceSymbol, argument: new BoundIndexOrRangeIndexerPatternValuePlaceholder(syntax, argType), indexerOrSliceSymbol.GetTypeOrReturnType().Type);
 
                         if (!CheckValueKind(syntax, implicitIndexerAccess, BindValueKind.RValue, checkingReceiver: false, bindingDiagnostics))
                         {
