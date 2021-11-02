@@ -2254,5 +2254,56 @@ class C { }
             Assert.Equal(2, runResult2.Results.Length);
             Assert.Equal(1, callCount);
         }
+
+        [Fact]
+        public void Generator_Driver_With_Multiple_Cancellations()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            CancellationTokenSource cts = new CancellationTokenSource();
+            CancellationTokenSource cts2 = new CancellationTokenSource();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => { cts.Cancel(); context.AddSource("gen1", ""); });
+            });
+
+            var generator2 = new PipelineCallbackGenerator2(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => { cts2.Cancel(); context.AddSource("gen2", ""); });
+            });
+
+            var generator3 = new CallbackGenerator(ctx => { }, ctx => ctx.AddSource("gen3", ""));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator.AsSourceGenerator(), generator2.AsSourceGenerator(), generator3 }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, true));
+            driver = driver.RunGenerators(compilation, cts.Token);
+
+            Assert.True(cts.Token.IsCancellationRequested);
+
+            var runResult = driver.GetRunResult();
+            Assert.IsType<GeneratorDriverRunResult.CancelledResult>(runResult);
+            Assert.Empty(runResult.Results);
+
+            // run a second time, with a different generator causing cancellation
+            driver = driver.RunGenerators(compilation, cts2.Token);
+            Assert.True(cts.Token.IsCancellationRequested);
+
+            var runResult2 = driver.GetRunResult();
+            Assert.IsType<GeneratorDriverRunResult.CancelledResult>(runResult);
+            Assert.Empty(runResult2.Results);
+
+            // run a third time with no cancellation
+            driver = driver.RunGenerators(compilation, cancellationToken: default);
+            Assert.True(cts.Token.IsCancellationRequested);
+
+            var runResult3 = driver.GetRunResult();
+            Assert.Equal(3, runResult3.Results.Length);
+        }
     }
 }
