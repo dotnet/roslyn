@@ -168,11 +168,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    var asyncLazy = s_documentKeyToIndex.GetOrAdd(
-                        documentKey.Id,
-                        _ => new AsyncLazy<SyntaxTreeIndex?>(c => SyntaxTreeIndex.LoadAsync(
-                            services, documentKey, checksum: null, database, stringTable, c), cacheResult: true));
-                    var index = await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                    var index = await GetIndexAsync(services, database, stringTable, documentKey, cancellationToken).ConfigureAwait(false);
                     if (index == null)
                         return;
 
@@ -182,6 +178,24 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
+        }
+
+        private static async Task<SyntaxTreeIndex?> GetIndexAsync(
+            HostWorkspaceServices services,
+            StorageDatabase database,
+            StringTable stringTable,
+            DocumentKey documentKey,
+            CancellationToken cancellationToken)
+        {
+            // Add the async lazy to compute the index for this document.  Or, return the existing cached one if already
+            // present.  This ensures that subsequent searches that are run while the solution is still loading are fast
+            // and avoid the cost of loading from the persistence service every time.
+            var asyncLazy = s_documentKeyToIndex.GetOrAdd(
+                documentKey.Id,
+                _ => new AsyncLazy<SyntaxTreeIndex?>(c => SyntaxTreeIndex.LoadAsync(
+                    services, documentKey, checksum: null, database, stringTable, c), cacheResult: true));
+            var index = await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            return index;
         }
 
         private static async Task ProcessIndexAsync(
