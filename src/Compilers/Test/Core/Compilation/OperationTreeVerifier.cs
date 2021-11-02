@@ -97,10 +97,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             // Type
             LogString(", ");
-            if (operation.Kind == OperationKind.None)
+            if (operation.Kind == OperationKind.None && operation.Language == LanguageNames.CSharp && operation is NoneOperation)
             {
                 //TODO: this should be removed!
-                //We need to update the tests to allow Types on NoneOperations
+                //We need to update the CSharp unit-tests to allow Types on NoneOperations
                 LogType(null);
             }
             else
