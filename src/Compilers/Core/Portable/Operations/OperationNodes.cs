@@ -13,9 +13,30 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Use this to create IOperation when we don't have proper specific IOperation yet for given language construct
     /// </summary>
-    internal sealed class NoneOperation : Operation
+    internal sealed class NoneOperation : AbstractNoneOperation
     {
         public NoneOperation(ImmutableArray<IOperation> children, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit) :
+            base(children, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+    }
+
+    /// <summary>
+    /// This is a class to support Types for NoneOperations without breaking all tests.
+    /// It's purpose is to allow special handling in OperationTreeVerifier.
+    /// This class should be removed soon - see CSharpOperationFactory.Create / OperationTreeVerifier.LogCommonProperties
+    /// </summary>
+    internal sealed class WorkaroundNoneOperation : AbstractNoneOperation
+    {
+        public WorkaroundNoneOperation(ImmutableArray<IOperation> children, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit) :
+            base(children, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+    }
+
+    internal abstract class AbstractNoneOperation : Operation
+    {
+        public AbstractNoneOperation(ImmutableArray<IOperation> children, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit) :
             base(semanticModel, syntax, isImplicit)
         {
             Children = SetParentOperation(children, this);
