@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 {
@@ -8,17 +9,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
     {
         public PublicApiFile(string path)
         {
-            Path = path;
-
-            var fileName = System.IO.Path.GetFileName(path);
+            var fileName = Path.GetFileName(path);
 
             IsShipping = IsFile(fileName, DeclarePublicApiAnalyzer.ShippedFileNamePrefix);
             var isUnshippedFile = IsFile(fileName, DeclarePublicApiAnalyzer.UnshippedFileNamePrefix);
 
             IsApiFile = IsShipping || isUnshippedFile;
         }
-
-        public string Path { get; }
 
         public bool IsShipping { get; }
 
