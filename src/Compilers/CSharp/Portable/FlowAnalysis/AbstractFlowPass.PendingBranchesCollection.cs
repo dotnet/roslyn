@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void FreeBranchesToLabel()
             {
-                if (_branchesToLabel != null)
+                if (_branchesToLabel is { })
                 {
                     foreach (var branches in _branchesToLabel.Values)
                     {
@@ -49,23 +49,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal ImmutableArray<PendingBranch> ToImmutable()
             {
-                if (_branchesToLabel is null)
-                {
-                    return _branches.ToImmutable();
-                }
-                return ImmutableArray.CreateRange(this);
+                return _branchesToLabel is null ?
+                    _branches.ToImmutable() :
+                    ImmutableArray.CreateRange(this);
             }
 
-            internal ArrayBuilder<PendingBranch> GetAndRemoveBranches(LabelSymbol label)
+            internal ArrayBuilder<PendingBranch> GetAndRemoveBranches(LabelSymbol? label)
             {
                 ArrayBuilder<PendingBranch>? result;
-
                 if (label is null)
                 {
                     result = _branches;
                     _branches = ArrayBuilder<PendingBranch>.GetInstance();
                 }
-                else if (_branchesToLabel != null && _branchesToLabel.TryGetValue(label, out result))
+                else if (_branchesToLabel is { } && _branchesToLabel.TryGetValue(label, out result))
                 {
                     _branchesToLabel.Remove(label);
                 }
@@ -73,7 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     result = ArrayBuilder<PendingBranch>.GetInstance();
                 }
-
                 return result;
             }
 
@@ -86,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    if (_branchesToLabel == null)
+                    if (_branchesToLabel is null)
                     {
                         _branchesToLabel = PooledDictionary<LabelSymbol, ArrayBuilder<PendingBranch>>.GetInstance();
                     }
@@ -119,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         yield return branch;
                     }
-                    if (_branchesToLabel != null)
+                    if (_branchesToLabel is { })
                     {
                         foreach (var branches in _branchesToLabel.Values)
                         {
