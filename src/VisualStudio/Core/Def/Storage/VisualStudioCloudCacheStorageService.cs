@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Storage.CloudCache;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.RpcContracts.Caching;
 using Microsoft.VisualStudio.Shell;
@@ -19,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
 {
     internal class VisualStudioCloudCacheStorageService : AbstractCloudCachePersistentStorageService
     {
-        [ExportWorkspaceServiceFactory(typeof(VisualStudioCloudCacheStorageService), ServiceLayer.Host), Shared]
+        [ExportWorkspaceServiceFactory(typeof(ICloudCacheStorageService), ServiceLayer.Host), Shared]
         internal class ServiceFactory : IWorkspaceServiceFactory
         {
             private readonly IAsyncServiceProvider _serviceProvider;
