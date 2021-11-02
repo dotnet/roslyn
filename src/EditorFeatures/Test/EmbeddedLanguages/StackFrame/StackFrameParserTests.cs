@@ -165,6 +165,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             );
 
         [Fact]
+        public void TestMethodArrayParamWithSpace()
+            => Verify(
+                "M.N(string[ , , ] s)",
+                methodDeclaration: MethodDeclaration(
+                    QualifiedName("M.N"),
+                    argumentList: ParameterList(
+                        Parameter(
+                            ArrayType(Identifier("string"),
+                                ArrayRankSpecifier(
+                                    OpenBracketToken.With(trailingTrivia: CreateTriviaArray(SpaceTrivia())),
+                                    CloseBracketToken.With(trailingTrivia: CreateTriviaArray(SpaceTrivia())),
+                                    CommaToken.With(trailingTrivia: CreateTriviaArray(SpaceTrivia())),
+                                    CommaToken.With(trailingTrivia: CreateTriviaArray(SpaceTrivia())))),
+                            IdentifierToken("s")
+                        )
+                    ))
+            );
+
+        [Fact]
         public void TestCommaArrayParam()
             => Verify(
                 @"at ConsoleApp4.MyClass.M(string[,] s)",
@@ -369,6 +388,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         [InlineData("M.N[T.Y]()")] // Generic type arguments should not be qualified types
         [InlineData("M.N(X.Y x.y)")] // argument names should not be qualified
         [InlineData("M.N(params)")] // argument with type but no name
+        [InlineData("M.N [T]()")] // Space between identifier and bracket is not allowed
+        [InlineData("M.N(string [] s)")] // Space between type and array brackets not allowed
         public void TestInvalidInputs(string input)
             => Verify(input, expectFailure: true);
 
