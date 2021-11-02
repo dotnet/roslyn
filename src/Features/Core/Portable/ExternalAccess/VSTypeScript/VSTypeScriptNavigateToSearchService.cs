@@ -35,34 +35,38 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         public bool CanFilter => _searchService?.CanFilter ?? false;
 
-        public async Task<NavigateToSearchLocation> SearchDocumentAsync(
+        public async Task SearchDocumentAsync(
             Document document, string searchPattern, IImmutableSet<string> kinds,
             Func<INavigateToSearchResult, Task> onResultFound,
             bool isFullyLoaded, CancellationToken cancellationToken)
         {
+            // We only support searching when the project is fully loaded.
+            if (!isFullyLoaded)
+                return;
+
             if (_searchService != null)
             {
                 var results = await _searchService.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
                 foreach (var result in results)
                     await onResultFound(Convert(result)).ConfigureAwait(false);
             }
-
-            return NavigateToSearchLocation.Latest;
         }
 
-        public async Task<NavigateToSearchLocation> SearchProjectAsync(
+        public async Task SearchProjectAsync(
             Project project, ImmutableArray<Document> priorityDocuments, string searchPattern,
             IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound,
             bool isFullyLoaded, CancellationToken cancellationToken)
         {
+            // We only support searching when the project is fully loaded.
+            if (!isFullyLoaded)
+                return;
+
             if (_searchService != null)
             {
                 var results = await _searchService.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
                 foreach (var result in results)
                     await onResultFound(Convert(result)).ConfigureAwait(false);
             }
-
-            return NavigateToSearchLocation.Latest;
         }
 
         private static INavigateToSearchResult Convert(IVSTypeScriptNavigateToSearchResult result)

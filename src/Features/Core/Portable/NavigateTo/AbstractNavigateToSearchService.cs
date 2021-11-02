@@ -41,17 +41,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             };
         }
 
-        public async Task<NavigateToSearchLocation> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken)
+        public async Task SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken)
         {
             if (isFullyLoaded)
             {
                 await SearchFullyLoadedDocumentAsync(document, searchPattern, kinds, onResultFound, cancellationToken).ConfigureAwait(false);
-                return NavigateToSearchLocation.Latest;
             }
             else
             {
                 await SearchCachedDocumentsAsync(ImmutableArray.Create(document), ImmutableArray<Document>.Empty, searchPattern, kinds, onResultFound, cancellationToken).ConfigureAwait(false);
-                return NavigateToSearchLocation.Cache;
             }
         }
 
@@ -82,17 +80,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 document, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<NavigateToSearchLocation> SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken)
+        public async Task SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken)
         {
             if (isFullyLoaded)
             {
                 await SearchFullyLoadedProjectAsync(project, priorityDocuments, searchPattern, kinds, onResultFound, cancellationToken).ConfigureAwait(false);
-                return NavigateToSearchLocation.Latest;
             }
             else
             {
                 await SearchCachedDocumentsAsync(project.Documents.ToImmutableArray(), priorityDocuments, searchPattern, kinds, onResultFound, cancellationToken).ConfigureAwait(false);
-                return NavigateToSearchLocation.Cache;
             }
         }
 
