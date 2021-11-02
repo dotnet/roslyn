@@ -234,7 +234,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         [InlineData("uʶ")] // character and modifier character
         [InlineData("a\u00AD")] // Soft hyphen formatting character
         [InlineData("a‿")] // Connecting punctuation (combining character)
-
+        [InlineData("at")]
+        [InlineData("line")]
+        [InlineData("in")]
         public void TestIdentifierNames(string identifierName)
             => Verify(
                 @$"at {identifierName}.{identifierName}[{identifierName}]({identifierName} {identifierName})",
@@ -247,6 +249,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                             IdentifierToken(identifierName, leadingTrivia: SpaceTrivia())))
                 )
             );
+
+        [Fact]
+        public void TestInvalidSpacingBeforeQualifiedName()
+            => Verify(
+                @"at MyNamespace. MyClass.MyMethod()", expectFailure: true);
+
+        [Fact]
+        public void TestInvalidSpacingAfterQualifiedName2()
+            => Verify(
+                @"at MyNamespace.MyClass .MyMethod()", expectFailure: true);
+
+        [Fact]
+        public void TestWhitespaceAroundBrackets()
+            => Verify(
+                @"at MyNamespace.MyClass.MyMethod[ T ]()",
+                methodDeclaration: MethodDeclaration(
+                    QualifiedName("MyNamespace.MyClass.MyMethod", leadingTrivia: AtTrivia),
+                    typeArguments: TypeArgumentList(
+                        TypeArgument(IdentifierToken("T", leadingTrivia: SpaceTrivia(), trailingTrivia: SpaceTrivia()))))
+                );
 
         [Fact]
         public void TestAnonymousMethod()
@@ -346,6 +368,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         [InlineData("M.N(X.Y. x)")] // Trailing . in argument type
         [InlineData("M.N[T.Y]()")] // Generic type arguments should not be qualified types
         [InlineData("M.N(X.Y x.y)")] // argument names should not be qualified
+        [InlineData("M.N(params)")] // argument with type but no name
         public void TestInvalidInputs(string input)
             => Verify(input, expectFailure: true);
 

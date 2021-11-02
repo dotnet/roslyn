@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return ParseResult<StackFrameNameNode>.Empty;
             }
 
-            var identifierParseResult = TryScanGenericTypeIdentifier(_lexer, currentIdentifer.Value);
+            var identifierParseResult = TryScanGenericTypeIdentifier(ref _lexer, currentIdentifer.Value);
             if (!identifierParseResult.Success)
             {
                 return ParseResult<StackFrameNameNode>.Abort;
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             RoslynDebug.AssertNotNull(identifierParseResult.Value);
             var lhs = identifierParseResult.Value;
 
-            var parseResult = TryParseQualifiedName(_lexer, lhs);
+            var parseResult = TryParseQualifiedName(ref _lexer, lhs);
             if (!parseResult.Success)
             {
                 return ParseResult<StackFrameNameNode>.Abort;
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             while (true)
             {
-                parseResult = TryParseQualifiedName(_lexer, memberAccess);
+                parseResult = TryParseQualifiedName(ref _lexer, memberAccess);
                 if (!parseResult.Success)
                 {
                     return ParseResult<StackFrameNameNode>.Abort;
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             // Given an existing left hand side node or token, which can either be 
             // an <see cref="StackFrameKind.IdentifierToken"/> or <see cref="StackFrameQualifiedNameNode"/>
             //
-            static ParseResult<StackFrameQualifiedNameNode> TryParseQualifiedName(StackFrameLexer lexer, StackFrameNameNode lhs)
+            static ParseResult<StackFrameQualifiedNameNode> TryParseQualifiedName(ref StackFrameLexer lexer, StackFrameNameNode lhs)
             {
                 if (!lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.DotToken, out var dotToken))
                 {
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                     return ParseResult<StackFrameQualifiedNameNode>.Abort;
                 }
 
-                var (success, rhs) = TryScanGenericTypeIdentifier(lexer, identifier.Value);
+                var (success, rhs) = TryScanGenericTypeIdentifier(ref lexer, identifier.Value);
                 if (!success)
                 {
                     return ParseResult<StackFrameQualifiedNameNode>.Abort;
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             //                        ^-------------- Grave token
             //                         ^------------- Arity token of "1" 
             //
-            static ParseResult<StackFrameSimpleNameNode> TryScanGenericTypeIdentifier(StackFrameLexer lexer, StackFrameToken identifierToken)
+            static ParseResult<StackFrameSimpleNameNode> TryScanGenericTypeIdentifier(ref StackFrameLexer lexer, StackFrameToken identifierToken)
             {
                 if (!lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.GraveAccentToken, out var graveAccentToken))
                 {
