@@ -18,7 +18,7 @@ namespace BuildActionTelemetryTable
 {
     public class Program
     {
-        private static readonly string s_executingPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        private static readonly string s_executingPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
 
         private static ImmutableHashSet<string> IgnoredCodeActions { get; } = new HashSet<string>()
         {
