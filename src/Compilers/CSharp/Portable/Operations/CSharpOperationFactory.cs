@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         BoundExpression boundExpr => boundExpr.GetPublicTypeSymbol(),
                         _ => null
                     };
-                    return new WorkaroundNoneOperation(children, _semanticModel, boundNode.Syntax, type, constantValue, isImplicit);
+                    return new NoneOperation(children, _semanticModel, boundNode.Syntax, type: type, constantValue, isImplicit: isImplicit);
                 default:
                     // If you're hitting this because the IOperation test hook has failed, see
                     // <roslyn-root>/docs/Compilers/IOperation Test Hook.md for instructions on how to fix.

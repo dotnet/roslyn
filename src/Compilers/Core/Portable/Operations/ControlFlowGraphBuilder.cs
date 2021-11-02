@@ -6337,17 +6337,8 @@ oneMoreTime:
 
         private IOperation VisitNoneOperationExpression(IOperation operation)
         {
-            IOperation newOp;
-            if (operation is WorkaroundNoneOperation)
-            {
-                newOp = new WorkaroundNoneOperation(VisitArray(((Operation)operation).ChildOperations.ToImmutableArray()), semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
-            }
-            else
-            {
-                newOp = new NoneOperation(VisitArray(((Operation)operation).ChildOperations.ToImmutableArray()), semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
-            }
-
-            return PopStackFrame(PushStackFrame(), newOp);
+            return PopStackFrame(PushStackFrame(),
+                                 new NoneOperation(VisitArray(((Operation)operation).ChildOperations.ToImmutableArray()), semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation)));
         }
 
         public override IOperation? VisitInterpolatedStringHandlerCreation(IInterpolatedStringHandlerCreationOperation operation, int? captureIdForResult)
