@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure
 {
     internal static class OmniSharpBlockStructureOptions
     {
-        public static readonly PerLanguageOption<bool> ShowBlockStructureGuidesForCommentsAndPreprocessorRegions = (PerLanguageOption<bool>)BlockStructureOptions.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions;
+        public static readonly PerLanguageOption<bool> ShowBlockStructureGuidesForCommentsAndPreprocessorRegions = (PerLanguageOption<bool>)BlockStructureOptions.Metadata.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions;
 
-        public static readonly PerLanguageOption<bool> ShowOutliningForCommentsAndPreprocessorRegions = (PerLanguageOption<bool>)BlockStructureOptions.ShowOutliningForCommentsAndPreprocessorRegions;
+        public static readonly PerLanguageOption<bool> ShowOutliningForCommentsAndPreprocessorRegions = (PerLanguageOption<bool>)BlockStructureOptions.Metadata.ShowOutliningForCommentsAndPreprocessorRegions;
     }
 }

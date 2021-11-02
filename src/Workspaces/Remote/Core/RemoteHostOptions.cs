@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    [ExportOptionProvider, Shared]
+    [ExportGlobalOptionProvider, Shared]
     internal sealed class RemoteHostOptions : IOptionProvider
     {
         private const string LocalRegistryPath = StorageOptions.LocalRegistryPath;

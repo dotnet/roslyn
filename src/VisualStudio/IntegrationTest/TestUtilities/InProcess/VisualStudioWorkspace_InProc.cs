@@ -26,6 +26,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     {
         private static readonly Guid RoslynPackageId = new Guid("6cf2e545-6109-4730-8883-cf43d7aec3e1");
         private readonly VisualStudioWorkspace _visualStudioWorkspace;
+        private readonly IGlobalOptionService _globalOptions;
 
         private VisualStudioWorkspace_InProc()
         {
@@ -33,6 +34,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             GetWaitingService().Enable(true);
 
             _visualStudioWorkspace = GetComponentModelService<VisualStudioWorkspace>();
+            _globalOptions = GetComponentModelService<IGlobalOptionService>();
         }
 
         public static VisualStudioWorkspace_InProc Create()
@@ -52,13 +54,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 || string.Compare(p.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0);
 
         public bool IsPrettyListingOn(string languageName)
-            => _visualStudioWorkspace.Options.GetOption(FeatureOnOffOptions.PrettyListing, languageName);
+            => _globalOptions.GetOption(FeatureOnOffOptions.PrettyListing, languageName);
 
         public void SetPrettyListing(string languageName, bool value)
             => InvokeOnUIThread(cancellationToken =>
             {
-                _visualStudioWorkspace.SetOptions(_visualStudioWorkspace.Options.WithChangedOption(
-                    FeatureOnOffOptions.PrettyListing, languageName, value));
+                _globalOptions.SetGlobalOption(new OptionKey(FeatureOnOffOptions.PrettyListing, languageName), value);
             });
 
         public void SetFileScopedNamespaces(bool value)
@@ -70,13 +71,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                         ? NamespaceDeclarationPreference.FileScoped
                         : NamespaceDeclarationPreference.BlockScoped,
                         NotificationOption2.Suggestion)));
-            });
-
-        public void EnableQuickInfo(bool value)
-            => InvokeOnUIThread(cancellationToken =>
-            {
-                _visualStudioWorkspace.SetOptions(_visualStudioWorkspace.Options.WithChangedOption(
-                    InternalFeatureOnOffOptions.QuickInfo, value));
             });
 
         public void SetPerLanguageOption(string optionName, string feature, string language, object value)

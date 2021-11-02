@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             SyntaxToken previousToken,
             TypeDeclarationSyntax typeDeclaration,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(typeDeclaration, ref spans, optionProvider);
+            CSharpStructureHelpers.CollectCommentBlockSpans(typeDeclaration, ref spans, options);
 
             if (!typeDeclaration.OpenBraceToken.IsMissing &&
                 !typeDeclaration.CloseBraceToken.IsMissing)
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 // Collapse to Definitions doesn't collapse type nodes, but a Toggle All Outlining would collapse groups
                 // of types to the compressed form of not showing blank lines. All kinds of types are grouped together
                 // in Metadata as Source.
-                var compressEmptyLines = optionProvider.IsMetadataAsSource
+                var compressEmptyLines = options.IsMetadataAsSource
                     && (!nextSibling.IsNode || nextSibling.AsNode() is BaseTypeDeclarationSyntax);
 
                 spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
