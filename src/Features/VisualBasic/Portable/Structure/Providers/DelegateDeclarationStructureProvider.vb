@@ -14,9 +14,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
                                                   delegateDeclaration As DelegateStatementSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
-                                                  optionProvider As BlockStructureOptionProvider,
+                                                  options As BlockStructureOptions,
                                                   cancellationToken As CancellationToken)
-            CollectCommentsRegions(delegateDeclaration, spans, optionProvider)
+            CollectCommentsRegions(delegateDeclaration, spans, options)
         End Sub
     End Class
 End Namespace

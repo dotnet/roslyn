@@ -29,8 +29,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 Dim tagProducer = New ReferenceHighlightingViewTaggerProvider(
                     workspace.GetService(Of IThreadingContext),
-                    AsynchronousOperationListenerProvider.NullProvider,
-                    globalOptions)
+                    globalOptions,
+                    AsynchronousOperationListenerProvider.NullProvider)
 
                 Dim hostDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim caretPosition = hostDocument.CursorPosition.Value

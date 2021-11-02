@@ -59,12 +59,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public static FoldingRange[] GetFoldingRanges(
             SyntaxTree syntaxTree,
             HostLanguageServices languageServices,
-            OptionSet options,
-            bool isMetadataAsSource,
+            in BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
             var blockStructureService = (BlockStructureServiceWithProviders)languageServices.GetRequiredService<BlockStructureService>();
-            var blockStructure = blockStructureService.GetBlockStructure(syntaxTree, options, isMetadataAsSource, cancellationToken);
+            var blockStructure = blockStructureService.GetBlockStructure(syntaxTree, options, cancellationToken);
             if (blockStructure == null)
             {
                 return Array.Empty<FoldingRange>();

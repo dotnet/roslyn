@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -53,10 +54,10 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         public VisualStudioSymbolSearchService(
             IThreadingContext threadingContext,
             VisualStudioWorkspaceImpl workspace,
+            IGlobalOptionService globalOptions,
             VSShell.SVsServiceProvider serviceProvider)
-            : base(threadingContext, workspace, SymbolSearchOptions.Enabled,
-                              SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
-                              SymbolSearchOptions.SuggestForTypesInNuGetPackages)
+            : base(threadingContext, workspace, globalOptions, SymbolSearchGlobalOptions.Enabled,
+                  SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, SymbolSearchOptions.SuggestForTypesInNuGetPackages)
         {
             _workspace = workspace;
             _installerService = workspace.Services.GetService<IPackageInstallerService>();

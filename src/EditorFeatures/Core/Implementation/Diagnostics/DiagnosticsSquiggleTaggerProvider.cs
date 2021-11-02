@@ -37,8 +37,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         public DiagnosticsSquiggleTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, diagnosticService, listenerProvider)
+            : base(threadingContext, diagnosticService, globalOptions, listenerProvider)
         {
         }
 
