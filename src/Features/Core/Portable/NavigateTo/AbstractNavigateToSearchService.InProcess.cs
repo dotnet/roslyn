@@ -126,10 +126,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         public static async Task SearchCachedDocumentsInCurrentProcessAsync(
-            HostWorkspaceServices services,
+            IChecksummedPersistentStorageService storageService,
             ImmutableArray<DocumentKey> documentKeys,
             ImmutableArray<DocumentKey> priorityDocumentKeys,
-            StorageDatabase database,
             string searchPattern,
             IImmutableSet<string> kinds,
             Func<RoslynNavigateToItem, Task> onItemFound,
@@ -145,16 +144,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
             await SearchCachedDocumentsInCurrentProcessAsync(
-                services, priorityDocumentKeys, database, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, stringTable, cancellationToken).ConfigureAwait(false);
+                storageService, priorityDocumentKeys, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, stringTable, cancellationToken).ConfigureAwait(false);
 
             await SearchCachedDocumentsInCurrentProcessAsync(
-                services, lowPriDocs, database, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, stringTable, cancellationToken).ConfigureAwait(false);
+                storageService, lowPriDocs, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, stringTable, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task SearchCachedDocumentsInCurrentProcessAsync(
-            HostWorkspaceServices services,
+            IChecksummedPersistentStorageService storageService,
             ImmutableArray<DocumentKey> documentKeys,
-            StorageDatabase database,
             string patternName,
             string patternContainer,
             DeclaredSymbolInfoKindSet kinds,
@@ -168,7 +166,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    var index = await GetIndexAsync(services, database, stringTable, documentKey, cancellationToken).ConfigureAwait(false);
+                    var index = await GetIndexAsync(storageService, stringTable, documentKey, cancellationToken).ConfigureAwait(false);
                     if (index == null)
                         return;
 
@@ -181,8 +179,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private static async Task<SyntaxTreeIndex?> GetIndexAsync(
-            HostWorkspaceServices services,
-            StorageDatabase database,
+            IChecksummedPersistentStorageService storageService,
             StringTable stringTable,
             DocumentKey documentKey,
             CancellationToken cancellationToken)
@@ -193,7 +190,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var asyncLazy = s_documentKeyToIndex.GetOrAdd(
                 documentKey.Id,
                 _ => new AsyncLazy<SyntaxTreeIndex?>(c => SyntaxTreeIndex.LoadAsync(
-                    services, documentKey, checksum: null, database, stringTable, c), cacheResult: true));
+                    storageService, documentKey, checksum: null, stringTable, c), cacheResult: true));
             var index = await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
             return index;
         }
