@@ -23,14 +23,14 @@ namespace Microsoft.CodeAnalysis.NavigateTo
     {
         /// <summary>
         /// Cached map from document key to the (potentially stale) syntax tree index for it we use prior to the 
-        /// full solution becoming available.  Once the full solution is available, this will be cleared to drop
-        /// all cached data.
+        /// full solution becoming available.  Once the full solution is available, this will be dropped
+        /// (set to <see langword="null"/>) to release all cached data.
         /// </summary>
         private static CachedIndexMap? s_cachedIndexMap = new();
 
         /// <summary>
-        /// String table we use to dedupe common values while deserializing <see cref="SyntaxTreeIndex"/>s.  Like
-        /// <see cref="s_cachedIndexMap"/> it is dropped once the full solution is available.
+        /// String table we use to dedupe common values while deserializing <see cref="SyntaxTreeIndex"/>s.  Once the 
+        /// full solution is available, this will be dropped (set to <see langword="null"/>) to release all cached data.
         /// </summary>
         private static StringTable? s_stringTable = new();
 
