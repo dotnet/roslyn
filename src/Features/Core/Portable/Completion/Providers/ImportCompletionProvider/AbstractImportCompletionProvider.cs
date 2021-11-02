@@ -34,14 +34,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         internal override bool IsExpandItemProvider => true;
 
-        private bool? _isImportCompletionExperimentEnabled = null;
-
-        private bool IsExperimentEnabled(OptionSet options)
-        {
-            _isImportCompletionExperimentEnabled ??= options.GetOption(CompletionOptions.TypeImportCompletionFeatureFlag);
-            return _isImportCompletionExperimentEnabled == true;
-        }
-
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
             var cancellationToken = completionContext.CancellationToken;
@@ -58,14 +50,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             completionContext.ExpandItemsAvailable = true;
 
             // We will trigger import completion regardless of the option/experiment if extended items is being requested explicitly (via expander in completion list)
-            var isExpandedCompletion = completionContext.Options.GetOption(CompletionServiceOptions.IsExpandedCompletion);
+            var isExpandedCompletion = completionContext.CompletionOptions.IsExpandedCompletion;
             if (!isExpandedCompletion)
             {
-                var importCompletionOptionValue = completionContext.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
+                var importCompletionOptionValue = completionContext.CompletionOptions.ShowItemsFromUnimportedNamespaces;
 
                 // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
                 if (importCompletionOptionValue == false ||
-                    (importCompletionOptionValue == null && !IsExperimentEnabled(completionContext.Options)))
+                    (importCompletionOptionValue == null && !completionContext.CompletionOptions.TypeImportCompletion))
                 {
                     return;
                 }
@@ -238,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return syntaxGenerator.NamespaceImportDeclaration(namespaceName).WithAdditionalAnnotations(Formatter.Annotation);
         }
 
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => ImportCompletionItem.GetCompletionDescriptionAsync(document, item, cancellationToken);
+        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+            => ImportCompletionItem.GetCompletionDescriptionAsync(document, item, displayOptions, cancellationToken);
     }
 }

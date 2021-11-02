@@ -10,8 +10,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     {
         public int BringUpOnIdentifier
         {
-            get { return GetBooleanOption(CompletionOptions.TriggerOnTypingLetters2); }
-            set { SetBooleanOption(CompletionOptions.TriggerOnTypingLetters2, value); }
+            get { return GetBooleanOption(CompletionOptions.Metadata.TriggerOnTypingLetters); }
+            set { SetBooleanOption(CompletionOptions.Metadata.TriggerOnTypingLetters, value); }
         }
 
         public int HighlightMatchingPortionsOfCompletionListItems
@@ -28,32 +28,32 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int ShowItemsFromUnimportedNamespaces
         {
-            get { return GetBooleanOption(CompletionOptions.ShowItemsFromUnimportedNamespaces); }
-            set { SetBooleanOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, value); }
+            get { return GetBooleanOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces); }
+            set { SetBooleanOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, value); }
         }
 
         public int InsertNewlineOnEnterWithWholeWord
         {
-            get { return (int)GetOption(CompletionOptions.EnterKeyBehavior); }
-            set { SetOption(CompletionOptions.EnterKeyBehavior, (EnterKeyRule)value); }
+            get { return (int)GetOption(CompletionOptions.Metadata.EnterKeyBehavior); }
+            set { SetOption(CompletionOptions.Metadata.EnterKeyBehavior, (EnterKeyRule)value); }
         }
 
         public int EnterKeyBehavior
         {
-            get { return (int)GetOption(CompletionOptions.EnterKeyBehavior); }
-            set { SetOption(CompletionOptions.EnterKeyBehavior, (EnterKeyRule)value); }
+            get { return (int)GetOption(CompletionOptions.Metadata.EnterKeyBehavior); }
+            set { SetOption(CompletionOptions.Metadata.EnterKeyBehavior, (EnterKeyRule)value); }
         }
 
         public int SnippetsBehavior
         {
-            get { return (int)GetOption(CompletionOptions.SnippetsBehavior); }
-            set { SetOption(CompletionOptions.SnippetsBehavior, (SnippetsRule)value); }
+            get { return (int)GetOption(CompletionOptions.Metadata.SnippetsBehavior); }
+            set { SetOption(CompletionOptions.Metadata.SnippetsBehavior, (SnippetsRule)value); }
         }
 
         public int TriggerInArgumentLists
         {
-            get { return GetBooleanOption(CompletionOptions.TriggerInArgumentLists); }
-            set { SetBooleanOption(CompletionOptions.TriggerInArgumentLists, value); }
+            get { return GetBooleanOption(CompletionOptions.Metadata.TriggerInArgumentLists); }
+            set { SetBooleanOption(CompletionOptions.Metadata.TriggerInArgumentLists, value); }
         }
 
         public int EnableArgumentCompletionSnippets

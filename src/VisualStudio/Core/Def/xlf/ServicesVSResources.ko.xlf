@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Always">
         <source>Always</source>
-        <target state="new">Always</target>
+        <target state="translated">항상</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_for_clarity">
@@ -134,7 +134,7 @@
       </trans-unit>
       <trans-unit id="Beginning_of_line">
         <source>Beginning of line</source>
-        <target state="new">Beginning of line</target>
+        <target state="translated">줄의 시작</target>
         <note />
       </trans-unit>
       <trans-unit id="Bitness32">
@@ -374,7 +374,7 @@
       </trans-unit>
       <trans-unit id="End_of_line">
         <source>End of line</source>
-        <target state="new">End of line</target>
+        <target state="translated">줄의 끝</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
@@ -419,7 +419,7 @@
       </trans-unit>
       <trans-unit id="For_non_interface_members">
         <source>For non interface members</source>
-        <target state="new">For non interface members</target>
+        <target state="translated">비 인터페이스 멤버의 경우</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document">
@@ -804,7 +804,7 @@
       </trans-unit>
       <trans-unit id="Never">
         <source>Never</source>
-        <target state="new">Never</target>
+        <target state="translated">안 함 </target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -849,7 +849,7 @@
       </trans-unit>
       <trans-unit id="Omit_if_default">
         <source>Omit if default</source>
-        <target state="new">Omit if default</target>
+        <target state="translated">기본값인 경우 생략</target>
         <note />
       </trans-unit>
       <trans-unit id="Omit_only_for_optional_parameters">
@@ -864,7 +864,7 @@
       </trans-unit>
       <trans-unit id="Operator_placement_when_wrapping">
         <source>Operator placement when wrapping</source>
-        <target state="new">Operator placement when wrapping</target>
+        <target state="translated">래핑 시 연산자 배치</target>
         <note />
       </trans-unit>
       <trans-unit id="Optional_parameters_must_provide_a_default_value">
@@ -984,7 +984,7 @@
       </trans-unit>
       <trans-unit id="Prefer_namespace_and_folder_match_structure">
         <source>Prefer namespace and folder match structure</source>
-        <target state="new">Prefer namespace and folder match structure</target>
+        <target state="translated">네임스페이스 및 폴더 일치 구조 선호</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_range_operator">
@@ -1009,7 +1009,7 @@
       </trans-unit>
       <trans-unit id="Prefer_simplified_interpolation">
         <source>Prefer simplified interpolation</source>
-        <target state="new">Prefer simplified interpolation</target>
+        <target state="translated">단순화된 보간 선호</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
@@ -1074,7 +1074,7 @@
       </trans-unit>
       <trans-unit id="Require_accessibility_modifiers">
         <source>Require accessibility modifiers</source>
-        <target state="new">Require accessibility modifiers</target>
+        <target state="translated">접근성 한정자 필요</target>
         <note />
       </trans-unit>
       <trans-unit id="Require_colon">

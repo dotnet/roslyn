@@ -72,6 +72,30 @@ Microsoft.CodeAnalysis.LineMapping.LineMapping() -> void
 Microsoft.CodeAnalysis.LineMapping.LineMapping(Microsoft.CodeAnalysis.Text.LinePositionSpan span, int? characterOffset, Microsoft.CodeAnalysis.FileLinePositionSpan mappedSpan) -> void
 Microsoft.CodeAnalysis.LineMapping.MappedSpan.get -> Microsoft.CodeAnalysis.FileLinePositionSpan
 Microsoft.CodeAnalysis.LineMapping.Span.get -> Microsoft.CodeAnalysis.Text.LinePositionSpan
+Microsoft.CodeAnalysis.OperationKind.InterpolatedStringAddition = 115 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.InterpolatedStringAppendFormatted = 117 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.InterpolatedStringAppendInvalid = 118 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.InterpolatedStringAppendLiteral = 116 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.InterpolatedStringHandlerArgumentPlaceholder = 119 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.InterpolatedStringHandlerCreation = 114 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.Operations.IInterpolatedStringAdditionOperation
+Microsoft.CodeAnalysis.Operations.IInterpolatedStringAdditionOperation.Left.get -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.Operations.IInterpolatedStringAdditionOperation.Right.get -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.Operations.IInterpolatedStringAppendOperation
+Microsoft.CodeAnalysis.Operations.IInterpolatedStringAppendOperation.AppendCall.get -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.Operations.IInterpolatedStringHandlerArgumentPlaceholderOperation
+Microsoft.CodeAnalysis.Operations.IInterpolatedStringHandlerArgumentPlaceholderOperation.ArgumentIndex.get -> int
+Microsoft.CodeAnalysis.Operations.IInterpolatedStringHandlerArgumentPlaceholderOperation.PlaceholderKind.get -> Microsoft.CodeAnalysis.Operations.InterpolatedStringArgumentPlaceholderKind
+Microsoft.CodeAnalysis.Operations.IInterpolatedStringHandlerCreationOperation
+Microsoft.CodeAnalysis.Operations.IInterpolatedStringHandlerCreationOperation.Content.get -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.Operations.IInterpolatedStringHandlerCreationOperation.HandlerAppendCallsReturnBool.get -> bool
+Microsoft.CodeAnalysis.Operations.IInterpolatedStringHandlerCreationOperation.HandlerCreation.get -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.Operations.IInterpolatedStringHandlerCreationOperation.HandlerCreationHasSuccessParameter.get -> bool
+Microsoft.CodeAnalysis.Operations.InstanceReferenceKind.InterpolatedStringHandler = 3 -> Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
+Microsoft.CodeAnalysis.Operations.InterpolatedStringArgumentPlaceholderKind
+Microsoft.CodeAnalysis.Operations.InterpolatedStringArgumentPlaceholderKind.CallsiteArgument = 0 -> Microsoft.CodeAnalysis.Operations.InterpolatedStringArgumentPlaceholderKind
+Microsoft.CodeAnalysis.Operations.InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver = 1 -> Microsoft.CodeAnalysis.Operations.InterpolatedStringArgumentPlaceholderKind
+Microsoft.CodeAnalysis.Operations.InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument = 2 -> Microsoft.CodeAnalysis.Operations.InterpolatedStringArgumentPlaceholderKind
 Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.CollapseTupleTypes = 512 -> Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions
 override Microsoft.CodeAnalysis.LineMapping.Equals(object? obj) -> bool
 override Microsoft.CodeAnalysis.LineMapping.GetHashCode() -> int
@@ -127,3 +151,11 @@ static Microsoft.CodeAnalysis.IncrementalValueProviderExtensions.WithComparer<TS
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetGenerators(string! language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetGeneratorsForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
 abstract Microsoft.CodeAnalysis.Compilation.GetUsedAssemblyReferences(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MetadataReference!>
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitInterpolatedStringAddition(Microsoft.CodeAnalysis.Operations.IInterpolatedStringAdditionOperation! operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitInterpolatedStringAppend(Microsoft.CodeAnalysis.Operations.IInterpolatedStringAppendOperation! operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitInterpolatedStringHandlerArgumentPlaceholder(Microsoft.CodeAnalysis.Operations.IInterpolatedStringHandlerArgumentPlaceholderOperation! operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitInterpolatedStringHandlerCreation(Microsoft.CodeAnalysis.Operations.IInterpolatedStringHandlerCreationOperation! operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitInterpolatedStringAddition(Microsoft.CodeAnalysis.Operations.IInterpolatedStringAdditionOperation! operation, TArgument argument) -> TResult?
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitInterpolatedStringAppend(Microsoft.CodeAnalysis.Operations.IInterpolatedStringAppendOperation! operation, TArgument argument) -> TResult?
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitInterpolatedStringHandlerArgumentPlaceholder(Microsoft.CodeAnalysis.Operations.IInterpolatedStringHandlerArgumentPlaceholderOperation! operation, TArgument argument) -> TResult?
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitInterpolatedStringHandlerCreation(Microsoft.CodeAnalysis.Operations.IInterpolatedStringHandlerCreationOperation! operation, TArgument argument) -> TResult?

@@ -3472,7 +3472,7 @@ moreArguments:
             {
                 foreach (var part in interpolatedString.Parts)
                 {
-                    if (part is not BoundCall { Method: { Name: "AppendFormatted" } } call)
+                    if (part is not BoundCall { Method.Name: BoundInterpolatedString.AppendFormattedMethod } call)
                     {
                         // Dynamic calls cannot have ref struct parameters, and AppendLiteral calls will always have literal
                         // string arguments and do not require us to be concerned with escape

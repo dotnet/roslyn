@@ -62,12 +62,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(FeatureOnOffOptions.NavigateToDecompiledSources, value); }
         }
 
-        public int UseEnhancedColors
-        {
-            get { return GetOption(FeatureOnOffOptions.UseEnhancedColors); }
-            set { SetOption(FeatureOnOffOptions.UseEnhancedColors, value); }
-        }
-
         public int AddImportsOnPaste
         {
             get { return GetBooleanOption(FeatureOnOffOptions.AddImportsOnPaste); }

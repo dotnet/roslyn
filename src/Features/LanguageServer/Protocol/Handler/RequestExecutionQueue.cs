@@ -58,18 +58,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private readonly AsyncQueue<QueueItem> _queue;
         private readonly CancellationTokenSource _cancelSource;
-        private readonly DocumentChangeTracker _documentChangeTracker;
         private readonly RequestTelemetryLogger _requestTelemetryLogger;
         private readonly IGlobalOptionService _globalOptions;
-        private readonly LspMiscellaneousFilesWorkspace? _lspMiscellaneousFilesWorkspace;
 
-        // This dictionary is used to cache our forked LSP solution so we don't have to
-        // recompute it for each request. We don't need to worry about threading because they are only
-        // used when preparing to handle a request, which happens in a single thread in the ProcessQueueAsync
-        // method.
-        private readonly Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)> _lspSolutionCache = new();
         private readonly ILspLogger _logger;
-        private readonly ILspWorkspaceRegistrationService _workspaceRegistrationService;
+        private readonly LspWorkspaceManager _lspWorkspaceManager;
 
         public CancellationToken CancellationToken => _cancelSource.Token;
 
@@ -85,7 +78,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public RequestExecutionQueue(
             ILspLogger logger,
-            ILspWorkspaceRegistrationService workspaceRegistrationService,
+            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
             IGlobalOptionService globalOptions,
             ImmutableArray<string> supportedLanguages,
@@ -93,21 +86,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             string serverTypeName)
         {
             _logger = logger;
-            _workspaceRegistrationService = workspaceRegistrationService;
-            _lspMiscellaneousFilesWorkspace = lspMiscellaneousFilesWorkspace;
             _globalOptions = globalOptions;
             _supportedLanguages = supportedLanguages;
             _serverName = serverName;
 
             _queue = new AsyncQueue<QueueItem>();
             _cancelSource = new CancellationTokenSource();
-            _documentChangeTracker = new DocumentChangeTracker(lspMiscellaneousFilesWorkspace, workspaceRegistrationService);
 
             // Pass the language client instance type name to the telemetry logger to ensure we can
             // differentiate between the different C# LSP servers that have the same client name.
             // We also don't use the language client's name property as it is a localized user facing string
             // which is difficult to write telemetry queries for.
             _requestTelemetryLogger = new RequestTelemetryLogger(serverTypeName);
+
+            _lspWorkspaceManager = new LspWorkspaceManager(logger, lspMiscellaneousFilesWorkspace, lspWorkspaceRegistrationService, _requestTelemetryLogger);
 
             // Start the queue processing
             _ = ProcessQueueAsync();
@@ -122,6 +114,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _cancelSource.Cancel();
             DrainQueue();
             _requestTelemetryLogger.Dispose();
+            _lspWorkspaceManager.Dispose();
         }
 
         /// <summary>
@@ -168,6 +161,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Trace.CorrelationManager.ActivityId,
                 _logger,
                 _requestTelemetryLogger,
+                handleQueueFailure: exception => completion.TrySetException(exception),
                 callbackAsync: async (context, cancellationToken) =>
                 {
                     // Check if cancellation was requested while this was waiting in the queue
@@ -224,27 +218,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private async Task ProcessQueueAsync()
         {
+            QueueItem? inProgressWorkItem = null;
             try
             {
                 while (!_cancelSource.IsCancellationRequested)
                 {
                     var work = await _queue.DequeueAsync(_cancelSource.Token).ConfigureAwait(false);
+                    inProgressWorkItem = work;
 
                     // Record when the work item was been de-queued and the request context preparation started.
                     work.Metrics.RecordExecutionStart();
 
                     // Restore our activity id so that logging/tracking works across asynchronous calls.
                     Trace.CorrelationManager.ActivityId = work.ActivityId;
-                    var (context, workspace) = CreateRequestContext(work);
+                    var context = CreateRequestContext(work);
 
                     if (work.MutatesSolutionState)
                     {
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
                         await ExecuteCallbackAsync(work, context, _cancelSource.Token).ConfigureAwait(false);
-
-                        // Now that we've mutated our solution, clear out our saved state to ensure it gets recalculated
-                        if (workspace != null)
-                            _lspSolutionCache.Remove(workspace);
                     }
                     else
                     {
@@ -267,6 +259,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
                 _logger.TraceException(e);
+
+                // If there was an in progress work item that failed in the queue logic, set the result of the queue item
+                // to the exception so that it bubbles back to the caller.
+                inProgressWorkItem?.HandleQueueFailure(e);
                 OnRequestServerShutdown($"Error occurred processing queue in {_serverName}: {e.Message}.");
             }
         }
@@ -306,22 +302,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        private (RequestContext? context, Workspace? workspace) CreateRequestContext(QueueItem queueItem)
+        private RequestContext? CreateRequestContext(QueueItem queueItem)
         {
             var trackerToUse = queueItem.MutatesSolutionState
-                ? (IDocumentChangeTracker)_documentChangeTracker
-                : new NonMutatingDocumentChangeTracker(_documentChangeTracker);
+                ? (IDocumentChangeTracker)_lspWorkspaceManager
+                : new NonMutatingDocumentChangeTracker();
 
             return RequestContext.Create(
                 queueItem.RequiresLSPSolution,
                 queueItem.TextDocument,
                 queueItem.ClientName,
                 _logger,
-                _requestTelemetryLogger,
                 queueItem.ClientCapabilities,
-                _workspaceRegistrationService,
-                _lspMiscellaneousFilesWorkspace,
-                _lspSolutionCache,
+                _lspWorkspaceManager,
                 trackerToUse,
                 _supportedLanguages,
                 _globalOptions);

@@ -3057,4 +3057,109 @@
       </Comments>
     </Property>
   </Node>
+  <Node Name="IInterpolatedStringHandlerCreationOperation" Base="IOperation" ChildrenOrder="HandlerCreation,Content" HasType="true">
+    <Comments>
+      <summary>Represents an interpolated string converted to a custom interpolated string handler type.</summary>
+    </Comments>
+    <Property Name="HandlerCreation" Type="IOperation">
+      <Comments>
+        <summary>
+          The construction of the interpolated string handler instance. This can be an <see cref="IObjectCreationOperation"/> for valid code, and
+          <see cref="IDynamicObjectCreationOperation"/> or <see cref="IInvalidOperation"/> for invalid code.
+        </summary>
+      </Comments>
+    </Property>
+    <Property Name="HandlerCreationHasSuccessParameter" Type="bool">
+      <Comments>
+        <summary>
+          True if the last parameter of <see cref="HandlerCreation"/> is an out <see langword="bool"/> parameter that will be checked before executing the code in
+          <see cref="Content"/>. False otherwise.
+        </summary>
+      </Comments>
+    </Property>
+    <Property Name="HandlerAppendCallsReturnBool" Type="bool">
+      <Comments>
+        <summary>
+          True if the AppendLiteral or AppendFormatted calls in nested <see cref="IInterpolatedStringOperation.Parts"/> return <see langword="bool"/>. When that is true, each part
+          will be conditional on the return of the part before it, only being executed when the Append call returns true. False otherwise.
+        </summary>
+        <remarks>
+          when this is true and <see cref="HandlerCreationHasSuccessParameter"/> is true, then the first part in nested <see cref="IInterpolatedStringOperation.Parts"/> is conditionally
+          run. If this is true and <see cref="HandlerCreationHasSuccessParameter"/> is false, then the first part is unconditionally run.
+          <br/>
+          Just because this is true or false does not guarantee that all Append calls actually do return boolean values, as there could be dynamic calls or errors.
+          It only governs what the compiler was expecting, based on the first calls it did see.
+        </remarks>
+      </Comments>
+    </Property>
+    <Property Name="Content" Type="IOperation">
+      <Comments>
+        <summary>
+          The interpolated string expression or addition operation that makes up the content of this string. This is either an <see cref="IInterpolatedStringOperation"/>
+          or an <see cref="IInterpolatedStringAdditionOperation"/> operation.
+        </summary>
+      </Comments>
+    </Property>
+  </Node>
+  <Node Name="IInterpolatedStringAdditionOperation" Base="IOperation" ChildrenOrder="Left,Right">
+    <Comments>
+      <summary>
+        Represents an addition of multiple interpolated string literals being converted to an interpolated string handler type.
+      </summary>
+    </Comments>
+    <Property Name="Left" Type="IOperation">
+      <Comments>
+        <summary>
+          The interpolated string expression or addition operation on the left side of the operator. This is either an <see cref="IInterpolatedStringOperation"/>
+          or an <see cref="IInterpolatedStringAdditionOperation"/> operation.
+        </summary>
+      </Comments>
+    </Property>
+    <Property Name="Right" Type="IOperation">
+      <Comments>
+        <summary>
+          The interpolated string expression or addition operation on the right side of the operator. This is either an <see cref="IInterpolatedStringOperation"/>
+          or an <see cref="IInterpolatedStringAdditionOperation"/> operation.
+        </summary>
+      </Comments>
+    </Property>
+  </Node>
+  <Node Name="IInterpolatedStringAppendOperation" Base="IInterpolatedStringContentOperation">
+    <OperationKind>
+      <Entry Name="InterpolatedStringAppendLiteral" Value="0x74" ExtraDescription="This append is of a literal component"/>
+      <Entry Name="InterpolatedStringAppendFormatted" Value="0x75" ExtraDescription="This append is of an interpolation component"/>
+      <Entry Name="InterpolatedStringAppendInvalid" Value="0x76" ExtraDescription="This append is invalid"/>
+    </OperationKind>
+    <Comments>
+      <summary>Represents a call to either AppendLiteral or AppendFormatted as part of an interpolated string handler conversion.</summary>
+    </Comments>
+    <Property Name="AppendCall" Type="IOperation">
+      <Comments>
+        <summary>
+          If this interpolated string is subject to an interpolated string handler conversion, the construction of the interpolated string handler instance.
+          This can be an <see cref="IInvocationOperation"/>  or <see cref="IDynamicInvocationOperation"/> for valid code, and <see cref="IInvalidOperation"/> for invalid code.
+        </summary>
+      </Comments>
+    </Property>
+  </Node>
+  <Node Name="IInterpolatedStringHandlerArgumentPlaceholderOperation" Base="IOperation">
+    <Comments>
+      <summary>Represents an argument from the method call, indexer access, or constructor invocation that is creating the containing <see cref="IInterpolatedStringHandlerCreationOperation"/></summary>
+    </Comments>
+    <Property Name="ArgumentIndex" Type="int">
+      <Comments>
+        <summary>
+          The index of the argument of the method call, indexer, or object creation containing the interpolated string handler conversion this placeholder is referencing.
+          -1 if <see cref="PlaceholderKind" /> is anything other than <see cref="InterpolatedStringArgumentPlaceholderKind.CallsiteArgument"/>.
+        </summary>
+      </Comments>
+    </Property>
+    <Property Name="PlaceholderKind" Type="InterpolatedStringArgumentPlaceholderKind">
+      <Comments>
+        <summary>
+          The component this placeholder represents.
+        </summary>
+      </Comments>
+    </Property>
+  </Node>
 </Tree>

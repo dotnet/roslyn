@@ -17,19 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             SyntaxToken previousToken,
             FileScopedNamespaceDeclarationSyntax fileScopedNamespaceDeclaration,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
             // add leading comments
-            CSharpStructureHelpers.CollectCommentBlockSpans(fileScopedNamespaceDeclaration, ref spans, optionProvider);
-
-            spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
-                fileScopedNamespaceDeclaration,
-                fileScopedNamespaceDeclaration.SemicolonToken,
-                compressEmptyLines: false,
-                autoCollapse: false,
-                type: BlockTypes.Namespace,
-                isCollapsible: true));
+            CSharpStructureHelpers.CollectCommentBlockSpans(fileScopedNamespaceDeclaration, ref spans, options);
 
             // extern aliases and usings are outlined in a single region
             var externsAndUsings = Enumerable.Union<SyntaxNode>(fileScopedNamespaceDeclaration.Externs, fileScopedNamespaceDeclaration.Usings).ToImmutableArray();
@@ -37,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // add any leading comments before the extern aliases and usings
             if (externsAndUsings.Any())
             {
-                CSharpStructureHelpers.CollectCommentBlockSpans(externsAndUsings.First(), ref spans, optionProvider);
+                CSharpStructureHelpers.CollectCommentBlockSpans(externsAndUsings.First(), ref spans, options);
             }
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(

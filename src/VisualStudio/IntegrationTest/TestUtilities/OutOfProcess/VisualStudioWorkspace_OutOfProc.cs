@@ -27,9 +27,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
-        public void SetPersistenceOption(bool value)
-            => SetOption("Enabled", PersistentStorageOptions.OptionName, value);
-
         public bool IsPrettyListingOn(string languageName)
             => _inProc.IsPrettyListingOn(languageName);
 
@@ -59,9 +56,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void CleanUpWaitingService()
             => _inProc.CleanUpWaitingService();
-
-        public void SetQuickInfo(bool value)
-            => _inProc.EnableQuickInfo(value);
 
         public void SetImportCompletionOption(bool value)
         {
@@ -101,8 +95,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SetTriggerCompletionInArgumentLists(bool value)
         {
             SetPerLanguageOption(
-                optionName: CompletionOptions.TriggerInArgumentLists.Name,
-                feature: CompletionOptions.TriggerInArgumentLists.Feature,
+                optionName: CompletionOptions.Metadata.TriggerInArgumentLists.Name,
+                feature: CompletionOptions.Metadata.TriggerInArgumentLists.Feature,
                 language: LanguageNames.CSharp,
                 value: value);
         }
@@ -121,6 +115,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 language: LanguageNames.VisualBasic,
                 value: value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default);
         }
+
+        public void SetFileScopedNamespaces(bool value)
+            => _inProc.SetFileScopedNamespaces(value);
 
         public void SetEnableOpeningSourceGeneratedFilesInWorkspaceExperiment(bool value)
         {
