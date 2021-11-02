@@ -19,8 +19,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
