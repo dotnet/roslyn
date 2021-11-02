@@ -390,14 +390,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// pending branches to a label in that block we process the branch.  Otherwise we relay it
         /// up to the enclosing construct as a pending branch of the enclosing construct.
         /// </summary>
-        internal class PendingBranch
+        internal sealed class PendingBranch
         {
             public readonly BoundNode Branch;
             public bool IsConditionalState;
             public TLocalState State;
             public TLocalState StateWhenTrue;
             public TLocalState StateWhenFalse;
-            public readonly LabelSymbol Label;
+#nullable enable
+            public readonly LabelSymbol? Label;
+#nullable disable
 
             public PendingBranch(BoundNode branch, TLocalState state, LabelSymbol label, bool isConditionalState = false, TLocalState stateWhenTrue = default, TLocalState stateWhenFalse = default)
             {
@@ -708,19 +710,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         /// <summary>
         /// Used to resolve break statements in each statement form that has a break statement
         /// (loops, switch).
         /// </summary>
         private void ResolveBreaks(TLocalState breakState, LabelSymbol label)
         {
-            var pendingBranches = PendingBranches.GetAndRemoveBranches(label);
-            foreach (var pending in pendingBranches)
-            {
-                Join(ref breakState, ref pending.State);
-            }
-            pendingBranches.Free();
-
+            JoinPendingBranches(ref breakState, label);
             SetState(breakState);
         }
 
@@ -729,20 +726,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void ResolveContinues(LabelSymbol continueLabel)
         {
-            var pendingBranches = PendingBranches.GetAndRemoveBranches(continueLabel);
-            foreach (var pending in pendingBranches)
+            // Technically, nothing in the language specification depends on the state
+            // at the continue label, so we could just discard them instead of merging
+            // the states. In fact, we need not have added continue statements to the
+            // pending jump queue in the first place if we were interested solely in the
+            // flow analysis.  However, region analysis (in support of extract method)
+            // and other forms of more precise analysis
+            // depend on continue statements appearing in the pending branch queue, so
+            // we process them from the queue here.
+            JoinPendingBranches(ref this.State, continueLabel);
+        }
+
+        private void JoinPendingBranches(ref TLocalState state, LabelSymbol label)
+        {
+            var pendingBranches = PendingBranches.GetAndRemoveBranches(label);
+            if (pendingBranches is { })
             {
-                // Technically, nothing in the language specification depends on the state
-                // at the continue label, so we could just discard them instead of merging
-                // the states. In fact, we need not have added continue statements to the
-                // pending jump queue in the first place if we were interested solely in the
-                // flow analysis.  However, region analysis (in support of extract method)
-                // and other forms of more precise analysis
-                // depend on continue statements appearing in the pending branch queue, so
-                // we process them from the queue here.
-                Join(ref this.State, ref pending.State);
+                foreach (var pending in pendingBranches)
+                {
+                    Join(ref state, ref pending.State);
+                }
+                pendingBranches.Free();
             }
-            pendingBranches.Free();
         }
 
         /// <summary>
@@ -760,22 +765,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="label">Target label</param>
         /// <param name="target">Statement containing the target label</param>
-        private bool ResolveBranches(LabelSymbol label, BoundStatement target)
+        private bool ResolveBranches(LabelSymbol label, BoundStatement? target)
         {
             target?.AssertIsLabeledStatementWithLabel(label);
 
             bool labelStateChanged = false;
+
             var pendingBranches = PendingBranches.GetAndRemoveBranches(label);
-            foreach (var pending in pendingBranches)
+            if (pendingBranches is { })
             {
-                ResolveBranch(pending, label, target, ref labelStateChanged);
+                foreach (var pending in pendingBranches)
+                {
+                    ResolveBranch(pending, label, target, ref labelStateChanged);
+                }
+                pendingBranches.Free();
             }
-            pendingBranches.Free();
 
             return labelStateChanged;
         }
 
-        protected virtual void ResolveBranch(PendingBranch pending, LabelSymbol label, BoundStatement target, ref bool labelStateChanged)
+        protected virtual void ResolveBranch(PendingBranch pending, LabelSymbol label, BoundStatement? target, ref bool labelStateChanged)
         {
             var state = LabelState(label);
             if (target != null)
@@ -791,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected struct SavedPending
+        protected readonly struct SavedPending
         {
             public readonly PendingBranchesCollection PendingBranches;
             public readonly PooledHashSet<BoundStatement> LabelsSeen;
@@ -870,6 +879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _labelsSeen.Free();
             _labelsSeen = oldPending.LabelsSeen;
         }
+#nullable disable
 
         #region visitors
 

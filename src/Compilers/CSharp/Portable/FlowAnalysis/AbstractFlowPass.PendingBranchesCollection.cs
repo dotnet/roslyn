@@ -12,64 +12,64 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class AbstractFlowPass<TLocalState, TLocalFunctionState>
     {
-        protected sealed class PendingBranchesCollection : IEnumerable<PendingBranch>
+        internal sealed class PendingBranchesCollection : IEnumerable<PendingBranch>
         {
-            private ArrayBuilder<PendingBranch> _branches;
-            private PooledDictionary<LabelSymbol, ArrayBuilder<PendingBranch>>? _branchesToLabel;
+            private ArrayBuilder<PendingBranch> _unlabeledBranches;
+            private PooledDictionary<LabelSymbol, ArrayBuilder<PendingBranch>>? _labeledBranches;
 
             internal PendingBranchesCollection()
             {
-                _branches = ArrayBuilder<PendingBranch>.GetInstance();
+                _unlabeledBranches = ArrayBuilder<PendingBranch>.GetInstance();
             }
 
             internal void Free()
             {
-                _branches.Free();
-                _branches = null!;
+                _unlabeledBranches.Free();
+                _unlabeledBranches = null!;
                 FreeBranchesToLabel();
             }
 
             internal void Clear()
             {
-                _branches.Clear();
+                _unlabeledBranches.Clear();
                 FreeBranchesToLabel();
             }
 
             private void FreeBranchesToLabel()
             {
-                if (_branchesToLabel is { })
+                if (_labeledBranches is { })
                 {
-                    foreach (var branches in _branchesToLabel.Values)
+                    foreach (var branches in _labeledBranches.Values)
                     {
                         branches.Free();
                     }
-                    _branchesToLabel.Free();
-                    _branchesToLabel = null;
+                    _labeledBranches.Free();
+                    _labeledBranches = null;
                 }
             }
 
             internal ImmutableArray<PendingBranch> ToImmutable()
             {
-                return _branchesToLabel is null ?
-                    _branches.ToImmutable() :
+                return _labeledBranches is null ?
+                    _unlabeledBranches.ToImmutable() :
                     ImmutableArray.CreateRange(this);
             }
 
-            internal ArrayBuilder<PendingBranch> GetAndRemoveBranches(LabelSymbol? label)
+            internal ArrayBuilder<PendingBranch>? GetAndRemoveBranches(LabelSymbol? label)
             {
                 ArrayBuilder<PendingBranch>? result;
                 if (label is null)
                 {
-                    result = _branches;
-                    _branches = ArrayBuilder<PendingBranch>.GetInstance();
+                    result = _unlabeledBranches;
+                    _unlabeledBranches = ArrayBuilder<PendingBranch>.GetInstance();
                 }
-                else if (_branchesToLabel is { } && _branchesToLabel.TryGetValue(label, out result))
+                else if (_labeledBranches is { } && _labeledBranches.TryGetValue(label, out result))
                 {
-                    _branchesToLabel.Remove(label);
+                    _labeledBranches.Remove(label);
                 }
                 else
                 {
-                    result = ArrayBuilder<PendingBranch>.GetInstance();
+                    result = null;
                 }
                 return result;
             }
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var label = branch.Label;
                 if (label is null)
                 {
-                    _branches.Add(branch);
+                    _unlabeledBranches.Add(branch);
                 }
                 else
                 {
@@ -90,10 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal void AddRange(PendingBranchesCollection collection)
             {
-                _branches.AddRange(collection._branches);
-                if (collection._branchesToLabel is { })
+                _unlabeledBranches.AddRange(collection._unlabeledBranches);
+                if (collection._labeledBranches is { })
                 {
-                    foreach (var pair in collection._branchesToLabel)
+                    foreach (var pair in collection._labeledBranches)
                     {
                         var branches = GetOrAddBranchesToLabel(pair.Key);
                         branches.AddRange(pair.Value);
@@ -103,31 +103,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private ArrayBuilder<PendingBranch> GetOrAddBranchesToLabel(LabelSymbol label)
             {
-                if (_branchesToLabel is null)
+                if (_labeledBranches is null)
                 {
-                    _branchesToLabel = PooledDictionary<LabelSymbol, ArrayBuilder<PendingBranch>>.GetInstance();
+                    _labeledBranches = PooledDictionary<LabelSymbol, ArrayBuilder<PendingBranch>>.GetInstance();
                 }
-                if (!_branchesToLabel.TryGetValue(label, out var branches))
+                if (!_labeledBranches.TryGetValue(label, out var branches))
                 {
                     branches = ArrayBuilder<PendingBranch>.GetInstance();
-                    _branchesToLabel.Add(label, branches);
+                    _labeledBranches.Add(label, branches);
                 }
                 return branches;
             }
 
             public IEnumerator<PendingBranch> GetEnumerator()
             {
-                return _branchesToLabel is null ?
-                    ((IEnumerable<PendingBranch>)_branches).GetEnumerator() :
+                return _labeledBranches is null ?
+                    ((IEnumerable<PendingBranch>)_unlabeledBranches).GetEnumerator() :
                     getEnumeratorCore();
 
                 IEnumerator<PendingBranch> getEnumeratorCore()
                 {
-                    foreach (var branch in _branches)
+                    foreach (var branch in _unlabeledBranches)
                     {
                         yield return branch;
                     }
-                    foreach (var branches in _branchesToLabel.Values)
+                    foreach (var branches in _labeledBranches.Values)
                     {
                         foreach (var branch in branches)
                         {
