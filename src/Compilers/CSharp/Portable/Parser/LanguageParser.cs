@@ -3765,7 +3765,9 @@ parse_member_name:;
         private ExpressionSyntax ParsePossibleRefExpression()
         {
             var refKeyword = (SyntaxToken)null;
-            if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+            if (this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
+                // check for lambda expression with explicit ref return type: `ref int () => { ... }`
+                !this.IsPossibleLambdaExpression(Precedence.Expression))
             {
                 refKeyword = this.EatToken();
                 refKeyword = CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefLocalsReturns);
@@ -5047,7 +5049,10 @@ tryAgain:
 
                     SyntaxToken refKeyword = null;
                     if (isLocal && !isConst &&
-                        this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+                        this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
+                        // check for lambda expression with explicit ref return type: `ref int () => { ... }`
+                        !this.IsPossibleLambdaExpression(Precedence.Expression)
+                        )
                     {
                         refKeyword = this.EatToken();
                         refKeyword = CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefLocalsReturns);
@@ -10580,9 +10585,21 @@ tryAgain:
                 }
                 else if (isAssignmentOperator)
                 {
-                    ExpressionSyntax rhs = opKind == SyntaxKind.SimpleAssignmentExpression && CurrentToken.Kind == SyntaxKind.RefKeyword
-                        ? rhs = CheckFeatureAvailability(ParsePossibleRefExpression(), MessageID.IDS_FeatureRefReassignment)
-                        : rhs = this.ParseSubExpression(newPrecedence);
+                    ExpressionSyntax rhs;
+
+                    if (opKind == SyntaxKind.SimpleAssignmentExpression && CurrentToken.Kind == SyntaxKind.RefKeyword &&
+                        // check for lambda expression with explicit ref return type: `ref int () => { ... }`
+                        !this.IsPossibleLambdaExpression(newPrecedence))
+                    {
+                        var refKeyword = this.EatToken();
+                        rhs = this.ParseExpressionCore();
+                        rhs = _syntaxFactory.RefExpression(refKeyword, rhs);
+                        rhs = CheckFeatureAvailability(rhs, MessageID.IDS_FeatureRefReassignment);
+                    }
+                    else
+                    {
+                        rhs = this.ParseSubExpression(newPrecedence);
+                    }
 
                     if (opKind == SyntaxKind.CoalesceAssignmentExpression)
                     {
@@ -10809,7 +10826,8 @@ tryAgain:
                         return this.ParseLambdaExpression();
                     }
                     // ref is not expected to appear in this position.
-                    return this.AddError(ParsePossibleRefExpression(), ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
+                    var refKeyword = this.EatToken();
+                    return this.AddError(_syntaxFactory.RefExpression(refKeyword, this.ParseExpressionCore()), ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
                 default:
                     if (IsPredefinedType(tk))
                     {
@@ -11285,7 +11303,10 @@ tryAgain:
             }
 
             SyntaxToken refKindKeyword = null;
-            if (IsValidArgumentRefKindKeyword(this.CurrentToken.Kind))
+            if (IsValidArgumentRefKindKeyword(this.CurrentToken.Kind) &&
+                // check for lambda expression with explicit ref return type: `ref int () => { ... }`
+                !(this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
+                 this.IsPossibleLambdaExpression(Precedence.Expression)))
             {
                 refKindKeyword = this.EatToken();
             }

@@ -1133,6 +1133,45 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertEx.Equal(children, operation.Children);
         }
 
+        public override void VisitInterpolatedStringHandlerCreation(IInterpolatedStringHandlerCreationOperation operation)
+        {
+            Assert.Equal(OperationKind.InterpolatedStringHandlerCreation, operation.Kind);
+            IEnumerable<IOperation> children = new[] { operation.HandlerCreation, operation.Content };
+            AssertEx.Equal(children, operation.Children);
+            Assert.True(operation.HandlerCreation is IObjectCreationOperation or IDynamicObjectCreationOperation or IInvalidOperation);
+            Assert.True(operation.Content is IInterpolatedStringAdditionOperation or IInterpolatedStringOperation);
+            _ = operation.HandlerCreationHasSuccessParameter;
+            _ = operation.HandlerAppendCallsReturnBool;
+        }
+
+        public override void VisitInterpolatedStringAddition(IInterpolatedStringAdditionOperation operation)
+        {
+            Assert.Equal(OperationKind.InterpolatedStringAddition, operation.Kind);
+            AssertEx.Equal(new[] { operation.Left, operation.Right }, operation.Children);
+            Assert.True(operation.Left is IInterpolatedStringAdditionOperation or IInterpolatedStringOperation);
+            Assert.True(operation.Right is IInterpolatedStringAdditionOperation or IInterpolatedStringOperation);
+        }
+
+        public override void VisitInterpolatedStringHandlerArgumentPlaceholder(IInterpolatedStringHandlerArgumentPlaceholderOperation operation)
+        {
+            Assert.Equal(OperationKind.InterpolatedStringHandlerArgumentPlaceholder, operation.Kind);
+            if (operation.PlaceholderKind is InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver or InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument)
+            {
+                Assert.Equal(-1, operation.ArgumentIndex);
+            }
+            else
+            {
+                Assert.Equal(InterpolatedStringArgumentPlaceholderKind.CallsiteArgument, operation.PlaceholderKind);
+                Assert.True(operation.ArgumentIndex >= 0);
+            }
+        }
+
+        public override void VisitInterpolatedStringAppend(IInterpolatedStringAppendOperation operation)
+        {
+            Assert.True(operation.Kind is OperationKind.InterpolatedStringAppendFormatted or OperationKind.InterpolatedStringAppendLiteral or OperationKind.InterpolatedStringAppendInvalid);
+            Assert.True(operation.AppendCall is IInvocationOperation or IDynamicInvocationOperation or IInvalidOperation);
+        }
+
         private void VisitPatternCommon(IPatternOperation pattern)
         {
             Assert.NotNull(pattern.InputType);

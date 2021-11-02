@@ -43,37 +43,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
         /// Underlying cache service (owned by platform team) responsible for actual storage and retrieval of data.
         /// </summary>
         private readonly ICacheService _cacheService;
-        private readonly Action<ICacheService> _disposeCacheService;
 
         public CloudCachePersistentStorage(
             ICacheService cacheService,
             SolutionKey solutionKey,
             string workingFolderPath,
             string relativePathBase,
-            string databaseFilePath,
-            Action<ICacheService> disposeCacheService)
+            string databaseFilePath)
             : base(workingFolderPath, relativePathBase, databaseFilePath)
         {
             _cacheService = cacheService;
-            _disposeCacheService = disposeCacheService;
             _projectToContainerKeyCacheCallback = ps => new ProjectContainerKeyCache(relativePathBase, ProjectKey.ToProjectKey(solutionKey, ps));
         }
 
         public sealed override void Dispose()
-            => _disposeCacheService(_cacheService);
+            => (_cacheService as IDisposable)?.Dispose();
 
         public sealed override ValueTask DisposeAsync()
         {
-            if (_cacheService is IAsyncDisposable asyncDisposable)
-            {
-                return asyncDisposable.DisposeAsync();
-            }
-            else if (_cacheService is IDisposable disposable)
-            {
-                disposable.Dispose();
-                return ValueTaskFactory.CompletedTask;
-            }
-
+            Dispose();
             return ValueTaskFactory.CompletedTask;
         }
 

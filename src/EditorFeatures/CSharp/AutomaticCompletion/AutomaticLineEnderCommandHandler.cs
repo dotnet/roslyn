@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -55,8 +56,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AutomaticLineEnderCommandHandler(
             ITextUndoHistoryRegistry undoRegistry,
-            IEditorOperationsFactoryService editorOperations)
-            : base(undoRegistry, editorOperations)
+            IEditorOperationsFactoryService editorOperations,
+            IGlobalOptionService globalOptions)
+            : base(undoRegistry, editorOperations, globalOptions)
         {
         }
 
@@ -601,7 +603,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 // Consider this as a SwitchExpression, add the brace after 'switch'
                 if (switchStatementNode.OpenParenToken.IsMissing
                     && switchStatementNode.CloseParenToken.IsMissing
-                    && IsTokenPartOfExpresion(switchStatementNode.GetFirstToken().GetPreviousToken()))
+                    && IsTokenPartOfExpression(switchStatementNode.GetFirstToken().GetPreviousToken()))
                 {
                     return switchStatementNode.SwitchKeyword.Span.End;
                 }
@@ -621,7 +623,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             };
         }
 
-        private static bool IsTokenPartOfExpresion(SyntaxToken syntaxToken)
+        private static bool IsTokenPartOfExpression(SyntaxToken syntaxToken)
         {
             if (syntaxToken.IsMissing || syntaxToken.IsKind(SyntaxKind.None))
             {

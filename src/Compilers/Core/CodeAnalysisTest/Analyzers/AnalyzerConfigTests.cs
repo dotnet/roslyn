@@ -2485,6 +2485,57 @@ global_level = abc
             Assert.Equal(0, nonUserGlobalConfig.GlobalLevel);
         }
 
+        [Theory]
+        [InlineData("/dir1/dir3/../dir2/file.cs", true)]
+        [InlineData("/dir1/./././././dir2/file.cs", true)]
+        [InlineData("/dir1/../dir1/../dir1/../dir1/dir2/file.cs", true)]
+        [InlineData("/dir1/dir3/dir4/../dir2/file.cs", false)]
+        [InlineData("file.cs", false)]
+        [InlineData("", false)]
+        [InlineData("/../../dir1/dir2/file.cs", true)]
+        [InlineData("/./../dir1/dir2/file.cs", true)]
+        [InlineData("/dir1/../../dir1/dir2/file.cs", true)]
+        [InlineData("/..", false)]
+        [InlineData("/../file.cs", false)]
+        [InlineData("/dir1/../file.cs", false)]
+        [InlineData("./dir1/dir2/file.cs", false)]
+        [InlineData("././../.././dir1/dir2/file.cs", false)]
+        [InlineData("./dir1/../file.cs", false)]
+        [InlineData("../dir1/dir2.cs", false)]
+        public void EquivalentSourcePathNames(string sourcePath, bool shouldMatch)
+        {
+            string sectionName = "/dir1/dir2/file.cs";
+
+            // append the drive root on windows (use something other than C: to ensure its not working by luck)
+            if (ExecutionConditionUtil.IsWindows)
+            {
+                sectionName = sectionName.Insert(0, "X:");
+                sourcePath = sourcePath.Insert(0, "X:");
+            }
+
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse($@"
+is_global = true
+[{sectionName}]
+a = b
+", "/.editorconfig"));
+
+            var configSet = AnalyzerConfigSet.Create(configs, out var diagnostics);
+            configs.Free();
+
+            var options = configSet.GetOptionsForSourcePath(sourcePath);
+
+            if (shouldMatch)
+            {
+                Assert.Single(options.AnalyzerOptions);
+                Assert.Equal("b", options.AnalyzerOptions["a"]);
+            }
+            else
+            {
+                Assert.Empty(options.AnalyzerOptions);
+            }
+        }
+
         #endregion
     }
 }

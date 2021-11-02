@@ -12,10 +12,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -44,10 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
-            if (document == null)
-            {
-                return null;
-            }
+            Contract.ThrowIfNull(document);
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
@@ -65,6 +64,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         internal static async Task<Hover?> GetHoverAsync(
             SemanticModel semanticModel,
             int position,
+            SymbolDescriptionOptions options,
             HostLanguageServices languageServices,
             CancellationToken cancellationToken)
         {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Get the quick info service to compute quick info.
             // This code path is only invoked for C# and VB, so we can directly cast to QuickInfoServiceWithProviders.
             var quickInfoService = (QuickInfoServiceWithProviders)languageServices.GetRequiredService<QuickInfoService>();
-            var info = await quickInfoService.GetQuickInfoAsync(languageServices.WorkspaceServices.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(false);
+            var info = await quickInfoService.GetQuickInfoAsync(semanticModel, position, options, cancellationToken).ConfigureAwait(false);
             if (info == null)
             {
                 return null;

@@ -64,10 +64,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public async Task<LSP.CompletionList?> HandleRequestAsync(LSP.CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
-            if (document == null)
-            {
-                return null;
-            }
+            Contract.ThrowIfNull(document);
 
             // C# and VB share the same LSP language server, and thus share the same default trigger characters.
             // We need to ensure the trigger character is valid in the document's language. For example, the '{'
@@ -81,7 +78,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var completionOptions = await GetCompletionOptionsAsync(document, cancellationToken).ConfigureAwait(false);
+            var completionOptions = GetCompletionOptions(document);
             var completionService = document.GetRequiredLanguageService<CompletionService>();
             var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -98,10 +95,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var commitCharactersRuleCache = new Dictionary<ImmutableArray<CharacterSetModificationRule>, string[]>(CommitCharacterArrayComparer.Instance);
 
             // Feature flag to enable the return of TextEdits instead of InsertTexts (will increase payload size).
-            // We check against the CompletionOption for test purposes only.
             Contract.ThrowIfNull(context.Solution);
-            var returnTextEdits = _globalOptions.GetOption(LspOptions.LspCompletionFeatureFlag) ||
-                _globalOptions.GetOption(CompletionOptions.ForceRoslynLSPCompletionExperiment, document.Project.Language);
+            var returnTextEdits = _globalOptions.GetOption(LspOptions.LspCompletionFeatureFlag);
 
             TextSpan? defaultSpan = null;
             LSP.Range? defaultRange = null;
@@ -361,6 +356,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             static void PromoteCommonCommitCharactersOntoList(LSP.VSInternalCompletionList completionList)
             {
+                if (completionList.Items.IsEmpty())
+                {
+                    return;
+                }
+
                 var defaultCommitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
                 var commitCharacterReferences = new Dictionary<object, int>();
                 var mostUsedCount = 0;
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             LSP.CompletionParams request,
             SourceText sourceText,
             Document document,
-            OptionSet completionOptions,
+            CompletionOptions completionOptions,
             CompletionService completionService,
             CancellationToken cancellationToken)
         {
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var resultId = result.Value.ResultId;
 
-            var completionListMaxSize = completionOptions.GetOption(LspOptions.MaxCompletionListSize);
+            var completionListMaxSize = _globalOptions.GetOption(LspOptions.MaxCompletionListSize);
             var (completionList, isIncomplete) = FilterCompletionList(result.Value.List, completionListMaxSize, completionListSpan, completionTrigger, sourceText, document);
 
             return (completionList, isIncomplete, resultId);
@@ -449,12 +449,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Document document,
             int position,
             CompletionTrigger completionTrigger,
-            OptionSet completionOptions,
+            CompletionOptions completionOptions,
             CompletionService completionService,
             CompletionListCache completionListCache,
             CancellationToken cancellationToken)
         {
-            var completionList = await completionService.GetCompletionsAsync(document, position, completionTrigger, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var (completionList, _) = await completionService.GetCompletionsInternalAsync(document, position, completionOptions, completionTrigger, cancellationToken: cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
             if (completionList == null || completionList.Items.IsEmpty)
             {
@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return completionItem.Rules.MatchPriority == MatchPriority.Preselect && completionItem.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection;
         }
 
-        internal static async Task<OptionSet> GetCompletionOptionsAsync(Document document, CancellationToken cancellationToken)
+        internal static CompletionOptions GetCompletionOptions(Document document)
         {
             // Filter out snippets as they are not supported in the LSP client
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1139740
@@ -555,12 +555,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // 2.  We need to figure out how to provide the text edits along with the completion item or provide them in the resolve request.
             //     https://devdiv.visualstudio.com/DevDiv/_workitems/edit/985860/
             // 3.  LSP client should support completion filters / expanders
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var completionOptions = documentOptions
-                .WithChangedOption(CompletionOptions.SnippetsBehavior, SnippetsRule.NeverInclude)
-                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, false)
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, false);
-            return completionOptions;
+            return CompletionOptions.From(document.Project) with
+            {
+                SnippetsBehavior = SnippetsRule.NeverInclude,
+                ShowItemsFromUnimportedNamespaces = false,
+                IsExpandedCompletion = false
+            };
         }
 
         private static LSP.CompletionItemKind GetCompletionKind(ImmutableArray<string> tags)

@@ -7746,7 +7746,9 @@ return;
   <methods>
     <method containingType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;&gt;c"" methodName=""&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;b__0_0"" />
+        <using>
+          <namespace usingCount=""2"" />
+        </using>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""2"" />
           <slot kind=""33"" offset=""76"" />
@@ -7765,6 +7767,10 @@ return;
         <entry offset=""0xa9"" hidden=""true"" document=""1"" />
         <entry offset=""0xc1"" hidden=""true"" document=""1"" />
       </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xd6"">
+        <namespace name=""System"" />
+        <namespace name=""System.Threading.Tasks"" />
+      </scope>
       <asyncInfo>
         <catchHandler offset=""0xa9"" />
         <kickoffMethod declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"" />
@@ -7809,7 +7815,9 @@ return 11;
   <methods>
     <method containingType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;&gt;c"" methodName=""&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;b__0_0"" />
+        <using>
+          <namespace usingCount=""2"" />
+        </using>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""2"" />
           <slot kind=""20"" offset=""2"" />
@@ -7829,6 +7837,10 @@ return 11;
         <entry offset=""0xac"" hidden=""true"" document=""1"" />
         <entry offset=""0xc6"" hidden=""true"" document=""1"" />
       </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xdc"">
+        <namespace name=""System"" />
+        <namespace name=""System.Threading.Tasks"" />
+      </scope>
       <asyncInfo>
         <catchHandler offset=""0xac"" />
         <kickoffMethod declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"" />

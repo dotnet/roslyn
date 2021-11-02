@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     cleanup[i] = _factory.Assignment(_factory.Local(pinnedTemp), new BoundPointerIndirectionOperator(
                         _factory.Syntax,
                         _factory.Default(new PointerTypeSymbol(pinnedTemp.TypeWithAnnotations)),
+                        refersToLocation: false,
                         pinnedTemp.Type),
                         isRef: true);
                 }
@@ -284,10 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                  type: fixedInitializer.ElementPointerType);
 
             // (int*)&pinnedTemp
-            var pointerValue = factory.Convert(
-                localType,
-                addr,
-                fixedInitializer.ElementPointerTypeConversion);
+            var pointerValue = ApplyConversionIfNotIdentity(fixedInitializer.ElementPointerConversion, fixedInitializer.ElementPointerPlaceholder, addr);
 
             // ptr = (int*)&pinnedTemp;
             BoundStatement localInit = InstrumentLocalDeclarationIfNecessary(localDecl, localSymbol,
@@ -371,10 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: fixedInitializer.ElementPointerType);
 
             // (int*)&pinnedTemp
-            var pointerValue = factory.Convert(
-                localType,
-                addr,
-                fixedInitializer.ElementPointerTypeConversion);
+            var pointerValue = ApplyConversionIfNotIdentity(fixedInitializer.ElementPointerConversion, fixedInitializer.ElementPointerPlaceholder, addr);
 
             // {pinnedTemp =ref .GetPinnable(), (int*)&pinnedTemp}
             BoundExpression pinAndGetPtr = factory.Sequence(
@@ -443,10 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                  factory.Local(pinnedTemp),
                  Conversion.PinnedObjectToPointer);
 
-            var convertedStringTemp = factory.Convert(
-                localType,
-                addr,
-                fixedInitializer.ElementPointerTypeConversion);
+            var convertedStringTemp = ApplyConversionIfNotIdentity(fixedInitializer.ElementPointerConversion, fixedInitializer.ElementPointerPlaceholder, addr);
 
             BoundStatement localInit = InstrumentLocalDeclarationIfNecessary(localDecl, localSymbol,
                 factory.Assignment(factory.Local(localSymbol), convertedStringTemp));
@@ -539,10 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: this is a fixed statement address-of in that it's the initial value of the pointer.
             //&temp[0]
             BoundExpression firstElementAddress = new BoundAddressOfOperator(factory.Syntax, firstElement, type: new PointerTypeSymbol(arrayElementType));
-            BoundExpression convertedFirstElementAddress = factory.Convert(
-                localType,
-                firstElementAddress,
-                fixedInitializer.ElementPointerTypeConversion);
+            BoundExpression convertedFirstElementAddress = ApplyConversionIfNotIdentity(fixedInitializer.ElementPointerConversion, fixedInitializer.ElementPointerPlaceholder, firstElementAddress);
 
             //loc = &temp[0]
             BoundExpression consequenceAssignment = factory.AssignmentExpression(factory.Local(localSymbol), convertedFirstElementAddress);

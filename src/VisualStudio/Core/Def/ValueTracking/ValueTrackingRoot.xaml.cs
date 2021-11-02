@@ -37,6 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
             if (child is null)
             {
+                RootGrid.Children.Add(EmptyTextMessage);
                 EmptyTextMessage.Visibility = Visibility.Visible;
             }
             else

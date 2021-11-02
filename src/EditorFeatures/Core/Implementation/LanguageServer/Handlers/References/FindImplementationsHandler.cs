@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -32,13 +33,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public override async Task<LSP.Location[]> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var locations = ArrayBuilder<LSP.Location>.GetInstance();
-
             var document = context.Document;
-            if (document == null)
-            {
-                return locations.ToArrayAndFree();
-            }
+            Contract.ThrowIfNull(document);
+
+            var locations = ArrayBuilder<LSP.Location>.GetInstance();
 
             var findUsagesService = document.GetRequiredLanguageService<IFindUsagesService>();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);

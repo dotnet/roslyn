@@ -225,8 +225,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     // Create a context to store pass the information along and collect the results.
                     var context = new TaggerContext<TTag>(
-                        oldState, spansToTag, caretPosition, textChangeRange, oldTagTrees, cancellationToken);
-                    await ProduceTagsAsync(context).ConfigureAwait(false);
+                        oldState, spansToTag, caretPosition, textChangeRange, oldTagTrees);
+                    await ProduceTagsAsync(context, cancellationToken).ConfigureAwait(false);
 
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -370,20 +370,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             private bool ShouldSkipTagProduction()
-            {
-                var options = _dataSource.Options ?? SpecializedCollections.EmptyEnumerable<Option2<bool>>();
-                var perLanguageOptions = _dataSource.PerLanguageOptions ?? SpecializedCollections.EmptyEnumerable<PerLanguageOption2<bool>>();
+                => _dataSource.Options.Any(option => !_dataSource.GlobalOptions.GetOption(option)) ||
+                   _dataSource.PerLanguageOptions.Any(option => !_dataSource.GlobalOptions.GetOption(option, _subjectBuffer.GetLanguageName()));
 
-                return options.Any(option => !_subjectBuffer.GetFeatureOnOffOption(option)) ||
-                       perLanguageOptions.Any(option => !_subjectBuffer.GetFeatureOnOffOption(option));
-            }
-
-            private Task ProduceTagsAsync(TaggerContext<TTag> context)
+            private Task ProduceTagsAsync(TaggerContext<TTag> context, CancellationToken cancellationToken)
             {
                 // If the feature is disabled, then just produce no tags.
                 return ShouldSkipTagProduction()
                     ? Task.CompletedTask
-                    : _dataSource.ProduceTagsAsync(context);
+                    : _dataSource.ProduceTagsAsync(context, cancellationToken);
             }
 
             private static Dictionary<ITextBuffer, DiffResult> ProcessNewTagTrees(

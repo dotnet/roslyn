@@ -213,18 +213,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             "csharp_prefer_simple_default_expression",
             $"TextEditor.CSharp.Specific.{nameof(PreferSimpleDefaultExpression)}");
 
-        private static readonly SyntaxKind[] s_preferredModifierOrderDefault =
-            {
-                SyntaxKind.PublicKeyword, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword,
-                SyntaxKind.StaticKeyword,
-                SyntaxKind.ExternKeyword,
-                SyntaxKind.NewKeyword,
-                SyntaxKind.VirtualKeyword, SyntaxKind.AbstractKeyword, SyntaxKind.SealedKeyword, SyntaxKind.OverrideKeyword,
-                SyntaxKind.ReadOnlyKeyword,
-                SyntaxKind.UnsafeKeyword,
-                SyntaxKind.VolatileKeyword,
-                SyntaxKind.AsyncKeyword
-            };
+        private static readonly ImmutableArray<SyntaxKind> s_preferredModifierOrderDefault = ImmutableArray.Create(
+            SyntaxKind.PublicKeyword, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword,
+            SyntaxKind.StaticKeyword,
+            SyntaxKind.ExternKeyword,
+            SyntaxKind.NewKeyword,
+            SyntaxKind.VirtualKeyword, SyntaxKind.AbstractKeyword, SyntaxKind.SealedKeyword, SyntaxKind.OverrideKeyword,
+            SyntaxKind.ReadOnlyKeyword,
+            SyntaxKind.UnsafeKeyword,
+            SyntaxKind.VolatileKeyword,
+            SyntaxKind.AsyncKeyword);
 
         public static readonly Option2<CodeStyleOption2<string>> PreferredModifierOrder = CreateOption(
             CSharpCodeStyleOptionGroups.Modifier, nameof(PreferredModifierOrder),

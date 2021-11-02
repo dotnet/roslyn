@@ -772,10 +772,34 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         private sealed class SynthesizedDefinitions
         {
-            public ConcurrentQueue<Cci.INestedTypeDefinition> NestedTypes;
+            private ConcurrentQueue<Cci.INestedTypeDefinition> NestedTypes;
             public ConcurrentQueue<Cci.IMethodDefinition> Methods;
             public ConcurrentQueue<Cci.IPropertyDefinition> Properties;
             public ConcurrentQueue<Cci.IFieldDefinition> Fields;
+
+            // Nested types may be queued from concurrent threads, but we need to emit them
+            // in a deterministic order.
+            internal IEnumerable<Cci.INestedTypeDefinition> OrderedNestedTypes
+            {
+                get
+                {
+                    // We don't synthesize nested types with different arities for a given name
+                    Debug.Assert(NestedTypes is null ||
+                        NestedTypes.Select(t => t.Name).Distinct().Count() == NestedTypes.Count());
+
+                    return NestedTypes?.OrderBy(t => t.Name, StringComparer.Ordinal);
+                }
+            }
+
+            internal void AddNestedType(Cci.INestedTypeDefinition nestedType)
+            {
+                if (NestedTypes == null)
+                {
+                    Interlocked.CompareExchange(ref NestedTypes, new ConcurrentQueue<Cci.INestedTypeDefinition>(), null);
+                }
+
+                NestedTypes.Enqueue(nestedType);
+            }
 
             public ImmutableArray<ISymbolInternal> GetAllMembers()
             {
@@ -807,7 +831,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 if (NestedTypes != null)
                 {
-                    foreach (var type in NestedTypes)
+                    foreach (var type in OrderedNestedTypes)
                     {
                         builder.Add(type.GetInternalSymbol());
                     }
@@ -834,7 +858,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             if (_synthesizedTypeMembers.TryGetValue(container, out var defs))
             {
-                compileEmitTypes = defs.NestedTypes;
+                compileEmitTypes = defs.OrderedNestedTypes;
             }
 
             if (declareTypes == null)
@@ -900,12 +924,7 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(nestedType != null);
 
             SynthesizedDefinitions defs = GetOrAddSynthesizedDefinitions(container);
-            if (defs.NestedTypes == null)
-            {
-                Interlocked.CompareExchange(ref defs.NestedTypes, new ConcurrentQueue<Cci.INestedTypeDefinition>(), null);
-            }
-
-            defs.NestedTypes.Enqueue(nestedType);
+            defs.AddNestedType(nestedType);
         }
 
         public void AddSynthesizedDefinition(INamespaceSymbolInternal container, INamespaceOrTypeSymbolInternal typeOrNamespace)
