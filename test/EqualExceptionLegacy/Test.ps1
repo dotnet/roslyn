@@ -95,6 +95,13 @@ function Verify-HasLogs([string]$shortTestName, [string]$exceptionName) {
         $currentFailureCount++
     }
 
+    $ideLogPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-$shortTestName-$exceptionName.IDE.log" | sort LastWriteTime | select -last 1
+    if (-not $ideLogPath) {
+        Write-Host "Verifying IDE state logs for failing test"
+        Write-Host "Missing log file '$shortTestName-$exceptionName.IDE.log'"
+        $currentFailureCount++
+    }
+
     $pngPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-$shortTestName-$exceptionName.png" | sort LastWriteTime | select -last 1
     if (-not $pngPath) {
         Write-Host "Verifying diagnostic screenshot for failing test"

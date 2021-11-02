@@ -8,6 +8,7 @@ namespace Xunit.InProcess
     using System.Reflection;
     using System.Runtime.InteropServices;
     using System.Text;
+    using Microsoft.VisualStudio.Shell.Interop;
     using Xunit.Harness;
     using File = System.IO.File;
     using IVsUIShell = Microsoft.VisualStudio.Shell.Interop.IVsUIShell;
@@ -110,6 +111,55 @@ namespace Xunit.InProcess
                 vsActivityLogBuilder.AppendLine($"{Environment.NewLine}</{VisualStudioActivityLogRoot}>");
 
                 return vsActivityLogBuilder.ToString();
+            });
+        }
+
+        internal static string GetIdeState()
+        {
+            return InvokeOnUIThread(() =>
+            {
+                var stateBuilder = new StringBuilder();
+
+                /*
+                 * Solution
+                 */
+                if (GlobalServiceProvider.ServiceProvider.GetService(typeof(SVsSolution)) is IVsSolution solution
+                    && solution.GetSolutionInfo(out var solutionDirectory, out var solutionFile, out var userOptsFile) == VSConstants.S_OK)
+                {
+                    stateBuilder.AppendLine("Solution:");
+                    stateBuilder.AppendLine($"  Solution Directory: {solutionDirectory}");
+                    stateBuilder.AppendLine($"  Solution File:      {solutionFile}");
+                    stateBuilder.AppendLine($"  User Opts File:     {userOptsFile}");
+                }
+
+                /*
+                 * Error list
+                 */
+                if (GlobalServiceProvider.ServiceProvider.GetService(typeof(SVsTaskList)) is IVsTaskList taskList
+                    && taskList.EnumTaskItems(out var enumTaskItems) == VSConstants.S_OK)
+                {
+                    stateBuilder.AppendLine("Error list:");
+
+                    var index = 0;
+                    var taskItems = new IVsTaskItem[10];
+                    var actual = new uint[1];
+                    while (enumTaskItems.Next((uint)taskItems.Length, taskItems, actual) == VSConstants.S_OK)
+                    {
+                        if (actual[0] == 0)
+                        {
+                            break;
+                        }
+
+                        for (var i = 0; i < actual[0]; i++)
+                        {
+                            var item = taskItems[i];
+                            var text = item.get_Text(out var name) == VSConstants.S_OK ? name : string.Empty;
+                            stateBuilder.AppendLine($"  {++index}: {name}");
+                        }
+                    }
+                }
+
+                return stateBuilder.ToString();
             });
         }
 
