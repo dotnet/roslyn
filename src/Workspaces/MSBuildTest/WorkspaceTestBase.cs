@@ -292,5 +292,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"CircularCSharpProject1.csproj", Resources.ProjectFiles.CSharp.CircularProjectReferences_CircularCSharpProject1),
                 (@"CircularCSharpProject2.csproj", Resources.ProjectFiles.CSharp.CircularProjectReferences_CircularCSharpProject2));
         }
+
+        protected static FileSet GetVBNetCoreAppWithGlobalImportAndLibraryFiles()
+        {
+            return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
+                (@"Directory.Build.props", Resources.Directory_Build_props),
+                (@"Directory.Build.targets", Resources.Directory_Build_targets),
+                (@"VBProject\VBProject.vbproj", Resources.ProjectFiles.VisualBasic.VBNetCoreAppWithGlobalImportAndLibrary_VBProject),
+                (@"VBProject\Program.vb", Resources.SourceFiles.VisualBasic.VBNetCoreAppWithGlobalImportAndLibrary_Program),
+                (@"Library\Library.csproj", Resources.ProjectFiles.CSharp.VBNetCoreAppWithGlobalImportAndLibrary_Library),
+                (@"Library\MyHelperClass.cs", Resources.SourceFiles.CSharp.VBNetCoreAppWithGlobalImportAndLibrary_MyHelperClass));
+        }
     }
 }

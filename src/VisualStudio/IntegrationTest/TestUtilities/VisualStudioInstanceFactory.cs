@@ -360,6 +360,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"Roslyn\\Internal\\OnOff\\Features\" OOP64Bit dword 0")).WaitForExit();
                 }
 
+                // Configure RemoteHostOptions.OOPCoreClrFeatureFlag for testing
+                if (string.Equals(Environment.GetEnvironmentVariable("ROSLYN_OOPCORECLR"), "true", StringComparison.OrdinalIgnoreCase))
+                {
+                    Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Roslyn\\ServiceHubCore\" Value dword 1")).WaitForExit();
+                }
+
                 _firstLaunch = false;
             }
 

@@ -321,18 +321,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         #endregion
-
-        internal TestAccessor GetTestAccessor() => new(this);
-
-        internal readonly struct TestAccessor
-        {
-            private readonly SuggestedAction _suggestedAction;
-
-            public TestAccessor(SuggestedAction suggestedAction)
-                => _suggestedAction = suggestedAction;
-
-            public Task InvokeAsync()
-                => _suggestedAction.InvokeAsync();
-        }
     }
 }

@@ -1825,6 +1825,9 @@ endRegion:
                     var instanceReference = (IInstanceReferenceOperation)n;
                     return instanceReference.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance ||
                         instanceReference.ReferenceKind == InstanceReferenceKind.PatternInput ||
+                        // Will be removed when CFG support for interpolated string handlers is implemented, tracked by
+                        // https://github.com/dotnet/roslyn/issues/54718
+                        instanceReference.ReferenceKind == InstanceReferenceKind.InterpolatedStringHandler ||
                         (instanceReference.ReferenceKind == InstanceReferenceKind.ImplicitReceiver &&
                          n.Type.IsAnonymousType &&
                          n.Parent is IPropertyReferenceOperation propertyReference &&
@@ -1904,6 +1907,9 @@ endRegion:
                 case OperationKind.NegatedPattern:
                 case OperationKind.BinaryPattern:
                 case OperationKind.TypePattern:
+                case OperationKind.InterpolatedStringAppendFormatted:
+                case OperationKind.InterpolatedStringAppendLiteral:
+                case OperationKind.InterpolatedStringAppendInvalid:
                     return true;
             }
 

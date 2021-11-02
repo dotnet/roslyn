@@ -109,12 +109,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // tmp = loweredRight;
                 var tmpAssignment = MakeAssignmentOperator(node.Syntax, tmp, loweredRight, node.Type, used: true, isChecked: false, isCompoundAssignment: false);
 
+                Debug.Assert(transformedLHS.Type.GetNullableUnderlyingType().Equals(tmp.Type.StrippedType(), TypeCompareKind.AllIgnoreOptions));
+
                 // transformedLhs = tmp;
                 var transformedLhsAssignment =
                     MakeAssignmentOperator(
                         node.Syntax,
                         transformedLHS,
-                        MakeConversionNode(tmp, transformedLHS.Type, @checked: false),
+                        MakeConversionNode(tmp, transformedLHS.Type, @checked: false, markAsChecked: true),
                         node.LeftOperand.Type,
                         used: true,
                         isChecked: false,

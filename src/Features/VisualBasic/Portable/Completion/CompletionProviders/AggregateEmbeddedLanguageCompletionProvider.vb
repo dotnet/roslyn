@@ -20,5 +20,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Sub New(<ImportMany> languageServices As IEnumerable(Of Lazy(Of ILanguageService, LanguageServiceMetadata)))
             MyBase.New(languageServices, LanguageNames.VisualBasic)
         End Sub
+
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
     End Class
 End Namespace

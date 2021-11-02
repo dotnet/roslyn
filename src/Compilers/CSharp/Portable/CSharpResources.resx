@@ -6882,7 +6882,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>At least one top-level statement must be non-empty.</value>
   </data>
   <data name="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString" xml:space="preserve">
-    <value>Newlines are not allowed inside a non-verbatim interpolated string</value>
+    <value>Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</value>
   </data>
   <data name="IDS_FeatureGenericAttributes" xml:space="preserve">
     <value>generic attributes</value>
@@ -6901,5 +6901,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_CompileTimeCheckedOverflow_Title" xml:space="preserve">
     <value>The operation may overflow at runtime (use 'unchecked' syntax to override)</value>
+  </data>
+  <data name="IDS_FeatureNewLinesInInterpolations" xml:space="preserve">
+    <value>newlines in interpolations</value>
+  </data>
+  <data name="ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers" xml:space="preserve">
+    <value>Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</value>
   </data>
 </root>
