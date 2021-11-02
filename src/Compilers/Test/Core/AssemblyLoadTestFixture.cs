@@ -15,8 +15,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public sealed class AssemblyLoadTestFixture : IDisposable
     {
-        private static readonly CSharpCompilationOptions s_dllWithMaxWarningLevel = new(OutputKind.DynamicallyLinkedLibrary, warningLevel: Diagnostic.MaxWarningLevel);
-
         private readonly TempRoot _temp;
         private readonly TempDirectory _directory;
 
@@ -26,9 +24,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public TempFile Delta1 { get; }
 
         /// <summary>
+        /// An assembly with no references, assembly version 1, and public signed.
+        /// </summary>
+        public TempFile DeltaPublicSigned1 { get; }
+
+        /// <summary>
         /// An assembly with a reference to <see cref="Delta1"/>.
         /// </summary>
         public TempFile Gamma { get; }
+
+        /// <summary>
+        /// An assembly with a reference to <see cref="DeltaPublicSigned1"/>.
+        /// </summary>
+        public TempFile GammaReferencingPublicSigned { get; }
 
         /// <summary>
         /// An assembly with a reference to <see cref="Gamma"/>.
@@ -46,9 +54,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public TempFile Delta2 { get; }
 
         /// <summary>
+        /// An assembly with no references, assembly version 2, and public signed.
+        /// </summary>
+        public TempFile DeltaPublicSigned2 { get; }
+
+        /// <summary>
         /// An assembly with a reference to <see cref="Delta2"/>.
         /// </summary>
         public TempFile Epsilon { get; }
+
+        /// <summary>
+        /// An assembly with a reference to <see cref="DeltaPublicSigned2"/>.
+        /// </summary>
+        public TempFile EpsilonReferencingPublicSigned { get; }
 
         /// <summary>
         /// An assembly with no references, assembly version 2. The implementation however is different than
@@ -89,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _temp = new TempRoot();
             _directory = _temp.CreateDirectory();
 
-            Delta1 = GenerateDll("Delta", _directory, @"
+            const string Delta1Source = @"
 using System.Text;
 
 [assembly: System.Reflection.AssemblyTitle(""Delta"")]
@@ -105,9 +123,13 @@ namespace Delta
         }
     }
 }
-");
+";
+
+            Delta1 = GenerateDll("Delta", _directory, Delta1Source);
             var delta1Reference = MetadataReference.CreateFromFile(Delta1.Path);
-            Gamma = GenerateDll("Gamma", _directory, @"
+            DeltaPublicSigned1 = GenerateDll("DeltaPublicSigned", _directory.CreateDirectory("Delta1PublicSigned"), Delta1Source, publicSign: true);
+
+            const string GammaSource = @"
 using System.Text;
 using Delta;
 
@@ -123,7 +145,9 @@ namespace Gamma
         }
     }
 }
-", delta1Reference);
+";
+            Gamma = GenerateDll("Gamma", _directory, GammaSource, delta1Reference);
+            GammaReferencingPublicSigned = GenerateDll("GammaReferencingPublicSigned", _directory.CreateDirectory("GammaReferencingPublicSigned"), GammaSource, MetadataReference.CreateFromFile(DeltaPublicSigned1.Path));
 
             var gammaReference = MetadataReference.CreateFromFile(Gamma.Path);
             Beta = GenerateDll("Beta", _directory, @"
@@ -161,8 +185,7 @@ namespace Alpha
 }
 ", gammaReference);
 
-            var v2Directory = _directory.CreateDirectory("Version2");
-            Delta2 = GenerateDll("Delta", v2Directory, @"
+            const string Delta2Source = @"
 using System.Text;
 
 [assembly: System.Reflection.AssemblyTitle(""Delta"")]
@@ -178,9 +201,16 @@ namespace Delta
         }
     }
 }
-");
+";
+
+            var v2Directory = _directory.CreateDirectory("Version2");
+            Delta2 = GenerateDll("Delta", v2Directory, Delta2Source);
+            var v2PublicSignedDirectory = _directory.CreateDirectory("Version2PublicSigned");
+            DeltaPublicSigned2 = GenerateDll("DeltaPublicSigned", v2PublicSignedDirectory, Delta2Source, publicSign: true);
+
             var delta2Reference = MetadataReference.CreateFromFile(Delta2.Path);
-            Epsilon = GenerateDll("Epsilon", v2Directory, @"
+
+            const string EpsilonSource = @"
 using System.Text;
 using Delta;
 
@@ -196,7 +226,9 @@ namespace Epsilon
         }
     }
 }
-", delta2Reference);
+";
+            Epsilon = GenerateDll("Epsilon", v2Directory, EpsilonSource, delta2Reference);
+            EpsilonReferencingPublicSigned = GenerateDll("EpsilonReferencingPublicSigned", v2PublicSignedDirectory, EpsilonSource, MetadataReference.CreateFromFile(DeltaPublicSigned2.Path));
 
             var v2BDirectory = _directory.CreateDirectory("Version2B");
             Delta2B = GenerateDll("Delta", v2BDirectory, @"
@@ -357,16 +389,28 @@ public class Class1
 
         private static TempFile GenerateDll(string assemblyName, TempDirectory directory, string csSource, params MetadataReference[] additionalReferences)
         {
+            return GenerateDll(assemblyName, directory, csSource, publicSign: false, additionalReferences);
+        }
+
+        private static TempFile GenerateDll(string assemblyName, TempDirectory directory, string csSource, bool publicSign, params MetadataReference[] additionalReferences)
+        {
+            CSharpCompilationOptions options = new(OutputKind.DynamicallyLinkedLibrary, warningLevel: Diagnostic.MaxWarningLevel);
+
+            if (publicSign)
+            {
+                options = options.WithPublicSign(true).WithCryptoPublicKey(SigningTestHelpers.PublicKey);
+            }
+
             var analyzerDependencyCompilation = CSharpCompilation.Create(
                 assemblyName: assemblyName,
                 syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(csSource) },
-                references: new MetadataReference[]
+                references: (new MetadataReference[]
                 {
                     NetStandard20.mscorlib,
                     NetStandard20.netstandard,
                     NetStandard20.SystemRuntime
-                }.Concat(additionalReferences),
-                options: s_dllWithMaxWarningLevel);
+                }).Concat(additionalReferences),
+                options: options);
 
             var tempFile = directory.CreateFile($"{assemblyName}.dll");
             tempFile.WriteAllBytes(analyzerDependencyCompilation.EmitToArray());

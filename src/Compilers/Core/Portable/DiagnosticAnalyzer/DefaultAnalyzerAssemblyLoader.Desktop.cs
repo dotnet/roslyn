@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Roslyn.Utilities;
@@ -147,16 +148,30 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(candidatePaths.Count > 0);
             }
 
-            // Multiple assemblies of the same simple name but different identities might have been registered.
-            // Load the one that matches the requested identity (if any).
+            // Find the highest version that satisfies the original request. We'll match for the highest version we can, assuming it
+            // actually matches the original request
+            string? bestPath = null;
+            Version? bestIdentityVersion = null;
+
             foreach (var candidatePath in candidatePaths)
             {
                 var candidateIdentity = GetOrAddAssemblyIdentity(candidatePath);
 
-                if (requestedIdentity.Equals(candidateIdentity))
+                if (candidateIdentity is not null &&
+                    candidateIdentity.Version >= requestedIdentity.Version &&
+                    candidateIdentity.PublicKeyToken.SequenceEqual(requestedIdentity.PublicKeyToken))
                 {
-                    return LoadFromPathUnchecked(candidatePath);
+                    if (bestIdentityVersion is null || candidateIdentity.Version > bestIdentityVersion)
+                    {
+                        bestPath = candidatePath;
+                        bestIdentityVersion = candidateIdentity.Version;
+                    }
                 }
+            }
+
+            if (bestPath != null)
+            {
+                return LoadFromPathUnchecked(bestPath);
             }
 
             return null;
