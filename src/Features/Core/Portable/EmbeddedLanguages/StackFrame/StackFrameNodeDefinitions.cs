@@ -67,9 +67,24 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     }
 
     /// <summary>
+    /// Base class for all type nodes
+    /// </summary>
+    internal abstract class StackFrameTypeNode : StackFrameNode
+    {
+        protected StackFrameTypeNode(StackFrameKind kind) : base(kind)
+        {
+        }
+    }
+
+    /// <summary>
     /// Base class for all name nodes
     /// </summary>
-    internal abstract class StackFrameNameNode : StackFrameNode
+    /// <remarks>
+    /// All of these are <see cref="StackFrameTypeNode" />. If a node requires an identifier or name that 
+    /// is not a type then it should use <see cref="StackFrameToken"/> with <see cref="StackFrameKind.IdentifierToken"/>
+    /// directly.
+    /// </remarks>
+    internal abstract class StackFrameNameNode : StackFrameTypeNode
     {
         protected StackFrameNameNode(StackFrameKind kind) : base(kind)
         {
@@ -186,7 +201,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     /// <summary>
     /// Represents an array type declaration, such as string[,][]
     /// </summary>
-    internal sealed class StackFrameArrayTypeExpression : StackFrameNameNode
+    internal sealed class StackFrameArrayTypeNode : StackFrameTypeNode
     {
         /// <summary>
         /// The type identifier without the array indicators.
@@ -203,7 +218,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// </summary>
         public ImmutableArray<StackFrameArrayRankSpecifier> ArrayExpressions;
 
-        public StackFrameArrayTypeExpression(StackFrameNameNode typeIdentifier, ImmutableArray<StackFrameArrayRankSpecifier> arrayExpressions) : base(StackFrameKind.ArrayTypeExpression)
+        public StackFrameArrayTypeNode(StackFrameNameNode typeIdentifier, ImmutableArray<StackFrameArrayRankSpecifier> arrayExpressions) : base(StackFrameKind.ArrayTypeExpression)
         {
             Debug.Assert(!arrayExpressions.IsDefaultOrEmpty);
             TypeIdentifier = typeIdentifier;
@@ -324,12 +339,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
     internal sealed class StackFrameParameterDeclarationNode : StackFrameDeclarationNode
     {
-        public readonly StackFrameNameNode Type;
+        public readonly StackFrameTypeNode Type;
         public readonly StackFrameToken Identifier;
 
         internal override int ChildCount => 2;
 
-        public StackFrameParameterDeclarationNode(StackFrameNameNode type, StackFrameToken identifier)
+        public StackFrameParameterDeclarationNode(StackFrameTypeNode type, StackFrameToken identifier)
             : base(StackFrameKind.Parameter)
         {
             Debug.Assert(identifier.Kind == StackFrameKind.IdentifierToken);

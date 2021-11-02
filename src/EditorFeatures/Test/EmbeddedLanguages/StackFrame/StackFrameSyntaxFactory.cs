@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         public static StackFrameArrayRankSpecifier ArrayRankSpecifier(int commaCount = 0, StackFrameTrivia? leadingTrivia = null, StackFrameTrivia? trailingTrivia = null)
             => new(OpenBracketToken.With(leadingTrivia: CreateTriviaArray(leadingTrivia)), CloseBracketToken.With(trailingTrivia: CreateTriviaArray(trailingTrivia)), Enumerable.Repeat(CommaToken, commaCount).ToImmutableArray());
 
-        public static StackFrameArrayTypeExpression ArrayExpression(StackFrameNameNode identifier, params StackFrameArrayRankSpecifier[] arrayTokens)
+        public static StackFrameArrayTypeNode ArrayExpression(StackFrameNameNode identifier, params StackFrameArrayRankSpecifier[] arrayTokens)
             => new(identifier, arrayTokens.ToImmutableArray());
 
         public static StackFrameGenericNameNode GenericType(string identifierName, int arity)

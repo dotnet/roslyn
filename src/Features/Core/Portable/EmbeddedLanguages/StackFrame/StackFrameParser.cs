@@ -356,12 +356,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// </summary>
         private ParseResult<StackFrameParameterDeclarationNode> ParseParameterNode()
         {
-            var (success, typeIdentifier) = TryParseNameNode(scanAtTrivia: false);
-            if (!success || typeIdentifier is null)
+            var (success, nameNode) = TryParseNameNode(scanAtTrivia: false);
+            if (!success || nameNode is null)
             {
                 return ParseResult<StackFrameParameterDeclarationNode>.Abort;
             }
 
+            StackFrameTypeNode? typeIdentifier = nameNode;
             if (CurrentCharAsToken().Kind == StackFrameKind.OpenBracketToken)
             {
                 (success, var arrayIdentifiers) = ParseArrayRankSpecifiers();
@@ -370,7 +371,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                     return ParseResult<StackFrameParameterDeclarationNode>.Abort;
                 }
 
-                typeIdentifier = new StackFrameArrayTypeExpression(typeIdentifier, arrayIdentifiers);
+                typeIdentifier = new StackFrameArrayTypeNode(nameNode, arrayIdentifiers);
             }
 
             var identifier = _lexer.TryScanIdentifier(scanAtTrivia: false, scanLeadingWhitespace: true, scanTrailingWhitespace: true);
