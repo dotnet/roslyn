@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             };
         }
 
-        public async Task SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken)
+        public async Task SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, bool isFullyLoaded, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
         {
             if (isFullyLoaded)
             {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 document, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken)
+        public async Task SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, bool isFullyLoaded, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
         {
             if (isFullyLoaded)
             {
