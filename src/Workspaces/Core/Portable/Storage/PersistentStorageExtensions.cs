@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Storage
                     => services.GetService<SQLitePersistentStorageService>() ??
                        NoOpPersistentStorageService.GetOrThrow(configuration),
                 StorageDatabase.CloudCache
-                    => services.GetService<ICloudCacheStorageServiceProvider>()?.GetService() ??
+                    => services.GetService<ICloudCacheStorageService>() ??
                        NoOpPersistentStorageService.GetOrThrow(configuration),
                 _ => NoOpPersistentStorageService.GetOrThrow(configuration),
             };

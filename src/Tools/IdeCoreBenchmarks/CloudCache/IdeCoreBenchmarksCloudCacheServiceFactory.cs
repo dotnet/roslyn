@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks;
 
 namespace CloudCache
 {
-    [ExportWorkspaceServiceFactory(typeof(ICloudCacheStorageServiceProvider), ServiceLayer.Host), Shared]
+    [ExportWorkspaceServiceFactory(typeof(ICloudCacheStorageService), ServiceLayer.Host), Shared]
     internal class IdeCoreBenchmarksCloudCacheServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
@@ -23,21 +23,6 @@ namespace CloudCache
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new ServiceProvider(workspaceServices.GetRequiredService<IPersistentStorageConfiguration>());
-        }
-
-        private class ServiceProvider : ICloudCacheStorageServiceProvider
-        {
-            private readonly MockCloudCachePersistentStorageService _service;
-
-            public ServiceProvider(IPersistentStorageConfiguration configuration)
-            {
-                _service = new MockCloudCachePersistentStorageService(configuration, @"C:\github\roslyn");
-            }
-
-            public AbstractPersistentStorageService GetService()
-                => _service;
-        }
+            => new MockCloudCachePersistentStorageService(workspaceServices.GetRequiredService<IPersistentStorageConfiguration>(), @"C:\github\roslyn");
     }
 }

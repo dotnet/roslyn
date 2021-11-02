@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote.Host;
-using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Storage.CloudCache;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio;
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
 {
     internal class RemoteCloudCachePersistentStorageService : AbstractCloudCachePersistentStorageService
     {
-        [ExportWorkspaceServiceFactory(typeof(ICloudCacheStorageServiceProvider), WorkspaceKind.RemoteWorkspace), Shared]
+        [ExportWorkspaceServiceFactory(typeof(ICloudCacheStorageService), WorkspaceKind.RemoteWorkspace), Shared]
         internal class ServiceFactory : IWorkspaceServiceFactory
         {
             private readonly IGlobalServiceBroker _globalServiceBroker;
@@ -35,18 +34,7 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
             }
 
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new ServiceProvider(_globalServiceBroker, workspaceServices.GetRequiredService<IPersistentStorageConfiguration>());
-
-            private class ServiceProvider : ICloudCacheStorageServiceProvider
-            {
-                private readonly RemoteCloudCachePersistentStorageService _service;
-
-                public ServiceProvider(IGlobalServiceBroker globalServiceBroker, IPersistentStorageConfiguration configuration)
-                    => _service = new RemoteCloudCachePersistentStorageService(globalServiceBroker, configuration);
-
-                public AbstractPersistentStorageService GetService()
-                    => _service;
-            }
+                => new RemoteCloudCachePersistentStorageService(_globalServiceBroker, workspaceServices.GetRequiredService<IPersistentStorageConfiguration>());
         }
 
         private readonly IGlobalServiceBroker _globalServiceBroker;

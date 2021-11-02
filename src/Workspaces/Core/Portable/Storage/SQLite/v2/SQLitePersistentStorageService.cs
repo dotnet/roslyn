@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
-    internal sealed class SQLitePersistentStorageService : AbstractPersistentStorageService
+    internal sealed class SQLitePersistentStorageService : AbstractPersistentStorageService, IWorkspaceService
     {
         [ExportWorkspaceServiceFactory(typeof(SQLitePersistentStorageService)), Shared]
         internal sealed class ServiceFactory : IWorkspaceServiceFactory

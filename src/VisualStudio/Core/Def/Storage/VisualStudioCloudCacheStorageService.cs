@@ -9,8 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Storage;
-using Microsoft.CodeAnalysis.Storage.CloudCache;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.RpcContracts.Caching;
 using Microsoft.VisualStudio.Shell;
@@ -21,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
 {
     internal class VisualStudioCloudCacheStorageService : AbstractCloudCachePersistentStorageService
     {
-        [ExportWorkspaceServiceFactory(typeof(ICloudCacheStorageServiceProvider), ServiceLayer.Host), Shared]
+        [ExportWorkspaceServiceFactory(typeof(VisualStudioCloudCacheStorageService), ServiceLayer.Host), Shared]
         internal class ServiceFactory : IWorkspaceServiceFactory
         {
             private readonly IAsyncServiceProvider _serviceProvider;
@@ -32,20 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
                 => _serviceProvider = (IAsyncServiceProvider)serviceProvider;
 
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new ServiceProvider(_serviceProvider, workspaceServices.GetRequiredService<IPersistentStorageConfiguration>());
-
-            private class ServiceProvider : ICloudCacheStorageServiceProvider
-            {
-                private readonly AbstractPersistentStorageService _service;
-
-                public ServiceProvider(IAsyncServiceProvider serviceProvider, IPersistentStorageConfiguration configuration)
-                {
-                    _service = new VisualStudioCloudCacheStorageService(serviceProvider, configuration);
-                }
-
-                public AbstractPersistentStorageService GetService()
-                    => _service;
-            }
+                => new VisualStudioCloudCacheStorageService(_serviceProvider, workspaceServices.GetRequiredService<IPersistentStorageConfiguration>());
         }
 
         private readonly IAsyncServiceProvider _serviceProvider;
