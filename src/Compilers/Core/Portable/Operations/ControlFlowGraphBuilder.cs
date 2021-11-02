@@ -2260,14 +2260,14 @@ exitFor:
 
         }
 
-        private static Func<IArgumentOperation, IOperation> UnwrapArgument = UnwrapArgumentDoNotCaptureDirectly;
+        private readonly static Func<IArgumentOperation, IOperation> UnwrapArgument = UnwrapArgumentDoNotCaptureDirectly;
 
         private static IOperation UnwrapArgumentDoNotCaptureDirectly(IArgumentOperation argument)
         {
             return argument.Value;
         }
 
-        private static Func<IOperation, IOperation> Identity = IdentityDoNotCaptureDirectly;
+        private readonly static Func<IOperation, IOperation> Identity = IdentityDoNotCaptureDirectly;
 
         private static IOperation IdentityDoNotCaptureDirectly(IOperation operation) => operation;
 
