@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 
         public static readonly StackFrameParameterList EmptyParams = ParameterList(OpenParenToken, CloseParenToken);
 
-        public static StackFrameParameterDeclarationNode Parameter(StackFrameNameNode type, StackFrameToken identifier)
+        public static StackFrameParameterDeclarationNode Parameter(StackFrameTypeNode type, StackFrameToken identifier)
             => new(type, identifier);
 
         public static StackFrameParameterList ParameterList(params StackFrameParameterDeclarationNode[] parameters)
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         public static StackFrameArrayRankSpecifier ArrayRankSpecifier(int commaCount = 0, StackFrameTrivia? leadingTrivia = null, StackFrameTrivia? trailingTrivia = null)
             => new(OpenBracketToken.With(leadingTrivia: CreateTriviaArray(leadingTrivia)), CloseBracketToken.With(trailingTrivia: CreateTriviaArray(trailingTrivia)), Enumerable.Repeat(CommaToken, commaCount).ToImmutableArray());
 
-        public static StackFrameArrayTypeNode ArrayExpression(StackFrameNameNode identifier, params StackFrameArrayRankSpecifier[] arrayTokens)
+        public static StackFrameArrayTypeNode ArrayType(StackFrameNameNode identifier, params StackFrameArrayRankSpecifier[] arrayTokens)
             => new(identifier, arrayTokens.ToImmutableArray());
 
         public static StackFrameGenericNameNode GenericType(string identifierName, int arity)

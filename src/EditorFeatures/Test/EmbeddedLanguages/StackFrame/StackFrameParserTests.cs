@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                         Identifier("M")),
 
                     argumentList: ParameterList(
-                            Parameter(ArrayExpression(Identifier("string"), ArrayRankSpecifier(trailingTrivia: SpaceTrivia())),
+                            Parameter(ArrayType(Identifier("string"), ArrayRankSpecifier(trailingTrivia: SpaceTrivia())),
                             IdentifierToken("s")))
                 )
             );
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 
                     argumentList: ParameterList(
                         Parameter(
-                            ArrayExpression(Identifier("string"), ArrayRankSpecifier(1, trailingTrivia: SpaceTrivia())),
+                            ArrayType(Identifier("string"), ArrayRankSpecifier(1, trailingTrivia: SpaceTrivia())),
                             IdentifierToken("s")))
                 )
             );
