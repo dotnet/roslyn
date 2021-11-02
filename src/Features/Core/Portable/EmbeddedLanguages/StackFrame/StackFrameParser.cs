@@ -23,12 +23,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     /// </summary>
     internal partial struct StackFrameParser
     {
+        private StackFrameLexer _lexer;
+
         private StackFrameParser(VirtualCharSequence text)
         {
             _lexer = new(text);
         }
 
-        private StackFrameLexer _lexer;
         private StackFrameToken CurrentCharAsToken() => _lexer.CurrentCharAsToken();
 
         /// <summary>
@@ -64,8 +65,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// </summary>
         private StackFrameTree? TryParseTree()
         {
-            var (_, methodDeclaration) = TryParseMethodDeclaration();
-            if (methodDeclaration is null)
+            var (success, methodDeclaration) = TryParseMethodDeclaration();
+            if (!success || methodDeclaration is null)
             {
                 return null;
             }
@@ -80,8 +81,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             var eolToken = CurrentCharAsToken().With(leadingTrivia: remainingTrivia.HasValue ? ImmutableArray.Create(remainingTrivia.Value) : ImmutableArray<StackFrameTrivia>.Empty);
 
-            Debug.Assert(_lexer.Position == _lexer.Text.Length);
-            Debug.Assert(eolToken.Kind == StackFrameKind.EndOfLine);
+            Contract.ThrowIfFalse(_lexer.Position == _lexer.Text.Length);
+            Contract.ThrowIfFalse(eolToken.Kind == StackFrameKind.EndOfLine);
 
             var root = new StackFrameCompilationUnit(methodDeclaration, fileInformationResult.Value, eolToken);
 
@@ -107,19 +108,19 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return ParseResult<StackFrameMethodDeclarationNode>.Abort;
             }
 
-            var typeArgumentsResult = TryParseTypeArguments();
-            if (!typeArgumentsResult.Success)
+            (success, var typeArguments) = TryParseTypeArguments();
+            if (!success)
             {
                 return ParseResult<StackFrameMethodDeclarationNode>.Abort;
             }
 
-            var argumentsResult = ParseMethodParameters();
-            if (!argumentsResult.Success || argumentsResult.Value is null)
+            var methodParameters = TryParseRequiredMethodParameters();
+            if (methodParameters is null)
             {
                 return ParseResult<StackFrameMethodDeclarationNode>.Abort;
             }
 
-            return new(new(memberAccessExpression, typeArgumentsResult.Value, argumentsResult.Value));
+            return new StackFrameMethodDeclarationNode(memberAccessExpression, typeArguments, methodParameters);
         }
 
         /// <summary>
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return ParseResult<StackFrameNameNode>.Empty;
             }
 
-            var identifierParseResult = TryScanGenericTypeIdentifier(currentIdentifer.Value);
+            var identifierParseResult = TryScanGenericTypeIdentifier(_lexer, currentIdentifer.Value);
             if (!identifierParseResult.Success)
             {
                 return ParseResult<StackFrameNameNode>.Abort;
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             RoslynDebug.AssertNotNull(identifierParseResult.Value);
             var lhs = identifierParseResult.Value;
 
-            var parseResult = TryParseQualifiedName(lhs);
+            var parseResult = TryParseQualifiedName(_lexer, lhs);
             if (!parseResult.Success)
             {
                 return ParseResult<StackFrameNameNode>.Abort;
@@ -171,7 +172,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             while (true)
             {
-                parseResult = TryParseQualifiedName(memberAccess);
+                parseResult = TryParseQualifiedName(_lexer, memberAccess);
                 if (!parseResult.Success)
                 {
                     return ParseResult<StackFrameNameNode>.Abort;
@@ -186,60 +187,57 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
                 memberAccess = newMemberAccess;
             }
-        }
 
-        /// <summary>
-        /// Given an existing left hand side node or token, which can either be 
-        /// an <see cref="StackFrameKind.IdentifierToken"/> or <see cref="StackFrameQualifiedNameNode"/>
-        /// </summary>
-        private ParseResult<StackFrameQualifiedNameNode> TryParseQualifiedName(StackFrameNameNode lhs)
-        {
-            if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.DotToken, out var dotToken))
+            //
+            // Given an existing left hand side node or token, which can either be 
+            // an <see cref="StackFrameKind.IdentifierToken"/> or <see cref="StackFrameQualifiedNameNode"/>
+            //
+            static ParseResult<StackFrameQualifiedNameNode> TryParseQualifiedName(StackFrameLexer lexer, StackFrameNameNode lhs)
             {
-                return ParseResult<StackFrameQualifiedNameNode>.Empty;
+                if (!lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.DotToken, out var dotToken))
+                {
+                    return ParseResult<StackFrameQualifiedNameNode>.Empty;
+                }
+
+                var identifier = lexer.TryScanIdentifier();
+                if (!identifier.HasValue)
+                {
+                    return ParseResult<StackFrameQualifiedNameNode>.Abort;
+                }
+
+                var (success, rhs) = TryScanGenericTypeIdentifier(lexer, identifier.Value);
+                if (!success)
+                {
+                    return ParseResult<StackFrameQualifiedNameNode>.Abort;
+                }
+
+                RoslynDebug.AssertNotNull(rhs);
+                return new StackFrameQualifiedNameNode(lhs, dotToken, rhs);
             }
 
-            var identifier = _lexer.TryScanIdentifier();
-            if (!identifier.HasValue)
+            //
+            // Given an identifier, attempts to parse the type identifier arity for it.
+            //
+            // ex: MyNamespace.MyClass`1.MyMethod()
+            //                 ^--------------------- MyClass would be the identifier passed in
+            //                        ^-------------- Grave token
+            //                         ^------------- Arity token of "1" 
+            //
+            static ParseResult<StackFrameSimpleNameNode> TryScanGenericTypeIdentifier(StackFrameLexer lexer, StackFrameToken identifierToken)
             {
-                return ParseResult<StackFrameQualifiedNameNode>.Abort;
+                if (!lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.GraveAccentToken, out var graveAccentToken))
+                {
+                    return new(new StackFrameIdentifierNameNode(identifierToken));
+                }
+
+                var arity = lexer.TryScanNumbers();
+                if (!arity.HasValue)
+                {
+                    return ParseResult<StackFrameSimpleNameNode>.Abort;
+                }
+
+                return new StackFrameGenericNameNode(identifierToken, graveAccentToken, arity.Value);
             }
-
-            var (success, rhs) = TryScanGenericTypeIdentifier(identifier.Value);
-            if (!success)
-            {
-                return ParseResult<StackFrameQualifiedNameNode>.Abort;
-            }
-
-            RoslynDebug.AssertNotNull(rhs);
-            return new(new(lhs, dotToken, rhs));
-        }
-
-        /// <summary>
-        /// Given an identifier, attempts to parse the type identifier arity for it.
-        /// 
-        /// <code>
-        /// ex: MyNamespace.MyClass`1.MyMethod()
-        ///                 ^--------------------- MyClass would be the identifier passed in
-        ///                        ^-------------- Grave token
-        ///                         ^------------- Arity token of "1" 
-        /// </code>
-        /// 
-        /// </summary>
-        private ParseResult<StackFrameSimpleNameNode> TryScanGenericTypeIdentifier(StackFrameToken identifierToken)
-        {
-            if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.GraveAccentToken, out var graveAccentToken))
-            {
-                return new(new StackFrameIdentifierNameNode(identifierToken));
-            }
-
-            var arity = _lexer.TryScanNumbers();
-            if (!arity.HasValue)
-            {
-                return ParseResult<StackFrameSimpleNameNode>.Abort;
-            }
-
-            return new(new StackFrameGenericNameNode(identifierToken, graveAccentToken, arity.Value));
         }
 
         /// <summary>
@@ -297,23 +295,27 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             }
 
             var separatedList = new EmbeddedSeparatedSyntaxNodeList<StackFrameKind, StackFrameNode, StackFrameIdentifierNameNode>(builder.ToImmutable());
-            return new(new(openToken, separatedList, closeToken));
+            return new StackFrameTypeArgumentList(openToken, separatedList, closeToken);
         }
 
         /// <summary>
         /// MyNamespace.MyClass.MyMethod[|(string s1, string s2, int i1)|]
         /// Takes parameter declarations from method text and parses them into a <see cref="StackFrameParameterList"/>.
         /// </summary>
-        private ParseResult<StackFrameParameterList> ParseMethodParameters()
+        /// <remarks>
+        /// This method assumes that the caller requires method parameters, and returns null for all failure cases. The caller
+        /// should escalate to abort parsing on null values. 
+        /// </remarks>
+        private StackFrameParameterList? TryParseRequiredMethodParameters()
         {
             if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.OpenParenToken, scanTrailingWhitespace: true, out var openParen))
             {
-                return ParseResult<StackFrameParameterList>.Abort;
+                return null;
             }
 
             if (_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.CloseParenToken, out var closeParen))
             {
-                return new(new(openParen, EmbeddedSeparatedSyntaxNodeList<StackFrameKind, StackFrameNode, StackFrameParameterDeclarationNode>.Empty, closeParen));
+                return new(openParen, EmbeddedSeparatedSyntaxNodeList<StackFrameKind, StackFrameNode, StackFrameParameterDeclarationNode>.Empty, closeParen);
             }
 
             using var _ = ArrayBuilder<StackFrameNodeOrToken>.GetInstance(out var builder);
@@ -323,7 +325,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 var (success, parameterNode) = ParseParameterNode();
                 if (!success)
                 {
-                    return ParseResult<StackFrameParameterList>.Abort;
+                    return null;
                 }
 
                 RoslynDebug.AssertNotNull(parameterNode);
@@ -339,11 +341,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.CloseParenToken, out closeParen))
             {
-                return ParseResult<StackFrameParameterList>.Empty;
+                return null;
             }
 
             var parameters = new EmbeddedSeparatedSyntaxNodeList<StackFrameKind, StackFrameNode, StackFrameParameterDeclarationNode>(builder.ToImmutable());
-            return new(new(openParen, parameters, closeParen));
+            return new(openParen, parameters, closeParen);
         }
 
         /// <summary>
@@ -377,7 +379,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return ParseResult<StackFrameParameterDeclarationNode>.Abort;
             }
 
-            return new(new(typeIdentifier, identifier.Value));
+            return new StackFrameParameterDeclarationNode(typeIdentifier, identifier.Value);
         }
 
         /// <summary>
@@ -411,8 +413,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
                 builder.Add(new StackFrameArrayRankSpecifier(openBracket, closeBracket, commaBuilder.ToImmutableAndClear()));
             }
-
-            throw ExceptionUtilities.Unreachable;
         }
 
         /// <summary>
@@ -430,26 +430,27 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return ParseResult<StackFrameFileInformationNode>.Empty;
             }
 
-            if (path.Value.Kind != StackFrameKind.PathToken)
+            if (path.Value.Kind == StackFrameKind.InvalidPathToken)
             {
                 return ParseResult<StackFrameFileInformationNode>.Abort;
             }
+
+            Debug.Assert(path.Value.Kind == StackFrameKind.PathToken);
 
             if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.ColonToken, out var colonToken))
             {
-                return new(new(path.Value, null, null));
+                return new StackFrameFileInformationNode(path.Value, colon: null, line: null);
             }
 
             var lineNumber = _lexer.TryScanLineNumber();
-
-            // TryScanLineNumber can return a token that isn't a number, in which case we want 
-            // to bail in error and consider this malformed.
-            if (!lineNumber.HasValue || lineNumber.Value.Kind != StackFrameKind.NumberToken)
+            if (!lineNumber.HasValue || lineNumber.Value.Kind == StackFrameKind.InvalidNumberToken)
             {
                 return ParseResult<StackFrameFileInformationNode>.Abort;
             }
 
-            return new(new(path.Value, colonToken, lineNumber.Value));
+            Debug.Assert(lineNumber.Value.Kind == StackFrameKind.NumberToken);
+
+            return new StackFrameFileInformationNode(path.Value, colonToken, lineNumber.Value);
         }
     }
 }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Xunit;
+using System.Collections.Immutable;
 using static Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame.StackFrameSyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 methodDeclaration: MethodDeclaration(
                     QualifiedName("ConsoleApp4.MyClass.M"),
                     argumentList: ParameterList(
-                        OpenParenToken.With(trailingTrivia: CreateTriviaArray(SpaceTrivia(2))),
+                        OpenParenToken.With(trailingTrivia: ImmutableArray.Create(SpaceTrivia(2))),
                         CloseParenToken))
                 );
 

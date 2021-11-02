@@ -30,9 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         public static StackFrameTrivia CreateTrivia(StackFrameKind kind, string text)
             => new(kind, CodeAnalysis.EmbeddedLanguages.VirtualChars.VirtualCharSequence.Create(0, text), ImmutableArray<EmbeddedDiagnostic>.Empty);
 
-        public static ImmutableArray<StackFrameTrivia> CreateTriviaArray(params StackFrameTrivia[] trivia)
-            => ImmutableArray.Create(trivia);
-
         public static ImmutableArray<StackFrameTrivia> CreateTriviaArray(StackFrameTrivia? trivia)
             => trivia.HasValue ? ImmutableArray.Create(trivia.Value) : ImmutableArray<StackFrameTrivia>.Empty;
 
@@ -47,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         public static readonly StackFrameToken CloseBracketToken = CreateToken(StackFrameKind.CloseBracketToken, "]");
         public static readonly StackFrameToken LessThanToken = CreateToken(StackFrameKind.LessThanToken, "<");
         public static readonly StackFrameToken GreaterThanToken = CreateToken(StackFrameKind.GreaterThanToken, ">");
-        public static readonly StackFrameToken AccentGraveToken = CreateToken(StackFrameKind.GraveAccentToken, "`");
+        public static readonly StackFrameToken GraveAccentToken = CreateToken(StackFrameKind.GraveAccentToken, "`");
         public static readonly StackFrameToken EOLToken = CreateToken(StackFrameKind.EndOfLine, "");
         public static readonly StackFrameToken ColonToken = CreateToken(StackFrameKind.ColonToken, ":");
 
@@ -157,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => new(identifier, arrayTokens.ToImmutableArray());
 
         public static StackFrameGenericNameNode GenericType(string identifierName, int arity)
-            => new(CreateToken(StackFrameKind.IdentifierToken, identifierName), AccentGraveToken, CreateToken(StackFrameKind.NumberToken, arity.ToString()));
+            => new(CreateToken(StackFrameKind.IdentifierToken, identifierName), GraveAccentToken, CreateToken(StackFrameKind.NumberToken, arity.ToString()));
 
         public static StackFrameTypeArgumentList TypeArgumentList(params StackFrameIdentifierNameNode[] typeArguments)
             => TypeArgumentList(useBrackets: true, typeArguments);
@@ -195,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => new(identifier);
 
         public static StackFrameFileInformationNode FileInformation(StackFrameToken path, StackFrameToken colon, StackFrameToken line)
-            => new(path.With(leadingTrivia: CreateTriviaArray(InTrivia)), colon, line);
+            => new(path.With(leadingTrivia: ImmutableArray.Create(InTrivia)), colon, line);
 
         public static StackFrameToken Path(string path)
             => CreateToken(StackFrameKind.PathToken, path);

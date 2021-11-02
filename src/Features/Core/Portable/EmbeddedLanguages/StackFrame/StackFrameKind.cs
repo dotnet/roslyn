@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         PathToken,
         InvalidPathToken,
         NumberToken,
+        InvalidNumberToken,
 
         // Trivia
         WhitespaceTrivia,

@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
         public StackFrameArrayTypeExpression(StackFrameNameNode typeIdentifier, ImmutableArray<StackFrameArrayRankSpecifier> arrayExpressions) : base(StackFrameKind.ArrayTypeExpression)
         {
-            Contract.ThrowIfTrue(arrayExpressions.IsDefaultOrEmpty);
+            Debug.Assert(!arrayExpressions.IsDefaultOrEmpty);
             TypeIdentifier = typeIdentifier;
             ArrayExpressions = arrayExpressions;
         }
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         public StackFrameArrayRankSpecifier(StackFrameToken openBracket, StackFrameToken closeBracket, ImmutableArray<StackFrameToken> commaTokens)
             : base(StackFrameKind.ArrayExpression)
         {
-            Contract.ThrowIfTrue(commaTokens.IsDefault);
+            Debug.Assert(!commaTokens.IsDefault);
             Debug.Assert(openBracket.Kind == StackFrameKind.OpenBracketToken);
             Debug.Assert(closeBracket.Kind == StackFrameKind.CloseBracketToken);
             Debug.Assert(commaTokens.All(static t => t.Kind == StackFrameKind.CommaToken));

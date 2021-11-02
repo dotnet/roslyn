@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 {
     internal partial struct StackFrameParser
     {
-        private struct ParseResult<T>
+        private readonly struct ParseResult<T>
         {
             public readonly bool Success;
             public readonly T? Value;
@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 success = Success;
                 value = Value;
             }
+
+            public static implicit operator ParseResult<T>(T value) => new(value);
         }
     }
 }

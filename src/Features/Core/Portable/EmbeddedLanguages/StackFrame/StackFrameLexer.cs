@@ -142,9 +142,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// <returns>
         /// <see langword="true"/> if the position was incremented
         /// </returns>
-        public bool ScanCurrentCharAsTokenIfMatch(Func<StackFrameKind, bool> matchFn, out StackFrameToken token)
+        public bool ScanCurrentCharAsTokenIfMatch(Func<StackFrameKind, bool> isMatch, out StackFrameToken token)
         {
-            if (matchFn(GetKind(CurrentChar)))
+            if (isMatch(GetKind(CurrentChar)))
             {
                 token = CurrentCharAsToken();
                 Position++;
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             var numberToken = TryScanNumbers();
             if (!numberToken.HasValue)
             {
-                return CreateToken(StackFrameKind.None, ImmutableArray.Create(lineTrivia.Value), VirtualCharSequence.Empty);
+                return CreateToken(StackFrameKind.InvalidNumberToken, ImmutableArray.Create(lineTrivia.Value), VirtualCharSequence.Empty);
             }
 
             var remainingTrivia = TryScanRemainingTrivia();
