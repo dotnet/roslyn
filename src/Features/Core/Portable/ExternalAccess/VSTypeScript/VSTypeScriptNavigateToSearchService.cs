@@ -36,9 +36,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         public bool CanFilter => _searchService?.CanFilter ?? false;
 
         public async Task SearchDocumentAsync(
-            Document document, string searchPattern, IImmutableSet<string> kinds,
+            Document document,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            bool isFullyLoaded,
             Func<INavigateToSearchResult, Task> onResultFound,
-            bool isFullyLoaded, CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
             // We only support searching when the project is fully loaded.
             if (!isFullyLoaded)
@@ -53,9 +56,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         }
 
         public async Task SearchProjectAsync(
-            Project project, ImmutableArray<Document> priorityDocuments, string searchPattern,
-            IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound,
-            bool isFullyLoaded, CancellationToken cancellationToken)
+            Project project,
+            ImmutableArray<Document> priorityDocuments,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            bool isFullyLoaded,
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
         {
             // We only support searching when the project is fully loaded.
             if (!isFullyLoaded)
