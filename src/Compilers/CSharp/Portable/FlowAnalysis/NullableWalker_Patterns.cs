@@ -499,32 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case BoundDagIndexerEvaluation e:
                                     {
                                         Debug.Assert(inputSlot > 0);
-                                        TypeWithAnnotations type;
-                                        if (e.IndexerType.IsErrorType())
-                                        {
-                                            type = TypeWithAnnotations.Create(isNullableEnabled: true, e.IndexerType, isAnnotated: false);
-                                        }
-                                        else if (e.IndexerAccess is not null)
-                                        {
-                                            // this[Index]
-                                            Debug.Assert(e.IndexerSymbol is null && e.Input.Type is not ArrayTypeSymbol);
-                                            var indexer = AsMemberOfType(inputType, e.IndexerAccess.Indexer);
-                                            type = indexer.GetTypeOrReturnType();
-                                        }
-                                        else if (e.IndexerSymbol is not null)
-                                        {
-                                            // this[int]
-                                            Debug.Assert(e.Input.Type is not ArrayTypeSymbol);
-                                            var indexer = AsMemberOfType(inputType, e.IndexerSymbol);
-                                            type = indexer.GetTypeOrReturnType();
-                                        }
-                                        else
-                                        {
-                                            // array[int]
-                                            var arrayType = (ArrayTypeSymbol)e.Input.Type;
-                                            type = arrayType.ElementTypeWithAnnotations;
-                                        }
-
+                                        TypeWithAnnotations type = getIndexerOutputType(inputType, e.IndexerAccess, isSlice: false);
                                         var output = new BoundDagTemp(e.Syntax, type.Type, e);
                                         var outputSlot = makeDagTempSlot(type, output);
                                         Debug.Assert(outputSlot > 0);
@@ -534,34 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case BoundDagSliceEvaluation e:
                                     {
                                         Debug.Assert(inputSlot > 0);
-                                        TypeWithAnnotations type;
-
-                                        if (e.SliceType.IsErrorType())
-                                        {
-                                            type = TypeWithAnnotations.Create(isNullableEnabled: true, e.SliceType, isAnnotated: false);
-                                        }
-                                        else if (e.IndexerAccess is not null)
-                                        {
-                                            // this[Range]
-                                            Debug.Assert(e.SliceMethod is null && e.Input.Type is not ArrayTypeSymbol);
-                                            var symbol = AsMemberOfType(inputType, e.IndexerAccess.Indexer);
-                                            type = symbol.GetTypeOrReturnType();
-                                        }
-                                        else if (e.SliceMethod is not null)
-                                        {
-                                            // Slice(int, int)
-                                            Debug.Assert(e.Input.Type is not ArrayTypeSymbol);
-                                            var symbol = AsMemberOfType(inputType, e.SliceMethod);
-                                            type = symbol.GetTypeOrReturnType();
-                                        }
-                                        else
-                                        {
-                                            // RuntimeHelpers.GetSubArray(T[], Range)
-                                            var arrayType = e.Input.Type;
-                                            Debug.Assert(arrayType is ArrayTypeSymbol);
-                                            type = TypeWithAnnotations.Create(isNullableEnabled: true, arrayType, isAnnotated: false);
-                                        }
-
+                                        TypeWithAnnotations type = getIndexerOutputType(inputType, e.IndexerAccess, isSlice: true);
                                         var output = new BoundDagTemp(e.Syntax, type.Type, e);
                                         var outputSlot = makeDagTempSlot(type, output);
                                         Debug.Assert(outputSlot > 0);
@@ -832,6 +780,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int outputSlot = makeDagTempSlot(type, output);
                 Debug.Assert(outputSlot > 0);
                 addToTempMap(output, outputSlot, type.Type);
+            }
+
+            static TypeWithAnnotations getIndexerOutputType(TypeSymbol inputType, BoundExpression e, bool isSlice)
+            {
+                return e switch
+                {
+                    BoundIndexerAccess indexerAccess => AsMemberOfType(inputType, indexerAccess.Indexer).GetTypeOrReturnType(),
+                    BoundCall call => AsMemberOfType(inputType, call.Method).GetTypeOrReturnType(),
+
+                    BoundArrayAccess arrayAccess => isSlice
+                        ? TypeWithAnnotations.Create(isNullableEnabled: true, inputType, isAnnotated: false)
+                        : ((ArrayTypeSymbol)inputType).ElementTypeWithAnnotations,
+
+                    BoundIndexOrRangePatternIndexerAccess implicitIndexerAccess => getIndexerOutputType(inputType, implicitIndexerAccess.IndexerAccess, isSlice),
+                    _ => throw ExceptionUtilities.UnexpectedValue(e.Kind)
+                };
             }
         }
 

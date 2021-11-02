@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDagTypeEvaluation e => e.Type,
                     BoundDagDeconstructEvaluation e => e.DeconstructMethod,
                     BoundDagIndexEvaluation e => e.Property,
-                    BoundDagSliceEvaluation e => (Symbol?)e.SliceMethod ?? e.IndexerAccess?.Indexer,
-                    BoundDagIndexerEvaluation e => e.IndexerSymbol ?? e.IndexerAccess?.Indexer,
+                    BoundDagSliceEvaluation e => Binder.GetIndexerSymbol(e.IndexerAccess),
+                    BoundDagIndexerEvaluation e => Binder.GetIndexerSymbol(e.IndexerAccess),
                     BoundDagAssignmentEvaluation => null,
                     _ => throw ExceptionUtilities.UnexpectedValue(this.Kind)
                 };

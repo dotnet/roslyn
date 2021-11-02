@@ -124,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 #if DEBUG
                 LocalRewritingValidator.Validate(loweredStatement);
+                localRewriter.AssertNoPlaceholderReplacements();
 #endif
                 return loweredStatement;
             }
@@ -413,10 +414,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return value;
         }
 
+        private BoundExpression UnwrapPlaceholderIfNeeded(BoundExpression expr)
+        {
+            if (expr is BoundValuePlaceholderBase placeholder)
+            {
+                expr = PlaceholderReplacement(placeholder);
+            }
+            return expr;
+        }
+
         [Conditional("DEBUG")]
         private static void AssertPlaceholderReplacement(BoundValuePlaceholderBase placeholder, BoundExpression value)
         {
             Debug.Assert(value.Type is { } && (value.Type.Equals(placeholder.Type, TypeCompareKind.AllIgnoreOptions) || value.HasErrors));
+        }
+
+        [Conditional("DEBUG")]
+        private void AssertNoPlaceholderReplacements()
+        {
+            if (_placeholderReplacementMapDoNotUseDirectly is not null)
+            {
+                Debug.Assert(_placeholderReplacementMapDoNotUseDirectly.Count == 0);
+            }
         }
 
         /// <summary>
@@ -424,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Each occurrence of the placeholder node is replaced with the node returned.
         /// Throws if there is already a substitution.
         /// </summary>
-        private void AddPlaceholderReplacement(BoundValuePlaceholderBase placeholder, BoundExpression value)
+        private void AddPlaceholderReplacement<T>(T placeholder, BoundExpression value) where T : BoundValuePlaceholderBase
         {
             AssertPlaceholderReplacement(placeholder, value);
 
@@ -954,17 +973,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((BoundIndexerAccess)expr).Indexer.RefKind != RefKind.None;
 
                 case BoundKind.IndexOrRangePatternIndexerAccess:
-                    var implicitIndexerAccess = (BoundIndexOrRangePatternIndexerAccess)expr;
-                    var refKind = implicitIndexerAccess.PatternSymbol switch
-                    {
-                        PropertySymbol p => p.RefKind,
-                        MethodSymbol m => m.RefKind,
-                        _ => throw ExceptionUtilities.UnexpectedValue(implicitIndexerAccess.PatternSymbol)
-                    };
-                    return refKind != RefKind.None;
+                    return CanBePassedByReference(((BoundIndexOrRangePatternIndexerAccess)expr).IndexerAccess);
+
+                // TODO2 I'm not sure about this
+                case BoundKind.IndexOrRangeIndexerPatternReceiverPlaceholder:
+                case BoundKind.ListPatternReceiverPlaceholder:
+                case BoundKind.SlicePatternReceiverPlaceholder:
+                    return true;
 
                 case BoundKind.Conversion:
-                    var conversion = ((BoundConversion)expr);
                     return expr is BoundConversion { Conversion: { IsInterpolatedStringHandler: true }, Type: { IsValueType: true } };
             }
 
@@ -988,6 +1005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
         /// <summary>
         /// Note: do not use a static/singleton instance of this type, as it holds state.
+        /// Consider generating this type from BoundNodes.xml for easier maintenance.
         /// </summary>
         private sealed class LocalRewritingValidator : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
@@ -1049,6 +1067,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override BoundNode? VisitIndexOrRangeIndexerPatternValuePlaceholder(BoundIndexOrRangeIndexerPatternValuePlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode? VisitIndexOrRangeIndexerPatternReceiverPlaceholder(BoundIndexOrRangeIndexerPatternReceiverPlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode? VisitListPatternUnloweredIndexPlaceholder(BoundListPatternUnloweredIndexPlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode? VisitListPatternReceiverPlaceholder(BoundListPatternReceiverPlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode? VisitSlicePatternUnloweredRangePlaceholder(BoundSlicePatternUnloweredRangePlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode? VisitSlicePatternReceiverPlaceholder(BoundSlicePatternReceiverPlaceholder node)
             {
                 Fail(node);
                 return null;

@@ -1441,16 +1441,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 3. The argument to the access
             // 4. The pattern method
             VisitRvalue(node.Receiver);
-            var method = GetReadMethod(node.LengthOrCountProperty);
-            VisitReceiverAfterCall(node.Receiver, method);
-            VisitRvalue(node.Argument);
-            method = node.PatternSymbol switch
-            {
-                PropertySymbol p => GetReadMethod(p),
-                MethodSymbol m => m,
-                _ => throw ExceptionUtilities.UnexpectedValue(node.PatternSymbol)
-            };
-            VisitReceiverAfterCall(node.Receiver, method);
+            // TODO2
+            //var method = GetReadMethod(node.LengthOrCountProperty);
+            //VisitReceiverAfterCall(node.Receiver, method);
+            //VisitRvalue(node.Argument);
+            //method = node.PatternSymbol switch
+            //{
+            //    PropertySymbol p => GetReadMethod(p),
+            //    MethodSymbol m => m,
+            //    _ => throw ExceptionUtilities.UnexpectedValue(node.PatternSymbol)
+            //};
+            //VisitReceiverAfterCall(node.Receiver, method);
 
             return null;
         }

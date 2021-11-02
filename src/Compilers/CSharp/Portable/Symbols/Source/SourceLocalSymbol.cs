@@ -806,7 +806,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (this._type == null)
                 {
-                    Debug.Assert(this.DeclarationKind == LocalDeclarationKind.DeclarationExpressionVariable);
+                    Debug.Assert(this.DeclarationKind is LocalDeclarationKind.DeclarationExpressionVariable);
                     SetTypeWithAnnotations(TypeWithAnnotations.Create(_nodeBinder.CreateErrorType("var")));
                 }
 

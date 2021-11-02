@@ -1537,7 +1537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundAssignmentOperator(node, op1, op2, isRef, type, hasErrors);
         }
 
-        private static PropertySymbol GetPropertySymbol(BoundExpression expr, out BoundExpression receiver, out SyntaxNode propertySyntax)
+        internal static PropertySymbol GetPropertySymbol(BoundExpression expr, out BoundExpression receiver, out SyntaxNode propertySyntax)
         {
             PropertySymbol propertySymbol;
             switch (expr.Kind)
@@ -1560,7 +1560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var implicitIndexerAccess = (BoundIndexOrRangePatternIndexerAccess)expr;
                         receiver = implicitIndexerAccess.Receiver;
-                        propertySymbol = (PropertySymbol)implicitIndexerAccess.PatternSymbol;
+                        propertySymbol = GetPropertySymbol(implicitIndexerAccess.IndexerAccess, out _, out propertySyntax);
                     }
                     break;
                 default:
@@ -1591,6 +1591,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return propertySymbol;
         }
+
+#nullable enable
+        internal static Symbol? GetIndexerSymbol(BoundExpression? e)
+        {
+            return e switch
+            {
+                null => null,
+                BoundIndexOrRangePatternIndexerAccess implicitIndexerAccess => GetIndexerSymbol(implicitIndexerAccess.IndexerAccess),
+                BoundIndexerAccess indexerAccess => indexerAccess.Indexer,
+                BoundCall call => call.Method,
+                BoundArrayAccess arrayAccess => arrayAccess.ExpressionSymbol,
+                _ => throw ExceptionUtilities.Unreachable
+            };
+        }
+#nullable disable
 
         private static SyntaxNode GetEventName(BoundEventAccess expr)
         {

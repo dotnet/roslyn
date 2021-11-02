@@ -8703,15 +8703,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             // after indices have been visited, and only if the receiver has not changed.
             _ = CheckPossibleNullReceiver(receiver);
 
-            VisitRvalue(node.Argument);
-            var underlyingIndexerOrSliceSymbol = node.PatternSymbol;
-            if (receiverType is object)
-            {
-                underlyingIndexerOrSliceSymbol = AsMemberOfType(receiverType, underlyingIndexerOrSliceSymbol);
-            }
+            VisitRvalue(node.LengthOrCountAccess);
 
-            SetLvalueResultType(node, underlyingIndexerOrSliceSymbol.GetTypeOrReturnType());
-            SetUpdatedSymbol(node, node.PatternSymbol, underlyingIndexerOrSliceSymbol);
+            VisitRvalue(node.Argument);
+            VisitRvalue(node.IndexerAccess);
+            return null;
+        }
+
+        public override BoundNode? VisitIndexOrRangeIndexerPatternValuePlaceholder(BoundIndexOrRangeIndexerPatternValuePlaceholder node)
+        {
+            SetNotNullResult(node);
+            return null;
+        }
+
+        public override BoundNode? VisitIndexOrRangeIndexerPatternReceiverPlaceholder(BoundIndexOrRangeIndexerPatternReceiverPlaceholder node)
+        {
+            SetNotNullResult(node);
             return null;
         }
 

@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class PatternParsingTests_ListPatterns : ParsingTests
     {
+        private static CSharpParseOptions RegularWithoutListPatterns => TestOptions.Regular10;
+
         private new void UsingExpression(string text, params DiagnosticDescription[] expectedErrors)
         {
             UsingExpression(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), expectedErrors);
@@ -24,57 +26,71 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ListPattern_00()
         {
             UsingExpression(@"c is [[]]");
+            verify();
 
-            N(SyntaxKind.IsPatternExpression);
+            UsingExpression(@"c is [[]]", RegularWithoutListPatterns);
+            verify();
+
+            void verify()
             {
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.IsPatternExpression);
                 {
-                    N(SyntaxKind.IdentifierToken, "c");
-                }
-                N(SyntaxKind.IsKeyword);
-                N(SyntaxKind.ListPattern);
-                {
-                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                    }
+                    N(SyntaxKind.IsKeyword);
                     N(SyntaxKind.ListPattern);
                     {
                         N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.ListPattern);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.CloseBracketToken);
+                        }
                         N(SyntaxKind.CloseBracketToken);
                     }
-                    N(SyntaxKind.CloseBracketToken);
                 }
+                EOF();
             }
-            EOF();
         }
 
         [Fact]
         public void ListPattern_01()
         {
             UsingExpression(@"c is [[],] v");
+            verify();
 
-            N(SyntaxKind.IsPatternExpression);
+            UsingExpression(@"c is [[],] v", RegularWithoutListPatterns);
+            verify();
+
+            void verify()
             {
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.IsPatternExpression);
                 {
-                    N(SyntaxKind.IdentifierToken, "c");
-                }
-                N(SyntaxKind.IsKeyword);
-                N(SyntaxKind.ListPattern);
-                {
-                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                    }
+                    N(SyntaxKind.IsKeyword);
                     N(SyntaxKind.ListPattern);
                     {
                         N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.ListPattern);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.CommaToken);
                         N(SyntaxKind.CloseBracketToken);
-                    }
-                    N(SyntaxKind.CommaToken);
-                    N(SyntaxKind.CloseBracketToken);
-                    N(SyntaxKind.SingleVariableDesignation);
-                    {
-                        N(SyntaxKind.IdentifierToken, "v");
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "v");
+                        }
                     }
                 }
+                EOF();
             }
-            EOF();
         }
 
         [Fact]
@@ -427,25 +443,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void SlicePattern_01()
         {
             UsingExpression(@"c is [..]");
+            verify();
 
-            N(SyntaxKind.IsPatternExpression);
+            UsingExpression(@"c is [..]", RegularWithoutListPatterns);
+            verify();
+
+            void verify()
             {
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.IsPatternExpression);
                 {
-                    N(SyntaxKind.IdentifierToken, "c");
-                }
-                N(SyntaxKind.IsKeyword);
-                N(SyntaxKind.ListPattern);
-                {
-                    N(SyntaxKind.OpenBracketToken);
-                    N(SyntaxKind.SlicePattern);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.DotDotToken);
+                        N(SyntaxKind.IdentifierToken, "c");
                     }
-                    N(SyntaxKind.CloseBracketToken);
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.ListPattern);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.SlicePattern);
+                        {
+                            N(SyntaxKind.DotDotToken);
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
                 }
+                EOF();
             }
-            EOF();
         }
 
         [Fact]
@@ -1078,3 +1101,4 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
     }
 }
+

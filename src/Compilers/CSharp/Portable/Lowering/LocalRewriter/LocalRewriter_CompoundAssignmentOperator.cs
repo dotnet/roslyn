@@ -588,13 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.IndexOrRangePatternIndexerAccess:
                     {
                         var implicitIndexerAccess = (BoundIndexOrRangePatternIndexerAccess)originalLHS;
-                        RefKind refKind = implicitIndexerAccess.PatternSymbol switch
-                        {
-                            PropertySymbol p => p.RefKind,
-                            MethodSymbol m => m.RefKind,
-                            var x => throw ExceptionUtilities.UnexpectedValue(x)
-                        };
-                        if (refKind == RefKind.None)
+                        if (implicitIndexerAccess.GetRefKind() == RefKind.None)
                         {
                             return TransformImplicitIndexerAccess(implicitIndexerAccess, stores, temps, isDynamicAssignment);
                         }
