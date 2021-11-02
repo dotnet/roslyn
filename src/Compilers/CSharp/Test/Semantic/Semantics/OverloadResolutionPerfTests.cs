@@ -671,7 +671,7 @@ class C
             //         int index = 0;
             //         int tmp1;
             //         int tmp2; // unused
-            //         goto L3;
+            //         goto L1498;
             // L0:
             //         if (index < 64) goto LSwitch;
             // L1:
