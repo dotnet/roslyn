@@ -155,42 +155,32 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             }
 
             RoslynDebug.AssertNotNull(identifierParseResult.Value);
-            var lhs = identifierParseResult.Value;
-
-            var parseResult = TryParseQualifiedName(ref _lexer, lhs);
-            if (!parseResult.Success)
-            {
-                return ParseResult<StackFrameNameNode>.Abort;
-            }
-
-            var memberAccess = parseResult.Value;
-            if (memberAccess is null)
-            {
-                Debug.Assert(lhs is StackFrameSimpleNameNode);
-                return new(lhs);
-            }
+            StackFrameNameNode nameNode = identifierParseResult.Value;
 
             while (true)
             {
-                parseResult = TryParseQualifiedName(ref _lexer, memberAccess);
-                if (!parseResult.Success)
+                var (success, memberAccess) = TryParseQualifiedName(ref _lexer, nameNode);
+                if (!success)
                 {
                     return ParseResult<StackFrameNameNode>.Abort;
                 }
 
-                var newMemberAccess = parseResult.Value;
-                if (newMemberAccess is null)
+                if (memberAccess is null)
                 {
-                    Debug.Assert(memberAccess is StackFrameQualifiedNameNode);
-                    return new(memberAccess);
+                    Debug.Assert(nameNode is StackFrameQualifiedNameNode or StackFrameSimpleNameNode);
+                    return new(nameNode);
                 }
 
-                memberAccess = newMemberAccess;
+                nameNode = memberAccess;
             }
 
             //
-            // Given an existing left hand side node or token, which can either be 
-            // an <see cref="StackFrameKind.IdentifierToken"/> or <see cref="StackFrameQualifiedNameNode"/>
+            // Local Functions 
+            //
+
+            //
+            // Given an existing left hand side node or token, parse a qualified name if possible. Returns 
+            // null with success if a dot token is not available
             //
             static ParseResult<StackFrameQualifiedNameNode> TryParseQualifiedName(ref StackFrameLexer lexer, StackFrameNameNode lhs)
             {
