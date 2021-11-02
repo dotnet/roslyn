@@ -58,6 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IThreadingContext _threadingContext;
         private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
+        private readonly IGlobalOptionService _globalOptions;
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         private readonly Lazy<VisualStudioProjectFactory> _projectFactory;
@@ -118,6 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             : base(VisualStudioMefHostServices.Create(exportProvider))
         {
             _threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
+            _globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
             _textBufferCloneService = exportProvider.GetExportedValue<ITextBufferCloneService>();
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
@@ -206,7 +208,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _openFileTracker = openFileTracker;
             }
 
-            var memoryListener = await VirtualMemoryNotificationListener.CreateAsync(this, _threadingContext, asyncServiceProvider, _threadingContext.DisposalToken).ConfigureAwait(true);
+            var memoryListener = await VirtualMemoryNotificationListener.CreateAsync(this, _threadingContext, asyncServiceProvider, _globalOptions, _threadingContext.DisposalToken).ConfigureAwait(true);
 
             // Update our fields first, so any asynchronous work that needs to use these is able to see the service.
             lock (_gate)

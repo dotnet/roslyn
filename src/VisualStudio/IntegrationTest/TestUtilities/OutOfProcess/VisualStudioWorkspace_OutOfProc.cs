@@ -57,9 +57,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void CleanUpWaitingService()
             => _inProc.CleanUpWaitingService();
 
-        public void SetQuickInfo(bool value)
-            => _inProc.EnableQuickInfo(value);
-
         public void SetImportCompletionOption(bool value)
         {
             SetPerLanguageOption(

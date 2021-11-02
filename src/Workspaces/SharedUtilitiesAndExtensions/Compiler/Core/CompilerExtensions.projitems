@@ -234,7 +234,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\LinkedListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\LocationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ParenthesizedExpressionSyntaxExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Fading\FadingOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\CustomDataFlowAnalysis.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\DataFlowAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\FlowCaptureKind.cs" />
