@@ -550,8 +550,4 @@ namespace Microsoft.CodeAnalysis.Operations
             Locals = ImmutableArray<ILocalSymbol>.Empty;
         }
     }
-
-    internal sealed partial class FlowCaptureReferenceOperation
-    {
-    }
 }

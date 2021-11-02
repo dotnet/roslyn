@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         private IOperation? _currentAggregationGroup;
         private bool _forceImplicit; // Force all rewritten nodes to be marked as implicit regardless of their original state.
         private PooledDictionary<IOperation, IOperation>? _placeholderDictionary;
+        private int _currentInterpolatedStringHandlerId = -1;
 
         private readonly CaptureIdDispenser _captureIdDispenser;
 
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         private void AddPlaceholder(IOperation key, IOperation value)
         {
-            Debug.Assert(value is IFlowCaptureReferenceOperation or IInvalidOperation);
+            Debug.Assert(value is IFlowCaptureReferenceOperation or IInvalidOperation or IDiscardOperation);
             (_placeholderDictionary ??= PooledDictionary<IOperation, IOperation>.GetInstance()).Add(key, value);
         }
 
@@ -2098,79 +2099,32 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 {
                     var argument = arguments[i].Value;
 
-                    if (argument is not IInterpolatedStringHandlerCreationOperation { HandlerCreation: IObjectCreationOperation handlerConstructor })
+                    switch (argument)
                     {
-                        visitedArguments.Add(VisitAndCapture(argument));
-                    }
-                    else
-                    {
-                        foreach (var constructorArgument in handlerConstructor.Arguments)
-                        {
-                            if (constructorArgument.Value is IInterpolatedStringHandlerArgumentPlaceholderOperation argumentPlaceholder)
+                        case IInterpolatedStringHandlerCreationOperation { HandlerCreation: IObjectCreationOperation handlerConstructor }:
+                            if (visitArgument(argument, handlerConstructor.Arguments, UnwrapArgument))
                             {
-                                switch (argumentPlaceholder.PlaceholderKind)
-                                {
-                                    case InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver:
-                                        if (capturedInstance != null)
-                                        {
-                                            AddPlaceholder(argumentPlaceholder, (IFlowCaptureReferenceOperation)capturedInstance);
-                                        }
-                                        else
-                                        {
-                                            // Can happen if we're in an indexer object initializer (an error scenario where the instance isn't yet available).
-                                            AddPlaceholder(argumentPlaceholder, new InvalidOperation(
-                                                ImmutableArray<IOperation>.Empty,
-                                                semanticModel: null,
-                                                syntax: argumentPlaceholder.Syntax,
-                                                type: argumentPlaceholder.Type,
-                                                constantValue: argumentPlaceholder.GetConstantValue(),
-                                                isImplicit: true));
-                                        }
-
-                                        placeholderKeys.Add(argumentPlaceholder);
-                                        break;
-
-                                    case InterpolatedStringArgumentPlaceholderKind.CallsiteArgument:
-                                        if (argumentPlaceholder.ArgumentIndex >= i)
-                                        {
-                                            // Out of position argument: just capture an invalid operation and reference it from the constructor
-                                            AddPlaceholder(argumentPlaceholder, new InvalidOperation(
-                                                ImmutableArray<IOperation>.Empty,
-                                                semanticModel: null,
-                                                syntax: argumentPlaceholder.Syntax,
-                                                type: argumentPlaceholder.Type,
-                                                constantValue: argumentPlaceholder.GetConstantValue(),
-                                                isImplicit: true));
-                                        }
-                                        else
-                                        {
-                                            AddPlaceholder(argumentPlaceholder, (IFlowCaptureReferenceOperation)visitedArguments[argumentPlaceholder.ArgumentIndex]);
-                                        }
-                                        placeholderKeys.Add(argumentPlaceholder);
-                                        break;
-                                }
+                                goto exitFor;
                             }
-                        }
-
-                        IOperation visitedArgument = VisitRequired(argument);
-                        Debug.Assert(visitedArgument is IFlowCaptureReferenceOperation);
-                        visitedArguments.Add(visitedArgument);
-
-                        foreach (var key in placeholderKeys)
-                        {
-                            RemovePlaceholder(key);
-                        }
-
-                        placeholderKeys.Clear();
-
-                        var nextIndex = i + 1;
-                        if (nextIndex == arguments.Length || !hasInterpolatedStringHandlerArgument(arguments.AsSpan()[nextIndex..]))
-                        {
-                            i = nextIndex;
                             break;
-                        }
+                        case IInterpolatedStringHandlerCreationOperation { HandlerCreation: IDynamicObjectCreationOperation handlerConstructor }:
+                            if (visitArgument(argument, handlerConstructor.Arguments, Identity))
+                            {
+                                goto exitFor;
+                            }
+                            break;
+                        case IInterpolatedStringHandlerCreationOperation { HandlerCreation: InvalidOperation handlerConstructor }:
+                            if (visitArgument(argument, handlerConstructor.Children, Identity))
+                            {
+                                goto exitFor;
+                            }
+                            break;
+                        default:
+                            visitedArguments.Add(VisitAndCapture(argument));
+                            break;
                     }
                 }
+exitFor:
 
                 Debug.Assert(i == visitedArguments.Count);
 
@@ -2190,21 +2144,132 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                 for (; i < arguments.Length; i++)
                 {
-                    PushOperand(VisitRequired(UnwrapArgument(arguments[i])));
+                    PushOperand(VisitRequired(UnwrapArgumentDoNotCaptureDirectly(arguments[i])));
+                }
+
+                bool visitArgument<T>(IOperation originalArgument, ImmutableArray<T> nestedArguments, Func<T, IOperation> unwrapper) where T : IOperation
+                {
+                    foreach (var constructorArgument in nestedArguments)
+                    {
+                        var argumentPlaceholder = unwrapper(constructorArgument) switch
+                        {
+                            IInterpolatedStringHandlerArgumentPlaceholderOperation p => p,
+                            IConversionOperation { Operand: IInterpolatedStringHandlerArgumentPlaceholderOperation p } => p,
+                            _ => null
+                        };
+
+                        if (argumentPlaceholder != null)
+                        {
+                            switch (argumentPlaceholder.PlaceholderKind)
+                            {
+                                case InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver:
+                                    if (capturedInstance is IFlowCaptureReferenceOperation capture)
+                                    {
+                                        AddPlaceholder(argumentPlaceholder, capture);
+                                    }
+                                    else
+                                    {
+                                        // Can happen if we're in an indexer object initializer (an error scenario where the instance isn't yet available).
+                                        Debug.Assert(capturedInstance == null);
+                                        AddPlaceholder(argumentPlaceholder, new InvalidOperation(
+                                            ImmutableArray<IOperation>.Empty,
+                                            semanticModel: null,
+                                            syntax: argumentPlaceholder.Syntax,
+                                            type: argumentPlaceholder.Type,
+                                            constantValue: argumentPlaceholder.GetConstantValue(),
+                                            isImplicit: true));
+                                    }
+
+                                    placeholderKeys.Add(argumentPlaceholder);
+                                    break;
+
+                                case InterpolatedStringArgumentPlaceholderKind.CallsiteArgument:
+                                    if (argumentPlaceholder.ArgumentIndex >= i)
+                                    {
+                                        // Out of position argument: just capture an invalid operation and reference it from the constructor
+                                        AddPlaceholder(argumentPlaceholder, new InvalidOperation(
+                                            ImmutableArray<IOperation>.Empty,
+                                            semanticModel: null,
+                                            syntax: argumentPlaceholder.Syntax,
+                                            type: argumentPlaceholder.Type,
+                                            constantValue: argumentPlaceholder.GetConstantValue(),
+                                            isImplicit: true));
+                                    }
+                                    else
+                                    {
+                                        Debug.Assert(visitedArguments[argumentPlaceholder.ArgumentIndex] is IFlowCaptureReferenceOperation or IDiscardOperation);
+                                        AddPlaceholder(argumentPlaceholder, visitedArguments[argumentPlaceholder.ArgumentIndex]);
+                                    }
+                                    placeholderKeys.Add(argumentPlaceholder);
+                                    break;
+                            }
+                        }
+                    }
+
+                    IOperation visitedArgument = VisitRequired(originalArgument);
+                    Debug.Assert(visitedArgument is IFlowCaptureReferenceOperation);
+                    visitedArguments.Add(visitedArgument);
+
+                    foreach (var key in placeholderKeys)
+                    {
+                        RemovePlaceholder(key);
+                    }
+
+                    placeholderKeys.Clear();
+
+                    var nextIndex = i + 1;
+                    if (nextIndex == arguments.Length || !hasInterpolatedStringHandlerArgument(arguments.AsSpan()[nextIndex..]))
+                    {
+                        i = nextIndex;
+                        return true;
+                    }
+
+                    return false;
                 }
             }
 
             static bool hasInterpolatedStringHandlerArgument(ReadOnlySpan<IArgumentOperation> arguments)
             {
-                return arguments.Any(static arg => arg.Value is IInterpolatedStringHandlerCreationOperation { HandlerCreation: IObjectCreationOperation { Arguments: { } creationArgs } }
-                                                   && creationArgs.Any(creationArg => creationArg.Value is IInterpolatedStringHandlerArgumentPlaceholderOperation { PlaceholderKind: not InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument }));
+                return arguments.Any(
+                    static arg => arg.Value switch
+                    {
+                        IInterpolatedStringHandlerCreationOperation { HandlerCreation: IObjectCreationOperation { Arguments: { } creationArgs } } =>
+                            hasPlaceholders(creationArgs, UnwrapArgument),
+                        IInterpolatedStringHandlerCreationOperation { HandlerCreation: IDynamicObjectCreationOperation { Arguments: { } creationArgs } } =>
+                            hasPlaceholders(creationArgs, Identity),
+                        IInterpolatedStringHandlerCreationOperation { HandlerCreation: InvalidOperation { Children: { } creationArgs } } =>
+                            hasPlaceholders(creationArgs, Identity),
+                        _ => false
+                    });
+
+                static bool hasPlaceholders<T>(ImmutableArray<T> args, Func<T, IOperation> unwrapper)
+                {
+                    return args.Any(
+                        static (arg, unwrapper) => unwrapper(arg) switch
+                {
+                    IInterpolatedStringHandlerArgumentPlaceholderOperation { PlaceholderKind: not InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument } => true,
+                    IConversionOperation
+                    {
+                        Operand: IInterpolatedStringHandlerArgumentPlaceholderOperation { PlaceholderKind: not InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument }
+                    } => true,
+                    _ => false
+                },
+                        unwrapper);
+                }
             }
+
         }
 
-        private static IOperation UnwrapArgument(IArgumentOperation argument)
+        private static Func<IArgumentOperation, IOperation> UnwrapArgument = UnwrapArgumentDoNotCaptureDirectly;
+
+        private static IOperation UnwrapArgumentDoNotCaptureDirectly(IArgumentOperation argument)
         {
             return argument.Value;
         }
+
+        private static Func<IOperation, IOperation> Identity = IdentityDoNotCaptureDirectly;
+
+        private static IOperation IdentityDoNotCaptureDirectly(IOperation operation) => operation;
 
         private IArgumentOperation RewriteArgumentFromArray(IOperation visitedArgument, int index, ImmutableArray<IArgumentOperation> args)
         {
@@ -6307,24 +6372,28 @@ oneMoreTime:
 
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, int? captureIdForResult)
         {
-            if (operation.ReferenceKind == InstanceReferenceKind.ImplicitReceiver)
+            switch (operation.ReferenceKind)
             {
-                // When we're in an object or collection initializer, we need to replace the instance reference with a reference to the object being initialized
-                Debug.Assert(operation.IsImplicit);
+                case InstanceReferenceKind.ImplicitReceiver:
+                    // When we're in an object or collection initializer, we need to replace the instance reference with a reference to the object being initialized
+                    Debug.Assert(operation.IsImplicit);
 
-                if (_currentImplicitInstance.ImplicitInstance != null)
-                {
-                    return OperationCloner.CloneOperation(_currentImplicitInstance.ImplicitInstance);
-                }
-                else
-                {
-                    Debug.Fail("This code path should not be reachable.");
-                    return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
-                }
-            }
-            else
-            {
-                return new InstanceReferenceOperation(operation.ReferenceKind, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
+                    if (_currentImplicitInstance.ImplicitInstance != null)
+                    {
+                        return OperationCloner.CloneOperation(_currentImplicitInstance.ImplicitInstance);
+                    }
+                    else
+                    {
+                        Debug.Fail("This code path should not be reachable.");
+                        return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
+                    }
+
+                case InstanceReferenceKind.InterpolatedStringHandler:
+                    Debug.Assert(_currentInterpolatedStringHandlerId != -1);
+                    return new FlowCaptureReferenceOperation(_currentInterpolatedStringHandlerId, operation.Syntax, operation.Type, operation.GetConstantValue());
+
+                default:
+                    return new InstanceReferenceOperation(operation.ReferenceKind, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
             }
         }
 
@@ -6498,6 +6567,8 @@ oneMoreTime:
             SpillEvalStack();
             RegionBuilder resultRegion = CurrentRegionRequired;
             var handlerCaptureId = captureIdForResult ?? GetNextCaptureId(resultRegion);
+            var previousHandlerId = _currentInterpolatedStringHandlerId;
+            _currentInterpolatedStringHandlerId = handlerCaptureId;
 
             var constructorRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime);
             EnterRegion(constructorRegion);
@@ -6517,9 +6588,19 @@ oneMoreTime:
                 // Only successful constructor binds will have a trailing parameter
                 Debug.Assert(operation.HandlerCreation is IObjectCreationOperation);
                 outParameterFlowCapture = GetNextCaptureId(constructorRegion);
-                IArgumentOperation outParameterArgument = ((IObjectCreationOperation)operation.HandlerCreation).Arguments[^1];
-                Debug.Assert(outParameterArgument.Parameter!.RefKind == RefKind.Out);
-                Debug.Assert(outParameterArgument.Parameter!.Type.SpecialType == SpecialType.System_Boolean);
+                var arguments = ((IObjectCreationOperation)operation.HandlerCreation).Arguments;
+                IArgumentOperation? outParameterArgument = null;
+
+                for (int i = arguments.Length - 1; i > 1; i--)
+                {
+                    if (arguments[i].ArgumentKind == ArgumentKind.Explicit)
+                    {
+                        outParameterArgument = arguments[i];
+                        break;
+                    }
+                }
+
+                Debug.Assert(outParameterArgument is { Parameter: { RefKind: RefKind.Out, Type.SpecialType: SpecialType.System_Boolean } });
                 outParameterPlaceholder = outParameterArgument.Value;
                 Debug.Assert(outParameterPlaceholder is IInterpolatedStringHandlerArgumentPlaceholderOperation { PlaceholderKind: InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument });
                 AddPlaceholder(outParameterPlaceholder, new FlowCaptureReferenceOperation(outParameterFlowCapture, outParameterPlaceholder.Syntax, outParameterPlaceholder.Type, constantValue: null, isInitialization: true));
@@ -6555,6 +6636,8 @@ oneMoreTime:
             int appendCallsLength = appendCalls.Length;
             for (var i = 0; i < appendCallsLength; i++)
             {
+                var appendRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime);
+                EnterRegion(appendRegion);
                 var appendCall = appendCalls[i];
                 if (operation.HandlerAppendCallsReturnBool)
                 {
@@ -6584,8 +6667,17 @@ oneMoreTime:
                         AppendNewBlock(resultBlock, linkToPrevious: true);
                     }
                 }
+                LeaveRegionsUpTo(appendRegion);
+                LeaveRegion();
             }
 
+            if (appendCallsLength == 0 && operation.HandlerCreationHasSuccessParameter)
+            {
+                Debug.Assert(resultBlock != null);
+                AppendNewBlock(resultBlock, linkToPrevious: true);
+            }
+
+            _currentInterpolatedStringHandlerId = previousHandlerId;
             return new FlowCaptureReferenceOperation(handlerCaptureId, operation.Syntax, operation.Type, operation.GetConstantValue());
 
             static ImmutableArray<IInterpolatedStringAppendOperation> collectAppendCalls(IInterpolatedStringHandlerCreationOperation creation)

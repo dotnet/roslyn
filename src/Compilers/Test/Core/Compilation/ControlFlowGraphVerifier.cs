@@ -831,8 +831,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                      isConditionalAccessReceiver(reference) ||
                                      isCoalesceAssignmentTarget(reference) ||
                                      isObjectInitializerInitializedObjectTarget(reference) ||
-                                     isInterpolatedStringArgumentCapture(reference)) &&
-                                 block.EnclosingRegion.EnclosingRegion.CaptureIds.Contains(id)),
+                                     isInterpolatedStringArgumentCapture(reference) ||
+                                     isInterpolatedStringHandlerCapture(reference)) &&
+                                 (block.EnclosingRegion.EnclosingRegion.CaptureIds.Contains(id) ||
+                                  (block.EnclosingRegion.EnclosingRegion?.EnclosingRegion.CaptureIds.Contains(id) ?? false))),
                         $"Operation [{operationIndex}] in [{getBlockId(block)}] uses capture [{id.Value}] from another region. Should the regions be merged?", finalGraph);
                 }
             }
@@ -923,6 +925,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                        && ctorContainingType.GetSymbol().IsInterpolatedStringHandlerType
                        && arguments[0].Value.Type.SpecialType == SpecialType.System_Int32
                        && arguments[1].Value.Type.SpecialType == SpecialType.System_Int32;
+#pragma warning restore IDE0055
+            }
+
+            bool isInterpolatedStringHandlerCapture(IFlowCaptureReferenceOperation reference)
+            {
+                if (reference.Language != LanguageNames.CSharp)
+                {
+                    return false;
+                }
+
+#pragma warning disable IDE0055 // Fix formatting
+                return reference is
+                       {
+                           Parent: IInvocationOperation
+                           {
+                               Instance: { } instance,
+                               TargetMethod: { Name: BoundInterpolatedString.AppendFormattedMethod or BoundInterpolatedString.AppendLiteralMethod, ContainingType: INamedTypeSymbol containingType }
+                           }
+                       }
+                       && ReferenceEquals(instance, reference)
+                       && containingType.GetSymbol().IsInterpolatedStringHandlerType;
 #pragma warning restore IDE0055
             }
 
