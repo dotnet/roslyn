@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Roslyn.Utilities;
 
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis
         private readonly Dictionary<string, Assembly> _loadedAssembliesByPath = new();
 
         // maps file name to a full path (lock _guard to read/write):
-        private readonly Dictionary<string, HashSet<string>> _knownAssemblyPathsBySimpleName = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, ImmutableHashSet<string>> _knownAssemblyPathsBySimpleName = new(StringComparer.OrdinalIgnoreCase);
 
         protected abstract Assembly LoadFromPathImpl(string fullPath);
 
@@ -35,11 +34,13 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!_knownAssemblyPathsBySimpleName.TryGetValue(simpleName, out var paths))
                 {
-                    paths = new HashSet<string>(PathUtilities.Comparer);
+                    paths = ImmutableHashSet.Create(PathUtilities.Comparer, fullPath);
                     _knownAssemblyPathsBySimpleName.Add(simpleName, paths);
                 }
-
-                paths.Add(fullPath);
+                else
+                {
+                    _knownAssemblyPathsBySimpleName[simpleName] = paths.Add(fullPath);
+                }
             }
         }
 
@@ -80,10 +81,13 @@ namespace Microsoft.CodeAnalysis
             return loadedAssembly;
         }
 
-        protected HashSet<string>? GetPaths(string simpleName)
+        protected ImmutableHashSet<string>? GetPaths(string simpleName)
         {
-            _knownAssemblyPathsBySimpleName.TryGetValue(simpleName, out var paths);
-            return paths;
+            lock (_guard)
+            {
+                _knownAssemblyPathsBySimpleName.TryGetValue(simpleName, out var paths);
+                return paths;
+            }
         }
 
         /// <summary>

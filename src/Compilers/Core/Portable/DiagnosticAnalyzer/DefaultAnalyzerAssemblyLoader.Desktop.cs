@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            ImmutableArray<string> candidatePaths;
+            ImmutableHashSet<string> candidatePaths;
             lock (_guard)
             {
 
@@ -138,14 +138,13 @@ namespace Microsoft.CodeAnalysis
                     return existingAssembly;
                 }
                 // Second, check if an assembly file of the same simple name was registered with the loader:
-                var pathList = GetPaths(requestedIdentity.Name);
-                if (pathList is null)
+                candidatePaths = GetPaths(requestedIdentity.Name);
+                if (candidatePaths is null)
                 {
                     return null;
                 }
 
-                Debug.Assert(pathList.Count > 0);
-                candidatePaths = pathList.ToImmutableArray();
+                Debug.Assert(candidatePaths.Count > 0);
             }
 
             // Multiple assemblies of the same simple name but different identities might have been registered.
