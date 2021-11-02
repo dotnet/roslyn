@@ -326,6 +326,37 @@ Delta: Epsilon: Test E
             }
         }
 
+
+        [Fact]
+        public void AssemblyLoading_MultipleVersions_MultipleVersionsOfSameAnalyzerItself()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var loader = new DefaultAnalyzerAssemblyLoader();
+            loader.AddDependencyLocation(_testFixture.Delta2.Path);
+            loader.AddDependencyLocation(_testFixture.Delta2B.Path);
+
+            Assembly delta2 = loader.LoadFromPath(_testFixture.Delta2.Path);
+            Assembly delta2B = loader.LoadFromPath(_testFixture.Delta2B.Path);
+
+            // 2B or not 2B? That is the question...that depends on whether we're on .NET Core or not.
+
+#if NETCOREAPP
+
+            // On Core, we're able to load both of these into separate AssemblyLoadContexts.
+            Assert.NotEqual(delta2B.Location, delta2.Location);
+            Assert.Equal(_testFixture.Delta2.Path, delta2.Location);
+            Assert.Equal(_testFixture.Delta2B.Path, delta2B.Location);
+
+#else
+
+            // In non-core, we cache by assembly identity; since we don't use multiple AppDomains we have no
+            // way to load different assemblies with the same identity, no matter what. Thus, we'll get the
+            // same assembly for both of these.
+            Assert.Equal(delta2B, delta2);
+#endif
+        }
+
         [Fact]
         public void AssemblyLoading_MultipleVersions_ExactAndGreaterMatch()
         {

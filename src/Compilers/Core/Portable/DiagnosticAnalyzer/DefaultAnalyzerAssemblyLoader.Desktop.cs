@@ -5,8 +5,13 @@
 #if !NETCOREAPP
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -23,6 +28,11 @@ namespace Microsoft.CodeAnalysis
     /// </remarks>
     internal class DefaultAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
     {
+        private readonly object _guard = new();
+
+        private readonly Dictionary<AssemblyIdentity, Assembly> _loadedAssembliesByIdentity = new();
+        private readonly Dictionary<string, AssemblyIdentity?> _loadedAssemblyIdentitiesByPath = new();
+
         private int _hookedAssemblyResolve;
 
         protected override Assembly LoadFromPathImpl(string fullPath)
@@ -32,8 +42,37 @@ namespace Microsoft.CodeAnalysis
                 AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
             }
 
+            AssemblyIdentity? identity;
+
+            lock (_guard)
+            {
+                identity = GetOrAddAssemblyIdentity(fullPath);
+                if (identity != null && _loadedAssembliesByIdentity.TryGetValue(identity, out var existingAssembly))
+                {
+                    return existingAssembly;
+                }
+            }
+
             var pathToLoad = GetPathToLoad(fullPath);
-            return Assembly.LoadFrom(pathToLoad);
+            var loadedAssembly = Assembly.LoadFrom(pathToLoad);
+
+            lock (_guard)
+            {
+                identity ??= identity ?? AssemblyIdentity.FromAssemblyDefinition(loadedAssembly);
+
+                // The same assembly may be loaded from two different full paths (e.g. when loaded from GAC, etc.),
+                // or another thread might have loaded the assembly after we checked above.
+                if (_loadedAssembliesByIdentity.TryGetValue(identity, out var existingAssembly))
+                {
+                    loadedAssembly = existingAssembly;
+                }
+                else
+                {
+                    _loadedAssembliesByIdentity.Add(identity, loadedAssembly);
+                }
+
+                return loadedAssembly;
+            }
         }
 
         private Assembly? CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
@@ -46,6 +85,82 @@ namespace Microsoft.CodeAnalysis
             {
                 return null;
             }
+        }
+
+        private AssemblyIdentity? GetOrAddAssemblyIdentity(string fullPath)
+        {
+            Debug.Assert(PathUtilities.IsAbsolute(fullPath));
+
+            lock (_guard)
+            {
+                if (_loadedAssemblyIdentitiesByPath.TryGetValue(fullPath, out var existingIdentity))
+                {
+                    return existingIdentity;
+                }
+            }
+
+            var identity = AssemblyIdentityUtils.TryGetAssemblyIdentity(fullPath);
+            return AddToCache(fullPath, identity);
+        }
+
+        [return: NotNullIfNotNull("identity")]
+        private AssemblyIdentity? AddToCache(string fullPath, AssemblyIdentity? identity)
+        {
+            lock (_guard)
+            {
+                if (_loadedAssemblyIdentitiesByPath.TryGetValue(fullPath, out var existingIdentity) && existingIdentity != null)
+                {
+                    identity = existingIdentity;
+                }
+                else
+                {
+                    _loadedAssemblyIdentitiesByPath[fullPath] = identity;
+                }
+            }
+
+            return identity;
+        }
+
+        private Assembly? Load(string displayName)
+        {
+            if (!AssemblyIdentity.TryParseDisplayName(displayName, out var requestedIdentity))
+            {
+                return null;
+            }
+
+            ImmutableArray<string> candidatePaths;
+            lock (_guard)
+            {
+
+                // First, check if this loader already loaded the requested assembly:
+                if (_loadedAssembliesByIdentity.TryGetValue(requestedIdentity, out var existingAssembly))
+                {
+                    return existingAssembly;
+                }
+                // Second, check if an assembly file of the same simple name was registered with the loader:
+                var pathList = GetPaths(requestedIdentity.Name);
+                if (pathList is null)
+                {
+                    return null;
+                }
+
+                Debug.Assert(pathList.Count > 0);
+                candidatePaths = pathList.ToImmutableArray();
+            }
+
+            // Multiple assemblies of the same simple name but different identities might have been registered.
+            // Load the one that matches the requested identity (if any).
+            foreach (var candidatePath in candidatePaths)
+            {
+                var candidateIdentity = GetOrAddAssemblyIdentity(candidatePath);
+
+                if (requestedIdentity.Equals(candidateIdentity))
+                {
+                    return LoadFromPathUnchecked(candidatePath);
+                }
+            }
+
+            return null;
         }
     }
 }
