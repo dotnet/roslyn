@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// contents of the pendingBranches buffer to take into account the behavior of
         /// "intervening" finally clauses.
         /// </summary>
-        protected ArrayBuilder<PendingBranch> PendingBranches { get; private set; }
+        protected PendingBranchesCollection PendingBranches { get; private set; }
 
         /// <summary>
         /// The definite assignment and/or reachability state at the point currently being analyzed.
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.RegionSpan = new TextSpan(startLocation, length);
             }
 
-            PendingBranches = ArrayBuilder<PendingBranch>.GetInstance();
+            PendingBranches = new PendingBranchesCollection();
             _labelsSeen = PooledHashSet<BoundStatement>.GetInstance();
             _labels = PooledDictionary<LabelSymbol, TLocalState>.GetInstance();
             this.Diagnostics = DiagnosticBag.GetInstance();
@@ -714,31 +714,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void ResolveBreaks(TLocalState breakState, LabelSymbol label)
         {
-            var pendingBranches = PendingBranches;
-            var count = pendingBranches.Count;
-
-            if (count != 0)
+            var pendingBranches = PendingBranches.GetAndRemoveBranches(label);
+            foreach (var pending in pendingBranches)
             {
-                int stillPending = 0;
-                for (int i = 0; i < count; i++)
-                {
-                    var pending = pendingBranches[i];
-                    if (pending.Label == label)
-                    {
-                        Join(ref breakState, ref pending.State);
-                    }
-                    else
-                    {
-                        if (stillPending != i)
-                        {
-                            pendingBranches[stillPending] = pending;
-                        }
-                        stillPending++;
-                    }
-                }
-
-                pendingBranches.Clip(stillPending);
+                Join(ref breakState, ref pending.State);
             }
+            pendingBranches.Free();
 
             SetState(breakState);
         }
@@ -748,39 +729,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void ResolveContinues(LabelSymbol continueLabel)
         {
-            var pendingBranches = PendingBranches;
-            var count = pendingBranches.Count;
-
-            if (count != 0)
+            var pendingBranches = PendingBranches.GetAndRemoveBranches(continueLabel);
+            foreach (var pending in pendingBranches)
             {
-                int stillPending = 0;
-                for (int i = 0; i < count; i++)
-                {
-                    var pending = pendingBranches[i];
-                    if (pending.Label == continueLabel)
-                    {
-                        // Technically, nothing in the language specification depends on the state
-                        // at the continue label, so we could just discard them instead of merging
-                        // the states. In fact, we need not have added continue statements to the
-                        // pending jump queue in the first place if we were interested solely in the
-                        // flow analysis.  However, region analysis (in support of extract method)
-                        // and other forms of more precise analysis
-                        // depend on continue statements appearing in the pending branch queue, so
-                        // we process them from the queue here.
-                        Join(ref this.State, ref pending.State);
-                    }
-                    else
-                    {
-                        if (stillPending != i)
-                        {
-                            pendingBranches[stillPending] = pending;
-                        }
-                        stillPending++;
-                    }
-                }
-
-                pendingBranches.Clip(stillPending);
+                // Technically, nothing in the language specification depends on the state
+                // at the continue label, so we could just discard them instead of merging
+                // the states. In fact, we need not have added continue statements to the
+                // pending jump queue in the first place if we were interested solely in the
+                // flow analysis.  However, region analysis (in support of extract method)
+                // and other forms of more precise analysis
+                // depend on continue statements appearing in the pending branch queue, so
+                // we process them from the queue here.
+                Join(ref this.State, ref pending.State);
             }
+            pendingBranches.Free();
         }
 
         /// <summary>
@@ -803,31 +765,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             target?.AssertIsLabeledStatementWithLabel(label);
 
             bool labelStateChanged = false;
-            var pendingBranches = PendingBranches;
-            var count = pendingBranches.Count;
-
-            if (count != 0)
+            var pendingBranches = PendingBranches.GetAndRemoveBranches(label);
+            foreach (var pending in pendingBranches)
             {
-                int stillPending = 0;
-                for (int i = 0; i < count; i++)
-                {
-                    var pending = pendingBranches[i];
-                    if (pending.Label == label)
-                    {
-                        ResolveBranch(pending, label, target, ref labelStateChanged);
-                    }
-                    else
-                    {
-                        if (stillPending != i)
-                        {
-                            pendingBranches[stillPending] = pending;
-                        }
-                        stillPending++;
-                    }
-                }
-
-                pendingBranches.Clip(stillPending);
+                ResolveBranch(pending, label, target, ref labelStateChanged);
             }
+            pendingBranches.Free();
 
             return labelStateChanged;
         }
@@ -850,10 +793,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected struct SavedPending
         {
-            public readonly ArrayBuilder<PendingBranch> PendingBranches;
+            public readonly PendingBranchesCollection PendingBranches;
             public readonly PooledHashSet<BoundStatement> LabelsSeen;
 
-            public SavedPending(ArrayBuilder<PendingBranch> pendingBranches, PooledHashSet<BoundStatement> labelsSeen)
+            public SavedPending(PendingBranchesCollection pendingBranches, PooledHashSet<BoundStatement> labelsSeen)
             {
                 this.PendingBranches = pendingBranches;
                 this.LabelsSeen = labelsSeen;
@@ -870,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!this.IsConditionalState);
             var result = new SavedPending(PendingBranches, _labelsSeen);
 
-            PendingBranches = ArrayBuilder<PendingBranch>.GetInstance();
+            PendingBranches = new PendingBranchesCollection();
             _labelsSeen = PooledHashSet<BoundStatement>.GetInstance();
 
             return result;

@@ -656,5 +656,60 @@ class C
             var comp = CreateCompilation(sourceBuilder.ToString());
             comp.VerifyDiagnostics();
         }
+
+        [ConditionalFact(typeof(IsRelease))]
+        public void DefiniteAssignment_ManySwitchCasesAndLabels()
+        {
+            const int nLabels = 1500;
+
+            var builder = new StringBuilder();
+            builder.AppendLine("#nullable enable");
+            builder.AppendLine("class Program");
+            builder.AppendLine("{");
+            builder.AppendLine("    static int GetIndex() => 0;");
+            builder.AppendLine("    static void Main()");
+            builder.AppendLine("    {");
+            builder.AppendLine("        int index = 0;");
+            builder.AppendLine("        int tmp1;");
+            builder.AppendLine("        int tmp2; // unused");
+            builder.AppendLine($"        goto L{nLabels - 2};");
+            builder.AppendLine("L0:");
+            builder.AppendLine("        if (index < 64) goto LSwitch;");
+            for (int i = 0; i < nLabels - 2; i++)
+            {
+                builder.AppendLine($"L{i + 1}:");
+                builder.AppendLine("        tmp1 = GetIndex();");
+                builder.AppendLine("        if (index != tmp1)");
+                builder.AppendLine("        {");
+                builder.AppendLine("            if (index < 64) goto LSwitch;");
+                builder.AppendLine($"            goto L{i};");
+                builder.AppendLine("        }");
+            }
+            builder.AppendLine($"L{nLabels - 1}:");
+            builder.AppendLine("        tmp1 = GetIndex();");
+            builder.AppendLine("        return;");
+            builder.AppendLine("LSwitch:");
+            builder.AppendLine("        int tmp3 = index + 1;");
+            builder.AppendLine("        switch (GetIndex())");
+            builder.AppendLine("        {");
+            for (int i = 0; i < nLabels; i++)
+            {
+                builder.AppendLine($"            case {i}:");
+                builder.AppendLine("                index++;");
+                builder.AppendLine($"                goto L{i};");
+            }
+            builder.AppendLine("            default:");
+            builder.AppendLine("                break;");
+            builder.AppendLine("        }");
+            builder.AppendLine("    }");
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,13): warning CS0168: The variable 'tmp2' is declared but never used
+                //         int tmp2; // unused
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "tmp2").WithArguments("tmp2").WithLocation(9, 13));
+        }
     }
 }
