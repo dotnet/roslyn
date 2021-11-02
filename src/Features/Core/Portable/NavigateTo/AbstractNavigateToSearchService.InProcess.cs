@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -11,12 +10,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -24,14 +21,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 {
     internal abstract partial class AbstractNavigateToSearchService
     {
-        /// <summary>
-        /// Cached map from document key to the (potentially stale) syntax tree index for it we use prior to the 
-        /// full solution becoming available.  Once the full solution is available, this will be cleared to drop
-        /// all cached data.
-        /// </summary>
-        private static readonly ConcurrentDictionary<(IChecksummedPersistentStorageService service, DocumentKey documentKey, StringTable stringTable), AsyncLazy<SyntaxTreeIndex?>> s_documentKeyToIndex = new();
-        private static StringTable? s_stringTable = new();
-
         private static ImmutableArray<(PatternMatchKind roslynKind, NavigateToMatchKind vsKind)> s_kindPairs =
             ImmutableArray.Create(
                 (PatternMatchKind.Exact, NavigateToMatchKind.Exact),
@@ -71,7 +60,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             // We're doing a real search over the fully loaded solution now.  No need to hold onto the cached map
             // of potentially stale indices.
-            s_documentKeyToIndex.Clear();
+            Volatile.Write(ref s_cachedIndexMap, null);
             Volatile.Write(ref s_stringTable, null);
 
             // If the user created a dotted pattern then we'll grab the last part of the name
@@ -125,83 +114,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             await ProcessIndexAsync(
                 document.Id, document, patternName, patternContainer, kinds, onResultFound, index, cancellationToken).ConfigureAwait(false);
-        }
-
-        public static async Task SearchCachedDocumentsInCurrentProcessAsync(
-            IChecksummedPersistentStorageService storageService,
-            ImmutableArray<DocumentKey> documentKeys,
-            ImmutableArray<DocumentKey> priorityDocumentKeys,
-            string searchPattern,
-            IImmutableSet<string> kinds,
-            Func<RoslynNavigateToItem, Task> onItemFound,
-            CancellationToken cancellationToken)
-        {
-            // Retrieve the string table we use to dedupe strings.  If we can't get it, that means the solution has 
-            // fully loaded and we've switched over to normal navto lookup.
-            var stringTable = Volatile.Read(ref s_stringTable);
-            if (stringTable == null)
-                return;
-
-            var highPriDocsSet = priorityDocumentKeys.ToSet();
-            var lowPriDocs = documentKeys.WhereAsArray(d => !highPriDocsSet.Contains(d));
-
-            // If the user created a dotted pattern then we'll grab the last part of the name
-            var (patternName, patternContainer) = PatternMatcher.GetNameAndContainer(searchPattern);
-            var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
-
-            await SearchCachedDocumentsInCurrentProcessAsync(
-                storageService, priorityDocumentKeys, stringTable, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, cancellationToken).ConfigureAwait(false);
-
-            await SearchCachedDocumentsInCurrentProcessAsync(
-                storageService, lowPriDocs, stringTable, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async Task SearchCachedDocumentsInCurrentProcessAsync(
-            IChecksummedPersistentStorageService storageService,
-            ImmutableArray<DocumentKey> documentKeys,
-            StringTable stringTable,
-            string patternName,
-            string patternContainer,
-            DeclaredSymbolInfoKindSet kinds,
-            Func<RoslynNavigateToItem, Task> onItemFound,
-            CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
-
-            foreach (var documentKey in documentKeys)
-            {
-                tasks.Add(Task.Run(async () =>
-                {
-                    var index = await GetIndexAsync(storageService, documentKey, stringTable, cancellationToken).ConfigureAwait(false);
-                    if (index == null)
-                        return;
-
-                    await ProcessIndexAsync(
-                        documentKey.Id, document: null, patternName, patternContainer, kinds, onItemFound, index, cancellationToken).ConfigureAwait(false);
-                }, cancellationToken));
-            }
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-        }
-
-        private static Task<SyntaxTreeIndex?> GetIndexAsync(
-            IChecksummedPersistentStorageService storageService,
-            DocumentKey documentKey,
-            StringTable stringTable,
-            CancellationToken cancellationToken)
-        {
-            // Add the async lazy to compute the index for this document.  Or, return the existing cached one if already
-            // present.  This ensures that subsequent searches that are run while the solution is still loading are fast
-            // and avoid the cost of loading from the persistence service every time.
-            //
-            // Pass in null for the checksum as we want to search stale index values regardless if the documents don't
-            // match on disk anymore.
-            var asyncLazy = s_documentKeyToIndex.GetOrAdd(
-                (storageService, documentKey, stringTable),
-                static t => new AsyncLazy<SyntaxTreeIndex?>(
-                    c => SyntaxTreeIndex.LoadAsync(
-                        t.service, t.documentKey, checksum: null, t.stringTable, c), cacheResult: true));
-            return asyncLazy.GetValueAsync(cancellationToken);
         }
 
         private static async Task ProcessIndexAsync(
