@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
         public static PerLanguageOption<bool> FilterOutOfScopeLocals { get; } = new PerLanguageOption<bool>(nameof(RecommendationOptions), nameof(FilterOutOfScopeLocals), defaultValue: true);
     }
 
-    internal record struct RecommendationServiceOptions(
+    internal readonly record struct RecommendationServiceOptions(
         bool FilterOutOfScopeLocals,
         bool HideAdvancedMembers)
     {

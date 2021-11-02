@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -22,15 +23,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
     {
         private readonly ITextUndoHistoryRegistry _undoRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly IGlobalOptionService _globalOptions;
 
         public string DisplayName => EditorFeaturesResources.Automatic_Line_Ender;
 
         protected AbstractAutomaticLineEnderCommandHandler(
             ITextUndoHistoryRegistry undoRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            IGlobalOptionService globalOptions)
         {
             _undoRegistry = undoRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
+            _globalOptions = globalOptions;
         }
 
         /// <summary>
@@ -84,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             }
 
             // feature off
-            if (!document.Project.Solution.Workspace.Options.GetOption(InternalFeatureOnOffOptions.AutomaticLineEnder))
+            if (!_globalOptions.GetOption(InternalFeatureOnOffOptions.AutomaticLineEnder))
             {
                 NextAction(operations, nextHandler);
                 return;

@@ -11,21 +11,20 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
-    internal static class SignatureHelpOptions
-    {
-        public static readonly PerLanguageOption2<bool> ShowSignatureHelp = new(nameof(SignatureHelpOptions), nameof(ShowSignatureHelp), defaultValue: true);
-    }
-
-    [ExportOptionProvider, Shared]
-    internal class SignatureHelpOptionsProvider : IOptionProvider
+    [ExportGlobalOptionProvider, Shared]
+    internal sealed class SignatureHelpViewOptions : IOptionProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SignatureHelpOptionsProvider()
+        public SignatureHelpViewOptions()
         {
         }
 
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            SignatureHelpOptions.ShowSignatureHelp);
+        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
+            ShowSignatureHelp);
+
+        private const string FeatureName = "SignatureHelpOptions";
+
+        public static readonly PerLanguageOption2<bool> ShowSignatureHelp = new(FeatureName, nameof(ShowSignatureHelp), defaultValue: true);
     }
 }
