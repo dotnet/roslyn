@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal void Free()
             {
                 _branches.Free();
+                _branches = null!;
                 FreeBranchesToLabel();
             }
 
@@ -82,25 +83,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    if (_branchesToLabel is null)
-                    {
-                        _branchesToLabel = PooledDictionary<LabelSymbol, ArrayBuilder<PendingBranch>>.GetInstance();
-                    }
-                    if (!_branchesToLabel.TryGetValue(label, out var branches))
-                    {
-                        branches = ArrayBuilder<PendingBranch>.GetInstance();
-                        _branchesToLabel.Add(label, branches);
-                    }
+                    var branches = GetOrAddBranchesToLabel(label);
                     branches.Add(branch);
                 }
             }
 
             internal void AddRange(PendingBranchesCollection collection)
             {
-                foreach (var branch in collection)
+                _branches.AddRange(collection._branches);
+                if (collection._branchesToLabel is { })
                 {
-                    Add(branch);
+                    foreach (var pair in collection._branchesToLabel)
+                    {
+                        var branches = GetOrAddBranchesToLabel(pair.Key);
+                        branches.AddRange(pair.Value);
+                    }
                 }
+            }
+
+            private ArrayBuilder<PendingBranch> GetOrAddBranchesToLabel(LabelSymbol label)
+            {
+                if (_branchesToLabel is null)
+                {
+                    _branchesToLabel = PooledDictionary<LabelSymbol, ArrayBuilder<PendingBranch>>.GetInstance();
+                }
+                if (!_branchesToLabel.TryGetValue(label, out var branches))
+                {
+                    branches = ArrayBuilder<PendingBranch>.GetInstance();
+                    _branchesToLabel.Add(label, branches);
+                }
+                return branches;
             }
 
             public IEnumerator<PendingBranch> GetEnumerator()
