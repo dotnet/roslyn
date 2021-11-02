@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    internal interface IChecksummedPersistentStorageService
+    internal interface IChecksummedPersistentStorageService : IWorkspaceService
     {
         ValueTask<IChecksummedPersistentStorage> GetStorageAsync(SolutionKey solutionKey, CancellationToken cancellationToken);
     }

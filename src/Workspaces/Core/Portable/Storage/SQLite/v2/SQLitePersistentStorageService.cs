@@ -15,9 +15,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
-    internal sealed class SQLitePersistentStorageService : AbstractSQLitePersistentStorageService
+    internal sealed class SQLitePersistentStorageService : AbstractPersistentStorageService
     {
-        [ExportWorkspaceServiceFactory(typeof(ISQLiteStorageServiceProvider)), Shared]
+        [ExportWorkspaceServiceFactory(typeof(SQLitePersistentStorageService)), Shared]
         internal sealed class ServiceFactory : IWorkspaceServiceFactory
         {
             private readonly SQLiteConnectionPoolService _connectionPoolService;
@@ -34,27 +34,31 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new Provider(_connectionPoolService, workspaceServices.GetRequiredService<IPersistentStorageConfiguration>(), _asyncListener);
-
-            private class Provider : ISQLiteStorageServiceProvider
-            {
-                private readonly IChecksummedPersistentStorageService _service;
-
-                public Provider(
-                    SQLiteConnectionPoolService connectionPoolService,
-                    IPersistentStorageConfiguration configuration,
-                    IAsynchronousOperationListener asyncListener)
-                {
-                    _service = new SQLitePersistentStorageService(connectionPoolService, configuration, asyncListener);
-                }
-
-                public IChecksummedPersistentStorageService GetService()
-                    => _service;
-            }
+                => new SQLitePersistentStorageService(_connectionPoolService, workspaceServices.GetRequiredService<IPersistentStorageConfiguration>(), _asyncListener);
         }
 
         private const string StorageExtension = "sqlite3";
         private const string PersistentStorageFileName = "storage.ide";
+
+        private static bool TryInitializeLibraries() => s_initialized.Value;
+
+        private static readonly Lazy<bool> s_initialized = new(() => TryInitializeLibrariesLazy());
+
+        private static bool TryInitializeLibrariesLazy()
+        {
+            try
+            {
+                // Necessary to initialize SQLitePCL.
+                SQLitePCL.Batteries_V2.Init();
+            }
+            catch (Exception e) when (e is DllNotFoundException or EntryPointNotFoundException)
+            {
+                StorageDatabaseLogger.LogException(e);
+                return false;
+            }
+
+            return true;
+        }
 
         private readonly SQLiteConnectionPoolService _connectionPoolService;
         private readonly IAsynchronousOperationListener _asyncListener;

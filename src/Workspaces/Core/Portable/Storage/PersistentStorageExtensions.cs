@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.SQLite.v2;
 using Microsoft.CodeAnalysis.Storage.CloudCache;
 
 namespace Microsoft.CodeAnalysis.Storage
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Storage
             return database switch
             {
                 StorageDatabase.SQLite
-                    => services.GetService<ISQLiteStorageServiceProvider>()?.GetService() ??
+                    => services.GetService<SQLitePersistentStorageService>() ??
                        NoOpPersistentStorageService.GetOrThrow(configuration),
                 StorageDatabase.CloudCache
                     => services.GetService<ICloudCacheStorageServiceProvider>()?.GetService() ??
