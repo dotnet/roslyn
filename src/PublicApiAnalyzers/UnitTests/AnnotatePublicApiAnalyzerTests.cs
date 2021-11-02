@@ -99,6 +99,41 @@ C<T>
             await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
+        [Fact]
+        public async Task NoObliviousWhenAnnotatedClassConstraintMultipleFiles()
+        {
+            var source = @"
+#nullable enable
+public class C<T> where T : class?
+{
+}
+";
+
+            var shippedText = @"#nullable enable";
+            var unshippedText1 = @"#nullable enable
+C<T>.C() -> void
+";
+            var unshippedText2 = @"#nullable enable
+C<T>
+";
+
+            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, AnnotatePublicApiFix, XUnitVerifier>
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles =
+                    {
+                        (DeclarePublicApiAnalyzer.ShippedFileName, shippedText),
+                        (DeclarePublicApiAnalyzer.UnshippedFileName, unshippedText1),
+                        (DeclarePublicApiAnalyzer.UnshippedFileNamePrefix + "test" + DeclarePublicApiAnalyzer.Extension, unshippedText2),
+                    },
+                },
+            };
+
+            await test.RunAsync();
+        }
+
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
         public async Task ObliviousWhenObliviousClassConstraintAsync()
         {
@@ -310,6 +345,50 @@ C.Field -> string?
 C.Field2 -> string!";
 
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, shippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public async Task AnnotatedMemberInAnnotatedUnshippedAPI_EnabledViaMultipleUnshippedAsync()
+        {
+            var source = @"
+#nullable enable
+public class C
+{
+    public string? OldField;
+    public string? {|RS0036:Field|};
+    public string {|RS0036:Field2|};
+}
+";
+
+            var unshippedText = @"#nullable enable
+C
+C.C() -> void
+C.OldField -> string?
+C.Field -> string
+C.Field2 -> string";
+
+            var shippedText = @"";
+
+            var fixedUnshippedText = @"#nullable enable
+C
+C.C() -> void
+C.OldField -> string?
+C.Field -> string?
+C.Field2 -> string!";
+
+            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, AnnotatePublicApiFix, XUnitVerifier>();
+
+            test.TestState.Sources.Add(source);
+
+            test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, shippedText));
+            test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, string.Empty));
+            test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileNamePrefix + "test" + DeclarePublicApiAnalyzer.Extension, unshippedText));
+
+            test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, shippedText));
+            test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, string.Empty));
+            test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileNamePrefix + "test" + DeclarePublicApiAnalyzer.Extension, fixedUnshippedText));
+
+            await test.RunAsync();
         }
 
         [Fact]
