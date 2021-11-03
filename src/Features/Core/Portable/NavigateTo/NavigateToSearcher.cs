@@ -150,7 +150,13 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 // If searching cached data returned any results, then we're done.  We've at least shown some results
                 // to the user.  That will hopefully serve them well enough until the solution fully loads.
                 if (seenItems.Count > 0)
+                {
+                    // Ensure that we actually complete all our workitems so that the progress bar completes.
+                    await ProcessOrderedProjectsAsync(orderedProjects, seenItems,
+                        async (_, _, _) => await _progress.ItemCompletedAsync(cancellationToken).ConfigureAwait(false),
+                        cancellationToken).ConfigureAwait(false);
                     return;
+                }
 
                 await SearchFullyLoadedProjectsAsync(orderedProjects, seenItems, cancellationToken).ConfigureAwait(false);
 
@@ -238,10 +244,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             return result.ToImmutable();
         }
 
-        private async Task SearchOrderedProjectsAsync(
+        private async Task ProcessOrderedProjectsAsync(
             ImmutableArray<ImmutableArray<Project>> orderedProjects,
             HashSet<INavigateToSearchResult> seenItems,
-            Func<INavigateToSearchService, Project, Func<INavigateToSearchResult, Task>, Task> searchProjectAsync,
+            Func<INavigateToSearchService, Project, Func<INavigateToSearchResult, Task>, Task> processProjectAsync,
             CancellationToken cancellationToken)
         {
             // Process each group one at a time.  However, in each group process all projects in parallel to get results
@@ -267,7 +273,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     if (service == null)
                         return;
 
-                    await searchProjectAsync(service, project, result =>
+                    await processProjectAsync(service, project, result =>
                     {
                         // If we're seeing a dupe in another project, then filter it out here.  The results from
                         // the individual projects will already contain the information about all the projects
@@ -294,7 +300,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             HashSet<INavigateToSearchResult> seenItems,
             CancellationToken cancellationToken)
         {
-            return SearchOrderedProjectsAsync(
+            return ProcessOrderedProjectsAsync(
                 orderedProjects,
                 seenItems,
                 (s, p, cb) => s.SearchProjectAsync(p, GetPriorityDocuments(p), _searchPattern, _kinds, cb, cancellationToken),
@@ -306,7 +312,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             HashSet<INavigateToSearchResult> seenItems,
             CancellationToken cancellationToken)
         {
-            return SearchOrderedProjectsAsync(
+            return ProcessOrderedProjectsAsync(
                 orderedProjects,
                 seenItems,
                 (s, p, cb) => s.SearchCachedDocumentsAsync(p, GetPriorityDocuments(p), _searchPattern, _kinds, cb, cancellationToken),
@@ -318,7 +324,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             HashSet<INavigateToSearchResult> seenItems,
             CancellationToken cancellationToken)
         {
-            return SearchOrderedProjectsAsync(
+            return ProcessOrderedProjectsAsync(
                 orderedProjects,
                 seenItems,
                 (s, p, cb) => s.SearchGeneratedDocumentsAsync(p, _searchPattern, _kinds, cb, cancellationToken),
