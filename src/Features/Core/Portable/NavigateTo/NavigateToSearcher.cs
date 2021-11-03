@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly INavigateToSearchCallback _callback;
         private readonly string _searchPattern;
-        private readonly bool _searchCurrentDocument;
         private readonly IImmutableSet<string> _kinds;
         private readonly Document? _currentDocument;
         private readonly IStreamingProgressTracker _progress;
@@ -39,7 +38,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             IAsynchronousOperationListener asyncListener,
             INavigateToSearchCallback callback,
             string searchPattern,
-            bool searchCurrentDocument,
             IImmutableSet<string> kinds)
         {
             _host = host;
@@ -47,7 +45,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             _asyncListener = asyncListener;
             _callback = callback;
             _searchPattern = searchPattern;
-            _searchCurrentDocument = searchCurrentDocument;
             _kinds = kinds;
             _progress = new StreamingProgressTracker((current, maximum, ct) =>
             {
@@ -63,11 +60,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             _activeDocument = docTrackingService.GetActiveDocument(_solution);
             _visibleDocuments = docTrackingService.GetVisibleDocuments(_solution)
                                                   .WhereAsArray(d => d != _activeDocument);
-
-            if (_searchCurrentDocument)
-            {
-                _currentDocument = _activeDocument;
-            }
         }
 
         public static NavigateToSearcher Create(
@@ -75,16 +67,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             IAsynchronousOperationListener asyncListener,
             INavigateToSearchCallback callback,
             string searchPattern,
-            bool searchCurrentDocument,
             IImmutableSet<string> kinds,
             CancellationToken disposalToken,
             INavigateToSearcherHost? host = null)
         {
             host ??= new DefaultNavigateToSearchHost(solution, asyncListener, disposalToken);
-            return new NavigateToSearcher(host, solution, asyncListener, callback, searchPattern, searchCurrentDocument, kinds);
+            return new NavigateToSearcher(host, solution, asyncListener, callback, searchPattern, kinds);
         }
 
-        internal async Task SearchAsync(CancellationToken cancellationToken)
+        internal async Task SearchAsync(bool searchCurrentDocument, CancellationToken cancellationToken)
         {
             var isFullyLoaded = true;
 
@@ -93,11 +84,18 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 using var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken);
                 using var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".Search");
 
-                // We consider ourselves fully loaded when both the project system has completed loaded us, and we've
-                // totally hydrated the oop side.  Until that happens, we'll attempt to return cached data from languages
-                // that support that.
-                isFullyLoaded = await _host.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
-                await SearchAllProjectsAsync(isFullyLoaded, cancellationToken).ConfigureAwait(false);
+                if (searchCurrentDocument)
+                {
+                    await SearchCurrentDocumentAsync(cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    // We consider ourselves fully loaded when both the project system has completed loaded us, and we've
+                    // totally hydrated the oop side.  Until that happens, we'll attempt to return cached data from languages
+                    // that support that.
+                    isFullyLoaded = await _host.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+                    await SearchAllProjectsAsync(isFullyLoaded, cancellationToken).ConfigureAwait(false);
+                }
             }
             catch (OperationCanceledException)
             {
@@ -107,6 +105,30 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 // providing this extra information will make UI to show indication to users
                 // that result might not contain full data
                 _callback.Done(isFullyLoaded);
+            }
+        }
+
+        private async Task SearchCurrentDocumentAsync(CancellationToken cancellationToken)
+        {
+            if (_activeDocument == null)
+                return;
+
+            var project = _activeDocument.Project;
+            var service = _host.GetNavigateToSearchService(project);
+            if (service == null)
+                return;
+
+            await _progress.AddItemsAsync(1, cancellationToken).ConfigureAwait(false);
+            try
+            {
+                await service.SearchDocumentAsync(
+                    _activeDocument, _searchPattern, _kinds,
+                    r => _callback.AddItemAsync(project, r, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                await _progress.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 

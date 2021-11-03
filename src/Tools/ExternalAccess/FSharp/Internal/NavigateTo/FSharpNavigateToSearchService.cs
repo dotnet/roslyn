@@ -34,14 +34,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
             Document document,
             string searchPattern,
             IImmutableSet<string> kinds,
-            bool isFullyLoaded,
             Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
-            // We only support searching when the project is fully loaded.
-            if (!isFullyLoaded)
-                return;
-
             var results = await _service.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
             foreach (var result in results)
                 await onResultFound(new InternalFSharpNavigateToSearchResult(result)).ConfigureAwait(false);

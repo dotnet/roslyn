@@ -22,6 +22,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         /// work.
         /// </summary>
         Task SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, bool isFullyLoaded, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken);
-        Task SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, bool isFullyLoaded, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken);
+        Task SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken);
     }
 }

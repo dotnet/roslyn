@@ -41,19 +41,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             };
         }
 
-        public async Task SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, bool isFullyLoaded, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
-        {
-            if (isFullyLoaded)
-            {
-                await SearchFullyLoadedDocumentAsync(document, searchPattern, kinds, onResultFound, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                await SearchCachedDocumentsAsync(ImmutableArray.Create(document), ImmutableArray<Document>.Empty, searchPattern, kinds, onResultFound, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private static async Task SearchFullyLoadedDocumentAsync(
+        public async Task SearchDocumentAsync(
             Document document,
             string searchPattern,
             IImmutableSet<string> kinds,

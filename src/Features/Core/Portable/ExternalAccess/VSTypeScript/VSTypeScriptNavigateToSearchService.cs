@@ -39,14 +39,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             Document document,
             string searchPattern,
             IImmutableSet<string> kinds,
-            bool isFullyLoaded,
             Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
-            // We only support searching when the project is fully loaded.
-            if (!isFullyLoaded)
-                return;
-
             if (_searchService != null)
             {
                 var results = await _searchService.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
