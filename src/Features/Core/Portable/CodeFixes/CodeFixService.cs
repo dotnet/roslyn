@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -313,6 +314,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                     errorReportingService.ShowGlobalErrorInfo(
                         message,
+                        TelemetryFeatureName.CodeFixProvider,
                         ex,
                         new InfoBarUI(
                             WorkspacesResources.Show_Stack_Trace,
