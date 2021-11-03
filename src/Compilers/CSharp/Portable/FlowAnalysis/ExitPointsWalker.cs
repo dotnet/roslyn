@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void LeaveRegion()
         {
-            foreach (var pending in PendingBranches)
+            foreach (var pending in PendingBranches.AsEnumerable())
             {
                 if (pending.Branch == null || !RegionContains(pending.Branch.Syntax.Span)) continue;
                 switch (pending.Branch.Kind)

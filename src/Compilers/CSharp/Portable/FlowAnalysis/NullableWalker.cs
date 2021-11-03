@@ -2456,7 +2456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expr == null)
             {
                 EnforceDoesNotReturn(node.Syntax);
-                PendingBranches.Add(new PendingBranch(node, this.State, label: null));
+                AddPendingBranch(node, this.State, label: null);
                 SetUnreachable();
                 return null;
             }
@@ -2503,11 +2503,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var joinedState = this.StateWhenTrue.Clone();
                 Join(ref joinedState, ref this.StateWhenFalse);
-                PendingBranches.Add(new PendingBranch(node, joinedState, label: null, this.IsConditionalState, this.StateWhenTrue, this.StateWhenFalse));
+                AddPendingBranch(node, joinedState, label: null, this.IsConditionalState, this.StateWhenTrue, this.StateWhenFalse);
             }
             else
             {
-                PendingBranches.Add(new PendingBranch(node, this.State, label: null));
+                AddPendingBranch(node, this.State, label: null);
             }
 
             Unsplit();
@@ -2742,7 +2742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // of the function where the enumerable is returned.
                 if (lambdaOrFunctionSymbol.IsIterator)
                 {
-                    PendingBranches.Add(new PendingBranch(null, this.State, null));
+                    AddPendingBranch(null, this.State, null);
                 }
 
                 VisitAlways(lambdaOrFunction.Body);

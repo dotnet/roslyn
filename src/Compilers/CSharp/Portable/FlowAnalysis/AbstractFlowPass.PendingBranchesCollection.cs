@@ -2,20 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class AbstractFlowPass<TLocalState, TLocalFunctionState>
     {
-        internal sealed class PendingBranchesCollection : IEnumerable<PendingBranch>
+        internal sealed class PendingBranchesCollection
         {
             private ArrayBuilder<PendingBranch> _unlabeledBranches;
-            private PooledDictionary<LabelSymbol, ArrayBuilder<PendingBranch>>? _labeledBranches;
+            private PooledDictionary<int, ArrayBuilder<PendingBranch>>? _labeledBranches;
 
             internal PendingBranchesCollection()
             {
@@ -52,20 +50,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return _labeledBranches is null ?
                     _unlabeledBranches.ToImmutable() :
-                    ImmutableArray.CreateRange(this);
+                    ImmutableArray.CreateRange(AsEnumerable());
             }
 
-            internal ArrayBuilder<PendingBranch>? GetAndRemoveBranches(LabelSymbol? label)
+            internal ArrayBuilder<PendingBranch>? GetAndRemoveBranches(int? labelId)
             {
                 ArrayBuilder<PendingBranch>? result;
-                if (label is null)
+                if (labelId is null)
                 {
                     result = _unlabeledBranches;
                     _unlabeledBranches = ArrayBuilder<PendingBranch>.GetInstance();
                 }
-                else if (_labeledBranches is { } && _labeledBranches.TryGetValue(label, out result))
+                else if (_labeledBranches is { } && _labeledBranches.TryGetValue(labelId.GetValueOrDefault(), out result))
                 {
-                    _labeledBranches.Remove(label);
+                    _labeledBranches.Remove(labelId.GetValueOrDefault());
                 }
                 else
                 {
@@ -74,16 +72,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            internal void Add(PendingBranch branch)
+            internal void Add(int? labelId, PendingBranch branch)
             {
-                var label = branch.Label;
-                if (label is null)
+                if (labelId is null)
                 {
                     _unlabeledBranches.Add(branch);
                 }
                 else
                 {
-                    var branches = GetOrAddBranchesToLabel(label);
+                    var branches = GetOrAddBranchesToLabel(labelId.GetValueOrDefault());
                     branches.Add(branch);
                 }
             }
@@ -101,45 +98,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            private ArrayBuilder<PendingBranch> GetOrAddBranchesToLabel(LabelSymbol label)
+            private ArrayBuilder<PendingBranch> GetOrAddBranchesToLabel(int labelId)
             {
                 if (_labeledBranches is null)
                 {
-                    _labeledBranches = PooledDictionary<LabelSymbol, ArrayBuilder<PendingBranch>>.GetInstance();
+                    _labeledBranches = PooledDictionary<int, ArrayBuilder<PendingBranch>>.GetInstance();
                 }
-                if (!_labeledBranches.TryGetValue(label, out var branches))
+                if (!_labeledBranches.TryGetValue(labelId, out var branches))
                 {
                     branches = ArrayBuilder<PendingBranch>.GetInstance();
-                    _labeledBranches.Add(label, branches);
+                    _labeledBranches.Add(labelId, branches);
                 }
                 return branches;
             }
 
-            public IEnumerator<PendingBranch> GetEnumerator()
+            internal IEnumerable<PendingBranch> AsEnumerable()
             {
                 return _labeledBranches is null ?
-                    ((IEnumerable<PendingBranch>)_unlabeledBranches).GetEnumerator() :
-                    getEnumeratorCore();
+                    _unlabeledBranches :
+                    asEnumerableCore();
 
-                IEnumerator<PendingBranch> getEnumeratorCore()
+                IEnumerable<PendingBranch> asEnumerableCore()
                 {
+                    var labels = ArrayBuilder<int>.GetInstance();
+                    labels.AddRange(_labeledBranches.Keys);
+                    labels.Sort((x, y) => x - y);
                     foreach (var branch in _unlabeledBranches)
                     {
                         yield return branch;
                     }
-                    foreach (var branches in _labeledBranches.Values)
+                    foreach (var label in labels)
                     {
+                        var branches = _labeledBranches[label];
                         foreach (var branch in branches)
                         {
                             yield return branch;
                         }
                     }
+                    labels.Free();
                 }
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
             }
         }
     }
