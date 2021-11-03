@@ -99,8 +99,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(", ");
             if (operation.Language == LanguageNames.CSharp && operation is NoneOperation)
             {
-                //TODO: this should be removed! (see: https://github.com/dotnet/roslyn/issues/57531)
+                //TODO: this should be removed!
                 //We need to update the tests to allow Types on NoneOperations
+                //(see: https://github.com/dotnet/roslyn/issues/57531)
                 LogType(null);
             }
             else
