@@ -29,9 +29,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 var callback = new NavigateToSearchServiceCallback(onItemFound);
 
-                // don't need to sync the entire solution when searching a particular project.
                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
-                    project,
+                    solution,
                     (service, solutionInfo, callbackId, cancellationToken) =>
                         service.SearchGeneratedDocumentsAsync(solutionInfo, project.Id, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
                     callback, cancellationToken).ConfigureAwait(false);

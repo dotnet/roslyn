@@ -68,9 +68,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 var priorityDocumentIds = priorityDocuments.SelectAsArray(d => d.Id);
                 var callback = new NavigateToSearchServiceCallback(onItemFound);
 
-                // don't need to sync the entire solution when searching a particular project.
                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
-                    project,
+                    solution,
                     (service, solutionInfo, callbackId, cancellationToken) =>
                         service.SearchProjectAsync(solutionInfo, project.Id, priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
                     callback, cancellationToken).ConfigureAwait(false);
