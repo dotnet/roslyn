@@ -5,10 +5,12 @@
 using System;
 using System.Composition;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
@@ -33,8 +35,15 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // Otherwise, check the easiest (but most unlikely) case which is the document exists on the disk
             if (File.Exists(sourceDocument.FilePath))
             {
-                // TODO: Make sure the hash of the file is correct: https://github.com/dotnet/roslyn/issues/57351
-                return Task.FromResult<TextLoader?>(new FileTextLoader(sourceDocument.FilePath, Encoding.UTF8));
+                using var fileStream = new FileStream(sourceDocument.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+                // TODO: Don't hard code UTF8: https://github.com/dotnet/roslyn/issues/57350
+                var sourceText = SourceText.From(fileStream, Encoding.UTF8, sourceDocument.HashAlgorithm);
+                var fileChecksum = sourceText.GetChecksum();
+
+                if (fileChecksum.SequenceEqual(sourceDocument.Checksum))
+                {
+                    return Task.FromResult<TextLoader?>(new FileTextLoader(sourceDocument.FilePath, Encoding.UTF8));
+                }
             }
 
             // TODO: Call the debugger to download the file
