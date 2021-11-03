@@ -3,20 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 {
     using StackFrameNodeOrToken = EmbeddedSyntaxNodeOrToken<StackFrameKind, StackFrameNode>;
     using StackFrameToken = EmbeddedSyntaxToken<StackFrameKind>;
-    using StackFrameTrivia = EmbeddedSyntaxTrivia<StackFrameKind>;
 
     internal abstract class StackFrameNode : EmbeddedSyntaxNode<StackFrameKind, StackFrameNode>
     {
@@ -416,6 +412,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
         public StackFrameFileInformationNode(StackFrameToken path, StackFrameToken? colon, StackFrameToken? line) : base(StackFrameKind.FileInformation)
         {
+            Debug.Assert(path.Kind == StackFrameKind.PathToken);
             Debug.Assert(colon.HasValue == line.HasValue);
             Debug.Assert(!line.HasValue || line.Value.Kind == StackFrameKind.NumberToken);
 

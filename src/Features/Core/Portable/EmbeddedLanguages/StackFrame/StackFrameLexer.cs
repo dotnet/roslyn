@@ -171,12 +171,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// Attempts to parse <see cref="StackFrameKind.InTrivia"/> and a path following https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#file-and-directory-names
         /// Uses <see cref="FileInfo"/> as a tool to determine if the path is correct for returning. 
         /// </summary>
-        public StackFrameToken? TryScanPath()
+        public Result<StackFrameToken> TryScanPath()
         {
             var inTrivia = TryScanInTrivia();
             if (!inTrivia.HasValue)
             {
-                return null;
+                return Result<StackFrameToken>.Empty;
             }
 
             var startPosition = Position;
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             if (startPosition == Position)
             {
-                return CreateToken(StackFrameKind.InvalidPathToken, ImmutableArray.Create(inTrivia.Value), VirtualCharSequence.Empty);
+                return Result<StackFrameToken>.Abort;
             }
 
             return CreateToken(StackFrameKind.PathToken, ImmutableArray.Create(inTrivia.Value), GetSubSequenceToCurrentPos(startPosition));
@@ -225,18 +225,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// attached to it. If no numbers are found, returns a <see cref="StackFrameKind.None"/> token with the trivia that was scanned.
         /// </summary>
         /// <returns></returns>
-        public StackFrameToken? TryScanLineNumber()
+        public Result<StackFrameToken> TryScanLineNumber()
         {
             var lineTrivia = TryScanLineTrivia();
             if (!lineTrivia.HasValue)
             {
-                return null;
+                return Result<StackFrameToken>.Empty;
             }
 
             var numberToken = TryScanNumbers();
             if (!numberToken.HasValue)
             {
-                return CreateToken(StackFrameKind.InvalidNumberToken, ImmutableArray.Create(lineTrivia.Value), VirtualCharSequence.Empty);
+                return Result<StackFrameToken>.Abort;
             }
 
             var remainingTrivia = TryScanRemainingTrivia();
