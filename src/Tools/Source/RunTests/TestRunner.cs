@@ -156,27 +156,26 @@ namespace RunTests
 
                 var commandLineArguments = _testExecutor.GetCommandLineArguments(assemblyInfo, useSingleQuotes: isUnix);
                 commandLineArguments = SecurityElement.Escape(commandLineArguments);
+                var setEnvironmentVariable = isUnix ? "export" : "set";
 
-                var rehydrateFilename = isUnix ? "rehydrate.sh" : "rehydrate.cmd";
-                var lsCommand = isUnix ? "ls" : "dir";
-                var rehydrateCommand = isUnix ? $"./{rehydrateFilename}" : $@"call .\{rehydrateFilename}";
-                var setRollforward = $"{(isUnix ? "export" : "set")} DOTNET_ROLL_FORWARD=LatestMajor";
-                var setPrereleaseRollforward = $"{(isUnix ? "export" : "set")} DOTNET_ROLL_FORWARD_TO_PRERELEASE=1";
-                var setTestIOperation = Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION") is { } iop
-                    ? $"{(isUnix ? "export" : "set")} ROSLYN_TEST_IOPERATION={iop}"
-                    : "";
+                var command = new StringBuilder();
+                command.AppendLine(isUnix ? "ls" : "dir");
+                command.AppendLine(isUnix ? $"./rehydrate.sh" : $@"call .\rehydrate.cmd");
+                command.AppendLine(isUnix ? "ls" : "dir");
+                command.AppendLine($"{setEnvironmentVariable} DOTNET_ROLL_FORWARD=LatestMajor");
+                command.AppendLine($"{setEnvironmentVariable} DOTNET_ROLL_FORWARD_TO_PRERELEASE=1");
+                command.AppendLine("dotnet --info");
+
+                if (Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION") is string iop)
+                    command.AppendLine($"{setEnvironmentVariable} ROSLYN_TEST_IOPERATION={iop}");
+
+                command.AppendLine($"dotnet {commandLineArguments}");
+
                 var workItem = $@"
         <HelixWorkItem Include=""{assemblyInfo.DisplayName}"">
             <PayloadDirectory>{Path.Combine(msbuildTestPayloadRoot, Path.GetDirectoryName(assemblyInfo.AssemblyPath)!)}</PayloadDirectory>
             <Command>
-                {lsCommand}
-                {rehydrateCommand}
-                {lsCommand}
-                {setRollforward}
-                {setPrereleaseRollforward}
-                dotnet --info
-                {setTestIOperation}
-                dotnet {commandLineArguments}
+                {command}
             </Command>
             <Timeout>00:15:00</Timeout>
         </HelixWorkItem>
