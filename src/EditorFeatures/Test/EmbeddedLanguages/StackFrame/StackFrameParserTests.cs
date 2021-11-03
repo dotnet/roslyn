@@ -388,8 +388,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         [InlineData("M.N[T.Y]()")] // Generic type arguments should not be qualified types
         [InlineData("M.N(X.Y x.y)")] // argument names should not be qualified
         [InlineData("M.N(params)")] // argument with type but no name
-        [InlineData("M.N [T]()")] // Space between identifier and bracket is not allowed
-        [InlineData("M.N(string [] s)")] // Space between type and array brackets not allowed
+        [InlineData("M.N [T]()")] // Space between identifier and bracket
+        [InlineData("M.N(string [] s)")] // Space between type and array brackets
+        [InlineData("M.N ()")] // Space between method declaration and parameters
+        [InlineData("M.N .O.P(string s)")] // Space in type qualified name
         public void TestInvalidInputs(string input)
             => Verify(input, expectFailure: true);
 
