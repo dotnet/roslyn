@@ -36,24 +36,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 // Map our value to 'Fuzzy' as that's the lower value the platform supports.
                 (PatternMatchKind.LowercaseSubstring, NavigateToMatchKind.Fuzzy));
 
-        public static Task SearchFullyLoadedProjectInCurrentProcessAsync(
-            Project project, ImmutableArray<Document> priorityDocuments, string searchPattern,
-            IImmutableSet<string> kinds, Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
-        {
-            return FindSearchResultsAsync(
-                project, priorityDocuments, searchDocument: null, pattern: searchPattern, kinds, onResultFound, cancellationToken);
-        }
-
-        public static Task SearchFullyLoadedDocumentInCurrentProcessAsync(
-            Document document, string searchPattern, IImmutableSet<string> kinds,
-            Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
-        {
-            return FindSearchResultsAsync(
-                document.Project, priorityDocuments: ImmutableArray<Document>.Empty,
-                document, searchPattern, kinds, onResultFound, cancellationToken);
-        }
-
-        private static async Task FindSearchResultsAsync(
+        private static async Task SearchProjectInCurrentProcessAsync(
             Project project, ImmutableArray<Document> priorityDocuments,
             Document? searchDocument, string pattern, IImmutableSet<string> kinds,
             Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
@@ -74,16 +57,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // Then process non-priority documents.
             var lowPriDocs = project.Documents.Where(d => !highPriDocs.Contains(d)).ToSet();
             await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
-
-            // if the caller is only searching a single doc, and we already covered it above, don't bother computing
-            // source-generator docs.
-            if (searchDocument != null && (highPriDocs.Contains(searchDocument) || lowPriDocs.Contains(searchDocument)))
-                return;
-
-            // Finally, generate and process and source-generated docs.  this may take some time, so we always want to
-            // do this after the other documents.
-            var generatedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, generatedDocs.ToSet<Document>(), cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task ProcessDocumentsAsync(

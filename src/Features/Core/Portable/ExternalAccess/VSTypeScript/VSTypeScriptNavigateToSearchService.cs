@@ -55,20 +55,38 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
-            bool isFullyLoaded,
             Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
-            // We only support searching when the project is fully loaded.
-            if (!isFullyLoaded)
-                return;
-
             if (_searchService != null)
             {
                 var results = await _searchService.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
                 foreach (var result in results)
                     await onResultFound(Convert(result)).ConfigureAwait(false);
             }
+        }
+
+        public Task SearchCachedDocumentsAsync(
+            Project project,
+            ImmutableArray<Document> priorityDocuments,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
+        {
+            // we don't support searching cached documents.
+            return Task.CompletedTask;
+        }
+
+        public Task SearchGeneratedDocumentsAsync(
+            Project project,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
+        {
+            // we don't support searching generated documents.
+            return Task.CompletedTask;
         }
 
         private static INavigateToSearchResult Convert(IVSTypeScriptNavigateToSearchResult result)

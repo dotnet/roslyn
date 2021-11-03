@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
@@ -49,6 +50,37 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             cachedIndexMap = Volatile.Read(ref s_cachedIndexMap);
             stringTable = Volatile.Read(ref s_stringTable);
             return cachedIndexMap != null && stringTable != null;
+        }
+
+        public async Task SearchCachedDocumentsAsync(
+            Project project,
+            ImmutableArray<Document> priorityDocuments,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
+        {
+            var solution = project.Solution;
+            var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+            var onItemFound = GetOnItemFoundCallback(solution, onResultFound, cancellationToken);
+            var database = solution.Options.GetPersistentStorageDatabase();
+
+            var documentKeys = project.Documents.SelectAsArray(d => DocumentKey.ToDocumentKey(d));
+            var priorityDocumentKeys = priorityDocuments.SelectAsArray(d => DocumentKey.ToDocumentKey(d));
+            if (client != null)
+            {
+                var callback = new NavigateToSearchServiceCallback(onItemFound);
+                await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
+                    (service, callbackId, cancellationToken) =>
+                        service.SearchCachedDocumentsAsync(documentKeys, priorityDocumentKeys, database, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
+                    callback, cancellationToken).ConfigureAwait(false);
+
+                return;
+            }
+
+            var storageService = solution.Workspace.Services.GetPersistentStorageService(database);
+            await SearchCachedDocumentsInCurrentProcessAsync(
+                storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task SearchCachedDocumentsInCurrentProcessAsync(
