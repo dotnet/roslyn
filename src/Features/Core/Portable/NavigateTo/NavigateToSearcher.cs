@@ -158,9 +158,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 // In practice if we see that we are always finding uncached items, then it's likely something
                 // has broken in the caching system since we would expect to normally find values there.  Specifically
                 // we expect: foundFullItems <<< not foundFullItems.
-
-                if (!isFullyLoaded)
-                    Logger.Log(FunctionId.NavigateTo_CacheItemsMiss, KeyValueLogMessage.Create(m => m["FoundFullItems"] = seenItems.Count > 0));
+                Logger.Log(FunctionId.NavigateTo_CacheItemsMiss, KeyValueLogMessage.Create(m => m["FoundFullItems"] = seenItems.Count > 0));
             }
             else
             {
