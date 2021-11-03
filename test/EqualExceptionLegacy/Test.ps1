@@ -46,6 +46,31 @@ if (-not (Test-Path $trxPath)) {
     Exit 1
 }
 
+function Get-Outcome([xml]$testResults, [string]$testName) {
+    $ns = @{"n" = "http://microsoft.com/schemas/VisualStudio/TeamTest/2010"}
+    $result = ($trx | Select-Xml -Namespace $ns "/n:TestRun/n:Results/n:UnitTestResult[@testName='$testName']")
+    Return $result.Node.outcome
+}
+
+function Verify-Outcome([xml]$testResults, [string]$testName, [string]$expected) {
+    $outcome = Get-Outcome $testResults $testName
+    if ($outcome -ne $expected) {
+        Write-Host "Verifying outcome for test '$testName'"
+        Write-Host "Expected '$expected', found '$outcome'"
+        Return 1
+    }
+
+    Return 0
+}
+
+function Verify-Passed([xml]$testResults, [string]$testName) {
+    Return Verify-Outcome $testResults $testName "Passed"
+}
+
+function Verify-Failed([xml]$testResults, [string]$testName) {
+    Return Verify-Outcome $testResults $testName "Failed"
+}
+
 $errorCount = 0
 [xml]$trx = Get-Content $trxPath
 if ($trx.TestRun.ResultSummary.outcome -ne "Failed") {
@@ -85,12 +110,7 @@ if ($trx.TestRun.ResultSummary.Counters.notExecuted -ne "0") {
 }
 
 # Verify the first success
-$pass1 = ($trx | Select-Xml -Namespace $ns "/n:TestRun/n:Results/n:UnitTestResult[@testName='EqualExceptionLegacy.EqualException.EqualsSucceeds (VS2019)']")
-if ($pass1.Node.outcome -ne "Passed") {
-    Write-Host "Testing 'EqualsSucceeds' outcome"
-    Write-Host "Expected 'Passed', found '$($pass1.Node.outcome)'"
-    $errorCount++
-}
+$errorCount += Verify-Passed $trx "EqualExceptionLegacy.EqualException.EqualsSucceeds (VS2019)"
 
 $logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsSucceeds-*.log" | sort LastWriteTime | select -last 1
 if ($logPath) {
@@ -100,12 +120,7 @@ if ($logPath) {
 }
 
 # Verify the second success
-$pass2 = ($trx | Select-Xml -Namespace $ns "/n:TestRun/n:Results/n:UnitTestResult[@testName='EqualExceptionLegacy.EqualException.EqualsSucceedsAsync (VS2019)']")
-if ($pass2.Node.outcome -ne "Passed") {
-    Write-Host "Testing 'EqualsSucceedsAsync' outcome"
-    Write-Host "Expected 'Passed', found '$($pass2.Node.outcome)'"
-    $errorCount++
-}
+$errorCount += Verify-Passed $trx "EqualExceptionLegacy.EqualException.EqualsSucceedsAsync (VS2019)"
 
 $logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsSucceedsAsync-*.log" | sort LastWriteTime | select -last 1
 if ($logPath) {
@@ -115,12 +130,7 @@ if ($logPath) {
 }
 
 # Verify the first failure (xunit exception)
-$failure1 = ($trx | Select-Xml -Namespace $ns "/n:TestRun/n:Results/n:UnitTestResult[@testName='EqualExceptionLegacy.EqualException.EqualsFailure (VS2019)']")
-if ($failure1.Node.outcome -ne "Failed") {
-    Write-Host "Testing 'EqualsFailure' outcome"
-    Write-Host "Expected 'Failed', found '$($failure1.Node.outcome)'"
-    $errorCount++
-}
+$errorCount += Verify-Failed $trx "EqualExceptionLegacy.EqualException.EqualsFailure (VS2019)"
 
 $logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailure-EqualException.log" | sort LastWriteTime | select -last 1
 if (-not $logPath) {
@@ -144,12 +154,7 @@ if (-not $pngPath) {
 }
 
 # Verify the first failure (non-xunit exception)
-$failure1 = ($trx | Select-Xml -Namespace $ns "/n:TestRun/n:Results/n:UnitTestResult[@testName='EqualExceptionLegacy.EqualException.EqualsFailureNonXunit (VS2019)']")
-if ($failure1.Node.outcome -ne "Failed") {
-    Write-Host "Testing 'EqualsFailureNonXunit' outcome"
-    Write-Host "Expected 'Failed', found '$($failure1.Node.outcome)'"
-    $errorCount++
-}
+$errorCount += Verify-Failed $trx "EqualExceptionLegacy.EqualException.EqualsFailureNonXunit (VS2019)"
 
 $logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailureNonXunit-TargetInvocationException.log" | sort LastWriteTime | select -last 1
 if (-not $logPath) {
@@ -166,12 +171,7 @@ if (-not $pngPath) {
 }
 
 # Verify the second failure (xunit exception)
-$failure2 = ($trx | Select-Xml -Namespace $ns "/n:TestRun/n:Results/n:UnitTestResult[@testName='EqualExceptionLegacy.EqualException.EqualsFailureAsync (VS2019)']")
-if ($failure2.Node.outcome -ne "Failed") {
-    Write-Host "Testing 'EqualsFailureAsync' outcome"
-    Write-Host "Expected 'Failed', found '$($failure2.Node.outcome)'"
-    $errorCount++
-}
+$errorCount += Verify-Failed $trx "EqualExceptionLegacy.EqualException.EqualsFailureAsync (VS2019)"
 
 $logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailureAsync-EqualException.log" | sort LastWriteTime | select -last 1
 if (-not $logPath) {
@@ -188,12 +188,7 @@ if (-not $pngPath) {
 }
 
 # Verify the second failure (non-xunit exception)
-$failure2 = ($trx | Select-Xml -Namespace $ns "/n:TestRun/n:Results/n:UnitTestResult[@testName='EqualExceptionLegacy.EqualException.EqualsFailureNonXunitAsync (VS2019)']")
-if ($failure2.Node.outcome -ne "Failed") {
-    Write-Host "Testing 'EqualsFailureNonXunitAsync' outcome"
-    Write-Host "Expected 'Failed', found '$($failure2.Node.outcome)'"
-    $errorCount++
-}
+$errorCount += Verify-Failed $trx "EqualExceptionLegacy.EqualException.EqualsFailureNonXunitAsync (VS2019)"
 
 $logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailureNonXunitAsync-InvalidOperationException.log" | sort LastWriteTime | select -last 1
 if (-not $logPath) {
@@ -210,12 +205,7 @@ if (-not $pngPath) {
 }
 
 # Verify failure in constructor
-$failure3 = ($trx | Select-Xml -Namespace $ns "/n:TestRun/n:Results/n:UnitTestResult[@testName='EqualExceptionLegacy.EqualExceptionInConstructor.EqualsSucceeds (VS2019)']")
-if ($failure3.Node.outcome -ne "Failed") {
-    Write-Host "Testing 'EqualsSucceeds' outcome"
-    Write-Host "Expected 'Failed', found '$($failure3.Node.outcome)'"
-    $errorCount++
-}
+$errorCount += Verify-Failed $trx "EqualExceptionLegacy.EqualExceptionInConstructor.EqualsSucceeds (VS2019)"
 
 $logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualExceptionInConstructor.EqualsSucceeds-TargetInvocationException.log" | sort LastWriteTime | select -last 1
 if (-not $logPath) {
@@ -232,12 +222,7 @@ if (-not $pngPath) {
 }
 
 # Verify failure in before test attribute
-$failure4 = ($trx | Select-Xml -Namespace $ns "/n:TestRun/n:Results/n:UnitTestResult[@testName='EqualExceptionLegacy.EqualExceptionInBeforeAfterTest.FailBeforeTest (VS2019)']")
-if ($failure4.Node.outcome -ne "Failed") {
-    Write-Host "Testing 'FailBeforeTest' outcome"
-    Write-Host "Expected 'Failed', found '$($failure4.Node.outcome)'"
-    $errorCount++
-}
+$errorCount += Verify-Failed $trx "EqualExceptionLegacy.EqualExceptionInBeforeAfterTest.FailBeforeTest (VS2019)"
 
 $logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualExceptionInBeforeAfterTest.FailBeforeTest-InvalidOperationException.log" | sort LastWriteTime | select -last 1
 if (-not $logPath) {
@@ -254,12 +239,7 @@ if (-not $pngPath) {
 }
 
 # Verify failure in after test attribute
-$failure5 = ($trx | Select-Xml -Namespace $ns "/n:TestRun/n:Results/n:UnitTestResult[@testName='EqualExceptionLegacy.EqualExceptionInBeforeAfterTest.FailAfterTest (VS2019)']")
-if ($failure5.Node.outcome -ne "Failed") {
-    Write-Host "Testing 'FailAfterTest' outcome"
-    Write-Host "Expected 'Failed', found '$($failure5.Node.outcome)'"
-    $errorCount++
-}
+$errorCount += Verify-Failed $trx "EqualExceptionLegacy.EqualExceptionInBeforeAfterTest.FailAfterTest (VS2019)"
 
 $logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualExceptionInBeforeAfterTest.FailAfterTest-InvalidOperationException.log" | sort LastWriteTime | select -last 1
 if (-not $logPath) {
