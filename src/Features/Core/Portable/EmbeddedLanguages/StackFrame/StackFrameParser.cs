@@ -142,18 +142,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return null;
             }
 
-            var identifierParseResult = TryScanGenericTypeIdentifier(ref _lexer, currentIdentifer.Value);
-            if (!identifierParseResult.Success)
+            var (success, genericIdentifier) = TryScanGenericTypeIdentifier(currentIdentifer.Value);
+            if (!success)
             {
                 return null;
             }
 
-            RoslynDebug.AssertNotNull(identifierParseResult.Value);
-            StackFrameNameNode nameNode = identifierParseResult.Value;
+            RoslynDebug.AssertNotNull(genericIdentifier);
+            StackFrameNameNode nameNode = genericIdentifier;
 
             while (true)
             {
-                var (success, memberAccess) = TryParseQualifiedName(ref _lexer, nameNode);
+                (success, var memberAccess) = TryParseQualifiedName(nameNode);
                 if (!success)
                 {
                     return null;
@@ -167,61 +167,59 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
                 nameNode = memberAccess;
             }
+        }
 
-            //
-            // Local Functions 
-            //
-
-            //
-            // Given an existing left hand side node or token, parse a qualified name if possible. Returns 
-            // null with success if a dot token is not available
-            //
-            static ParseResult<StackFrameQualifiedNameNode> TryParseQualifiedName(ref StackFrameLexer lexer, StackFrameNameNode lhs)
+        /// <summary>
+        /// Given an existing left hand side node or token, parse a qualified name if possible. Returns 
+        /// null with success if a dot token is not available
+        /// </summary>
+        private ParseResult<StackFrameQualifiedNameNode> TryParseQualifiedName(StackFrameNameNode lhs)
+        {
+            if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.DotToken, out var dotToken))
             {
-                if (!lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.DotToken, out var dotToken))
-                {
-                    return ParseResult<StackFrameQualifiedNameNode>.Empty;
-                }
-
-                var identifier = lexer.TryScanIdentifier();
-                if (!identifier.HasValue)
-                {
-                    return ParseResult<StackFrameQualifiedNameNode>.Abort;
-                }
-
-                var (success, rhs) = TryScanGenericTypeIdentifier(ref lexer, identifier.Value);
-                if (!success)
-                {
-                    return ParseResult<StackFrameQualifiedNameNode>.Abort;
-                }
-
-                RoslynDebug.AssertNotNull(rhs);
-                return new StackFrameQualifiedNameNode(lhs, dotToken, rhs);
+                return ParseResult<StackFrameQualifiedNameNode>.Empty;
             }
 
-            //
-            // Given an identifier, attempts to parse the type identifier arity for it.
-            //
-            // ex: MyNamespace.MyClass`1.MyMethod()
-            //                 ^--------------------- MyClass would be the identifier passed in
-            //                        ^-------------- Grave token
-            //                         ^------------- Arity token of "1" 
-            //
-            static ParseResult<StackFrameSimpleNameNode> TryScanGenericTypeIdentifier(ref StackFrameLexer lexer, StackFrameToken identifierToken)
+            var identifier = _lexer.TryScanIdentifier();
+            if (!identifier.HasValue)
             {
-                if (!lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.GraveAccentToken, out var graveAccentToken))
-                {
-                    return new(new StackFrameIdentifierNameNode(identifierToken));
-                }
-
-                var arity = lexer.TryScanNumbers();
-                if (!arity.HasValue)
-                {
-                    return ParseResult<StackFrameSimpleNameNode>.Abort;
-                }
-
-                return new StackFrameGenericNameNode(identifierToken, graveAccentToken, arity.Value);
+                return ParseResult<StackFrameQualifiedNameNode>.Abort;
             }
+
+            var (success, rhs) = TryScanGenericTypeIdentifier(identifier.Value);
+            if (!success)
+            {
+                return ParseResult<StackFrameQualifiedNameNode>.Abort;
+            }
+
+            RoslynDebug.AssertNotNull(rhs);
+            return new StackFrameQualifiedNameNode(lhs, dotToken, rhs);
+        }
+
+        /// <summary>
+        /// Given an identifier, attempts to parse the type identifier arity for it.
+        ///
+        /// <code>
+        /// ex: MyNamespace.MyClass`1.MyMethod()
+        ///                 ^--------------------- MyClass would be the identifier passed in
+        ///                        ^-------------- Grave token
+        ///                         ^------------- Arity token of "1" 
+        /// </code>
+        /// </summary>
+        private ParseResult<StackFrameSimpleNameNode> TryScanGenericTypeIdentifier(StackFrameToken identifierToken)
+        {
+            if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.GraveAccentToken, out var graveAccentToken))
+            {
+                return new(new StackFrameIdentifierNameNode(identifierToken));
+            }
+
+            var arity = _lexer.TryScanNumbers();
+            if (!arity.HasValue)
+            {
+                return ParseResult<StackFrameSimpleNameNode>.Abort;
+            }
+
+            return new StackFrameGenericNameNode(identifierToken, graveAccentToken, arity.Value);
         }
 
         /// <summary>
