@@ -10566,39 +10566,11 @@ public partial struct CustomHandler
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
-c.Field:1
-literal:literal
-");
-            verifier.VerifyDiagnostics();
-
-            verifier.VerifyIL("<top-level-statements-entry-point>", @"
-{
-  // Code size       40 (0x28)
-  .maxstack  4
-  .locals init (C V_0,
-                CustomHandler V_1,
-                CustomHandler V_2)
-  IL_0000:  ldc.i4.1
-  IL_0001:  newobj     ""C..ctor(int)""
-  IL_0006:  stloc.0
-  IL_0007:  ldloca.s   V_2
-  IL_0009:  ldc.i4.7
-  IL_000a:  ldc.i4.0
-  IL_000b:  ldloc.0
-  IL_000c:  call       ""CustomHandler..ctor(int, int, C)""
-  IL_0011:  ldloca.s   V_2
-  IL_0013:  ldstr      ""literal""
-  IL_0018:  call       ""void CustomHandler.AppendLiteral(string)""
-  IL_001d:  ldloc.2
-  IL_001e:  stloc.1
-  IL_001f:  ldloc.0
-  IL_0020:  ldloc.1
-  IL_0021:  ldc.i4.1
-  IL_0022:  callvirt   ""void C.this[CustomHandler].set""
-  IL_0027:  ret
-}
-");
+            comp.VerifyDiagnostics(
+                // (5,17): error CS8976: Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.
+                // _ = new C(1) { [$"literal"] = 1 };
+                Diagnostic(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers, expression).WithLocation(5, 17)
+            );
         }
 
         [Theory]
@@ -14332,6 +14304,166 @@ struct CustomHandler
                 // CustomHandler c = $"";
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, @"$""""").WithArguments("3", "out").WithLocation(4, 19)
             );
+        }
+
+        [Theory]
+        [InlineData(@"$""literal{1}""")]
+        [InlineData(@"$""literal"" + $""{1}""")]
+        public void ReferencingThis_TopLevelObjectInitializer(string expression)
+        {
+            var code = @"
+using System.Runtime.CompilerServices;
+
+_ = new C2 { [" + expression + @"] = { A = 1, B = 2 } };
+
+public class C2
+{
+    public C3 this[[InterpolatedStringHandlerArgument("""")] CustomHandler c]
+    {
+        get => new C3();
+        set { }
+    }
+}
+
+public class C3
+{
+    public int A
+    {
+        get => 0;
+        set { }
+    }
+    public int B
+    {
+        get => 0;
+        set { }
+    }
+}
+
+public partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, C2 c) : this(literalLength, formattedCount)
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) });
+            comp.VerifyDiagnostics(
+                // (4,15): error CS8976: Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.
+                // _ = new C2 { [$"literal" + $"{1}"] = { A = 1, B = 2 } };
+                Diagnostic(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers, expression).WithLocation(4, 15)
+            );
+        }
+
+        [Theory]
+        [InlineData(@"$""literal{1}""")]
+        [InlineData(@"$""literal"" + $""{1}""")]
+        public void ReferencingThis_NestedObjectInitializer(string expression)
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+_ = new C1 { C2 = { [" + expression + @"] = { A = 1, B = 2 } } };
+
+class C1
+{
+    public C2 C2 { get => null; set { } }
+}
+
+public class C2
+{
+    public C3 this[[InterpolatedStringHandlerArgument("""")] CustomHandler c]
+    {
+        get => new C3();
+        set { }
+    }
+}
+
+public class C3
+{
+    public int A
+    {
+        get => 0;
+        set { }
+    }
+    public int B
+    {
+        get => 0;
+        set { }
+    }
+}
+
+public partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, C2 c) : this(literalLength, formattedCount)
+    {
+        Console.WriteLine(""CustomHandler ctor"");
+    }
+}
+";
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) });
+            comp.VerifyDiagnostics(
+                // (5,22): error CS8976: Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.
+                // _ = new C1 { C2 = { [$"literal{1}"] = { A = 1, B = 2 } } };
+                Diagnostic(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers, expression).WithLocation(5, 22)
+            );
+        }
+
+        [Theory]
+        [InlineData(@"$""literal{1}""")]
+        [InlineData(@"$""literal"" + $""{1}""")]
+        public void NotReferencingThis_NestedObjectInitializer(string expression)
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+_ = new C1 { C2 = { [3, " + expression + @"] = { A = 1, B = 2 } } };
+
+class C1
+{
+    public C2 C2 { get { Console.WriteLine(""get_C2""); return new C2(); } set { } }
+}
+
+public class C2
+{
+    public C3 this[int arg1, [InterpolatedStringHandlerArgument(""arg1"")] CustomHandler c]
+    {
+        get { Console.WriteLine(""Indexer""); return new C3(); }
+        set { }
+    }
+}
+
+public class C3
+{
+    public int A
+    {
+        get => 0;
+        set { }
+    }
+    public int B
+    {
+        get => 0;
+        set { }
+    }
+}
+
+public partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, int arg1) : this(literalLength, formattedCount)
+    {
+        Console.WriteLine(""CustomHandler ctor"");
+    }
+}
+";
+            CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) },
+                             expectedOutput: @"
+CustomHandler ctor
+get_C2
+Indexer
+get_C2
+Indexer");
         }
     }
 }

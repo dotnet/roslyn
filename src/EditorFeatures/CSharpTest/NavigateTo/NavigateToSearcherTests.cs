@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                 It.IsAny<ImmutableArray<Document>>(),
                 pattern,
                 ImmutableHashSet<string>.Empty,
-                It.IsAny<Func<INavigateToSearchResult, Task>>(),
                 isFullyLoaded,
+                It.IsAny<Func<INavigateToSearchResult, Task>>(),
                 It.IsAny<CancellationToken>()));
 
             var searchServiceCallback = searchServiceSetup.Callback(
@@ -43,15 +43,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                  ImmutableArray<Document> priorityDocuments,
                  string pattern2,
                  IImmutableSet<string> kinds,
-                 Func<INavigateToSearchResult, Task> onResultFound2,
                  bool isFullyLoaded2,
+                 Func<INavigateToSearchResult, Task> onResultFound2,
                  CancellationToken cancellationToken) =>
                 {
                     if (result != null)
                         onResultFound2(result);
                 });
 
-            return searchServiceCallback.ReturnsAsync(isFullyLoaded ? NavigateToSearchLocation.Latest : NavigateToSearchLocation.Cache);
+            return searchServiceCallback.Returns(Task.CompletedTask);
         }
 
         private static ValueTask<bool> IsFullyLoadedAsync(bool projectSystem, bool remoteHost)

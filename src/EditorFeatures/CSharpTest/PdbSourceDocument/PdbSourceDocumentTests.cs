@@ -530,6 +530,42 @@ public class C
             });
         }
 
+        [Fact]
+        public async Task OldPdb_NullResult()
+        {
+            var source1 = @"
+public class C
+{
+    public event System.EventHandler [|E|] { add { } remove { } }
+}";
+            var source2 = @"
+public class C
+{
+    // A change
+    public event System.EventHandler E { add { } remove { } }
+}";
+
+            await RunTestAsync(async path =>
+            {
+                MarkupTestFile.GetSpan(source1, out var metadataSource, out var expectedSpan);
+
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
+
+                // Archive off the current PDB so we can restore it later
+                var pdbFilePath = GetPdbPath(path);
+                var archivePdbFilePath = pdbFilePath + ".old";
+                File.Move(pdbFilePath, archivePdbFilePath);
+
+                CompileTestSource(path, source2, project, Location.OnDisk, Location.OnDisk, buildReferenceAssembly: false, windowsPdb: false);
+
+                // Move the old file back, so the PDB is now old
+                File.Delete(pdbFilePath);
+                File.Move(archivePdbFilePath, pdbFilePath);
+
+                await GenerateFileAndVerifyAsync(project, symbol, source1, expectedSpan, expectNullResult: true);
+            });
+        }
+
         private static Task TestAsync(
             Location pdbLocation,
             Location sourceLocation,
@@ -646,11 +682,6 @@ public class C
             bool buildReferenceAssembly = false,
             bool windowsPdb = false)
         {
-            var assemblyName = "ReferencedAssembly";
-            var sourceCodePath = GetSourceFilePath(path);
-            var dllFilePath = GetDllPath(path);
-            var pdbFilePath = GetPdbPath(path);
-
             var preprocessorSymbolsAttribute = preprocessorSymbols?.Length > 0
                 ? $"PreprocessorSymbols=\"{string.Join(";", preprocessorSymbols)}\""
                 : "";
@@ -669,7 +700,28 @@ public class C
 
             var project = workspace.CurrentSolution.Projects.First();
 
-            var languageServices = workspace.Services.GetLanguageServices(LanguageNames.CSharp);
+            CompileTestSource(path, source, project, pdbLocation, sourceLocation, buildReferenceAssembly, windowsPdb);
+
+            project = project.AddMetadataReference(MetadataReference.CreateFromFile(GetDllPath(path)));
+
+            var mainCompilation = await project.GetRequiredCompilationAsync(CancellationToken.None).ConfigureAwait(false);
+
+            var symbol = symbolMatcher(mainCompilation);
+
+            AssertEx.NotNull(symbol, $"Couldn't find symbol to go-to-def for.");
+
+            return (project, symbol);
+        }
+
+        private static void CompileTestSource(string path, string source, Project project, Location pdbLocation, Location sourceLocation, bool buildReferenceAssembly, bool windowsPdb)
+        {
+            var dllFilePath = GetDllPath(path);
+            var sourceCodePath = GetSourceFilePath(path);
+            var pdbFilePath = GetPdbPath(path);
+
+            var assemblyName = "ReferencedAssembly";
+
+            var languageServices = project.Solution.Workspace.Services.GetLanguageServices(LanguageNames.CSharp);
             var compilationFactory = languageServices.GetRequiredService<ICompilationFactoryService>();
             var options = compilationFactory.GetDefaultCompilationOptions().WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
             var parseOptions = project.ParseOptions;
@@ -718,16 +770,6 @@ public class C
                 var result = compilation.Emit(dllStream, pdbStream, options: emitOptions, embeddedTexts: embeddedTexts);
                 Assert.Empty(result.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error));
             }
-
-            project = project.AddMetadataReference(MetadataReference.CreateFromFile(dllFilePath));
-
-            var mainCompilation = await project.GetRequiredCompilationAsync(CancellationToken.None).ConfigureAwait(false);
-
-            var symbol = symbolMatcher(mainCompilation);
-
-            AssertEx.NotNull(symbol, $"Couldn't find symbol to go-to-def for.");
-
-            return (project, symbol);
         }
 
         private static string GetDllPath(string path)

@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 token <> node.TypeArgumentList.CloseParenToken
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
+        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, options As SignatureHelpOptions, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim genericName As GenericNameSyntax = Nothing
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Dim accessibleSymbols = symbols.WhereAsArray(Function(s) s.GetArity() > 0).
                                             WhereAsArray(Function(s) TypeOf s Is INamedTypeSymbol OrElse TypeOf s Is IMethodSymbol).
-                                            FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
+                                            FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(options.HideAdvancedMembers, semanticModel.Compilation).
                                             Sort(semanticModel, genericName.SpanStart)
 
             If accessibleSymbols.Length = 0 Then

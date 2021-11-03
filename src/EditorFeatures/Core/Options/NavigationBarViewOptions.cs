@@ -9,18 +9,22 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
-namespace Microsoft.CodeAnalysis.QuickInfo
+namespace Microsoft.CodeAnalysis.Editor.Options
 {
-    [ExportOptionProvider, Shared]
-    internal class QuickInfoOptionsProvider : IOptionProvider
+    [ExportGlobalOptionProvider, Shared]
+    internal sealed class NavigationBarViewOptions : IOptionProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public QuickInfoOptionsProvider()
+        public NavigationBarViewOptions()
         {
         }
 
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            QuickInfoOptions.ShowRemarksInQuickInfo);
+        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
+            ShowNavigationBar);
+
+        private const string FeatureName = "NavigationBarOptions";
+
+        public static readonly PerLanguageOption<bool> ShowNavigationBar = new(FeatureName, nameof(ShowNavigationBar), defaultValue: true);
     }
 }

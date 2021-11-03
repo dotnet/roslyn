@@ -135,14 +135,14 @@ namespace IdeCoreBenchmarks
             var service = project.LanguageServices.GetService<INavigateToSearchService>();
             var results = new List<INavigateToSearchResult>();
             await service.SearchProjectAsync(
-                project, priorityDocuments, "Syntax", service.KindsProvided,
+                project, priorityDocuments, "Syntax", service.KindsProvided, isFullyLoaded: true,
                 r =>
                 {
                     lock (results)
                         results.Add(r);
 
                     return Task.CompletedTask;
-                }, isFullyLoaded: true, CancellationToken.None);
+                }, CancellationToken.None);
 
             return results.Count;
         }

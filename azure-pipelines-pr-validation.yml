@@ -49,7 +49,7 @@ stages:
     timeoutInMinutes: 360
     # Conditionally set build pool so we can share this YAML when building with different pipeline
     pool:
-      name: VSEngSS-MicroBuild2017
+      name: VSEngSS-MicroBuild2022-1ES
       demands:
       - msbuild
       - visualstudio
@@ -210,7 +210,7 @@ stages:
   displayName: Create Insertion
   dependsOn:
     - build
-  
+
   jobs:
   - job: insert
     displayName: Insert to VS
@@ -220,7 +220,7 @@ stages:
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
       displayName: Setting SourceBranchName variable
       condition: succeeded()
-      
+
     - template: eng/pipelines/insert.yml
       parameters:
         createDraftPR: true
@@ -232,4 +232,4 @@ stages:
         titlePrefix: ${{ parameters.OptionalTitlePrefix }}
         sourceBranch: $(SourceBranchName)
         publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
-  
+

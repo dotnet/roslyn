@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -445,7 +446,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim service = CompletionService.GetService(document)
             Dim roslynItem = GetSelectedItem()
             Dim options = CompletionOptions.From(document.Project)
-            Return Await service.GetDescriptionAsync(document, roslynItem, options)
+            Dim displayOptions = SymbolDescriptionOptions.From(document.Project)
+            Return Await service.GetDescriptionAsync(document, roslynItem, options, displayOptions)
         End Function
 
         Public Sub AssertCompletionItemExpander(isAvailable As Boolean, isSelected As Boolean)
