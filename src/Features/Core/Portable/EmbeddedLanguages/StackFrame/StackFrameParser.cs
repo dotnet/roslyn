@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// </summary>
         private StackFrameTree? TryParseTree()
         {
-            var (success, methodDeclaration) = TryParseMethodDeclaration();
-            if (!success || methodDeclaration is null)
+            var methodDeclaration = TryParseRequiredMethodDeclaration();
+            if (methodDeclaration is null)
             {
                 return null;
             }
@@ -95,29 +95,25 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// 
         /// Ex: [|MyClass.MyMethod(string s)|]
         /// </summary>
-        private ParseResult<StackFrameMethodDeclarationNode> TryParseMethodDeclaration()
+        private StackFrameMethodDeclarationNode? TryParseRequiredMethodDeclaration()
         {
-            var (success, identifierNode) = TryParseNameNode(scanAtTrivia: true);
-            if (!success)
-            {
-                return ParseResult<StackFrameMethodDeclarationNode>.Abort;
-            }
+            var identifierNode = TryParseRequiredNameNode(scanAtTrivia: true);
 
             if (identifierNode is not StackFrameQualifiedNameNode memberAccessExpression)
             {
-                return ParseResult<StackFrameMethodDeclarationNode>.Abort;
+                return null;
             }
 
-            (success, var typeArguments) = TryParseTypeArguments();
+            var (success, typeArguments) = TryParseTypeArguments();
             if (!success)
             {
-                return ParseResult<StackFrameMethodDeclarationNode>.Abort;
+                return null;
             }
 
             var methodParameters = TryParseRequiredMethodParameters();
             if (methodParameters is null)
             {
-                return ParseResult<StackFrameMethodDeclarationNode>.Abort;
+                return null;
             }
 
             return new StackFrameMethodDeclarationNode(memberAccessExpression, typeArguments, methodParameters);
@@ -138,20 +134,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// </code>
         /// 
         /// </summary>
-        private ParseResult<StackFrameNameNode> TryParseNameNode(bool scanAtTrivia)
+        private StackFrameNameNode? TryParseRequiredNameNode(bool scanAtTrivia)
         {
             var currentIdentifer = _lexer.TryScanIdentifier(scanAtTrivia: scanAtTrivia, scanLeadingWhitespace: true, scanTrailingWhitespace: false);
             if (!currentIdentifer.HasValue)
             {
-                // If we can't parse an identifier, no need to abort the parser entirely here. 
-                // The caller should determine if an identifier is required or not.
-                return ParseResult<StackFrameNameNode>.Empty;
+                return null;
             }
 
             var identifierParseResult = TryScanGenericTypeIdentifier(ref _lexer, currentIdentifer.Value);
             if (!identifierParseResult.Success)
             {
-                return ParseResult<StackFrameNameNode>.Abort;
+                return null;
             }
 
             RoslynDebug.AssertNotNull(identifierParseResult.Value);
@@ -162,13 +156,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 var (success, memberAccess) = TryParseQualifiedName(ref _lexer, nameNode);
                 if (!success)
                 {
-                    return ParseResult<StackFrameNameNode>.Abort;
+                    return null;
                 }
 
                 if (memberAccess is null)
                 {
                     Debug.Assert(nameNode is StackFrameQualifiedNameNode or StackFrameSimpleNameNode);
-                    return new(nameNode);
+                    return nameNode;
                 }
 
                 nameNode = memberAccess;
@@ -346,8 +340,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// </summary>
         private ParseResult<StackFrameParameterDeclarationNode> ParseParameterNode()
         {
-            var (success, nameNode) = TryParseNameNode(scanAtTrivia: false);
-            if (!success || nameNode is null)
+            var nameNode = TryParseRequiredNameNode(scanAtTrivia: false);
+            if (nameNode is null)
             {
                 return ParseResult<StackFrameParameterDeclarationNode>.Abort;
             }
@@ -355,7 +349,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             StackFrameTypeNode? typeIdentifier = nameNode;
             if (CurrentCharAsToken().Kind == StackFrameKind.OpenBracketToken)
             {
-                (success, var arrayIdentifiers) = ParseArrayRankSpecifiers();
+                var (success, arrayIdentifiers) = ParseArrayRankSpecifiers();
                 if (!success || arrayIdentifiers.IsDefault)
                 {
                     return ParseResult<StackFrameParameterDeclarationNode>.Abort;
