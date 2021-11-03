@@ -267,8 +267,19 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     if (service == null)
                         return;
 
-                    var onResultFound = GetOnResultFound(project, seenItems, cancellationToken);
-                    await searchProjectAsync(service, project, onResultFound).ConfigureAwait(false);
+                    await searchProjectAsync(service, project, result =>
+                    {
+                        // If we're seeing a dupe in another project, then filter it out here.  The results from
+                        // the individual projects will already contain the information about all the projects
+                        // leading to a better condensed view that doesn't look like it contains duplicate info.
+                        lock (seenItems)
+                        {
+                            if (!seenItems.Add(result))
+                                return Task.CompletedTask;
+                        }
+
+                        return _callback.AddItemAsync(project, result, cancellationToken);
+                    }).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -312,24 +323,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 seenItems,
                 (s, p, cb) => s.SearchGeneratedDocumentsAsync(p, _searchPattern, _kinds, cb, cancellationToken),
                 cancellationToken);
-        }
-
-        private Func<INavigateToSearchResult, Task> GetOnResultFound(
-            Project project, HashSet<INavigateToSearchResult> seenItems, CancellationToken cancellationToken)
-        {
-            return result =>
-            {
-                // If we're seeing a dupe in another project, then filter it out here.  The results from
-                // the individual projects will already contain the information about all the projects
-                // leading to a better condensed view that doesn't look like it contains duplicate info.
-                lock (seenItems)
-                {
-                    if (!seenItems.Add(result))
-                        return Task.CompletedTask;
-                }
-
-                return _callback.AddItemAsync(project, result, cancellationToken);
-            };
         }
     }
 }
