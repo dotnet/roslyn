@@ -71,6 +71,43 @@ function Verify-Failed([xml]$testResults, [string]$testName) {
     Return Verify-Outcome $testResults $testName "Failed"
 }
 
+function Verify-NoLogs([string]$shortTestName) {
+    $logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-$shortTestName-*.log" | sort LastWriteTime | select -last 1
+    if ($logPath) {
+        Write-Host "Verifying no diagnostic logs for passing test"
+        Write-Host "Found unexpected file: $logPath"
+        Return 1
+    }
+
+    Return 0
+}
+
+function Verify-HasLogs([string]$shortTestName, [string]$exceptionName) {
+    $currentFailureCount = 0
+    $logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-$shortTestName-$exceptionName.log" | sort LastWriteTime | select -last 1
+    if (-not $logPath) {
+        Write-Host "Verifying diagnostic logs for failing test"
+        Write-Host "Missing log file '$shortTestName-$exceptionName.log'"
+        $currentFailureCount++
+    }
+
+    $pngPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-$shortTestName-$exceptionName.png" | sort LastWriteTime | select -last 1
+    if (-not $pngPath) {
+        Write-Host "Verifying diagnostic screenshot for failing test"
+        Write-Host "Missing image file '$shortTestName-$exceptionName.png'"
+        $currentFailureCount++
+    }
+
+    $activityPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-$shortTestName-$exceptionName.Activity.xml" | sort LastWriteTime | select -last 1
+    if (-not $pngPath) {
+        Write-Host "Verifying diagnostic in-memory activity log for failing test"
+        Write-Host "Missing activity log file '$shortTestName-$exceptionName.Activity.xml'"
+        $currentFailureCount++
+    }
+
+    Return $currentFailureCount
+}
+
 $errorCount = 0
 [xml]$trx = Get-Content $trxPath
 if ($trx.TestRun.ResultSummary.outcome -ne "Failed") {
@@ -111,149 +148,39 @@ if ($trx.TestRun.ResultSummary.Counters.notExecuted -ne "0") {
 
 # Verify the first success
 $errorCount += Verify-Passed $trx "EqualExceptionLegacy.EqualException.EqualsSucceeds (VS2019)"
-
-$logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsSucceeds-*.log" | sort LastWriteTime | select -last 1
-if ($logPath) {
-    Write-Host "Verifying no diagnostic logs for passing test"
-    Write-Host "Found unexpected file '$logPath'"
-    $errorCount++
-}
+$errorCount += Verify-NoLogs "EqualException.EqualsSucceeds"
 
 # Verify the second success
 $errorCount += Verify-Passed $trx "EqualExceptionLegacy.EqualException.EqualsSucceedsAsync (VS2019)"
-
-$logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsSucceedsAsync-*.log" | sort LastWriteTime | select -last 1
-if ($logPath) {
-    Write-Host "Verifying no diagnostic logs for passing test"
-    Write-Host "Found unexpected file '$logPath'"
-    $errorCount++
-}
+$errorCount += Verify-NoLogs "EqualException.EqualsSucceedsAsync"
 
 # Verify the first failure (xunit exception)
 $errorCount += Verify-Failed $trx "EqualExceptionLegacy.EqualException.EqualsFailure (VS2019)"
-
-$logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailure-EqualException.log" | sort LastWriteTime | select -last 1
-if (-not $logPath) {
-    Write-Host "Verifying diagnostic logs for failing test"
-    Write-Host "Missing log file 'EqualException.EqualsFailure-EqualException.log'"
-    $errorCount++
-}
-
-$pngPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailure-EqualException.png" | sort LastWriteTime | select -last 1
-if (-not $pngPath) {
-    Write-Host "Verifying diagnostic screenshot for failing test"
-    Write-Host "Missing image file 'EqualException.EqualsFailure-EqualException.png'"
-    $errorCount++
-}
-
-$activityPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailure-EqualException.Activity.xml" | sort LastWriteTime | select -last 1
-if (-not $pngPath) {
-    Write-Host "Verifying diagnostic in-memory activity log for failing test"
-    Write-Host "Missing image file 'EqualException.EqualsFailure-EqualException.Activity.xml'"
-    $errorCount++
-}
+$errorCount += Verify-HasLogs "EqualException.EqualsFailure" "EqualException"
 
 # Verify the first failure (non-xunit exception)
 $errorCount += Verify-Failed $trx "EqualExceptionLegacy.EqualException.EqualsFailureNonXunit (VS2019)"
-
-$logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailureNonXunit-TargetInvocationException.log" | sort LastWriteTime | select -last 1
-if (-not $logPath) {
-    Write-Host "Verifying diagnostic logs for failing test"
-    Write-Host "Missing log file 'EqualException.EqualsFailureNonXunit-TargetInvocationException.log'"
-    $errorCount++
-}
-
-$pngPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailureNonXunit-TargetInvocationException.png" | sort LastWriteTime | select -last 1
-if (-not $pngPath) {
-    Write-Host "Verifying diagnostic screenshot for failing test"
-    Write-Host "Missing image file 'EqualException.EqualsFailureNonXunit-TargetInvocationException.png'"
-    $errorCount++
-}
+$errorCount += Verify-HasLogs "EqualException.EqualsFailureNonXunit" "TargetInvocationException"
 
 # Verify the second failure (xunit exception)
 $errorCount += Verify-Failed $trx "EqualExceptionLegacy.EqualException.EqualsFailureAsync (VS2019)"
-
-$logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailureAsync-EqualException.log" | sort LastWriteTime | select -last 1
-if (-not $logPath) {
-    Write-Host "Verifying diagnostic logs for failing test"
-    Write-Host "Missing log file 'EqualException.EqualsFailureAsync-EqualException.log'"
-    $errorCount++
-}
-
-$pngPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailureAsync-EqualException.png" | sort LastWriteTime | select -last 1
-if (-not $pngPath) {
-    Write-Host "Verifying diagnostic screenshot for failing test"
-    Write-Host "Missing image file 'EqualException.EqualsFailureAsync-EqualException.png'"
-    $errorCount++
-}
+$errorCount += Verify-HasLogs "EqualException.EqualsFailureAsync" "EqualException"
 
 # Verify the second failure (non-xunit exception)
 $errorCount += Verify-Failed $trx "EqualExceptionLegacy.EqualException.EqualsFailureNonXunitAsync (VS2019)"
-
-$logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailureNonXunitAsync-InvalidOperationException.log" | sort LastWriteTime | select -last 1
-if (-not $logPath) {
-    Write-Host "Verifying diagnostic logs for failing test"
-    Write-Host "Missing log file 'EqualException.EqualsFailureNonXunitAsync-InvalidOperationException.log'"
-    $errorCount++
-}
-
-$pngPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailureNonXunitAsync-InvalidOperationException.png" | sort LastWriteTime | select -last 1
-if (-not $pngPath) {
-    Write-Host "Verifying diagnostic screenshot for failing test"
-    Write-Host "Missing image file 'EqualException.EqualsFailureNonXunitAsync-InvalidOperationException.png'"
-    $errorCount++
-}
+$errorCount += Verify-HasLogs "EqualException.EqualsFailureNonXunitAsync" "InvalidOperationException"
 
 # Verify failure in constructor
 $errorCount += Verify-Failed $trx "EqualExceptionLegacy.EqualExceptionInConstructor.EqualsSucceeds (VS2019)"
-
-$logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualExceptionInConstructor.EqualsSucceeds-TargetInvocationException.log" | sort LastWriteTime | select -last 1
-if (-not $logPath) {
-    Write-Host "Verifying diagnostic logs for failing test"
-    Write-Host "Missing log file 'EqualExceptionInConstructor.EqualsSucceeds-TargetInvocationException.log'"
-    $errorCount++
-}
-
-$pngPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualExceptionInConstructor.EqualsSucceeds-TargetInvocationException.png" | sort LastWriteTime | select -last 1
-if (-not $pngPath) {
-    Write-Host "Verifying diagnostic screenshot for failing test"
-    Write-Host "Missing image file 'EqualExceptionInConstructor.EqualsSucceeds-TargetInvocationException.png'"
-    $errorCount++
-}
+$errorCount += Verify-HasLogs "EqualExceptionInConstructor.EqualsSucceeds" "TargetInvocationException"
 
 # Verify failure in before test attribute
 $errorCount += Verify-Failed $trx "EqualExceptionLegacy.EqualExceptionInBeforeAfterTest.FailBeforeTest (VS2019)"
-
-$logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualExceptionInBeforeAfterTest.FailBeforeTest-InvalidOperationException.log" | sort LastWriteTime | select -last 1
-if (-not $logPath) {
-    Write-Host "Verifying diagnostic logs for failing test"
-    Write-Host "Missing log file 'EqualExceptionInBeforeAfterTest.FailBeforeTest-InvalidOperationException.log'"
-    $errorCount++
-}
-
-$pngPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualExceptionInBeforeAfterTest.FailBeforeTest-InvalidOperationException.png" | sort LastWriteTime | select -last 1
-if (-not $pngPath) {
-    Write-Host "Verifying diagnostic screenshot for failing test"
-    Write-Host "Missing image file 'EqualExceptionInBeforeAfterTest.FailBeforeTest-InvalidOperationException.png'"
-    $errorCount++
-}
+$errorCount += Verify-HasLogs "EqualExceptionInBeforeAfterTest.FailBeforeTest" "InvalidOperationException"
 
 # Verify failure in after test attribute
 $errorCount += Verify-Failed $trx "EqualExceptionLegacy.EqualExceptionInBeforeAfterTest.FailAfterTest (VS2019)"
-
-$logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualExceptionInBeforeAfterTest.FailAfterTest-InvalidOperationException.log" | sort LastWriteTime | select -last 1
-if (-not $logPath) {
-    Write-Host "Verifying diagnostic logs for failing test"
-    Write-Host "Missing log file 'EqualExceptionInBeforeAfterTest.FailAfterTest-InvalidOperationException.log'"
-    $errorCount++
-}
-
-$pngPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualExceptionInBeforeAfterTest.FailAfterTest-InvalidOperationException.png" | sort LastWriteTime | select -last 1
-if (-not $pngPath) {
-    Write-Host "Verifying diagnostic screenshot for failing test"
-    Write-Host "Missing image file 'EqualExceptionInBeforeAfterTest.FailAfterTest-InvalidOperationException.png'"
-    $errorCount++
-}
+$errorCount += Verify-HasLogs "EqualExceptionInBeforeAfterTest.FailAfterTest" "InvalidOperationException"
 
 if ($errorCount -ne 0) {
     Write-Host "Integration test failed ($errorCount total failures)"
