@@ -222,21 +222,21 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
         /// <summary>
         /// Returns a number token with the <see cref="StackFrameKind.LineTrivia"/> and remainging <see cref="StackFrameKind.SkippedTextTrivia"/>
-        /// attached to it. If no numbers are found, returns a <see cref="StackFrameKind.None"/> token with the trivia that was scanned.
+        /// attached to it. 
         /// </summary>
         /// <returns></returns>
-        public Result<StackFrameToken> TryScanLineNumber()
+        public StackFrameToken? TryScanRequiredLineNumber()
         {
             var lineTrivia = TryScanLineTrivia();
             if (!lineTrivia.HasValue)
             {
-                return Result<StackFrameToken>.Empty;
+                return null;
             }
 
             var numberToken = TryScanNumbers();
             if (!numberToken.HasValue)
             {
-                return Result<StackFrameToken>.Abort;
+                return null;
             }
 
             var remainingTrivia = TryScanRemainingTrivia();

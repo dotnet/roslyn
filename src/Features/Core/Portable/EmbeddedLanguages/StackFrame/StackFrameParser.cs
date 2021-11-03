@@ -423,15 +423,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return new StackFrameFileInformationNode(path, colon: null, line: null);
             }
 
-            (success, var lineNumber) = _lexer.TryScanLineNumber();
-            if (!success)
+            var lineNumber = _lexer.TryScanRequiredLineNumber();
+            if (!lineNumber.HasValue)
             {
                 return Result<StackFrameFileInformationNode>.Abort;
-            }
-
-            if (lineNumber.Kind == StackFrameKind.None)
-            {
-                return new StackFrameFileInformationNode(path, colon: null, line: null);
             }
 
             return new StackFrameFileInformationNode(path, colonToken, lineNumber);
