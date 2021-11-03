@@ -387,10 +387,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 documentDiagnosticParams, _clientCapabilities, ClientName, cancellationToken);
         }
 
-        [JsonRpcMethod("workspace/diagnostic", UseSingleObjectParameterDeserialization = true)]
-        public Task<object?> HandleWorkspaceDiagnosticsAsync(object obj, CancellationToken cancellationToken)
+        [JsonRpcMethod(ProposedMethods.WorkspaceDiagnostic, UseSingleObjectParameterDeserialization = true)]
+        public Task<WorkspaceDiagnosticReport?> HandleWorkspaceDiagnosticsAsync(WorkspaceDiagnosticParams workspaceDiagnosticParams, CancellationToken cancellationToken)
         {
-            return null;
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+            return RequestDispatcher.ExecuteRequestAsync<WorkspaceDiagnosticParams, WorkspaceDiagnosticReport?>(Queue, ProposedMethods.WorkspaceDiagnostic,
+                workspaceDiagnosticParams, _clientCapabilities, ClientName, cancellationToken);
         }
 
         private void ShutdownRequestQueue()

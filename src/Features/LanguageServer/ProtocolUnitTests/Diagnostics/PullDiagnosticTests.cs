@@ -1063,7 +1063,7 @@ class A {";
             return await testLspServer.ExecuteRequestAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
                 VSInternalMethods.DocumentPullDiagnosticName,
                 CreateDocumentDiagnosticParams(uri, previousResultId, progress),
-                new LSP.ClientCapabilities(),
+                new LSP.VSInternalClientCapabilities() { SupportsVisualStudioExtensions = true },
                 clientName: null,
                 CancellationToken.None);
         }

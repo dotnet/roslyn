@@ -28,8 +28,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     /// <typeparam name="TDiagnosticsParams">The LSP input param type</typeparam>
     /// <typeparam name="TReport">The LSP type that is reported via IProgress</typeparam>
     /// <typeparam name="TReturn">The LSP type that is returned on completion of the request.</typeparam>
-    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : IRequestHandler<TDiagnosticsParams, TReturn?>
+    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : IRequestHandler<TDiagnosticsParams, TReturn?> where TDiagnosticsParams : IPartialResultParams<TReport[]>
     {
+        internal record PreviousResult(string PreviousResultId, TextDocumentIdentifier TextDocument);
+
         /// <summary>
         /// Special value we use to designate workspace diagnostics vs document diagnostics.  Document diagnostics
         /// should always <see cref="VSInternalDiagnosticReport.Supersedes"/> a workspace diagnostic as the former are 'live'
@@ -88,15 +90,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams diagnosticsParams);
 
         /// <summary>
-        /// Gets the progress object to stream results to.
-        /// </summary>
-        protected abstract IProgress<TReport[]>? GetProgress(TDiagnosticsParams diagnosticsParams);
-
-        /// <summary>
         /// Retrieve the previous results we reported.  Used so we can avoid resending data for unchanged files. Also
         /// used so we can report which documents were removed and can have all their diagnostics cleared.
         /// </summary>
-        protected abstract VSInternalDiagnosticParams[]? GetPreviousResults(TDiagnosticsParams diagnosticsParams);
+        protected abstract PreviousResult[]? GetPreviousResults(TDiagnosticsParams diagnosticsParams);
 
         /// <summary>
         /// Returns all the documents that should be processed in the desired order to process them in.
@@ -107,7 +104,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// Creates the <see cref="VSInternalDiagnosticReport"/> instance we'll report back to clients to let them know our
         /// progress.  Subclasses can fill in data specific to their needs as appropriate.
         /// </summary>
-        protected abstract TReport CreateReport(TextDocumentIdentifier? identifier, LSP.Diagnostic[]? diagnostics, string? resultId);
+        protected abstract TReport CreateReport(TextDocumentIdentifier identifier, LSP.Diagnostic[]? diagnostics, string? resultId);
 
         protected abstract TReturn? CreateReturn(BufferedProgress<TReport> progress);
 
@@ -127,11 +124,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             context.TraceInformation($"{this.GetType()} started getting diagnostics");
 
             // The progress object we will stream reports to.
-            using var progress = BufferedProgress.Create(GetProgress(diagnosticsParams));
+            using var progress = BufferedProgress.Create(diagnosticsParams.PartialResultToken);
 
             // Get the set of results the request said were previously reported.  We can use this to determine both
             // what to skip, and what files we have to tell the client have been removed.
-            var previousResults = GetPreviousResults(diagnosticsParams) ?? Array.Empty<VSInternalDiagnosticParams>();
+            var previousResults = GetPreviousResults(diagnosticsParams) ?? Array.Empty<PreviousResult>();
             context.TraceInformation($"previousResults.Length={previousResults.Length}");
 
             // First, let the client know if any workspace documents have gone away.  That way it can remove those for
@@ -193,12 +190,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return wantsRazorDoc == isRazorDoc;
         }
 
-        private static Dictionary<Document, VSInternalDiagnosticParams> GetDocumentToPreviousDiagnosticParams(
-            RequestContext context, VSInternalDiagnosticParams[] previousResults)
+        private static Dictionary<Document, PreviousResult> GetDocumentToPreviousDiagnosticParams(
+            RequestContext context, PreviousResult[] previousResults)
         {
             Contract.ThrowIfNull(context.Solution);
 
-            var result = new Dictionary<Document, VSInternalDiagnosticParams>();
+            var result = new Dictionary<Document, PreviousResult>();
             foreach (var diagnosticParams in previousResults)
             {
                 if (diagnosticParams.TextDocument != null)
@@ -246,7 +243,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return CreateReport(ProtocolConversions.DocumentToTextDocumentIdentifier(document), result.ToArray(), resultId);
         }
 
-        private void HandleRemovedDocuments(RequestContext context, VSInternalDiagnosticParams[] previousResults, BufferedProgress<TReport> progress)
+        private void HandleRemovedDocuments(RequestContext context, PreviousResult[] previousResults, BufferedProgress<TReport> progress)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -278,7 +275,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// <param name="document">the document we are currently calculating results for.</param>
         /// <returns>Null when diagnostics are unchanged, otherwise returns a non-null new resultId.</returns>
         private async Task<string?> GetNewResultIdAsync(
-            Dictionary<Document, VSInternalDiagnosticParams> documentToPreviousDiagnosticParams,
+            Dictionary<Document, PreviousResult> documentToPreviousDiagnosticParams,
             Document document,
             CancellationToken cancellationToken)
         {
