@@ -15,6 +15,29 @@ namespace EqualExceptionLegacy
             Assert.Equal(0, 1);
         }
 
+        [IdeFact(Skip = "Test would not pass")]
+        public void EqualsSkipped()
+        {
+            Assert.Equal(0, 1);
+        }
+
+        [IdeTheory]
+        [InlineData(0)]
+        [InlineData(3)]
+        [InlineData(4, Skip = "Test case will not run")]
+        public void EqualsSuccessOrFailureWithParam(int value)
+        {
+            Assert.Equal(0, value);
+        }
+
+        [IdeTheory(Skip = "Test will not run")]
+        [InlineData(0)]
+        [InlineData(3)]
+        public void EqualsWithParamSkipped(int value)
+        {
+            Assert.Equal(0, value);
+        }
+
         [IdeFact]
         public void EqualsFailureNonXunit()
         {

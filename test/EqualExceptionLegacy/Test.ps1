@@ -71,6 +71,10 @@ function Verify-Failed([xml]$testResults, [string]$testName) {
     Return Verify-Outcome $testResults $testName "Failed"
 }
 
+function Verify-Skipped([xml]$testResults, [string]$testName) {
+    Return Verify-Outcome $testResults $testName "NotExecuted"
+}
+
 function Verify-NoLogs([string]$shortTestName) {
     $logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-$shortTestName-*.log" | sort LastWriteTime | select -last 1
     if ($logPath) {
@@ -116,27 +120,27 @@ if ($trx.TestRun.ResultSummary.outcome -ne "Failed") {
     $errorCount++
 }
 
-if ($trx.TestRun.ResultSummary.Counters.executed -ne "9") {
+if ($trx.TestRun.ResultSummary.Counters.executed -ne "11") {
     Write-Host "Testing /TestRun/ResultSummary/Counters/@executed"
-    Write-Host "Expected '9', found '$($trx.TestRun.ResultSummary.Counters.executed)'"
+    Write-Host "Expected '11', found '$($trx.TestRun.ResultSummary.Counters.executed)'"
     $errorCount++
 }
 
-if ($trx.TestRun.ResultSummary.Counters.total -ne "45") {
+if ($trx.TestRun.ResultSummary.Counters.total -ne "70") {
     Write-Host "Testing /TestRun/ResultSummary/Counters/@total"
-    Write-Host "Expected '45', found '$($trx.TestRun.ResultSummary.Counters.total)'"
+    Write-Host "Expected '70', found '$($trx.TestRun.ResultSummary.Counters.total)'"
     $errorCount++
 }
 
-if ($trx.TestRun.ResultSummary.Counters.passed -ne "2") {
+if ($trx.TestRun.ResultSummary.Counters.passed -ne "3") {
     Write-Host "Testing /TestRun/ResultSummary/Counters/@passed"
-    Write-Host "Expected '2', found '$($trx.TestRun.ResultSummary.Counters.passed)'"
+    Write-Host "Expected '3', found '$($trx.TestRun.ResultSummary.Counters.passed)'"
     $errorCount++
 }
 
-if ($trx.TestRun.ResultSummary.Counters.failed -ne "7") {
+if ($trx.TestRun.ResultSummary.Counters.failed -ne "8") {
     Write-Host "Testing /TestRun/ResultSummary/Counters/@failed"
-    Write-Host "Expected '7', found '$($trx.TestRun.ResultSummary.Counters.failed)'"
+    Write-Host "Expected '8', found '$($trx.TestRun.ResultSummary.Counters.failed)'"
     $errorCount++
 }
 
@@ -153,6 +157,21 @@ $errorCount += Verify-NoLogs "EqualException.EqualsSucceeds"
 # Verify the second success
 $errorCount += Verify-Passed $trx "EqualExceptionLegacy.EqualException.EqualsSucceedsAsync (VS2019)"
 $errorCount += Verify-NoLogs "EqualException.EqualsSucceedsAsync"
+
+# Verify the theory success
+$errorCount += Verify-Passed $trx "EqualExceptionLegacy.EqualException.EqualsSuccessOrFailureWithParam(value: 0) (VS2019)"
+# Can't verify missing logs for this case, because a different test with the same short name failed
+
+# Verify the skipped facts
+$errorCount += Verify-Skipped $trx "EqualExceptionLegacy.EqualException.EqualsSkipped (VS2019)"
+$errorCount += Verify-NoLogs "EqualException.EqualsSkipped"
+
+# Verify the skipped theories
+$errorCount += Verify-Skipped $trx "EqualExceptionLegacy.EqualException.EqualsWithParamSkipped (VS2019)"
+$errorCount += Verify-NoLogs "EqualException.EqualsWithParamSkipped"
+
+$errorCount += Verify-Skipped $trx "EqualExceptionLegacy.EqualException.EqualsSuccessOrFailureWithParam(value: 4) (VS2019)"
+# Can't verify missing logs for this case, because a different test with the same short name failed
 
 # Verify the first failure (xunit exception)
 $errorCount += Verify-Failed $trx "EqualExceptionLegacy.EqualException.EqualsFailure (VS2019)"
@@ -181,6 +200,10 @@ $errorCount += Verify-HasLogs "EqualExceptionInBeforeAfterTest.FailBeforeTest" "
 # Verify failure in after test attribute
 $errorCount += Verify-Failed $trx "EqualExceptionLegacy.EqualExceptionInBeforeAfterTest.FailAfterTest (VS2019)"
 $errorCount += Verify-HasLogs "EqualExceptionInBeforeAfterTest.FailAfterTest" "InvalidOperationException"
+
+# Verify the theory failures
+$errorCount += Verify-Failed $trx "EqualExceptionLegacy.EqualException.EqualsSuccessOrFailureWithParam(value: 3) (VS2019)"
+$errorCount += Verify-HasLogs "EqualException.EqualsSuccessOrFailureWithParam" "EqualException"
 
 if ($errorCount -ne 0) {
     Write-Host "Integration test failed ($errorCount total failures)"
