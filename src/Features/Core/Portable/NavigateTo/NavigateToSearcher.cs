@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // rest of the results following soon after as best as we can find them.
             foreach (var projectGroup in orderedProjects)
             {
-                var allTasks = projectGroup.Select(p => Task.Run(() => SearchCoreAsync(p)));
+                var allTasks = projectGroup.Select(p => Task.Run(() => SearchCoreAsync(p), cancellationToken));
                 await Task.WhenAll(allTasks).ConfigureAwait(false);
             }
 
