@@ -261,11 +261,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Edit_color_scheme
             => ServicesVSResources.Editor_Color_Scheme;
 
+        public static string Option_Color_Scheme_VisualStudio2022
+            => ServicesVSResources.Visual_Studio_2022;
+
         public static string Option_Color_Scheme_VisualStudio2019
             => ServicesVSResources.Visual_Studio_2019;
 
         public static string Option_Color_Scheme_VisualStudio2017
             => ServicesVSResources.Visual_Studio_2017;
+
+        public static SchemeName Color_Scheme_VisualStudio2022_Tag
+            => SchemeName.VisualStudio2022;
 
         public static SchemeName Color_Scheme_VisualStudio2019_Tag
             => SchemeName.VisualStudio2019;

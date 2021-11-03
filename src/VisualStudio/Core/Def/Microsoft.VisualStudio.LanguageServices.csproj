@@ -52,6 +52,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>VSPackage.resx</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="ColorSchemes\VisualStudio2022.xml" />
     <EmbeddedResource Include="ColorSchemes\VisualStudio2019.xml" />
     <EmbeddedResource Include="ColorSchemes\VisualStudio2017.xml" />
   </ItemGroup>
@@ -186,7 +187,7 @@
       <!-- Add registrations 64-bit, and 64-bit Server GC on desktop host -->
       <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)64')" />
       <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)64S')" />
-      
+
       <!-- Add registrations for 64-bit and 64-bit Server GC on .Net Core host -->
       <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)Core64')" SubFolder="$(ServiceHubCoreSubPath)" />
       <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)Core64S')" SubFolder="$(ServiceHubCoreSubPath)" />
