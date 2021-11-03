@@ -21,18 +21,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         /// subset of the documents from <paramref name="project"/> that can be used to prioritize
         /// work.
         /// </summary>
-        Task<NavigateToSearchLocation> SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken);
-        Task<NavigateToSearchLocation> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken);
-    }
-
-    internal enum NavigateToSearchLocation
-    {
-        /// <summary>
-        /// If the search was performed against cached data from a previous run.
-        /// </summary>
-        Cache,
-
-        // If the search examined the latest data we have for the requested project or document.
-        Latest
+        Task SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, bool isFullyLoaded, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken);
+        Task SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, bool isFullyLoaded, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken);
     }
 }
