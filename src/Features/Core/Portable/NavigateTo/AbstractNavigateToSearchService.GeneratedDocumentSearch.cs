@@ -59,8 +59,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
-            // Finally, generate and process and source-generated docs.  this may take some time, so we always want to
-            // do this after the other documents.
+            // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
             var generatedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
             await ProcessDocumentsAsync(searchDocument: null, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, generatedDocs.ToSet<Document>(), cancellationToken).ConfigureAwait(false);
         }
