@@ -18,7 +18,7 @@ jobs:
 - job: Windows_Desktop_Unit_Tests
   pool:
     name: NetCore1ESPool-Svc-Public
-    demands: ImageOverride -demands Build.Windows.10.Amd64.Open
+    demands: ImageOverride -equals Build.Windows.10.Amd64.Open
   strategy:
     maxParallel: 4
     matrix:
@@ -61,7 +61,7 @@ jobs:
 - job: Windows_Desktop_Spanish_Unit_Tests
   pool:
     name: NetCore1ESPool-Svc-Public
-    demands: ImageOverride -demands Build.Windows.10.Amd64.ES.VS2017.Open
+    demands: ImageOverride -equals Build.Windows.10.Amd64.ES.VS2017.Open
   timeoutInMinutes: 120
 
   steps:
@@ -88,7 +88,7 @@ jobs:
 - job: Windows_CoreClr_Unit_Tests
   pool:
     name: NetCore1ESPool-Svc-Public
-    demands: ImageOverride -demands Build.Windows.10.Amd64.VS2017.Open
+    demands: ImageOverride -equals Build.Windows.10.Amd64.VS2017.Open
   strategy:
     maxParallel: 2
     matrix:
@@ -123,7 +123,7 @@ jobs:
 - job: Windows_Determinism_Test
   pool:
     name: NetCore1ESPool-Svc-Public
-    demands: ImageOverride -demands Build.Windows.10.Amd64.VS2017.Open
+    demands: ImageOverride -equals Build.Windows.10.Amd64.VS2017.Open
   timeoutInMinutes: 90
   steps:
     - script: eng/test-determinism.cmd -configuration Debug
@@ -141,7 +141,7 @@ jobs:
 - job: Windows_Correctness_Test
   pool:
     name: NetCore1ESPool-Svc-Public
-    demands: ImageOverride -demands Build.Windows.10.Amd64.VS2017.Open
+    demands: ImageOverride -equals Build.Windows.10.Amd64.VS2017.Open
   timeoutInMinutes: 90
   steps:
     - script: eng/test-build-correctness.cmd -configuration Release
@@ -175,7 +175,7 @@ jobs:
 - job: Linux_Test
   pool:
    name: NetCore1ESPool-Svc-Public
-   demands: ImageOverride -demands Build.Ubuntu.1604.amd64.Open
+   demands: ImageOverride -equals Build.Ubuntu.1604.amd64.Open
   strategy:
     maxParallel: 2
     matrix:
@@ -213,7 +213,7 @@ jobs:
 - job: SourceBuild_Test
   pool:
    name: NetCore1ESPool-Svc-Public
-   demands: ImageOverride -demands Build.Ubuntu.1604.amd64.Open
+   demands: ImageOverride -equals Build.Ubuntu.1604.amd64.Open
   timeoutInMinutes: 90
   steps:
     - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --docker --sourceBuild

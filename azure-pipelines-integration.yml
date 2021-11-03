@@ -18,7 +18,7 @@ jobs:
 - job: VS_Integration
   pool:
     name: NetCore1ESPool-Svc-Public
-    demands: ImageOverride -demands build.windows.10.amd64.vs2019.open
+    demands: ImageOverride -equals build.windows.10.amd64.vs2019.open
   strategy:
     maxParallel: 2
     matrix:

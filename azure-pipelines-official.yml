@@ -53,7 +53,7 @@ stages:
         - DotNetFramework
       ${{ if eq(variables['System.TeamProject'], 'internal') }}:
         name: NetCore1ESPool-Svc-Internal
-        demands: ImageOverride -demands Build.Windows.10.Amd64.VS2019.Pre
+        demands: ImageOverride -equals Build.Windows.10.Amd64.VS2019.Pre
 
     steps:        
     # Make sure our two pipelines generate builds with distinct build numbers to avoid confliction.
