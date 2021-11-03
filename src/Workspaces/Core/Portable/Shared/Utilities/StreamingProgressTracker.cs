@@ -34,13 +34,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         private ValueTask UpdateAsync(CancellationToken cancellationToken)
-        {
-            if (_updateAction == null)
-            {
-                return default;
-            }
-
-            return _updateAction(Volatile.Read(ref _completedItems), Volatile.Read(ref _totalItems), cancellationToken);
-        }
+            => _updateAction?.Invoke(Volatile.Read(ref _completedItems), Volatile.Read(ref _totalItems), cancellationToken) ?? default;
     }
 }
