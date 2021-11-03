@@ -46,41 +46,42 @@ if (-not (Test-Path $trxPath)) {
     Exit 1
 }
 
+$errorCount = 0
 [xml]$trx = Get-Content $trxPath
 if ($trx.TestRun.ResultSummary.outcome -ne "Failed") {
     Write-Host "Testing /TestRun/ResultSummary/@outcome"
     Write-Host "Expected 'Failed', found '$($trx.TestRun.ResultSummary.outcome)'"
-    Exit 1
+    $errorCount++
 }
 
 if ($trx.TestRun.ResultSummary.Counters.executed -ne "9") {
     Write-Host "Testing /TestRun/ResultSummary/Counters/@executed"
     Write-Host "Expected '9', found '$($trx.TestRun.ResultSummary.Counters.executed)'"
-    Exit 1
+    $errorCount++
 }
 
 if ($trx.TestRun.ResultSummary.Counters.total -ne "45") {
     Write-Host "Testing /TestRun/ResultSummary/Counters/@total"
     Write-Host "Expected '45', found '$($trx.TestRun.ResultSummary.Counters.total)'"
-    Exit 1
+    $errorCount++
 }
 
 if ($trx.TestRun.ResultSummary.Counters.passed -ne "2") {
     Write-Host "Testing /TestRun/ResultSummary/Counters/@passed"
     Write-Host "Expected '2', found '$($trx.TestRun.ResultSummary.Counters.passed)'"
-    Exit 1
+    $errorCount++
 }
 
 if ($trx.TestRun.ResultSummary.Counters.failed -ne "7") {
     Write-Host "Testing /TestRun/ResultSummary/Counters/@failed"
     Write-Host "Expected '7', found '$($trx.TestRun.ResultSummary.Counters.failed)'"
-    Exit 1
+    $errorCount++
 }
 
 if ($trx.TestRun.ResultSummary.Counters.notExecuted -ne "0") {
     Write-Host "Testing /TestRun/ResultSummary/Counters/@notExecuted"
     Write-Host "Expected '0', found '$($trx.TestRun.ResultSummary.Counters.notExecuted)'"
-    Exit 1
+    $errorCount++
 }
 
 # Verify the first success
@@ -88,14 +89,14 @@ $pass1 = ($trx | Select-Xml -Namespace $ns "/n:TestRun/n:Results/n:UnitTestResul
 if ($pass1.Node.outcome -ne "Passed") {
     Write-Host "Testing 'EqualsSucceeds' outcome"
     Write-Host "Expected 'Passed', found '$($pass1.Node.outcome)'"
-    Exit 1
+    $errorCount++
 }
 
 $logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsSucceeds-*.log" | sort LastWriteTime | select -last 1
 if ($logPath) {
     Write-Host "Verifying no diagnostic logs for passing test"
     Write-Host "Found unexpected file '$logPath'"
-    Exit 1
+    $errorCount++
 }
 
 # Verify the second success
@@ -103,14 +104,14 @@ $pass2 = ($trx | Select-Xml -Namespace $ns "/n:TestRun/n:Results/n:UnitTestResul
 if ($pass2.Node.outcome -ne "Passed") {
     Write-Host "Testing 'EqualsSucceedsAsync' outcome"
     Write-Host "Expected 'Passed', found '$($pass2.Node.outcome)'"
-    Exit 1
+    $errorCount++
 }
 
 $logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsSucceedsAsync-*.log" | sort LastWriteTime | select -last 1
 if ($logPath) {
     Write-Host "Verifying no diagnostic logs for passing test"
     Write-Host "Found unexpected file '$logPath'"
-    Exit 1
+    $errorCount++
 }
 
 # Verify the first failure (xunit exception)
@@ -118,28 +119,28 @@ $failure1 = ($trx | Select-Xml -Namespace $ns "/n:TestRun/n:Results/n:UnitTestRe
 if ($failure1.Node.outcome -ne "Failed") {
     Write-Host "Testing 'EqualsFailure' outcome"
     Write-Host "Expected 'Failed', found '$($failure1.Node.outcome)'"
-    Exit 1
+    $errorCount++
 }
 
 $logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailure-EqualException.log" | sort LastWriteTime | select -last 1
 if (-not $logPath) {
     Write-Host "Verifying diagnostic logs for failing test"
     Write-Host "Missing log file 'EqualException.EqualsFailure-EqualException.log'"
-    Exit 1
+    $errorCount++
 }
 
 $pngPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailure-EqualException.png" | sort LastWriteTime | select -last 1
 if (-not $pngPath) {
     Write-Host "Verifying diagnostic screenshot for failing test"
     Write-Host "Missing image file 'EqualException.EqualsFailure-EqualException.png'"
-    Exit 1
+    $errorCount++
 }
 
 $activityPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailure-EqualException.Activity.xml" | sort LastWriteTime | select -last 1
 if (-not $pngPath) {
     Write-Host "Verifying diagnostic in-memory activity log for failing test"
     Write-Host "Missing image file 'EqualException.EqualsFailure-EqualException.Activity.xml'"
-    Exit 1
+    $errorCount++
 }
 
 # Verify the first failure (non-xunit exception)
@@ -147,21 +148,21 @@ $failure1 = ($trx | Select-Xml -Namespace $ns "/n:TestRun/n:Results/n:UnitTestRe
 if ($failure1.Node.outcome -ne "Failed") {
     Write-Host "Testing 'EqualsFailureNonXunit' outcome"
     Write-Host "Expected 'Failed', found '$($failure1.Node.outcome)'"
-    Exit 1
+    $errorCount++
 }
 
 $logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailureNonXunit-TargetInvocationException.log" | sort LastWriteTime | select -last 1
 if (-not $logPath) {
     Write-Host "Verifying diagnostic logs for failing test"
     Write-Host "Missing log file 'EqualException.EqualsFailureNonXunit-TargetInvocationException.log'"
-    Exit 1
+    $errorCount++
 }
 
 $pngPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailureNonXunit-TargetInvocationException.png" | sort LastWriteTime | select -last 1
 if (-not $pngPath) {
     Write-Host "Verifying diagnostic screenshot for failing test"
     Write-Host "Missing image file 'EqualException.EqualsFailureNonXunit-TargetInvocationException.png'"
-    Exit 1
+    $errorCount++
 }
 
 # Verify the second failure (xunit exception)
@@ -169,21 +170,21 @@ $failure2 = ($trx | Select-Xml -Namespace $ns "/n:TestRun/n:Results/n:UnitTestRe
 if ($failure2.Node.outcome -ne "Failed") {
     Write-Host "Testing 'EqualsFailureAsync' outcome"
     Write-Host "Expected 'Failed', found '$($failure2.Node.outcome)'"
-    Exit 1
+    $errorCount++
 }
 
 $logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailureAsync-EqualException.log" | sort LastWriteTime | select -last 1
 if (-not $logPath) {
     Write-Host "Verifying diagnostic logs for failing test"
     Write-Host "Missing log file 'EqualException.EqualsFailureAsync-EqualException.log'"
-    Exit 1
+    $errorCount++
 }
 
 $pngPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailureAsync-EqualException.png" | sort LastWriteTime | select -last 1
 if (-not $pngPath) {
     Write-Host "Verifying diagnostic screenshot for failing test"
     Write-Host "Missing image file 'EqualException.EqualsFailureAsync-EqualException.png'"
-    Exit 1
+    $errorCount++
 }
 
 # Verify the second failure (non-xunit exception)
@@ -191,21 +192,21 @@ $failure2 = ($trx | Select-Xml -Namespace $ns "/n:TestRun/n:Results/n:UnitTestRe
 if ($failure2.Node.outcome -ne "Failed") {
     Write-Host "Testing 'EqualsFailureNonXunitAsync' outcome"
     Write-Host "Expected 'Failed', found '$($failure2.Node.outcome)'"
-    Exit 1
+    $errorCount++
 }
 
 $logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailureNonXunitAsync-InvalidOperationException.log" | sort LastWriteTime | select -last 1
 if (-not $logPath) {
     Write-Host "Verifying diagnostic logs for failing test"
     Write-Host "Missing log file 'EqualException.EqualsFailureNonXunitAsync-InvalidOperationException.log'"
-    Exit 1
+    $errorCount++
 }
 
 $pngPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualException.EqualsFailureNonXunitAsync-InvalidOperationException.png" | sort LastWriteTime | select -last 1
 if (-not $pngPath) {
     Write-Host "Verifying diagnostic screenshot for failing test"
     Write-Host "Missing image file 'EqualException.EqualsFailureNonXunitAsync-InvalidOperationException.png'"
-    Exit 1
+    $errorCount++
 }
 
 # Verify failure in constructor
@@ -213,21 +214,21 @@ $failure3 = ($trx | Select-Xml -Namespace $ns "/n:TestRun/n:Results/n:UnitTestRe
 if ($failure3.Node.outcome -ne "Failed") {
     Write-Host "Testing 'EqualsSucceeds' outcome"
     Write-Host "Expected 'Failed', found '$($failure3.Node.outcome)'"
-    Exit 1
+    $errorCount++
 }
 
 $logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualExceptionInConstructor.EqualsSucceeds-TargetInvocationException.log" | sort LastWriteTime | select -last 1
 if (-not $logPath) {
     Write-Host "Verifying diagnostic logs for failing test"
     Write-Host "Missing log file 'EqualExceptionInConstructor.EqualsSucceeds-TargetInvocationException.log'"
-    Exit 1
+    $errorCount++
 }
 
 $pngPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualExceptionInConstructor.EqualsSucceeds-TargetInvocationException.png" | sort LastWriteTime | select -last 1
 if (-not $pngPath) {
     Write-Host "Verifying diagnostic screenshot for failing test"
     Write-Host "Missing image file 'EqualExceptionInConstructor.EqualsSucceeds-TargetInvocationException.png'"
-    Exit 1
+    $errorCount++
 }
 
 # Verify failure in before test attribute
@@ -235,21 +236,21 @@ $failure4 = ($trx | Select-Xml -Namespace $ns "/n:TestRun/n:Results/n:UnitTestRe
 if ($failure4.Node.outcome -ne "Failed") {
     Write-Host "Testing 'FailBeforeTest' outcome"
     Write-Host "Expected 'Failed', found '$($failure4.Node.outcome)'"
-    Exit 1
+    $errorCount++
 }
 
 $logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualExceptionInBeforeAfterTest.FailBeforeTest-InvalidOperationException.log" | sort LastWriteTime | select -last 1
 if (-not $logPath) {
     Write-Host "Verifying diagnostic logs for failing test"
     Write-Host "Missing log file 'EqualExceptionInBeforeAfterTest.FailBeforeTest-InvalidOperationException.log'"
-    Exit 1
+    $errorCount++
 }
 
 $pngPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualExceptionInBeforeAfterTest.FailBeforeTest-InvalidOperationException.png" | sort LastWriteTime | select -last 1
 if (-not $pngPath) {
     Write-Host "Verifying diagnostic screenshot for failing test"
     Write-Host "Missing image file 'EqualExceptionInBeforeAfterTest.FailBeforeTest-InvalidOperationException.png'"
-    Exit 1
+    $errorCount++
 }
 
 # Verify failure in after test attribute
@@ -257,22 +258,27 @@ $failure5 = ($trx | Select-Xml -Namespace $ns "/n:TestRun/n:Results/n:UnitTestRe
 if ($failure5.Node.outcome -ne "Failed") {
     Write-Host "Testing 'FailAfterTest' outcome"
     Write-Host "Expected 'Failed', found '$($failure5.Node.outcome)'"
-    Exit 1
+    $errorCount++
 }
 
 $logPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualExceptionInBeforeAfterTest.FailAfterTest-InvalidOperationException.log" | sort LastWriteTime | select -last 1
 if (-not $logPath) {
     Write-Host "Verifying diagnostic logs for failing test"
     Write-Host "Missing log file 'EqualExceptionInBeforeAfterTest.FailAfterTest-InvalidOperationException.log'"
-    Exit 1
+    $errorCount++
 }
 
 $pngPath = Get-ChildItem "$CurrentTestResultsDir\Screenshots\??.??.??-EqualExceptionInBeforeAfterTest.FailAfterTest-InvalidOperationException.png" | sort LastWriteTime | select -last 1
 if (-not $pngPath) {
     Write-Host "Verifying diagnostic screenshot for failing test"
     Write-Host "Missing image file 'EqualExceptionInBeforeAfterTest.FailAfterTest-InvalidOperationException.png'"
-    Exit 1
+    $errorCount++
 }
 
-Write-Host "Integration test passed (results as expected)."
-Exit 0
+if ($errorCount -ne 0) {
+    Write-Host "Integration test failed ($errorCount total failures)"
+} else {
+    Write-Host "Integration test passed (results as expected)."
+}
+
+Exit $errorCount
