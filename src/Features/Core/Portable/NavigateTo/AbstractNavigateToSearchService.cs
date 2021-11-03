@@ -158,8 +158,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 return;
             }
 
+            var storageService = solution.Workspace.Services.GetPersistentStorageService(database);
             await SearchCachedDocumentsInCurrentProcessAsync(
-                solution.Workspace.Services, documentKeys, priorityDocumentKeys, database, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
+                storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
         }
     }
 }
