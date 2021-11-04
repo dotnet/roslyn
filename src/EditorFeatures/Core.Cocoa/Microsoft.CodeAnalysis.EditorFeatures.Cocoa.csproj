@@ -3,6 +3,12 @@
     <TargetFramework>net472</TargetFramework>
     <DefineConstants>$(DefineConstants);COCOA</DefineConstants>
 
+    <!--
+      To prevent warnings about the nullable attributes that we have in this project, and that come 
+      transitively from our references.
+    -->
+    <NoWarn>CS0436</NoWarn>
+
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageDescription>
@@ -19,6 +25,7 @@
     <Compile Include="..\Core.Wpf\SignatureHelp\**\*.cs" LinkBase="SignatureHelp" />
     <Compile Include="..\Core.Wpf\Suggestions\**\*.cs" LinkBase="Suggestions" />
     <Compile Include="..\Core.Wpf\IDebuggerTextView2.cs" Link="IDebuggerTextView2.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="NullableAttributes.cs" />
   </ItemGroup>
 
   <ItemGroup>
