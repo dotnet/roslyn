@@ -53,7 +53,13 @@ internal class ProposedDocumentPullDiagnosticsHandler : AbstractPullDiagnosticHa
     protected override DocumentDiagnosticReport? CreateReturn(BufferedProgress<DocumentDiagnosticPartialReport> progress)
     {
         // We only ever report one result for document diagnostics, which is the first DocumentDiagnosticReport.
-        return progress.GetValues()?.Single().First;
+        var progressValues = progress.GetValues();
+        if (progressValues != null && progressValues.Length > 0)
+        {
+            return progressValues.Single().First;
+        }
+
+        return null;
     }
 
     protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
