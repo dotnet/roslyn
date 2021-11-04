@@ -89,12 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected virtual Location GetDiagnosticLocation(TDeclaration declaration)
             => GetBody(declaration).Statements[0].GetLocation();
 
-        public sealed override SyntaxNode GetDeclarationNode(Location declarationLocation, CancellationToken cancellationToken)
-            => GetDeclaration(declarationLocation, cancellationToken);
-
-        protected virtual TDeclaration GetDeclaration(Location declarationLocation, CancellationToken cancellationToken)
-           => (TDeclaration)declarationLocation.FindNode(cancellationToken);
-
         public bool CanOfferUseExpressionBody(
             OptionSet optionSet, TDeclaration declaration, bool forAnalyzer)
         {

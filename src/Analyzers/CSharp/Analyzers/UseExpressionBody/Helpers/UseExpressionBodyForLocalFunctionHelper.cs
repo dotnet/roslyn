@@ -48,14 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected override LocalFunctionStatementSyntax WithBody(LocalFunctionStatementSyntax statement, BlockSyntax body)
             => statement.WithBody(body);
 
-        protected override LocalFunctionStatementSyntax GetDeclaration(Location declarationLocation, CancellationToken cancellationToken)
-            => declarationLocation.FindNode(cancellationToken) switch
-            {
-                LocalFunctionStatementSyntax localFunc => localFunc,
-                GlobalStatementSyntax { Statement: LocalFunctionStatementSyntax localFunc } => localFunc,
-                _ => throw ExceptionUtilities.Unreachable
-            };
-
         protected override bool CreateReturnStatementForExpression(
             SemanticModel semanticModel, LocalFunctionStatementSyntax statement)
         {
