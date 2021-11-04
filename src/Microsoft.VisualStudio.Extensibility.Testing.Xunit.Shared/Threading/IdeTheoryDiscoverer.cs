@@ -16,9 +16,10 @@ namespace Xunit.Threading
 
         protected override IEnumerable<IXunitTestCase> CreateTestCasesForSkip(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute, string skipReason)
         {
+            var rootSuffix = IdeFactDiscoverer.GetRootSuffix(testMethod, theoryAttribute);
             foreach (var supportedVersion in IdeFactDiscoverer.GetSupportedVersions(testMethod, theoryAttribute))
             {
-                yield return new IdeTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, supportedVersion);
+                yield return new IdeTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, supportedVersion, rootSuffix);
             }
         }
 
@@ -32,9 +33,10 @@ namespace Xunit.Threading
 
         protected override IEnumerable<IXunitTestCase> CreateTestCasesForDataRow(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute, object[] dataRow)
         {
+            var rootSuffix = IdeFactDiscoverer.GetRootSuffix(testMethod, theoryAttribute);
             foreach (var supportedVersion in IdeFactDiscoverer.GetSupportedVersions(testMethod, theoryAttribute))
             {
-                yield return new IdeTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, supportedVersion, dataRow);
+                yield return new IdeTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, supportedVersion, rootSuffix, dataRow);
             }
         }
 

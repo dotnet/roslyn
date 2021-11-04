@@ -21,7 +21,7 @@ namespace Xunit.Harness
             {
                 if (testCase is IdeTestCase ideTestCase)
                 {
-                    return new IdeTestCase(diagnosticMessageSink, ideTestCase.DefaultMethodDisplay, ideTestCase.DefaultMethodDisplayOptions, ideTestCase.TestMethod, ideTestCase.VisualStudioVersion, ideTestCase.TestMethodArguments);
+                    return new IdeTestCase(diagnosticMessageSink, ideTestCase.DefaultMethodDisplay, ideTestCase.DefaultMethodDisplayOptions, ideTestCase.TestMethod, ideTestCase.VisualStudioVersion, ideTestCase.RootSuffix, ideTestCase.TestMethodArguments);
                 }
 
                 return testCase;

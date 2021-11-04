@@ -24,9 +24,10 @@ namespace Xunit.Threading
             {
                 if (!testMethod.Method.IsGenericMethodDefinition)
                 {
+                    var rootSuffix = GetRootSuffix(testMethod, factAttribute);
                     foreach (var supportedVersion in GetSupportedVersions(testMethod, factAttribute))
                     {
-                        yield return new IdeTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, supportedVersion);
+                        yield return new IdeTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, supportedVersion, rootSuffix);
                     }
                 }
                 else
@@ -43,6 +44,11 @@ namespace Xunit.Threading
         internal static IEnumerable<VisualStudioVersion> GetSupportedVersions(ITestMethod testMethod, IAttributeInfo factAttribute)
         {
             return GetSupportedVersions(factAttribute, GetSettingsAttributes(testMethod).ToArray());
+        }
+
+        internal static string GetRootSuffix(ITestMethod testMethod, IAttributeInfo factAttribute)
+        {
+            return GetRootSuffix(factAttribute, GetSettingsAttributes(testMethod).ToArray());
         }
 
         private static IEnumerable<IAttributeInfo> GetSettingsAttributes(ITestMethod testMethod)
@@ -90,6 +96,16 @@ namespace Xunit.Threading
 
                 yield return version;
             }
+        }
+
+        private static string GetRootSuffix(IAttributeInfo factAttribute, IAttributeInfo[] settingsAttributes)
+        {
+            return GetNamedArgument(
+                factAttribute,
+                settingsAttributes,
+                nameof(IIdeSettingsAttribute.RootSuffix),
+                static value => value is not null,
+                defaultValue: "Exp");
         }
 
         private static TValue GetNamedArgument<TValue>(IAttributeInfo factAttribute, IAttributeInfo[] settingsAttributes, string argumentName, Func<TValue, bool> isValidValue, TValue defaultValue)
