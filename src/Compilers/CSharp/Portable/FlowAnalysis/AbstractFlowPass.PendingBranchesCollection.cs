@@ -120,7 +120,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     branches = ArrayBuilder<PendingBranch>.GetInstance();
                     _labeledBranches.Add(label, branches);
-                    return branches;
                 }
                 return branches;
             }
