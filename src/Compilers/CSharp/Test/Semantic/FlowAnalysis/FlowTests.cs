@@ -4,12 +4,10 @@
 
 #nullable disable
 
-using System;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -5559,69 +5557,6 @@ class C
                 //                 obj.ToString();
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "obj").WithArguments("obj").WithLocation(28, 17)
                 );
-        }
-
-        [Fact]
-        public void PendingBranchesCollection_Ordering()
-        {
-            var source =
-@"class Program
-{
-    static int Main(string[] args)
-    {
-        switch (args.Length)
-        {
-            case 0: return 0;
-            case 1: return 1;
-            case 2: return 2;
-            case 3: return 3;
-            default: return 4;
-        }
-    }
-}";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
-            var labels = tree.GetRoot().DescendantNodes().OfType<SwitchLabelSyntax>().Select(label => model.GetDeclaredSymbol(label).GetSymbol<LabelSymbol>()).ToArray();
-
-            Assert.Equal(new[] { "case 0:", "case 1:", "case 2:", "case 3:", "default" }, labels.ToTestDisplayStrings());
-
-            // Create a set of PendingBranches.
-            const int nBranches = 100;
-            var random = new Random();
-            var labelOrder = ArrayBuilder<LabelSymbol>.GetInstance();
-            var branches = ArrayBuilder<NullableWalker.PendingBranch>.GetInstance();
-            for (int i = 0; i < nBranches; i++)
-            {
-                var index = random.Next() % (labels.Length + 1);
-                LabelSymbol label = index == labels.Length ? null : labels[index];
-                if (label is { } && !labelOrder.Contains(label))
-                {
-                    labelOrder.Add(label);
-                }
-                branches.Add(new NullableWalker.PendingBranch(branch: null, default, label));
-            }
-
-            // Add the PendingBranches to a PendingBranchesCollection in the order created.
-            var pendingBranches = new NullableWalker.PendingBranchesCollection();
-            foreach (var branch in branches)
-            {
-                pendingBranches.Add(branch);
-            }
-
-            // Generate the expected order: by label, then by creation order.
-            var expectedOrder = ArrayBuilder<NullableWalker.PendingBranch>.GetInstance();
-            expectedOrder.AddRange(branches.Where(b => b.Label == null));
-            foreach (var label in labelOrder)
-            {
-                expectedOrder.AddRange(branches.Where(b => b.Label == label));
-            }
-
-            // Verify items are returned in order.
-            AssertEx.Equal(expectedOrder, pendingBranches.AsEnumerable());
-            AssertEx.Equal(expectedOrder, pendingBranches.ToImmutable());
         }
     }
 }

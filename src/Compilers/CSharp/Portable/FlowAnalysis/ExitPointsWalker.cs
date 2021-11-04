@@ -147,6 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _branchesOutOf.Add((StatementSyntax)pending.Branch.Syntax);
             }
 
+            _branchesOutOf.Sort((x, y) => x.SpanStart - y.SpanStart);
             base.LeaveRegion();
         }
     }
