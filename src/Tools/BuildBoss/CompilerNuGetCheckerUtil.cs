@@ -244,7 +244,7 @@ namespace BuildBoss
                 coreClrAssets,
                 $@"csc\{Configuration}\net6.0\publish",
                 $@"vbc\{Configuration}\net6.0\publish",
-                $@"VBCSCompiler\{Configuration}\netcoreapp3.1\publish");
+                $@"VBCSCompiler\{Configuration}\net6.0\publish");
 
             // The native DLLs ship inside the runtime specific directories but build deploys it at the 
             // root as well. That copy is unnecessary.
