@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -17,13 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal class ExitPointsWalker : AbstractRegionControlFlowPass
     {
         private readonly ArrayBuilder<LabelSymbol> _labelsInside;
-        private readonly ArrayBuilder<SyntaxNode> _branchesOutOf;
+        private readonly ArrayBuilder<StatementSyntax> _branchesOutOf;
 
         private ExitPointsWalker(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion)
             : base(compilation, member, node, firstInRegion, lastInRegion)
         {
             _labelsInside = new ArrayBuilder<LabelSymbol>();
-            _branchesOutOf = ArrayBuilder<SyntaxNode>.GetInstance();
+            _branchesOutOf = ArrayBuilder<StatementSyntax>.GetInstance();
         }
 
         protected override void Free()
@@ -37,14 +38,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.Free();
         }
 
-        internal static ImmutableArray<SyntaxNode> Analyze(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion)
+        internal static ImmutableArray<StatementSyntax> Analyze(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion)
         {
             var walker = new ExitPointsWalker(compilation, member, node, firstInRegion, lastInRegion);
             try
             {
-                bool badRegion = false;
-                var result = walker.Analyze(ref badRegion);
-                return badRegion ? ImmutableArray<SyntaxNode>.Empty : result;
+                return walker.Analyze();
             }
             finally
             {
@@ -52,10 +51,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private ImmutableArray<SyntaxNode> Analyze(ref bool badRegion)
+        private ImmutableArray<StatementSyntax> Analyze()
         {
+            bool badRegion = false;
+
             // only one pass is needed.
             Scan(ref badRegion);
+
+            if (badRegion)
+            {
+                return ImmutableArray<StatementSyntax>.Empty;
+            }
 
             _branchesOutOf.Sort((x, y) => x.SpanStart - y.SpanStart);
             return _branchesOutOf.ToImmutable();
@@ -141,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default:
                         throw ExceptionUtilities.UnexpectedValue(pending.Branch.Kind);
                 }
-                _branchesOutOf.Add(pending.Branch.Syntax);
+                _branchesOutOf.Add((StatementSyntax)pending.Branch.Syntax);
             }
 
             base.LeaveRegion();
