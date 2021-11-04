@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         {|caret:|}int i = 1;
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-            var caretLocation = locations["caret"].Single();
+            var caretLocation = testLspServer.GetLocations("caret").Single();
             var expected = CreateCodeAction(
                 title: CSharpAnalyzersResources.Use_implicit_type,
                 kind: CodeActionKind.Refactor,
@@ -68,9 +68,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         int {|caret:|}i = 1;
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-            var caretLocation = locations["caret"].Single();
+            var caretLocation = testLspServer.GetLocations("caret").Single();
             var expected = CreateCodeAction(
                 title: string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                 kind: CodeActionKind.Refactor,
@@ -102,14 +102,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         {|caret:|}int i = 1;
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
             var cache = GetCodeActionsCache(testLspServer);
             var testAccessor = cache.GetTestAccessor();
 
             // This test assumes that the maximum cache size is 3, and will have to modified if this number changes.
             Assert.True(CodeActionsCache.TestAccessor.MaximumCacheSize == 3);
 
-            var caretLocation = locations["caret"].Single();
+            var caretLocation = testLspServer.GetLocations("caret").Single();
             var document = GetDocument(testLspServer.TestWorkspace, CreateTextDocumentIdentifier(caretLocation.Uri));
 
             // 1. Invoking code actions on document with empty cache.
@@ -147,8 +147,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             // 4. Changing the document should generate a new cached item.
             var currentDocText = await document.GetTextAsync();
             var changedSourceText = currentDocText.WithChanges(new TextChange(new TextSpan(0, 0), "class D { } \n"));
+            testLspServer.TestWorkspace.TryApplyChanges(document.WithText(changedSourceText).Project.Solution);
+
             var docId = testLspServer.TestWorkspace.Documents.First().Id;
-            testLspServer.TestWorkspace.ChangeDocument(docId, changedSourceText);
+            await testLspServer.TestWorkspace.ChangeDocumentAsync(docId, changedSourceText);
+
             var updatedDocument = GetDocument(testLspServer.TestWorkspace, CreateTextDocumentIdentifier(caretLocation.Uri));
 
             await RunCodeActionsAndAssertActionsInCacheAsync(testLspServer, cache, caretLocation, updatedDocument);

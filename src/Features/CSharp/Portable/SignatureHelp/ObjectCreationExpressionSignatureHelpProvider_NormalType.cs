@@ -18,18 +18,18 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     internal partial class ObjectCreationExpressionSignatureHelpProvider
     {
         private static (IList<SignatureHelpItem> items, int? selectedItem) GetNormalTypeConstructors(
-            Document document,
             BaseObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
             IStructuralTypeDisplayService structuralTypeDisplayService,
             IDocumentationCommentFormattingService documentationCommentFormattingService,
             INamedTypeSymbol normalType,
             ISymbol within,
+            SignatureHelpOptions options,
             CancellationToken cancellationToken)
         {
             var accessibleConstructors = normalType.InstanceConstructors
                                                    .WhereAsArray(c => c.IsAccessibleWithin(within))
-                                                   .WhereAsArray(s => s.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
+                                                   .WhereAsArray(s => s.IsEditorBrowsable(options.HideAdvancedMembers, semanticModel.Compilation))
                                                    .Sort(semanticModel, objectCreationExpression.SpanStart);
 
             var symbolInfo = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken);

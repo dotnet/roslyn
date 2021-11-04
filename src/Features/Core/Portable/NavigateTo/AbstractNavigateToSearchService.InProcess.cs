@@ -10,12 +10,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -60,6 +58,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Document? searchDocument, string pattern, IImmutableSet<string> kinds,
             Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
         {
+            // We're doing a real search over the fully loaded solution now.  No need to hold onto the cached map
+            // of potentially stale indices.
+            ClearCachedData();
+
             // If the user created a dotted pattern then we'll grab the last part of the name
             var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
 
@@ -111,62 +113,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             await ProcessIndexAsync(
                 document.Id, document, patternName, patternContainer, kinds, onResultFound, index, cancellationToken).ConfigureAwait(false);
-        }
-
-        public static async Task SearchCachedDocumentsInCurrentProcessAsync(
-            HostWorkspaceServices services,
-            ImmutableArray<DocumentKey> documentKeys,
-            ImmutableArray<DocumentKey> priorityDocumentKeys,
-            StorageDatabase database,
-            string searchPattern,
-            IImmutableSet<string> kinds,
-            Func<RoslynNavigateToItem, Task> onItemFound,
-            CancellationToken cancellationToken)
-        {
-            var stringTable = new StringTable();
-
-            var highPriDocsSet = priorityDocumentKeys.ToSet();
-            var lowPriDocs = documentKeys.WhereAsArray(d => !highPriDocsSet.Contains(d));
-
-            // If the user created a dotted pattern then we'll grab the last part of the name
-            var (patternName, patternContainer) = PatternMatcher.GetNameAndContainer(searchPattern);
-            var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
-
-            await SearchCachedDocumentsInCurrentProcessAsync(
-                services, priorityDocumentKeys, database, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, stringTable, cancellationToken).ConfigureAwait(false);
-
-            await SearchCachedDocumentsInCurrentProcessAsync(
-                services, lowPriDocs, database, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, stringTable, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async Task SearchCachedDocumentsInCurrentProcessAsync(
-            HostWorkspaceServices services,
-            ImmutableArray<DocumentKey> documentKeys,
-            StorageDatabase database,
-            string patternName,
-            string patternContainer,
-            DeclaredSymbolInfoKindSet kinds,
-            Func<RoslynNavigateToItem, Task> onItemFound,
-            StringTable stringTable,
-            CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
-
-            foreach (var documentKey in documentKeys)
-            {
-                tasks.Add(Task.Run(async () =>
-                {
-                    var index = await SyntaxTreeIndex.LoadAsync(
-                        services, documentKey, checksum: null, database, stringTable, cancellationToken).ConfigureAwait(false);
-                    if (index == null)
-                        return;
-
-                    await ProcessIndexAsync(
-                        documentKey.Id, document: null, patternName, patternContainer, kinds, onItemFound, index, cancellationToken).ConfigureAwait(false);
-                }, cancellationToken));
-            }
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         private static async Task ProcessIndexAsync(

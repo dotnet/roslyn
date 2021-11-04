@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -43,7 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
@@ -129,8 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
 
         private static bool IsValid(ImmutableArray<IParameterSymbol> parameterList, ISet<string> existingNamedParameters)
         {

@@ -39,6 +39,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         protected abstract string ContentTypeName { get; }
         protected abstract string LanguageName { get; }
 
+        /// <summary>
+        /// The project that is used to format newly added documents is in an unknown state - it might be
+        /// fully realized, we might have only recieved part of the data about it, or it could be a temporary
+        /// one that we create solely for the purpose of new document formatting. Since the language version
+        /// informs what types of formatting changes might be possible, this method exists to ensure that we
+        /// at least provide that piece of information regardless of anything else.
+        /// </summary>
+        protected abstract Project GetProjectWithCorrectParseOptionsForProject(Project project, IVsHierarchy hierarchy);
+
         public void SetEncoding(bool value)
             => _encoding = value;
 
@@ -280,31 +289,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var workspace = _componentModel.GetService<VisualStudioWorkspace>();
             var solution = workspace.CurrentSolution;
 
-            ProjectId? projectIdToAddTo = null;
+            Project? projectToAddTo = null;
 
             foreach (var projectId in solution.ProjectIds)
             {
                 if (workspace.GetHierarchy(projectId) == hierarchy)
                 {
-                    projectIdToAddTo = projectId;
+                    projectToAddTo = solution.GetRequiredProject(projectId);
                     break;
                 }
             }
 
-            if (projectIdToAddTo == null)
+            if (projectToAddTo == null)
             {
                 // We don't have a project for this, so we'll just make up a fake project altogether
-                var temporaryProject = solution.AddProject(
+                projectToAddTo = solution.AddProject(
                     name: nameof(FormatDocumentCreatedFromTemplate),
                     assemblyName: nameof(FormatDocumentCreatedFromTemplate),
                     language: LanguageName);
-
-                solution = temporaryProject.Solution;
-                projectIdToAddTo = temporaryProject.Id;
             }
 
-            var documentId = DocumentId.CreateNewId(projectIdToAddTo);
-            var forkedSolution = solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
+            // We need to ensure that decisions made during new document formatting are based on the right language
+            // version from the project system, but the NotifyItemAdded event happens before a design time build,
+            // and sometimes before we have even been told about the projects existence, so we have to ask the hierarchy
+            // for the language version to use.
+            projectToAddTo = GetProjectWithCorrectParseOptionsForProject(projectToAddTo, hierarchy);
+
+            var documentId = DocumentId.CreateNewId(projectToAddTo.Id);
+
+            var forkedSolution = projectToAddTo.Solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
             var addedDocument = forkedSolution.GetDocument(documentId)!;
 
             // Call out to various new document formatters to tweak what they want

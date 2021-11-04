@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private async Task SearchAllProjectsAsync(bool isFullyLoaded, CancellationToken cancellationToken)
         {
             var orderedProjects = GetOrderedProjectsToProcess();
-            var (foundItems, projectResults) = await ProcessProjectsAsync(orderedProjects, isFullyLoaded, cancellationToken).ConfigureAwait(false);
+            var foundItems = await ProcessProjectsAsync(orderedProjects, isFullyLoaded, cancellationToken).ConfigureAwait(false);
 
             // If we're fully loaded then we're done at this point.  All the searches would have been against the latest
             // computed data and we don't need to do anything else.
@@ -126,14 +126,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             if (foundItems)
                 return;
 
-            // We didn't have any items reported *and* we weren't fully loaded.  If it turns out that some of our
-            // projects were using cached data then we can try searching them again, but this tell them to use the
-            // latest data.  The ensures the user at least gets some result instead of nothing.
-            var projectsUsingCache = projectResults.SelectAsArray(t => t.location == NavigateToSearchLocation.Cache, t => t.project);
-            if (projectsUsingCache.Length == 0)
-                return;
-
-            var (foundFullItems, _) = await ProcessProjectsAsync(ImmutableArray.Create(projectsUsingCache), isFullyLoaded: true, cancellationToken).ConfigureAwait(false);
+            // We didn't have any items reported *and* we weren't fully loaded.  Try searching the projects again, but this
+            // time tell them to use the latest data.  The ensures the user may get some result instead of nothing.
+            var foundFullItems = await ProcessProjectsAsync(orderedProjects, isFullyLoaded: true, cancellationToken).ConfigureAwait(false);
 
             // Report a telemetry even to track if we found uncached items after failing to find cached items.
             // In practice if we see that we are always finding uncached items, then it's likely something
@@ -222,12 +217,13 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             return result.ToImmutable();
         }
 
-        private async Task<(bool foundItems, ImmutableArray<(Project project, NavigateToSearchLocation location)>)> ProcessProjectsAsync(
+        /// <summary>
+        /// Returns <see langword="true"/> if the search found any results.
+        /// </summary>
+        private async Task<bool> ProcessProjectsAsync(
             ImmutableArray<ImmutableArray<Project>> orderedProjects, bool isFullyLoaded, CancellationToken cancellationToken)
         {
             await _progress.AddItemsAsync(orderedProjects.Sum(p => p.Length), cancellationToken).ConfigureAwait(false);
-
-            using var _ = ArrayBuilder<(Project project, NavigateToSearchLocation location)>.GetInstance(out var result);
 
             var seenItems = new HashSet<INavigateToSearchResult>(NavigateToSearchResultComparer.Instance);
 
@@ -238,19 +234,19 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // rest of the results following soon after as best as we can find them.
             foreach (var projectGroup in orderedProjects)
             {
-                var allTasks = projectGroup.Select(p => Task.Run(async () => (p, await SearchAsync(p, isFullyLoaded, seenItems, cancellationToken).ConfigureAwait(false))));
-                result.AddRange(await Task.WhenAll(allTasks).ConfigureAwait(false));
+                var allTasks = projectGroup.Select(p => Task.Run(() => SearchAsync(p, isFullyLoaded, seenItems, cancellationToken)));
+                await Task.WhenAll(allTasks).ConfigureAwait(false);
             }
 
-            return (foundItems: seenItems.Count > 0, result.ToImmutable());
+            return seenItems.Count > 0;
         }
 
-        private async Task<NavigateToSearchLocation> SearchAsync(
+        private async Task SearchAsync(
             Project project, bool isFullyLoaded, HashSet<INavigateToSearchResult> seenItems, CancellationToken cancellationToken)
         {
             try
             {
-                return await SearchCoreAsync(project, isFullyLoaded, seenItems, cancellationToken).ConfigureAwait(false);
+                await SearchCoreAsync(project, isFullyLoaded, seenItems, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -258,26 +254,28 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
         }
 
-        private async Task<NavigateToSearchLocation> SearchCoreAsync(
+        private async Task SearchCoreAsync(
             Project project, bool isFullyLoaded, HashSet<INavigateToSearchResult> seenItems, CancellationToken cancellationToken)
         {
             // If they don't even support the service, then always show them as having done the
             // complete search.  That way we don't call back into this project ever.
             var service = _host.GetNavigateToSearchService(project);
             if (service == null)
-                return NavigateToSearchLocation.Latest;
+                return;
 
             if (_searchCurrentDocument)
             {
                 Contract.ThrowIfNull(_currentDocument);
-                return await service.SearchDocumentAsync(
-                    _currentDocument, _searchPattern, _kinds, OnResultFound, isFullyLoaded, cancellationToken).ConfigureAwait(false);
+                await service.SearchDocumentAsync(
+                    _currentDocument, _searchPattern, _kinds, isFullyLoaded, OnResultFound, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                return await service.SearchProjectAsync(
-                    project, GetPriorityDocuments(project), _searchPattern, _kinds, OnResultFound, isFullyLoaded, cancellationToken).ConfigureAwait(false);
+                await service.SearchProjectAsync(
+                    project, GetPriorityDocuments(project), _searchPattern, _kinds, isFullyLoaded, OnResultFound, cancellationToken).ConfigureAwait(false);
             }
+
+            return;
 
             Task OnResultFound(INavigateToSearchResult result)
             {

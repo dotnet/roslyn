@@ -7,6 +7,7 @@ Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
 Imports Microsoft.CodeAnalysis.ImplementAbstractClass
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
@@ -24,8 +25,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementAbstractClass
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
-        Public Sub New(editorOperationsFactoryService As IEditorOperationsFactoryService)
-            MyBase.New(editorOperationsFactoryService)
+        Public Sub New(editorOperationsFactoryService As IEditorOperationsFactoryService,
+                       globalOptions As IGlobalOptionService)
+            MyBase.New(editorOperationsFactoryService, globalOptions)
         End Sub
 
         Protected Overrides Function TryGetNewDocument(
