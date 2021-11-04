@@ -128,6 +128,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 );
 
         [Fact]
+        public void TestMethodOneParamSpacing()
+            => Verify(
+                @"at ConsoleApp4.MyClass.M( string s )",
+                methodDeclaration: MethodDeclaration(
+                    QualifiedName(
+                        QualifiedName(
+                            Identifier("ConsoleApp4", leadingTrivia: AtTrivia),
+                            Identifier("MyClass")),
+                        Identifier("M")),
+
+                    argumentList: ParameterList(
+                        OpenParenToken.With(trailingTrivia: SpaceTrivia().ToImmutableArray()),
+                        CloseParenToken,
+                        Parameter(
+                            Identifier("string"),
+                            IdentifierToken("s", leadingTrivia: SpaceTrivia(), trailingTrivia: SpaceTrivia())))
+                    )
+                );
+
+        [Fact]
         public void TestMethodTwoParam()
             => Verify(
                 @"at ConsoleApp4.MyClass.M(string s, string t)",
@@ -384,6 +404,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         [InlineData(@"at M.M(string] s)")] // Close only array bracket
         [InlineData(@"at M.M(string[][][ s)")]
         [InlineData(@"at M.M(string[[]] s)")]
+        [InlineData("at M.M(string s, string t,")] // Trailing comma in parameters
         [InlineData(@"at M.N`.P()")] // Missing numeric for arity 
         [InlineData(@"at M.N`9N.P()")] // Invalid character after arity
         [InlineData("M.N.P.()")] // Trailing . with no identifier before arguments

@@ -99,6 +99,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         {
             var identifierNode = TryParseRequiredNameNode(scanAtTrivia: true);
 
+            //
+            // TryParseRequiredNameNode does not necessarily return a qualified name even if 
+            // it parses a name. For method declarations, a fully qualified name is required so
+            // we know both the class (and namespace) that the method is contained in.  
+            //
             if (identifierNode is not StackFrameQualifiedNameNode memberAccessExpression)
             {
                 return null;
@@ -240,7 +245,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return Result<StackFrameTypeArgumentList>.Empty;
             }
 
-            var closeBrackeKind = openToken.Kind is StackFrameKind.OpenBracketToken
+            var closeBracketKind = openToken.Kind is StackFrameKind.OpenBracketToken
                 ? StackFrameKind.CloseBracketToken
                 : StackFrameKind.GreaterThanToken;
 
@@ -252,7 +257,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             {
                 builder.Add(new StackFrameIdentifierNameNode(currentIdentifier.Value));
 
-                if (_lexer.ScanCurrentCharAsTokenIfMatch(closeBrackeKind, out closeToken))
+                if (_lexer.ScanCurrentCharAsTokenIfMatch(closeBracketKind, out closeToken))
                 {
                     break;
                 }
