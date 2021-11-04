@@ -26,16 +26,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _unlabeledBranches.Free();
                 _unlabeledBranches = null!;
-                FreeBranchesToLabel();
+                FreeLabeledBranches();
             }
 
             internal void Clear()
             {
                 _unlabeledBranches.Clear();
-                FreeBranchesToLabel();
+                FreeLabeledBranches();
             }
 
-            private void FreeBranchesToLabel()
+            private void FreeLabeledBranches()
             {
                 if (_labeledBranches is { })
                 {
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var branches = GetOrAddBranchesToLabel(label);
+                    var branches = GetOrAddLabeledBranches(label);
                     branches.Add(branch);
                 }
             }
@@ -103,13 +103,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var pair in collection._labeledBranches)
                     {
-                        var branches = GetOrAddBranchesToLabel(pair.Key);
+                        var branches = GetOrAddLabeledBranches(pair.Key);
                         branches.AddRange(pair.Value.Branches);
                     }
                 }
             }
 
-            private ArrayBuilder<PendingBranch> GetOrAddBranchesToLabel(LabelSymbol label)
+            private ArrayBuilder<PendingBranch> GetOrAddLabeledBranches(LabelSymbol label)
             {
                 if (_labeledBranches is null)
                 {
