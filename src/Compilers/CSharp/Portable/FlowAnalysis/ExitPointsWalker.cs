@@ -4,13 +4,9 @@
 
 #nullable disable
 
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -21,13 +17,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal class ExitPointsWalker : AbstractRegionControlFlowPass
     {
         private readonly ArrayBuilder<LabelSymbol> _labelsInside;
-        private ArrayBuilder<StatementSyntax> _branchesOutOf;
+        private readonly ArrayBuilder<SyntaxNode> _branchesOutOf;
 
         private ExitPointsWalker(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion)
             : base(compilation, member, node, firstInRegion, lastInRegion)
         {
             _labelsInside = new ArrayBuilder<LabelSymbol>();
-            _branchesOutOf = ArrayBuilder<StatementSyntax>.GetInstance();
+            _branchesOutOf = ArrayBuilder<SyntaxNode>.GetInstance();
         }
 
         protected override void Free()
@@ -41,16 +37,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.Free();
         }
 
-        internal static IEnumerable<StatementSyntax> Analyze(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion)
+        internal static ImmutableArray<SyntaxNode> Analyze(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion)
         {
             var walker = new ExitPointsWalker(compilation, member, node, firstInRegion, lastInRegion);
             try
             {
                 bool badRegion = false;
-                walker.Analyze(ref badRegion);
-                var result = walker._branchesOutOf.ToImmutableAndFree();
-                walker._branchesOutOf = null;
-                return badRegion ? SpecializedCollections.EmptyEnumerable<StatementSyntax>() : result;
+                var result = walker.Analyze(ref badRegion);
+                return badRegion ? ImmutableArray<SyntaxNode>.Empty : result;
             }
             finally
             {
@@ -58,10 +52,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void Analyze(ref bool badRegion)
+        private ImmutableArray<SyntaxNode> Analyze(ref bool badRegion)
         {
             // only one pass is needed.
             Scan(ref badRegion);
+
+            _branchesOutOf.Sort((x, y) => x.SpanStart - y.SpanStart);
+            return _branchesOutOf.ToImmutable();
         }
 
         public override BoundNode VisitLabelStatement(BoundLabelStatement node)
@@ -144,10 +141,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default:
                         throw ExceptionUtilities.UnexpectedValue(pending.Branch.Kind);
                 }
-                _branchesOutOf.Add((StatementSyntax)pending.Branch.Syntax);
+                _branchesOutOf.Add(pending.Branch.Syntax);
             }
 
-            _branchesOutOf.Sort((x, y) => x.SpanStart - y.SpanStart);
             base.LeaveRegion();
         }
     }
