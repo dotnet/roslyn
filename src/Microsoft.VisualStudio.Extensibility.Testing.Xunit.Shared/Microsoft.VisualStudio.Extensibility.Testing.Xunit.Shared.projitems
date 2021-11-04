@@ -33,6 +33,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Harness\VSConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\WellKnownCommandNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IdeFactAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IdeSettingsAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IdeTheoryAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IIdeSettingsAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InProcess\InProcComponent.cs" />

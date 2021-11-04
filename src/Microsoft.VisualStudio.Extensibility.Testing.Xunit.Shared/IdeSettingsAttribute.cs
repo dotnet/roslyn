@@ -4,13 +4,11 @@
 namespace Xunit
 {
     using System;
-    using Xunit.Sdk;
 
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    [XunitTestCaseDiscoverer("Xunit.Threading.IdeTheoryDiscoverer", "Microsoft.VisualStudio.Extensibility.Testing.Xunit")]
-    public class IdeTheoryAttribute : TheoryAttribute, IIdeSettingsAttribute
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
+    public class IdeSettingsAttribute : Attribute, IIdeSettingsAttribute
     {
-        public IdeTheoryAttribute()
+        public IdeSettingsAttribute()
         {
             MinVersion = VisualStudioVersion.Unspecified;
             MaxVersion = VisualStudioVersion.Unspecified;

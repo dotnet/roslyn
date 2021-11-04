@@ -3,6 +3,7 @@
 
 namespace Xunit.Threading
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using Xunit.Abstractions;
@@ -23,8 +24,7 @@ namespace Xunit.Threading
             {
                 if (!testMethod.Method.IsGenericMethodDefinition)
                 {
-                    var testCases = new List<IXunitTestCase>();
-                    foreach (var supportedVersion in GetSupportedVersions(factAttribute))
+                    foreach (var supportedVersion in GetSupportedVersions(testMethod, factAttribute))
                     {
                         yield return new IdeTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, supportedVersion);
                     }
@@ -40,13 +40,39 @@ namespace Xunit.Threading
             }
         }
 
-        internal static IEnumerable<VisualStudioVersion> GetSupportedVersions(IAttributeInfo theoryAttribute)
+        internal static IEnumerable<VisualStudioVersion> GetSupportedVersions(ITestMethod testMethod, IAttributeInfo factAttribute)
         {
-            var minVersion = theoryAttribute.GetNamedArgument<VisualStudioVersion>(nameof(IIdeSettingsAttribute.MinVersion));
-            minVersion = minVersion == VisualStudioVersion.Unspecified ? VisualStudioVersion.VS2012 : minVersion;
+            return GetSupportedVersions(factAttribute, GetSettingsAttributes(testMethod).ToArray());
+        }
 
-            var maxVersion = theoryAttribute.GetNamedArgument<VisualStudioVersion>(nameof(IIdeSettingsAttribute.MaxVersion));
-            maxVersion = maxVersion == VisualStudioVersion.Unspecified ? VisualStudioVersion.VS2022 : maxVersion;
+        private static IEnumerable<IAttributeInfo> GetSettingsAttributes(ITestMethod testMethod)
+        {
+            foreach (var attributeData in testMethod.Method.GetCustomAttributes(typeof(IdeSettingsAttribute)))
+            {
+                yield return attributeData;
+            }
+
+            foreach (var attributeData in testMethod.TestClass.Class.GetCustomAttributes(typeof(IdeSettingsAttribute)))
+            {
+                yield return attributeData;
+            }
+        }
+
+        private static IEnumerable<VisualStudioVersion> GetSupportedVersions(IAttributeInfo factAttribute, IAttributeInfo[] settingsAttributes)
+        {
+            var minVersion = GetNamedArgument(
+                factAttribute,
+                settingsAttributes,
+                nameof(IIdeSettingsAttribute.MinVersion),
+                static value => value is not VisualStudioVersion.Unspecified,
+                defaultValue: VisualStudioVersion.VS2012);
+
+            var maxVersion = GetNamedArgument(
+                factAttribute,
+                settingsAttributes,
+                nameof(IIdeSettingsAttribute.MaxVersion),
+                static value => value is not VisualStudioVersion.Unspecified,
+                defaultValue: VisualStudioVersion.VS2022);
 
             for (var version = minVersion; version <= maxVersion; version++)
             {
@@ -63,6 +89,30 @@ namespace Xunit.Threading
 #endif
 
                 yield return version;
+            }
+        }
+
+        private static TValue GetNamedArgument<TValue>(IAttributeInfo factAttribute, IAttributeInfo[] settingsAttributes, string argumentName, Func<TValue, bool> isValidValue, TValue defaultValue)
+        {
+            if (TryGetNamedArgument(factAttribute, argumentName, isValidValue, out var value))
+            {
+                return value;
+            }
+
+            foreach (var attribute in settingsAttributes)
+            {
+                if (TryGetNamedArgument(attribute, argumentName, isValidValue, out value))
+                {
+                    return value;
+                }
+            }
+
+            return defaultValue;
+
+            static bool TryGetNamedArgument(IAttributeInfo attribute, string argumentName, Func<TValue, bool> isValidValue, out TValue value)
+            {
+                value = attribute.GetNamedArgument<TValue>(argumentName);
+                return isValidValue(value);
             }
         }
     }

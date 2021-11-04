@@ -12,8 +12,8 @@ namespace Xunit
     {
         public IdeFactAttribute()
         {
-            MinVersion = VisualStudioVersion.VS2012;
-            MaxVersion = VisualStudioVersion.VS2022;
+            MinVersion = VisualStudioVersion.Unspecified;
+            MaxVersion = VisualStudioVersion.Unspecified;
         }
 
         public VisualStudioVersion MinVersion
