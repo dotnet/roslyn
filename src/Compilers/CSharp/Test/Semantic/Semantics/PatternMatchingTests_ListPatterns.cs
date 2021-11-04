@@ -2700,6 +2700,60 @@ class C<T>
     }
 
     [Fact]
+    public void SlicePattern_Nullability_NullableValue()
+    {
+        var source = @"
+#nullable enable
+class C
+{
+    public int Length => throw null!;
+    public int this[int i] => throw null!;
+    public int[]? Slice(int i, int j) => throw null!;
+
+    public void M()
+    {
+        if (this is [1, ..var slice])
+            slice.ToString();
+        if (this is [1, ..[] list])
+            list.ToString();
+    }
+}
+";
+        var compilation = CreateCompilation(source);
+        compilation.VerifyEmitDiagnostics(
+                // (12,13): warning CS8602: Dereference of a possibly null reference.
+                //             slice.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "slice").WithLocation(12, 13),
+                // (14,13): warning CS8602: Dereference of a possibly null reference.
+                //             list.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "list").WithLocation(14, 13)
+        );
+
+        var tree = compilation.SyntaxTrees.Single();
+        var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
+        var nodes = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>();
+        Assert.Collection(nodes,
+            d => verify(d, "slice", "int[]?", "int[]"),
+            d => verify(d, "list", "int[]?", "int[]")
+        );
+
+        void verify(SyntaxNode designation, string syntax, string declaredType, string type)
+        {
+            Assert.Equal(syntax, designation.ToString());
+            var model = compilation.GetSemanticModel(tree);
+            var symbol = model.GetDeclaredSymbol(designation);
+            Assert.Equal(SymbolKind.Local, symbol.Kind);
+            Assert.Equal(declaredType, ((ILocalSymbol)symbol).Type.ToDisplayString());
+            var typeInfo = model.GetTypeInfo(designation);
+            Assert.Null(typeInfo.Type);
+            Assert.Null(typeInfo.ConvertedType);
+            typeInfo = model.GetTypeInfo(designation.Parent);
+            Assert.Equal(type, typeInfo.Type.ToDisplayString());
+            Assert.Equal(type, typeInfo.ConvertedType.ToDisplayString());
+        }
+    }
+
+    [Fact]
     public void SlicePattern_Nullability_RangeIndexer()
     {
         var source = @"
