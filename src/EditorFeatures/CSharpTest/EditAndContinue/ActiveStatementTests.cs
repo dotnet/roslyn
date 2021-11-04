@@ -7,8 +7,8 @@
 using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -11074,11 +11074,11 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2, flags: new[]
             {
-                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.IsLeafFrame,
-                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.IsNonLeafFrame,
-                ActiveStatementFlags.IsLeafFrame,
-                ActiveStatementFlags.IsNonLeafFrame,
-                ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.IsLeafFrame
+                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.LeafFrame,
+                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.NonLeafFrame,
+                ActiveStatementFlags.LeafFrame,
+                ActiveStatementFlags.NonLeafFrame,
+                ActiveStatementFlags.NonLeafFrame | ActiveStatementFlags.LeafFrame
             });
 
             edits.VerifyRudeDiagnostics(active,
@@ -11109,7 +11109,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2, flags: new[]
             {
-                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.IsLeafFrame
+                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.LeafFrame
             });
 
             edits.VerifyRudeDiagnostics(active,
@@ -11137,7 +11137,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2, flags: new[]
             {
-                ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.IsLeafFrame
+                ActiveStatementFlags.NonLeafFrame | ActiveStatementFlags.LeafFrame
             });
 
             edits.VerifyRudeDiagnostics(active,
