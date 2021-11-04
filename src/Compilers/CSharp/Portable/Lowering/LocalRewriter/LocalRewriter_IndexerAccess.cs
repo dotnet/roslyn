@@ -386,8 +386,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Lowered code without optimizations:
             // var receiver = receiverExpr;
-            // int length = receiver.length;
             // Range range = argumentExpr;
+            // int length = receiver.length;
             // int start = range.Start.GetOffset(length)
             // int rangeSize = range.End.GetOffset(length) - start
             // receiver.Slice(start, rangeSize)
