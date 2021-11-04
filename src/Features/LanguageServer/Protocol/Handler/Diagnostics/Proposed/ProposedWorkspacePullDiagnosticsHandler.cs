@@ -47,12 +47,12 @@ internal class ProposedWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticH
     protected override WorkspaceDiagnosticReport? CreateReturn(BufferedProgress<WorkspaceDiagnosticReport> progress)
     {
         var progressValues = progress.GetValues();
-        if (progressValues == null)
+        if (progressValues != null)
         {
-            return new WorkspaceDiagnosticReport(Array.Empty<WorkspaceDocumentDiagnosticReport>());
+            return new WorkspaceDiagnosticReport(progressValues.SelectMany(report => report.Items).ToArray());
         }
 
-        return new WorkspaceDiagnosticReport(progressValues.SelectMany(report => report.Items).ToArray());
+        return null;
     }
 
     protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
