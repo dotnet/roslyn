@@ -29,8 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             private readonly TLanguageService _languageService;
             private readonly IVsCodeWindow _codeWindow;
             private readonly ComEventSink _sink;
-            private readonly IThreadingContext _threadingContext;
-            private readonly IAsynchronousOperationListener _asynchronousOperationListener;
             private readonly IGlobalOptionService _globalOptions;
 
             private IDisposable? _navigationBarController;
@@ -41,12 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 _languageService = languageService;
                 _codeWindow = codeWindow;
 
-                var componentModel = languageService.Package.ComponentModel;
-                _threadingContext = componentModel.GetService<IThreadingContext>();
-                _globalOptions = componentModel.GetService<IGlobalOptionService>();
-
-                var listenerProvider = componentModel.GetService<IAsynchronousOperationListenerProvider>();
-                _asynchronousOperationListener = listenerProvider.GetListener(FeatureAttribute.NavigationBar);
+                _globalOptions = languageService.Package.ComponentModel.GetService<IGlobalOptionService>();
 
                 _sink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
                 _globalOptions.OptionChanged += GlobalOptionChanged;
