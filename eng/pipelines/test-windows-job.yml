@@ -56,8 +56,8 @@ jobs:
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
-    - template: publish-logs.yml
-      parameters:
-        configuration: ${{ parameters.configuration }}
-        jobName: ${{ parameters.jobName }}
-      condition: or(and(eq(variables['jobName'], 'Test_Windows_Desktop_Spanish_Release_64'), startsWith(variables['Build.SourceBranch'], 'refs/heads/locfiles/')), neq(variables['jobName'], 'Test_Windows_Desktop_Spanish_Release_64'))
+    - ${{ if or(and(eq(variables['jobName'], 'Test_Windows_Desktop_Spanish_Release_64'), startsWith(variables['Build.SourceBranch'], 'refs/heads/locfiles/')), neq(variables['jobName'], 'Test_Windows_Desktop_Spanish_Release_64')) }}:
+      - template: publish-logs.yml
+        parameters:
+          configuration: ${{ parameters.configuration }}
+          jobName: ${{ parameters.jobName }}
