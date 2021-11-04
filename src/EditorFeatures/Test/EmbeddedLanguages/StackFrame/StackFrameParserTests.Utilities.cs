@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             StackFrameFileInformationNode? fileInformation = null,
             StackFrameToken? eolTokenOpt = null)
         {
+            FuzzyTest(input);
+
             var tree = StackFrameParser.TryParse(input);
             if (expectFailure)
             {
@@ -62,6 +64,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 : CreateToken(StackFrameKind.EndOfFrame, "");
 
             AssertEqual(eolToken, tree.Root.EndOfLineToken);
+        }
+
+        /// <summary>
+        /// Tests that with a given input, no crashes are found
+        /// with multiple substrings of the input
+        /// </summary>
+        private static void FuzzyTest(string input)
+        {
+            for (var i = 0; i < input.Length - 1; i++)
+            {
+                StackFrameParser.TryParse(input[i..]);
+                StackFrameParser.TryParse(input[..^i]);
+
+                for (var j = 0; j + i < input.Length; j++)
+                {
+                    var start = input[..j];
+                    var end = input[(j + i)..];
+                    StackFrameParser.TryParse(start + end);
+                }
+            }
         }
 
         private static void AssertEqual(StackFrameNodeOrToken expected, StackFrameNodeOrToken actual)
