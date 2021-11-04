@@ -1448,14 +1448,18 @@ namespace Microsoft.CodeAnalysis
 
         protected virtual ImmutableArray<AdditionalTextFile> ResolveAdditionalFilesFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger? touchedFilesLogger)
         {
-            var builder = ImmutableArray.CreateBuilder<AdditionalTextFile>();
+            var builder = ArrayBuilder<AdditionalTextFile>.GetInstance();
+            var filePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var file in Arguments.AdditionalFiles)
             {
-                builder.Add(new AdditionalTextFile(file, this));
+                if (filePaths.Add(file.Path))
+                {
+                    builder.Add(new AdditionalTextFile(file, this));
+                }
             }
 
-            return builder.ToImmutableArray();
+            return builder.ToImmutableAndFree();
         }
 
         private static void ReportAnalyzerExecutionTime(TextWriter consoleOutput, AnalyzerDriver analyzerDriver, CultureInfo culture, bool isConcurrentBuild)

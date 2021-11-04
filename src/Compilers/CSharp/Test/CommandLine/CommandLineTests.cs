@@ -14191,6 +14191,56 @@ public class Generator : ISourceGenerator
                 return generatorPath;
             }
         }
+
+        [Theory]
+        [InlineData("a.txt", "b.txt", 2)]
+        [InlineData("a.txt", "a.txt", 1)]
+        [InlineData("abc/a.txt", "def/a.txt", 2)]
+        [InlineData("abc/a.txt", "abc/a.txt", 1)]
+        [InlineData("abc/a.txt", "abc\\a.txt", 1)]
+        [InlineData("abc/a.txt", "abc/../a.txt", 2)]
+        [InlineData("abc/a.txt", "abc/./a.txt", 1)]
+        [InlineData("abc/a.txt", "abc/../abc/a.txt", 1)]
+        [InlineData("abc/a.txt", "abc/.././abc/a.txt", 1)]
+        [InlineData("abc/a.txt", "abc\\..\\a.txt", 2)]
+        [InlineData("abc/a.txt", "abc\\..\\abc\\a.txt", 1)]
+        [InlineData("abc/a.txt", "./abc/a.txt", 1)]
+        [InlineData("abc/a.txt", "../abc/../abc/a.txt", 1)]
+        [InlineData("abc/a.txt", "../abc\\../abc\\a.txt", 1)]
+        [InlineData("../abc/a.txt", "../abc/a.txt", 1)]
+        [InlineData("./abc/a.txt", "abc/a.txt", 1)]
+        public void TestDuplicateAdditionalFiles(string additionalFilePath1, string additionalFilePath2, int expectedCount)
+        {
+            var srcDirectory = Temp.CreateDirectory();
+            var srcFile = srcDirectory.CreateFile("a.cs").WriteAllText("class C { }");
+
+            // make sure any parent or sub dirs exist too
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(srcDirectory.Path, additionalFilePath1)));
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(srcDirectory.Path, additionalFilePath2)));
+
+            var additionalFile1 = srcDirectory.CreateFile(additionalFilePath1);
+            var additionalFile2 = expectedCount == 2 ? srcDirectory.CreateFile(additionalFilePath2) : null;
+
+            string path1 = additionalFile1.Path;
+            string path2 = additionalFile2?.Path ?? path1;
+
+            int count = 0;
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider, (spc, t) =>
+                {
+                    count++;
+                });
+            });
+
+            var output = VerifyOutput(srcDirectory, srcFile, includeCurrentAssemblyAsAnalyzerReference: false,
+                additionalFlags: new[] { "/additionalfile:" + path1, "/additionalfile:" + path2 },
+                generators: new[] { generator.AsSourceGenerator() });
+
+            Assert.Equal(expectedCount, count);
+
+            CleanupAllGeneratedFiles(srcDirectory.Path);
+        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
