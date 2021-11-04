@@ -32,6 +32,9 @@ namespace IdeBenchmarks.InheritanceMargin
         private const int Iterations = 10;
         private const double WidthAndHeightOfGlyph = 18;
 
+        // The test sample file would contains a pair of implemented + implmenting members and the tag for containing interface/class
+        private const double HeightOfCanvas = WidthAndHeightOfGlyph * (MemberCount * 2 + 2);
+
         private readonly UseExportProviderAttribute _useExportProviderAttribute = new();
         private readonly IWpfTextView _mockTextView;
 
@@ -105,7 +108,7 @@ namespace IdeBenchmarks.InheritanceMargin
                         Canvas.SetTop(glyph, j * WidthAndHeightOfGlyph);
                         _canvas.Children.Add(glyph);
                     }
-
+                    _canvas.Measure(new Size(WidthAndHeightOfGlyph, HeightOfCanvas));
                     _canvas.Children.Clear();
                 }
             });
@@ -164,8 +167,7 @@ namespace IdeBenchmarks.InheritanceMargin
                     {
                         ClipToBounds = true,
                         Width = WidthAndHeightOfGlyph,
-                        // The test sample file would contains a pair of implemented + implmenting members and the tag for containing interface/class
-                        Height = WidthAndHeightOfGlyph * (MemberCount * 2 + 2)
+                        Height = HeightOfCanvas
                     };
 
                     _wpfApp.MainWindow.Content = _canvas;
