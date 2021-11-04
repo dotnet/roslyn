@@ -5,10 +5,13 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
@@ -44,6 +47,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         protected override LocalFunctionStatementSyntax WithBody(LocalFunctionStatementSyntax statement, BlockSyntax body)
             => statement.WithBody(body);
+
+        protected override LocalFunctionStatementSyntax GetDeclaration(Location declarationLocation, CancellationToken cancellationToken)
+            => declarationLocation.FindNode(cancellationToken) switch
+            {
+                LocalFunctionStatementSyntax localFunc => localFunc,
+                GlobalStatementSyntax { Statement: LocalFunctionStatementSyntax localFunc } => localFunc,
+                _ => throw ExceptionUtilities.Unreachable
+            };
 
         protected override bool CreateReturnStatementForExpression(
             SemanticModel semanticModel, LocalFunctionStatementSyntax statement)

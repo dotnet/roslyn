@@ -7,11 +7,13 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -86,6 +88,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         protected virtual Location GetDiagnosticLocation(TDeclaration declaration)
             => GetBody(declaration).Statements[0].GetLocation();
+
+        public sealed override SyntaxNode GetDeclarationNode(Location declarationLocation, CancellationToken cancellationToken)
+            => GetDeclaration(declarationLocation, cancellationToken);
+
+        protected virtual TDeclaration GetDeclaration(Location declarationLocation, CancellationToken cancellationToken)
+           => (TDeclaration)declarationLocation.FindNode(cancellationToken);
 
         public bool CanOfferUseExpressionBody(
             OptionSet optionSet, TDeclaration declaration, bool forAnalyzer)
