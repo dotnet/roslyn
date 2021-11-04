@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     /// <typeparam name="TReturn">The LSP type that is returned on completion of the request.</typeparam>
     internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : IRequestHandler<TDiagnosticsParams, TReturn?> where TDiagnosticsParams : IPartialResultParams<TReport[]>
     {
-        internal record PreviousResult(string PreviousResultId, TextDocumentIdentifier TextDocument);
+        protected record struct PreviousResult(string PreviousResultId, TextDocumentIdentifier TextDocument);
 
         /// <summary>
         /// Special value we use to designate workspace diagnostics vs document diagnostics.  Document diagnostics
