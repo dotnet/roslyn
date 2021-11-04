@@ -135,25 +135,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 IEnumerable<PendingBranch> asEnumerableCore()
                 {
-                    // Short _labeledBranches by label index.
-                    var labeledBranches = ArrayBuilder<(int Index, ArrayBuilder<PendingBranch> Branches)>.GetInstance();
-                    labeledBranches.AddRange(_labeledBranches.Values);
-                    labeledBranches.Sort((x, y) => x.Index - y.Index);
-
                     foreach (var branch in _unlabeledBranches)
                     {
                         yield return branch;
                     }
 
-                    foreach (var pair in labeledBranches)
+                    // Sort _labeledBranches by label index.
+                    var labeledBranches = ArrayBuilder<(int Index, ArrayBuilder<PendingBranch> Branches)>.GetInstance();
+                    try
                     {
-                        foreach (var branch in pair.Branches)
+                        labeledBranches.AddRange(_labeledBranches.Values);
+                        labeledBranches.Sort((x, y) => x.Index - y.Index);
+
+                        foreach (var pair in labeledBranches)
                         {
-                            yield return branch;
+                            foreach (var branch in pair.Branches)
+                            {
+                                yield return branch;
+                            }
                         }
                     }
-
-                    labeledBranches.Free();
+                    finally
+                    {
+                        labeledBranches.Free();
+                    }
                 }
             }
         }
