@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // of the function where the enumerable is returned.
             if (localFuncSymbol.IsIterator)
             {
-                AddPendingBranch(null, this.State, null);
+                PendingBranches.Add(new PendingBranch(null, this.State, null));
             }
 
             VisitAlways(localFunc.Body);

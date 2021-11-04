@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var labelResult = labelStateMap.TryGetValue(label.Label, out var s1) ? s1 : (state: UnreachableState(), believedReachable: false);
                     SetState(labelResult.state);
-                    AddPendingBranch(label, this.State, label.Label);
+                    PendingBranches.Add(new PendingBranch(label, this.State, label.Label));
                 }
             }
 

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SetState(StateWhenTrue);
                     }
 
-                    AddPendingBranch(label, this.State, label.Label);
+                    PendingBranches.Add(new PendingBranch(label, this.State, label.Label));
                 }
             }
 
@@ -132,10 +132,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitRvalue(node.Expression);
             var state = this.State.Clone();
-            AddPendingBranch(node, state, node.DefaultLabel);
+            PendingBranches.Add(new PendingBranch(node, state, node.DefaultLabel));
             foreach ((_, LabelSymbol label) in node.Cases)
             {
-                AddPendingBranch(node, state, label);
+                PendingBranches.Add(new PendingBranch(node, state, label));
             }
 
             SetUnreachable();

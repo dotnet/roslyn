@@ -5591,40 +5591,37 @@ class C
             // Create a set of PendingBranches.
             const int nBranches = 100;
             var random = new Random();
-            var branchesAndLabelIds = ArrayBuilder<(int?, NullableWalker.PendingBranch)>.GetInstance();
+            var labelOrder = ArrayBuilder<LabelSymbol>.GetInstance();
+            var branches = ArrayBuilder<NullableWalker.PendingBranch>.GetInstance();
             for (int i = 0; i < nBranches; i++)
             {
                 var index = random.Next() % (labels.Length + 1);
                 LabelSymbol label = index == labels.Length ? null : labels[index];
-                int? labelId = index == labels.Length ? null : index;
-                branchesAndLabelIds.Add((labelId, new NullableWalker.PendingBranch(branch: null, default, label)));
+                if (label is { } && !labelOrder.Contains(label))
+                {
+                    labelOrder.Add(label);
+                }
+                branches.Add(new NullableWalker.PendingBranch(branch: null, default, label));
             }
 
             // Add the PendingBranches to a PendingBranchesCollection in the order created.
             var pendingBranches = new NullableWalker.PendingBranchesCollection();
-            foreach (var pair in branchesAndLabelIds)
+            foreach (var branch in branches)
             {
-                var branch = pair.Item1;
-                var labelId = pair.Item2;
-                pendingBranches.Add(pair.Item1, pair.Item2);
+                pendingBranches.Add(branch);
             }
 
-            // Generate the expected order: by label id, then by creation order.
+            // Generate the expected order: by label, then by creation order.
             var expectedOrder = ArrayBuilder<NullableWalker.PendingBranch>.GetInstance();
-            addPendingBranches(branchesAndLabelIds, null, expectedOrder);
-            for (int i = 0; i < labels.Length; i++)
+            expectedOrder.AddRange(branches.Where(b => b.Label == null));
+            foreach (var label in labelOrder)
             {
-                addPendingBranches(branchesAndLabelIds, i, expectedOrder);
+                expectedOrder.AddRange(branches.Where(b => b.Label == label));
             }
 
             // Verify items are returned in order.
             AssertEx.Equal(expectedOrder, pendingBranches.AsEnumerable());
             AssertEx.Equal(expectedOrder, pendingBranches.ToImmutable());
-
-            static void addPendingBranches(ArrayBuilder<(int?, NullableWalker.PendingBranch)> branchesAndLabels, int? labelId, ArrayBuilder<NullableWalker.PendingBranch> builder)
-            {
-                builder.AddRange(branchesAndLabels.Where(pair => pair.Item1 == labelId).Select(pair => pair.Item2));
-            }
         }
     }
 }

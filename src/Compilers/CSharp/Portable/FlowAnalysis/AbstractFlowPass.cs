@@ -79,11 +79,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly PooledDictionary<LabelSymbol, TLocalState> _labels;
 
         /// <summary>
-        /// Ids used for sorting by label in PendingBranchesCollection.
-        /// </summary>
-        private PooledDictionary<LabelSymbol, int> _labelIds;
-
-        /// <summary>
         /// Set to true after an analysis scan if the analysis was incomplete due to state changing
         /// after it was used by another analysis component.  In this case the caller scans again (until
         /// this is false). Since the analysis proceeds by monotonically changing the state computed
@@ -386,37 +381,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false; // just let the original exception bubble up.
         }
 
-        protected void AddPendingBranch(BoundNode branch, TLocalState state, LabelSymbol label, bool isConditionalState = false, TLocalState stateWhenTrue = default, TLocalState stateWhenFalse = default)
-        {
-            var pendingBranch = new PendingBranch(branch, state, label, isConditionalState, stateWhenTrue, stateWhenFalse);
-            int? labelId = label is null ? null : GetOrAddLabelId(label);
-            PendingBranches.Add(labelId, pendingBranch);
-        }
-
-        private bool TryGetLabelId(LabelSymbol label, out int id)
-        {
-            if (_labelIds is null)
-            {
-                id = 0;
-                return false;
-            }
-            return _labelIds.TryGetValue(label, out id);
-        }
-
-        private int GetOrAddLabelId(LabelSymbol label)
-        {
-            if (_labelIds == null)
-            {
-                _labelIds = PooledDictionary<LabelSymbol, int>.GetInstance();
-            }
-            if (!_labelIds.TryGetValue(label, out int id))
-            {
-                id = _labelIds.Count;
-                _labelIds.Add(label, id);
-            }
-            return id;
-        }
-
         /// <summary>
         /// A pending branch.  These are created for a return, break, continue, goto statement,
         /// yield return, yield break, await expression, and await foreach/using. The idea is that
@@ -494,7 +458,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             PendingBranches.Free();
             _labelsSeen.Free();
             _labels.Free();
-            _labelIds?.Free();
         }
 
         /// <summary>
@@ -774,14 +737,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             JoinPendingBranches(ref this.State, continueLabel);
         }
 
-        private ArrayBuilder<PendingBranch>? GetAndRemovePendingBranches(LabelSymbol label)
-        {
-            return TryGetLabelId(label, out int labelId) ? PendingBranches.GetAndRemoveBranches(labelId) : null;
-        }
-
         private void JoinPendingBranches(ref TLocalState state, LabelSymbol label)
         {
-            var pendingBranches = GetAndRemovePendingBranches(label);
+            var pendingBranches = PendingBranches.GetAndRemoveBranches(label);
             if (pendingBranches is { })
             {
                 foreach (var pending in pendingBranches)
@@ -813,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool labelStateChanged = false;
 
-            var pendingBranches = GetAndRemovePendingBranches(label);
+            var pendingBranches = PendingBranches.GetAndRemoveBranches(label);
             if (pendingBranches is { })
             {
                 foreach (var pending in pendingBranches)
@@ -1884,7 +1842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitReturnStatement(BoundReturnStatement node)
         {
             var result = VisitReturnStatementNoAdjust(node);
-            AddPendingBranch(node, this.State, label: null);
+            PendingBranches.Add(new PendingBranch(node, this.State, label: null));
             SetUnreachable();
             return result;
         }
@@ -2160,7 +2118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (AwaitUsingAndForeachAddsPendingBranch && node.AwaitOpt != null)
             {
-                AddPendingBranch(node, this.State, null);
+                PendingBranches.Add(new PendingBranch(node, this.State, null));
             }
             return VisitMultipleLocalDeclarationsBase(node);
         }
@@ -2608,7 +2566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
             VisitRvalue(node.Expression);
-            AddPendingBranch(node, this.State, null);
+            PendingBranches.Add(new PendingBranch(node, this.State, null));
             return null;
         }
 
@@ -2713,7 +2671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (AwaitUsingAndForeachAddsPendingBranch && ((CommonForEachStatementSyntax)node.Syntax).AwaitKeyword != default)
             {
-                AddPendingBranch(node, this.State, null);
+                PendingBranches.Add(new PendingBranch(node, this.State, null));
             }
 
             return null;
@@ -3054,7 +3012,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitBreakStatement(BoundBreakStatement node)
         {
             Debug.Assert(!this.IsConditionalState);
-            AddPendingBranch(node, this.State, node.Label);
+            PendingBranches.Add(new PendingBranch(node, this.State, node.Label));
             SetUnreachable();
             return null;
         }
@@ -3062,7 +3020,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitContinueStatement(BoundContinueStatement node)
         {
             Debug.Assert(!this.IsConditionalState);
-            AddPendingBranch(node, this.State, node.Label);
+            PendingBranches.Add(new PendingBranch(node, this.State, node.Label));
             SetUnreachable();
             return null;
         }
@@ -3165,7 +3123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitGotoStatement(BoundGotoStatement node)
         {
             Debug.Assert(!this.IsConditionalState);
-            AddPendingBranch(node, this.State, node.Label);
+            PendingBranches.Add(new PendingBranch(node, this.State, node.Label));
             SetUnreachable();
             return null;
         }
@@ -3231,7 +3189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (AwaitUsingAndForeachAddsPendingBranch && node.AwaitOpt != null)
             {
-                AddPendingBranch(node, this.State, null);
+                PendingBranches.Add(new PendingBranch(node, this.State, null));
             }
             return null;
         }
@@ -3262,7 +3220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitYieldBreakStatement(BoundYieldBreakStatement node)
         {
             Debug.Assert(!this.IsConditionalState);
-            AddPendingBranch(node, this.State, null);
+            PendingBranches.Add(new PendingBranch(node, this.State, null));
             SetUnreachable();
             return null;
         }
@@ -3270,7 +3228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
         {
             VisitRvalue(node.Expression);
-            AddPendingBranch(node, this.State, null);
+            PendingBranches.Add(new PendingBranch(node, this.State, null));
             return null;
         }
 
@@ -3387,12 +3345,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(this.IsConditionalState);
             if (node.JumpIfTrue)
             {
-                AddPendingBranch(node, this.StateWhenTrue, node.Label);
+                PendingBranches.Add(new PendingBranch(node, this.StateWhenTrue, node.Label));
                 this.SetState(this.StateWhenFalse);
             }
             else
             {
-                AddPendingBranch(node, this.StateWhenFalse, node.Label);
+                PendingBranches.Add(new PendingBranch(node, this.StateWhenFalse, node.Label));
                 this.SetState(this.StateWhenTrue);
             }
 
