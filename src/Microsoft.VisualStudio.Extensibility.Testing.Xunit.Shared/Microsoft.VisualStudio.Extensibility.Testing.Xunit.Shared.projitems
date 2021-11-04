@@ -33,6 +33,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Harness\VSConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\WellKnownCommandNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IdeFactAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IdeTheoryAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IIdeSettingsAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InProcess\InProcComponent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InProcess\IVsActivityLogDumper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InProcess\OleServiceProvider.cs" />
@@ -43,8 +45,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)Threading\ErrorReportingIdeTestRunner.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\ExceptionUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeFactDiscoverer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeSkippedDataRowTestCase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTestCase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTestCaseRunner.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTheoryDiscoverer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTheoryTestCase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTheoryTestCaseRunner.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\InProcessIdeTestInvoker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\InProcessIdeTestRunner.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\SemaphoreExtensions.cs" />
