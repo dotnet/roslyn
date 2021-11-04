@@ -77,15 +77,6 @@ jobs:
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
-    testRunName: 'Test Windows Desktop Spanish Release 32'
-    jobName: Test_Windows_Desktop_Spanish_Release_32
-    buildJobName: Build_Windows_Release
-    testArtifactName: Transport_Artifacts_Windows_Release
-    configuration: Release
-    testArguments: -testDesktop -test32 -helixQueueName Windows.10.Amd64.Server19H1.ES.Open
-
-- template: eng/pipelines/test-windows-job.yml
-  parameters:
     testRunName: 'Test Windows Desktop Release 64'
     jobName: Test_Windows_Desktop_Release_64
     buildJobName: Build_Windows_Release
@@ -229,3 +220,43 @@ jobs:
       parameters:
         jobName: Correctness_Rebuild
         configuration: Release
+
+# The Spansh CI Job is only run on OneLOC PRs that update our localized strings. This is to catch tests
+# that are relying on the unlocalized strings to pass.
+- job: Test_Windows_Desktop_Spanish_Release_32
+  dependsOn: Build_Windows_Release
+  condition: and(in(variables['Build.Reason'], 'PullRequest'), startsWith(replace(variables['System.PullRequest.SourceBranch'], 'refs/heads/', ''), 'locfiles/'))
+  pool:
+    # Note that when helix is enabled, the agent running this job is essentially
+    # a thin client that kicks off a helix job and waits for it to complete.
+    # Thus we don't use a helix queue to run the job here, and instead use the plentiful AzDO vmImages.
+    vmImage: windows-2019
+  timeoutInMinutes: 120
+  steps:
+    - checkout: none
+
+    - task: DownloadPipelineArtifact@2
+      displayName: Download Test Payload
+      inputs:
+        artifact: Transport_Artifacts_Windows_Release
+        path: '$(Build.SourcesDirectory)'
+
+    - task: BatchScript@1
+      displayName: Rehydrate RunTests
+      inputs:
+        filename: ./artifacts/bin/RunTests/Release/net6.0/rehydrate.cmd
+      env:
+        HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
+
+    - task: PowerShell@2
+      displayName: Run Unit Tests
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -ci -helix -configuration Release -testDesktop -test32 -helixQueueName Windows.10.Amd64.Server19H1.ES.Open -collectDumps
+      env:
+        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+
+    - template: eng/pipelines/publish-logs.yml
+      parameters:
+        configuration: Release
+        jobName: Test_Windows_Desktop_Spanish_Release_32
