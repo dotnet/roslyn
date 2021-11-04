@@ -798,7 +798,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 #End Region
 
 #Region "Syntax And Semantic Utils"
-        Protected Overrides Function IsCopilationUnitWithGlobalStatements(node As SyntaxNode) As Boolean
+        Protected Overrides Function IsCompilationUnitWithGlobalStatements(node As SyntaxNode) As Boolean
             Return False
         End Function
 

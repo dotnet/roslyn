@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </remarks>
         protected abstract bool AreEquivalentActiveStatements(SyntaxNode oldStatement, SyntaxNode newStatement, int statementPart);
 
-        protected abstract bool IsCopilationUnitWithGlobalStatements(SyntaxNode node);
+        protected abstract bool IsCompilationUnitWithGlobalStatements(SyntaxNode node);
         protected abstract bool IsGlobalStatement(SyntaxNode node);
         protected abstract TextSpan GetGlobalStatementDiagnosticSpan(SyntaxNode node);
 
@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // compilation unit has been updated. This update is not recorded in the edit script
             // since compilation unit contains other items then global statements as well and 
             // we only want it to be updated in presence of changed global statements.
-            if ((IsCopilationUnitWithGlobalStatements(editScript.Match.OldRoot) || IsCopilationUnitWithGlobalStatements(editScript.Match.NewRoot)) &&
+            if ((IsCompilationUnitWithGlobalStatements(editScript.Match.OldRoot) || IsCompilationUnitWithGlobalStatements(editScript.Match.NewRoot)) &&
                 map.Any(entry => IsGlobalStatement(entry.Key)))
             {
                 map.Add(editScript.Match.OldRoot, EditKind.Update);

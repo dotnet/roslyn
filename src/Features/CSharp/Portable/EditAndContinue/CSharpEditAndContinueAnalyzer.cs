@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return variableDeclarator.Initializer?.Value;
             }
 
-            if (IsCopilationUnitWithGlobalStatements(node))
+            if (IsCompilationUnitWithGlobalStatements(node))
             {
                 // For top level statements, where there is no syntax node to represent the entire body of the synthesized
                 // main method we just use the compilation unit itself
@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         #region Syntax and Semantic Utils
 
-        protected override bool IsCopilationUnitWithGlobalStatements(SyntaxNode node)
+        protected override bool IsCompilationUnitWithGlobalStatements(SyntaxNode node)
             => node is CompilationUnitSyntax unit && unit.ContainsGlobalStatements();
 
         protected override bool IsGlobalStatement(SyntaxNode node)
