@@ -73,6 +73,7 @@ namespace Xunit.Harness
         /// </summary>
         private static readonly HashSet<string> ExcludedEventNames = new HashSet<string>()
         {
+            "RADAR_PRE_LEAK_64",
             "VisualStudioNonFatalErrors",
             "VisualStudioNonFatalErrors2",
         };
@@ -86,6 +87,7 @@ namespace Xunit.Harness
             "csc.exe",
             "csi.exe",
             "git.exe",
+            "Microsoft.ServiceHub.Controller.exe",
             "msbuild.exe",
             "MSBuildTaskHost.exe",
             "mspdbsrv.exe",
