@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return variableDeclarator.Initializer?.Value;
             }
 
-            if (node is CompilationUnitSyntax unit && unit.ContainsTopLevelStatements())
+            if (IsCopilationUnitWithGlobalStatements(node))
             {
                 // For top level statements, where there is no syntax node to represent the entire body of the synthesized
                 // main method we just use the compilation unit itself
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model, SyntaxNode memberBody)
         {
-            if (memberBody is CompilationUnitSyntax unit && unit.ContainsTopLevelStatements())
+            if (memberBody is CompilationUnitSyntax unit && unit.ContainsGlobalStatements())
             {
                 return model.AnalyzeDataFlow(((GlobalStatementSyntax)unit.Members[0]).Statement, unit.Members.OfType<GlobalStatementSyntax>().Last().Statement)!.Captured;
             }
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return indexerExpressionBody.Expression.DescendantTokens();
             }
 
-            if (node is CompilationUnitSyntax unit && unit.ContainsTopLevelStatements())
+            if (node is CompilationUnitSyntax unit && unit.ContainsGlobalStatements())
             {
                 return unit.Members.OfType<GlobalStatementSyntax>().SelectMany(globalStatement => globalStatement.DescendantTokens());
             }
@@ -789,6 +789,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         #endregion
 
         #region Syntax and Semantic Utils
+
+        protected override bool IsCopilationUnitWithGlobalStatements(SyntaxNode node)
+            => node is CompilationUnitSyntax unit && unit.ContainsGlobalStatements();
+
+        protected override bool IsGlobalStatement(SyntaxNode node)
+            => node.IsKind(SyntaxKind.GlobalStatement);
 
         protected override TextSpan GetGlobalStatementDiagnosticSpan(SyntaxNode node)
         {
