@@ -53,5 +53,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             var last = memberModel.GetUpperBoundNode(lastStatement, promoteToBindable: true);
             return new RegionAnalysisContext(Compilation, member, boundNode, first, last);
         }
+
+        private RegionAnalysisContext RegionAnalysisContext(ConstructorInitializerSyntax init)
+        {
+            var memberModel = GetMemberModel(init);
+            if (memberModel == null)
+            {
+                // Recover from error cases
+                var node = new BoundBadStatement(init, ImmutableArray<BoundNode>.Empty, hasErrors: true);
+                return new RegionAnalysisContext(Compilation, null, node, node, node);
+            }
+
+            Symbol member;
+            BoundNode boundNode = GetBoundRoot(memberModel, out member);
+            var first = memberModel.GetUpperBoundNode(init, promoteToBindable: true);
+            var last = first;
+            return new RegionAnalysisContext(this.Compilation, member, boundNode, first, last);
+        }
     }
 }

@@ -2264,6 +2264,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        public override DataFlowAnalysis AnalyzeDataFlow(ConstructorInitializerSyntax init)
+        {
+            if (init == null)
+            {
+                throw new ArgumentNullException(nameof(init));
+            }
+
+            if (!IsInTree(init))
+            {
+                throw new ArgumentException("expression not within tree");
+            }
+
+            var context = RegionAnalysisContext(init);
+            var result = new CSharpDataFlowAnalysis(context);
+            return result;
+        }
+
         public override DataFlowAnalysis AnalyzeDataFlow(StatementSyntax firstStatement, StatementSyntax lastStatement)
         {
             ValidateStatementRange(firstStatement, lastStatement);

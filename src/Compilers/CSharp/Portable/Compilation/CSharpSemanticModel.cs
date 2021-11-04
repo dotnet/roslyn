@@ -2412,6 +2412,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Analyze data-flow within an ConstructorInitializerSyntax. 
+        /// </summary>
+        /// <param name="expression">The ctor-init within the associated SyntaxTree to analyze.</param>
+        /// <returns>An object that can be used to obtain the result of the data flow analysis.</returns>
+        public virtual DataFlowAnalysis AnalyzeDataFlow(ConstructorInitializerSyntax expression)
+        {
+            // Only supported on a SyntaxTreeSemanticModel.
+            throw new NotSupportedException();
+        }
+
+        /// <summary>
         /// Analyze data-flow within an expression. 
         /// </summary>
         /// <param name="expression">The expression within the associated SyntaxTree to analyze.</param>
@@ -5245,8 +5256,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.AnalyzeDataFlow(statementSyntax);
                 case ExpressionSyntax expressionSyntax:
                     return this.AnalyzeDataFlow(expressionSyntax);
+                case ConstructorInitializerSyntax init:
+                    return this.AnalyzeDataFlow(init);
                 default:
-                    throw new ArgumentException("statementOrExpression is not a StatementSyntax or an ExpressionSyntax.");
+                    throw new ArgumentException("statementOrExpression is not a StatementSyntax or an ExpressionSyntax or a ConstructorInitializerSyntax.");
             }
         }
 

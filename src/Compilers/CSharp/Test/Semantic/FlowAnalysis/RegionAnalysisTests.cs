@@ -3130,6 +3130,103 @@ class C {
         }
 
         [Fact]
+        public void TestDataFlowsInCtorInit()
+        {
+            var analysis = CompileAndAnalyzeDataFlowConstructorInitializer(@"
+class C
+{
+    C(int x)
+    {}
+    
+    C(int x, int y) /*<bind>*/ : this(x + y) /*</bind>*/
+    {}
+}");
+            Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
+
+        [Fact]
+        public void TestDataFlowsInCtorInitVariablesDeclared()
+        {
+            var analysis = CompileAndAnalyzeDataFlowConstructorInitializer(@"
+class C
+{
+    C(int x)
+    {}
+
+    C(int x)
+    {}
+    
+    C(int x, int y) /*<bind>*/ : this((x++ + y is var b) switch { _ => b * 2}) /*</bind>*/
+    {}
+}");
+            Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("x, b", GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("b", GetSymbolNamesJoined(analysis.VariablesDeclared));
+        }
+
+        [Fact]
+        public void TestDataFlowsInCtorInitComplex()
+        {
+            var analysis = CompileAndAnalyzeDataFlowConstructorInitializer(@"
+public class BaseX
+{
+	public BaseX(out int ix, ref string i, in int s, in int s2, out int rrr)
+	{
+	}
+}
+	
+public class X : BaseX
+{
+	public X(int r, out int ix, out int x, ref int i)/*<bind>*/  : 
+		base(out ix, ref CalcValue(""ctor"", out x), CalcInt(""int"", out var y) + CalcInt(""int2"", out var y2),
+        x + y + r + y2 + i++, out var rrr)
+        /*</bind>*/
+    {
+        Console.WriteLine(y);
+    }
+
+    static string s;
+    static ref string CalcValue(string text, out int i)
+    {
+        Console.WriteLine($""CalcInt({text})"");
+        i = 42;
+        return ref s;
+    }
+
+        static int CalcInt(string text, out int i)
+        {
+            Console.WriteLine($""CalcInt({text})"");
+            i = 42;
+            return i;
+        }
+}");
+            Assert.Equal("r, i", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("ix, x, i, y", GetSymbolNamesJoined(analysis.DataFlowsOut));
+            Assert.Equal("r, x, i, y, y2", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Equal("ix, x, i, y", GetSymbolNamesJoined(analysis.ReadOutside));
+            Assert.Equal("ix, x, i, y, y2, rrr", GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("ix, x, i, y, y2, rrr", GetSymbolNamesJoined(analysis.AlwaysAssigned));
+            Assert.Equal("this, r, i", GetSymbolNamesJoined(analysis.WrittenOutside));
+            Assert.Equal("y, y2, rrr", GetSymbolNamesJoined(analysis.VariablesDeclared));
+        }
+
+        [Fact]
+        public void TestDataFlowsInCtorInitWrite()
+        {
+            var analysis = CompileAndAnalyzeDataFlowConstructorInitializer(@"
+class C
+{
+    C(int x)
+    {}
+    
+    C(int x, int y) /*<bind>*/ : this(x++ + y) /*</bind>*/
+    {}
+}");
+            Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.WrittenInside));
+        }
+
+        [Fact]
         public void TestDataFlowsIn01()
         {
             var analysis = CompileAndAnalyzeDataFlowStatements(@"
