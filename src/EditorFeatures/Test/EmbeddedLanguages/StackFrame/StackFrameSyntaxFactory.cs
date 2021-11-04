@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         public static readonly StackFrameToken LessThanToken = CreateToken(StackFrameKind.LessThanToken, "<");
         public static readonly StackFrameToken GreaterThanToken = CreateToken(StackFrameKind.GreaterThanToken, ">");
         public static readonly StackFrameToken GraveAccentToken = CreateToken(StackFrameKind.GraveAccentToken, "`");
-        public static readonly StackFrameToken EOLToken = CreateToken(StackFrameKind.EndOfLine, "");
+        public static readonly StackFrameToken EOLToken = CreateToken(StackFrameKind.EndOfFrame, "");
         public static readonly StackFrameToken ColonToken = CreateToken(StackFrameKind.ColonToken, ":");
 
         public static readonly StackFrameTrivia AtTrivia = CreateTrivia(StackFrameKind.AtTrivia, "at ");

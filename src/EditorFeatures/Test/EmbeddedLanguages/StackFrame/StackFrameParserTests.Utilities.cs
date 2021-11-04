@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 
             var eolToken = eolTokenOpt.HasValue
                 ? eolTokenOpt.Value
-                : CreateToken(StackFrameKind.EndOfLine, "");
+                : CreateToken(StackFrameKind.EndOfFrame, "");
 
             AssertEqual(eolToken, tree.Root.EndOfLineToken);
         }

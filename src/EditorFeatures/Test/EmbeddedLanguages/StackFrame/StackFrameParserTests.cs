@@ -416,6 +416,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         [InlineData("M.N(string [] s)")] // Space between type and array brackets
         [InlineData("M.N ()")] // Space between method declaration and parameters
         [InlineData("M.N .O.P(string s)")] // Space in type qualified name
+        [InlineData("\r\nM.N()")]
+        [InlineData("\nM.N()")]
+        [InlineData("\rM.N()")]
+        [InlineData("M.N(\r\n)")]
+        [InlineData("M.N(\r)")]
+        [InlineData("M.N(\n)")]
         public void TestInvalidInputs(string input)
             => Verify(input, expectFailure: true);
 

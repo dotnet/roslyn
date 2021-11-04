@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     {
         private StackFrameLexer _lexer;
 
-        private StackFrameParser(VirtualCharSequence text)
+        private StackFrameParser(StackFrameLexer lexer)
         {
-            _lexer = new(text);
+            _lexer = lexer;
         }
 
         private StackFrameToken CurrentCharAsToken() => _lexer.CurrentCharAsToken();
@@ -46,7 +46,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             try
             {
-                return new StackFrameParser(text).TryParseTree();
+                var lexer = StackFrameLexer.TryCreate(text);
+                if (!lexer.HasValue)
+                {
+                    return null;
+                }
+
+                return new StackFrameParser(lexer.Value).TryParseTree();
             }
             catch (InsufficientExecutionStackException)
             {
@@ -82,7 +88,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             var eolToken = CurrentCharAsToken().With(leadingTrivia: remainingTrivia.ToImmutableArray());
 
             Contract.ThrowIfFalse(_lexer.Position == _lexer.Text.Length);
-            Contract.ThrowIfFalse(eolToken.Kind == StackFrameKind.EndOfLine);
+            Contract.ThrowIfFalse(eolToken.Kind == StackFrameKind.EndOfFrame);
 
             var root = new StackFrameCompilationUnit(methodDeclaration, fileInformationResult.Value, eolToken);
 

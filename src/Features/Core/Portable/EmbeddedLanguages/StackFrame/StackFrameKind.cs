@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         FileInformation,
 
         // Tokens 
-        EndOfLine,
+        EndOfFrame,
         AmpersandToken,
         OpenBracketToken,
         CloseBracketToken,

@@ -23,13 +23,39 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         public readonly VirtualCharSequence Text;
         public int Position { get; private set; }
 
-        public StackFrameLexer(string text)
+        private StackFrameLexer(string text)
             : this(VirtualCharSequence.Create(0, text))
         {
         }
 
-        public StackFrameLexer(VirtualCharSequence text) : this()
+        private StackFrameLexer(VirtualCharSequence text) : this()
             => Text = text;
+
+        public static StackFrameLexer? TryCreate(string text)
+        {
+            foreach (var c in text)
+            {
+                if (c == '\r' || c == '\n')
+                {
+                    return null;
+                }
+            }
+
+            return new(text);
+        }
+
+        public static StackFrameLexer? TryCreate(VirtualCharSequence text)
+        {
+            foreach (var c in text)
+            {
+                if (c.Value == '\r' || c.Value == '\n')
+                {
+                    return null;
+                }
+            }
+
+            return new(text);
+        }
 
         public VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : default;
 
@@ -92,7 +118,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         {
             if (Position == Text.Length)
             {
-                return CreateToken(StackFrameKind.EndOfLine, VirtualCharSequence.Empty);
+                return CreateToken(StackFrameKind.EndOfFrame, VirtualCharSequence.Empty);
             }
 
             var ch = Text[Position];
@@ -361,7 +387,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         private static StackFrameKind GetKind(VirtualChar ch)
             => ch.Value switch
             {
-                '\n' => StackFrameKind.EndOfLine,
+                '\n' => throw new InvalidOperationException(),
+                '\r' => throw new InvalidOperationException(),
                 '&' => StackFrameKind.AmpersandToken,
                 '[' => StackFrameKind.OpenBracketToken,
                 ']' => StackFrameKind.CloseBracketToken,
