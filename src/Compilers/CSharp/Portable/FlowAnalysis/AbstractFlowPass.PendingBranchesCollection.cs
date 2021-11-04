@@ -58,8 +58,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<PendingBranch>? result;
                 if (labelId is null)
                 {
-                    result = _unlabeledBranches;
-                    _unlabeledBranches = ArrayBuilder<PendingBranch>.GetInstance();
+                    if (_unlabeledBranches.Count == 0)
+                    {
+                        result = null;
+                    }
+                    else
+                    {
+                        result = _unlabeledBranches;
+                        _unlabeledBranches = ArrayBuilder<PendingBranch>.GetInstance();
+                    }
                 }
                 else if (_labeledBranches is { } && _labeledBranches.TryGetValue(labelId.GetValueOrDefault(), out result))
                 {
