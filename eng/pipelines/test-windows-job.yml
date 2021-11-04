@@ -30,6 +30,7 @@ jobs:
   timeoutInMinutes: 120
   steps:
     - checkout: none
+      condition: or(and(eq(variables['jobName'], 'Test_Windows_Desktop_Spanish_Release_64'), startsWith(variables['Build.SourceBranch'], 'refs/heads/locfiles/')), neq(variables['jobName'], 'Test_Windows_Desktop_Spanish_Release_64'))
 
     - task: DownloadPipelineArtifact@2
       displayName: Download Test Payload
@@ -51,9 +52,9 @@ jobs:
       inputs:
         filePath: eng/build.ps1
         arguments: -ci -helix -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }} -collectDumps
+      condition: or(and(eq(variables['jobName'], 'Test_Windows_Desktop_Spanish_Release_64'), startsWith(variables['Build.SourceBranch'], 'refs/heads/locfiles/')), neq(variables['jobName'], 'Test_Windows_Desktop_Spanish_Release_64'))
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-      condition: or(and(eq(variables['jobName'], 'Test_Windows_Desktop_Spanish_Release_64'), startsWith(variables['Build.SourceBranch'], 'refs/heads/locfiles/')), neq(variables['jobName'], 'Test_Windows_Desktop_Spanish_Release_64'))
 
     - template: publish-logs.yml
       parameters:
