@@ -30,9 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         public static StackFrameTrivia CreateTrivia(StackFrameKind kind, string text)
             => new(kind, CodeAnalysis.EmbeddedLanguages.VirtualChars.VirtualCharSequence.Create(0, text), ImmutableArray<EmbeddedDiagnostic>.Empty);
 
-        public static ImmutableArray<StackFrameTrivia> CreateTriviaArray(StackFrameTrivia? trivia)
-            => trivia.HasValue ? ImmutableArray.Create(trivia.Value) : ImmutableArray<StackFrameTrivia>.Empty;
-
         public static ImmutableArray<StackFrameTrivia> CreateTriviaArray(params string[] strings)
             => strings.Select(s => CreateTrivia(StackFrameKind.SkippedTextTrivia, s)).ToImmutableArray();
 
@@ -92,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         }
 
         public static StackFrameQualifiedNameNode QualifiedName(string s, StackFrameTrivia? leadingTrivia = null, StackFrameTrivia? trailingTrivia = null)
-            => QualifiedName(s, CreateTriviaArray(leadingTrivia), CreateTriviaArray(trailingTrivia));
+            => QualifiedName(s, leadingTrivia.ToImmutableArray(), trailingTrivia.ToImmutableArray());
 
         public static StackFrameQualifiedNameNode QualifiedName(string s, ImmutableArray<StackFrameTrivia> leadingTrivia, ImmutableArray<StackFrameTrivia> trailingTrivia)
         {
@@ -133,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => IdentifierToken(identifierName, leadingTrivia: null, trailingTrivia: null);
 
         public static StackFrameToken IdentifierToken(string identifierName, StackFrameTrivia? leadingTrivia = null, StackFrameTrivia? trailingTrivia = null)
-            => IdentifierToken(identifierName, CreateTriviaArray(leadingTrivia), CreateTriviaArray(trailingTrivia));
+            => IdentifierToken(identifierName, leadingTrivia.ToImmutableArray(), trailingTrivia.ToImmutableArray());
 
         public static StackFrameToken IdentifierToken(string identifierName, ImmutableArray<StackFrameTrivia> leadingTrivia, ImmutableArray<StackFrameTrivia> trailingTrivia)
             => CreateToken(StackFrameKind.IdentifierToken, identifierName, leadingTrivia: leadingTrivia, trailingTrivia: trailingTrivia);
@@ -148,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => Identifier(IdentifierToken(name, leadingTrivia, trailingTrivia));
 
         public static StackFrameArrayRankSpecifier ArrayRankSpecifier(int commaCount = 0, StackFrameTrivia? leadingTrivia = null, StackFrameTrivia? trailingTrivia = null)
-            => new(OpenBracketToken.With(leadingTrivia: CreateTriviaArray(leadingTrivia)), CloseBracketToken.With(trailingTrivia: CreateTriviaArray(trailingTrivia)), Enumerable.Repeat(CommaToken, commaCount).ToImmutableArray());
+            => new(OpenBracketToken.With(leadingTrivia: leadingTrivia.ToImmutableArray()), CloseBracketToken.With(trailingTrivia: trailingTrivia.ToImmutableArray()), Enumerable.Repeat(CommaToken, commaCount).ToImmutableArray());
 
         public static StackFrameArrayRankSpecifier ArrayRankSpecifier(StackFrameToken openToken, StackFrameToken closeToken, params StackFrameToken[] commaTokens)
             => new(openToken, closeToken, commaTokens.ToImmutableArray());

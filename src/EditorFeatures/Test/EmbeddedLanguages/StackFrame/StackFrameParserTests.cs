@@ -5,6 +5,7 @@
 using Xunit;
 using System.Collections.Immutable;
 using static Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame.StackFrameSyntaxFactory;
+using static Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame.StackFrameExtensions;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 {
@@ -174,10 +175,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                         Parameter(
                             ArrayType(Identifier("string"),
                                 ArrayRankSpecifier(
-                                    OpenBracketToken.With(trailingTrivia: CreateTriviaArray(SpaceTrivia())),
-                                    CloseBracketToken.With(trailingTrivia: CreateTriviaArray(SpaceTrivia())),
-                                    CommaToken.With(trailingTrivia: CreateTriviaArray(SpaceTrivia())),
-                                    CommaToken.With(trailingTrivia: CreateTriviaArray(SpaceTrivia())))),
+                                    OpenBracketToken.With(trailingTrivia: SpaceTrivia().ToImmutableArray()),
+                                    CloseBracketToken.With(trailingTrivia: SpaceTrivia().ToImmutableArray()),
+                                    CommaToken.With(trailingTrivia: SpaceTrivia().ToImmutableArray()),
+                                    CommaToken.With(trailingTrivia: SpaceTrivia().ToImmutableArray()))),
                             IdentifierToken("s")
                         )
                     ))
@@ -377,6 +378,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         [InlineData(@"at M)")] // MIssing open paren
         [InlineData(@"at M.M[T>(T t)")] // Mismatched generic opening/close
         [InlineData(@"at M.M<T](T t)")] // Mismatched generic opening/close
+        [InlineData(@"at M.M<T, U<V>>(T t)")] // Invalid nested generics
+        [InlineData("at M.M(T<U> t)")] // Invalid generic in parameter
         [InlineData(@"at M.M(string[ s)")] // Opening array bracket no close
         [InlineData(@"at M.M(string] s)")] // Close only array bracket
         [InlineData(@"at M.M(string[][][ s)")]

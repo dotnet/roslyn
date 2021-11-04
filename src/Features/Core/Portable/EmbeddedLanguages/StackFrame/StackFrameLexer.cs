@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return Result<StackFrameToken>.Abort;
             }
 
-            return CreateToken(StackFrameKind.PathToken, ImmutableArray.Create(inTrivia.Value), GetSubSequenceToCurrentPos(startPosition));
+            return CreateToken(StackFrameKind.PathToken, inTrivia.ToImmutableArray(), GetSubSequenceToCurrentPos(startPosition));
         }
 
         /// <summary>
@@ -242,8 +242,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             var remainingTrivia = TryScanRemainingTrivia();
 
             return numberToken.Value.With(
-                leadingTrivia: ImmutableArray.Create(lineTrivia.Value),
-                trailingTrivia: remainingTrivia.HasValue ? ImmutableArray.Create(remainingTrivia.Value) : ImmutableArray<StackFrameTrivia>.Empty);
+                leadingTrivia: lineTrivia.ToImmutableArray(),
+                trailingTrivia: remainingTrivia.ToImmutableArray());
         }
 
         public StackFrameToken? TryScanNumbers()

@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             var remainingTrivia = _lexer.TryScanRemainingTrivia();
 
-            var eolToken = CurrentCharAsToken().With(leadingTrivia: remainingTrivia.HasValue ? ImmutableArray.Create(remainingTrivia.Value) : ImmutableArray<StackFrameTrivia>.Empty);
+            var eolToken = CurrentCharAsToken().With(leadingTrivia: remainingTrivia.ToImmutableArray());
 
             Contract.ThrowIfFalse(_lexer.Position == _lexer.Text.Length);
             Contract.ThrowIfFalse(eolToken.Kind == StackFrameKind.EndOfLine);
