@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         /// <summary>
         /// True if at least one of the threads whom this active statement belongs to is in a leaf frame.
         /// </summary>
-        public bool IsLeaf => (Flags & ActiveStatementFlags.IsLeafFrame) != 0;
+        public bool IsLeaf => (Flags & ActiveStatementFlags.LeafFrame) != 0;
 
         public static ActiveStatementTrackingSpan Create(ITextSnapshot snapshot, ActiveStatementSpan span)
             => new(snapshot.CreateTrackingSpan(snapshot.GetTextSpan(span.LineSpan).ToSpan(), SpanTrackingMode.EdgeExclusive), span.Ordinal, span.Flags, span.UnmappedDocumentId);
