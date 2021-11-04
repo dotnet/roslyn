@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
@@ -35,14 +36,18 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // Otherwise, check the easiest (but most unlikely) case which is the document exists on the disk
             if (File.Exists(sourceDocument.FilePath))
             {
-                using var fileStream = new FileStream(sourceDocument.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
-                // TODO: Don't hard code UTF8: https://github.com/dotnet/roslyn/issues/57350
-                var sourceText = SourceText.From(fileStream, Encoding.UTF8, sourceDocument.HashAlgorithm);
-                var fileChecksum = sourceText.GetChecksum();
-
-                if (fileChecksum.SequenceEqual(sourceDocument.Checksum))
+                using var fileStream = IOUtilities.PerformIO(() => new FileStream(sourceDocument.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete));
+                if (fileStream is not null)
                 {
-                    return Task.FromResult<TextLoader?>(new FileTextLoader(sourceDocument.FilePath, Encoding.UTF8));
+                    // TODO: Don't hard code UTF8: https://github.com/dotnet/roslyn/issues/57350
+                    var sourceText = SourceText.From(fileStream, Encoding.UTF8, sourceDocument.HashAlgorithm);
+                    var fileChecksum = sourceText.GetChecksum();
+
+                    if (fileChecksum.SequenceEqual(sourceDocument.Checksum))
+                    {
+                        var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default, sourceDocument.FilePath);
+                        return Task.FromResult<TextLoader?>(TextLoader.From(textAndVersion));
+                    }
                 }
             }
 
