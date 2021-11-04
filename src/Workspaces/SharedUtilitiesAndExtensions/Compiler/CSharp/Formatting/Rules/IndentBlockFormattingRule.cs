@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             AddBlockIndentationOperation(list, node);
 
+            AddBracketIndentationOperation(list, node);
+
             AddLabelIndentationOperation(list, node);
 
             AddSwitchIndentationOperation(list, node);
@@ -244,6 +246,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             AddIndentBlockOperation(list, bracePair.openBrace.GetNextToken(includeZeroWidth: true), bracePair.closeBrace.GetPreviousToken(includeZeroWidth: true));
+        }
+
+        private static void AddBracketIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
+        {
+            var bracketPair = node.GetBracketPair();
+
+            if (!bracketPair.IsValidBracePair())
+            {
+                return;
+            }
+
+            if (node.IsKind(SyntaxKind.ListPattern) && node.Parent != null)
+            {
+                // Brackets in list patterns are formatted like blocks, so align close bracket with open bracket
+                AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracketPair);
+
+                AddIndentBlockOperation(list, bracketPair.openBrace.GetNextToken(includeZeroWidth: true), bracketPair.closeBrace.GetPreviousToken(includeZeroWidth: true));
+            }
         }
 
         private static void AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(List<IndentBlockOperation> list, (SyntaxToken openBrace, SyntaxToken closeBrace) bracePair)

@@ -48,6 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBracePair(this SyntaxNode? node)
             => node.GetBraces();
 
+        public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBracketPair(this SyntaxNode? node)
+            => node.GetBrackets();
+
         public static bool IsValidBracePair(this (SyntaxToken openBrace, SyntaxToken closeBrace) bracePair)
         {
             if (bracePair.openBrace.IsKind(SyntaxKind.None) ||

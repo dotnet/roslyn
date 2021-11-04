@@ -939,7 +939,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        public static (SyntaxToken openBracket, SyntaxToken closeBracket) GetBrackets(this SyntaxNode node)
+        public static (SyntaxToken openBracket, SyntaxToken closeBracket) GetBrackets(this SyntaxNode? node)
         {
             switch (node)
             {
@@ -948,6 +948,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case ImplicitArrayCreationExpressionSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
                 case AttributeListSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
                 case BracketedParameterListSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
+                case ListPatternSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
                 default: return default;
             }
         }
