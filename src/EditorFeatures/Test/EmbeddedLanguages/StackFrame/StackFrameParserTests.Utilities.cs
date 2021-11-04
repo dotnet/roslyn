@@ -2,23 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System;
 using static Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame.StackFrameSyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 {
+    using StackFrameNodeOrToken = EmbeddedSyntaxNodeOrToken<StackFrameKind, StackFrameNode>;
     using StackFrameToken = EmbeddedSyntaxToken<StackFrameKind>;
     using StackFrameTrivia = EmbeddedSyntaxTrivia<StackFrameKind>;
-    using StackFrameNodeOrToken = EmbeddedSyntaxNodeOrToken<StackFrameKind, StackFrameNode>;
 
     public partial class StackFrameParserTests
     {
