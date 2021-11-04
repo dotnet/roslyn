@@ -64,7 +64,12 @@ namespace IdeBenchmarks.InheritanceMargin
         }
 
         [GlobalSetup]
-        public Task SetupAsync() => SetupWpfApplicaitonAsync();
+        public Task SetupAsync()
+        {
+            // Note: WPF only allows one application per appDomain, and benchmark.net
+            // would run all this method for all the Benchmark method within the class.
+            return SetupWpfApplicaitonAsync();
+        }
 
         [IterationSetup]
         public Task IterationSetupAsync()
@@ -150,7 +155,6 @@ namespace IdeBenchmarks.InheritanceMargin
 
         private Task SetupWpfApplicaitonAsync()
         {
-            // Ensure we only create one Application
             if (Application.Current == null)
             {
                 var tcs = new TaskCompletionSource<bool>();
