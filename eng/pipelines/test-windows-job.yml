@@ -36,6 +36,7 @@ jobs:
       inputs:
         artifact: ${{ parameters.testArtifactName }}
         path: '$(Build.SourcesDirectory)'
+      condition: or(and(eq(variables['jobName'], 'Test_Windows_Desktop_Spanish_Release_64'), startsWith(variables['Build.SourceBranch'], 'refs/heads/locfiles/')), neq(variables['jobName'], 'Test_Windows_Desktop_Spanish_Release_64'))
 
     - task: BatchScript@1
       displayName: Rehydrate RunTests
@@ -43,6 +44,7 @@ jobs:
         filename: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net6.0/rehydrate.cmd
       env:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
+      condition: or(and(eq(variables['jobName'], 'Test_Windows_Desktop_Spanish_Release_64'), startsWith(variables['Build.SourceBranch'], 'refs/heads/locfiles/')), neq(variables['jobName'], 'Test_Windows_Desktop_Spanish_Release_64'))
 
     - task: PowerShell@2
       displayName: Run Unit Tests
@@ -51,8 +53,10 @@ jobs:
         arguments: -ci -helix -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }} -collectDumps
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      condition: or(and(eq(variables['jobName'], 'Test_Windows_Desktop_Spanish_Release_64'), startsWith(variables['Build.SourceBranch'], 'refs/heads/locfiles/')), neq(variables['jobName'], 'Test_Windows_Desktop_Spanish_Release_64'))
 
     - template: publish-logs.yml
       parameters:
         configuration: ${{ parameters.configuration }}
         jobName: ${{ parameters.jobName }}
+      condition: or(and(eq(variables['jobName'], 'Test_Windows_Desktop_Spanish_Release_64'), startsWith(variables['Build.SourceBranch'], 'refs/heads/locfiles/')), neq(variables['jobName'], 'Test_Windows_Desktop_Spanish_Release_64'))
