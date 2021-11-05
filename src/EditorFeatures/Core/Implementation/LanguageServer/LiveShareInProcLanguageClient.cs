@@ -73,6 +73,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 defaultCapabilities.SemanticTokensOptions = null;
             }
 
+            // When the lsp pull diagnostics feature flag is enabled we do not advertise pull diagnostics capabilities from here
+            // as the AlwaysActivateInProcLanguageClient will provide pull diagnostics both locally and remote.
+            var isPullDiagnosticsEnabled = GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+            if (!isPullDiagnosticsEnabled)
+            {
+                // Pull diagnostics isn't enabled, let the live share server provide pull diagnostics.
+                ((VSInternalServerCapabilities)defaultCapabilities).SupportsDiagnosticRequests = true;
+            }
+
             return defaultCapabilities;
         }
 
