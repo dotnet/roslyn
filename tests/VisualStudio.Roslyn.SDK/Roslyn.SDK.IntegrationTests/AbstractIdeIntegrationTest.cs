@@ -16,10 +16,9 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.CodeAnalysis.Testing
 {
+    [IdeSettings(MinVersion = VisualStudioVersion.VS2022)]
     public abstract class AbstractIdeIntegrationTest : IAsyncLifetime, IDisposable
     {
-        protected const VisualStudioVersion TestVersion = VisualStudioVersion.VS2022;
-
         /// <summary>
         /// A long timeout used to avoid hangs in tests, where a test failure manifests as an operation never occurring.
         /// </summary>
