@@ -83,7 +83,7 @@ stages:
     timeoutInMinutes: 360
     pool:
       name: NetCore1ESPool-Internal
-      demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre
+      demands: ImageOverride -equals Build.Server.Amd64.VS2019
 
     steps:
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
