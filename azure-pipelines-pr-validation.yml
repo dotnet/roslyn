@@ -49,7 +49,7 @@ stages:
     timeoutInMinutes: 360
     # Conditionally set build pool so we can share this YAML when building with different pipeline
     pool:
-      name: VSEngSS-MicroBuild2022-1ES
+      name: VSEngSS-MicroBuild2019-1ES
       demands:
       - msbuild
       - visualstudio
@@ -88,6 +88,14 @@ stages:
     - task: NuGetAuthenticate@0
       inputs:
         nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk
+
+    # Needed because the build fails the NuGet Tools restore without it
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core sdk'
+      inputs:
+        packageType: sdk
+        useGlobalJson: true
+        workingDirectory: '$(Build.SourcesDirectory)'
 
     # Needed to restore the Microsoft.DevDiv.Optimization.Data.PowerShell package
     - task: NuGetCommand@2

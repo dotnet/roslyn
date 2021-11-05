@@ -566,6 +566,34 @@ public class C
             });
         }
 
+        [Theory]
+        [CombinatorialData]
+        public async Task SourceFileChecksumIncorrect_NullResult(Location pdbLocation)
+        {
+            var source1 = @"
+public class C
+{
+    public event System.EventHandler [|E|] { add { } remove { } }
+}";
+            var source2 = @"
+public class C
+{
+    // A change
+    public event System.EventHandler E { add { } remove { } }
+}";
+
+            await RunTestAsync(async path =>
+            {
+                MarkupTestFile.GetSpan(source1, out var metadataSource, out var expectedSpan);
+
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
+
+                File.WriteAllText(GetSourceFilePath(path), source2, Encoding.UTF8);
+
+                await GenerateFileAndVerifyAsync(project, symbol, metadataSource, expectedSpan, expectNullResult: true);
+            });
+        }
+
         private static Task TestAsync(
             Location pdbLocation,
             Location sourceLocation,
@@ -735,7 +763,7 @@ public class C
             if (sourceLocation == Location.OnDisk)
             {
                 embeddedTexts = null;
-                File.WriteAllText(sourceCodePath, source);
+                File.WriteAllText(sourceCodePath, source, Encoding.UTF8);
             }
             else
             {
