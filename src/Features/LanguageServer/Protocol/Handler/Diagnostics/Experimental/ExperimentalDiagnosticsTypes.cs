@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Proposed;
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental;
 
 using DocumentDiagnosticReport = SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>;
 using WorkspaceDocumentDiagnosticReport = SumType<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>;
@@ -204,7 +204,7 @@ internal class WorkspaceUnchangedDocumentDiagnosticReport : UnchangedDocumentDia
     public int? Version { get; set; }
 }
 
-internal static class ProposedMethods
+internal static class ExperimentalMethods
 {
     public const string TextDocumentDiagnostic = "textDocument/diagnostic";
     public const string WorkspaceDiagnostic = "workspace/diagnostic";

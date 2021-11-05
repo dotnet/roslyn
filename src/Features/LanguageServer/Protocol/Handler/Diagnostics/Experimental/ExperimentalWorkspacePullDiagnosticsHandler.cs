@@ -7,19 +7,20 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Proposed;
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental;
 
 using WorkspaceDocumentDiagnosticReport = SumType<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>;
 
-internal class ProposedWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHandler<WorkspaceDiagnosticParams, WorkspaceDiagnosticReport, WorkspaceDiagnosticReport?>
+internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHandler<WorkspaceDiagnosticParams, WorkspaceDiagnosticReport, WorkspaceDiagnosticReport?>
 {
     private readonly IDiagnosticAnalyzerService _analyzerService;
 
-    public ProposedWorkspacePullDiagnosticsHandler(
+    public ExperimentalWorkspacePullDiagnosticsHandler(
         IDiagnosticService diagnosticService,
         IDiagnosticAnalyzerService analyzerService)
         : base(diagnosticService)
@@ -27,7 +28,7 @@ internal class ProposedWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticH
         _analyzerService = analyzerService;
     }
 
-    public override string Method => ProposedMethods.WorkspaceDiagnostic;
+    public override string Method => ExperimentalMethods.WorkspaceDiagnostic;
 
     public override TextDocumentIdentifier? GetTextDocumentIdentifier(WorkspaceDiagnosticParams diagnosticsParams) => null;
 
@@ -48,9 +49,7 @@ internal class ProposedWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticH
     {
         var progressValues = progress.GetValues();
         if (progressValues != null)
-        {
             return new WorkspaceDiagnosticReport(progressValues.SelectMany(report => report.Items).ToArray());
-        }
 
         return null;
     }

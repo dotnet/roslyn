@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Proposed;
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental;
 
 using DocumentDiagnosticReport = SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>;
 
@@ -20,11 +20,11 @@ using DocumentDiagnosticReport = SumType<FullDocumentDiagnosticReport, Unchanged
 // See https://github.com/microsoft/vscode-languageserver-node/blob/main/protocol/src/common/proposed.diagnostics.md#textDocument_diagnostic
 using DocumentDiagnosticPartialReport = SumType<SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>, DocumentDiagnosticPartialResult>;
 
-internal class ProposedDocumentPullDiagnosticsHandler : AbstractPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport?>
+internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport?>
 {
     private readonly IDiagnosticAnalyzerService _analyzerService;
 
-    public ProposedDocumentPullDiagnosticsHandler(
+    public ExperimentalDocumentPullDiagnosticsHandler(
         IDiagnosticService diagnosticService,
         IDiagnosticAnalyzerService analyzerService)
         : base(diagnosticService)
@@ -32,7 +32,7 @@ internal class ProposedDocumentPullDiagnosticsHandler : AbstractPullDiagnosticHa
         _analyzerService = analyzerService;
     }
 
-    public override string Method => ProposedMethods.TextDocumentDiagnostic;
+    public override string Method => ExperimentalMethods.TextDocumentDiagnostic;
 
     public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentDiagnosticParams diagnosticsParams) => diagnosticsParams.TextDocument;
 

@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Proposed;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -1063,7 +1063,7 @@ class A {";
             {
                 BufferedProgress<DocumentDiagnosticPartialReport>? progress = useProgress ? BufferedProgress.Create<DocumentDiagnosticPartialReport>(null) : null;
                 var diagnostics = await testLspServer.ExecuteRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
-                    ProposedMethods.TextDocumentDiagnostic,
+                    ExperimentalMethods.TextDocumentDiagnostic,
                     CreateProposedDocumentDiagnosticParams(uri, previousResultId, progress),
                     new LSP.VSInternalClientCapabilities() { SupportsVisualStudioExtensions = true },
                     clientName: null,
@@ -1130,7 +1130,7 @@ class A {";
             {
                 BufferedProgress<WorkspaceDiagnosticReport>? progress = useProgress ? BufferedProgress.Create<WorkspaceDiagnosticReport>(null) : null;
                 var returnedResult = await testLspServer.ExecuteRequestAsync<WorkspaceDiagnosticParams, WorkspaceDiagnosticReport?>(
-                    ProposedMethods.WorkspaceDiagnostic,
+                    ExperimentalMethods.WorkspaceDiagnostic,
                     CreateProposedWorkspaceDiagnosticParams(previousResults, progress),
                     new LSP.VSInternalClientCapabilities() { SupportsVisualStudioExtensions = true },
                     clientName: null,

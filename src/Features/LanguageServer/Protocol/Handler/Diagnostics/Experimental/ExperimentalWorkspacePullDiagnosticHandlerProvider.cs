@@ -8,18 +8,18 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Proposed;
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental;
 
 [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-[ProvidesMethod(ProposedMethods.TextDocumentDiagnostic)]
-internal class ProposedDocumentPullDiagnosticHandlerProvider : AbstractRequestHandlerProvider
+[ProvidesMethod(ExperimentalMethods.WorkspaceDiagnostic)]
+internal class ExperimentalWorkspacePullDiagnosticHandlerProvider : AbstractRequestHandlerProvider
 {
     private readonly IDiagnosticService _diagnosticService;
     private readonly IDiagnosticAnalyzerService _analyzerService;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ProposedDocumentPullDiagnosticHandlerProvider(
+    public ExperimentalWorkspacePullDiagnosticHandlerProvider(
         IDiagnosticService diagnosticService,
         IDiagnosticAnalyzerService analyzerService)
     {
@@ -29,6 +29,6 @@ internal class ProposedDocumentPullDiagnosticHandlerProvider : AbstractRequestHa
 
     public override ImmutableArray<IRequestHandler> CreateRequestHandlers()
     {
-        return ImmutableArray.Create<IRequestHandler>(new ProposedDocumentPullDiagnosticsHandler(_diagnosticService, _analyzerService));
+        return ImmutableArray.Create<IRequestHandler>(new ExperimentalWorkspacePullDiagnosticsHandler(_diagnosticService, _analyzerService));
     }
 }
