@@ -19,7 +19,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+// <Caravela>
 using Caravela.Compiler;
+using Caravela.Compiler.Licensing;
+// </Caravela>
 
 namespace Microsoft.CodeAnalysis
 {
@@ -807,7 +810,8 @@ namespace Microsoft.CodeAnalysis
             }
 
             // <Caravela>
-            if (ReportDiagnostics(TimeBomb.GetExplosionDiagnostics(), consoleOutput, errorLogger, compilation: null))
+            CaravelaCompilerSimpleLicenseManager licenseManager = new();
+            if (ReportDiagnostics(licenseManager.GetDiagnostics(), consoleOutput, errorLogger, compilation: null))
             {
                 return Failed;
             }

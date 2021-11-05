@@ -15,8 +15,8 @@ namespace Caravela.Compiler
         ERR_TransformersNotOrdered = 4,
         WRN_NoTransformedOutputPathWhenDebuggingTransformed = 5,
         ERR_InvalidIntrinsicUse = 6,
-        ERR_TimeBombExploded = 7,
-        WRN_TimeBombAboutToExplode = 8
+        ERR_LicensingMessage = 7,
+        WRN_LicensingMessage = 8
     }
 
     internal sealed class CaravelaCompilerMessageProvider : CommonMessageProvider
@@ -196,9 +196,9 @@ namespace Caravela.Compiler
             ERR_TransformerCycleFound or
             ERR_TransformersNotOrdered or
             ERR_InvalidIntrinsicUse or
-            ERR_TimeBombExploded => DiagnosticSeverity.Error,
+            ERR_LicensingMessage => DiagnosticSeverity.Error,
             WRN_NoTransformedOutputPathWhenDebuggingTransformed or
-            WRN_TimeBombAboutToExplode => DiagnosticSeverity.Warning,
+            WRN_LicensingMessage => DiagnosticSeverity.Warning,
             _ => throw new ArgumentOutOfRangeException(nameof(code))
         };
 
@@ -211,8 +211,8 @@ namespace Caravela.Compiler
                 ERR_TransformersNotOrdered => "Transformers are not strongly ordered. Their order of execution would not be deterministic.",
                 WRN_NoTransformedOutputPathWhenDebuggingTransformed => "Output directory for transformed files is not set, even though debugging transformed code is enabled.",
                 ERR_InvalidIntrinsicUse => "Argument is not valid for Caravela intrinsic method.",
-                ERR_TimeBombExploded => "The current preview build of Caravela is out of date.",
-                WRN_TimeBombAboutToExplode => "The current preview build of Caravela is going to be out of date soon.",
+                ERR_LicensingMessage => "The licensing emitted an error.",
+                WRN_LicensingMessage => "The licensing emitted a warning.",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
             };
 
@@ -232,8 +232,8 @@ namespace Caravela.Compiler
                 ERR_TransformersNotOrdered => "Transformers '{0}' and '{1}' are not strongly ordered. Their order of execution would not be deterministic.",
                 WRN_NoTransformedOutputPathWhenDebuggingTransformed => "Output directory for transformed files is not set, even though debugging transformed code is enabled. This will lead to warnings and errors that point to nonsensical file locations.",
                 ERR_InvalidIntrinsicUse => "Argument '{0}' is not valid for Caravela intrinsic method '{1}'.",
-                ERR_TimeBombExploded => "The current preview build of Caravela is {0} days old, but is allowed to be used only for {1} days. Please update Caravela.",
-                WRN_TimeBombAboutToExplode => "The current preview build of Caravela is {0} days old and will stop working soon, because it is allowed to be used only for {1} days. Please update Caravela soon.",
+                ERR_LicensingMessage => "{0}",
+                WRN_LicensingMessage => "{0}",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
             };
 

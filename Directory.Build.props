@@ -8,6 +8,10 @@
   <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
   <Import Project="eng\targets\Settings.props" />
 
+  <!-- <Caravela> -->
+  <Import Project="..\PostSharp.Backstage.Settings\eng\BackstageVersion.props" Condition="Exists('.local')" />
+  <!-- </Caravela> -->
+
   <!-- Source Link  -->
   <PropertyGroup>
 

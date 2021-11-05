@@ -47,6 +47,9 @@
          but not higher than our minimum dogfoodable Visual Studio version, or else
          the generators we build would load on the command line but not load in IDEs. -->
     <SourceGeneratorMicrosoftCodeAnalysisVersion>3.8.0</SourceGeneratorMicrosoftCodeAnalysisVersion>
+    <!-- <Caravela> -->
+    <BackstageVersion Condition="'$(BackstageVersion)'==''">1.0.0-preview</BackstageVersion>
+    <!-- </Caravela> -->
   </PropertyGroup>
   <!--
     Dependency versions
