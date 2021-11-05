@@ -5812,11 +5812,5 @@ Block[B2] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, expectedFlowGraph, expectedDiagnostics);
         }
-
-        [Fact]
-        public void NoStringContent()
-        {
-
-        }
     }
 }

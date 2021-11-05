@@ -808,6 +808,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 foreach (IFlowCaptureReferenceOperation reference in operation.DescendantsAndSelf().OfType<IFlowCaptureReferenceOperation>())
                 {
                     CaptureId id = reference.Id;
+
+                    if (reference.IsInitialization)
+                    {
+                        AssertTrueWithGraph(state.Add(id), $"Multiple initialization of [{id}]", finalGraph);
+                        AssertTrueWithGraph(block.EnclosingRegion.CaptureIds.Contains(id), $"Flow capture initialization [{id}] should come from the containing region.", finalGraph);
+                        return;
+                    }
+
                     referencedIds.Add(id);
 
                     if (isLongLivedCaptureReference(reference, block.EnclosingRegion))
@@ -815,27 +823,39 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         longLivedIds.Add(id);
                     }
 
-                    if (reference.IsInitialization)
-                    {
-                        state.Add(id);
-                    }
-
                     AssertTrueWithGraph(state.Contains(id) || isCaptureFromEnclosingGraph(id) || isEmptySwitchExpressionResult(reference),
                         $"Operation [{operationIndex}] in [{getBlockId(block)}] uses not initialized capture [{id.Value}].", finalGraph);
 
                     // Except for a few specific scenarios, any references to captures should either be long-lived capture references,
                     // or they should come from the enclosing region.
-                    AssertTrueWithGraph(block.EnclosingRegion.CaptureIds.Contains(id) || longLivedIds.Contains(id) ||
-                                ((isFirstOperandOfDynamicOrUserDefinedLogicalOperator(reference) ||
-                                     isIncrementedNullableForToLoopControlVariable(reference) ||
-                                     isConditionalAccessReceiver(reference) ||
-                                     isCoalesceAssignmentTarget(reference) ||
-                                     isObjectInitializerInitializedObjectTarget(reference) ||
-                                     isInterpolatedStringArgumentCapture(reference) ||
-                                     isInterpolatedStringHandlerCapture(reference)) &&
-                                 (block.EnclosingRegion.EnclosingRegion.CaptureIds.Contains(id) ||
-                                  (block.EnclosingRegion.EnclosingRegion?.EnclosingRegion.CaptureIds.Contains(id) ?? false))),
-                        $"Operation [{operationIndex}] in [{getBlockId(block)}] uses capture [{id.Value}] from another region. Should the regions be merged?", finalGraph);
+                    if (block.EnclosingRegion.CaptureIds.Contains(id) || longLivedIds.Contains(id))
+                    {
+                        return;
+                    }
+
+                    if (block.EnclosingRegion.EnclosingRegion.CaptureIds.Contains(id))
+                    {
+                        AssertTrueWithGraph(
+                            isFirstOperandOfDynamicOrUserDefinedLogicalOperator(reference)
+                            || isIncrementedNullableForToLoopControlVariable(reference)
+                            || isConditionalAccessReceiver(reference)
+                            || isCoalesceAssignmentTarget(reference)
+                            || isObjectInitializerInitializedObjectTarget(reference)
+                            || isInterpolatedStringArgumentCapture(reference)
+                            || isInterpolatedStringHandlerCapture(reference),
+                            $"Operation [{operationIndex}] in [{getBlockId(block)}] uses capture [{id.Value}] from another region. Should the regions be merged?", finalGraph);
+                    }
+                    else if (block.EnclosingRegion.EnclosingRegion?.EnclosingRegion.CaptureIds.Contains(id) ?? false)
+                    {
+                        AssertTrueWithGraph(
+                            isInterpolatedStringArgumentCapture(reference)
+                            || isInterpolatedStringHandlerCapture(reference),
+                            $"Operation [{operationIndex}] in [{getBlockId(block)}] uses capture [{id.Value}] from another region. Should the regions be merged?", finalGraph);
+                    }
+                    else
+                    {
+                        AssertTrueWithGraph(false, $"Operation [{operationIndex}] in [{getBlockId(block)}] uses capture [{id.Value}] from another region. Should the regions be merged?", finalGraph);
+                    }
                 }
             }
 
@@ -908,20 +928,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     return false;
                 }
 
+                IOperation containingArgument = reference;
+                do
+                {
+                    containingArgument = containingArgument.Parent;
+                } while (containingArgument is not (null or IArgumentOperation));
+
 #pragma warning disable IDE0055 // Fix formatting
-                return reference is
+                return containingArgument is
                        {
-                           Parent: IArgumentOperation
+                           Parent: IObjectCreationOperation
                            {
-                               Parent: IObjectCreationOperation
-                               {
-                                   Parent: IFlowCaptureOperation,
-                                   Constructor.ContainingType: INamedTypeSymbol ctorContainingType,
-                                   Arguments: { Length: >= 3 } arguments,
-                                   Syntax: CSharp.Syntax.InterpolatedStringExpressionSyntax or CSharp.Syntax.BinaryExpressionSyntax
-                               }
+                               Parent: IFlowCaptureOperation,
+                               Constructor.ContainingType: INamedTypeSymbol ctorContainingType,
+                               Arguments: { Length: >= 3 } arguments,
+                               Syntax: CSharpSyntaxNode syntax
                            }
                        }
+                       && applyParenthesizedOrNullSuppressionIfAnyCS(syntax) is CSharp.Syntax.InterpolatedStringExpressionSyntax or CSharp.Syntax.BinaryExpressionSyntax
                        && ctorContainingType.GetSymbol().IsInterpolatedStringHandlerType
                        && arguments[0].Value.Type.SpecialType == SpecialType.System_Int32
                        && arguments[1].Value.Type.SpecialType == SpecialType.System_Int32;

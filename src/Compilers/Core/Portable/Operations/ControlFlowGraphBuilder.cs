@@ -41,13 +41,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         private readonly ArrayBuilder<(EvalStackFrame? frameOpt, IOperation? operationOpt)> _evalStack;
         private int _startSpillingAt;
         private ConditionalAccessOperationTracker _currentConditionalAccessTracker;
+        private InterpolatedStringHandlerContext _currentInterpolatedStringHandlerContext;
         private IOperation? _currentSwitchOperationExpression;
         private IOperation? _forToLoopBinaryOperatorLeftOperand;
         private IOperation? _forToLoopBinaryOperatorRightOperand;
         private IOperation? _currentAggregationGroup;
         private bool _forceImplicit; // Force all rewritten nodes to be marked as implicit regardless of their original state.
-        private PooledDictionary<IOperation, IOperation>? _placeholderDictionary;
-        private int _currentInterpolatedStringHandlerId = -1;
 
         private readonly CaptureIdDispenser _captureIdDispenser;
 
@@ -75,25 +74,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 Debug.Assert(_currentRegion != null);
                 return _currentRegion;
             }
-        }
-
-        private IOperation GetPlaceholder(IOperation key)
-        {
-            Debug.Assert(_placeholderDictionary is not null);
-            return _placeholderDictionary[key];
-        }
-
-        private void AddPlaceholder(IOperation key, IOperation value)
-        {
-            Debug.Assert(value is IFlowCaptureReferenceOperation or IInvalidOperation or IDiscardOperation);
-            (_placeholderDictionary ??= PooledDictionary<IOperation, IOperation>.GetInstance()).Add(key, value);
-        }
-
-        private void RemovePlaceholder(IOperation key)
-        {
-            Debug.Assert(_placeholderDictionary is not null);
-            var result = _placeholderDictionary.Remove(key);
-            Debug.Assert(result);
         }
 
         private bool IsImplicit(IOperation operation)
@@ -179,8 +159,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             builder._evalStack.Free();
             builder._regionMap.Free();
             builder._labeledBlocks?.Free();
-            Debug.Assert(builder._placeholderDictionary is null or { Count: 0 });
-            builder._placeholderDictionary?.Free();
 
             return new ControlFlowGraph(body, parent, builder._captureIdDispenser, ToImmutableBlocks(blocks), region,
                                         localFunctions.ToImmutableAndFree(), localFunctionsMap.ToImmutable(),
@@ -2045,229 +2023,37 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return visitedArray;
         }
 
-        private (IOperation? VisitedReceiver, ImmutableArray<IArgumentOperation> Arguments) VisitInstanceWithArguments(IOperation? instance, ImmutableArray<IArgumentOperation> arguments)
+        private ImmutableArray<IArgumentOperation> VisitArguments(ImmutableArray<IArgumentOperation> arguments, bool instancePushed)
         {
-            return VisitArgumentsWithVisitedInstance(arguments, Visit(instance));
-        }
+            VisitAndPushArguments(arguments, instancePushed);
 
-        private (IOperation? VisitedReceiver, ImmutableArray<IArgumentOperation> Arguments) VisitArgumentsWithVisitedInstance(ImmutableArray<IArgumentOperation> arguments, IOperation? visitedInstance)
-        {
-            VisitAndPushArgumentsWithVisitedInstance(arguments, visitedInstance);
             var visitedArguments = PopArray(arguments, RewriteArgumentFromArray);
-            return (visitedInstance == null ? null : PopOperand(), visitedArguments);
+            return visitedArguments;
         }
 
-        private void VisitAndPushArgumentsWithVisitedInstance(ImmutableArray<IArgumentOperation> arguments, IOperation? visitedInstance)
+        private void VisitAndPushArguments(ImmutableArray<IArgumentOperation> arguments, bool instancePushed)
         {
-            if (hasInterpolatedStringHandlerArgument(arguments.AsSpan()))
+            var previousInterpolatedStringHandlerContext = _currentInterpolatedStringHandlerContext;
+            if (arguments.WhereAsArray(arg => arg.Value is IInterpolatedStringHandlerCreationOperation) is { IsDefaultOrEmpty: false } interpolatedStrings)
             {
-                visitAndCaptureArgumentsWithInterpolatedStringHandler();
-            }
-            else
-            {
-                if (visitedInstance != null)
-                {
-                    PushOperand(visitedInstance);
-                }
-                VisitAndPushArray(arguments, UnwrapArgument);
+                _currentInterpolatedStringHandlerContext = new InterpolatedStringHandlerContext(
+                    interpolatedStrings,
+                    _evalStack.Count - (instancePushed ? 1 : 0),
+                    hasReceiver: instancePushed);
             }
 
-            void visitAndCaptureArgumentsWithInterpolatedStringHandler()
-            {
-                SpillEvalStack();
-                IFlowCaptureReferenceOperation? capturedInstance;
-                switch (visitedInstance)
-                {
-                    case null:
-                        capturedInstance = null;
-                        break;
-                    case IFlowCaptureReferenceOperation existingReference:
-                        capturedInstance = existingReference;
-                        break;
-                    default:
-                        var captureId = GetNextCaptureId(CurrentRegionRequired);
-                        CaptureResultIfNotAlready(visitedInstance.Syntax, captureId, visitedInstance);
-                        capturedInstance = new FlowCaptureReferenceOperation(captureId, visitedInstance.Syntax, visitedInstance.Type, visitedInstance.GetConstantValue());
-                        break;
-                }
-
-                var visitedArguments = ArrayBuilder<IOperation>.GetInstance(arguments.Length);
-                var placeholderKeys = ArrayBuilder<IOperation>.GetInstance();
-
-                int i;
-                for (i = 0; i < arguments.Length; i++)
-                {
-                    var argument = arguments[i].Value;
-
-                    switch (argument)
-                    {
-                        case IInterpolatedStringHandlerCreationOperation { HandlerCreation: IObjectCreationOperation handlerConstructor }:
-                            if (visitArgument(argument, handlerConstructor.Arguments, UnwrapArgument))
-                            {
-                                goto exitFor;
-                            }
-                            break;
-                        case IInterpolatedStringHandlerCreationOperation { HandlerCreation: IDynamicObjectCreationOperation handlerConstructor }:
-                            if (visitArgument(argument, handlerConstructor.Arguments, Identity))
-                            {
-                                goto exitFor;
-                            }
-                            break;
-                        case IInterpolatedStringHandlerCreationOperation { HandlerCreation: InvalidOperation handlerConstructor }:
-                            if (visitArgument(argument, handlerConstructor.Children, Identity))
-                            {
-                                goto exitFor;
-                            }
-                            break;
-                        default:
-                            visitedArguments.Add(VisitAndCapture(argument));
-                            break;
-                    }
-                }
-exitFor:
-
-                Debug.Assert(i == visitedArguments.Count);
-
-                placeholderKeys.Free();
-
-                if (capturedInstance != null)
-                {
-                    PushOperand(capturedInstance);
-                }
-
-                foreach (var visitedArgument in visitedArguments)
-                {
-                    PushOperand(visitedArgument);
-                }
-
-                visitedArguments.Free();
-
-                for (; i < arguments.Length; i++)
-                {
-                    PushOperand(VisitRequired(UnwrapArgumentDoNotCaptureDirectly(arguments[i])));
-                }
-
-                bool visitArgument<T>(IOperation originalArgument, ImmutableArray<T> nestedArguments, Func<T, IOperation> unwrapper) where T : IOperation
-                {
-                    foreach (var constructorArgument in nestedArguments)
-                    {
-                        var argumentPlaceholder = unwrapper(constructorArgument) switch
-                        {
-                            IInterpolatedStringHandlerArgumentPlaceholderOperation p => p,
-                            IConversionOperation { Operand: IInterpolatedStringHandlerArgumentPlaceholderOperation p } => p,
-                            _ => null
-                        };
-
-                        if (argumentPlaceholder != null)
-                        {
-                            switch (argumentPlaceholder.PlaceholderKind)
-                            {
-                                case InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver:
-                                    if (capturedInstance is IFlowCaptureReferenceOperation capture)
-                                    {
-                                        AddPlaceholder(argumentPlaceholder, capture);
-                                    }
-                                    else
-                                    {
-                                        // Can happen if we're in an indexer object initializer (an error scenario where the instance isn't yet available).
-                                        Debug.Assert(capturedInstance == null);
-                                        AddPlaceholder(argumentPlaceholder, new InvalidOperation(
-                                            ImmutableArray<IOperation>.Empty,
-                                            semanticModel: null,
-                                            syntax: argumentPlaceholder.Syntax,
-                                            type: argumentPlaceholder.Type,
-                                            constantValue: argumentPlaceholder.GetConstantValue(),
-                                            isImplicit: true));
-                                    }
-
-                                    placeholderKeys.Add(argumentPlaceholder);
-                                    break;
-
-                                case InterpolatedStringArgumentPlaceholderKind.CallsiteArgument:
-                                    if (argumentPlaceholder.ArgumentIndex >= i)
-                                    {
-                                        // Out of position argument: just capture an invalid operation and reference it from the constructor
-                                        AddPlaceholder(argumentPlaceholder, new InvalidOperation(
-                                            ImmutableArray<IOperation>.Empty,
-                                            semanticModel: null,
-                                            syntax: argumentPlaceholder.Syntax,
-                                            type: argumentPlaceholder.Type,
-                                            constantValue: argumentPlaceholder.GetConstantValue(),
-                                            isImplicit: true));
-                                    }
-                                    else
-                                    {
-                                        Debug.Assert(visitedArguments[argumentPlaceholder.ArgumentIndex] is IFlowCaptureReferenceOperation or IDiscardOperation);
-                                        AddPlaceholder(argumentPlaceholder, visitedArguments[argumentPlaceholder.ArgumentIndex]);
-                                    }
-                                    placeholderKeys.Add(argumentPlaceholder);
-                                    break;
-                            }
-                        }
-                    }
-
-                    IOperation visitedArgument = VisitRequired(originalArgument);
-                    Debug.Assert(visitedArgument is IFlowCaptureReferenceOperation);
-                    visitedArguments.Add(visitedArgument);
-
-                    foreach (var key in placeholderKeys)
-                    {
-                        RemovePlaceholder(key);
-                    }
-
-                    placeholderKeys.Clear();
-
-                    var nextIndex = i + 1;
-                    if (nextIndex == arguments.Length || !hasInterpolatedStringHandlerArgument(arguments.AsSpan()[nextIndex..]))
-                    {
-                        i = nextIndex;
-                        return true;
-                    }
-
-                    return false;
-                }
-            }
-
-            static bool hasInterpolatedStringHandlerArgument(ReadOnlySpan<IArgumentOperation> arguments)
-            {
-                return arguments.Any(
-                    static arg => arg.Value switch
-                    {
-                        IInterpolatedStringHandlerCreationOperation { HandlerCreation: IObjectCreationOperation { Arguments: { } creationArgs } } =>
-                            hasPlaceholders(creationArgs, UnwrapArgument),
-                        IInterpolatedStringHandlerCreationOperation { HandlerCreation: IDynamicObjectCreationOperation { Arguments: { } creationArgs } } =>
-                            hasPlaceholders(creationArgs, Identity),
-                        IInterpolatedStringHandlerCreationOperation { HandlerCreation: InvalidOperation { Children: { } creationArgs } } =>
-                            hasPlaceholders(creationArgs, Identity),
-                        _ => false
-                    });
-
-                static bool hasPlaceholders<T>(ImmutableArray<T> args, Func<T, IOperation> unwrapper)
-                {
-                    return args.Any(
-                        static (arg, unwrapper) => unwrapper(arg) switch
-                {
-                    IInterpolatedStringHandlerArgumentPlaceholderOperation { PlaceholderKind: not InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument } => true,
-                    IConversionOperation
-                    {
-                        Operand: IInterpolatedStringHandlerArgumentPlaceholderOperation { PlaceholderKind: not InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument }
-                    } => true,
-                    _ => false
-                },
-                        unwrapper);
-                }
-            }
-
+            VisitAndPushArray(arguments, UnwrapArgument);
+            _currentInterpolatedStringHandlerContext = previousInterpolatedStringHandlerContext;
         }
 
-        private readonly static Func<IArgumentOperation, IOperation> UnwrapArgument = UnwrapArgumentDoNotCaptureDirectly;
+        private static readonly Func<IArgumentOperation, IOperation> UnwrapArgument = UnwrapArgumentDoNotCaptureDirectly;
 
         private static IOperation UnwrapArgumentDoNotCaptureDirectly(IArgumentOperation argument)
         {
             return argument.Value;
         }
 
-        private readonly static Func<IOperation, IOperation> Identity = IdentityDoNotCaptureDirectly;
+        private static readonly Func<IOperation, IOperation> Identity = IdentityDoNotCaptureDirectly;
 
         private static IOperation IdentityDoNotCaptureDirectly(IOperation operation) => operation;
 
@@ -4236,9 +4022,7 @@ oneMoreTime:
 
                 if (method != null)
                 {
-                    (value, var args) = disposeMethod is object
-                        ? ((IOperation, ImmutableArray<IArgumentOperation>))VisitArgumentsWithVisitedInstance(disposeArguments, value)!
-                        : (value, ImmutableArray<IArgumentOperation>.Empty);
+                    var args = VisitArray(disposeArguments, UnwrapArgument, RewriteArgumentFromArray);
                     var invocation = new InvocationOperation(method, value, isVirtual: disposeMethod?.IsVirtual ?? true,
                                                              args, semanticModel: null, value.Syntax,
                                                              method.ReturnType, isImplicit: true);
@@ -4696,8 +4480,7 @@ oneMoreTime:
             {
                 if (arguments != null)
                 {
-                    (instanceOpt, var visitedArguments) = VisitArgumentsWithVisitedInstance(arguments, instanceOpt);
-                    return visitedArguments;
+                    return VisitArray(arguments, UnwrapArgument, RewriteArgumentFromArray);
                 }
 
                 return ImmutableArray<IArgumentOperation>.Empty;
@@ -5902,6 +5685,20 @@ oneMoreTime:
                                            operation.Type, IsImplicit(operation));
         }
 
+        private (IOperation? visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) VisitInstanceWithArguments(IOperation? instance, ImmutableArray<IArgumentOperation> arguments)
+        {
+            bool hasInstance = instance != null;
+            if (hasInstance)
+            {
+                PushOperand(VisitRequired(instance!));
+            }
+
+            ImmutableArray<IArgumentOperation> visitedArguments = VisitArguments(arguments, instancePushed: hasInstance);
+            IOperation? visitedInstance = hasInstance ? PopOperand() : null;
+
+            return (visitedInstance, visitedArguments);
+        }
+
         internal override IOperation VisitNoPiaObjectCreation(INoPiaObjectCreationOperation operation, int? argument)
         {
             EvalStackFrame frame = PushStackFrame();
@@ -6094,7 +5891,7 @@ oneMoreTime:
                             // We do not pass an instance here, as the instance is not yet available. For arguments that need the instance (such as interpolated
                             // string handlers), they will handle the missing instance by substituting an IInvalidOperation
 
-                            VisitAndPushArgumentsWithVisitedInstance(((IPropertyReferenceOperation)memberReference).Arguments, visitedInstance: null);
+                            VisitAndPushArguments(((IPropertyReferenceOperation)memberReference).Arguments, instancePushed: false);
                             SpillEvalStack();
                         }
 
@@ -6389,8 +6186,8 @@ oneMoreTime:
                     }
 
                 case InstanceReferenceKind.InterpolatedStringHandler:
-                    Debug.Assert(_currentInterpolatedStringHandlerId != -1);
-                    return new FlowCaptureReferenceOperation(_currentInterpolatedStringHandlerId, operation.Syntax, operation.Type, operation.GetConstantValue());
+                    AssertContainingContextIsForThisCreation(operation, _currentInterpolatedStringHandlerContext);
+                    return new FlowCaptureReferenceOperation(_currentInterpolatedStringHandlerContext.HandlerPlaceholder, operation.Syntax, operation.Type, operation.GetConstantValue());
 
                 default:
                     return new InstanceReferenceOperation(operation.ReferenceKind, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
@@ -6567,8 +6364,6 @@ oneMoreTime:
             SpillEvalStack();
             RegionBuilder resultRegion = CurrentRegionRequired;
             var handlerCaptureId = captureIdForResult ?? GetNextCaptureId(resultRegion);
-            var previousHandlerId = _currentInterpolatedStringHandlerId;
-            _currentInterpolatedStringHandlerId = handlerCaptureId;
 
             var constructorRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime);
             EnterRegion(constructorRegion);
@@ -6593,18 +6388,21 @@ oneMoreTime:
 
                 for (int i = arguments.Length - 1; i > 1; i--)
                 {
-                    if (arguments[i].ArgumentKind == ArgumentKind.Explicit)
+                    if (arguments[i] is { Value: IInterpolatedStringHandlerArgumentPlaceholderOperation { PlaceholderKind: InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument } } arg)
                     {
-                        outParameterArgument = arguments[i];
+                        outParameterArgument = arg;
                         break;
                     }
                 }
 
                 Debug.Assert(outParameterArgument is { Parameter: { RefKind: RefKind.Out, Type.SpecialType: SpecialType.System_Boolean } });
                 outParameterPlaceholder = outParameterArgument.Value;
-                Debug.Assert(outParameterPlaceholder is IInterpolatedStringHandlerArgumentPlaceholderOperation { PlaceholderKind: InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument });
-                AddPlaceholder(outParameterPlaceholder, new FlowCaptureReferenceOperation(outParameterFlowCapture, outParameterPlaceholder.Syntax, outParameterPlaceholder.Type, constantValue: null, isInitialization: true));
             }
+
+            var previousHandlerContext = _currentInterpolatedStringHandlerContext;
+            _currentInterpolatedStringHandlerContext = _currentInterpolatedStringHandlerContext.IsCreationAllowed(operation)
+                ? _currentInterpolatedStringHandlerContext with { OutPlaceholder = outParameterFlowCapture, SingleAllowedCreation = operation, HandlerPlaceholder = handlerCaptureId }
+                : new InterpolatedStringHandlerContext(operation, outParameterFlowCapture, handlerCaptureId);
 
             VisitAndCapture(operation.HandlerCreation, handlerCaptureId);
 
@@ -6616,22 +6414,13 @@ oneMoreTime:
                 Debug.Assert(outParameterFlowCapture != -1);
 
                 // if (!outParameterFlowCapture) goto resultBlock;
-                ConditionalBranch(new FlowCaptureReferenceOperation(outParameterFlowCapture, outParameterPlaceholder.Syntax, outParameterPlaceholder.Type, constantValue: null), jumpIfTrue: false, resultBlock);
                 // else goto next block;
-                LeaveRegionsUpTo(resultRegion);
-                AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block), linkToPrevious: true);
-            }
-            else
-            {
-                LeaveRegionsUpTo(resultRegion);
+                ConditionalBranch(new FlowCaptureReferenceOperation(outParameterFlowCapture, outParameterPlaceholder.Syntax, outParameterPlaceholder.Type, constantValue: null), jumpIfTrue: false, resultBlock);
+                _currentBasicBlock = null;
             }
 
-            if (operation.HandlerCreationHasSuccessParameter)
-            {
-                RemovePlaceholder(outParameterPlaceholder!);
-            }
-
-            var appendCalls = collectAppendCalls(operation);
+            LeaveRegionsUpTo(resultRegion);
+            ImmutableArray<IInterpolatedStringAppendOperation> appendCalls = collectAppendCalls(operation);
 
             int appendCallsLength = appendCalls.Length;
             for (var i = 0; i < appendCallsLength; i++)
@@ -6643,18 +6432,19 @@ oneMoreTime:
                 {
                     Debug.Assert(resultBlock != null);
 
+                    IOperation visitedAppendCall = VisitRequired(appendCall.AppendCall);
                     if (i == appendCallsLength - 1)
                     {
                         // No matter the result, we're going to the result block next. So just visit the statement, and if the current block can be
                         // combined with the result block, the compaction machinery will take care of it
-                        VisitStatement(appendCall.AppendCall);
-                        AppendNewBlock(resultBlock, linkToPrevious: true);
+                        AddStatement(visitedAppendCall);
+                        _currentBasicBlock = null;
                     }
                     else
                     {
                         // if (!appendCall()) goto result else goto next block
-                        ConditionalBranch(VisitRequired(appendCall.AppendCall), jumpIfTrue: false, resultBlock);
-                        AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block), linkToPrevious: true);
+                        ConditionalBranch(visitedAppendCall, jumpIfTrue: false, resultBlock);
+                        _currentBasicBlock = null;
                     }
                 }
                 else
@@ -6664,20 +6454,19 @@ oneMoreTime:
                     if (i == appendCallsLength - 1 && operation.HandlerCreationHasSuccessParameter)
                     {
                         Debug.Assert(resultBlock != null);
-                        AppendNewBlock(resultBlock, linkToPrevious: true);
+                        _currentBasicBlock = null;
                     }
                 }
                 LeaveRegionsUpTo(appendRegion);
                 LeaveRegion();
             }
 
-            if (appendCallsLength == 0 && operation.HandlerCreationHasSuccessParameter)
+            if (resultBlock != null)
             {
-                Debug.Assert(resultBlock != null);
                 AppendNewBlock(resultBlock, linkToPrevious: true);
             }
 
-            _currentInterpolatedStringHandlerId = previousHandlerId;
+            _currentInterpolatedStringHandlerContext = previousHandlerContext;
             return new FlowCaptureReferenceOperation(handlerCaptureId, operation.Syntax, operation.Type, operation.GetConstantValue());
 
             static ImmutableArray<IInterpolatedStringAppendOperation> collectAppendCalls(IInterpolatedStringHandlerCreationOperation creation)
@@ -6693,7 +6482,7 @@ oneMoreTime:
                 var stack = ArrayBuilder<IInterpolatedStringAdditionOperation>.GetInstance();
                 pushLeftNodes((IInterpolatedStringAdditionOperation)creation.Content, stack);
 
-                while (stack.TryPop(out var currentAddition))
+                while (stack.TryPop(out IInterpolatedStringAdditionOperation? currentAddition))
                 {
                     switch (currentAddition.Left)
                     {
@@ -6733,11 +6522,11 @@ oneMoreTime:
                 static void pushLeftNodes(IInterpolatedStringAdditionOperation addition, ArrayBuilder<IInterpolatedStringAdditionOperation> stack)
                 {
                     IInterpolatedStringAdditionOperation? current = addition;
-                    while (current != null)
+                    do
                     {
                         stack.Push(current);
                         current = current.Left as IInterpolatedStringAdditionOperation;
-                    }
+                    } while (current != null);
                 }
             }
         }
@@ -6754,14 +6543,88 @@ oneMoreTime:
 
         public override IOperation? VisitInterpolatedStringHandlerArgumentPlaceholder(IInterpolatedStringHandlerArgumentPlaceholderOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_placeholderDictionary != null);
-            return operation.PlaceholderKind switch
+            AssertContainingContextIsForThisCreation(operation, _currentInterpolatedStringHandlerContext);
+            switch (operation.PlaceholderKind)
             {
-                InterpolatedStringArgumentPlaceholderKind.CallsiteArgument or InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver =>
-                    OperationCloner.CloneOperation(GetPlaceholder(operation)),
-                InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument => GetPlaceholder(operation),
-                _ => throw ExceptionUtilities.UnexpectedValue(operation.PlaceholderKind)
-            };
+                case InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument:
+                    if (_currentInterpolatedStringHandlerContext.OutPlaceholder == -1)
+                    {
+                        throw ExceptionUtilities.Unreachable;
+                    }
+
+                    return new FlowCaptureReferenceOperation(_currentInterpolatedStringHandlerContext.OutPlaceholder, operation.Syntax, operation.Type, operation.GetConstantValue(), isInitialization: true);
+
+                case InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver:
+                    if (_currentInterpolatedStringHandlerContext.HasReceiver && tryGetArgumentOrReceiver(-1) is IOperation receiverCapture)
+                    {
+                        Debug.Assert(receiverCapture is IFlowCaptureReferenceOperation);
+                        return OperationCloner.CloneOperation(receiverCapture);
+                    }
+                    else
+                    {
+                        return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), isImplicit: true);
+                    }
+
+                case InterpolatedStringArgumentPlaceholderKind.CallsiteArgument:
+                    if (tryGetArgumentOrReceiver(operation.ArgumentIndex) is IOperation argumentCapture)
+                    {
+                        Debug.Assert(argumentCapture is IFlowCaptureReferenceOperation or IDiscardOperation);
+                        return OperationCloner.CloneOperation(argumentCapture);
+                    }
+                    else
+                    {
+                        return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), isImplicit: true);
+                    }
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(operation.PlaceholderKind);
+            }
+
+            IOperation? tryGetArgumentOrReceiver(int argumentIndex)
+            {
+                int startingStackDepth = _currentInterpolatedStringHandlerContext.StartingStackDepth;
+                if (startingStackDepth >= _evalStack.Count)
+                {
+                    return null;
+                }
+
+                if (argumentIndex == -1)
+                {
+                    Debug.Assert(_currentInterpolatedStringHandlerContext.HasReceiver);
+
+                    // The receiver is always directly at the starting stack depth: there is no additional frame pushed on at
+                    // that point we need to be concerned with.
+
+                    IOperation? operation = _evalStack[startingStackDepth].operationOpt;
+                    Debug.Assert(operation != null);
+                    return operation;
+                }
+
+                // We need to walk forward until we hit a stack frame. If we hit a stack frame, then we're out of the allowable context
+                // for the current method (meaning that the argument is missing), and we've hit the handler constructor arguments themselves.
+                int operationsSeen = 0;
+                for (int currentStackDepth = startingStackDepth + (_currentInterpolatedStringHandlerContext.HasReceiver ? 1 : 0);
+                     currentStackDepth < _evalStack.Count && operationsSeen <= argumentIndex;
+                     currentStackDepth++)
+                {
+                    if (_evalStack[currentStackDepth].operationOpt is IOperation operation)
+                    {
+                        if (operationsSeen == argumentIndex)
+                        {
+                            return operation;
+                        }
+
+                        operationsSeen++;
+                    }
+                    else
+                    {
+                        Debug.Assert(_evalStack[currentStackDepth].frameOpt != null);
+                        return null;
+                    }
+                }
+
+                return null;
+            }
         }
 
         public override IOperation VisitInterpolatedString(IInterpolatedStringOperation operation, int? captureIdForResult)
