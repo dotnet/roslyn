@@ -314,10 +314,13 @@ namespace Microsoft.CodeAnalysis.Operations
                                 break;
                         }
                     }
-
                     ImmutableArray<IOperation> children = GetIOperationChildren(boundNode);
-                    return new NoneOperation(children, _semanticModel, boundNode.Syntax, type: null, constantValue, isImplicit: isImplicit);
-
+                    ITypeSymbol? type = boundNode switch
+                    {
+                        BoundExpression boundExpr => boundExpr.GetPublicTypeSymbol(),
+                        _ => null
+                    };
+                    return new NoneOperation(children, _semanticModel, boundNode.Syntax, type: type, constantValue, isImplicit: isImplicit);
                 default:
                     // If you're hitting this because the IOperation test hook has failed, see
                     // <roslyn-root>/docs/Compilers/IOperation Test Hook.md for instructions on how to fix.
@@ -453,16 +456,16 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol? type = boundFunctionPointerInvocation.GetPublicTypeSymbol();
             SyntaxNode syntax = boundFunctionPointerInvocation.Syntax;
             bool isImplicit = boundFunctionPointerInvocation.WasCompilerGenerated;
-            ImmutableArray<IOperation> children;
 
             if (boundFunctionPointerInvocation.ResultKind != LookupResultKind.Viable)
             {
-                children = CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundFunctionPointerInvocation).InvalidNodeChildren);
+                ImmutableArray<IOperation> children = CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundFunctionPointerInvocation).InvalidNodeChildren);
                 return new InvalidOperation(children, _semanticModel, syntax, type, constantValue: null, isImplicit);
             }
 
-            children = GetIOperationChildren(boundFunctionPointerInvocation);
-            return new NoneOperation(children, _semanticModel, syntax, type, constantValue: null, isImplicit);
+            var pointer = Create(boundFunctionPointerInvocation.InvokedExpression);
+            var arguments = DeriveArguments(boundFunctionPointerInvocation);
+            return new FunctionPointerInvocationOperation(pointer, arguments, _semanticModel, syntax, type, isImplicit);
         }
 
         private IOperation CreateBoundUnconvertedAddressOfOperatorOperation(BoundUnconvertedAddressOfOperator boundUnconvertedAddressOf)

@@ -267,5 +267,7 @@ namespace Microsoft.CodeAnalysis
         InterpolatedStringAppendInvalid = 0x76,
         /// <summary>Indicates an <see cref="IInterpolatedStringHandlerArgumentPlaceholderOperation"/>.</summary>
         InterpolatedStringHandlerArgumentPlaceholder = 0x77,
+        /// <summary>Indicates an <see cref="IFunctionPointerInvocationOperation"/>.</summary>
+        FunctionPointerInvocation = 0x78,
     }
 }

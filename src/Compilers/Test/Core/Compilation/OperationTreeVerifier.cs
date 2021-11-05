@@ -97,7 +97,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             // Type
             LogString(", ");
-            LogType(operation.Type);
+            if (operation.Language == LanguageNames.CSharp && operation is NoneOperation)
+            {
+                //TODO: this should be removed!
+                //We need to update the tests to allow Types on NoneOperations
+                //(see: https://github.com/dotnet/roslyn/issues/57531)
+                LogType(null);
+            }
+            else
+            {
+                LogType(operation.Type);
+            }
 
             // ConstantValue
             if (operation.ConstantValue.HasValue)
@@ -821,6 +831,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             VisitInstance(operation.Instance);
+            VisitArguments(operation.Arguments);
+        }
+
+        public override void VisitFunctionPointerInvocation(IFunctionPointerInvocationOperation operation)
+        {
+            LogString(nameof(IFunctionPointerInvocationOperation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Target, "Target");
             VisitArguments(operation.Arguments);
         }
 
