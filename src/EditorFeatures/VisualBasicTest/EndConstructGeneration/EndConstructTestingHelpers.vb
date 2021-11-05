@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
@@ -26,11 +27,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
             Return mock.Object
         End Function
 
-        Private Sub DisableLineCommit(workspace As Workspace)
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                .WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)))
-        End Sub
-
         Private Sub VerifyTypedCharApplied(doFunc As Func(Of VisualBasicEndConstructService, ITextView, ITextBuffer, Boolean),
                                            before As String,
                                            after As String,
@@ -39,7 +35,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
             Dim caretPos = before.IndexOf("$$", StringComparison.Ordinal)
             Dim beforeText = before.Replace("$$", "")
             Using workspace = TestWorkspace.CreateVisualBasic(beforeText, composition:=EditorTestCompositions.EditorFeatures)
-                DisableLineCommit(workspace)
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
+                globalOptions.SetGlobalOption(New OptionKey(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic), False)
 
                 Dim view = workspace.Documents.First().GetTextView()
                 view.Caret.MoveTo(New SnapshotPoint(view.TextSnapshot, caretPos))
@@ -68,7 +65,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                                   after As String,
                                   afterCaret As Integer())
             Using workspace = TestWorkspace.CreateVisualBasic(before, composition:=EditorTestCompositions.EditorFeatures)
-                DisableLineCommit(workspace)
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
+                globalOptions.SetGlobalOption(New OptionKey(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic), False)
 
                 Dim textView = workspace.Documents.First().GetTextView()
                 Dim subjectBuffer = workspace.Documents.First().GetTextBuffer()
@@ -211,7 +209,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 
             ' create separate composition
             Using workspace = TestWorkspace.CreateVisualBasic(before, composition:=EditorTestCompositions.EditorFeatures)
-                DisableLineCommit(workspace)
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
+                globalOptions.SetGlobalOption(New OptionKey(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic), False)
 
                 Dim view = workspace.Documents.First().GetTextView()
                 Dim line = view.TextSnapshot.GetLineFromLineNumber(beforeCaret(0))
@@ -221,10 +220,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                     view.Caret.MoveTo(New SnapshotPoint(view.TextSnapshot, line.Start + beforeCaret(1)))
                 End If
 
-                Dim factory = workspace.ExportProvider.GetExportedValue(Of IEditorOperationsFactoryService)()
+                Dim factory = workspace.GetService(Of IEditorOperationsFactoryService)()
                 Dim endConstructor = New EndConstructCommandHandler(
-                                    factory,
-                                    workspace.ExportProvider.GetExportedValue(Of ITextUndoHistoryRegistry)())
+                    factory,
+                    workspace.GetService(Of ITextUndoHistoryRegistry),
+                    globalOptions)
 
                 Dim operations = factory.GetEditorOperations(view)
                 endConstructor.ExecuteCommand_ReturnKeyCommandHandler(New ReturnKeyCommandArgs(view, view.TextBuffer), Sub() operations.InsertNewLine(), TestCommandExecutionContext.Create())

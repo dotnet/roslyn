@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public OptionSet ToSet(string language)
             => WithChangedOptions(OptionValueSet.Empty, language);
 
-        [ExportOptionProvider, Shared]
+        [ExportSolutionOptionProvider, Shared]
         internal sealed class Metadata : IOptionProvider
         {
             [ImportingConstructor]

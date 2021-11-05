@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             {
                 serverCapabilities.SemanticTokensOptions = new SemanticTokensOptions
                 {
-                    Full = true,
+                    Full = new SemanticTokensFullOptions { Delta = true },
                     Range = true,
                     Legend = new SemanticTokensLegend
                     {
