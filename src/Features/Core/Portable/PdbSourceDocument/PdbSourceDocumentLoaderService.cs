@@ -36,19 +36,9 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // Otherwise, check the easiest (but most unlikely) case which is the document exists on the disk
             if (File.Exists(sourceDocument.FilePath))
             {
-                using var fileStream = IOUtilities.PerformIO(() => new FileStream(sourceDocument.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete));
-                if (fileStream is not null)
-                {
-                    // TODO: Don't hard code UTF8: https://github.com/dotnet/roslyn/issues/57350
-                    var sourceText = SourceText.From(fileStream, Encoding.UTF8, sourceDocument.HashAlgorithm);
-                    var fileChecksum = sourceText.GetChecksum();
-
-                    if (fileChecksum.SequenceEqual(sourceDocument.Checksum))
-                    {
-                        var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default, sourceDocument.FilePath);
-                        return Task.FromResult<TextLoader?>(TextLoader.From(textAndVersion));
-                    }
-                }
+                var textLoader = IOUtilities.PerformIO(() => TryLoadSourceFromDisk(sourceDocument));
+                if (textLoader is not null)
+                    return Task.FromResult<TextLoader?>(textLoader);
             }
 
             // TODO: Call the debugger to download the file
@@ -56,6 +46,25 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // or maybe they'll return a stream, in which case we could create a new StreamTextLoader
 
             return Task.FromResult<TextLoader?>(null);
+        }
+
+        private static TextLoader? TryLoadSourceFromDisk(SourceDocument sourceDocument)
+        {
+            using var fileStream = new FileStream(sourceDocument.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+            if (fileStream is null)
+                return null;
+
+            // TODO: Don't hard code UTF8: https://github.com/dotnet/roslyn/issues/57350
+            var sourceText = SourceText.From(fileStream, Encoding.UTF8, sourceDocument.HashAlgorithm);
+            var fileChecksum = sourceText.GetChecksum();
+
+            if (fileChecksum.SequenceEqual(sourceDocument.Checksum))
+            {
+                var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default, sourceDocument.FilePath);
+                return TextLoader.From(textAndVersion);
+            }
+
+            return null;
         }
     }
 }
