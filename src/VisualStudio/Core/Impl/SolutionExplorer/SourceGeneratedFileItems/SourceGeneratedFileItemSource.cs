@@ -248,7 +248,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                         cancellationToken.ThrowIfCancellationRequested();
 
                         return UpdateSourceGeneratedFileItemsAsync(_workspace.CurrentSolution, cancellationToken);
-                    }, cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default).CompletesAsyncOperation(asyncToken);
+                    }, cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default).Unwrap().CompletesAsyncOperation(asyncToken);
                 }
             }
         }
