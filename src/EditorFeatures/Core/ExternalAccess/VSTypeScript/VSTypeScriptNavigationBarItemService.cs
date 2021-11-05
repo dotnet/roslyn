@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             Document document, NavigationBarItem item, ITextView view, ITextVersion textVersion, CancellationToken cancellationToken)
         {
             // Spans.First() is safe here as we filtered out any items with no spans above in ConvertItems.
-            var navigationSpan = item.GetCurrentNavigationSpan(textVersion, item.Spans.First());
+            var navigationSpan = item.GetCurrenItemSpan(textVersion, item.Spans.First());
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var workspace = document.Project.Solution.Workspace;

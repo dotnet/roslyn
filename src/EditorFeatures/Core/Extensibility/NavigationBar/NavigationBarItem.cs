@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor
 
     internal static class NavigationBarItemExtensions
     {
-        public static TextSpan GetCurrentNavigationSpan(this NavigationBarItem item, ITextVersion toVersion, TextSpan span)
+        public static TextSpan GetCurrenItemSpan(this NavigationBarItem item, ITextVersion toVersion, TextSpan span)
         {
             Contract.ThrowIfNull(item.TextVersion, "This should only be called for locations the caller knows to be in the open file");
             return item.TextVersion.CreateTrackingSpan(span.ToSpan(), SpanTrackingMode.EdgeExclusive)

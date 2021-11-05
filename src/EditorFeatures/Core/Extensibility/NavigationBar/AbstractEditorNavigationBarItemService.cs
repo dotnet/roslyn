@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             {
                 // If the item points to a location in this document, then just determine the where that span currently
                 // is (in case recent edits have moved it) and navigate there.
-                var navigationSpan = item.GetCurrentNavigationSpan(textVersion, symbolItem.Location.InDocumentInfo.Value.navigationSpan);
+                var navigationSpan = item.GetCurrenItemSpan(textVersion, symbolItem.Location.InDocumentInfo.Value.navigationSpan);
                 return Task.FromResult((document.Id, navigationSpan.Start, 0));
             }
             else
