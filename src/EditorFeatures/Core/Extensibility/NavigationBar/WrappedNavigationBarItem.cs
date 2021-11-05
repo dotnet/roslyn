@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor
                   textVersion,
                   underlyingItem.Text,
                   underlyingItem.Glyph,
-                  GetInDocumentSpans(underlyingItem),
+                  GetSpans(underlyingItem),
                   underlyingItem.ChildItems.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(textVersion, v)),
                   underlyingItem.Indent,
                   underlyingItem.Bolded,
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor
             UnderlyingItem = underlyingItem;
         }
 
-        private static ImmutableArray<TextSpan> GetInDocumentSpans(RoslynNavigationBarItem underlyingItem)
+        private static ImmutableArray<TextSpan> GetSpans(RoslynNavigationBarItem underlyingItem)
         {
             return underlyingItem switch
             {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor
                 // An actionless item represents something that exists just to show a child-list, but should otherwise
                 // not navigate or cause anything to be generated.  However, we still want to automatically select it whenever
                 // the user puts their caret in any of the spans of its child items in this file.
-                RoslynNavigationBarItem.ActionlessItem actionless => actionless.ChildItems.SelectMany(i => GetInDocumentSpans(i)).OrderBy(s => s.Start).Distinct().ToImmutableArray(),
+                RoslynNavigationBarItem.ActionlessItem actionless => actionless.ChildItems.SelectMany(i => GetSpans(i)).OrderBy(s => s.Start).Distinct().ToImmutableArray(),
                 _ => ImmutableArray<TextSpan>.Empty,
             };
         }
