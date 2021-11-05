@@ -265,7 +265,6 @@ if (analyzerConfigurationFileDir.Length > 0 && Directory.Exists(analyzerConfigur
     }
 }
 
-result.AppendLine(FileElement(Path.Combine(assetsDir, "EULA.rtf"), ""));
 result.AppendLine(FileElement(Path.Combine(assetsDir, "ThirdPartyNotices.rtf"), ""));
 result.AppendLine(@"  </files>");
 

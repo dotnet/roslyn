@@ -50,13 +50,11 @@ namespace Microsoft.CodeAnalysis.Analyzers
                 // CodeAnalysis.dll itself has this attribute and if the user assembly also had it, symbol equality will fail
                 // but we should still issue the error.
                 if (attributes.Any(a => a.AttributeClass.Name.Equals(InternalImplementationOnlyAttributeName, StringComparison.Ordinal)
-                                        && a.AttributeClass.ToDisplayString().Equals(InternalImplementationOnlyAttributeFullName, StringComparison.Ordinal)))
+                                        && a.AttributeClass.ToDisplayString().Equals(InternalImplementationOnlyAttributeFullName, StringComparison.Ordinal)) &&
+                    !iface.ContainingAssembly.GivesAccessTo(namedTypeSymbol.ContainingAssembly))
                 {
-                    if (!iface.ContainingAssembly.GivesAccessTo(namedTypeSymbol.ContainingAssembly))
-                    {
-                        context.ReportDiagnostic(namedTypeSymbol.CreateDiagnostic(Rule, namedTypeSymbol.Name, iface.Name));
-                        break;
-                    }
+                    context.ReportDiagnostic(namedTypeSymbol.CreateDiagnostic(Rule, namedTypeSymbol.Name, iface.Name));
+                    break;
                 }
             }
         }

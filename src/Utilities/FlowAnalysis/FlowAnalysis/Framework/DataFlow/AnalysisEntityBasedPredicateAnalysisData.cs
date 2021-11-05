@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             : base(data1, data2, data1.CoreAnalysisData,
                   data2.CoreAnalysisData, data1.IsReachableBlockData, coreDataAnalysisDomain)
         {
-            Debug.Assert(data1.IsReachableBlockData == data1.IsReachableBlockData);
+            Debug.Assert(data1.IsReachableBlockData == data2.IsReachableBlockData);
 
             CoreAnalysisData = coreDataAnalysisDomain.Merge(data1.CoreAnalysisData, data2.CoreAnalysisData);
         }

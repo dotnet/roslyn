@@ -171,12 +171,10 @@ namespace Analyzer.Utilities
         private static Document? GetReportedDocument(Diagnostic diagnostic, ImmutableDictionary<SyntaxTree, Document> treeToDocumentsMap)
         {
             var tree = diagnostic.Location.SourceTree;
-            if (tree != null)
+            if (tree != null &&
+                treeToDocumentsMap.TryGetValue(tree, out var document))
             {
-                if (treeToDocumentsMap.TryGetValue(tree, out var document))
-                {
-                    return document;
-                }
+                return document;
             }
 
             return null;

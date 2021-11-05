@@ -249,13 +249,10 @@ namespace Analyzer.Utilities.Extensions
                     {
                         attributes.Add(attribute);
                     }
-                    else if (!onlyIncludeInherited)
+                    else if (!onlyIncludeInherited &&
+                        (attribute.AttributeClass.Inherits(exportAttributeV1) || attribute.AttributeClass.Inherits(exportAttributeV2)))
                     {
-                        if (attribute.AttributeClass.Inherits(exportAttributeV1)
-                            || attribute.AttributeClass.Inherits(exportAttributeV2))
-                        {
-                            attributes.Add(attribute);
-                        }
+                        attributes.Add(attribute);
                     }
                 }
 

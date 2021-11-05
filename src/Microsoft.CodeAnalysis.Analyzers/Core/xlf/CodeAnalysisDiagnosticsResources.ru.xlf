@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyCodeFix">
         <source>Use a 'SymbolEqualityComparer' for symbol comparison</source>
-        <target state="needs-review-translation">Сравнивайте символы правильно</target>
+        <target state="translated">Используйте "SymbolEqualityComparer" для сравнения символов</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyDescription">
@@ -34,12 +34,12 @@
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyMessage">
         <source>Use 'SymbolEqualityComparer' when comparing symbols</source>
-        <target state="needs-review-translation">Сравнивайте символы правильно</target>
+        <target state="translated">Используйте "SymbolEqualityComparer" при сравнении символов</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyTitle">
         <source>Symbols should be compared for equality</source>
-        <target state="needs-review-translation">Сравнивайте символы правильно</target>
+        <target state="translated">Символы следует сравнивать на равенство</target>
         <note />
       </trans-unit>
       <trans-unit id="ConfigureGeneratedCodeAnalysisFix">
@@ -557,7 +557,7 @@
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderDescription">
         <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md for further details.</source>
-        <target state="translated">CodeFixProvider должен предоставлять поддержку FixAll, чтобы пользователи могли исправить несколько экземпляров базовых диагностических данных с помощью одного исправления кода. Дополнительные сведения см. в документации по адресу https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md.</target>
+        <target state="translated">CodeFixProvider должен предоставлять поддержку FixAll, чтобы пользователи могли исправить несколько экземпляров базовых диагностических данных с помощью одного исправления кода. Дополнительные сведения см. в документации по адресу https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md for further details.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderCodeFixTitle">

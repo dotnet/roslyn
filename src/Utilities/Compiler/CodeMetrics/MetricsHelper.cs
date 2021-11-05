@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         internal static int GetAverageRoundedMetricValue(int total, int childrenCount)
         {
             Debug.Assert(childrenCount != 0);
-            return RoundMetricValue(total / childrenCount);
+            return RoundMetricValue((double)total / childrenCount);
         }
 
         private static int RoundMetricValue(double value) => (int)Math.Round(value, 0);
