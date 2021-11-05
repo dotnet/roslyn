@@ -89,6 +89,14 @@ stages:
       inputs:
         nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk
 
+    # Needed because the build fails the NuGet Tools restore without it
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core sdk'
+      inputs:
+        packageType: sdk
+        useGlobalJson: true
+        workingDirectory: '$(Build.SourcesDirectory)'
+
     # Needed to restore the Microsoft.DevDiv.Optimization.Data.PowerShell package
     - task: NuGetCommand@2
       displayName: Restore internal tools
