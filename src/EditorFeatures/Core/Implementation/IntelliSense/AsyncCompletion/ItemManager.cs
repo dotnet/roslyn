@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly RecentItemsManager _recentItemsManager;
         private readonly IGlobalOptionService _globalOptions;
 
+        private const string AggressiveDefaultsMatchingOptionName = "AggressiveDefaultsMatchingOption";
+
         /// <summary>
         /// For telemetry.
         /// </summary>
@@ -234,6 +236,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 var updatedFilters = showCompletionItemFilters
                     ? GetUpdatedFilters(initialListOfItemsToBeIncluded, data.SelectedFilters)
                     : ImmutableArray<CompletionFilterWithState>.Empty;
+
+                var useAggressiveDefaultsMatching = session.TextView.Options.GetOptionValue<bool>(AggressiveDefaultsMatchingOptionName);
 
                 // If this was deletion, then we control the entire behavior of deletion ourselves.
                 if (initialRoslynTriggerKind == CompletionTriggerKind.Deletion)
@@ -758,6 +762,91 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return char.IsLetter(c)
                 || char.IsNumber(c)
                 || c == '_';
+        }
+
+        private static (int index, bool forceHardSelection) GetDefaultsMatch(
+            string filterText,
+            ImmutableArray<(RoslynCompletionItem item, PatternMatch? patterMatch)> itemsWithMatch,
+            int selectedIndex,
+            ImmutableArray<string> defaults,
+            bool aggressive)
+        {
+            // We only preselect when we are very confident with the selection, so don't override it.
+            if (defaults.IsDefaultOrEmpty || itemsWithMatch[selectedIndex].item.Rules.MatchPriority >= MatchPriority.Preselect)
+                return (selectedIndex, false);
+
+            if (aggressive)
+            {
+                foreach (var defaultText in defaults)
+                {
+                    for (var itemIndex = 0; (itemIndex < itemsWithMatch.Length); ++itemIndex)
+                    {
+                        var (item, patternMatch) = itemsWithMatch[itemIndex];
+                        if (item.FilterText == defaultText)
+                        {
+                            if (patternMatch == null || patternMatch.Value.Kind <= PatternMatchKind.Prefix)
+                                return (itemIndex, true);
+
+                            break;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                int similarItemsStart;
+                int dissimilarItemIndex;
+
+                if (filterText.Length == 0)
+                {
+                    // If there is no applicableToSpan, then all items are equally similar.
+                    similarItemsStart = 0;
+                    dissimilarItemIndex = itemsWithMatch.Length;
+                }
+                else
+                {
+                    // Assume that the selectedIndex is in the middle of a range of -- as far as the pattern matcher is concerned --
+                    // equivalent items. Find the first & last items in the range and use that to limit the items searched for from
+                    // the defaults list.                    
+                    var (_, selectedItemMatch) = itemsWithMatch[selectedIndex];
+                    if (!selectedItemMatch.HasValue)
+                        return (selectedIndex, false);
+
+                    similarItemsStart = selectedIndex;
+                    while (--similarItemsStart >= 0)
+                    {
+                        var (_, itemMatch) = itemsWithMatch[similarItemsStart];
+                        if ((!itemMatch.HasValue) || itemMatch.Value.CompareTo(selectedItemMatch.Value) > 0)
+                            break;
+                    }
+
+                    similarItemsStart++;
+
+                    dissimilarItemIndex = selectedIndex;
+                    while (++dissimilarItemIndex < itemsWithMatch.Length)
+                    {
+                        var (_, itemMatch) = itemsWithMatch[dissimilarItemIndex];
+                        if ((!itemMatch.HasValue) || itemMatch.Value.CompareTo(selectedItemMatch.Value) > 0)
+                            break;
+                    }
+                }
+
+                if (dissimilarItemIndex > selectedIndex + 1)
+                {
+                    foreach (var defaultText in defaults)
+                    {
+                        for (var itemIndex = similarItemsStart; (itemIndex < dissimilarItemIndex); ++itemIndex)
+                        {
+                            if (itemsWithMatch[itemIndex].item.FilterText == defaultText)
+                            {
+                                return (itemIndex, false);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return (selectedIndex, false);
         }
     }
 }
