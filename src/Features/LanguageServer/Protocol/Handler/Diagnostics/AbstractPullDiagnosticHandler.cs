@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected const int WorkspaceDiagnosticIdentifier = 1;
         protected const int DocumentDiagnosticIdentifier = 2;
 
+        private readonly WellKnownLspServerKinds _serverKind;
+
         protected readonly IDiagnosticService DiagnosticService;
 
         /// <summary>
@@ -78,8 +80,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         public bool RequiresLSPSolution => true;
 
         protected AbstractPullDiagnosticHandler(
+            WellKnownLspServerKinds serverKind,
             IDiagnosticService diagnosticService)
         {
+            _serverKind = serverKind;
             DiagnosticService = diagnosticService;
         }
 
@@ -214,13 +218,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             string resultId,
             CancellationToken cancellationToken)
         {
-            // Being asked about this document for the first time.  Or being asked again and we have different
-            // diagnostics.  Compute and report the current diagnostics info for this document.
-
-            // Razor has a separate option for determining if they should be in push or pull mode.
-            var diagnosticMode = document.IsRazorDocument()
-                ? InternalDiagnosticsOptions.RazorDiagnosticMode
-                : InternalDiagnosticsOptions.NormalDiagnosticMode;
+            var diagnosticMode = _serverKind switch
+            {
+                WellKnownLspServerKinds.LiveShareLspServer => InternalDiagnosticsOptions.LiveShareDiagnosticMode,
+                WellKnownLspServerKinds.RazorLspServer => InternalDiagnosticsOptions.RazorDiagnosticMode,
+                _ => InternalDiagnosticsOptions.NormalDiagnosticMode,
+            };
 
             var isPull = context.GlobalOptions.IsPullDiagnostics(diagnosticMode);
 

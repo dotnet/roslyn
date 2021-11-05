@@ -14,8 +14,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     [Export(typeof(ILanguageServerFactory)), Shared]
     internal class CSharpVisualBasicLanguageServerFactory : ILanguageServerFactory
     {
-        public const string UserVisibleName = "Roslyn Language Server Client";
-
         private readonly RequestDispatcherFactory _dispatcherFactory;
         private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
@@ -53,8 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 logger,
                 ProtocolConstants.RoslynLspLanguages,
                 clientName: null,
-                userVisibleServerName: UserVisibleName,
-                telemetryServerTypeName: this.GetType().Name);
+                WellKnownLspServerKinds.CSharpVisualBasicLspServer);
         }
     }
 }

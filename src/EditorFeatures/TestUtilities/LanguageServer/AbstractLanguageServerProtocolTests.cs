@@ -396,7 +396,7 @@ namespace Roslyn.Test.Utilities
         private static RequestDispatcher CreateRequestDispatcher(TestWorkspace workspace)
         {
             var factory = workspace.ExportProvider.GetExportedValue<RequestDispatcherFactory>();
-            return factory.CreateRequestDispatcher(ProtocolConstants.RoslynLspLanguages);
+            return factory.CreateRequestDispatcher(ProtocolConstants.RoslynLspLanguages, WellKnownLspServerKinds.AlwaysActiveLspServer);
         }
 
         private static RequestExecutionQueue CreateRequestQueue(TestWorkspace workspace)
@@ -404,7 +404,7 @@ namespace Roslyn.Test.Utilities
             var registrationService = workspace.GetService<LspWorkspaceRegistrationService>();
             var globalOptions = workspace.GetService<IGlobalOptionService>();
             var lspMiscFilesWorkspace = new LspMiscellaneousFilesWorkspace(NoOpLspLogger.Instance);
-            return new RequestExecutionQueue(NoOpLspLogger.Instance, registrationService, lspMiscFilesWorkspace, globalOptions, ProtocolConstants.RoslynLspLanguages, serverName: "Tests", "TestClient");
+            return new RequestExecutionQueue(NoOpLspLogger.Instance, registrationService, lspMiscFilesWorkspace, globalOptions, ProtocolConstants.RoslynLspLanguages, WellKnownLspServerKinds.AlwaysActiveLspServer);
         }
 
         private static string GetDocumentFilePathFromName(string documentName)

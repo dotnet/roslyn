@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         {
         }
 
-        public override ImmutableArray<IRequestHandler> CreateRequestHandlers()
+        public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
         {
             var semanticTokensCache = new SemanticTokensCache();
             return ImmutableArray.Create<IRequestHandler>(

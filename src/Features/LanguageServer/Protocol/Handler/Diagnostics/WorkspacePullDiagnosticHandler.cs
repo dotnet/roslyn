@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     {
         public override string Method => VSInternalMethods.WorkspacePullDiagnosticName;
 
-        public WorkspacePullDiagnosticHandler(IDiagnosticService diagnosticService)
-            : base(diagnosticService)
+        public WorkspacePullDiagnosticHandler(WellKnownLspServerKinds serverKind, IDiagnosticService diagnosticService)
+            : base(serverKind, diagnosticService)
         {
         }
 

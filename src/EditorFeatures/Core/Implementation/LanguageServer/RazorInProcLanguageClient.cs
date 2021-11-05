@@ -43,23 +43,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
         protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
 
-        /// <summary>
-        /// Gets the name of the language client (displayed in yellow bars).
-        /// </summary>
-        public override string Name => "Razor C# Language Server Client";
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RazorInProcLanguageClient(
             RequestDispatcherFactory csharpVBRequestDispatcherFactory,
             IGlobalOptionService globalOptions,
-            IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             DefaultCapabilitiesProvider defaultCapabilitiesProvider,
             IThreadingContext threadingContext,
             ILspLoggerFactory lspLoggerFactory)
-            : base(csharpVBRequestDispatcherFactory, globalOptions, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, ClientName)
+            : base(csharpVBRequestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, ClientName)
         {
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
@@ -73,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
             if (capabilities is VSInternalServerCapabilities vsServerCapabilities)
             {
-                vsServerCapabilities.SupportsDiagnosticRequests = GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.RazorDiagnosticMode);
+                vsServerCapabilities.SupportsDiagnosticRequests = true;
                 return vsServerCapabilities;
             }
 
@@ -84,5 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// If the razor server is activated then any failures are catastrophic as no razor c# features will work.
         /// </summary>
         public override bool ShowNotificationOnInitializeFailed => true;
+
+        public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.RazorLspServer;
     }
 }

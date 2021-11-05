@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </remarks>
     internal partial class RequestExecutionQueue
     {
-        private readonly string _serverName;
+        private readonly WellKnownLspServerKinds _serverKind;
         private readonly ImmutableArray<string> _supportedLanguages;
 
         private readonly AsyncQueue<QueueItem> _queue;
@@ -82,13 +82,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
             IGlobalOptionService globalOptions,
             ImmutableArray<string> supportedLanguages,
-            string serverName,
-            string serverTypeName)
+            WellKnownLspServerKinds serverKind)
         {
             _logger = logger;
             _globalOptions = globalOptions;
             _supportedLanguages = supportedLanguages;
-            _serverName = serverName;
+            _serverKind = serverKind;
 
             _queue = new AsyncQueue<QueueItem>();
             _cancelSource = new CancellationTokenSource();
@@ -97,7 +96,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // differentiate between the different C# LSP servers that have the same client name.
             // We also don't use the language client's name property as it is a localized user facing string
             // which is difficult to write telemetry queries for.
-            _requestTelemetryLogger = new RequestTelemetryLogger(serverTypeName);
+            _requestTelemetryLogger = new RequestTelemetryLogger(_serverKind.ToTelemetryString());
 
             _lspWorkspaceManager = new LspWorkspaceManager(logger, lspMiscellaneousFilesWorkspace, lspWorkspaceRegistrationService, _requestTelemetryLogger);
 
@@ -210,7 +209,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // The queue itself is threadsafe (_queue.TryEnqueue and _queue.Complete use the same lock).
             if (!didEnqueue)
             {
-                completion.SetException(new InvalidOperationException($"{_serverName} was requested to shut down."));
+                completion.SetException(new InvalidOperationException($"{_serverKind.ToUserVisibleString()} was requested to shut down."));
             }
 
             return completion.Task;
@@ -263,7 +262,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // If there was an in progress work item that failed in the queue logic, set the result of the queue item
                 // to the exception so that it bubbles back to the caller.
                 inProgressWorkItem?.HandleQueueFailure(e);
-                OnRequestServerShutdown($"Error occurred processing queue in {_serverName}: {e.Message}.");
+                OnRequestServerShutdown($"Error occurred processing queue in {_serverKind.ToUserVisibleString()}: {e.Message}.");
             }
         }
 

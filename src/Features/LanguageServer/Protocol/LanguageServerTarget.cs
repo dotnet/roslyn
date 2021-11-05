@@ -31,16 +31,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         protected readonly ILspLogger Logger;
         protected readonly string? ClientName;
 
-        /// <summary>
-        /// Server name used when sending error messages to the client.
-        /// </summary>
-        private readonly string _userVisibleServerName;
-
-        /// <summary>
-        /// Server name used when capturing error telemetry.
-        /// </summary>
-        protected readonly string TelemetryServerName;
-
         // Set on first LSP initialize request.
         protected ClientCapabilities? _clientCapabilities;
 
@@ -61,11 +51,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             ILspLogger logger,
             ImmutableArray<string> supportedLanguages,
             string? clientName,
-            string userVisibleServerName,
-            string telemetryServerTypeName)
+            WellKnownLspServerKinds serverKind)
         {
             GlobalOptions = globalOptions;
-            RequestDispatcher = requestDispatcherFactory.CreateRequestDispatcher(supportedLanguages);
+            RequestDispatcher = requestDispatcherFactory.CreateRequestDispatcher(supportedLanguages, serverKind);
 
             _capabilitiesProvider = capabilitiesProvider;
             WorkspaceRegistrationService = workspaceRegistrationService;
@@ -78,10 +67,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             Listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
             ClientName = clientName;
 
-            _userVisibleServerName = userVisibleServerName;
-            TelemetryServerName = telemetryServerTypeName;
-
-            Queue = new RequestExecutionQueue(logger, workspaceRegistrationService, lspMiscellaneousFilesWorkspace, globalOptions, supportedLanguages, userVisibleServerName, TelemetryServerName);
+            Queue = new RequestExecutionQueue(logger, workspaceRegistrationService, lspMiscellaneousFilesWorkspace, globalOptions, supportedLanguages, serverKind);
             Queue.RequestServerShutdown += RequestExecutionQueue_Errored;
         }
 
@@ -132,7 +118,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        protected virtual void ShutdownImpl()
+        protected void ShutdownImpl()
         {
             Contract.ThrowIfTrue(_shuttingDown, "Shutdown has already been called.");
 
