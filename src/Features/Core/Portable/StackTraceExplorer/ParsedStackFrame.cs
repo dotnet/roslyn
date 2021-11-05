@@ -59,6 +59,8 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
 
             foreach (var project in solution.Projects)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var service = project.GetLanguageService<IStackTraceExplorerService>();
                 if (service is null)
                 {
