@@ -2308,7 +2308,7 @@ Block[B1] - Block
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument, Type: null) (Syntax: '$""literal{c,1:format}""')
-                    IOperation:  (OperationKind.None, Type: CustomHandler, IsImplicit) (Syntax: '$""literal{c,1:format}""')
+                    IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '$""literal{c,1:format}""')
                       Children(2):
                           IObjectCreationOperation (Constructor: CustomHandler..ctor(System.Int32 literalLength, System.Int32 formattedCount, C c, System.Boolean b, out System.Boolean success)) (OperationKind.ObjectCreation, Type: CustomHandler, IsImplicit) (Syntax: '$""literal{c,1:format}""')
                             Arguments(5):

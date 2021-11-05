@@ -2942,4 +2942,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Miscellaneous_Files" xml:space="preserve">
     <value>Miscellaneous Files</value>
   </data>
+  <data name="Explicitly_inherit_documentation" xml:space="preserve">
+    <value>Explicitly inherit documentation</value>
+  </data>
 </root>

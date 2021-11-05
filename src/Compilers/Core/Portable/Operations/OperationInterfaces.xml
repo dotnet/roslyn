@@ -3162,4 +3162,21 @@
       </Comments>
     </Property>
   </Node>
+  <Node Name="IFunctionPointerInvocationOperation" Base="IOperation" ChildrenOrder="Target,Arguments" HasType="true">
+    <Comments>
+      <summary>
+        Represents an invocation of a function pointer.
+      </summary>
+    </Comments>
+	<Property Name="Target" Type="IOperation">
+      <Comments>
+        <summary>Invoked pointer.</summary>
+      </Comments>
+    </Property>
+    <Property Name="Arguments" Type="ImmutableArray&lt;IArgumentOperation&gt;">
+      <Comments>
+        <summary>Arguments of the invocation. Arguments are in evaluation order.</summary>
+      </Comments>
+    </Property>
+  </Node>
 </Tree>
