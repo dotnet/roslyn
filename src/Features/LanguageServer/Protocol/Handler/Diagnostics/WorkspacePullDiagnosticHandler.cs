@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 Identifier = WorkspaceDiagnosticIdentifier,
             };
 
-        protected override PreviousResult[]? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
-            => diagnosticsParams.PreviousResults?.Where(d => d.PreviousResultId != null).Select(d => new PreviousResult(d.PreviousResultId!, d.TextDocument!)).ToArray();
+        protected override ImmutableArray<PreviousResult>? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
+            => diagnosticsParams.PreviousResults?.Where(d => d.PreviousResultId != null).Select(d => new PreviousResult(d.PreviousResultId!, d.TextDocument!)).ToImmutableArray();
 
         protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
         {

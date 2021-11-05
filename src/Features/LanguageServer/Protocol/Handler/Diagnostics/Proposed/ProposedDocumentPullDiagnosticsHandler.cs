@@ -75,14 +75,11 @@ internal class ProposedDocumentPullDiagnosticsHandler : AbstractPullDiagnosticHa
         return DocumentPullDiagnosticHandler.GetRequestedDocument(context);
     }
 
-    protected override PreviousResult[]? GetPreviousResults(DocumentDiagnosticParams diagnosticsParams)
+    protected override ImmutableArray<PreviousResult>? GetPreviousResults(DocumentDiagnosticParams diagnosticsParams)
     {
         if (diagnosticsParams.PreviousResultId != null && diagnosticsParams.TextDocument != null)
         {
-            return new PreviousResult[]
-            {
-                new PreviousResult(diagnosticsParams.PreviousResultId, diagnosticsParams.TextDocument)
-            };
+            return ImmutableArray.Create(new PreviousResult(diagnosticsParams.PreviousResultId, diagnosticsParams.TextDocument));
         }
 
         return null;

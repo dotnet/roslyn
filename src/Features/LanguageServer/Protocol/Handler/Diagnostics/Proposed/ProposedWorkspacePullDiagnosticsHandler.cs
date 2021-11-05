@@ -66,7 +66,7 @@ internal class ProposedWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticH
         return WorkspacePullDiagnosticHandler.GetWorkspacePullDocuments(context);
     }
 
-    protected override PreviousResult[]? GetPreviousResults(WorkspaceDiagnosticParams diagnosticsParams)
+    protected override ImmutableArray<PreviousResult>? GetPreviousResults(WorkspaceDiagnosticParams diagnosticsParams)
     {
         return diagnosticsParams.PreviousResultIds.Select(id => new PreviousResult(id.Value, new TextDocumentIdentifier { Uri = id.Uri })
         {
@@ -75,6 +75,6 @@ internal class ProposedWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticH
             {
                 Uri = id.Uri!
             }
-        }).ToArray();
+        }).ToImmutableArray();
     }
 }

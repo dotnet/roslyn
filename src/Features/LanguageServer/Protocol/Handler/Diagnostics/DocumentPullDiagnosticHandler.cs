@@ -43,13 +43,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 Supersedes = WorkspaceDiagnosticIdentifier,
             };
 
-        protected override PreviousResult[]? GetPreviousResults(VSInternalDocumentDiagnosticsParams diagnosticsParams)
+        protected override ImmutableArray<PreviousResult>? GetPreviousResults(VSInternalDocumentDiagnosticsParams diagnosticsParams)
         {
             if (diagnosticsParams.PreviousResultId != null && diagnosticsParams.TextDocument != null)
             {
-                return new[] { new PreviousResult(diagnosticsParams.PreviousResultId, diagnosticsParams.TextDocument) };
+                return ImmutableArray.Create(new PreviousResult(diagnosticsParams.PreviousResultId, diagnosticsParams.TextDocument));
             }
 
+            // The client didn't provide us with a previous result to look for, so we can't lookup anything.
             return null;
         }
 

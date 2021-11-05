@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// Retrieve the previous results we reported.  Used so we can avoid resending data for unchanged files. Also
         /// used so we can report which documents were removed and can have all their diagnostics cleared.
         /// </summary>
-        protected abstract PreviousResult[]? GetPreviousResults(TDiagnosticsParams diagnosticsParams);
+        protected abstract ImmutableArray<PreviousResult>? GetPreviousResults(TDiagnosticsParams diagnosticsParams);
 
         /// <summary>
         /// Returns all the documents that should be processed in the desired order to process them in.
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             // Get the set of results the request said were previously reported.  We can use this to determine both
             // what to skip, and what files we have to tell the client have been removed.
-            var previousResults = GetPreviousResults(diagnosticsParams) ?? Array.Empty<PreviousResult>();
+            var previousResults = GetPreviousResults(diagnosticsParams) ?? ImmutableArray<PreviousResult>.Empty;
             context.TraceInformation($"previousResults.Length={previousResults.Length}");
 
             // First, let the client know if any workspace documents have gone away.  That way it can remove those for
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         }
 
         private static Dictionary<Document, PreviousResult> GetDocumentToPreviousDiagnosticParams(
-            RequestContext context, PreviousResult[] previousResults)
+            RequestContext context, ImmutableArray<PreviousResult> previousResults)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return CreateReport(ProtocolConversions.DocumentToTextDocumentIdentifier(document), result.ToArray(), resultId);
         }
 
-        private void HandleRemovedDocuments(RequestContext context, PreviousResult[] previousResults, BufferedProgress<TReport> progress)
+        private void HandleRemovedDocuments(RequestContext context, ImmutableArray<PreviousResult> previousResults, BufferedProgress<TReport> progress)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -396,12 +396,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var useMappedSpan = false;
             if (!capabilities.HasVisualStudioLspCapability())
             {
-                var diagnostic = CreateBaseLspDiagnostic<LSP.Diagnostic>();
+                var diagnostic = CreateBaseLspDiagnostic();
                 return diagnostic;
             }
             else
             {
-                var vsDiagnostic = CreateBaseLspDiagnostic<VSDiagnostic>();
+                var vsDiagnostic = CreateBaseLspDiagnostic();
                 vsDiagnostic.DiagnosticType = diagnosticData.Category;
                 vsDiagnostic.Projects = new[]
                 {
@@ -415,9 +415,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 return vsDiagnostic;
             }
 
-            T CreateBaseLspDiagnostic<T>() where T : LSP.Diagnostic, new()
+            // We can just use VSDiagnostic as it doesn't have any default properties set that
+            // would get automatically serialized.
+            LSP.VSDiagnostic CreateBaseLspDiagnostic()
             {
-                return new T()
+                return new LSP.VSDiagnostic
                 {
                     Source = "Roslyn",
                     Code = diagnosticData.Id,
