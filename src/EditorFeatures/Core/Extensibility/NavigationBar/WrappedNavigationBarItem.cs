@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.Editor
                   underlyingItem.Text,
                   underlyingItem.Glyph,
                   GetInDocumentSpans(underlyingItem),
-                  GetNavigationSpan(underlyingItem),
                   underlyingItem.ChildItems.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(textVersion, v)),
                   underlyingItem.Indent,
                   underlyingItem.Bolded,
@@ -46,18 +45,6 @@ namespace Microsoft.CodeAnalysis.Editor
                 // the user puts their caret in any of the spans of its child items in this file.
                 RoslynNavigationBarItem.ActionlessItem actionless => actionless.ChildItems.SelectMany(i => GetInDocumentSpans(i)).OrderBy(s => s.Start).Distinct().ToImmutableArray(),
                 _ => ImmutableArray<TextSpan>.Empty,
-            };
-        }
-
-        private static TextSpan? GetNavigationSpan(RoslynNavigationBarItem underlyingItem)
-        {
-            return underlyingItem switch
-            {
-                // When a symbol item is selected, just navigate to it's preferred location in this file (if we have
-                // such a location).  If we don't, then 
-                // 
-                RoslynNavigationBarItem.SymbolItem { Location.InDocumentInfo: { } symbolInfo } => symbolInfo.navigationSpan,
-                _ => null,
             };
         }
 

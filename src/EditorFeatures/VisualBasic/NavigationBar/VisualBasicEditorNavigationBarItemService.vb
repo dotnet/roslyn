@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             _textUndoHistoryRegistry = textUndoHistoryRegistry
         End Sub
 
-        Friend Overrides Async Function GetNavigationLocationAsync(
+        Protected Overrides Async Function GetNavigationLocationAsync(
                 document As Document,
                 item As NavigationBarItem,
                 symbolItem As SymbolItem,

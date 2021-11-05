@@ -53,24 +53,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             Document document, NavigationBarItem item, ITextView view, ITextVersion textVersion, CancellationToken cancellationToken)
         {
             // The logic here was ported from FSharp's implementation. The main reason was to avoid shimming INotificationService.
-            var navigationSpan = item.TryGetNavigationSpan(textVersion);
-            if (navigationSpan != null)
+            // Spans.First() is safe here as we filtered down to only items that have spans in ConvertItems.
+            var span = item.GetCurrentNavigationSpan(textVersion, item.Spans.First());
+            var workspace = document.Project.Solution.Workspace;
+            var navigationService = workspace.Services.GetRequiredService<IFSharpDocumentNavigationService>();
+
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            if (navigationService.CanNavigateToPosition(workspace, document.Id, span.Start, virtualSpace: 0, cancellationToken))
             {
-                var span = navigationSpan.Value;
-                var workspace = document.Project.Solution.Workspace;
-                var navigationService = workspace.Services.GetRequiredService<IFSharpDocumentNavigationService>();
-
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-                if (navigationService.CanNavigateToPosition(workspace, document.Id, span.Start, virtualSpace: 0, cancellationToken))
-                {
-                    navigationService.TryNavigateToPosition(workspace, document.Id, span.Start, virtualSpace: 0, options: null, cancellationToken);
-                }
-                else
-                {
-                    var notificationService = workspace.Services.GetRequiredService<INotificationService>();
-                    notificationService.SendNotification(EditorFeaturesResources.The_definition_of_the_object_is_hidden, severity: NotificationSeverity.Error);
-                }
+                navigationService.TryNavigateToPosition(workspace, document.Id, span.Start, virtualSpace: 0, options: null, cancellationToken);
+            }
+            else
+            {
+                var notificationService = workspace.Services.GetRequiredService<INotificationService>();
+                notificationService.SendNotification(EditorFeaturesResources.The_definition_of_the_object_is_hidden, severity: NotificationSeverity.Error);
             }
 
             return true;
@@ -89,7 +86,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
                 item.Text,
                 FSharpGlyphHelpers.ConvertTo(item.Glyph),
                 spans,
-                spans.First(),
                 ConvertItems(item.ChildItems, textVersion),
                 item.Indent,
                 item.Bolded,
