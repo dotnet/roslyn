@@ -1388,11 +1388,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         break;
                     case SymbolKind.Property:
-                        FieldSymbol? backingField = (m as SourcePropertySymbolBase)?.BackingField;
-                        if (backingField is SynthesizedBackingFieldSymbol { IsCreatedForFieldKeyword: true })
+                        if (m is SourcePropertySymbolBase propertySymbol)
                         {
-                            Debug.Assert(!members.Contains(backingField));
-                            yield return backingField;
+                            // Ensure the binding is done so we guarantee that we have the BackingField set if necessary.
+                            if (propertySymbol.BackingField is null &&
+                                propertySymbol.CSharpSyntaxNode is BasePropertyDeclarationSyntax propertySyntax)
+                            {
+                                if (propertySymbol.GetMethod is SourceMemberMethodSymbol getMethod)
+                                {
+                                    getMethod.TryGetBodyBinder()?.BindMethodBody(getMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
+                                }
+                                if (propertySymbol.SetMethod is SourceMemberMethodSymbol setMethod)
+                                {
+                                    setMethod.TryGetBodyBinder()?.BindMethodBody(setMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
+                                }
+                            }
+
+                            FieldSymbol? backingField = propertySymbol.BackingField;
+                            if (backingField is SynthesizedBackingFieldSymbol { IsCreatedForFieldKeyword: true })
+                            {
+                                Debug.Assert(!members.Contains(backingField));
+                                yield return backingField;
+                            }
                         }
                         break;
                 }

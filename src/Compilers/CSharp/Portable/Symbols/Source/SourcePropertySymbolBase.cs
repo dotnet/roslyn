@@ -65,7 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
         private SynthesizedSealedPropertyAccessor _lazySynthesizedSealedAccessor;
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
+
+        /// <summary>
+        /// This should only be set via CreateBackingField to avoid race conditions.
+        /// </summary>
         private SynthesizedBackingFieldSymbol _lazyBackingFieldSymbol;
+        private readonly object _backingFieldLock = new();
 
         // CONSIDER: if the parameters were computed lazily, ParameterCount could be overridden to fall back on the syntax (as in SourceMemberMethodSymbol).
 
@@ -180,13 +185,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void CreateBackingField(bool isCreatedForFieldKeyword)
         {
-            Debug.Assert(BackingField is null && !IsIndexer);
-            _lazyBackingFieldSymbol = new SynthesizedBackingFieldSymbol(this,
-                                      GeneratedNames.MakeBackingFieldName(_name),
-                                      isReadOnly: (HasGetAccessor && !HasSetAccessor) || IsInitOnly,
-                                      this.IsStatic,
-                                      hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0,
-                                      isCreatedForfieldKeyword: isCreatedForFieldKeyword);
+            lock (_backingFieldLock)
+            {
+                Debug.Assert(BackingField is null && !IsIndexer);
+                _lazyBackingFieldSymbol = new SynthesizedBackingFieldSymbol(this,
+                                          GeneratedNames.MakeBackingFieldName(_name),
+                                          isReadOnly: (HasGetAccessor && !HasSetAccessor) || IsInitOnly,
+                                          this.IsStatic,
+                                          hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0,
+                                          isCreatedForfieldKeyword: isCreatedForFieldKeyword);
+
+            }
         }
 
         private void EnsureSignatureGuarded(BindingDiagnosticBag diagnostics)

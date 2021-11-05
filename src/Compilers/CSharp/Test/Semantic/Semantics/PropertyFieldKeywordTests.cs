@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Xunit;
 
@@ -376,6 +378,20 @@ public class C
 	}
 } // end of class C
 ");
+        }
+
+        [Fact]
+        public void TestGetFieldsToEmit()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public string P { set => field = value; }
+}
+");
+            var fields = ((SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C")!).GetFieldsToEmit().ToArray();
+            Assert.Equal(1, fields.Length);
+            Assert.Equal("<P>k__BackingField", fields[0].Name);
         }
     }
 }
