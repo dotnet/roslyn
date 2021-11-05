@@ -4,7 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Emit
-Imports Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue
+Imports Microsoft.CodeAnalysis.EditAndContinue.Contracts
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     <UseExportProvider>
@@ -5726,11 +5726,11 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2,
             {
-                ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.IsLeafFrame,
-                ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.IsNonLeafFrame,
-                ActiveStatementFlags.IsLeafFrame,
-                ActiveStatementFlags.IsNonLeafFrame,
-                ActiveStatementFlags.IsNonLeafFrame Or ActiveStatementFlags.IsLeafFrame
+                ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.LeafFrame,
+                ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.NonLeafFrame,
+                ActiveStatementFlags.LeafFrame,
+                ActiveStatementFlags.NonLeafFrame,
+                ActiveStatementFlags.NonLeafFrame Or ActiveStatementFlags.LeafFrame
             })
 
             edits.VerifyRudeDiagnostics(active,
@@ -5756,7 +5756,7 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            Dim active = GetActiveStatements(src1, src2, {ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.IsLeafFrame})
+            Dim active = GetActiveStatements(src1, src2, {ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.LeafFrame})
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementDelete, "Sub F()", FeaturesResources.code))
@@ -5778,7 +5778,7 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            Dim active = GetActiveStatements(src1, src2, {ActiveStatementFlags.IsNonLeafFrame Or ActiveStatementFlags.IsLeafFrame})
+            Dim active = GetActiveStatements(src1, src2, {ActiveStatementFlags.NonLeafFrame Or ActiveStatementFlags.LeafFrame})
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "Sub F()", FeaturesResources.code))

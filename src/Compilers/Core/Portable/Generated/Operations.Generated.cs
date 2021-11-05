@@ -3429,6 +3429,28 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         InterpolatedStringArgumentPlaceholderKind PlaceholderKind { get; }
     }
+    /// <summary>
+    /// Represents an invocation of a function pointer.
+    /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.FunctionPointerInvocation"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
+    /// </remarks>
+    public interface IFunctionPointerInvocationOperation : IOperation
+    {
+        /// <summary>
+        /// Invoked pointer.
+        /// </summary>
+        IOperation Target { get; }
+        /// <summary>
+        /// Arguments of the invocation. Arguments are in evaluation order.
+        /// </summary>
+        ImmutableArray<IArgumentOperation> Arguments { get; }
+    }
     #endregion
 
     #region Implementations
@@ -7854,6 +7876,51 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitInterpolatedStringHandlerArgumentPlaceholder(this);
         public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitInterpolatedStringHandlerArgumentPlaceholder(this, argument);
     }
+    internal sealed partial class FunctionPointerInvocationOperation : Operation, IFunctionPointerInvocationOperation
+    {
+        internal FunctionPointerInvocationOperation(IOperation target, ImmutableArray<IArgumentOperation> arguments, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Target = SetParentOperation(target, this);
+            Arguments = SetParentOperation(arguments, this);
+            Type = type;
+        }
+        public IOperation Target { get; }
+        public ImmutableArray<IArgumentOperation> Arguments { get; }
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
+            {
+                0 when Target != null
+                    => Target,
+                1 when index < Arguments.Length
+                    => Arguments[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Target != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (!Arguments.IsEmpty) return (true, 1, 0);
+                    else goto case 1;
+                case 1 when previousIndex + 1 < Arguments.Length:
+                    return (true, 1, previousIndex + 1);
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.FunctionPointerInvocation;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitFunctionPointerInvocation(this);
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitFunctionPointerInvocation(this, argument);
+    }
     #endregion
     #region Cloner
     internal sealed partial class OperationCloner : OperationVisitor<object?, IOperation>
@@ -8432,6 +8499,11 @@ namespace Microsoft.CodeAnalysis.Operations
             var internalOperation = (InterpolatedStringHandlerArgumentPlaceholderOperation)operation;
             return new InterpolatedStringHandlerArgumentPlaceholderOperation(internalOperation.ArgumentIndex, internalOperation.PlaceholderKind, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
+        public override IOperation VisitFunctionPointerInvocation(IFunctionPointerInvocationOperation operation, object? argument)
+        {
+            var internalOperation = (FunctionPointerInvocationOperation)operation;
+            return new FunctionPointerInvocationOperation(Visit(internalOperation.Target), VisitArray(internalOperation.Arguments), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
     }
     #endregion
     
@@ -8565,6 +8637,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual void VisitInterpolatedStringAddition(IInterpolatedStringAdditionOperation operation) => DefaultVisit(operation);
         public virtual void VisitInterpolatedStringAppend(IInterpolatedStringAppendOperation operation) => DefaultVisit(operation);
         public virtual void VisitInterpolatedStringHandlerArgumentPlaceholder(IInterpolatedStringHandlerArgumentPlaceholderOperation operation) => DefaultVisit(operation);
+        public virtual void VisitFunctionPointerInvocation(IFunctionPointerInvocationOperation operation) => DefaultVisit(operation);
     }
     public abstract partial class OperationVisitor<TArgument, TResult>
     {
@@ -8695,6 +8768,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual TResult? VisitInterpolatedStringAddition(IInterpolatedStringAdditionOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitInterpolatedStringAppend(IInterpolatedStringAppendOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitInterpolatedStringHandlerArgumentPlaceholder(IInterpolatedStringHandlerArgumentPlaceholderOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult? VisitFunctionPointerInvocation(IFunctionPointerInvocationOperation operation, TArgument argument) => DefaultVisit(operation, argument);
     }
     #endregion
 }
