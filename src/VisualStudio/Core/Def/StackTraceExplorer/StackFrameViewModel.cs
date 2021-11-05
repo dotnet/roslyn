@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         {
             try
             {
-                var symbol = await _frame.ResolveSymbolAsync(_workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
+                var symbol = await GetSymbolAsync(cancellationToken).ConfigureAwait(false);
 
                 if (symbol is null)
                 {
