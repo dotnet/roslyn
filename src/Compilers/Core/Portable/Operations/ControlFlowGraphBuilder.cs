@@ -41,7 +41,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         private readonly ArrayBuilder<(EvalStackFrame? frameOpt, IOperation? operationOpt)> _evalStack;
         private int _startSpillingAt;
         private ConditionalAccessOperationTracker _currentConditionalAccessTracker;
-        private InterpolatedStringHandlerContext _currentInterpolatedStringHandlerContext;
+        private InterpolatedStringHandlerArgumentsContext? _currentInterpolatedStringHandlerArgumentContext;
+        private InterpolatedStringHandlerCreationContext? _currentInterpolatedStringHandlerCreationContext;
         private IOperation? _currentSwitchOperationExpression;
         private IOperation? _forToLoopBinaryOperatorLeftOperand;
         private IOperation? _forToLoopBinaryOperatorRightOperand;
@@ -2033,17 +2034,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         private void VisitAndPushArguments(ImmutableArray<IArgumentOperation> arguments, bool instancePushed)
         {
-            var previousInterpolatedStringHandlerContext = _currentInterpolatedStringHandlerContext;
-            if (arguments.WhereAsArray(arg => arg.Value is IInterpolatedStringHandlerCreationOperation) is { IsDefaultOrEmpty: false } interpolatedStrings)
+            var previousInterpolatedStringHandlerContext = _currentInterpolatedStringHandlerArgumentContext;
+
+            if (arguments.SelectAsArray(predicate: arg => arg.Value is IInterpolatedStringHandlerCreationOperation,
+                                        selector: arg => (IInterpolatedStringHandlerCreationOperation)arg.Value)
+                    is { IsDefaultOrEmpty: false } interpolatedStrings)
             {
-                _currentInterpolatedStringHandlerContext = new InterpolatedStringHandlerContext(
+                _currentInterpolatedStringHandlerArgumentContext = new InterpolatedStringHandlerArgumentsContext(
                     interpolatedStrings,
                     _evalStack.Count - (instancePushed ? 1 : 0),
                     hasReceiver: instancePushed);
             }
 
             VisitAndPushArray(arguments, UnwrapArgument);
-            _currentInterpolatedStringHandlerContext = previousInterpolatedStringHandlerContext;
+            _currentInterpolatedStringHandlerArgumentContext = previousInterpolatedStringHandlerContext;
         }
 
         private static readonly Func<IArgumentOperation, IOperation> UnwrapArgument = UnwrapArgumentDoNotCaptureDirectly;
@@ -2052,10 +2056,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             return argument.Value;
         }
-
-        private static readonly Func<IOperation, IOperation> Identity = IdentityDoNotCaptureDirectly;
-
-        private static IOperation IdentityDoNotCaptureDirectly(IOperation operation) => operation;
 
         private IArgumentOperation RewriteArgumentFromArray(IOperation visitedArgument, int index, ImmutableArray<IArgumentOperation> args)
         {
@@ -4022,7 +4022,18 @@ oneMoreTime:
 
                 if (method != null)
                 {
-                    var args = VisitArray(disposeArguments, UnwrapArgument, RewriteArgumentFromArray);
+                    ImmutableArray<IArgumentOperation> args;
+                    if (disposeMethod is not null)
+                    {
+                        PushOperand(value);
+                        args = VisitArguments(disposeArguments, instancePushed: true);
+                        value = PopOperand();
+                    }
+                    else
+                    {
+                        args = ImmutableArray<IArgumentOperation>.Empty;
+                    }
+
                     var invocation = new InvocationOperation(method, value, isVirtual: disposeMethod?.IsVirtual ?? true,
                                                              args, semanticModel: null, value.Syntax,
                                                              method.ReturnType, isImplicit: true);
@@ -4476,11 +4487,19 @@ oneMoreTime:
                                                method.ReturnType, isImplicit: true);
             }
 
-            ImmutableArray<IArgumentOperation> makeArguments(ImmutableArray<IArgumentOperation> arguments, ref IOperation? instanceOpt)
+            ImmutableArray<IArgumentOperation> makeArguments(ImmutableArray<IArgumentOperation> arguments, ref IOperation? instance)
             {
-                if (arguments != null)
+                if (!arguments.IsEmpty)
                 {
-                    return VisitArray(arguments, UnwrapArgument, RewriteArgumentFromArray);
+                    bool hasInstance = instance != null;
+                    if (hasInstance)
+                    {
+                        PushOperand(instance!);
+                    }
+                    arguments = VisitArguments(arguments, hasInstance);
+                    instance = hasInstance ? PopOperand() : null;
+
+                    return arguments;
                 }
 
                 return ImmutableArray<IArgumentOperation>.Empty;
@@ -5711,7 +5730,7 @@ oneMoreTime:
         {
             EvalStackFrame frame = PushStackFrame();
             EvalStackFrame argumentsFrame = PushStackFrame();
-            (_, ImmutableArray<IArgumentOperation> visitedArgs) = VisitInstanceWithArguments(instance: null, operation.Arguments);
+            ImmutableArray<IArgumentOperation> visitedArgs = VisitArguments(operation.Arguments, instancePushed: false);
             PopStackFrame(argumentsFrame);
             // Initializer is removed from the tree and turned into a series of statements that assign to the created instance
             IOperation initializedInstance = new ObjectCreationOperation(operation.Constructor, initializer: null, visitedArgs, semanticModel: null,
@@ -6186,8 +6205,8 @@ oneMoreTime:
                     }
 
                 case InstanceReferenceKind.InterpolatedStringHandler:
-                    AssertContainingContextIsForThisCreation(operation, _currentInterpolatedStringHandlerContext);
-                    return new FlowCaptureReferenceOperation(_currentInterpolatedStringHandlerContext.HandlerPlaceholder, operation.Syntax, operation.Type, operation.GetConstantValue());
+                    AssertContainingContextIsForThisCreation(operation, assertArgumentContext: false);
+                    return new FlowCaptureReferenceOperation(_currentInterpolatedStringHandlerCreationContext.HandlerPlaceholder, operation.Syntax, operation.Type, operation.GetConstantValue());
 
                 default:
                     return new InstanceReferenceOperation(operation.ReferenceKind, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
@@ -6362,6 +6381,22 @@ oneMoreTime:
             // handler semantics), and then evaluate to the handler flow capture temp.
 
             SpillEvalStack();
+            int maxStackDepth = _evalStack.Count - 2;
+
+#if DEBUG
+            Debug.Assert(_evalStack[maxStackDepth + 1].frameOpt != null);
+            if (_currentInterpolatedStringHandlerArgumentContext?.ApplicableCreationOperations.Contains(operation) ?? false)
+            {
+                for (int i = _currentInterpolatedStringHandlerArgumentContext.StartingStackDepth;
+                     i < maxStackDepth;
+                     i++)
+                {
+                    Debug.Assert(_evalStack[i].frameOpt == null);
+                    Debug.Assert(_evalStack[i].operationOpt != null);
+                }
+            }
+#endif
+
             RegionBuilder resultRegion = CurrentRegionRequired;
             var handlerCaptureId = captureIdForResult ?? GetNextCaptureId(resultRegion);
 
@@ -6376,7 +6411,7 @@ oneMoreTime:
 
             // Any placeholders for arguments should have already been created, except for the out parameter if it exists.
             int outParameterFlowCapture = -1;
-            IOperation? outParameterPlaceholder = null;
+            IInterpolatedStringHandlerArgumentPlaceholderOperation? outParameterPlaceholder = null;
 
             if (operation.HandlerCreationHasSuccessParameter)
             {
@@ -6396,13 +6431,11 @@ oneMoreTime:
                 }
 
                 Debug.Assert(outParameterArgument is { Parameter: { RefKind: RefKind.Out, Type.SpecialType: SpecialType.System_Boolean } });
-                outParameterPlaceholder = outParameterArgument.Value;
+                outParameterPlaceholder = (IInterpolatedStringHandlerArgumentPlaceholderOperation)outParameterArgument.Value;
             }
 
-            var previousHandlerContext = _currentInterpolatedStringHandlerContext;
-            _currentInterpolatedStringHandlerContext = _currentInterpolatedStringHandlerContext.IsCreationAllowed(operation)
-                ? _currentInterpolatedStringHandlerContext with { OutPlaceholder = outParameterFlowCapture, SingleAllowedCreation = operation, HandlerPlaceholder = handlerCaptureId }
-                : new InterpolatedStringHandlerContext(operation, outParameterFlowCapture, handlerCaptureId);
+            var previousHandlerContext = _currentInterpolatedStringHandlerCreationContext;
+            _currentInterpolatedStringHandlerCreationContext = new InterpolatedStringHandlerCreationContext(operation, maxStackDepth, handlerCaptureId, outParameterFlowCapture);
 
             VisitAndCapture(operation.HandlerCreation, handlerCaptureId);
 
@@ -6420,25 +6453,25 @@ oneMoreTime:
             }
 
             LeaveRegionsUpTo(resultRegion);
-            ImmutableArray<IInterpolatedStringAppendOperation> appendCalls = collectAppendCalls(operation);
 
-            int appendCallsLength = appendCalls.Length;
+            var appendCalls = ArrayBuilder<IInterpolatedStringAppendOperation>.GetInstance();
+            collectAppendCalls(operation, appendCalls);
+
+            int appendCallsLength = appendCalls.Count;
             for (var i = 0; i < appendCallsLength; i++)
             {
-                var appendRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime);
-                EnterRegion(appendRegion);
+                EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime));
                 var appendCall = appendCalls[i];
+                IOperation visitedAppendCall = VisitRequired(appendCall.AppendCall);
                 if (operation.HandlerAppendCallsReturnBool)
                 {
                     Debug.Assert(resultBlock != null);
 
-                    IOperation visitedAppendCall = VisitRequired(appendCall.AppendCall);
                     if (i == appendCallsLength - 1)
                     {
                         // No matter the result, we're going to the result block next. So just visit the statement, and if the current block can be
                         // combined with the result block, the compaction machinery will take care of it
                         AddStatement(visitedAppendCall);
-                        _currentBasicBlock = null;
                     }
                     else
                     {
@@ -6449,16 +6482,10 @@ oneMoreTime:
                 }
                 else
                 {
-                    VisitStatement(appendCall.AppendCall);
-
-                    if (i == appendCallsLength - 1 && operation.HandlerCreationHasSuccessParameter)
-                    {
-                        Debug.Assert(resultBlock != null);
-                        _currentBasicBlock = null;
-                    }
+                    AddStatement(visitedAppendCall);
                 }
-                LeaveRegionsUpTo(appendRegion);
-                LeaveRegion();
+
+                LeaveRegionsUpTo(resultRegion);
             }
 
             if (resultBlock != null)
@@ -6466,17 +6493,17 @@ oneMoreTime:
                 AppendNewBlock(resultBlock, linkToPrevious: true);
             }
 
-            _currentInterpolatedStringHandlerContext = previousHandlerContext;
+            _currentInterpolatedStringHandlerCreationContext = previousHandlerContext;
+            appendCalls.Free();
             return new FlowCaptureReferenceOperation(handlerCaptureId, operation.Syntax, operation.Type, operation.GetConstantValue());
 
-            static ImmutableArray<IInterpolatedStringAppendOperation> collectAppendCalls(IInterpolatedStringHandlerCreationOperation creation)
+            static void collectAppendCalls(IInterpolatedStringHandlerCreationOperation creation, ArrayBuilder<IInterpolatedStringAppendOperation> appendCalls)
             {
-                var appendCalls = ArrayBuilder<IInterpolatedStringAppendOperation>.GetInstance();
                 if (creation.Content is IInterpolatedStringOperation interpolatedString)
                 {
                     // Simple case
                     appendStringCalls(interpolatedString, appendCalls);
-                    return appendCalls.ToImmutableAndFree();
+                    return;
                 }
 
                 var stack = ArrayBuilder<IInterpolatedStringAdditionOperation>.GetInstance();
@@ -6509,7 +6536,7 @@ oneMoreTime:
                 }
 
                 stack.Free();
-                return appendCalls.ToImmutableAndFree();
+                return;
 
                 static void appendStringCalls(IInterpolatedStringOperation interpolatedString, ArrayBuilder<IInterpolatedStringAppendOperation> appendCalls)
                 {
@@ -6526,7 +6553,8 @@ oneMoreTime:
                     {
                         stack.Push(current);
                         current = current.Left as IInterpolatedStringAdditionOperation;
-                    } while (current != null);
+                    }
+                    while (current != null);
                 }
             }
         }
@@ -6543,19 +6571,17 @@ oneMoreTime:
 
         public override IOperation? VisitInterpolatedStringHandlerArgumentPlaceholder(IInterpolatedStringHandlerArgumentPlaceholderOperation operation, int? captureIdForResult)
         {
-            AssertContainingContextIsForThisCreation(operation, _currentInterpolatedStringHandlerContext);
             switch (operation.PlaceholderKind)
             {
                 case InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument:
-                    if (_currentInterpolatedStringHandlerContext.OutPlaceholder == -1)
-                    {
-                        throw ExceptionUtilities.Unreachable;
-                    }
+                    AssertContainingContextIsForThisCreation(operation, assertArgumentContext: false);
 
-                    return new FlowCaptureReferenceOperation(_currentInterpolatedStringHandlerContext.OutPlaceholder, operation.Syntax, operation.Type, operation.GetConstantValue(), isInitialization: true);
+                    return new FlowCaptureReferenceOperation(_currentInterpolatedStringHandlerCreationContext.OutPlaceholder, operation.Syntax, operation.Type, operation.GetConstantValue(), isInitialization: true);
 
                 case InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver:
-                    if (_currentInterpolatedStringHandlerContext.HasReceiver && tryGetArgumentOrReceiver(-1) is IOperation receiverCapture)
+                    AssertContainingContextIsForThisCreation(operation, assertArgumentContext: true);
+                    Debug.Assert(_currentInterpolatedStringHandlerArgumentContext != null);
+                    if (_currentInterpolatedStringHandlerArgumentContext.HasReceiver && tryGetArgumentOrReceiver(-1) is IOperation receiverCapture)
                     {
                         Debug.Assert(receiverCapture is IFlowCaptureReferenceOperation);
                         return OperationCloner.CloneOperation(receiverCapture);
@@ -6566,6 +6592,8 @@ oneMoreTime:
                     }
 
                 case InterpolatedStringArgumentPlaceholderKind.CallsiteArgument:
+                    AssertContainingContextIsForThisCreation(operation, assertArgumentContext: true);
+                    Debug.Assert(_currentInterpolatedStringHandlerArgumentContext != null);
                     if (tryGetArgumentOrReceiver(operation.ArgumentIndex) is IOperation argumentCapture)
                     {
                         Debug.Assert(argumentCapture is IFlowCaptureReferenceOperation or IDiscardOperation);
@@ -6582,48 +6610,23 @@ oneMoreTime:
 
             IOperation? tryGetArgumentOrReceiver(int argumentIndex)
             {
-                int startingStackDepth = _currentInterpolatedStringHandlerContext.StartingStackDepth;
-                if (startingStackDepth >= _evalStack.Count)
+
+                if (_currentInterpolatedStringHandlerArgumentContext.HasReceiver)
+                {
+                    argumentIndex++;
+                }
+
+                int targetStackDepth = _currentInterpolatedStringHandlerArgumentContext.StartingStackDepth + argumentIndex;
+
+                Debug.Assert(_evalStack.Count > _currentInterpolatedStringHandlerCreationContext.MaximumStackDepth);
+
+                if (targetStackDepth > _currentInterpolatedStringHandlerCreationContext.MaximumStackDepth
+                    || targetStackDepth >= _evalStack.Count)
                 {
                     return null;
                 }
 
-                if (argumentIndex == -1)
-                {
-                    Debug.Assert(_currentInterpolatedStringHandlerContext.HasReceiver);
-
-                    // The receiver is always directly at the starting stack depth: there is no additional frame pushed on at
-                    // that point we need to be concerned with.
-
-                    IOperation? operation = _evalStack[startingStackDepth].operationOpt;
-                    Debug.Assert(operation != null);
-                    return operation;
-                }
-
-                // We need to walk forward until we hit a stack frame. If we hit a stack frame, then we're out of the allowable context
-                // for the current method (meaning that the argument is missing), and we've hit the handler constructor arguments themselves.
-                int operationsSeen = 0;
-                for (int currentStackDepth = startingStackDepth + (_currentInterpolatedStringHandlerContext.HasReceiver ? 1 : 0);
-                     currentStackDepth < _evalStack.Count && operationsSeen <= argumentIndex;
-                     currentStackDepth++)
-                {
-                    if (_evalStack[currentStackDepth].operationOpt is IOperation operation)
-                    {
-                        if (operationsSeen == argumentIndex)
-                        {
-                            return operation;
-                        }
-
-                        operationsSeen++;
-                    }
-                    else
-                    {
-                        Debug.Assert(_evalStack[currentStackDepth].frameOpt != null);
-                        return null;
-                    }
-                }
-
-                return null;
+                return _evalStack[targetStackDepth].operationOpt;
             }
         }
 

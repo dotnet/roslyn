@@ -813,7 +813,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     {
                         AssertTrueWithGraph(state.Add(id), $"Multiple initialization of [{id}]", finalGraph);
                         AssertTrueWithGraph(block.EnclosingRegion.CaptureIds.Contains(id), $"Flow capture initialization [{id}] should come from the containing region.", finalGraph);
-                        return;
+                        continue;
                     }
 
                     referencedIds.Add(id);
@@ -830,7 +830,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     // or they should come from the enclosing region.
                     if (block.EnclosingRegion.CaptureIds.Contains(id) || longLivedIds.Contains(id))
                     {
-                        return;
+                        continue;
                     }
 
                     if (block.EnclosingRegion.EnclosingRegion.CaptureIds.Contains(id))
@@ -932,7 +932,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 do
                 {
                     containingArgument = containingArgument.Parent;
-                } while (containingArgument is not (null or IArgumentOperation));
+                }
+                while (containingArgument is not (null or IArgumentOperation));
 
 #pragma warning disable IDE0055 // Fix formatting
                 return containingArgument is
