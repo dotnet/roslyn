@@ -1534,9 +1534,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Backing fields for field-like events are not added to the members list.
                 member = e;
             }
-            else if (member is SynthesizedBackingFieldSymbol { IsCreatedForFieldKeyword: true } backingField)
+            else if (member is SynthesizedBackingFieldSymbol { IsCreatedForFieldKeyword: true } backingField && backingField.AssociatedSymbol is PropertySymbol p)
             {
-                return;
+                RoslynDebug.AssertOrFailFast(forDiagnostics);
+                // Backing fields for semi auto properties are not added to the members list.
+                member = p;
             }
 
             var membersAndInitializers = Volatile.Read(ref _lazyMembersAndInitializers);
