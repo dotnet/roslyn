@@ -61,6 +61,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
         /// no automatic indentation is desired.  May also return <see langword="null"/> if the line in
         /// question is not blank and thus indentation should be deferred to the formatting command handler to handle.
         /// </summary>
-        FSharpIndentationResult? GetDesiredIndentation(HostLanguageServices services, SourceText text, DocumentId documentId, string path, int lineNumber, int tabSize, FormattingOptions.IndentStyle indentStyle);
+        FSharpIndentationResult? GetDesiredIndentation(HostLanguageServices services, SourceText text, DocumentId documentId, string path, int lineNumber, FSharpIndentationOptions options);
     }
+
+    internal readonly record struct FSharpIndentationOptions(int TabSize, FormattingOptions.IndentStyle IndentStyle);
 }

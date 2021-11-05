@@ -46,9 +46,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             if (_service != null)
             {
                 var text = document.GetTextSynchronously(cancellationToken);
-                var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-                var tabSize = options.GetOption(FormattingOptions.TabSize, LanguageNames.FSharp);
-                result = _service.GetDesiredIndentation(document.Project.LanguageServices, text, document.Id, document.FilePath, lineNumber, tabSize, indentStyle);
+                var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+
+                var options = new FSharpIndentationOptions(
+                    TabSize: documentOptions.GetOption(FormattingOptions.TabSize, LanguageNames.FSharp),
+                    IndentStyle: indentStyle);
+
+                result = _service.GetDesiredIndentation(document.Project.LanguageServices, text, document.Id, document.FilePath, lineNumber, options);
             }
             else
             {
