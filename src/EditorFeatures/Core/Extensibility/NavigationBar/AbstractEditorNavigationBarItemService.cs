@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             }
         }
 
-        protected virtual Task<(DocumentId documentId, int position, int virtualSpace)> GetNavigationLocationAsync(
+        internal virtual Task<(DocumentId documentId, int position, int virtualSpace)> GetNavigationLocationAsync(
             Document document,
             NavigationBarItem item,
             SymbolItem symbolItem,
