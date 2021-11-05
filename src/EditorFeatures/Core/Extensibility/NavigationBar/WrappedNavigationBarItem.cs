@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor
                   textVersion,
                   underlyingItem.Text,
                   underlyingItem.Glyph,
-                  GetSpans(underlyingItem),
+                  GetInDocumentSpans(underlyingItem),
                   GetNavigationSpan(underlyingItem),
                   underlyingItem.ChildItems.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(textVersion, v)),
                   underlyingItem.Indent,
@@ -33,18 +34,31 @@ namespace Microsoft.CodeAnalysis.Editor
             UnderlyingItem = underlyingItem;
         }
 
-        private static ImmutableArray<TextSpan> GetSpans(RoslynNavigationBarItem underlyingItem)
+        private static ImmutableArray<TextSpan> GetInDocumentSpans(RoslynNavigationBarItem underlyingItem)
         {
-            return underlyingItem is RoslynNavigationBarItem.SymbolItem symbolItem && symbolItem.Location.InDocumentInfo != null
-                ? symbolItem.Location.InDocumentInfo.Value.spans
-                : ImmutableArray<TextSpan>.Empty;
+            return underlyingItem switch
+            {
+                // For a regular symbol we want to select it if the user puts their caret in any of the spans of it in this file.
+                RoslynNavigationBarItem.SymbolItem { Location.InDocumentInfo: { } symbolInfo } => symbolInfo.spans,
+
+                // An actionless item represents something that exists just to show a child-list, but should otherwise
+                // not navigate or cause anything to be generated.  However, we still want to automatically select it whenever
+                // the user puts their caret in any of the spans of its child items in this file.
+                RoslynNavigationBarItem.ActionlessItem actionless => actionless.ChildItems.SelectMany(i => GetInDocumentSpans(i)).OrderBy(s => s.Start).Distinct().ToImmutableArray(),
+                _ => ImmutableArray<TextSpan>.Empty,
+            };
         }
 
         private static TextSpan? GetNavigationSpan(RoslynNavigationBarItem underlyingItem)
         {
-            return underlyingItem is RoslynNavigationBarItem.SymbolItem symbolItem && symbolItem.Location.InDocumentInfo != null
-                ? symbolItem.Location.InDocumentInfo.Value.navigationSpan
-                : null;
+            return underlyingItem switch
+            {
+                // When a symbol item is selected, just navigate to it's preferred location in this file (if we have
+                // such a location).  If we don't, then 
+                // 
+                RoslynNavigationBarItem.SymbolItem { Location.InDocumentInfo: { } symbolInfo } => symbolInfo.navigationSpan,
+                _ => null,
+            };
         }
 
         public override bool Equals(object? obj)

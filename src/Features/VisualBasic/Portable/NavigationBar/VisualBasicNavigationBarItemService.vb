@@ -339,6 +339,9 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                 Next
             Next
 
+            ' The spans of the left item will encompass all event handler spans
+            Dim allMethodSpans As New List(Of TextSpan)
+
             ' Generate an item for each event
             For Each e In accessibleEvents
                 If eventToImplementingMethods.ContainsKey(e) Then
