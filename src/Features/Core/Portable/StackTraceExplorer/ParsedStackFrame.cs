@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
             // MemberAccessExpression is [Expression].[Identifier], and Identifier is the 
             // method name.
             var typeExpression = Root.MethodDeclaration.MemberAccessExpression.Left;
-            var fullyQualifiedTypeName = typeExpression.CreateString(Tree, skipTrivia: true);
+            var fullyQualifiedTypeName = typeExpression.ToString(skipTrivia: true);
 
             RoslynDebug.AssertNotNull(fullyQualifiedTypeName);
 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
             var methodTypeArguments = Root.MethodDeclaration.TypeArguments;
             var methodArguments = Root.MethodDeclaration.ArgumentList;
 
-            var methodName = methodIdentifier.CreateString(Tree, skipTrivia: true);
+            var methodName = methodIdentifier.ToString(skipTrivia: true);
 
             foreach (var project in solution.Projects)
             {
@@ -107,10 +107,10 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
 
                 for (var i = 0; i < stackFrameParameters.Parameters.Length; i++)
                 {
-                    var stackFrameParameter = (StackFrameParameterDeclarationNode)stackFrameParameters.Parameters[i];
+                    var stackFrameParameter = stackFrameParameters.Parameters[i];
                     var paramSymbol = parameters[i];
 
-                    if (paramSymbol.Name != stackFrameParameter.Identifier.CreateString())
+                    if (paramSymbol.Name != stackFrameParameter.Identifier.ToString())
                     {
                         return false;
                     }

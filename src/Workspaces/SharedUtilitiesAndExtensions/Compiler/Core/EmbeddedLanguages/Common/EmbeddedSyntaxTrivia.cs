@@ -33,5 +33,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 
         public TextSpan GetSpan()
             => EmbeddedSyntaxHelpers.GetSpan(this.VirtualChars);
+
+        public override string ToString()
+            => VirtualChars.CreateString();
     }
 }

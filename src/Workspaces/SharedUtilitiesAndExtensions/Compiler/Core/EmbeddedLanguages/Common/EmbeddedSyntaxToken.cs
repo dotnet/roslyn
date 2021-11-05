@@ -4,7 +4,9 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Text;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
@@ -69,5 +71,36 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 
         public TextSpan GetSpan()
             => EmbeddedSyntaxHelpers.GetSpan(this.VirtualChars);
+
+        public override string ToString()
+            => ToString(skipTrivia: false);
+
+        public string ToString(bool skipTrivia)
+        {
+            using var _ = PooledStringBuilder.GetInstance(out var sb);
+            ToString(skipTrivia, sb);
+            return sb.ToString();
+        }
+
+        public void ToString(bool skipTrivia, StringBuilder sb)
+        {
+            if (!skipTrivia)
+            {
+                foreach (var trivia in LeadingTrivia)
+                {
+                    sb.Append(trivia.ToString());
+                }
+            }
+
+            sb.Append(VirtualChars.CreateString());
+
+            if (!skipTrivia)
+            {
+                foreach (var trivia in TrailingTrivia)
+                {
+                    sb.Append(trivia.ToString());
+                }
+            }
+        }
     }
 }

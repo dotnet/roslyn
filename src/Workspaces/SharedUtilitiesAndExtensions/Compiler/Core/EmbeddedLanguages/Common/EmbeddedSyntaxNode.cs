@@ -4,7 +4,9 @@
 
 using System;
 using System.Diagnostics;
+using System.Text;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
@@ -101,6 +103,31 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             }
 
             return false;
+        }
+
+        public override string ToString()
+            => ToString(skipTrivia: false);
+
+        public string ToString(bool skipTrivia)
+        {
+            using var _ = PooledStringBuilder.GetInstance(out var sb);
+            ToString(skipTrivia, sb);
+            return sb.ToString();
+        }
+
+        public void ToString(bool skipTrivia, StringBuilder sb)
+        {
+            foreach (var child in this)
+            {
+                if (child.IsNode)
+                {
+                    child.Node.ToString(skipTrivia, sb);
+                }
+                else
+                {
+                    child.Token.ToString(skipTrivia, sb);
+                }
+            }
         }
 
         public Enumerator GetEnumerator()
