@@ -38,7 +38,7 @@ namespace Xunit.Harness
                 {
                     using (var visualStudioInstanceFactory = new VisualStudioInstanceFactory())
                     {
-                        var summary = await RunTestCollectionForVersionAsync(visualStudioInstanceFactory, testCasesByTargetVersion.Key, completedTestCaseIds, messageBus, testCollection, testCasesByTargetVersion, cancellationTokenSource);
+                        var summary = await RunTestCollectionForVersionAsync(visualStudioInstanceFactory, testCasesByTargetVersion.Key.Item1, testCasesByTargetVersion.Key.Item2, completedTestCaseIds, messageBus, testCollection, testCasesByTargetVersion, cancellationTokenSource);
                         result.Aggregate(summary.Item1);
                         testAssemblyFinishedMessages.Add(summary.Item2);
                     }
@@ -79,7 +79,7 @@ namespace Xunit.Harness
             return result;
         }
 
-        protected virtual Task<Tuple<RunSummary, ITestAssemblyFinished>> RunTestCollectionForVersionAsync(VisualStudioInstanceFactory visualStudioInstanceFactory, VisualStudioVersion visualStudioVersion, HashSet<string> completedTestCaseIds, IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
+        protected virtual Task<Tuple<RunSummary, ITestAssemblyFinished>> RunTestCollectionForVersionAsync(VisualStudioInstanceFactory visualStudioInstanceFactory, VisualStudioVersion visualStudioVersion, string rootSuffix, HashSet<string> completedTestCaseIds, IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
         {
             if (visualStudioVersion == VisualStudioVersion.Unspecified
                 || !IdeTestCase.IsInstalled(visualStudioVersion))
@@ -127,7 +127,7 @@ namespace Xunit.Harness
                     using (await WpfTestSharedData.Instance.TestSerializationGate.DisposableWaitAsync(CancellationToken.None))
                     {
                         // Just call back into the normal xUnit dispatch process now that we are on an STA Thread with no synchronization context.
-                        var invoker = CreateTestCollectionInvoker(visualStudioInstanceFactory, visualStudioVersion, completedTestCaseIds, messageBus, testCollection, testCases, cancellationTokenSource);
+                        var invoker = CreateTestCollectionInvoker(visualStudioInstanceFactory, visualStudioVersion, rootSuffix, completedTestCaseIds, messageBus, testCollection, testCases, cancellationTokenSource);
                         return await invoker().ConfigureAwait(true);
                     }
                 },
@@ -170,7 +170,7 @@ namespace Xunit.Harness
             }
         }
 
-        private Func<Task<Tuple<RunSummary, ITestAssemblyFinished>>> CreateTestCollectionInvoker(VisualStudioInstanceFactory visualStudioInstanceFactory, VisualStudioVersion visualStudioVersion, HashSet<string> completedTestCaseIds, IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
+        private Func<Task<Tuple<RunSummary, ITestAssemblyFinished>>> CreateTestCollectionInvoker(VisualStudioInstanceFactory visualStudioInstanceFactory, VisualStudioVersion visualStudioVersion, string rootSuffix, HashSet<string> completedTestCaseIds, IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
         {
             return async () =>
             {
@@ -180,7 +180,7 @@ namespace Xunit.Harness
                 {
                     // Install a COM message filter to handle retry operations when the first attempt fails
                     using (var messageFilter = new MessageFilter())
-                    using (var visualStudioContext = await visualStudioInstanceFactory.GetNewOrUsedInstanceAsync(GetVersion(visualStudioVersion), GetExtensionFiles(testCases), ImmutableHashSet.Create<string>()).ConfigureAwait(true))
+                    using (var visualStudioContext = await visualStudioInstanceFactory.GetNewOrUsedInstanceAsync(GetVersion(visualStudioVersion), rootSuffix, GetExtensionFiles(testCases), ImmutableHashSet.Create<string>()).ConfigureAwait(true))
                     {
                         var knownTestCasesByUniqueId = testCases.ToDictionary<IXunitTestCase, string, ITestCase>(testCase => testCase.UniqueID, testCase => testCase);
                         var executionMessageSinkFilter = new IpcMessageSink(ExecutionMessageSink, knownTestCasesByUniqueId, completedTestCaseIds, cancellationTokenSource.Token);
@@ -261,14 +261,14 @@ namespace Xunit.Harness
             }
         }
 
-        private VisualStudioVersion GetVisualStudioVersionForTestCase(IXunitTestCase testCase)
+        private Tuple<VisualStudioVersion, string> GetVisualStudioVersionForTestCase(IXunitTestCase testCase)
         {
             if (testCase is IdeTestCase ideTestCase)
             {
-                return ideTestCase.VisualStudioVersion;
+                return Tuple.Create(ideTestCase.VisualStudioVersion, ideTestCase.RootSuffix);
             }
 
-            return VisualStudioVersion.Unspecified;
+            return Tuple.Create(VisualStudioVersion.Unspecified, (string)null);
         }
 
         private class IpcMessageSink : MarshalByRefObject, IMessageSink
@@ -309,7 +309,7 @@ namespace Xunit.Harness
                         }
                         else if (testCase is IdeTestCase ideTestCase)
                         {
-                            return new IdeTestCase(this, ideTestCase.DefaultMethodDisplay, ideTestCase.DefaultMethodDisplayOptions, ideTestCase.TestMethod, ideTestCase.VisualStudioVersion, ideTestCase.TestMethodArguments);
+                            return new IdeTestCase(this, ideTestCase.DefaultMethodDisplay, ideTestCase.DefaultMethodDisplayOptions, ideTestCase.TestMethod, ideTestCase.VisualStudioVersion, ideTestCase.RootSuffix, ideTestCase.TestMethodArguments);
                         }
                         else
                         {

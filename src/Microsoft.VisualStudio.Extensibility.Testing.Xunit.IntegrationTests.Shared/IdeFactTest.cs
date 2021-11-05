@@ -3,6 +3,7 @@
 
 namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
 {
+    using System;
     using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
@@ -92,6 +93,74 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
             Assert.NotNull(taskSchedulerService);
 
             Assert.Same(JoinableTaskContext, taskSchedulerService.GetAsyncTaskContext());
+        }
+
+        /// <summary>
+        /// ⚠️ Running this test locally will reset the setting for the non-experimental instance.
+        /// </summary>
+        [IdeFact(RootSuffix = "")]
+        public void TestStandardInstance()
+        {
+            var appCommandLine = (IVsAppCommandLine)ServiceProvider.GetService(typeof(SVsAppCommandLine));
+            Assumes.Present(appCommandLine);
+
+            Assert.Equal(0, appCommandLine.GetOption("rootSuffix", out var present, out var value));
+            Assert.Equal(0, present);
+            Assert.Null(value);
+
+            Assert.Null(Environment.GetEnvironmentVariable("VSROOTSUFFIX"));
+        }
+
+        [IdeFact]
+        public void TestDefaultExperimentalInstance1()
+        {
+            var appCommandLine = (IVsAppCommandLine)ServiceProvider.GetService(typeof(SVsAppCommandLine));
+            Assumes.Present(appCommandLine);
+
+            Assert.Equal(0, appCommandLine.GetOption("rootSuffix", out var present, out var value));
+            Assert.Equal(1, present);
+            Assert.Equal("Exp", value);
+
+            Assert.Equal("Exp", Environment.GetEnvironmentVariable("VSROOTSUFFIX"));
+        }
+
+        [IdeFact(RootSuffix = null)]
+        public void TestDefaultExperimentalInstance2()
+        {
+            var appCommandLine = (IVsAppCommandLine)ServiceProvider.GetService(typeof(SVsAppCommandLine));
+            Assumes.Present(appCommandLine);
+
+            Assert.Equal(0, appCommandLine.GetOption("rootSuffix", out var present, out var value));
+            Assert.Equal(1, present);
+            Assert.Equal("Exp", value);
+
+            Assert.Equal("Exp", Environment.GetEnvironmentVariable("VSROOTSUFFIX"));
+        }
+
+        [IdeFact(RootSuffix = "Exp")]
+        public void TestExperimentalInstance()
+        {
+            var appCommandLine = (IVsAppCommandLine)ServiceProvider.GetService(typeof(SVsAppCommandLine));
+            Assumes.Present(appCommandLine);
+
+            Assert.Equal(0, appCommandLine.GetOption("rootSuffix", out var present, out var value));
+            Assert.Equal(1, present);
+            Assert.Equal("Exp", value);
+
+            Assert.Equal("Exp", Environment.GetEnvironmentVariable("VSROOTSUFFIX"));
+        }
+
+        [IdeFact(RootSuffix = "RoslynExp")]
+        public void TestRoslynExperimentalInstance()
+        {
+            var appCommandLine = (IVsAppCommandLine)ServiceProvider.GetService(typeof(SVsAppCommandLine));
+            Assumes.Present(appCommandLine);
+
+            Assert.Equal(0, appCommandLine.GetOption("rootSuffix", out var present, out var value));
+            Assert.Equal(1, present);
+            Assert.Equal("RoslynExp", value);
+
+            Assert.Equal("RoslynExp", Environment.GetEnvironmentVariable("VSROOTSUFFIX"));
         }
     }
 }

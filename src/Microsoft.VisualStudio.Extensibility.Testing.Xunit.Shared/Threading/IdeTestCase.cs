@@ -19,11 +19,12 @@ namespace Xunit.Threading
         {
         }
 
-        public IdeTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, VisualStudioVersion visualStudioVersion, object[] testMethodArguments = null)
+        public IdeTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, VisualStudioVersion visualStudioVersion, string rootSuffix, object[] testMethodArguments = null)
             : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, testMethodArguments)
         {
             SharedData = WpfTestSharedData.Instance;
             VisualStudioVersion = visualStudioVersion;
+            RootSuffix = rootSuffix;
 
             if (!IsInstalled(visualStudioVersion))
             {
@@ -32,6 +33,12 @@ namespace Xunit.Threading
         }
 
         public VisualStudioVersion VisualStudioVersion
+        {
+            get;
+            private set;
+        }
+
+        public string RootSuffix
         {
             get;
             private set;
@@ -78,12 +85,14 @@ namespace Xunit.Threading
         {
             base.Serialize(data);
             data.AddValue(nameof(VisualStudioVersion), (int)VisualStudioVersion);
+            data.AddValue(nameof(RootSuffix), RootSuffix);
             data.AddValue(nameof(SkipReason), SkipReason);
         }
 
         public override void Deserialize(IXunitSerializationInfo data)
         {
             VisualStudioVersion = (VisualStudioVersion)data.GetValue<int>(nameof(VisualStudioVersion));
+            RootSuffix = data.GetValue<string>(nameof(RootSuffix));
             base.Deserialize(data);
             SkipReason = data.GetValue<string>(nameof(SkipReason));
             SharedData = WpfTestSharedData.Instance;
