@@ -1289,18 +1289,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
+#nullable enable
         private Cci.IMethodReference Translate(
             MethodSymbol methodSymbol,
             SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics,
             bool needDeclaration)
         {
-            object reference;
+            object? reference;
             Cci.IMethodReference methodRef;
             NamedTypeSymbol container = methodSymbol.ContainingType;
 
             // Method of anonymous type being translated
-            if (container.IsAnonymousType)
+            if (container?.IsAnonymousType == true)
             {
                 Debug.Assert(!needDeclaration);
                 methodSymbol = AnonymousTypeManager.TranslateAnonymousTypeMethodSymbol(methodSymbol);
@@ -1363,6 +1364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             return methodSymbol.GetCciAdapter();
         }
+#nullable disable
 
         internal Cci.IMethodReference TranslateOverriddenMethodReference(
             MethodSymbol methodSymbol,
@@ -1776,6 +1778,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NativeIntegerAttribute);
         }
+
+#nullable enable
+        /// <summary>
+        /// Creates the ThrowIfNull and Throw helpers if needed.
+        /// </summary>
+        internal MethodSymbol EnsureThrowIfNullFunctionExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, DiagnosticBag? diagnostics)
+        {
+            // If we have already generated the helper, possibly for another switch
+            // or on another thread, we don't need to regenerate it.
+            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
+            if (privateImplClass.GetMethod(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedThrowIfNullFunctionName) is { } throwIfNullAdapter)
+            {
+                Debug.Assert(privateImplClass.GetMethod(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedThrowFunctionName) != null);
+                return (MethodSymbol)throwIfNullAdapter.GetInternalSymbol()!;
+            }
+
+            TypeSymbol returnType = factory.SpecialType(SpecialType.System_Void);
+            TypeSymbol argumentType = factory.SpecialType(SpecialType.System_Object);
+            TypeSymbol paramNameType = factory.SpecialType(SpecialType.System_String);
+
+            var sourceModule = SourceModule;
+            var throwMethod = new SynthesizedThrowMethod(sourceModule, privateImplClass, returnType, paramNameType);
+            privateImplClass.TryAddSynthesizedMethod(throwMethod.GetCciAdapter());
+
+            var throwIfNullMethod = new SynthesizedThrowIfNullMethod(sourceModule, privateImplClass, throwMethod, returnType, argumentType, paramNameType);
+            privateImplClass.TryAddSynthesizedMethod(throwIfNullMethod.GetCciAdapter());
+            return throwIfNullMethod;
+        }
+#nullable disable
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetAdditionalTopLevelTypeDefinitions(EmitContext context)
         {

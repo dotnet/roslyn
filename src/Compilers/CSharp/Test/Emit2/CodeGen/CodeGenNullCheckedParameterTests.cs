@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -25,29 +25,168 @@ public class C
             var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.M", @"
 {
-    // Code size       15 (0xf)
-    .maxstack  1
-    ~IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""input""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    -IL_000e:  ret
+  // Code size       12 (0xc)
+  .maxstack  2
+ ~IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""input""
+  IL_0006:  call       ""ThrowIfNull""
+ -IL_000b:  ret
 }", sequencePoints: "C.M");
             // Debug
             compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.M", @"
 {
-    // Code size       16 (0x10)
-    .maxstack  1
-    ~IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""input""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    -IL_000e:  nop
-    -IL_000f:  ret
+  // Code size       14 (0xe)
+  .maxstack  2
+ ~IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""input""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  nop
+ -IL_000c:  nop
+ -IL_000d:  ret
 }", sequencePoints: "C.M");
+
+            compilation.VerifyIL("ThrowIfNull", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0009
+  IL_0003:  ldarg.1
+  IL_0004:  call       ""Throw""
+  IL_0009:  ret
+}");
+            compilation.VerifyIL("Throw", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""System.ArgumentNullException..ctor(string)""
+  IL_0006:  throw
+}");
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                compilation.VerifyTypeIL("<PrivateImplementationDetails>", @"
+.class private auto ansi sealed '<PrivateImplementationDetails>'
+	extends [netstandard]System.Object
+{
+	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method assembly hidebysig static 
+		void Throw (
+			string paramName
+		) cil managed 
+	{
+		// Method begins at RVA 0x206b
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: newobj instance void [netstandard]System.ArgumentNullException::.ctor(string)
+		IL_0006: throw
+	} // end of method '<PrivateImplementationDetails>'::Throw
+	.method assembly hidebysig static 
+		void ThrowIfNull (
+			object argument,
+			string paramName
+		) cil managed 
+	{
+		// Method begins at RVA 0x2073
+		// Code size 10 (0xa)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: brtrue.s IL_0009
+		IL_0003: ldarg.1
+		IL_0004: call void '<PrivateImplementationDetails>'::Throw(string)
+		IL_0009: ret
+	} // end of method '<PrivateImplementationDetails>'::ThrowIfNull
+} // end of class <PrivateImplementationDetails>
+");
+            }
+        }
+
+        [Fact]
+        public void TestNetModule()
+        {
+            var source = @"
+using System;
+public class C
+{
+    public static void Main() { }
+    public void M(string input!!) { }
+}";
+            var compilation = CompileAndVerify(source, options: TestOptions.DebugModule.WithModuleName("Module"), parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyIL("C.M", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+ ~IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""input""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  nop
+ -IL_000c:  nop
+ -IL_000d:  ret
+}", sequencePoints: "C.M");
+
+            compilation.VerifyIL("ThrowIfNull", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0009
+  IL_0003:  ldarg.1
+  IL_0004:  call       ""Throw""
+  IL_0009:  ret
+}");
+            compilation.VerifyIL("Throw", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""System.ArgumentNullException..ctor(string)""
+  IL_0006:  throw
+}");
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                compilation.VerifyTypeIL("<PrivateImplementationDetails><Module>", @"
+.class private auto ansi sealed '<PrivateImplementationDetails><Module>'
+	extends [netstandard]System.Object
+{
+	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method assembly hidebysig static 
+		void Throw (
+			string paramName
+		) cil managed 
+	{
+		// Method begins at RVA 0x206b
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: newobj instance void [netstandard]System.ArgumentNullException::.ctor(string)
+		IL_0006: throw
+	} // end of method '<PrivateImplementationDetails><Module>'::Throw
+	.method assembly hidebysig static 
+		void ThrowIfNull (
+			object argument,
+			string paramName
+		) cil managed 
+	{
+		// Method begins at RVA 0x2073
+		// Code size 10 (0xa)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: brtrue.s IL_0009
+		IL_0003: ldarg.1
+		IL_0004: call void '<PrivateImplementationDetails><Module>'::Throw(string)
+		IL_0009: ret
+	} // end of method '<PrivateImplementationDetails><Module>'::ThrowIfNull
+} // end of class <PrivateImplementationDetails><Module>
+");
+            }
         }
 
         [Fact]
@@ -66,28 +205,25 @@ public class C
             var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.M", @"
 {
-    // Code size       15 (0xf)
-    .maxstack  1
-    ~IL_0000:  ldarg.2
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""y""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    -IL_000e:  ret
+  // Code size       12 (0xc)
+  .maxstack  2
+ ~IL_0000:  ldarg.2
+  IL_0001:  ldstr      ""y""
+  IL_0006:  call       ""ThrowIfNull""
+ -IL_000b:  ret
 }", sequencePoints: "C.M");
             // Debug
             compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.M", @"
 {
-    // Code size       16 (0x10)
-    .maxstack  1
-    ~IL_0000:  ldarg.2
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""y""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    -IL_000e:  nop
-    -IL_000f:  ret
+  // Code size       14 (0xe)
+  .maxstack  2
+ ~IL_0000:  ldarg.2
+  IL_0001:  ldstr      ""y""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  nop
+ -IL_000c:  nop
+ -IL_000d:  ret
 }", sequencePoints: "C.M");
         }
 
@@ -105,28 +241,25 @@ class C
             var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.M", @"
 {
-    // Code size       15 (0xf)
-    .maxstack  1
-    ~IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""name""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    -IL_000e:  ret
+  // Code size       12 (0xc)
+  .maxstack  2
+ ~IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""name""
+  IL_0006:  call       ""ThrowIfNull""
+ -IL_000b:  ret
 }", sequencePoints: "C.M");
             // Debug
             compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.M", @"
 {
-    // Code size       16 (0x10)
-    .maxstack  1
-    ~IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""name""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    -IL_000e:  nop
-    -IL_000f:  ret
+  // Code size       14 (0xe)
+  .maxstack  2
+ ~IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""name""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  nop
+ -IL_000c:  nop
+ -IL_000d:  ret
 }", sequencePoints: "C.M");
         }
 
@@ -147,34 +280,31 @@ class Box
             var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("int Box.op_Addition(Box, Box)", @"
 {
-    // Code size       16 (0x10)
-    .maxstack  1
-    ~IL_0000:  ldarg.0
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""b""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    -IL_000e:  ldc.i4.2
-    IL_000f:  ret
+  // Code size       13 (0xd)
+  .maxstack  2
+ ~IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""b""
+  IL_0006:  call       ""ThrowIfNull""
+ -IL_000b:  ldc.i4.2
+  IL_000c:  ret
 }", sequencePoints: "Box.op_Addition");
             // Debug
             compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("int Box.op_Addition(Box, Box)", @"
 {
-    // Code size       21 (0x15)
-    .maxstack  1
-    .locals init (int V_0)
-    ~IL_0000:  ldarg.0
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""b""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    -IL_000e:  nop
-    -IL_000f:  ldc.i4.2
-    IL_0010:  stloc.0
-    IL_0011:  br.s       IL_0013
-    -IL_0013:  ldloc.0
-    IL_0014:  ret
+  // Code size       19 (0x13)
+  .maxstack  2
+  .locals init (int V_0)
+ ~IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""b""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  nop
+ -IL_000c:  nop
+ -IL_000d:  ldc.i4.2
+  IL_000e:  stloc.0
+  IL_000f:  br.s       IL_0011
+ -IL_0011:  ldloc.0
+  IL_0012:  ret
 }", sequencePoints: "Box.op_Addition");
         }
 
@@ -237,30 +367,27 @@ class C
             var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.this[string].get", @"
 {
-    // Code size       16 (0x10)
-    .maxstack  1
-    ~IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""index""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    -IL_000e:  ldnull
-    IL_000f:  ret
+  // Code size       13 (0xd)
+  .maxstack  2
+ ~IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""index""
+  IL_0006:  call       ""ThrowIfNull""
+ -IL_000b:  ldnull
+  IL_000c:  ret
 }", sequencePoints: "C.get_Item");
 
             // Debug
             compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.this[string].get", @"
 {
-    // Code size       16 (0x10)
-    .maxstack  1
-    ~IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""index""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    -IL_000e:  ldnull
-    IL_000f:  ret
+  // Code size       14 (0xe)
+  .maxstack  2
+ ~IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""index""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  nop
+ -IL_000c:  ldnull
+  IL_000d:  ret
 }", sequencePoints: "C.get_Item");
         }
 
@@ -293,39 +420,36 @@ class C
             var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.this[object].set", @"
 {
-    // Code size       24 (0x18)
-    .maxstack  3
-    ~IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""item""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    -IL_000e:  ldarg.0
-    IL_000f:  ldfld      ""object[] C.items""
-    IL_0014:  ldc.i4.0
-    IL_0015:  ldarg.2
-    IL_0016:  stelem.ref
-    -IL_0017:  ret
+  // Code size       21 (0x15)
+  .maxstack  3
+ ~IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""item""
+  IL_0006:  call       ""ThrowIfNull""
+ -IL_000b:  ldarg.0
+  IL_000c:  ldfld      ""object[] C.items""
+  IL_0011:  ldc.i4.0
+  IL_0012:  ldarg.2
+  IL_0013:  stelem.ref
+ -IL_0014:  ret
 }", sequencePoints: "C.set_Item");
 
             // Debug
             compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.this[object].set", @"
 {
-    // Code size       25 (0x19)
-    .maxstack  3
-    ~IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""item""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    -IL_000e:  nop
-    -IL_000f:  ldarg.0
-    IL_0010:  ldfld      ""object[] C.items""
-    IL_0015:  ldc.i4.0
-    IL_0016:  ldarg.2
-    IL_0017:  stelem.ref
-    -IL_0018:  ret
+  // Code size       23 (0x17)
+  .maxstack  3
+ ~IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""item""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  nop
+ -IL_000c:  nop
+ -IL_000d:  ldarg.0
+  IL_000e:  ldfld      ""object[] C.items""
+  IL_0013:  ldc.i4.0
+  IL_0014:  ldarg.2
+  IL_0015:  stelem.ref
+ -IL_0016:  ret
 }", sequencePoints: "C.set_Item");
         }
 
@@ -342,29 +466,26 @@ class C
             var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.this[object].set", @"
 {
-    // Code size       15 (0xf)
-    .maxstack  1
-    ~IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""index""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    -IL_000e:  ret
+  // Code size       12 (0xc)
+  .maxstack  2
+ ~IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""index""
+  IL_0006:  call       ""ThrowIfNull""
+ -IL_000b:  ret
 }", sequencePoints: "C.set_Item");
 
             // Debug
             compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.this[object].set", @"
 {
-    // Code size       16 (0x10)
-    .maxstack  1
-    ~IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""index""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    -IL_000e:  nop
-    -IL_000f:  ret
+  // Code size       14 (0xe)
+  .maxstack  2
+ ~IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""index""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  nop
+ -IL_000c:  nop
+ -IL_000d:  ret
 }", sequencePoints: "C.set_Item");
         }
 
@@ -384,27 +505,23 @@ class B1<T> : A<T> where T : class
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("B1<T>.M<U>(U)", @"
 {
-    // Code size       20 (0x14)
-    .maxstack  1
-    IL_0000:  ldarg.1
-    IL_0001:  box        ""U""
-    IL_0006:  brtrue.s   IL_0013
-    IL_0008:  ldstr      ""u""
-    IL_000d:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_0012:  throw
-    IL_0013:  ret
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  box        ""U""
+  IL_0006:  ldstr      ""u""
+  IL_000b:  call       ""ThrowIfNull""
+  IL_0010:  ret
 }");
             compilation.VerifyIL("A<T>.M<U>(U)", @"
 {
-    // Code size       20 (0x14)
-    .maxstack  1
-    IL_0000:  ldarg.1
-    IL_0001:  box        ""U""
-    IL_0006:  brtrue.s   IL_0013
-    IL_0008:  ldstr      ""u""
-    IL_000d:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_0012:  throw
-    IL_0013:  ret
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  box        ""U""
+  IL_0006:  ldstr      ""u""
+  IL_000b:  call       ""ThrowIfNull""
+  IL_0010:  ret
 }");
         }
 
@@ -423,15 +540,13 @@ class B3<T> : A<T?> where T : struct
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("B3<T>.M<U>(U)", @"
 {
-    // Code size       20 (0x14)
-    .maxstack  1
-    IL_0000:  ldarg.1
-    IL_0001:  box        ""U""
-    IL_0006:  brtrue.s   IL_0013
-    IL_0008:  ldstr      ""u""
-    IL_000d:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_0012:  throw
-    IL_0013:  ret
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  box        ""U""
+  IL_0006:  ldstr      ""u""
+  IL_000b:  call       ""ThrowIfNull""
+  IL_0010:  ret
 }");
         }
 
@@ -450,15 +565,13 @@ class B5 : A<object>
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("B5.M<U>(U)", @"
 {
-    // Code size       20 (0x14)
-    .maxstack  1
-    IL_0000:  ldarg.1
-    IL_0001:  box        ""U""
-    IL_0006:  brtrue.s   IL_0013
-    IL_0008:  ldstr      ""u""
-    IL_000d:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_0012:  throw
-    IL_0013:  ret
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  box        ""U""
+  IL_0006:  ldstr      ""u""
+  IL_000b:  call       ""ThrowIfNull""
+  IL_0010:  ret
 }");
         }
 
@@ -473,15 +586,13 @@ class C
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.M<T>(T)", @"
 {
-    // Code size       20 (0x14)
-    .maxstack  1
-    IL_0000:  ldarg.1
-    IL_0001:  box        ""T""
-    IL_0006:  brtrue.s   IL_0013
-    IL_0008:  ldstr      ""value""
-    IL_000d:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_0012:  throw
-    IL_0013:  ret
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  box        ""T""
+  IL_0006:  ldstr      ""value""
+  IL_000b:  call       ""ThrowIfNull""
+  IL_0010:  ret
 }");
         }
 
@@ -711,15 +822,13 @@ class C
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.<>c.<M>b__0_0(string)", @"
 {
-    // Code size       16 (0x10)
-    .maxstack  1
-    IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""x""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ldarg.1
-    IL_000f:  ret
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""x""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldarg.1
+  IL_000c:  ret
 }");
         }
 
@@ -738,15 +847,13 @@ class C
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.<>c.<M>b__0_0(string, string)", @"
 {
-    // Code size       16 (0x10)
-    .maxstack  1
-    IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""x""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ldarg.1
-    IL_000f:  ret
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""x""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldarg.1
+  IL_000c:  ret
 }");
         }
 
@@ -765,20 +872,16 @@ class C
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.<>c.<M>b__0_0(string, string)", @"
 {
-    // Code size       30 (0x1e)
-    .maxstack  1
-    IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""x""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ldarg.2
-    IL_000f:  brtrue.s   IL_001c
-    IL_0011:  ldstr      ""y""
-    IL_0016:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_001b:  throw
-    IL_001c:  ldarg.1
-    IL_001d:  ret
+  // Code size       24 (0x18)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""x""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldarg.2
+  IL_000c:  ldstr      ""y""
+  IL_0011:  call       ""ThrowIfNull""
+  IL_0016:  ldarg.1
+  IL_0017:  ret
 }");
         }
 
@@ -797,15 +900,13 @@ class C
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.<>c.<M>b__0_0(string)", @"
 {
-    // Code size       16 (0x10)
-    .maxstack  1
-    IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""_""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ldnull
-    IL_000f:  ret
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""_""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldnull
+  IL_000c:  ret
 }");
         }
 
@@ -824,15 +925,13 @@ class C
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.<>c.<.ctor>b__2_0(string)", @"
 {
-    // Code size       16 (0x10)
-    .maxstack  1
-    IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""x""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ldarg.1
-    IL_000f:  ret
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""x""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldarg.1
+  IL_000c:  ret
 }");
         }
 
@@ -852,14 +951,12 @@ class C
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.<M>g__InnerM|0_0(string)", @"
 {
-    // Code size       15 (0xf)
-    .maxstack  1
-    IL_0000:  ldarg.0
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""x""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ret
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""x""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ret
 }");
         }
 
@@ -879,14 +976,12 @@ class C
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.<M>g__InnerM|0_0(string, string)", @"
 {
-    // Code size       15 (0xf)
-    .maxstack  1
-    IL_0000:  ldarg.0
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""x""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ret
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""x""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ret
 }");
         }
 
@@ -906,19 +1001,15 @@ class C
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.<M>g__InnerM|0_0(string, string)", @"
 {
-    // Code size       29 (0x1d)
-    .maxstack  1
-    IL_0000:  ldarg.0
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""x""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ldarg.1
-    IL_000f:  brtrue.s   IL_001c
-    IL_0011:  ldstr      ""y""
-    IL_0016:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_001b:  throw
-    IL_001c:  ret
+  // Code size       23 (0x17)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""x""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldarg.1
+  IL_000c:  ldstr      ""y""
+  IL_0011:  call       ""ThrowIfNull""
+  IL_0016:  ret
 }");
         }
 
@@ -938,14 +1029,12 @@ class C
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.<M>g__InnerM|0_0(string)", @"
 {
-    // Code size       15 (0xf)
-    .maxstack  1
-    IL_0000:  ldarg.0
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""x""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ret
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""x""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ret
 }");
             compilation.VerifyIL("C.M(string)", @"
 {
@@ -979,16 +1068,14 @@ class C
 }");
             compilation.VerifyIL("C.M(string)", @"
 {
-    // Code size       25 (0x19)
-    .maxstack  1
-    IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""x""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ldstr      ""hello""
-    IL_0013:  call       ""void C.<M>g__InnerM|0_0(string)""
-    IL_0018:  ret
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""x""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldstr      ""hello""
+  IL_0010:  call       ""void C.<M>g__InnerM|0_0(string)""
+  IL_0015:  ret
 }");
         }
 
@@ -1003,16 +1090,14 @@ class C
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C..ctor(string)", @"
 {
-    // Code size       21 (0x15)
-    .maxstack  1
-    IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""x""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ldarg.0
-    IL_000f:  call       ""object..ctor()""
-    IL_0014:  ret
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""x""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldarg.0
+  IL_000c:  call       ""object..ctor()""
+  IL_0011:  ret
 }");
         }
 
@@ -1031,17 +1116,15 @@ class C : B
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C..ctor(string)", @"
 {
-    // Code size       22 (0x16)
-    .maxstack  2
-    IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""x""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ldarg.0
-    IL_000f:  ldarg.1
-    IL_0010:  call       ""B..ctor(string)""
-    IL_0015:  ret
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""x""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldarg.0
+  IL_000c:  ldarg.1
+  IL_000d:  call       ""B..ctor(string)""
+  IL_0012:  ret
 }");
             compilation.VerifyIL("B..ctor(string)", @"
 {
@@ -1065,16 +1148,14 @@ class C
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C..ctor(string)", @"
 {
-    // Code size       21 (0x15)
-    .maxstack  1
-    IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""x""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ldarg.0
-    IL_000f:  call       ""C..ctor()""
-    IL_0014:  ret
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""x""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldarg.0
+  IL_000c:  call       ""C..ctor()""
+  IL_0011:  ret
 }");
         }
 
@@ -1090,19 +1171,17 @@ class C
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C..ctor(string)", @"
 {
-    // Code size       28 (0x1c)
-    .maxstack  2
-    IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""x""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ldarg.0
-    IL_000f:  ldc.i4.5
-    IL_0010:  stfld      ""int C.y""
-    IL_0015:  ldarg.0
-    IL_0016:  call       ""object..ctor()""
-    IL_001b:  ret
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""x""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldarg.0
+  IL_000c:  ldc.i4.5
+  IL_000d:  stfld      ""int C.y""
+  IL_0012:  ldarg.0
+  IL_0013:  call       ""object..ctor()""
+  IL_0018:  ret
 }");
         }
 
@@ -1118,15 +1197,13 @@ class C
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.Local(object)", @"
 {
-    // Code size       16 (0x10)
-    .maxstack  1
-    IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""arg""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ldarg.1
-    IL_000f:  ret
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""arg""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldarg.1
+  IL_000c:  ret
 }");
         }
 
@@ -1142,35 +1219,31 @@ class C
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.<>c__DisplayClass0_0.<M>b__0(string)", @"
 {
-    // Code size       27 (0x1b)
-    .maxstack  2
-    IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""s2""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ldarg.1
-    IL_000f:  ldarg.0
-    IL_0010:  ldfld      ""string C.<>c__DisplayClass0_0.s1""
-    IL_0015:  call       ""string string.Concat(string, string)""
-    IL_001a:  ret
+  // Code size       24 (0x18)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""s2""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldarg.1
+  IL_000c:  ldarg.0
+  IL_000d:  ldfld      ""string C.<>c__DisplayClass0_0.s1""
+  IL_0012:  call       ""string string.Concat(string, string)""
+  IL_0017:  ret
 }");
             compilation.VerifyIL("C.M(string)", @"
 {
-    // Code size       38 (0x26)
-    .maxstack  3
-    IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""s1""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
-    IL_0013:  dup
-    IL_0014:  ldarg.1
-    IL_0015:  stfld      ""string C.<>c__DisplayClass0_0.s1""
-    IL_001a:  ldftn      ""string C.<>c__DisplayClass0_0.<M>b__0(string)""
-    IL_0020:  newobj     ""System.Func<string, string>..ctor(object, System.IntPtr)""
-    IL_0025:  ret
+  // Code size       35 (0x23)
+  .maxstack  3
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""s1""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0010:  dup
+  IL_0011:  ldarg.1
+  IL_0012:  stfld      ""string C.<>c__DisplayClass0_0.s1""
+  IL_0017:  ldftn      ""string C.<>c__DisplayClass0_0.<M>b__0(string)""
+  IL_001d:  newobj     ""System.Func<string, string>..ctor(object, System.IntPtr)""
+  IL_0022:  ret
 }");
             compilation.VerifyIL("C.<>c__DisplayClass0_0..ctor()", @"
 {
@@ -1206,19 +1279,17 @@ class C
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.GetChars(string)", @"
 {
-    // Code size       29 (0x1d)
-    .maxstack  3
-    IL_0000:  ldc.i4.s   -2
-    IL_0002:  newobj     ""C.<GetChars>d__0..ctor(int)""
-    IL_0007:  ldarg.1
-    IL_0008:  brtrue.s   IL_0015
-    IL_000a:  ldstr      ""s""
-    IL_000f:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_0014:  throw
-    IL_0015:  dup
-    IL_0016:  ldarg.1
-    IL_0017:  stfld      ""string C.<GetChars>d__0.<>3__s""
-    IL_001c:  ret
+  // Code size       26 (0x1a)
+  .maxstack  3
+  IL_0000:  ldc.i4.s   -2
+  IL_0002:  newobj     ""C.<GetChars>d__0..ctor(int)""
+  IL_0007:  ldarg.1
+  IL_0008:  ldstr      ""s""
+  IL_000d:  call       ""ThrowIfNull""
+  IL_0012:  dup
+  IL_0013:  ldarg.1
+  IL_0014:  stfld      ""string C.<GetChars>d__0.<>3__s""
+  IL_0019:  ret
 }");
         }
 
@@ -1245,19 +1316,17 @@ class Iterators
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("Iterators.<Use>g__GetChars|0_0(string)", @"
 {
-    // Code size       29 (0x1d)
-    .maxstack  3
-    IL_0000:  ldc.i4.s   -2
-    IL_0002:  newobj     ""Iterators.<<Use>g__GetChars|0_0>d..ctor(int)""
-    IL_0007:  ldarg.0
-    IL_0008:  brtrue.s   IL_0015
-    IL_000a:  ldstr      ""s""
-    IL_000f:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_0014:  throw
-    IL_0015:  dup
-    IL_0016:  ldarg.0
-    IL_0017:  stfld      ""string Iterators.<<Use>g__GetChars|0_0>d.<>3__s""
-    IL_001c:  ret
+  // Code size       26 (0x1a)
+  .maxstack  3
+  IL_0000:  ldc.i4.s   -2
+  IL_0002:  newobj     ""Iterators.<<Use>g__GetChars|0_0>d..ctor(int)""
+  IL_0007:  ldarg.0
+  IL_0008:  ldstr      ""s""
+  IL_000d:  call       ""ThrowIfNull""
+  IL_0012:  dup
+  IL_0013:  ldarg.0
+  IL_0014:  stfld      ""string Iterators.<<Use>g__GetChars|0_0>d.<>3__s""
+  IL_0019:  ret
 }");
         }
 
@@ -1284,19 +1353,17 @@ class Iterators
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("Iterators.<Use>g__GetChars|0_0(string)", @"
 {
-    // Code size       28 (0x1c)
-    .maxstack  3
-    IL_0000:  ldc.i4.0
-    IL_0001:  newobj     ""Iterators.<<Use>g__GetChars|0_0>d..ctor(int)""
-    IL_0006:  ldarg.0
-    IL_0007:  brtrue.s   IL_0014
-    IL_0009:  ldstr      ""s""
-    IL_000e:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_0013:  throw
-    IL_0014:  dup
-    IL_0015:  ldarg.0
-    IL_0016:  stfld      ""string Iterators.<<Use>g__GetChars|0_0>d.s""
-  IL_001b:  ret
+  // Code size       25 (0x19)
+  .maxstack  3
+  IL_0000:  ldc.i4.0
+  IL_0001:  newobj     ""Iterators.<<Use>g__GetChars|0_0>d..ctor(int)""
+  IL_0006:  ldarg.0
+  IL_0007:  ldstr      ""s""
+  IL_000c:  call       ""ThrowIfNull""
+  IL_0011:  dup
+  IL_0012:  ldarg.0
+  IL_0013:  stfld      ""string Iterators.<<Use>g__GetChars|0_0>d.s""
+  IL_0018:  ret
 }");
         }
 
@@ -1404,16 +1471,14 @@ class C
 }";
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview).VerifyIL("C.GetChars(string)", @"
 {
-    // Code size       22 (0x16)
-    .maxstack  2
-    IL_0000:  ldc.i4.s   -2
-    IL_0002:  newobj     ""C.<GetChars>d__1..ctor(int)""
-    IL_0007:  ldarg.0
-    IL_0008:  brtrue.s   IL_0015
-    IL_000a:  ldstr      ""s""
-    IL_000f:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_0014:  throw
-    IL_0015:  ret
+  // Code size       19 (0x13)
+  .maxstack  3
+  IL_0000:  ldc.i4.s   -2
+  IL_0002:  newobj     ""C.<GetChars>d__1..ctor(int)""
+  IL_0007:  ldarg.0
+  IL_0008:  ldstr      ""s""
+  IL_000d:  call       ""ThrowIfNull""
+  IL_0012:  ret
 }");
         }
 
@@ -1432,16 +1497,14 @@ class C
 }";
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview).VerifyIL("C.GetChars(string)", @"
 {
-    // Code size       21 (0x15)
-    .maxstack  2
-    IL_0000:  ldc.i4.0
-    IL_0001:  newobj     ""C.<GetChars>d__1..ctor(int)""
-    IL_0006:  ldarg.0
-    IL_0007:  brtrue.s   IL_0014
-    IL_0009:  ldstr      ""s""
-    IL_000e:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_0013:  throw
-    IL_0014:  ret
+  // Code size       18 (0x12)
+  .maxstack  3
+  IL_0000:  ldc.i4.0
+  IL_0001:  newobj     ""C.<GetChars>d__1..ctor(int)""
+  IL_0006:  ldarg.0
+  IL_0007:  ldstr      ""s""
+  IL_000c:  call       ""ThrowIfNull""
+  IL_0011:  ret
 }");
         }
 
@@ -1456,14 +1519,63 @@ class C
 }";
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview).VerifyIL("C.M(params int[])", @"
 {
-    // Code size       15 (0xf)
-    .maxstack  1
-    IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""number""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ret
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""number""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        public void TestTypeParameter()
+        {
+            var source = @"
+class C
+{
+    public void M<T>(T t!!)
+    {
+    }
+}";
+            var verifier = CompileAndVerify(source);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M<T>", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  box        ""T""
+  IL_0006:  ldstr      ""t""
+  IL_000b:  call       ""ThrowIfNull""
+  IL_0010:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullableValueType()
+        {
+            var source = @"
+class C
+{
+    public void M(int? i!!) // 1
+    {
+    }
+}";
+            var verifier = CompileAndVerify(source);
+            verifier.VerifyDiagnostics(
+                // (4,24): warning CS8995: Nullable value type 'int?' is null-checked and will throw if null.
+                //     public void M(int? i!!) // 1
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableValueType, "i").WithArguments("int?").WithLocation(4, 24));
+            verifier.VerifyIL("C.M(int?)", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  box        ""int?""
+  IL_0006:  ldstr      ""i""
+  IL_000b:  call       ""ThrowIfNull""
+  IL_0010:  ret
 }");
         }
     }
