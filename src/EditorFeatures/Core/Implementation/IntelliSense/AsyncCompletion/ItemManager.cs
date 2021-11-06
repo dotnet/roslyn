@@ -231,47 +231,46 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // to `MatchResult` to achieve this.
                 initialListOfItemsToBeIncluded.Sort(MatchResult<VSCompletionItem>.SortingComparer);
 
-                var showCompletionItemFilters = _globalOptions.GetOption(CompletionViewOptions.ShowCompletionItemFilters, document?.Project.Language);
+                var filteringResult = initialRoslynTriggerKind == CompletionTriggerKind.Deletion
+                        ? HandleDeletionTrigger(reason, initialListOfItemsToBeIncluded, filterText, hasSuggestedItemOptions)
+                        : HandleNormalFiltering(GetFilterMethod(), filterText, filterReason, data.Trigger.Character, initialListOfItemsToBeIncluded, hasSuggestedItemOptions);
 
+                if (!filteringResult.HasValue)
+                    return null;
+
+                var (selectedItemIndex, selectionHint, uniqueItem) = filteringResult.Value;
+                var useAggressiveDefaultsMatching = session.TextView.Options.GetOptionValue<bool>(AggressiveDefaultsMatchingOptionName);
+                var showCompletionItemFilters = _globalOptions.GetOption(CompletionViewOptions.ShowCompletionItemFilters, document?.Project.Language);
                 var updatedFilters = showCompletionItemFilters
                     ? GetUpdatedFilters(initialListOfItemsToBeIncluded, data.SelectedFilters)
                     : ImmutableArray<CompletionFilterWithState>.Empty;
 
-                var useAggressiveDefaultsMatching = session.TextView.Options.GetOptionValue<bool>(AggressiveDefaultsMatchingOptionName);
-
-                // If this was deletion, then we control the entire behavior of deletion ourselves.
-                if (initialRoslynTriggerKind == CompletionTriggerKind.Deletion)
-                {
-                    return HandleDeletionTrigger(reason, initialListOfItemsToBeIncluded, filterText, updatedFilters, hasSuggestedItemOptions, highlightMatchingPortions, completionHelper);
-                }
-
-                Func<ImmutableArray<(RoslynCompletionItem, PatternMatch?)>, string, ImmutableArray<RoslynCompletionItem>> filterMethod;
-                if (completionService == null)
-                {
-                    filterMethod = (itemsWithPatternMatches, text) => CompletionService.FilterItems(completionHelper, itemsWithPatternMatches, text);
-                }
-                else
-                {
-                    Contract.ThrowIfNull(document);
-                    filterMethod = (itemsWithPatternMatches, text) => completionService.FilterItems(document, itemsWithPatternMatches, text);
-                }
-
-                return HandleNormalFiltering(
-                    filterMethod,
-                    filterText,
+                return new FilteredCompletionModel(
+                    items: GetHighlightedList(initialListOfItemsToBeIncluded, filterText, highlightMatchingPortions, completionHelper),
+                    selectedItemIndex,
                     updatedFilters,
-                    filterReason,
-                    data.Trigger.Character,
-                    initialListOfItemsToBeIncluded,
-                    hasSuggestedItemOptions,
-                    highlightMatchingPortions,
-                    completionHelper);
+                    selectionHint,
+                    centerSelection: true,
+                    uniqueItem);
             }
             finally
             {
                 // Don't call ClearAndFree, which resets the capacity to a default value.
                 initialListOfItemsToBeIncluded.Clear();
                 s_listOfMatchResultPool.Free(initialListOfItemsToBeIncluded);
+            }
+
+            Func<ImmutableArray<(RoslynCompletionItem, PatternMatch?)>, string, ImmutableArray<RoslynCompletionItem>> GetFilterMethod()
+            {
+                if (completionService == null)
+                {
+                    return (itemsWithPatternMatches, text) => CompletionService.FilterItems(completionHelper, itemsWithPatternMatches, text);
+                }
+                else
+                {
+                    Contract.ThrowIfNull(document);
+                    return (itemsWithPatternMatches, text) => completionService.FilterItems(document, itemsWithPatternMatches, text);
+                }
             }
 
             static bool TryGetInitialTriggerLocation(AsyncCompletionSessionDataSnapshot data, out SnapshotPoint intialTriggerLocation)
@@ -326,16 +325,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return position > 0 && snapshot[position - 1] == '.';
         }
 
-        private FilteredCompletionModel? HandleNormalFiltering(
+        private (int selectedItemIndex, UpdateSelectionHint selcetionHint, VSCompletionItem? uniqueItem)? HandleNormalFiltering(
             Func<ImmutableArray<(RoslynCompletionItem, PatternMatch?)>, string, ImmutableArray<RoslynCompletionItem>> filterMethod,
             string filterText,
-            ImmutableArray<CompletionFilterWithState> filters,
             CompletionFilterReason filterReason,
             char typeChar,
             List<MatchResult<VSCompletionItem>> itemsInList,
-            bool hasSuggestedItemOptions,
-            bool highlightMatchingPortions,
-            CompletionHelper completionHelper)
+            bool hasSuggestedItemOptions)
         {
             // Not deletion.  Defer to the language to decide which item it thinks best
             // matches the text typed so far.
@@ -413,19 +409,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var updateSelectionHint = isHardSelection ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected;
 
-            return new FilteredCompletionModel(
-                GetHighlightedList(itemsInList, filterText, highlightMatchingPortions, completionHelper), selectedItemIndex, filters,
-                updateSelectionHint, centerSelection: true, uniqueItem);
+            return (selectedItemIndex, updateSelectionHint, uniqueItem);
         }
 
-        private static FilteredCompletionModel? HandleDeletionTrigger(
+        private static (int selectedItemIndex, UpdateSelectionHint selcetionHint, VSCompletionItem? uniqueItem)? HandleDeletionTrigger(
             CompletionTriggerReason filterTriggerKind,
             List<MatchResult<VSCompletionItem>> matchResults,
             string filterText,
-            ImmutableArray<CompletionFilterWithState> filters,
-            bool hasSuggestedItemOptions,
-            bool highlightMatchingSpans,
-            CompletionHelper completionHelper)
+            bool hasSuggestedItemOptions)
         {
             var matchingItems = matchResults.Where(r => r.MatchedFilterText);
             if (filterTriggerKind == CompletionTriggerReason.Insertion &&
@@ -488,11 +479,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 hardSelect = false;
             }
 
-            return new FilteredCompletionModel(
-                GetHighlightedList(matchResults, filterText, highlightMatchingSpans, completionHelper), index, filters,
+            return (index,
                 hardSelect ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected,
-                centerSelection: true,
-                uniqueItem: moreThanOneMatchWithSamePriority ? null : bestMatchResult.GetValueOrDefault().EditorCompletionItem);
+                moreThanOneMatchWithSamePriority ? null : bestMatchResult.GetValueOrDefault().EditorCompletionItem);
         }
 
         private static ImmutableArray<CompletionItemWithHighlight> GetHighlightedList(
