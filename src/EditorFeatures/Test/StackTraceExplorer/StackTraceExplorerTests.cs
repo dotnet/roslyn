@@ -208,6 +208,74 @@ namespace ConsoleApp
 }");
         }
 
+        [Fact]
+        public Task TestSymbolFound_ArrayParameter()
+        {
+            return TestSymbolFoundAsync(
+                "at ConsoleApp.MyClass.M(string[] s)",
+                @"
+namespace ConsoleApp
+{
+    class MyClass
+    {
+        void [|M|](string[] s)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public Task TestSymbolFound_MultidimensionArrayParameter()
+        {
+            return TestSymbolFoundAsync(
+                "at ConsoleApp.MyClass.M(string[,] s)",
+                @"
+namespace ConsoleApp
+{
+    class MyClass
+    {
+        void [|M|](string[,] s)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public Task TestSymbolFound_MultidimensionArrayParameter_WithSpaces()
+        {
+            return TestSymbolFoundAsync(
+                "at ConsoleApp.MyClass.M(string[ , ] s)",
+                @"
+namespace ConsoleApp
+{
+    class MyClass
+    {
+        void [|M|](string[,] s)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public Task TestSymbolFound_MultidimensionArrayParameter_WithSpaces2()
+        {
+            return TestSymbolFoundAsync(
+                "at ConsoleApp.MyClass.M(string[,] s)",
+                @"
+namespace ConsoleApp
+{
+    class MyClass
+    {
+        void [|M|](string[ , ] s)
+        {
+        }
+    }
+}");
+        }
+
         [Fact(Skip = "Symbol search for nested types does not work")]
         public Task TestSymbolFound_ExceptionLine_GenericsHierarchy()
         {

@@ -201,16 +201,20 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     {
         /// <summary>
         /// The type identifier without the array indicators.
+        /// <code>
         /// string[][]
         /// ^----^
+        /// </code>
         /// </summary>
         public readonly StackFrameNameNode TypeIdentifier;
 
         /// <summary>
         /// Each unique array identifier for the type
+        /// <code>
         /// string[,][]
         ///        ^--- First array expression = "[,]"
         ///           ^- Second array expression = "[]" 
+        /// </code>
         /// </summary>
         public ImmutableArray<StackFrameArrayRankSpecifier> ArrayExpressions;
 

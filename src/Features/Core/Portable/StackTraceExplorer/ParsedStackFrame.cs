@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                         return false;
                     }
 
-                    if (paramSymbol.Type.ToDisplayString() != stackFrameParameter.Type.ToString(skipTrivia: true))
+                    if (!MatchType(paramSymbol.Type, stackFrameParameter.Type))
                     {
                         return false;
                     }
@@ -138,6 +138,27 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
 
                 var stackFrameTypeArguments = stackFrameTypeArgumentList.TypeArguments;
                 return typeArguments.Length == stackFrameTypeArguments.Length;
+            }
+
+            static bool MatchType(ITypeSymbol type, StackFrameTypeNode stackFrameType)
+            {
+                if (type is IArrayTypeSymbol arrayType)
+                {
+                    if (stackFrameType is not StackFrameArrayTypeNode arrayTypeNode)
+                    {
+                        return false;
+                    }
+
+                    if (arrayType.Rank != arrayTypeNode.ArrayExpressions.Sum(exp => exp.CommaTokens.Length + 1))
+                    {
+                        return false;
+                    }
+
+                    return MatchType(arrayType.ElementType, arrayTypeNode.TypeIdentifier);
+                }
+
+                // Default to just comparing the display name
+                return type.ToDisplayString() == stackFrameType.ToString();
             }
         }
 
