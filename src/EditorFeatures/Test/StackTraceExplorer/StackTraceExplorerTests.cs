@@ -170,7 +170,45 @@ namespace ConsoleApp4
 }");
         }
 
-        [Fact(Skip = "The parser does not handle arity on types yet")]
+        [Fact]
+        public Task TestSymbolFound_ParameterSpacing()
+        {
+            return TestSymbolFoundAsync(
+                "at ConsoleApp.MyClass.M( string   s    )",
+                @"
+namespace ConsoleApp
+{
+    class MyClass
+    {
+        void [|M|](string s)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public Task TestSymbolFound_OverloadsWithSameName()
+        {
+            return TestSymbolFoundAsync(
+                "at ConsoleApp.MyClass.M(string value)",
+                @"
+namespace ConsoleApp
+{
+    class MyClass
+    {
+        void [|M|](string value)
+        {
+        }
+
+        void M(int value)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact(Skip = "Symbol search for nested types does not work")]
         public Task TestSymbolFound_ExceptionLine_GenericsHierarchy()
         {
             return TestSymbolFoundAsync(
@@ -183,7 +221,7 @@ namespace ConsoleApp4
     {
         public class MyInnerClass<B>
         {
-            public void M<T>(T t) 
+            public void [|M|]<T>(T t) 
             {
                 throw new Exception();
             }

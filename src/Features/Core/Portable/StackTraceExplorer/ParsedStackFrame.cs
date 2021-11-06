@@ -110,7 +110,12 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                     var stackFrameParameter = stackFrameParameters.Parameters[i];
                     var paramSymbol = parameters[i];
 
-                    if (paramSymbol.Name != stackFrameParameter.Identifier.ToString())
+                    if (paramSymbol.Name != stackFrameParameter.Identifier.ToString(skipTrivia: true))
+                    {
+                        return false;
+                    }
+
+                    if (paramSymbol.Type.ToDisplayString() != stackFrameParameter.Type.ToString(skipTrivia: true))
                     {
                         return false;
                     }
