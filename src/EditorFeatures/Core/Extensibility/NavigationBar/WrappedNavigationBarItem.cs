@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.Editor
             static void AddSpans(RoslynNavigationBarItem underlyingItem, ArrayBuilder<TextSpan> spans)
             {
                 // For a regular symbol we want to select it if the user puts their caret in any of the spans of it in this file.
-                if (underlyingItem is RoslynNavigationBarItem.SymbolItem { Location.InDocumentInfo: { } symbolInfo })
+                if (underlyingItem is RoslynNavigationBarItem.SymbolItem { Location.InDocumentInfo.spans: var symbolSpans })
                 {
-                    spans.AddRange(symbolInfo.spans);
+                    spans.AddRange(symbolSpans);
                 }
                 else if (underlyingItem is RoslynNavigationBarItem.ActionlessItem)
                 {
