@@ -97,69 +97,6 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
             }
 
             return null;
-
-            static bool MatchParameters(ImmutableArray<IParameterSymbol> parameters, StackFrameParameterList stackFrameParameters)
-            {
-                if (parameters.Length != stackFrameParameters.Parameters.Length)
-                {
-                    return false;
-                }
-
-                for (var i = 0; i < stackFrameParameters.Parameters.Length; i++)
-                {
-                    var stackFrameParameter = stackFrameParameters.Parameters[i];
-                    var paramSymbol = parameters[i];
-
-                    if (paramSymbol.Name != stackFrameParameter.Identifier.ToString(skipTrivia: true))
-                    {
-                        return false;
-                    }
-
-                    if (!MatchType(paramSymbol.Type, stackFrameParameter.Type))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
-            static bool MatchTypeArguments(ImmutableArray<ITypeSymbol> typeArguments, StackFrameTypeArgumentList? stackFrameTypeArgumentList)
-            {
-                if (stackFrameTypeArgumentList is null)
-                {
-                    return typeArguments.IsDefaultOrEmpty;
-                }
-
-                if (typeArguments.IsDefaultOrEmpty)
-                {
-                    return false;
-                }
-
-                var stackFrameTypeArguments = stackFrameTypeArgumentList.TypeArguments;
-                return typeArguments.Length == stackFrameTypeArguments.Length;
-            }
-
-            static bool MatchType(ITypeSymbol type, StackFrameTypeNode stackFrameType)
-            {
-                if (type is IArrayTypeSymbol arrayType)
-                {
-                    if (stackFrameType is not StackFrameArrayTypeNode arrayTypeNode)
-                    {
-                        return false;
-                    }
-
-                    if (arrayType.Rank != arrayTypeNode.ArrayExpressions.Sum(exp => exp.CommaTokens.Length + 1))
-                    {
-                        return false;
-                    }
-
-                    return MatchType(arrayType.ElementType, arrayTypeNode.TypeIdentifier);
-                }
-
-                // Default to just comparing the display name
-                return type.ToDisplayString() == stackFrameType.ToString();
-            }
         }
 
         /// <summary>
@@ -211,6 +148,69 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
             }
 
             return potentialMatches.ToImmutableArray();
+        }
+
+        private static bool MatchParameters(ImmutableArray<IParameterSymbol> parameters, StackFrameParameterList stackFrameParameters)
+        {
+            if (parameters.Length != stackFrameParameters.Parameters.Length)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < stackFrameParameters.Parameters.Length; i++)
+            {
+                var stackFrameParameter = stackFrameParameters.Parameters[i];
+                var paramSymbol = parameters[i];
+
+                if (paramSymbol.Name != stackFrameParameter.Identifier.ToString(skipTrivia: true))
+                {
+                    return false;
+                }
+
+                if (!MatchType(paramSymbol.Type, stackFrameParameter.Type))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool MatchTypeArguments(ImmutableArray<ITypeSymbol> typeArguments, StackFrameTypeArgumentList? stackFrameTypeArgumentList)
+        {
+            if (stackFrameTypeArgumentList is null)
+            {
+                return typeArguments.IsDefaultOrEmpty;
+            }
+
+            if (typeArguments.IsDefaultOrEmpty)
+            {
+                return false;
+            }
+
+            var stackFrameTypeArguments = stackFrameTypeArgumentList.TypeArguments;
+            return typeArguments.Length == stackFrameTypeArguments.Length;
+        }
+
+        private static bool MatchType(ITypeSymbol type, StackFrameTypeNode stackFrameType)
+        {
+            if (type is IArrayTypeSymbol arrayType)
+            {
+                if (stackFrameType is not StackFrameArrayTypeNode arrayTypeNode)
+                {
+                    return false;
+                }
+
+                if (arrayType.Rank != arrayTypeNode.ArrayExpressions.Sum(exp => exp.CommaTokens.Length + 1))
+                {
+                    return false;
+                }
+
+                return MatchType(arrayType.ElementType, arrayTypeNode.TypeIdentifier);
+            }
+
+            // Default to just comparing the display name
+            return type.ToDisplayString() == stackFrameType.ToString();
         }
     }
 }
