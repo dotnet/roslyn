@@ -145,64 +145,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             CancellationToken requestCancellationToken)
             where TRequestType : class
         {
-            // Create a task completion source that will represent the processing of this request to the caller
-            var completion = new TaskCompletionSource<TResponseType?>();
-
             // Note: If the queue is not accepting any more items then TryEnqueue below will fail.
 
             var textDocument = handler.GetTextDocumentIdentifier(request);
-            var item = new QueueItem(
+            var item = new QueueItem<TRequestType, TResponseType>(
                 mutatesSolutionState,
                 requiresLSPSolution,
                 clientCapabilities,
                 clientName,
                 methodName,
                 textDocument,
+                request,
+                handler,
                 Trace.CorrelationManager.ActivityId,
                 _logger,
                 _requestTelemetryLogger,
-                handleQueueFailure: exception => completion.TrySetException(exception),
-                callbackAsync: async (context, cancellationToken) =>
-                {
-                    // Check if cancellation was requested while this was waiting in the queue
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        completion.SetCanceled();
-
-                        return;
-                    }
-
-                    // If we weren't able to get a corresponding context for this request (for example, we
-                    // couldn't map a doc request to a particular Document, or we couldn't find an appropriate
-                    // Workspace for a global operation), then just immediately complete the request with a
-                    // 'null' response.  Note: the lsp spec was checked to ensure that 'null' is valid for all
-                    // the requests this could happen for.  However, this assumption may not hold in the future.
-                    // If that turns out to be the case, we could defer to the individual handler to decide
-                    // what to do.
-                    if (context == null)
-                    {
-                        completion.SetResult(default);
-                        return;
-                    }
-
-                    try
-                    {
-                        var result = await handler.HandleRequestAsync(request, context.Value, cancellationToken).ConfigureAwait(false);
-                        completion.SetResult(result);
-                    }
-                    catch (OperationCanceledException ex)
-                    {
-                        completion.TrySetCanceled(ex.CancellationToken);
-                    }
-                    catch (Exception exception)
-                    {
-                        // Pass the exception to the task completion source, so the caller of the ExecuteAsync method can react
-                        completion.SetException(exception);
-
-                        // Also allow the exception to flow back to the request queue to handle as appropriate
-                        throw new InvalidOperationException($"Error handling '{methodName}' request: {exception.Message}", exception);
-                    }
-                }, requestCancellationToken);
+                requestCancellationToken);
 
             var didEnqueue = _queue.TryEnqueue(item);
 
@@ -210,10 +168,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // The queue itself is threadsafe (_queue.TryEnqueue and _queue.Complete use the same lock).
             if (!didEnqueue)
             {
-                completion.SetException(new InvalidOperationException($"{_serverName} was requested to shut down."));
+                item.CompletionSource.SetException(new InvalidOperationException($"{_serverName} was requested to shut down."));
             }
 
-            return completion.Task;
+            return item.CompletionSource.Task;
         }
 
         private async Task ProcessQueueAsync()
@@ -236,7 +194,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     if (work.MutatesSolutionState)
                     {
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
-                        await ExecuteCallbackAsync(work, context, _cancelSource.Token).ConfigureAwait(false);
+                        await work.CallbackAsync(context, _cancelSource.Token).ConfigureAwait(false);
                     }
                     else
                     {
@@ -245,7 +203,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         // via NFW, though these errors don't put us into a bad state as far as the rest of the queue goes.
                         // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
                         // blocking the request queue for longer periods of time (it enforces parallelizabilty).
-                        _ = Task.Run(() => ExecuteCallbackAsync(work, context, _cancelSource.Token), _cancelSource.Token).ReportNonFatalErrorAsync();
+                        _ = Task.Run(() => work.CallbackAsync(context, _cancelSource.Token), _cancelSource.Token).ReportNonFatalErrorAsync();
                     }
                 }
             }
@@ -262,17 +220,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 // If there was an in progress work item that failed in the queue logic, set the result of the queue item
                 // to the exception so that it bubbles back to the caller.
-                inProgressWorkItem?.HandleQueueFailure(e);
+                inProgressWorkItem?.TrySetException(e);
                 OnRequestServerShutdown($"Error occurred processing queue in {_serverName}: {e.Message}.");
             }
-        }
-
-        private static Task ExecuteCallbackAsync(QueueItem work, RequestContext? context, CancellationToken queueCancellationToken)
-        {
-            // Create a combined cancellation token to cancel any requests in progress when this shuts down
-            using var combinedTokenSource = queueCancellationToken.CombineWith(work.CancellationToken);
-
-            return work.CallbackAsync(context, combinedTokenSource.Token);
         }
 
         private void OnRequestServerShutdown(string message)
@@ -291,14 +241,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Tell the queue not to accept any more items
             _queue.Complete();
 
-            // Spin through the queue and pass in our cancelled token, so that the waiting tasks are cancelled.
-            // NOTE: This only really works because the first thing that CallbackAsync does is check for cancellation
-            // but generics make it annoying to store the TaskCompletionSource<TResult> on the QueueItem so this
-            // is the best we can do for now. Ideally we would manipulate the TaskCompletionSource directly here
-            // and just call SetCanceled
+            // Spin through the queue and cancel all waiting tasks.
+            // NOTE: The first thing that RunQueueItemAsync does is check for cancellation.
             while (_queue.TryDequeue(out var item))
             {
-                _ = item.CallbackAsync(null, new CancellationToken(true));
+                _ = item.TrySetCanceled(_cancelSource.Token);
             }
         }
 
