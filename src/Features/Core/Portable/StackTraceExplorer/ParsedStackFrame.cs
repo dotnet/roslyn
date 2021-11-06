@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -84,11 +85,6 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                     .Where(m => MatchTypeArguments(m.TypeArguments, methodTypeArguments))
                     .Where(m => MatchParameters(m.Parameters, methodArguments))
                     .ToImmutableArrayOrEmpty();
-
-                if (matchingMembers.Length == 0)
-                {
-                    continue;
-                }
 
                 if (matchingMembers.Length == 1)
                 {
@@ -201,16 +197,68 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                     return false;
                 }
 
-                if (arrayType.Rank != arrayTypeNode.ArrayExpressions.Sum(exp => exp.CommaTokens.Length + 1))
+                ITypeSymbol currentType = arrayType;
+
+                // Iterate through each array expression and make sure the dimensions
+                // match the element types in an array.
+                // Ex: string[,][] 
+                // [,] is a 2 dimension array with element type string[]
+                // [] is a 1 dimension array with element type string
+                foreach (var arrayExpression in arrayTypeNode.ArrayExpressions)
+                {
+                    if (currentType is not IArrayTypeSymbol currentArrayType)
+                    {
+                        return false;
+                    }
+
+                    if (currentArrayType.Rank != arrayExpression.CommaTokens.Length + 1)
+                    {
+                        return false;
+                    }
+
+                    currentType = currentArrayType.ElementType;
+                }
+
+                // All array types have been exchausted from the
+                // stackframe identifier and the type is still an array
+                if (currentType is IArrayTypeSymbol)
                 {
                     return false;
                 }
 
-                return MatchType(arrayType.ElementType, arrayTypeNode.TypeIdentifier);
+                return MatchType(currentType, arrayTypeNode.TypeIdentifier);
+            }
+
+            // Special types can have different casing representations
+            // Ex: string and String are the same (System.String)
+            var specialTypeName = TryGetSpecialTypeName(type.SpecialType);
+            if (specialTypeName is not null)
+            {
+                return specialTypeName == stackFrameType.ToString(skipTrivia: true);
             }
 
             // Default to just comparing the display name
-            return type.ToDisplayString() == stackFrameType.ToString();
+            return type.ToDisplayString() == stackFrameType.ToString(skipTrivia: true);
         }
+
+        private static string? TryGetSpecialTypeName(SpecialType type)
+            => type switch
+            {
+                SpecialType.System_Object => nameof(Object),
+                SpecialType.System_Boolean => nameof(Boolean),
+                SpecialType.System_SByte => nameof(SByte),
+                SpecialType.System_Byte => nameof(Byte),
+                SpecialType.System_Decimal => nameof(Decimal),
+                SpecialType.System_Single => nameof(Single),
+                SpecialType.System_Double => nameof(Double),
+                SpecialType.System_Int16 => nameof(Int16),
+                SpecialType.System_Int32 => nameof(Int32),
+                SpecialType.System_Int64 => nameof(Int64),
+                SpecialType.System_String => nameof(String),
+                SpecialType.System_UInt16 => nameof(UInt16),
+                SpecialType.System_UInt32 => nameof(UInt32),
+                SpecialType.System_UInt64 => nameof(UInt64),
+                _ => null
+            };
     }
 }

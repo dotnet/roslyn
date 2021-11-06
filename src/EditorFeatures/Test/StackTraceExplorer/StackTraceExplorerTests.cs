@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -58,11 +57,41 @@ namespace ConsoleApp4
 }");
         }
 
+        [Theory]
+        [InlineData("object", "Object")]
+        [InlineData("bool", "Boolean")]
+        [InlineData("sbyte", "SByte")]
+        [InlineData("byte", "Byte")]
+        [InlineData("decimal", "Decimal")]
+        [InlineData("float", "Single")]
+        [InlineData("double", "Double")]
+        [InlineData("short", "Int16")]
+        [InlineData("int", "Int32")]
+        [InlineData("long", "Int64")]
+        [InlineData("string", "String")]
+        [InlineData("ushort", "UInt16")]
+        [InlineData("uint", "UInt32")]
+        [InlineData("ulong", "UInt64")]
+        public Task TestSpecialTypes(string type, string typeName)
+        {
+            return TestSymbolFoundAsync(
+                $"at ConsoleApp.MyClass.M({typeName} value)",
+                @$"using System;
+
+namespace ConsoleApp
+{{
+    class MyClass
+    {{
+        void [|M|]({type} value) {{}}
+    }}
+}}");
+        }
+
         [Fact]
         public Task TestSymbolFound_DebuggerLine_SingleSimpleClassParam()
         {
             return TestSymbolFoundAsync(
-                "ConsoleApp4.dll!ConsoleApp4.MyClass.M(string s)",
+                "ConsoleApp4.dll!ConsoleApp4.MyClass.M(String s)",
                 @"using System;
 
 namespace ConsoleApp4
@@ -94,7 +123,7 @@ namespace ConsoleApp4
         public Task TestSymbolFound_ExceptionLine_SingleSimpleClassParam()
         {
             return TestSymbolFoundAsync(
-                "at ConsoleApp4.MyClass.M(string s)",
+                "at ConsoleApp4.MyClass.M(String s)",
                 @"using System;
 
 namespace ConsoleApp4
@@ -174,7 +203,7 @@ namespace ConsoleApp4
         public Task TestSymbolFound_ParameterSpacing()
         {
             return TestSymbolFoundAsync(
-                "at ConsoleApp.MyClass.M( string   s    )",
+                "at ConsoleApp.MyClass.M( String   s    )",
                 @"
 namespace ConsoleApp
 {
@@ -191,7 +220,7 @@ namespace ConsoleApp
         public Task TestSymbolFound_OverloadsWithSameName()
         {
             return TestSymbolFoundAsync(
-                "at ConsoleApp.MyClass.M(string value)",
+                "at ConsoleApp.MyClass.M(String value)",
                 @"
 namespace ConsoleApp
 {
@@ -212,7 +241,7 @@ namespace ConsoleApp
         public Task TestSymbolFound_ArrayParameter()
         {
             return TestSymbolFoundAsync(
-                "at ConsoleApp.MyClass.M(string[] s)",
+                "at ConsoleApp.MyClass.M(String[] s)",
                 @"
 namespace ConsoleApp
 {
@@ -229,7 +258,7 @@ namespace ConsoleApp
         public Task TestSymbolFound_MultidimensionArrayParameter()
         {
             return TestSymbolFoundAsync(
-                "at ConsoleApp.MyClass.M(string[,] s)",
+                "at ConsoleApp.MyClass.M(String[,] s)",
                 @"
 namespace ConsoleApp
 {
@@ -246,7 +275,7 @@ namespace ConsoleApp
         public Task TestSymbolFound_MultidimensionArrayParameter_WithSpaces()
         {
             return TestSymbolFoundAsync(
-                "at ConsoleApp.MyClass.M(string[ , ] s)",
+                "at ConsoleApp.MyClass.M(String[ , ] s)",
                 @"
 namespace ConsoleApp
 {
@@ -263,13 +292,30 @@ namespace ConsoleApp
         public Task TestSymbolFound_MultidimensionArrayParameter_WithSpaces2()
         {
             return TestSymbolFoundAsync(
-                "at ConsoleApp.MyClass.M(string[,] s)",
+                "at ConsoleApp.MyClass.M(String[,] s)",
                 @"
 namespace ConsoleApp
 {
     class MyClass
     {
         void [|M|](string[ , ] s)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public Task TestSymbolFound_MultidimensionArrayParameter2()
+        {
+            return TestSymbolFoundAsync(
+                "at ConsoleApp.MyClass.M(String[,][] s)",
+                @"
+namespace ConsoleApp
+{
+    class MyClass
+    {
+        void [|M|](string[,][] s)
         {
         }
     }
