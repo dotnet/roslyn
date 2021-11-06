@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         {
             // The logic here was ported from FSharp's implementation. The main reason was to avoid shimming INotificationService.
             // Spans.First() is safe here as we filtered down to only items that have spans in ConvertItems.
-            var span = item.GetCurrenItemSpan(textVersion, item.Spans.First());
+            var span = item.GetCurrentItemSpan(textVersion, item.Spans.First());
             var workspace = document.Project.Solution.Workspace;
             var navigationService = workspace.Services.GetRequiredService<IFSharpDocumentNavigationService>();
 
