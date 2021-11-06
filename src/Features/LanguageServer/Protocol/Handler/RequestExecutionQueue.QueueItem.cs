@@ -72,6 +72,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             private readonly TRequestType _request;
             private readonly IRequestHandler<TRequestType, TResponseType> _handler;
 
+            /// <summary>
+            /// A task completion source representing the result of this queue item's work.
+            /// </summary>
             public TaskCompletionSource<TResponseType?> CompletionSource { get; }
 
             public bool RequiresLSPSolution { get; }

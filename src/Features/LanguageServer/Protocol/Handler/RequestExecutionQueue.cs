@@ -242,7 +242,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _queue.Complete();
 
             // Spin through the queue and cancel all waiting tasks.
-            // NOTE: The first thing that RunQueueItemAsync does is check for cancellation.
             while (_queue.TryDequeue(out var item))
             {
                 _ = item.TrySetCanceled(_cancelSource.Token);
