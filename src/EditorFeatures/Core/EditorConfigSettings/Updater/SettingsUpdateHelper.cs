@@ -75,12 +75,12 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                 var optionValue = storageLocation.GetEditorConfigStringValue(value, optionSet);
                 if (value is ICodeStyleOption codeStyleOption && !optionValue.Contains(':'))
                 {
-                    var severity = codeStyleOption.Notification switch
+                    var severity = codeStyleOption.Notification.Severity switch
                     {
-                        { Severity: ReportDiagnostic.Hidden } => "silent",
-                        { Severity: ReportDiagnostic.Info } => "suggestion",
-                        { Severity: ReportDiagnostic.Warn } => "warning",
-                        { Severity: ReportDiagnostic.Error } => "error",
+                        ReportDiagnostic.Hidden => "silent",
+                        ReportDiagnostic.Info => "suggestion",
+                        ReportDiagnostic.Warn => "warning",
+                        ReportDiagnostic.Error => "error",
                         _ => string.Empty
                     };
                     optionValue = $"{optionValue}:{severity}";
