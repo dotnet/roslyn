@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                         string.Equals(key, optionName, StringComparison.OrdinalIgnoreCase))
                     {
                         // We found the rule in the file -- replace it with updated option value.
-                        textChange = new TextChange(curLine.Span, $"{untrimmedKey}={optionValue}{comment}");
+                        textChange = new TextChange(curLine.Span, $"{untrimmedKey}= {optionValue}{comment}");
                     }
                 }
                 else if (s_headerPattern.IsMatch(curLineText.Trim()))
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                                                                                                                                         string optionValue,
                                                                                                                                         Language language)
         {
-            var newEntry = $"{optionName}={optionValue}";
+            var newEntry = $"{optionName} = {optionValue}";
             if (lastValidSpecificHeaderSpanEnd.HasValue)
             {
                 if (lastValidSpecificHeaderSpanEnd.Value.ToString().Trim().Length != 0)
