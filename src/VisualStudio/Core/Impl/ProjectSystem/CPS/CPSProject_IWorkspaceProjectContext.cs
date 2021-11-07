@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
@@ -270,10 +271,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public void StartBatch()
             => _batchScopes.Enqueue(_visualStudioProject.CreateBatchScope());
 
+        [Obsolete($"Use {nameof(EndBatchAsync)}.")]
         public void EndBatch()
         {
             Contract.ThrowIfFalse(_batchScopes.TryDequeue(out var scope));
             scope.Dispose();
+        }
+
+        public ValueTask EndBatchAsync()
+        {
+            Contract.ThrowIfFalse(_batchScopes.TryDequeue(out var scope));
+            return scope.DisposeAsync();
         }
 
         public void ReorderSourceFiles(IEnumerable<string>? filePaths)

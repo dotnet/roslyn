@@ -1839,6 +1839,7 @@ endRegion:
                 case OperationKind.None:
                     return !(n is IPlaceholderOperation);
 
+                case OperationKind.FunctionPointerInvocation:
                 case OperationKind.Invalid:
                 case OperationKind.YieldReturn:
                 case OperationKind.ExpressionStatement:

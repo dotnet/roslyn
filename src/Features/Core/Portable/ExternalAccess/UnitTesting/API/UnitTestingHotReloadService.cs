@@ -8,14 +8,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal sealed class UnitTestingHotReloadService
     {
-        private sealed class DebuggerService : IManagedEditAndContinueDebuggerService
+        private sealed class DebuggerService : IManagedHotReloadService
         {
             private readonly ImmutableArray<string> _capabilities;
 
@@ -24,17 +24,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
                 _capabilities = capabilities;
             }
 
-            public Task<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
-                => Task.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
+            public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
+                => ValueTaskFactory.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
 
-            public Task<ManagedEditAndContinueAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellationToken)
-                => Task.FromResult(new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.Available));
+            public ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellationToken)
+                => ValueTaskFactory.FromResult(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Available));
 
-            public Task<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
-                => Task.FromResult(_capabilities);
+            public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
+                => ValueTaskFactory.FromResult(_capabilities);
 
-            public Task PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)
-                => Task.CompletedTask;
+            public ValueTask PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)
+                => ValueTaskFactory.CompletedTask;
         }
 
         public readonly struct Update

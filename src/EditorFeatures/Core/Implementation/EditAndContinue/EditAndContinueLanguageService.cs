@@ -18,12 +18,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
-    internal sealed class EditAndContinueLanguageService : IEditAndContinueSolutionProvider
+    [Shared]
+    [Export(typeof(IManagedHotReloadLanguageService))]
+    [Export(typeof(IEditAndContinueSolutionProvider))]
+    [Export(typeof(EditAndContinueLanguageService))]
+    [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
+    internal sealed class EditAndContinueLanguageService : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
     {
         private static readonly ActiveStatementSpanProvider s_noActiveStatementSpanProvider =
             (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
-        private readonly Lazy<IManagedEditAndContinueDebuggerService> _debuggerService;
+        private readonly Lazy<IManagedHotReloadService> _debuggerService;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
 
@@ -38,12 +43,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         public event Action<Solution>? SolutionCommitted;
 
         /// <summary>
-        /// Import <see cref="IHostWorkspaceProvider"/> lazily so that the host does not need to implement it
+        /// Import <see cref="IHostWorkspaceProvider"/> lazily so that the host does not need to implement it 
         /// unless the host implements debugger components.
         /// </summary>
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditAndContinueLanguageService(
             Lazy<IHostWorkspaceProvider> workspaceProvider,
-            Lazy<IManagedEditAndContinueDebuggerService> debuggerService,
+            Lazy<IManagedHotReloadService> debuggerService,
             IDiagnosticAnalyzerService diagnosticService,
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource)
         {
@@ -93,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
                 _debuggingSession = await proxy.StartDebuggingSessionAsync(
                     solution,
-                    _debuggerService.Value,
+                    new ManagedHotReloadServiceImpl(_debuggerService.Value),
                     captureMatchingDocuments: openedDocumentIds,
                     captureAllMatchingDocuments: false,
                     reportDiagnostics: true,
@@ -187,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 Contract.ThrowIfTrue(_disabled);
                 await GetDebuggingSession().CommitSolutionUpdateAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
             }
         }
@@ -205,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 await GetDebuggingSession().DiscardSolutionUpdateAsync(cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
             }
         }
@@ -271,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
             var (updates, _, _, _) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
             _pendingUpdatedSolution = solution;
-            return updates;
+            return updates.FromContract();
         }
 
         public async ValueTask<ManagedHotReloadUpdates> GetHotReloadUpdatesAsync(CancellationToken cancellationToken)
@@ -290,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, cancellationToken).ConfigureAwait(false);
 
-            return new ManagedHotReloadUpdates(updates, diagnostics);
+            return new ManagedHotReloadUpdates(updates, diagnostics.FromContract());
         }
 
         public async ValueTask<SourceSpan?> GetCurrentActiveStatementPositionAsync(ManagedInstructionId instruction, CancellationToken cancellationToken)
@@ -303,8 +310,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 var activeStatementSpanProvider = new ActiveStatementSpanProvider((documentId, filePath, cancellationToken) =>
                     activeStatementTrackingService.GetSpansAsync(solution, documentId, filePath, cancellationToken));
 
-                var span = await GetDebuggingSession().GetCurrentActiveStatementPositionAsync(solution, activeStatementSpanProvider, instruction, cancellationToken).ConfigureAwait(false);
-                return span?.ToSourceSpan();
+                var span = await GetDebuggingSession().GetCurrentActiveStatementPositionAsync(solution, activeStatementSpanProvider, instruction.ToContract(), cancellationToken).ConfigureAwait(false);
+                return span?.ToSourceSpan().FromContract();
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -317,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             try
             {
                 var solution = GetCurrentCompileTimeSolution();
-                return await GetDebuggingSession().IsActiveStatementInExceptionRegionAsync(solution, instruction, cancellationToken).ConfigureAwait(false);
+                return await GetDebuggingSession().IsActiveStatementInExceptionRegionAsync(solution, instruction.ToContract(), cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {

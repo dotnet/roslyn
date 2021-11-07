@@ -93,8 +93,8 @@ namespace Microsoft.CodeAnalysis.Remote
             public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.AddItemsAsync(_callbackId, count, cancellationToken), cancellationToken);
 
-            public ValueTask ItemCompletedAsync(CancellationToken cancellationToken)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.ItemCompletedAsync(_callbackId, cancellationToken), cancellationToken);
+            public ValueTask ItemsCompletedAsync(int count, CancellationToken cancellationToken)
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.ItemsCompletedAsync(_callbackId, count, cancellationToken), cancellationToken);
 
             #endregion
 
