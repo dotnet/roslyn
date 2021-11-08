@@ -6,14 +6,8 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
     internal abstract class ParsedFrame
     {
-        /// <summary>
-        /// The original text that this frame was parsed from
-        /// </summary>
-        public string OriginalText { get; }
-
-        public ParsedFrame(string originalText)
+        public ParsedFrame()
         {
-            OriginalText = originalText;
         }
     }
 }

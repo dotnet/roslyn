@@ -5,26 +5,17 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
-    using StackFrameNodeOrToken = EmbeddedSyntaxNodeOrToken<StackFrameKind, StackFrameNode>;
-    using StackFrameToken = EmbeddedSyntaxToken<StackFrameKind>;
-    using StackFrameTrivia = EmbeddedSyntaxTrivia<StackFrameKind>;
-
     /// <summary>
     /// A line from <see cref="StackTraceAnalyzer.Parse(string, CancellationToken)"/> that
     /// was parsed by <see cref="StackFrameParser"/>
@@ -34,14 +25,17 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
         public readonly StackFrameTree Tree;
 
         public ParsedStackFrame(
-            string originalText,
             StackFrameTree tree)
-            : base(originalText)
         {
             Tree = tree;
         }
 
         public StackFrameCompilationUnit Root => Tree.Root;
+
+        public override string ToString()
+        {
+            return Tree.Text.CreateString();
+        }
 
         public async Task<ISymbol?> ResolveSymbolAsync(Solution solution, CancellationToken cancellationToken)
         {

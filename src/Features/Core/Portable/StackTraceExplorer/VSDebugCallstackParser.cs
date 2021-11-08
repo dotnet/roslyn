@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                 return false;
             }
 
-            parsedFrame = new ParsedStackFrame(line, tree);
+            parsedFrame = new ParsedStackFrame(tree);
             return true;
         }
     }
