@@ -952,18 +952,11 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    // if we already have the compilation and its right kind then use it.
-                    if (this.ProjectState.LanguageServices == fromProject.LanguageServices
-                        && this.TryGetCompilation(out var compilation))
-                    {
-                        return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
-                    }
-
                     // If same language then we can wrap the other project's compilation into a compilation reference
                     if (this.ProjectState.LanguageServices == fromProject.LanguageServices)
                     {
                         // otherwise, base it off the compilation by building it first.
-                        compilation = await this.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
+                        var compilation = await this.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
                         return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
                     }
                     else
