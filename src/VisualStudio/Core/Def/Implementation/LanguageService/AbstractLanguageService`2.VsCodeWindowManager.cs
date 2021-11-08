@@ -29,8 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             private readonly TLanguageService _languageService;
             private readonly IVsCodeWindow _codeWindow;
             private readonly ComEventSink _sink;
-            private readonly IThreadingContext _threadingContext;
-            private readonly IAsynchronousOperationListener _asynchronousOperationListener;
             private readonly IGlobalOptionService _globalOptions;
 
             private IDisposable? _navigationBarController;
@@ -41,34 +39,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 _languageService = languageService;
                 _codeWindow = codeWindow;
 
-                var componentModel = languageService.Package.ComponentModel;
-                _threadingContext = componentModel.GetService<IThreadingContext>();
-                _globalOptions = componentModel.GetService<IGlobalOptionService>();
-
-                var listenerProvider = componentModel.GetService<IAsynchronousOperationListenerProvider>();
-                _asynchronousOperationListener = listenerProvider.GetListener(FeatureAttribute.NavigationBar);
+                _globalOptions = languageService.Package.ComponentModel.GetService<IGlobalOptionService>();
 
                 _sink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
                 _globalOptions.OptionChanged += GlobalOptionChanged;
-            }
-
-            private void OnWorkspaceRegistrationChanged(object sender, System.EventArgs e)
-            {
-                var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(OnWorkspaceRegistrationChanged));
-
-                // Fire and forget to update the navbar based on the workspace registration
-                // to avoid blocking the caller and possible deadlocks workspace registration changed events under lock.
-                UpdateWorkspaceAsync().CompletesAsyncOperation(token).Forget();
-            }
-
-            private async Task UpdateWorkspaceAsync()
-            {
-                // This event may not be triggered on the main thread, but adding and removing the navbar
-                // must be done from the main thread.
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-                // Trigger a check to see if the dropdown should be added / removed now that the buffer is in a different workspace.
-                AddOrRemoveDropdown();
             }
 
             private void SetupView(IVsTextView view)
@@ -133,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         Contract.ThrowIfFalse(_dropdownBarClient == null, "We shouldn't have a dropdown client if there isn't a dropdown");
                     }
 
-                    AdddropdownBar(dropdownManager);
+                    AddDropdownBar(dropdownManager);
                 }
                 else
                 {
@@ -168,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return dropdownBarClient;
             }
 
-            private void AdddropdownBar(IVsDropdownBarManager dropdownManager)
+            private void AddDropdownBar(IVsDropdownBarManager dropdownManager)
             {
                 if (ErrorHandler.Failed(_codeWindow.GetBuffer(out var buffer)))
                 {
@@ -241,6 +215,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             public int RemoveAdornments()
             {
                 _sink.Unadvise();
+                _globalOptions.OptionChanged -= GlobalOptionChanged;
 
                 if (_codeWindow is IVsDropdownBarManager dropdownManager)
                 {

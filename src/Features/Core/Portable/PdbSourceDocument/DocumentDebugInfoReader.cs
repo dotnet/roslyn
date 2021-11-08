@@ -44,8 +44,14 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             {
                 var document = _pdbReader.GetDocument(handle);
                 var filePath = _pdbReader.GetString(document.Name);
+
+                var hashAlgorithmGuid = _pdbReader.GetGuid(document.HashAlgorithm);
+                var hashAlgorithm = SourceHashAlgorithms.GetSourceHashAlgorithm(hashAlgorithmGuid);
+                var checksum = _pdbReader.GetBlobContent(document.Hash);
+
                 var embeddedText = TryGetEmbeddedSourceText(handle);
-                sourceDocuments.Add(new SourceDocument(filePath, embeddedText));
+
+                sourceDocuments.Add(new SourceDocument(filePath, hashAlgorithm, checksum, embeddedText));
             }
 
             return sourceDocuments.ToImmutable();

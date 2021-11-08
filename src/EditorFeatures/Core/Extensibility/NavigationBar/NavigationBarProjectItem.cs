@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor
             string language)
                 : base(textVersion: null, text, glyph,
                        spans: ImmutableArray<TextSpan>.Empty,
-                       navigationSpan: null,
                        childItems: ImmutableArray<NavigationBarItem>.Empty,
                        indent: 0, bolded: false, grayed: false)
         {

@@ -192,6 +192,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Collections\TemporaryArray`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IPragmaSuppressionsAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedDiagnostic.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedSeparatedSyntaxNodeList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedSyntaxHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedSyntaxNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedSyntaxNodeOrToken.cs" />
