@@ -54,18 +54,16 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, expeditedDelayCancellationToken);
 
             var delayTask = Task.Delay(delay, cancellationTokenSource.Token);
-            await delayTask.NoThrowAwaitable(false);
+            await delayTask.NoThrowAwaitableInternal(false);
 
             if (delayTask.Status != TaskStatus.RanToCompletion)
             {
-                if (expeditedDelayCancellationToken.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
-                {
-                    // The cancellation only occurred due to a request to expedite the operation.
-                    // Don't use try-catch to reduce the number of first chance exceptions.
-                    return false;
-                }
-
                 cancellationToken.ThrowIfCancellationRequested();
+
+                // The cancellation only occurred due to a request to expedite the operation.
+                // Don't use try-catch to reduce the number of first chance exceptions.
+                if (expeditedDelayCancellationToken.IsCancellationRequested)
+                    return false;
             }
 
             return true;

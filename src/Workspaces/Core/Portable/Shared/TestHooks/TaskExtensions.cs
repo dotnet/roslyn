@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
         }
 
-        // Following code is copied from Microsoft.VisualStudio.Threading.TplExtensions
+        // Following code is copied from Microsoft.VisualStudio.Threading.TplExtensions (renamed to avoid ambiguity)
         // https://github.com/microsoft/vs-threading/blob/main/src/Microsoft.VisualStudio.Threading/TplExtensions.cs
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         /// <param name="task">The task whose completion should signal the completion of the returned awaitable.</param>
         /// <param name="captureContext">if set to <c>true</c> the continuation will be scheduled on the caller's context; <c>false</c> to always execute the continuation on the threadpool.</param>
         /// <returns>An awaitable.</returns>
-        public static NoThrowTaskAwaitable NoThrowAwaitable(this Task task, bool captureContext = true)
+        public static NoThrowTaskAwaitable NoThrowAwaitableInternal(this Task task, bool captureContext = true)
         {
             return new NoThrowTaskAwaitable(task, captureContext);
         }
