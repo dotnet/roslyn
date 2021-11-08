@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -116,7 +117,12 @@ public class C
     public static void Main() { }
     public void M(string input!!) { }
 }";
-            var compilation = CompileAndVerify(source, options: TestOptions.DebugModule.WithModuleName("Module"), parseOptions: TestOptions.RegularPreview);
+            var compilation = CompileAndVerify(
+                source,
+                options: TestOptions.DebugModule.WithModuleName("Module"),
+                parseOptions: TestOptions.RegularPreview,
+                // PeVerify under net472 gives the error: "The module  was expected to contain an assembly manifest."
+                verify: Verification.Skipped);
             compilation.VerifyIL("C.M", @"
 {
   // Code size       14 (0xe)
