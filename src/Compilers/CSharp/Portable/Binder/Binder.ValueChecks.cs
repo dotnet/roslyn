@@ -596,6 +596,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // meaning that the pattern symbol must be a method (either Slice or Substring)
                     return CheckValueKind(node, implicitIndexerAccess.IndexerAccess, valueKind, checkingReceiver, diagnostics);
 
+                case BoundKind.IndexOrRangeIndexerPatternReceiverPlaceholder:
+                    return true;
+
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
 

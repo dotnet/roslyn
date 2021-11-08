@@ -311,6 +311,42 @@ Set 2
         }
 
         [Fact]
+        public void PatternIndexCompoundOperator_InReadonlyMethod()
+        {
+            var src = @"
+using System;
+struct S
+{
+    private readonly int[] _array;
+    private int _counter;
+
+    public S(int[] a)
+    {
+        _array = a;
+        _counter = 0;
+    }
+    public int Length
+    {
+        get => throw null;
+    }
+    public int this[int index]
+    {
+        get => throw null;
+        set => throw null;
+    }
+
+    readonly void M()
+    {
+        this[^1] += 5;
+    }
+}
+";
+            // TODO2 missing "error CS1604: Cannot assign to 'this[^1]' because it is read-only"
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         [WorkItem(37789, "https://github.com/dotnet/roslyn/issues/37789")]
         public void PatternRangeCompoundOperator()
         {

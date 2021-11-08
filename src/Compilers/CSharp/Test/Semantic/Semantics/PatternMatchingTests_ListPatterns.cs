@@ -892,47 +892,6 @@ class X
             );
     }
 
-    [Theory]
-    [PairwiseData]
-    public void ListPattern_MissingMembers(
-        bool implicitIndex, bool explicitIndex,
-        bool implicitRange, bool explicitRange,
-        bool hasLengthProp, bool hasCountProp)
-    {
-        var source = @$"
-class X
-{{
-    {(implicitIndex ? "public int this[int i] => 1;" : null)}
-    {(explicitIndex ? "public int this[System.Index i] => 1;" : null)}
-    {(explicitRange ? "public int this[System.Range i] => 1;" : null)}
-    {(implicitRange ? "public int Slice(int i, int j) => 1;" : null)}
-    {(hasLengthProp ? "public int Length => 1;" : null)}
-    {(hasCountProp ? "public int Count => 1;" : null)}
-
-    public static void Main()
-    {{
-        _ = new X() is [.._];
-    }}
-}}
-";
-        var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
-
-        var isCountable = hasLengthProp || hasCountProp;
-        var isSliceable = implicitRange || explicitRange;
-        var isIndexable = implicitIndex || explicitIndex;
-        // TODO2 messy
-        var expectedDiagnostics = new[]
-        {
-            // (13,24): error CS0021: Cannot apply indexing with [] to an expression of type 'X'
-            //         _ = new X() is [.._];
-            !isIndexable || !isCountable ? Diagnostic(ErrorCode.ERR_BadIndexLHS, "[.._]").WithArguments("X").WithLocation(13, 24) : null,
-            // (13,25): error CS0021: Cannot apply indexing with [] to an expression of type 'X'
-            //         _ = new X() is [.._];
-            !isSliceable || !isCountable ? Diagnostic(ErrorCode.ERR_BadIndexLHS, ".._").WithArguments("X").WithLocation(13, 25) : null
-        };
-        compilation.VerifyEmitDiagnostics(expectedDiagnostics.WhereNotNull().ToArray());
-    }
-
     [Fact]
     public void ListPattern_ObsoleteMembers()
     {
@@ -1372,85 +1331,410 @@ class X
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "new Test1()[0]").WithArguments("Test1").WithLocation(7, 13));
     }
 
-    [Theory]
-    [InlineData("public int this[Index i] { set {} }")]
-    [InlineData("public int this[Index i] { private get => 0; set {} }")]
-    [InlineData("public int this[int i, int ignored = 0] => 0;")]
-    [InlineData("public int this[long i, int ignored = 0] => 0;")]
-    [InlineData("public int this[long i] => 0;")]
-    [InlineData("public int this[params int[] i] => 0;")]
-    [InlineData("private int this[Index i] => 0;")]
-    [InlineData("public int this[Index i] => 0;", true)]
-    public void ListPattern_MemberLookup_Index_ErrorCases(string indexer, bool valid = false)
+    [Fact]
+    public void ListPattern_MemberLookup_Index_ErrorCases_1()
     {
         var source = @"
 using System;
+
+_ = new Test1() is [0];
+_ = new Test1()[^1];
+
 class Test1
 {
-    " + indexer + @"
+    public int this[Index i] { set {} }
     public int Length => 0;
 }
-class X
-{
-    public static void Main()
-    {
-        _ = new Test1() is [0];
-    } 
-}
 ";
-        var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
-        if (valid)
-        {
-            compilation.VerifyEmitDiagnostics();
-            return;
-        }
+        var compilation = CreateCompilationWithIndexAndRange(source);
         compilation.VerifyEmitDiagnostics(
-            // (12,28): error CS9000: List patterns may not be used for a value of type 'Test1'.
-            //         _ = new Test1() is [0];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[0]").WithArguments("Test1").WithLocation(12, 28));
+            // (4,20): error CS0154: The property or indexer 'Test1.this[Index]' cannot be used in this context because it lacks the get accessor
+            // _ = new Test1() is [0];
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "[0]").WithArguments("Test1.this[System.Index]").WithLocation(4, 20),
+            // (5,5): error CS0154: The property or indexer 'Test1.this[Index]' cannot be used in this context because it lacks the get accessor
+            // _ = new Test1()[^1];
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "new Test1()[^1]").WithArguments("Test1.this[System.Index]").WithLocation(5, 5)
+            );
     }
 
-    [Theory]
-    [InlineData("public int this[Range i] { set {} }")]
-    [InlineData("public int this[Range i] { private get => 0; set {} }")]
-    [InlineData("public int Slice(int i, int j, int ignored = 0) => 0;")]
-    [InlineData("public int Slice(int i, int j, params int[] ignored) => 0;")]
-    [InlineData("public int Slice(long i, long j) => 0;")]
-    [InlineData("public int Slice(params int[] i) => 0;")]
-    [InlineData("private int Slice(int i, int j) => 0;")]
-    [InlineData("public void Slice(int i, int j) {}")]
-    [InlineData("public int this[Range i] => 0;", true)]
-    [InlineData("public int Slice(int i, int j) => 0;", true)]
-    public void ListPattern_MemberLookup_Range_ErrorCases(string member, bool valid = false)
+    [Fact]
+    public void ListPattern_MemberLookup_Index_ErrorCases_2()
     {
         var source = @"
-#pragma warning disable 8019 // Unused using
 using System;
+
+_ = new Test1() is [0];
+_ = new Test1()[^1];
+
 class Test1
 {
-    " + member + @"
+    public int this[Index i] { private get => 0; set {} }
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,20): error CS0271: The property or indexer 'Test1.this[Index]' cannot be used in this context because the get accessor is inaccessible
+            // _ = new Test1() is [0];
+            Diagnostic(ErrorCode.ERR_InaccessibleGetter, "[0]").WithArguments("Test1.this[System.Index]").WithLocation(4, 20),
+            // (5,5): error CS0271: The property or indexer 'Test1.this[Index]' cannot be used in this context because the get accessor is inaccessible
+            // _ = new Test1()[^1];
+            Diagnostic(ErrorCode.ERR_InaccessibleGetter, "new Test1()[^1]").WithArguments("Test1.this[System.Index]").WithLocation(5, 5)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Index_ErrorCases_3()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [0];
+_ = new Test1()[^1];
+
+class Test1
+{
+    public int this[int i, int ignored = 0] => 0;
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,20): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+            // _ = new Test1() is [0];
+            Diagnostic(ErrorCode.ERR_BadArgType, "[0]").WithArguments("1", "System.Index", "int").WithLocation(4, 20),
+            // (5,17): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+            // _ = new Test1()[^1];
+            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(5, 17)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Index_ErrorCases_4()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [0];
+_ = new Test1()[^1];
+
+class Test1
+{
+    public int this[long i, int ignored = 0] => 0;
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,20): error CS1503: Argument 1: cannot convert from 'System.Index' to 'long'
+            // _ = new Test1() is [0];
+            Diagnostic(ErrorCode.ERR_BadArgType, "[0]").WithArguments("1", "System.Index", "long").WithLocation(4, 20),
+            // (5,17): error CS1503: Argument 1: cannot convert from 'System.Index' to 'long'
+            // _ = new Test1()[^1];
+            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "long").WithLocation(5, 17)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Index_ErrorCases_5()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [0];
+_ = new Test1()[^1];
+
+class Test1
+{
+    public int this[long i] => 0;
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,20): error CS1503: Argument 1: cannot convert from 'System.Index' to 'long'
+            // _ = new Test1() is [0];
+            Diagnostic(ErrorCode.ERR_BadArgType, "[0]").WithArguments("1", "System.Index", "long").WithLocation(4, 20),
+            // (5,17): error CS1503: Argument 1: cannot convert from 'System.Index' to 'long'
+            // _ = new Test1()[^1];
+            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "long").WithLocation(5, 17)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Index_ErrorCases_6()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [0];
+_ = new Test1()[^1];
+
+class Test1
+{
+    public int this[params int[] i] => 0;
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,20): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+            // _ = new Test1() is [0];
+            Diagnostic(ErrorCode.ERR_BadArgType, "[0]").WithArguments("1", "System.Index", "int").WithLocation(4, 20),
+            // (5,17): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+            // _ = new Test1()[^1];
+            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(5, 17)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Index_ErrorCases_7()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [0];
+_ = new Test1()[^1];
+
+class Test1
+{
+    private int this[Index i] => 0;
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,20): error CS0122: 'Test1.this[Index]' is inaccessible due to its protection level
+            // _ = new Test1() is [0];
+            Diagnostic(ErrorCode.ERR_BadAccess, "[0]").WithArguments("Test1.this[System.Index]").WithLocation(4, 20),
+            // (5,5): error CS0122: 'Test1.this[Index]' is inaccessible due to its protection level
+            // _ = new Test1()[^1];
+            Diagnostic(ErrorCode.ERR_BadAccess, "new Test1()[^1]").WithArguments("Test1.this[System.Index]").WithLocation(5, 5)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Range_ErrorCases_1()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [..var p];
+_ = new Test1() is [..];
+_ = new Test1()[..];
+
+class Test1
+{
+    public int this[Range i] { set {} }
     public int this[int i] => throw new();
     public int Length => 0;
 }
-class X
-{
-    public static void Main()
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,21): error CS0154: The property or indexer 'Test1.this[Range]' cannot be used in this context because it lacks the get accessor
+            // _ = new Test1() is [..var p];
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "..var p").WithArguments("Test1.this[System.Range]").WithLocation(4, 21),
+            // (6,5): error CS0154: The property or indexer 'Test1.this[Range]' cannot be used in this context because it lacks the get accessor
+            // _ = new Test1()[..];
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "new Test1()[..]").WithArguments("Test1.this[System.Range]").WithLocation(6, 5)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Range_ErrorCases_2()
     {
-        _ = new Test1() is [..var p];
-        _ = new Test1() is [..];
-    } 
+        var source = @"
+using System;
+
+_ = new Test1() is [..var p];
+_ = new Test1() is [..];
+_ = new Test1()[..];
+
+class Test1
+{
+    public int this[Range i] { private get => 0; set {} }
+    public int this[int i] => throw new();
+    public int Length => 0;
 }
 ";
-        var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
-        if (valid)
-        {
-            compilation.VerifyDiagnostics();
-            return;
-        }
+        var compilation = CreateCompilationWithIndexAndRange(source);
         compilation.VerifyEmitDiagnostics(
-            // (14,29): error CS9001: Slice patterns may not be used for a value of type 'Test1'.
-            //         _ = new Test1() is [..var p];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..var p").WithArguments("Test1").WithLocation(14, 29));
+            // (4,21): error CS0271: The property or indexer 'Test1.this[Range]' cannot be used in this context because the get accessor is inaccessible
+            // _ = new Test1() is [..var p];
+            Diagnostic(ErrorCode.ERR_InaccessibleGetter, "..var p").WithArguments("Test1.this[System.Range]").WithLocation(4, 21),
+            // (6,5): error CS0271: The property or indexer 'Test1.this[Range]' cannot be used in this context because the get accessor is inaccessible
+            // _ = new Test1()[..];
+            Diagnostic(ErrorCode.ERR_InaccessibleGetter, "new Test1()[..]").WithArguments("Test1.this[System.Range]").WithLocation(6, 5)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Range_ErrorCases_3()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [..var p];
+_ = new Test1() is [..];
+_ = new Test1()[..];
+
+class Test1
+{
+    public int Slice(int i, int j, int ignored = 0) => 0;
+    public int this[int i] => throw new();
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,21): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1() is [..var p];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..var p").WithArguments("1", "System.Range", "int").WithLocation(4, 21),
+            // (6,17): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1()[..];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..").WithArguments("1", "System.Range", "int").WithLocation(6, 17)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Range_ErrorCases_4()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [..var p];
+_ = new Test1() is [..];
+_ = new Test1()[..];
+
+class Test1
+{
+    public int Slice(int i, int j, params int[] ignored) => 0;
+    public int this[int i] => throw new();
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,21): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1() is [..var p];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..var p").WithArguments("1", "System.Range", "int").WithLocation(4, 21),
+            // (6,17): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1()[..];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..").WithArguments("1", "System.Range", "int").WithLocation(6, 17)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Range_ErrorCases_5()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [..var p];
+_ = new Test1() is [..];
+_ = new Test1()[..];
+
+class Test1
+{
+    public int Slice(long i, long j) => 0;
+    public int this[int i] => throw new();
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,21): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1() is [..var p];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..var p").WithArguments("1", "System.Range", "int").WithLocation(4, 21),
+            // (6,17): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1()[..];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..").WithArguments("1", "System.Range", "int").WithLocation(6, 17)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Range_ErrorCases_6()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [..var p];
+_ = new Test1() is [..];
+_ = new Test1()[..];
+
+class Test1
+{
+    public int Slice(params int[] i) => 0;
+    public int this[int i] => throw new();
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,21): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1() is [..var p];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..var p").WithArguments("1", "System.Range", "int").WithLocation(4, 21),
+            // (6,17): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1()[..];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..").WithArguments("1", "System.Range", "int").WithLocation(6, 17)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Range_ErrorCases_7()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [..var p];
+_ = new Test1() is [..];
+_ = new Test1()[..];
+
+class Test1
+{
+    private int Slice(int i, int j) => 0;
+    public int this[int i] => throw new();
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,21): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1() is [..var p];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..var p").WithArguments("1", "System.Range", "int").WithLocation(4, 21),
+            // (6,17): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1()[..];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..").WithArguments("1", "System.Range", "int").WithLocation(6, 17)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Range_ErrorCases_8()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [..var p];
+_ = new Test1() is [..];
+_ = new Test1()[..];
+
+class Test1
+{
+    public void Slice(int i, int j) {}
+    public int this[int i] => throw new();
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,21): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1() is [..var p];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..var p").WithArguments("1", "System.Range", "int").WithLocation(4, 21),
+            // (6,17): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1()[..];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..").WithArguments("1", "System.Range", "int").WithLocation(6, 17)
+            );
     }
 
     [Fact]
