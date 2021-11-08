@@ -16,8 +16,6 @@ internal class VSCodeAnalyzerLoader
     private readonly IDiagnosticAnalyzerService _analyzerService;
     private readonly DiagnosticService _diagnosticService;
 
-    private IIncrementalAnalyzer? _incrementalAnalyzer;
-
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public VSCodeAnalyzerLoader(IDiagnosticAnalyzerService analyzerService, IDiagnosticService diagnosticService)
@@ -28,7 +26,7 @@ internal class VSCodeAnalyzerLoader
 
     public void InitializeDiagnosticsServices(Workspace workspace)
     {
-        _incrementalAnalyzer = ((IIncrementalAnalyzerProvider)_analyzerService).CreateIncrementalAnalyzer(workspace);
+        _ = ((IIncrementalAnalyzerProvider)_analyzerService).CreateIncrementalAnalyzer(workspace);
         _diagnosticService.Register((IDiagnosticUpdateSource)_analyzerService);
     }
 
