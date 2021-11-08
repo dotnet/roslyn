@@ -99,7 +99,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 if (location == null)
                     return;
 
-                Contract.ThrowIfNull(location);
                 _progress.Report(new VSSymbolInformation
                 {
                     Name = result.Name,
