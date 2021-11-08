@@ -21,8 +21,8 @@ pr:
 jobs:
 - job: VS_Integration_CoreHost
   pool:
-    name: NetCorePublic-Pool
-    queue: $(queueName)
+    name: NetCore1ESPool-Public
+    demands: ImageOverride -equals $(queueName)
   strategy:
     maxParallel: 2
     matrix:
