@@ -105,7 +105,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _lspWorkspaceManager = new LspWorkspaceManager(logger, lspMiscellaneousFilesWorkspace, lspWorkspaceRegistrationService, _requestTelemetryLogger);
 
             // Start the queue processing
-
             _asynchronousOperationListener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
             var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(ProcessQueueAsync));
             _ = ProcessQueueAsync().CompletesAsyncOperation(token);

@@ -29,11 +29,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// </summary>
             public bool TrySetException(Exception e);
 
-            /// <summary>
-            /// Cancels this queue item if possible.  Used when the queue is shutting down and needs to be cleared.
-            /// </summary>
-            public bool TrySetCanceled();
-
             public CancellationToken CombinedCancellationToken { get; }
 
             /// <inheritdoc cref="IRequestHandler.RequiresLSPSolution" />
@@ -240,11 +235,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             public bool TrySetException(Exception e)
             {
                 return _completionSource.TrySetException(e);
-            }
-
-            public bool TrySetCanceled()
-            {
-                return _completionSource.TrySetCanceled(CombinedCancellationToken);
             }
         }
     }
