@@ -4,6 +4,7 @@
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
