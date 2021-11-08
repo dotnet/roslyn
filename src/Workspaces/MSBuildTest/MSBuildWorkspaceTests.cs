@@ -712,7 +712,8 @@ class C1
             Assert.Empty(project.ProjectReferences);
         }
 
-        [ConditionalFact(typeof(MSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [Fact(Skip = "Xaml design-time targets are not running?")]
         public async Task TestOpenProject_WithXaml()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
