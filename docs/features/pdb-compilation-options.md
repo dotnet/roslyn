@@ -270,7 +270,7 @@ Example:
 | output-kind            | string                                  | require   | The value passed to `/target` |
 | platform               | string                                  | require   | The value passed to `/platform` |
 
-#### Options For C#
+#### Options For C\#
 
 See [compiler options](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/listed-alphabetically) documentation
 
