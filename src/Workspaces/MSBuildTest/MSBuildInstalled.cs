@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
     /// These tests will run with either VS installed or with a .NET (Core) SDK installed. The
     /// MSBuild used depends on the TargetFramework of the test project being executed.
     /// </summary>
-    internal class MSBuildInstalled : ExecutionCondition
+    internal sealed class MSBuildInstalled : ExecutionCondition
     {
         private readonly ExecutionCondition _msBuildInstalled;
 
