@@ -38,12 +38,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public void ShowGlobalErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception, params InfoBarUI[] items)
         {
-            var detailedMessage = exception is null ? "" : GetFormattedExceptionStack(exception);
-            LogGlobalErrorToActivityLog(message, detailedMessage);
+            var stackTrace = exception is null ? "" : GetFormattedExceptionStack(exception);
+            LogGlobalErrorToActivityLog(message, stackTrace);
             _infoBarService.ShowInfoBar(message, items);
-
-            // Have to use KeyValueLogMessage so it gets reported in telemetry
-            Logger.Log(FunctionId.VS_ErrorReportingService_ShowGlobalErrorInfo, message, LogLevel.Information);
 
             Logger.Log(FunctionId.VS_ErrorReportingService_ShowGlobalErrorInfo, KeyValueLogMessage.Create(LogType.UserAction, m =>
             {

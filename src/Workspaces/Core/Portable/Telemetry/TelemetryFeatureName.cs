@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Telemetry
         private static TelemetryFeatureName GetClientFeatureName(string name)
             => new(name, LocalKind);
 
-        public static TelemetryFeatureName GetBrokeredFeatureName(string monikerName)
-            => new(monikerName, RemoteKind);
+        public static TelemetryFeatureName GetRemoteFeatureName(string componentName, string serviceName)
+            => new(componentName + ":" + serviceName, RemoteKind);
 
         public static TelemetryFeatureName GetExtensionName(Type type)
             => new(type.Assembly.FullName?.StartsWith("Microsoft.", StringComparison.Ordinal) == true ? type.FullName! : "External",

@@ -454,9 +454,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 return true;
             }
 
-            // report telemetry event:
-            Logger.Log(FunctionId.FeatureNotAvailable, $"{_serviceDescriptor.Moniker}: {exception.GetType()}: {exception.Message}");
-
             return FatalError.ReportAndCatch(exception);
         }
 
@@ -509,7 +506,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 internalException = exception;
             }
 
-            _errorReportingService.ShowFeatureNotAvailableErrorInfo(message, TelemetryFeatureName.GetBrokeredFeatureName(_serviceDescriptor.Moniker.Name), internalException);
+            _errorReportingService.ShowFeatureNotAvailableErrorInfo(message, TelemetryFeatureName.GetRemoteFeatureName(_serviceDescriptor.ComponentName, _serviceDescriptor.SimpleName), internalException);
         }
     }
 }
