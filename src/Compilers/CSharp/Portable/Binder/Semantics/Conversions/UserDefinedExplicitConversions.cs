@@ -299,16 +299,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             toConversion = EncompassingExplicitConversion(null, convertsTo, target, ref useSiteInfo);
                         }
 
-                        if ((object)source != null && source.IsNullableType() && convertsFrom.IsNonNullableValueType())
+                        if ((object)source != null && source.IsNullableType() && convertsFrom.IsValidNullableTypeArgument())
                         {
-                            if (!convertsFrom.IsValidNullableTypeArgument())
-                            {
-                                // We want to construct an operator that short-circuits directly from X?->Y? when X? is null
-                                // instead of attempting to get the value from X and do X->Y. However, if X? is illegal to
-                                // construct, we cannot create this operator at all.
-                                continue;
-                            }
-
                             convertsFrom = MakeNullableType(convertsFrom);
                             fromConversion = EncompassingExplicitConversion(null, convertsFrom, source, ref useSiteInfo);
                         }

@@ -1675,9 +1675,9 @@ namespace System
 
             var comp = CreateEmptyCompilation(code);
             comp.VerifyDiagnostics(
-                // (3,7): error CS0029: Cannot implicitly convert type 'int?' to 'C'
+                // (3,7): error CS0266: Cannot implicitly convert type 'int?' to 'C'. An explicit conversion exists (are you missing a cast?)
                 // C c = i;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "i").WithArguments("int?", "C").WithLocation(3, 7)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "i").WithArguments("int?", "C").WithLocation(3, 7)
             );
         }
 
@@ -1747,17 +1747,30 @@ namespace System
     public class ValueType : Object {}
     public struct Void {}
     public struct Int32 {}
-    public struct Nullable<T> where T : struct {}
+    public struct Nullable<T> where T : struct { public T Value { get => throw null; } }
     public ref struct Int64 {}
+    public class Attribute {}
 }
 ";
 
             var comp = CreateEmptyCompilation(code);
-            comp.VerifyDiagnostics(
-                // (3,7): error CS0030: Cannot convert type 'int?' to 'C'
-                // C c = (C)i;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C)i").WithArguments("int?", "C").WithLocation(3, 7)
-            );
+            var verifier = CompileAndVerify(comp);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init (int? V_0) //i
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""int?""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       ""int int?.Value.get""
+  IL_000f:  conv.i8
+  IL_0010:  call       ""C C.op_Explicit(long)""
+  IL_0015:  pop
+  IL_0016:  ret
+}
+");
         }
 
         [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
