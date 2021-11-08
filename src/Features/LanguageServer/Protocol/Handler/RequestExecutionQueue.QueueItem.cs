@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 CombinedCancellationToken = combinedCancellationToken;
             }
 
-            public static IQueueItem Create(
+            public static (IQueueItem, Task<TResponseType?>) Create(
                 bool mutatesSolutionState,
                 bool requiresLSPSolution,
                 ClientCapabilities clientCapabilities,
@@ -137,8 +137,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Guid activityId,
                 ILspLogger logger,
                 RequestTelemetryLogger telemetryLogger,
-                CancellationToken combinedCancellationToken,
-                out Task<TResponseType?> resultTask)
+                CancellationToken combinedCancellationToken)
             {
                 var queueItem = new QueueItem<TRequestType, TResponseType>(
                     mutatesSolutionState,
@@ -154,8 +153,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     telemetryLogger,
                     combinedCancellationToken);
 
-                resultTask = queueItem._completionSource.Task;
-                return queueItem;
+                return (queueItem, queueItem._completionSource.Task);
             }
 
             /// <summary>

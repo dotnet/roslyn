@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             using var combinedTokenSource = _cancelSource.Token.CombineWith(requestCancellationToken);
             var combinedCancellationToken = combinedTokenSource.Token;
 
-            var item = QueueItem<TRequestType, TResponseType>.Create(
+            var (item, resultTask) = QueueItem<TRequestType, TResponseType>.Create(
                 mutatesSolutionState,
                 requiresLSPSolution,
                 clientCapabilities,
@@ -174,8 +174,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Trace.CorrelationManager.ActivityId,
                 _logger,
                 _requestTelemetryLogger,
-                combinedCancellationToken,
-                out var resultTask);
+                combinedCancellationToken);
 
             var didEnqueue = _queue.TryEnqueue(item);
 
