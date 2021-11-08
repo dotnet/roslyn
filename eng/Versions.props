@@ -207,12 +207,12 @@
       is expected by the NET SDK used in the Workspace.MSBuild UnitTests. In order to test against the same verion of NuGet
       as our configured SDK, we must set the version to be the same.
      -->
-    <NuGetCommonVersion>6.0.0-preview.4.243</NuGetCommonVersion>
-    <NuGetConfigurationVersion>6.0.0-preview.4.243 </NuGetConfigurationVersion>
-    <NuGetFrameworkVersion>6.0.0-preview.4.243 </NuGetFrameworkVersion>
-    <NuGetPackagingVersion>6.0.0-preview.4.243 </NuGetPackagingVersion>
-    <NuGetProtocolVersion>6.0.0-preview.4.243 </NuGetProtocolVersion>
-    <NuGetVersioningVersion>6.0.0-preview.4.243 </NuGetVersioningVersion>
+    <NuGetCommonVersion>6.0.0-rc.258</NuGetCommonVersion>
+    <NuGetConfigurationVersion>$(NuGetCommonVersion)</NuGetConfigurationVersion>
+    <NuGetFrameworkVersion>$(nugetcommonversion)</NuGetFrameworkVersion>
+    <NuGetPackagingVersion>$(nugetcommonversion)</NuGetPackagingVersion>
+    <NuGetProtocolVersion>$(nugetcommonversion)</NuGetProtocolVersion>
+    <NuGetVersioningVersion>$(nugetcommonversion)</NuGetVersioningVersion>
     <RoslynToolsVSIXExpInstallerVersion>1.1.0-beta3.21418.3</RoslynToolsVSIXExpInstallerVersion>
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
     <SourceBrowserVersion>1.0.21</SourceBrowserVersion>
