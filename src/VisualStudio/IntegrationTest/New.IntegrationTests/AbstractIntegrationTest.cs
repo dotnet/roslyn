@@ -15,9 +15,12 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
-    [IdeSettings(MinVersion = VisualStudioVersion.VS2022)]
+    [IdeSettings(MinVersion = VisualStudioVersion.VS2022, RootSuffix = "RoslynDev")]
     public abstract class AbstractIntegrationTest : IAsyncLifetime, IDisposable
     {
+        protected const string ProjectName = "TestProj";
+        protected const string SolutionName = "TestSolution";
+
         /// <summary>
         /// A long timeout used to avoid hangs in tests, where a test failure manifests as an operation never occurring.
         /// </summary>
@@ -102,9 +105,11 @@ namespace Roslyn.VisualStudio.IntegrationTests
         /// </summary>
         public virtual async Task DisposeAsync()
         {
+            await TestServices.SolutionExplorer.CloseSolutionAsync(HangMitigatingCancellationToken);
+
             if (_joinableTaskCollection is object)
             {
-                await _joinableTaskCollection.JoinTillEmptyAsync();
+                await _joinableTaskCollection.JoinTillEmptyAsync(HangMitigatingCancellationToken);
             }
 
             JoinableTaskContext = null;

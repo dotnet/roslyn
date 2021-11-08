@@ -14,17 +14,26 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             JoinableTaskFactory = joinableTaskFactory;
 
             Editor = new EditorInProcess(this);
+            EditorVerifier = new EditorVerifierInProcess(this);
             ErrorList = new ErrorListInProcess(this);
             SolutionExplorer = new SolutionExplorerInProcess(this);
+            SolutionVerifier = new SolutionVerifierInProcess(this);
+            Workspace = new WorkspaceInProcess(this);
         }
 
         public JoinableTaskFactory JoinableTaskFactory { get; }
 
         public EditorInProcess Editor { get; }
 
+        public EditorVerifierInProcess EditorVerifier { get; }
+
         public ErrorListInProcess ErrorList { get; }
 
         public SolutionExplorerInProcess SolutionExplorer { get; }
+
+        public SolutionVerifierInProcess SolutionVerifier { get; }
+
+        public WorkspaceInProcess Workspace { get; }
 
         internal static async Task<TestServices> CreateAsync(JoinableTaskFactory joinableTaskFactory)
         {
@@ -35,6 +44,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
         protected virtual Task InitializeAsync()
         {
+            WorkspaceInProcess.EnableAsynchronousOperationTracking();
             return Task.CompletedTask;
         }
     }

@@ -7,6 +7,13 @@
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Test\Core\MarkedSource\MarkupTestFile.cs" Link="MarkupTestFile.cs" />
+    <Compile Include="..\..\..\Compilers\Test\Core\Traits\Traits.cs" Link="Traits.cs" />
+    <Compile Include="..\TestUtilities\TestUtilities.cs" Link="TestUtilities.cs" />
+    <Compile Include="..\TestUtilities\WellKnownCommandNames.cs" Link="WellKnownCommandNames.cs" />
+    <Compile Include="..\TestUtilities\WellKnownProjectTemplates.cs" Link="WellKnownProjectTemplates.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
@@ -35,6 +42,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit" Version="$(MicrosoftVisualStudioExtensibilityTestingXunitVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)" />
+    <PackageReference Include="NuGet.SolutionRestoreManager.Interop" Version="$(NuGetSolutionRestoreManagerInteropVersion)" />
     <PackageReference Include="xunit.assert" Version="$(xunitassertVersion)" />
     <PackageReference Include="xunit.extensibility.core" Version="$(xunitextensibilitycoreVersion)" />
     <PackageReference Include="xunit.extensibility.execution" Version="$(xunitextensibilityexecutionVersion)" />
