@@ -209,10 +209,10 @@
      -->
     <NuGetCommonVersion>6.0.0-rc.258</NuGetCommonVersion>
     <NuGetConfigurationVersion>$(NuGetCommonVersion)</NuGetConfigurationVersion>
-    <NuGetFrameworkVersion>$(nugetcommonversion)</NuGetFrameworkVersion>
-    <NuGetPackagingVersion>$(nugetcommonversion)</NuGetPackagingVersion>
-    <NuGetProtocolVersion>$(nugetcommonversion)</NuGetProtocolVersion>
-    <NuGetVersioningVersion>$(nugetcommonversion)</NuGetVersioningVersion>
+    <NuGetFrameworkVersion>$(NuGetCommonVersion)</NuGetFrameworkVersion>
+    <NuGetPackagingVersion>$(NuGetCommonVersion)</NuGetPackagingVersion>
+    <NuGetProtocolVersion>$(NuGetCommonVersion)</NuGetProtocolVersion>
+    <NuGetVersioningVersion>$(NuGetCommonVersion)</NuGetVersioningVersion>
     <RoslynToolsVSIXExpInstallerVersion>1.1.0-beta3.21418.3</RoslynToolsVSIXExpInstallerVersion>
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
     <SourceBrowserVersion>1.0.21</SourceBrowserVersion>
