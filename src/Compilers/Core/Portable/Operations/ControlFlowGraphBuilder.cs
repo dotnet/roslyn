@@ -6406,7 +6406,7 @@ oneMoreTime:
 
 #if DEBUG
             Debug.Assert(_evalStack[maxStackDepth + 1].frameOpt != null);
-            if (_currentInterpolatedStringHandlerArgumentContext?.ApplicableCreationOperations.Contains(operation) ?? false)
+            if (_currentInterpolatedStringHandlerArgumentContext?.ApplicableCreationOperations.Contains(operation) == true)
             {
                 for (int i = _currentInterpolatedStringHandlerArgumentContext.StartingStackDepth;
                      i < maxStackDepth;
