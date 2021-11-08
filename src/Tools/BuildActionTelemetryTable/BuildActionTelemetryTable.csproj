@@ -2,12 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-     <!--
-         Since the old hash function was framework and runtime dependent and VS runs 32-bit, we need to
-         run FullFramework 32-bit in order to generate the same hashes.
-    -->
-    <TargetFrameworks>net472</TargetFrameworks>
-    <Platforms>x86</Platforms>
+    <TargetFrameworks>net5.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

@@ -83,7 +83,9 @@
   </AbstractNode>
 
   <!--
-  This node will not survive the local rewriting.
+  This node will not survive the local rewriting,
+  except in some scenarios in a Linq Expression Tree when the containing node
+  survives.
   -->
   <Node Name="BoundValuePlaceholder" Base="BoundValuePlaceholderBase">
   </Node>
@@ -487,8 +489,17 @@
     <Field Name="Operator" Type="BinaryOperatorSignature" Null="NotApplicable"/>
     <Field Name="Left" Type="BoundExpression"/>
     <Field Name="Right" Type="BoundExpression"/>
-    <Field Name="LeftConversion" Type="Conversion"/>
-    <Field Name="FinalConversion" Type="Conversion"/>
+    
+    <!-- Used as an operand to bind LeftConversion -->
+    <Field Name="LeftPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Could be a BoundConversion or, in some cases of an identity conversion, the LeftPlaceholder, or null for no conversion case -->
+    <Field Name="LeftConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+    
+    <!-- Used as an operand to bind LeftConversion -->
+    <Field Name="FinalPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Could be a BoundConversion or, in some cases of an identity conversion, the FinalPlaceholder, or null for no conversion case -->
+    <Field Name="FinalConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+    
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <!--The set of method symbols from which this operator's method was chosen.
         Only kept in the tree if the operator was an error and overload resolution
@@ -540,7 +551,15 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="LeftOperand" Type="BoundExpression"/>
     <Field Name="RightOperand" Type="BoundExpression"/>
-    <Field Name="LeftConversion" Type="Conversion"/>
+
+    <!-- Used as an operand to bind LeftConversion -->
+    <Field Name="LeftPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!--
+    Could be a BoundConversion or, in some cases of an identity conversion, the LeftPlaceholder, or null for no conversion case.
+    If the node survives lowering, this property in it must be null, unless it is part of a Linq Expression Tree.
+    -->
+    <Field Name="LeftConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+
     <Field Name="OperatorResultKind" Type="BoundNullCoalescingOperatorResultKind" Null="NotApplicable"/>
   </Node>
 
@@ -716,7 +735,14 @@
 
     <Field Name="Operand" Type="BoundExpression"/>
     <Field Name="TargetType" Type="BoundTypeExpression"/>
-    <Field Name="Conversion" Type="Conversion"/>
+
+    <!-- Used as an operand to bind OperandConversion -->
+    <Field Name="OperandPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!--
+    Could be a BoundConversion or, in some cases of an identity conversion, the OperandPlaceholder, or null for no conversion case
+    If the node survives lowering, this property in it must be null.
+    -->
+    <Field Name="OperandConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
   </Node>
 
   <Node Name="BoundSizeOfOperator" Base="BoundExpression">
@@ -808,8 +834,11 @@
     <Field Name="ElementPointerType" Type="TypeSymbol" Null="disallow"/>
     
     <!-- Conversion from ElementPointerType to the type of the corresponding local. -->
-    <Field Name="ElementPointerTypeConversion" Type="Conversion"/>
-    
+    <!-- Used as an operand to bind ElementPointerConversion -->
+    <Field Name="ElementPointerPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Could be a BoundConversion or, in some cases of an identity conversion, the ElementPointerPlaceholder, or null for no conversion case -->
+    <Field Name="ElementPointerConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+
     <!-- Wrapped expression. -->
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
 
@@ -1087,7 +1116,11 @@
   <Node Name="BoundForEachStatement" Base="BoundLoopStatement">
     <!-- Extracted information -->
     <Field Name="EnumeratorInfoOpt" Type="ForEachEnumeratorInfo?"/>
-    <Field Name="ElementConversion" Type="Conversion"/>
+
+    <!-- Used as an operand to bind ElementConversion -->
+    <Field Name="ElementPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Could be a BoundConversion or, in some cases of an identity conversion, the OperandPlaceholder, or null for no conversion case -->
+    <Field Name="ElementConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
 
     <!-- Pieces corresponding to the syntax -->
     <!-- This is so the binding API can find produce semantic info if the type is "var". -->
@@ -1106,8 +1139,6 @@
     <Field Name="DeconstructionOpt" Type="BoundForEachDeconstructStep?"/>
     <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
     <Field Name="Body" Type="BoundStatement"/>
-  
-    <Field Name="Checked" Type="bool"/>
   </Node>
 
   <!-- All the information need to apply a deconstruction at each iteration of a foreach loop involving a deconstruction-declaration. -->
@@ -1362,8 +1393,6 @@
     <!-- Natural type is preserved for the purpose of semantic model. Can be `null`. -->
     <Field Name="NaturalTypeOpt" Type="TypeSymbol?" Null="allow"/>
     <Field Name="WasTargetTyped" Type="bool" />
-    <!-- The conversion to Type. Either a switch expression conversion or an identity conversion -->
-    <Field Name="Conversion" Type="Conversion"/>
   </Node>
 
   <Node Name="BoundDecisionDag" Base="BoundNode">

@@ -11,8 +11,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -22,12 +24,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpSelectionValidator : SelectionValidator
     {
+        private readonly bool _localFunction;
+
         public CSharpSelectionValidator(
             SemanticDocument document,
             TextSpan textSpan,
+            bool localFunction,
             OptionSet options)
             : base(document, textSpan, options)
         {
+            _localFunction = localFunction;
         }
 
         public override async Task<SelectionResult> GetValidSelectionAsync(CancellationToken cancellationToken)
@@ -47,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             selectionInfo = AssignInitialFinalTokens(selectionInfo, root, cancellationToken);
             selectionInfo = AdjustFinalTokensBasedOnContext(selectionInfo, model, cancellationToken);
             selectionInfo = AssignFinalSpan(selectionInfo, text);
-            selectionInfo = ApplySpecialCases(selectionInfo, text);
+            selectionInfo = ApplySpecialCases(selectionInfo, text, SemanticDocument.SyntaxTree.Options, _localFunction);
             selectionInfo = CheckErrorCasesAndAppendDescriptions(selectionInfo, root);
 
             // there was a fatal error that we couldn't even do negative preview, return error result
@@ -88,9 +94,30 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private static SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text)
+        private static SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text, ParseOptions options, bool localFunction)
         {
-            if (selectionInfo.Status.FailedWithNoBestEffortSuggestion() || !selectionInfo.SelectionInExpression)
+            if (selectionInfo.Status.FailedWithNoBestEffortSuggestion())
+            {
+                return selectionInfo;
+            }
+
+            if (selectionInfo.CommonRootFromOriginalSpan.IsKind(SyntaxKind.CompilationUnit)
+                || selectionInfo.CommonRootFromOriginalSpan.IsParentKind(SyntaxKind.GlobalStatement))
+            {
+                // Cannot extract a local function from a global statement in script code
+                if (localFunction && options is { Kind: SourceCodeKind.Script })
+                {
+                    return selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.Selection_cannot_include_global_statements));
+                }
+
+                // Cannot extract a method from a top-level statement in normal code
+                if (!localFunction && options is { Kind: SourceCodeKind.Regular })
+                {
+                    return selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.Selection_cannot_include_top_level_statements));
+                }
+            }
+
+            if (!selectionInfo.SelectionInExpression)
             {
                 return selectionInfo;
             }
@@ -322,6 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             var range = GetStatementRangeContainingSpan<StatementSyntax>(
+                CSharpSyntaxFacts.Instance,
                 root, TextSpan.FromBounds(selectionInfo.FirstTokenInOriginalSpan.SpanStart, selectionInfo.LastTokenInOriginalSpan.Span.End),
                 cancellationToken);
 

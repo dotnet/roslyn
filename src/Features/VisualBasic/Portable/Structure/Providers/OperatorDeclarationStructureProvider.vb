@@ -14,9 +14,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
                                                   operatorDeclaration As OperatorStatementSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
-                                                  optionProvider As BlockStructureOptionProvider,
+                                                  options As BlockStructureOptions,
                                                   cancellationToken As CancellationToken)
-            CollectCommentsRegions(operatorDeclaration, spans, optionProvider)
+            CollectCommentsRegions(operatorDeclaration, spans, options)
 
             Dim block = TryCast(operatorDeclaration.Parent, OperatorBlockSyntax)
             If Not block?.EndBlockStatement.IsMissing Then

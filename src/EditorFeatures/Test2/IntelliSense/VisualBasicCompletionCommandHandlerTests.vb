@@ -992,6 +992,12 @@ End Class
                        isTriggerCharacter:=Function(t, p) True)
             End Sub
 
+            Friend Overrides ReadOnly Property Language As String
+                Get
+                    Return LanguageNames.VisualBasic
+                End Get
+            End Property
+
             Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
                 e.WaitOne()
                 Return MyBase.ProvideCompletionsAsync(context)
@@ -1828,7 +1834,7 @@ End Class
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.EnterKeyBehavior, LanguageNames.VisualBasic, EnterKeyRule.AfterFullyTypedWord)))
+                    .WithChangedOption(CompletionOptions.Metadata.EnterKeyBehavior, LanguageNames.VisualBasic, EnterKeyRule.AfterFullyTypedWord)))
                 state.SendTypeChars("System.TimeSpan.FromMin")
                 state.SendReturn()
                 Assert.Equal(<text>
@@ -1854,7 +1860,7 @@ End Class
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.EnterKeyBehavior, LanguageNames.VisualBasic, EnterKeyRule.AfterFullyTypedWord)))
+                    .WithChangedOption(CompletionOptions.Metadata.EnterKeyBehavior, LanguageNames.VisualBasic, EnterKeyRule.AfterFullyTypedWord)))
 
                 state.SendTypeChars("System.TimeSpan.FromMinutes")
                 state.SendReturn()
@@ -2160,7 +2166,7 @@ End Class
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.TriggerOnTyping, LanguageNames.VisualBasic, False)))
+                    .WithChangedOption(CompletionOptions.Metadata.TriggerOnTyping, LanguageNames.VisualBasic, False)))
                 state.SendBackspace()
                 Await state.AssertNoCompletionSession()
             End Using
@@ -2651,7 +2657,7 @@ End Class
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)))
+                    .WithChangedOption(CompletionOptions.Metadata.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)))
 
                 state.SendTypeChars("Shortcu")
                 Await state.AssertSelectedCompletionItem(displayText:="Shortcut", isHardSelected:=True)
@@ -2674,7 +2680,7 @@ End Class
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)))
+                    .WithChangedOption(CompletionOptions.Metadata.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)))
 
                 state.SendTypeChars("Shortcu")
                 Await state.AssertSelectedCompletionItem(displayText:="Shortcut", isHardSelected:=True)
@@ -2698,7 +2704,7 @@ End Class
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)))
+                    .WithChangedOption(CompletionOptions.Metadata.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)))
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll("x", "Shortcut")

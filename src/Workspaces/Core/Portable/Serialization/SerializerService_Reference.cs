@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 => new SerializedMetadataReference(properties, FilePath, _metadata, _storagesOpt, _provider);
 
             public IEnumerable<ITemporaryStreamStorage>? GetStorages()
-                => _storagesOpt.IsDefault ? (IEnumerable<ITemporaryStreamStorage>?)null : _storagesOpt;
+                => _storagesOpt.IsDefault ? null : _storagesOpt;
         }
     }
 }

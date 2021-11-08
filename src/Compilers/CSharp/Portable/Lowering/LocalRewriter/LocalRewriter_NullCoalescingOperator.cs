@@ -18,20 +18,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenRight = VisitExpression(node.RightOperand);
             TypeSymbol? rewrittenResultType = VisitType(node.Type);
 
-            return MakeNullCoalescingOperator(node.Syntax, rewrittenLeft, rewrittenRight, node.LeftConversion, node.OperatorResultKind, rewrittenResultType);
+            return MakeNullCoalescingOperator(node.Syntax, rewrittenLeft, rewrittenRight, node.LeftPlaceholder, node.LeftConversion, node.OperatorResultKind, rewrittenResultType);
         }
 
         private BoundExpression MakeNullCoalescingOperator(
             SyntaxNode syntax,
             BoundExpression rewrittenLeft,
             BoundExpression rewrittenRight,
-            Conversion leftConversion,
+            BoundValuePlaceholder? leftPlaceholder,
+            BoundExpression? leftConversion,
             BoundNullCoalescingOperatorResultKind resultKind,
             TypeSymbol? rewrittenResultType)
         {
             Debug.Assert(rewrittenLeft != null);
             Debug.Assert(rewrittenRight != null);
-            Debug.Assert(leftConversion.IsValid);
+            Debug.Assert(BoundNode.GetConversion(leftConversion, leftPlaceholder).IsValid);
             Debug.Assert(rewrittenResultType is { });
             Debug.Assert(rewrittenRight.Type is { });
             Debug.Assert(rewrittenRight.Type.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
@@ -41,14 +42,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Because of Error CS0845 (An expression tree lambda may not contain a coalescing operator with a null or default literal left-hand side)
                 // we know that the left-hand-side has a type.
                 Debug.Assert(rewrittenLeft.Type is { });
-                TypeSymbol strippedLeftType = rewrittenLeft.Type.StrippedType();
-                Conversion rewrittenConversion = TryMakeConversion(syntax, leftConversion, strippedLeftType, rewrittenResultType);
-                if (!rewrittenConversion.Exists)
+
+                if (leftConversion is BoundConversion { Conversion: { IsIdentity: false } })
                 {
-                    return BadExpression(syntax, rewrittenResultType, rewrittenLeft, rewrittenRight);
+                    Debug.Assert(leftPlaceholder is not null);
+
+                    leftConversion = ApplyConversion(leftConversion, leftPlaceholder, leftPlaceholder);
+
+                    if (leftConversion is not BoundConversion { Conversion: { Exists: true } })
+                    {
+                        return BadExpression(syntax, rewrittenResultType, rewrittenLeft, rewrittenRight);
+                    }
                 }
 
-                return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, rewrittenConversion, resultKind, rewrittenResultType);
+                return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, leftPlaceholder, leftConversion, resultKind, rewrittenResultType);
             }
 
             var isUnconstrainedTypeParameter = rewrittenLeft.Type is { IsReferenceType: false, IsValueType: false };
@@ -69,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(!rewrittenLeft.ConstantValue.IsNull);
 
-                    return GetConvertedLeftForNullCoalescingOperator(rewrittenLeft, leftConversion, rewrittenResultType);
+                    return GetConvertedLeftForNullCoalescingOperator(rewrittenLeft, leftPlaceholder, leftConversion, rewrittenResultType);
                 }
             }
 
@@ -77,24 +84,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             // interpolated string lowering may introduce redundant null coalescing, which we have to remove.
             if (IsStringConcat(rewrittenLeft))
             {
-                return GetConvertedLeftForNullCoalescingOperator(rewrittenLeft, leftConversion, rewrittenResultType);
+                return GetConvertedLeftForNullCoalescingOperator(rewrittenLeft, leftPlaceholder, leftConversion, rewrittenResultType);
             }
 
             // if left conversion is intrinsic implicit (always succeeds) and results in a reference type
             // we can apply conversion before doing the null check that allows for a more efficient IL emit.
             Debug.Assert(rewrittenLeft.Type is { });
             if (rewrittenLeft.Type.IsReferenceType &&
-                leftConversion.IsImplicit &&
-                !leftConversion.IsUserDefined)
+                BoundNode.GetConversion(leftConversion, leftPlaceholder) is { IsImplicit: true, IsUserDefined: false })
             {
-                if (!leftConversion.IsIdentity)
-                {
-                    rewrittenLeft = MakeConversionNode(rewrittenLeft.Syntax, rewrittenLeft, leftConversion, rewrittenResultType, @checked: false);
-                }
-                return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, Conversion.Identity, resultKind, rewrittenResultType);
+                rewrittenLeft = ApplyConversionIfNotIdentity(leftConversion, leftPlaceholder, rewrittenLeft);
+
+                return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, leftPlaceholder: null, leftConversion: null, resultKind, rewrittenResultType);
             }
 
-            if (leftConversion.IsIdentity || leftConversion.Kind == ConversionKind.ExplicitNullable)
+            if (BoundNode.GetConversion(leftConversion, leftPlaceholder) is { IsIdentity: true } or { Kind: ConversionKind.ExplicitNullable })
             {
                 var conditionalAccess = rewrittenLeft as BoundLoweredConditionalAccess;
                 if (conditionalAccess != null &&
@@ -149,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression nullCheck = MakeNullCheck(syntax, boundTemp, BinaryOperatorKind.NotEqual);
 
             // MakeConversion(temp, rewrittenResultType)
-            BoundExpression convertedLeft = GetConvertedLeftForNullCoalescingOperator(boundTemp, leftConversion, rewrittenResultType);
+            BoundExpression convertedLeft = GetConvertedLeftForNullCoalescingOperator(boundTemp, leftPlaceholder, leftConversion, rewrittenResultType);
             Debug.Assert(convertedLeft.HasErrors || convertedLeft.Type!.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
             // (temp != null) ? MakeConversion(temp, LeftConversion) : RightOperand
@@ -218,12 +222,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return expression;
         }
 
-        private BoundExpression GetConvertedLeftForNullCoalescingOperator(BoundExpression rewrittenLeft, Conversion leftConversion, TypeSymbol rewrittenResultType)
+        private BoundExpression GetConvertedLeftForNullCoalescingOperator(BoundExpression rewrittenLeft, BoundValuePlaceholder? leftPlaceholder, BoundExpression? leftConversion, TypeSymbol rewrittenResultType)
         {
             Debug.Assert(rewrittenLeft != null);
             Debug.Assert(rewrittenLeft.Type is { });
             Debug.Assert(rewrittenResultType is { });
-            Debug.Assert(leftConversion.IsValid);
+            Debug.Assert(BoundNode.GetConversion(leftConversion, leftPlaceholder).IsValid);
 
             TypeSymbol rewrittenLeftType = rewrittenLeft.Type;
             Debug.Assert(rewrittenLeftType.IsNullableType() || !rewrittenLeftType.IsValueType);
@@ -244,7 +248,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return MakeConversionNode(rewrittenLeft.Syntax, rewrittenLeft, leftConversion, rewrittenResultType, @checked: false);
+            rewrittenLeft = ApplyConversionIfNotIdentity(leftConversion, leftPlaceholder, rewrittenLeft);
+
+            return rewrittenLeft;
         }
     }
 }

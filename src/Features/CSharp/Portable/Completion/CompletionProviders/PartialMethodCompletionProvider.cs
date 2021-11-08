@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
+        internal override string Language => LanguageNames.CSharp;
+
         protected override bool IncludeAccessibility(IMethodSymbol method, CancellationToken cancellationToken)
         {
             var declaration = (MethodDeclarationSyntax)method.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
@@ -72,11 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return tree.FindTokenOnLeftOfPosition(tokenSpanEnd, cancellationToken);
         }
 
-        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            var ch = text[characterPosition];
-            return ch == ' ' || (CompletionUtilities.IsStartingNewWord(text, characterPosition) && options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp));
-        }
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
+            => text[characterPosition] == ' ' ||
+               options.TriggerOnTypingLetters && CompletionUtilities.IsStartingNewWord(text, characterPosition);
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 

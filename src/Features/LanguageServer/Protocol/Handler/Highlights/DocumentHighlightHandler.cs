@@ -40,11 +40,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var documentHighlightService = document.Project.LanguageServices.GetRequiredService<IDocumentHighlightsService>();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+            var options = DocumentHighlightingOptions.From(document.Project);
 
             var highlights = await documentHighlightService.GetDocumentHighlightsAsync(
                 document,
                 position,
                 ImmutableHashSet.Create(document),
+                options,
                 cancellationToken).ConfigureAwait(false);
 
             if (!highlights.IsDefaultOrEmpty)

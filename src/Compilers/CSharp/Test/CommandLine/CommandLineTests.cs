@@ -11723,7 +11723,12 @@ public class TestAnalyzer : DiagnosticAnalyzer
             var arguments = "/nologo /t:library /debug:full Source.cs";
 
             // env variable not set (deterministic) -- DSRN is required:
-            var result = ProcessUtilities.Run(cscCopy, arguments + " /deterministic", workingDirectory: dir.Path);
+            var result = ProcessUtilities.Run(
+                cscCopy,
+                arguments + " /deterministic",
+                workingDirectory: dir.Path,
+                additionalEnvironmentVars: new[] { KeyValuePairUtil.Create("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH", "") });
+
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
                 "error CS0041: Unexpected error writing debug information -- 'Unable to load DLL 'Microsoft.DiaSymReader.Native.amd64.dll': " +
                 "The specified module could not be found. (Exception from HRESULT: 0x8007007E)'", result.Output.Trim());
