@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.VisualStudio.VsixInstaller
 {
     using System;
@@ -40,7 +38,7 @@ namespace Microsoft.VisualStudio.VsixInstaller
 
             return;
 
-            Assembly HandleAssemblyResolve(object sender, ResolveEventArgs args)
+            Assembly? HandleAssemblyResolve(object sender, ResolveEventArgs args)
             {
                 string path = Path.Combine(installationPath, @"Common7\IDE\PrivateAssemblies", new AssemblyName(args.Name).Name + ".dll");
                 if (File.Exists(path))

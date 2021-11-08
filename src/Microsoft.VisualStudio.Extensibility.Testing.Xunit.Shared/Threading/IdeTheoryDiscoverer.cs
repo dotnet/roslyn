@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
-#nullable disable
-
 namespace Xunit.Threading
 {
     using System.Collections.Generic;
@@ -25,7 +23,7 @@ namespace Xunit.Threading
             }
         }
 
-        protected override IEnumerable<IXunitTestCase> CreateTestCasesForSkippedDataRow(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute, object[] dataRow, string skipReason)
+        protected override IEnumerable<IXunitTestCase> CreateTestCasesForSkippedDataRow(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute, object?[] dataRow, string skipReason)
         {
             foreach (var supportedVersion in IdeFactDiscoverer.GetSupportedVersions(testMethod, theoryAttribute))
             {
@@ -33,7 +31,7 @@ namespace Xunit.Threading
             }
         }
 
-        protected override IEnumerable<IXunitTestCase> CreateTestCasesForDataRow(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute, object[] dataRow)
+        protected override IEnumerable<IXunitTestCase> CreateTestCasesForDataRow(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute, object?[] dataRow)
         {
             var rootSuffix = IdeFactDiscoverer.GetRootSuffix(testMethod, theoryAttribute);
             foreach (var supportedVersion in IdeFactDiscoverer.GetSupportedVersions(testMethod, theoryAttribute))

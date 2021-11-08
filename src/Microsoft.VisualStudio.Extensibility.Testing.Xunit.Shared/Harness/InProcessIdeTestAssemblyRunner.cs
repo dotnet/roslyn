@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
-#nullable disable
-
 namespace Xunit.Harness
 {
     using System;
@@ -49,7 +47,7 @@ namespace Xunit.Harness
             GC.SuppressFinalize(this);
         }
 
-        public override object InitializeLifetimeService()
+        public override object? InitializeLifetimeService()
         {
             // This object can live forever
             return null;

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
-#nullable disable
-
 namespace Xunit.Harness
 {
     using System;
@@ -143,7 +141,7 @@ namespace Xunit.Harness
         /// <summary>
         /// Used to make sure we aren't adding dupe entries to the list of Watson entries.
         /// </summary>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if ((obj is FeedbackItemWatsonEntry watsonEntry)
                 && (EventName == watsonEntry.EventName)

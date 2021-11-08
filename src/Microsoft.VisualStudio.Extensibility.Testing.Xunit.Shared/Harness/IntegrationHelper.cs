@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
-#nullable disable
-
 namespace Xunit.Harness
 {
     using System;
@@ -41,10 +39,10 @@ namespace Xunit.Harness
         }
 
         /// <summary>Locates the DTE object for the specified process.</summary>
-        public static DTE TryLocateDteForProcess(Process process)
+        public static DTE? TryLocateDteForProcess(Process process)
         {
-            object dte = null;
-            var monikers = new IMoniker[1];
+            object? dte = null;
+            var monikers = new IMoniker?[1];
 
             NativeMethods.GetRunningObjectTable(0, out var runningObjectTable);
             runningObjectTable.EnumRunning(out var enumMoniker);
@@ -66,7 +64,7 @@ namespace Xunit.Harness
                     Marshal.ThrowExceptionForHR(hresult);
                 }
 
-                var moniker = monikers[0];
+                var moniker = monikers[0]!;
                 moniker.GetDisplayName(bindContext, null, out var fullDisplayName);
 
                 // FullDisplayName will look something like: <ProgID>:<ProccessId>
@@ -87,7 +85,7 @@ namespace Xunit.Harness
             return (DTE)dte;
         }
 
-        public static async Task<T> WaitForNotNullAsync<T>(Func<T> action)
+        public static async Task<T> WaitForNotNullAsync<T>(Func<T?> action)
             where T : class
         {
             var result = action();

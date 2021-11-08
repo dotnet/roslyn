@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
-#nullable disable
-
 namespace Xunit.Harness
 {
     using System;
@@ -21,7 +19,7 @@ namespace Xunit.Harness
         [ThreadStatic]
         private static bool _inHandler;
 
-        public static ITest CurrentTest { get; set; }
+        public static ITest? CurrentTest { get; set; }
 
         private static string CurrentTestName
         {

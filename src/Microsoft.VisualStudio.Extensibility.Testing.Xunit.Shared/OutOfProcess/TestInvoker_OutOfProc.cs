@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
-#nullable disable
-
 namespace Xunit.OutOfProcess
 {
     using System;
@@ -40,15 +38,15 @@ namespace Xunit.OutOfProcess
             ITest test,
             IMessageBus messageBus,
             Type testClass,
-            object[] constructorArguments,
+            object?[]? constructorArguments,
             MethodInfo testMethod,
-            object[] testMethodArguments)
+            object?[]? testMethodArguments)
         {
             if (constructorArguments != null)
             {
                 if (constructorArguments.OfType<ITestOutputHelper>().Any())
                 {
-                    constructorArguments = (object[])constructorArguments.Clone();
+                    constructorArguments = (object?[])constructorArguments.Clone();
                     for (int i = 0; i < constructorArguments.Length; i++)
                     {
                         if (constructorArguments[i] is ITestOutputHelper testOutputHelper)
@@ -82,7 +80,7 @@ namespace Xunit.OutOfProcess
                 _testOutputHelper.WriteLine(message);
             }
 
-            public void WriteLine(string format, params object[] args)
+            public void WriteLine(string format, params object?[] args)
             {
                 _testOutputHelper.WriteLine(format, args);
             }

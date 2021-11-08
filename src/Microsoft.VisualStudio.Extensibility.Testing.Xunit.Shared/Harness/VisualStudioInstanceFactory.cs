@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
-#nullable disable
-
 namespace Xunit.Harness
 {
     using System;
@@ -27,7 +25,7 @@ namespace Xunit.Harness
         /// <summary>
         /// The instance that has already been launched by this factory and can be reused.
         /// </summary>
-        private VisualStudioInstance _currentlyRunningInstance;
+        private VisualStudioInstance? _currentlyRunningInstance;
 
         private bool _hasCurrentlyActiveContext;
 
@@ -45,7 +43,7 @@ namespace Xunit.Harness
         // Depending on the manner in which the assembly was originally loaded, this may end up actually trying to load the assembly a second
         // time and it can fail if the standard assembly resolution logic fails. This ensures that we 'succeed' this secondary load by returning
         // the assembly that is already loaded.
-        internal static Assembly AssemblyResolveHandler(object sender, ResolveEventArgs eventArgs)
+        internal static Assembly? AssemblyResolveHandler(object sender, ResolveEventArgs eventArgs)
         {
             Debug.WriteLine($"'{eventArgs.RequestingAssembly}' is attempting to resolve '{eventArgs.Name}'");
             var resolvedAssembly = AppDomain.CurrentDomain.GetAssemblies().Where((assembly) => assembly.FullName.Equals(eventArgs.Name)).SingleOrDefault();
@@ -72,14 +70,14 @@ namespace Xunit.Harness
         /// <summary>
         /// Returns a <see cref="VisualStudioInstanceContext"/>, starting a new instance of Visual Studio if necessary.
         /// </summary>
-        public async Task<VisualStudioInstanceContext> GetNewOrUsedInstanceAsync(Version version, string rootSuffix, ImmutableList<string> extensionFiles, ImmutableHashSet<string> requiredPackageIds)
+        public async Task<VisualStudioInstanceContext> GetNewOrUsedInstanceAsync(Version version, string? rootSuffix, ImmutableList<string> extensionFiles, ImmutableHashSet<string> requiredPackageIds)
         {
             ThrowExceptionIfAlreadyHasActiveContext();
 
             bool shouldStartNewInstance = ShouldStartNewInstance(version, requiredPackageIds);
             await UpdateCurrentlyRunningInstanceAsync(version, rootSuffix, extensionFiles, requiredPackageIds, shouldStartNewInstance).ConfigureAwait(false);
 
-            return new VisualStudioInstanceContext(_currentlyRunningInstance, this);
+            return new VisualStudioInstanceContext(_currentlyRunningInstance!, this);
         }
 
         internal void NotifyCurrentInstanceContextDisposed(bool canReuse)
@@ -119,7 +117,7 @@ namespace Xunit.Harness
         /// <summary>
         /// Starts up a new <see cref="VisualStudioInstance"/>, shutting down any instances that are already running.
         /// </summary>
-        private async Task UpdateCurrentlyRunningInstanceAsync(Version version, string rootSuffix, ImmutableList<string> extensionFiles, ImmutableHashSet<string> requiredPackageIds, bool shouldStartNewInstance)
+        private async Task UpdateCurrentlyRunningInstanceAsync(Version version, string? rootSuffix, ImmutableList<string> extensionFiles, ImmutableHashSet<string> requiredPackageIds, bool shouldStartNewInstance)
         {
             Process hostProcess;
             DTE dte;
@@ -152,7 +150,7 @@ namespace Xunit.Harness
                 // from its RCW during the previous test.
                 Debug.Assert(_currentlyRunningInstance != null, "Assertion failed: _currentlyRunningInstance != null");
 
-                hostProcess = _currentlyRunningInstance.HostProcess;
+                hostProcess = _currentlyRunningInstance!.HostProcess;
                 dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(true);
                 actualVersion = _currentlyRunningInstance.Version;
                 supportedPackageIds = _currentlyRunningInstance.SupportedPackageIds;
@@ -203,13 +201,13 @@ namespace Xunit.Harness
                         continue;
                     }
 
-                    string path = Registry.GetValue($@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\{versionKey}\Setup\VS", "ProductDir", null) as string;
+                    string? path = Registry.GetValue($@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\{versionKey}\Setup\VS", "ProductDir", null) as string;
                     if (string.IsNullOrEmpty(path) || !File.Exists(Path.Combine(path, @"Common7\IDE\devenv.exe")))
                     {
                         continue;
                     }
 
-                    yield return Tuple.Create(path, version);
+                    yield return Tuple.Create(path!, version);
                 }
             }
         }
@@ -321,7 +319,7 @@ namespace Xunit.Harness
                                 "There were no instances of Visual Studio found that match the specified requirements.");
         }
 
-        private static async Task<Process> StartNewVisualStudioProcessAsync(string installationPath, Version version, string rootSuffix, ImmutableList<string> extensionFiles)
+        private static async Task<Process> StartNewVisualStudioProcessAsync(string installationPath, Version version, string? rootSuffix, ImmutableList<string> extensionFiles)
         {
             var vsExeFile = Path.Combine(installationPath, @"Common7\IDE\devenv.exe");
             var vsRegEditExeFile = Path.Combine(installationPath, @"Common7\IDE\VsRegEdit.exe");

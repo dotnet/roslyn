@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
-#nullable disable
-
 namespace Xunit.Harness
 {
     using System;
@@ -32,7 +30,7 @@ namespace Xunit.Harness
         protected override async Task<RunSummary> RunTestCollectionAsync(IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
         {
             var result = new RunSummary();
-            var testAssemblyFinishedMessages = new List<ITestAssemblyFinished>();
+            var testAssemblyFinishedMessages = new List<ITestAssemblyFinished?>();
             var completedTestCaseIds = new HashSet<string>();
             try
             {
@@ -81,7 +79,7 @@ namespace Xunit.Harness
             return result;
         }
 
-        protected virtual Task<Tuple<RunSummary, ITestAssemblyFinished>> RunTestCollectionForVersionAsync(VisualStudioInstanceFactory visualStudioInstanceFactory, VisualStudioVersion visualStudioVersion, string rootSuffix, HashSet<string> completedTestCaseIds, IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
+        protected virtual Task<Tuple<RunSummary, ITestAssemblyFinished?>> RunTestCollectionForVersionAsync(VisualStudioInstanceFactory visualStudioInstanceFactory, VisualStudioVersion visualStudioVersion, string? rootSuffix, HashSet<string> completedTestCaseIds, IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
         {
             if (visualStudioVersion == VisualStudioVersion.Unspecified
                 || !IdeTestCase.IsInstalled(visualStudioVersion))
@@ -89,8 +87,8 @@ namespace Xunit.Harness
                 return RunTestCollectionForUnspecifiedVersionAsync(completedTestCaseIds, messageBus, testCollection, testCases, cancellationTokenSource);
             }
 
-            DispatcherSynchronizationContext synchronizationContext = null;
-            Dispatcher dispatcher = null;
+            DispatcherSynchronizationContext? synchronizationContext = null;
+            Dispatcher? dispatcher = null;
             Thread staThread;
             using (var staThreadStartedEvent = new ManualResetEventSlim(initialState: false))
             {
@@ -120,7 +118,7 @@ namespace Xunit.Harness
 #pragma warning restore CA1508 // Avoid dead conditional code
             }
 
-            var taskScheduler = new SynchronizationContextTaskScheduler(synchronizationContext);
+            var taskScheduler = new SynchronizationContextTaskScheduler(synchronizationContext!);
             var task = Task.Factory.StartNew(
                 async () =>
                 {
@@ -152,7 +150,7 @@ namespace Xunit.Harness
                         // shutdown to perform cleanup actions. In the absence of an explicit shutdown, these actions
                         // are delayed and run during AppDomain or process shutdown, where they can lead to crashes of
                         // the test process.
-                        dispatcher.InvokeShutdown();
+                        dispatcher!.InvokeShutdown();
 
                         // Join the STA thread, which ensures shutdown is complete.
                         staThread.Join(HangMitigatingTimeout);
@@ -160,7 +158,7 @@ namespace Xunit.Harness
                 });
         }
 
-        private async Task<Tuple<RunSummary, ITestAssemblyFinished>> RunTestCollectionForUnspecifiedVersionAsync(HashSet<string> completedTestCaseIds, IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
+        private async Task<Tuple<RunSummary, ITestAssemblyFinished?>> RunTestCollectionForUnspecifiedVersionAsync(HashSet<string> completedTestCaseIds, IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
         {
             // These tests just run in the current process, but we still need to hook the assembly and collection events
             // to work correctly in mixed-testing scenarios.
@@ -172,7 +170,7 @@ namespace Xunit.Harness
             }
         }
 
-        private Func<Task<Tuple<RunSummary, ITestAssemblyFinished>>> CreateTestCollectionInvoker(VisualStudioInstanceFactory visualStudioInstanceFactory, VisualStudioVersion visualStudioVersion, string rootSuffix, HashSet<string> completedTestCaseIds, IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
+        private Func<Task<Tuple<RunSummary, ITestAssemblyFinished?>>> CreateTestCollectionInvoker(VisualStudioInstanceFactory visualStudioInstanceFactory, VisualStudioVersion visualStudioVersion, string? rootSuffix, HashSet<string> completedTestCaseIds, IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
         {
             return async () =>
             {
@@ -263,14 +261,14 @@ namespace Xunit.Harness
             }
         }
 
-        private Tuple<VisualStudioVersion, string> GetVisualStudioVersionForTestCase(IXunitTestCase testCase)
+        private Tuple<VisualStudioVersion, string?> GetVisualStudioVersionForTestCase(IXunitTestCase testCase)
         {
             if (testCase is IdeTestCase ideTestCase)
             {
-                return Tuple.Create(ideTestCase.VisualStudioVersion, ideTestCase.RootSuffix);
+                return Tuple.Create<VisualStudioVersion, string?>(ideTestCase.VisualStudioVersion, ideTestCase.RootSuffix);
             }
 
-            return Tuple.Create(VisualStudioVersion.Unspecified, (string)null);
+            return Tuple.Create(VisualStudioVersion.Unspecified, (string?)null);
         }
 
         private class IpcMessageSink : MarshalByRefObject, IMessageSink
@@ -289,7 +287,7 @@ namespace Xunit.Harness
                 _cancellationToken = cancellationToken;
             }
 
-            public ITestAssemblyFinished TestAssemblyFinished
+            public ITestAssemblyFinished? TestAssemblyFinished
             {
                 get;
                 private set;

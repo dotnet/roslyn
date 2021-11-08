@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
-#nullable disable
-
 namespace Xunit.Harness
 {
     using System;
@@ -113,7 +111,7 @@ namespace Xunit.Harness
 
         public bool IsRunning => !HostProcess.HasExited;
 
-        private static DTE GetDebuggerHostDte()
+        private static DTE? GetDebuggerHostDte()
         {
             var currentProcessId = Process.GetCurrentProcess().Id;
             foreach (var process in Process.GetProcessesByName("devenv"))

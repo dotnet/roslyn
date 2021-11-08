@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
-#nullable disable
-
 namespace Xunit.Threading
 {
     using System;
@@ -41,7 +39,7 @@ namespace Xunit.Threading
             return false;
         }
 
-        protected override IEnumerable<Task> GetScheduledTasks()
+        protected override IEnumerable<Task>? GetScheduledTasks()
         {
             return null;
         }

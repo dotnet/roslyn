@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
-#nullable disable
-
 namespace Xunit.Harness
 {
     using System.Drawing;
@@ -55,7 +53,7 @@ namespace Xunit.Harness
         /// A <see cref="Bitmap"/> containing the screen capture of the desktop, or <see langword="null"/> if a screen
         /// capture can't be created.
         /// </returns>
-        private static BitmapSource TryCaptureFullScreen()
+        private static BitmapSource? TryCaptureFullScreen()
         {
             var width = Screen.PrimaryScreen.Bounds.Width;
             var height = Screen.PrimaryScreen.Bounds.Height;

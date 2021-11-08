@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
-#nullable disable
-
 namespace Xunit.Threading
 {
     using System;
@@ -22,8 +20,8 @@ namespace Xunit.Threading
             IXunitTestCase testCase,
             string displayName,
             string skipReason,
-            object[] constructorArguments,
-            object[] testMethodArguments,
+            object?[] constructorArguments,
+            object?[]? testMethodArguments,
             IMessageBus messageBus,
             ExceptionAggregator aggregator,
             CancellationTokenSource cancellationTokenSource)
@@ -43,7 +41,7 @@ namespace Xunit.Threading
             get;
         }
 
-        protected override XunitTestRunner CreateTestRunner(ITest test, IMessageBus messageBus, Type testClass, object[] constructorArguments, MethodInfo testMethod, object[] testMethodArguments, string skipReason, IReadOnlyList<BeforeAfterTestAttribute> beforeAfterAttributes, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
+        protected override XunitTestRunner CreateTestRunner(ITest test, IMessageBus messageBus, Type testClass, object?[] constructorArguments, MethodInfo testMethod, object?[]? testMethodArguments, string skipReason, IReadOnlyList<BeforeAfterTestAttribute> beforeAfterAttributes, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
         {
             if (Process.GetCurrentProcess().ProcessName == "devenv")
             {

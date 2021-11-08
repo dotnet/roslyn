@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
-#nullable disable
-
 namespace Xunit.InProcess
 {
     using System;
@@ -74,6 +72,6 @@ namespace Xunit.InProcess
 #pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
 
         // Ensure InProcComponents live forever
-        public override object InitializeLifetimeService() => null;
+        public override object? InitializeLifetimeService() => null;
     }
 }

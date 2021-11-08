@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
-#nullable disable
-
 namespace Xunit.InProcess
 {
     using System;
@@ -41,9 +39,9 @@ namespace Xunit.InProcess
             ITest test,
             IMessageBus messageBus,
             Type testClass,
-            object[] constructorArguments,
+            object?[]? constructorArguments,
             MethodInfo testMethod,
-            object[] testMethodArguments)
+            object?[]? testMethodArguments)
         {
             var aggregator = new ExceptionAggregator();
             var beforeAfterAttributes = new BeforeAfterTestAttribute[0];

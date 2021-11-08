@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
-#nullable disable
-
 namespace Xunit
 {
     internal interface IIdeSettingsAttribute
@@ -21,6 +19,6 @@ namespace Xunit
         /// <item><description>Another value to use a custom experimental instance</description></item>
         /// </list>
         /// </value>
-        string RootSuffix { get; }
+        string? RootSuffix { get; }
     }
 }

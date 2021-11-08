@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.VisualStudio.IntegrationTestService
 {
     using System;
@@ -52,7 +50,7 @@ namespace Microsoft.VisualStudio.IntegrationTestService
             return (IntegrationService)Activator.GetObject(typeof(IntegrationService), uri);
         }
 
-        public string Execute(string assemblyFilePath, string typeFullName, string methodName)
+        public string? Execute(string assemblyFilePath, string typeFullName, string methodName)
         {
             var assembly = Assembly.LoadFrom(assemblyFilePath);
             var type = assembly.GetType(typeFullName);

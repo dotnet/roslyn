@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
-#nullable disable
-
 namespace Xunit.InProcess
 {
     using System;
@@ -86,7 +84,7 @@ namespace Xunit.InProcess
         /// This is always turned on and has a rolling buffer of the last 100 entries, and the first 10 entries, which have general configuration information.
         /// </summary>
         /// <returns>null if no data; error string if error; log info if valid data.</returns>
-        internal static string GetInMemoryActivityLog()
+        internal static string? GetInMemoryActivityLog()
         {
             return InvokeOnUIThread(() =>
             {

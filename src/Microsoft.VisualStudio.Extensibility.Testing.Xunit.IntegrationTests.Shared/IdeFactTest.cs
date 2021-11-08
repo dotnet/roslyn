@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
 {
     using System;
@@ -94,7 +92,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
             var taskSchedulerService = taskSchedulerServiceObject as IVsTaskSchedulerService2;
             Assert.NotNull(taskSchedulerService);
 
-            Assert.Same(JoinableTaskContext, taskSchedulerService.GetAsyncTaskContext());
+            Assert.Same(JoinableTaskContext, taskSchedulerService!.GetAsyncTaskContext());
         }
 
         /// <summary>

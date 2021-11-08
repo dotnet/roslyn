@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
-#nullable disable
-
 namespace Xunit.Harness
 {
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Diagnostics.CodeAnalysis;
     using System.Diagnostics.Eventing.Reader;
     using System.IO;
     using System.Linq;
@@ -286,7 +285,7 @@ namespace Xunit.Harness
         /// the provider, if it's for certain event log IDs and for VS related EXEs.
         /// </summary>
         /// <param name="eventLogRecord">Entry to be checked.</param>
-        private static bool IsValidDotNetEntry(EventRecord eventLogRecord, out FeedbackItemDotNetEntry dotNetEntry)
+        private static bool IsValidDotNetEntry(EventRecord eventLogRecord, [NotNullWhen(true)] out FeedbackItemDotNetEntry? dotNetEntry)
         {
             if (StringComparer.InvariantCultureIgnoreCase.Equals(eventLogRecord.ProviderName, DotNetProviderName)
                  && DotNetEventId.Contains(eventLogRecord.Id))

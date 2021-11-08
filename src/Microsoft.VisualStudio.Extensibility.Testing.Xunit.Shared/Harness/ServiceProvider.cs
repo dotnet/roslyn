@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
-#nullable disable
-
 namespace Xunit.Harness
 {
     using System;
@@ -21,7 +19,7 @@ namespace Xunit.Harness
             _serviceProvider = serviceProvider;
         }
 
-        public object GetService(Type serviceType)
+        public object? GetService(Type serviceType)
         {
             if (serviceType is null)
             {
@@ -31,7 +29,7 @@ namespace Xunit.Harness
             return GetService(serviceType.GUID);
         }
 
-        private object GetService(Guid serviceGuid)
+        private object? GetService(Guid serviceGuid)
         {
             if (serviceGuid == typeof(IOleServiceProvider).GUID)
             {
