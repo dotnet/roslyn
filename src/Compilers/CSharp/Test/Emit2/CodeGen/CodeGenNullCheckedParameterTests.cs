@@ -1534,13 +1534,16 @@ class C
 }");
         }
 
-        [Fact]
-        public void TestTypeParameter()
+        [Theory]
+        [InlineData("")]
+        [InlineData("where T : class")]
+        [InlineData("where T : notnull")]
+        public void TestTypeParameter(string constraint)
         {
             var source = @"
 class C
 {
-    public void M<T>(T t!!)
+    public void M<T>(T t!!) " + constraint + @"
     {
     }
 }";
@@ -1552,6 +1555,33 @@ class C
   .maxstack  2
   IL_0000:  ldarg.1
   IL_0001:  box        ""T""
+  IL_0006:  ldstr      ""t""
+  IL_000b:  call       ""ThrowIfNull""
+  IL_0010:  ret
+}");
+        }
+
+        [Fact]
+        public void TestTypeParameter_StructConstrained()
+        {
+            var source = @"
+class C
+{
+    public void M<T>(T? t!!) where T : struct
+    {
+    }
+}";
+            var verifier = CompileAndVerify(source);
+            verifier.VerifyDiagnostics(
+                // (4,25): warning CS8995: Nullable value type 'T?' is null-checked and will throw if null.
+                //     public void M<T>(T? t!!) where T : struct
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableValueType, "t").WithArguments("T?").WithLocation(4, 25));
+            verifier.VerifyIL("C.M<T>", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  box        ""T?""
   IL_0006:  ldstr      ""t""
   IL_000b:  call       ""ThrowIfNull""
   IL_0010:  ret
