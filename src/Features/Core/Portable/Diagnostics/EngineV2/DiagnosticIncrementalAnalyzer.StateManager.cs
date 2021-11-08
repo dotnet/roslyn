@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// Analyzers supplied by the host (IDE). These are built-in to the IDE, the compiler, or from an installed IDE extension (VSIX). 
             /// Maps language name to the analyzers and their state.
             /// </summary>
-            private ImmutableDictionary<string, HostAnalyzerStateSets> _hostAnalyzerStateMap;
+            private ImmutableDictionary<(string, HostDiagnosticAnalyzers), HostAnalyzerStateSets> _hostAnalyzerStateMap;
 
             /// <summary>
             /// Analyzers referenced by the project via a PackageReference.
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 _analyzerInfoCache = analyzerInfoCache;
 
-                _hostAnalyzerStateMap = ImmutableDictionary<string, HostAnalyzerStateSets>.Empty;
+                _hostAnalyzerStateMap = ImmutableDictionary<(string, HostDiagnosticAnalyzers), HostAnalyzerStateSets>.Empty;
                 _projectAnalyzerStateMap = new ConcurrentDictionary<ProjectId, ProjectAnalyzerStateSets>(concurrencyLevel: 2, capacity: 10);
             }
 
