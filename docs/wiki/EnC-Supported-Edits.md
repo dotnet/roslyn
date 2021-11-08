@@ -14,14 +14,14 @@ Edit & Continue lets you modify/add to your source code in break-mode while debu
 | ------------------- |--------------------|
 | Add methods, fields, constructors, properties, events, indexers, field and property initializers to an existing type  | The existing type can be a class, struct, record, record struct, partial, but cannot be generic or an interface. <br/> The added member can't be abstract, virtual, or an override.<br/> Adding or modifying [enum members](https://msdn.microsoft.com/en-us/library/sbbt4032.aspx) within an existing enum is not supported. |
 | Add top-level or nested type (including delegates, enums, interfaces, abstract and generic types) | - 
-| Move type declaration to another file | - |
+| Move type declaration to another file | Type must stay within the same namespace/nesting. |
 | Move member declaration across declarations of a partial type| - |
 | Add and modify iterators and async methods  | Changing a regular method to an iterator/async method *is* supported, but not the other way around. |
 | Add async/await expressions  |  Adding an await expression into an existing async method is not supported. <br/><br/> Adding an await expression around an active statement is not supported. |
 | Modify async/await expressions  |  Modifying await expressions wrapped inside other expressions (e.g. `G(await F());`) is not supported |
 | Add and modify operations with dynamic objects | - |
 | Rename parameter | - |
-| Modifying top-level code | - |
+| Modifying top-level code | Modifying code in such a way that would change the return type of the implicit `Main` method is not supported. |
 | Modify custom attributes | Modifying pseudo-custom attributes is not allowed. |
 | Add lambda expressions | Lambda expressions can only be added if they are static, access the “this” reference that has already been captured, or access captured variables from a single scope |
 | Modify lambda expressions | The following rules guarantee that the structure of the emitted closure tree will not change--thus ensuring that lambdas in the new body are mapped to the corresponding generated CLR methods that implemented their previous versions: <ul><li>Lambda signatures cannot be modified (this includes names, types, ref-ness of parameters, and return types)</li><li>The set of variables captured by the lambda expression cannot be modified (a variable that has not been captured before cannot be captured after modification and vice versa)</li><li>The scope of captured variables cannot be modified</li><li>The set of captured variables accessed by the lambda expression cannot be modified</li></ul> |
@@ -29,6 +29,8 @@ Edit & Continue lets you modify/add to your source code in break-mode while debu
 | Modify LINQ expressions | LINQ expressions contain implicitly-declared anonymous functions. This means the edit rules for lambdas and LINQ will be the same. |
 | Modifying async lambda and LINQ expressions in combination | You can edit various nested expressions provided that they otherwise satisfy the EnC rules | 
 | Modifying source code that contains `#line` directives | The file path specified in the `#line` can't be changed |
+| Add/remove using statements | Code that changes meaning solely due to the introduction or removal of a using statement will not be updated, but code that has changes for other reasons will take into account any using statement changes. |
+| Update records | When explicitly implementing positional properties, they must have both `get` and `init` accessors defined. |
 
 ### Not Supported Edits
 | Edit operation      | Additional Info |
