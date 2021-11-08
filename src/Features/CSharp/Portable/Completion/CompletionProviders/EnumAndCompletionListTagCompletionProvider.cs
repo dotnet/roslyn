@@ -43,7 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
         {
             // Bring up on space or at the start of a word, or after a ( or [.
             //
@@ -51,13 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // That's because we don't like the experience where the enum appears directly after the
             // operator.  Instead, the user normally types <space> and we will bring up the list
             // then.
-            var ch = text[characterPosition];
             return
-                ch == ' ' ||
-                ch == '[' ||
-                ch == '(' ||
-                ch == '~' ||
-                (options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp) && CompletionUtilities.IsStartingNewWord(text, characterPosition));
+                text[characterPosition] is ' ' or '[' or '(' or '~' ||
+                options.TriggerOnTypingLetters && CompletionUtilities.IsStartingNewWord(text, characterPosition);
         }
 
         public override ImmutableHashSet<char> TriggerCharacters => s_triggerCharacters;
@@ -151,8 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 type = enumType;
             }
 
-            var options = context.Options;
-            var hideAdvancedMembers = options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language);
+            var hideAdvancedMembers = context.CompletionOptions.HideAdvancedMembers;
             if (!type.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation))
                 return;
 
@@ -289,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, CancellationToken cancellationToken)
             => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         private static INamedTypeSymbol? TryGetCompletionListType(ITypeSymbol type, INamedTypeSymbol? within, Compilation compilation)

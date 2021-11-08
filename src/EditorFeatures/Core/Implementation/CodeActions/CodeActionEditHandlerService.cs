@@ -96,13 +96,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             return currentResult;
         }
 
-        public bool Apply(
+        public async Task<bool> ApplyAsync(
             Workspace workspace, Document fromDocument,
             ImmutableArray<CodeActionOperation> operations,
             string title, IProgressTracker progressTracker,
             CancellationToken cancellationToken)
         {
-            this.AssertIsForeground();
+            // Much of the work we're going to do will be on the UI thread, so switch there preemptively.
+            // When we get to the expensive parts we can do in the BG then we'll switch over to relinquish
+            // the UI thread.
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             if (operations.IsDefaultOrEmpty)
             {
@@ -117,43 +120,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 return false;
             }
 
-#if DEBUG && false
-            var documentErrorLookup = new HashSet<DocumentId>();
-            foreach (var project in workspace.CurrentSolution.Projects)
-            {
-                foreach (var document in project.Documents)
-                {
-                    if (!document.HasAnyErrorsAsync(cancellationToken).WaitAndGetResult(cancellationToken))
-                    {
-                        documentErrorLookup.Add(document.Id);
-                    }
-                }
-            }
-#endif
-
             var oldSolution = workspace.CurrentSolution;
 
             var applied = false;
 
             // Determine if we're making a simple text edit to a single file or not.
-            // If we're not, then we need to make a linked global undo to wrap the 
-            // application of these operations.  This way we should be able to undo 
+            // If we're not, then we need to make a linked global undo to wrap the
+            // application of these operations.  This way we should be able to undo
             // them all with one user action.
             //
             // The reason we don't always create a global undo is that a global undo
-            // forces all files to save.  And that's rather a heavyweight and 
-            // unexpected experience for users (for the common case where a single 
+            // forces all files to save.  And that's rather a heavyweight and
+            // unexpected experience for users (for the common case where a single
             // file got edited).
             var singleChangedDocument = TryGetSingleChangedText(oldSolution, operations);
             if (singleChangedDocument != null)
             {
-                var text = singleChangedDocument.GetTextSynchronously(cancellationToken);
+                var text = await singleChangedDocument.GetTextAsync(cancellationToken).ConfigureAwait(true);
 
                 using (workspace.Services.GetRequiredService<ISourceTextUndoService>().RegisterUndoTransaction(text, title))
                 {
                     try
                     {
-                        applied = operations.Single().TryApply(workspace, progressTracker, cancellationToken);
+                        this.AssertIsForeground();
+
+                        applied = await operations.Single().TryApplyAsync(
+                            workspace, progressTracker, cancellationToken).ConfigureAwait(true);
                     }
                     catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                     {
@@ -163,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             }
             else
             {
-                // More than just a single document changed.  Make a global undo to run 
+                // More than just a single document changed.  Make a global undo to run
                 // all the changes under.
                 using var transaction = workspace.OpenGlobalUndoTransaction(title);
 
@@ -177,9 +169,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
                 try
                 {
-                    applied = ProcessOperations(
+                    // Come back to the UI thread after processing the operations so we can commit the transaction
+                    applied = await ProcessOperationsAsync(
                         workspace, operations, progressTracker,
-                        cancellationToken);
+                        cancellationToken).ConfigureAwait(true);
                 }
                 catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                 {
@@ -199,14 +192,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
         {
             Debug.Assert(operationsList.Length > 0);
             if (operationsList.Length > 1)
-            {
                 return null;
-            }
 
             if (operationsList.Single() is not ApplyChangesOperation applyOperation)
-            {
                 return null;
-            }
 
             var newSolution = applyOperation.ChangedSolution;
             var changes = newSolution.GetChanges(oldSolution);
@@ -272,10 +261,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
         /// <returns><see langword="true"/> if all expected <paramref name="operations"/> are applied successfully;
         /// otherwise, <see langword="false"/>.</returns>
-        private static bool ProcessOperations(
+        private async Task<bool> ProcessOperationsAsync(
             Workspace workspace, ImmutableArray<CodeActionOperation> operations,
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             var applied = true;
             var seenApplyChanges = false;
             foreach (var operation in operations)
@@ -284,14 +275,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 {
                     // there must be only one ApplyChangesOperation, we will ignore all other ones.
                     if (seenApplyChanges)
-                    {
                         continue;
-                    }
 
                     seenApplyChanges = true;
                 }
 
-                applied &= operation.TryApply(workspace, progressTracker, cancellationToken);
+                this.AssertIsForeground();
+                applied &= await operation.TryApplyAsync(workspace, progressTracker, cancellationToken).ConfigureAwait(true);
             }
 
             return applied;

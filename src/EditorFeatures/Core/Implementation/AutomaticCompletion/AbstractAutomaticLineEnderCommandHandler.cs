@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
             // if token is on different line than caret but caret line is empty, we insert ending point at the end of the line
             if (text.Lines.IndexOf(token.Span.End) != text.Lines.IndexOf(line.End))
-                return string.IsNullOrWhiteSpace(line.GetText()) ? (int?)line.End : null;
+                return string.IsNullOrWhiteSpace(line.GetText()) ? line.End : null;
 
             return token.Span.End;
         }

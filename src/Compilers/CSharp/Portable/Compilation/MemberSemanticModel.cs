@@ -948,7 +948,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to pointer types.
             if (enumeratorInfoOpt.ElementType.IsPointerType())
             {
-                Debug.Assert(!enumeratorInfoOpt.CurrentConversion.IsValid);
+                Debug.Assert(enumeratorInfoOpt.CurrentConversion is null);
                 return default(ForEachStatementInfo);
             }
 
@@ -977,8 +977,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 currentProperty: ((PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter?.AssociatedSymbol).GetPublicSymbol(),
                 disposeMethod.GetPublicSymbol(),
                 enumeratorInfoOpt.ElementType.GetPublicSymbol(),
-                boundForEach.ElementConversion,
-                enumeratorInfoOpt.CurrentConversion);
+                BoundNode.GetConversion(boundForEach.ElementConversion, boundForEach.ElementPlaceholder),
+                BoundNode.GetConversion(enumeratorInfoOpt.CurrentConversion, enumeratorInfoOpt.CurrentPlaceholder));
         }
 
         public override DeconstructionInfo GetDeconstructionInfo(AssignmentExpressionSyntax node)

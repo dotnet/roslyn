@@ -20,6 +20,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public const string DefaultParameterName = "p";
         private const string DefaultBuiltInParameterName = "v";
 
+        public static bool IsIntegralType([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
+            => type?.SpecialType.IsIntegralType() == true;
+
+        public static bool IsSignedIntegralType([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
+            => type?.SpecialType.IsSignedIntegralType() == true;
+
         public static bool CanAddNullCheck([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
         {
             if (type == null)

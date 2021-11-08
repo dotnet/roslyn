@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.Utilities;
@@ -93,6 +94,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         internal ITableManager TableManager { get; }
 
-        internal abstract IReadOnlyCollection<string> Columns { get; }
+        internal abstract ImmutableArray<string> Columns { get; }
     }
 }

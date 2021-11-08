@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         private static BraceMatchingResult? CreateResult(RegexToken open, RegexToken close)
             => open.IsMissing || close.IsMissing
-                ? (BraceMatchingResult?)null
+                ? null
                 : new BraceMatchingResult(open.VirtualChars[0].Span, close.VirtualChars[0].Span);
 
         private static BraceMatchingResult? FindCommentBraces(RegexTree tree, VirtualChar ch)
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             var firstChar = trivia.Value.VirtualChars[0];
             var lastChar = trivia.Value.VirtualChars[trivia.Value.VirtualChars.Length - 1];
             return firstChar != '(' || lastChar != ')'
-                ? (BraceMatchingResult?)null
+                ? null
                 : new BraceMatchingResult(firstChar.Span, lastChar.Span);
         }
 

@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string SimplifyLinqExpression = nameof(SimplifyLinqExpression);
         public const string SimplifyNames = nameof(SimplifyNames);
         public const string SimplifyObjectCreation = nameof(SimplifyObjectCreation);
+        public const string SimplifyPropertyPattern = nameof(SimplifyPropertyPattern);
         public const string SimplifyThisOrMe = nameof(SimplifyThisOrMe);
         public const string SpellCheck = nameof(SpellCheck);
         public const string UnsealClass = nameof(UnsealClass);
@@ -146,5 +147,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseSimpleUsingStatement = nameof(UseSimpleUsingStatement);
         public const string UseSystemHashCode = nameof(UseSystemHashCode);
         public const string UseThrowExpression = nameof(UseThrowExpression);
+        public const string UseTupleSwap = nameof(UseTupleSwap);
     }
 }

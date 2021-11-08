@@ -32,6 +32,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static readonly Option2<bool> LspEditorFeatureFlag = new(FeatureName, nameof(LspEditorFeatureFlag), defaultValue: false,
             new FeatureFlagStorageLocation("Roslyn.LSP.Editor"));
 
+        // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
+        public static readonly Option2<bool> LspSemanticTokensFeatureFlag = new(FeatureName, nameof(LspSemanticTokensFeatureFlag), defaultValue: false,
+            new FeatureFlagStorageLocation("Roslyn.LSP.SemanticTokens"));
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             MaxCompletionListSize,
             LspCompletionFeatureFlag,

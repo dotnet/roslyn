@@ -764,14 +764,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case '@':
                     if (TextWindow.PeekChar(1) == '"')
                     {
-                        var errorCode = this.ScanVerbatimStringLiteral(ref info, allowNewlines: true);
+                        var errorCode = this.ScanVerbatimStringLiteral(ref info);
                         if (errorCode is ErrorCode code)
                             this.AddError(code);
                     }
                     else if (TextWindow.PeekChar(1) == '$' && TextWindow.PeekChar(2) == '"')
                     {
                         this.ScanInterpolatedStringLiteral(isVerbatim: true, ref info);
-                        CheckFeatureAvailability(MessageID.IDS_FeatureAltInterpolatedVerbatimStrings);
                         break;
                     }
                     else if (!this.ScanIdentifierOrKeyword(ref info))

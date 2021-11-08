@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <summary>
         /// A long timeout used to avoid hangs in tests, where a test failure manifests as an operation never occurring.
         /// </summary>
-        public static readonly TimeSpan HangMitigatingTimeout = TimeSpan.FromMinutes(1);
+        public static readonly TimeSpan HangMitigatingTimeout = TimeSpan.FromSeconds(15);
 
         private static IUIAutomation2? _automation;
 

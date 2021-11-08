@@ -517,6 +517,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(symbol.IsTupleType);
 
+            if (this.format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.CollapseTupleTypes))
+            {
+                builder.Add(CreatePart(SymbolDisplayPartKind.StructName, symbol, "<tuple>"));
+                return;
+            }
+
             ImmutableArray<IFieldSymbol> elements = symbol.TupleElements;
 
             AddPunctuation(SyntaxKind.OpenParenToken);
@@ -534,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (element.IsExplicitlyNamedTupleElement)
                 {
                     AddSpace();
-                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, element.Name));
+                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, element, element.Name));
                 }
             }
 

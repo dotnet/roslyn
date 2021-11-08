@@ -31,5 +31,24 @@ namespace Roslyn.Utilities
                 }
             }
         }
+        /// <summary>
+        /// Are we running on .NET 5 or later using the Mono runtime?
+        /// Will also return true when running on Mono itself; if necessary
+        /// we can use IsRunningOnMono to distinguish.
+        /// </summary>
+        public static bool IsUsingMonoRuntime
+        {
+            get
+            {
+                try
+                {
+                    return !(Type.GetType("Mono.RuntimeStructs", throwOnError: false) is null);
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
     }
 }
