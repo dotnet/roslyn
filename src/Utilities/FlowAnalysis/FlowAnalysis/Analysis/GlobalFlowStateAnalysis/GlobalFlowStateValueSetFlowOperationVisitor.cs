@@ -3,9 +3,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
-using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
-using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using static Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis.GlobalFlowStateAnalysis;
 
@@ -18,23 +15,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
     /// Operation visitor to flow the GlobalFlowState values across a given statement in a basic block.
     /// </summary>
     internal abstract class GlobalFlowStateValueSetFlowOperationVisitor
-        : GlobalFlowStateDataFlowOperationVisitor<GlobalFlowStateAnalysisData, GlobalFlowStateAnalysisContext, GlobalFlowStateAnalysisResult, GlobalFlowStateAnalysisValueSet>
+        : GlobalFlowStateDataFlowOperationVisitor<GlobalFlowStateAnalysisContext, GlobalFlowStateAnalysisResult, GlobalFlowStateAnalysisValueSet>
     {
         protected GlobalFlowStateValueSetFlowOperationVisitor(GlobalFlowStateAnalysisContext analysisContext, bool hasPredicatedGlobalState)
             : base(analysisContext, hasPredicatedGlobalState)
         {
-        }
-
-        private void EnsureInitialized(GlobalFlowStateAnalysisData input)
-        {
-            if (input.Count == 0)
-            {
-                input[GlobalEntity] = ValueDomain.Bottom;
-            }
-            else
-            {
-                Debug.Assert(input.ContainsKey(GlobalEntity));
-            }
         }
 
         public sealed override (GlobalFlowStateAnalysisData output, bool isFeasibleBranch) FlowBranch(BasicBlock fromBlock, BranchWithInfo branch, GlobalFlowStateAnalysisData input)
@@ -70,23 +55,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             }
         }
 
-        protected sealed override void AddTrackedEntities(GlobalFlowStateAnalysisData analysisData, HashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
-            => builder.UnionWith(analysisData.Keys);
-
-        protected sealed override void StopTrackingEntity(AnalysisEntity analysisEntity, GlobalFlowStateAnalysisData analysisData)
-            => analysisData.Remove(analysisEntity);
-
-        protected sealed override GlobalFlowStateAnalysisValueSet GetAbstractValue(AnalysisEntity analysisEntity)
-            => CurrentAnalysisData.TryGetValue(analysisEntity, out var value) ? value : ValueDomain.UnknownOrMayBeValue;
-
         protected sealed override GlobalFlowStateAnalysisValueSet GetAbstractDefaultValue(ITypeSymbol type)
             => GlobalFlowStateAnalysisValueSet.Unset;
-
-        protected sealed override bool HasAbstractValue(AnalysisEntity analysisEntity)
-            => CurrentAnalysisData.ContainsKey(analysisEntity);
-
-        protected sealed override bool HasAnyAbstractValue(GlobalFlowStateAnalysisData data)
-            => data.Count > 0;
 
         protected sealed override void SetAbstractValue(AnalysisEntity analysisEntity, GlobalFlowStateAnalysisValueSet value)
         {
@@ -106,9 +76,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             analysisData[analysisEntity] = value;
         }
 
-        protected sealed override void ResetCurrentAnalysisData()
-            => ResetAnalysisData(CurrentAnalysisData);
-
         protected sealed override GlobalFlowStateAnalysisData MergeAnalysisData(GlobalFlowStateAnalysisData value1, GlobalFlowStateAnalysisData value2)
             => GlobalFlowStateAnalysisDomainInstance.Merge(value1, value2);
 
@@ -117,33 +84,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             GlobalFlowStateAnalysisDomainInstance.Intersect(value1, value2, GlobalFlowStateAnalysisValueSetDomain.Intersect) :
             GlobalFlowStateAnalysisDomainInstance.Merge(value1, value2);
 
-        protected sealed override void UpdateValuesForAnalysisData(GlobalFlowStateAnalysisData targetAnalysisData)
-            => UpdateValuesForAnalysisData(targetAnalysisData, CurrentAnalysisData);
         protected sealed override GlobalFlowStateAnalysisData GetClonedAnalysisData(GlobalFlowStateAnalysisData analysisData)
             => new(analysisData);
+
         public override GlobalFlowStateAnalysisData GetEmptyAnalysisData()
             => new();
+
         protected sealed override GlobalFlowStateAnalysisData GetExitBlockOutputData(GlobalFlowStateAnalysisResult analysisResult)
             => new(analysisResult.ExitBlockOutput.Data);
-        protected sealed override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(GlobalFlowStateAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
-            => ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(dataAtException, CurrentAnalysisData, throwBranchWithExceptionType);
+
         protected sealed override bool Equals(GlobalFlowStateAnalysisData value1, GlobalFlowStateAnalysisData value2)
             => GlobalFlowStateAnalysisDomainInstance.Equals(value1, value2);
-        protected sealed override void ApplyInterproceduralAnalysisResultCore(GlobalFlowStateAnalysisData resultData)
-            => ApplyInterproceduralAnalysisResultHelper(resultData);
+
         protected sealed override GlobalFlowStateAnalysisData GetTrimmedCurrentAnalysisData(IEnumerable<AnalysisEntity> withEntities)
             => GetTrimmedCurrentAnalysisDataHelper(withEntities, CurrentAnalysisData, SetAbstractValue);
-        protected override GlobalFlowStateAnalysisData GetInitialInterproceduralAnalysisData(
-            IMethodSymbol invokedMethod,
-            (AnalysisEntity? Instance, PointsToAbstractValue PointsToValue)? invocationInstance,
-            (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? thisOrMeInstanceForCaller,
-            ImmutableDictionary<IParameterSymbol, ArgumentInfo<GlobalFlowStateAnalysisValueSet>> argumentValuesMap,
-            IDictionary<AnalysisEntity, PointsToAbstractValue>? pointsToValues,
-            IDictionary<AnalysisEntity, CopyAbstractValue>? copyValues,
-            IDictionary<AnalysisEntity, ValueContentAbstractValue>? valueContentValues,
-            bool isLambdaOrLocalFunction,
-            bool hasParameterWithDelegateType)
-            => GetClonedCurrentAnalysisData();
 
         #region Visitor methods
 

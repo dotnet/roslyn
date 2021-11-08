@@ -1,20 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities.Extensions;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
 {
     /// <summary>
     /// Operation visitor to flow the GlobalFlowState values across a given statement in a basic block.
     /// </summary>
-    internal abstract class GlobalFlowStateDataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
-        : AnalysisEntityDataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
-        where TAnalysisData : AbstractAnalysisData
-        where TAnalysisContext : AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
+    internal abstract class GlobalFlowStateDataFlowOperationVisitor<TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
+        : AnalysisEntityDataFlowOperationVisitor<DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue>, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
+        where TAnalysisContext : AbstractDataFlowAnalysisContext<DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue>, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisResult : class, IDataFlowAnalysisResult<TAbstractAnalysisValue>
         where TAbstractAnalysisValue : IEquatable<TAbstractAnalysisValue>
     {
@@ -57,14 +60,65 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                 parent: null);
         }
 
+        protected void EnsureInitialized(DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> input)
+        {
+            if (input.Count == 0)
+            {
+                input[GlobalEntity] = ValueDomain.Bottom;
+            }
+            else
+            {
+                Debug.Assert(input.ContainsKey(GlobalEntity));
+            }
+        }
+
         protected TAbstractAnalysisValue GlobalState
         {
             get => GetAbstractValue(GlobalEntity);
             set => SetAbstractValue(GlobalEntity, value);
         }
 
+        protected sealed override void AddTrackedEntities(DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> analysisData, HashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
+            => builder.UnionWith(analysisData.Keys);
+
+        protected sealed override void StopTrackingEntity(AnalysisEntity analysisEntity, DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> analysisData)
+            => analysisData.Remove(analysisEntity);
+
+        protected sealed override TAbstractAnalysisValue GetAbstractValue(AnalysisEntity analysisEntity)
+            => CurrentAnalysisData.TryGetValue(analysisEntity, out var value) ? value : ValueDomain.UnknownOrMayBeValue;
+
+        protected sealed override bool HasAbstractValue(AnalysisEntity analysisEntity)
+            => CurrentAnalysisData.ContainsKey(analysisEntity);
+
+        protected sealed override bool HasAnyAbstractValue(DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> data)
+            => data.Count > 0;
+
         protected sealed override void ResetAbstractValue(AnalysisEntity analysisEntity)
             => SetAbstractValue(analysisEntity, ValueDomain.UnknownOrMayBeValue);
+
+        protected sealed override void ResetCurrentAnalysisData()
+            => ResetAnalysisData(CurrentAnalysisData);
+
+        protected sealed override void UpdateValuesForAnalysisData(DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> targetAnalysisData)
+            => UpdateValuesForAnalysisData(targetAnalysisData, CurrentAnalysisData);
+
+        protected sealed override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
+            => ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(dataAtException, CurrentAnalysisData, throwBranchWithExceptionType);
+
+        protected sealed override void ApplyInterproceduralAnalysisResultCore(DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> resultData)
+            => ApplyInterproceduralAnalysisResultHelper(resultData);
+
+        protected override DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> GetInitialInterproceduralAnalysisData(
+            IMethodSymbol invokedMethod,
+            (AnalysisEntity? Instance, PointsToAbstractValue PointsToValue)? invocationInstance,
+            (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? thisOrMeInstanceForCaller,
+            ImmutableDictionary<IParameterSymbol, ArgumentInfo<TAbstractAnalysisValue>> argumentValuesMap,
+            IDictionary<AnalysisEntity, PointsToAbstractValue>? pointsToValues,
+            IDictionary<AnalysisEntity, CopyAbstractValue>? copyValues,
+            IDictionary<AnalysisEntity, ValueContentAbstractValue>? valueContentValues,
+            bool isLambdaOrLocalFunction,
+            bool hasParameterWithDelegateType)
+            => GetClonedCurrentAnalysisData();
 
         #region Visitor methods
 
