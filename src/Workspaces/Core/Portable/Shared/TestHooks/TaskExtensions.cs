@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -12,6 +13,18 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
     internal static class TaskExtensions
     {
+        public static void RunWithTracking(this IAsynchronousOperationListener listener, string name, Func<Task> actionAsync, object? tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
+        {
+            var token = listener.BeginAsyncOperation(name, tag, filePath, lineNumber);
+            actionAsync().CompletesAsyncOperation(token);
+        }
+
+        public static void RunWithTracking<T>(this IAsynchronousOperationListener listener, string name, Func<T, Task> actionAsync, T state, object? tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
+        {
+            var token = listener.BeginAsyncOperation(name, tag, filePath, lineNumber);
+            actionAsync(state).CompletesAsyncOperation(token);
+        }
+
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task CompletesAsyncOperation(this Task task, IAsyncToken asyncToken)
         {

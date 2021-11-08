@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -371,6 +372,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var lightBulbAction = GetLightBulbApplicationAction(actionName, fixAllScope, blockUntilComplete);
             var task = ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
             {
+                var listenerProvider = GetComponentModel().GetService<IAsynchronousOperationListenerProvider>();
+                var listener = listenerProvider.GetListener(FeatureAttribute.LightBulb);
+                using var _ = listener.BeginAsyncOperation($"{nameof(GetLightBulbApplicationAction)}");
+
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
                 var activeTextView = GetActiveTextView();

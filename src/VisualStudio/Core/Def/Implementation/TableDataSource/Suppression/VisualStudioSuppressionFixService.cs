@@ -17,12 +17,10 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
@@ -30,6 +28,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -234,7 +233,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         private bool ApplySuppressionFix(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, bool showPreviewChangesDialog)
         {
-            _ = ApplySuppressionFixAsync(diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics, isAddSuppression, isSuppressionInSource, onlyCompilerDiagnostics, showPreviewChangesDialog);
+            _listener.RunWithTracking(
+                nameof(ApplySuppressionFix),
+                static state => state.self.ApplySuppressionFixAsync(state.diagnosticsToFix, state.shouldFixInProject, state.filterStaleDiagnostics, state.isAddSuppression, state.isSuppressionInSource, state.onlyCompilerDiagnostics, state.showPreviewChangesDialog),
+                (self: this, diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics, isAddSuppression, isSuppressionInSource, onlyCompilerDiagnostics, showPreviewChangesDialog));
+
             return true;
         }
 
@@ -242,7 +245,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         {
             try
             {
-                using var token = _listener.BeginAsyncOperation(nameof(ApplySuppressionFix));
                 var title = GetFixTitle(isAddSuppression);
                 var waitDialogMessage = GetWaitDialogMessage(isAddSuppression);
 
@@ -378,11 +380,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                         cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     // Kick off diagnostic re-analysis for affected projects so that diagnostics gets refreshed.
-                    _ = Task.Run(() =>
-                    {
-                        var reanalyzeDocuments = diagnosticsToFix.Where(d => d.DocumentId != null).Select(d => d.DocumentId).Distinct();
-                        _diagnosticService.Reanalyze(_workspace, documentIds: reanalyzeDocuments, highPriority: true);
-                    });
+                    _listener.RunWithTracking(
+                        nameof(_diagnosticService.Reanalyze),
+                        static async state =>
+                        {
+                            await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+                            var reanalyzeDocuments = state.diagnosticsToFix.Where(d => d.DocumentId != null).Select(d => d.DocumentId).Distinct();
+                            state.self._diagnosticService.Reanalyze(state.self._workspace, documentIds: reanalyzeDocuments, highPriority: true);
+                        },
+                        (self: this, diagnosticsToFix));
                 }
             }
             catch (OperationCanceledException)

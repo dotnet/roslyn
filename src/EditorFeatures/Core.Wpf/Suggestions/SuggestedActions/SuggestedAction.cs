@@ -23,7 +23,6 @@ using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -106,14 +105,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // So we need to take ownership of it and start our own TWD instead to track this.
             context.TakeOwnership();
 
-            _ = InvokeAsync();
+            SourceProvider.OperationListener.RunWithTracking(
+                $"{nameof(SuggestedAction)}.{nameof(Invoke)}",
+                () => InvokeAsync());
         }
 
         private async Task InvokeAsync()
         {
             try
             {
-                using var token = SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}");
                 using var context = SourceProvider.UIThreadOperationExecutor.BeginExecute(
                     EditorFeaturesResources.Execute_Suggested_Action, CodeAction.Title, allowCancellation: true, showProgress: true);
                 using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
