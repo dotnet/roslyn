@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -58,14 +59,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            if (expression is StackAllocArrayCreationExpressionSyntax or
-                ImplicitStackAllocArrayCreationExpressionSyntax)
+            if (expression is StackAllocArrayCreationExpressionSyntax or ImplicitStackAllocArrayCreationExpressionSyntax)
             {
                 // var span = (stackalloc byte[8]);
                 // https://github.com/dotnet/roslyn/issues/44629
                 // The code semantics changes if the parenthesis removed.
                 // With parenthesis:    variable span is of type `Span<byte>`.
                 // Without parenthesis: variable span is of type `byte*` which can only be used in unsafe context.
+                if (node.Parent is EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax varDecl } })
+                {
+                    // we have either `var x = (stackalloc byte[8])` or `Span<byte> x = (stackalloc byte[8])`.  The former
+                    // is not safe to remove. the latter is.
+                    if (semanticModel.GetTypeInfo(varDecl.Type, cancellationToken).Type is
+                        {
+                            Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
+                            ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
+                        })
+                    {
+                        return !varDecl.Type.IsVar;
+                    }
+                }
+
                 return false;
             }
 

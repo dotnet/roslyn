@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -154,12 +154,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public async Task<ImmutableArray<Diagnostic>?> GetModuleDiagnosticsAsync(Guid mvid, string projectDisplayName, CancellationToken cancellationToken)
         {
             var availability = await DebuggingSession.DebuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
-            if (availability.Status == ManagedEditAndContinueAvailabilityStatus.ModuleNotLoaded)
+            if (availability.Status == ManagedHotReloadAvailabilityStatus.ModuleNotLoaded)
             {
                 return null;
             }
 
-            if (availability.Status == ManagedEditAndContinueAvailabilityStatus.Available)
+            if (availability.Status == ManagedHotReloadAvailabilityStatus.Available)
             {
                 return ImmutableArray<Diagnostic>.Empty;
             }

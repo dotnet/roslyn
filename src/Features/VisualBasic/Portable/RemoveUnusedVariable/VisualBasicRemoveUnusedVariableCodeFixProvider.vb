@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedVariable
             Return localDeclarationStatement.Declarators
         End Function
 
-        Protected Overrides Function ShouldOfferFixForLocalDeclaration(syntaxFactsService As ISyntaxFactsService, localDeclaration As LocalDeclarationStatementSyntax) As Boolean
+        Protected Overrides Function ShouldOfferFixForLocalDeclaration(syntaxFactsService As ISyntaxFactsService, node As SyntaxNode) As Boolean
             Return True
         End Function
     End Class

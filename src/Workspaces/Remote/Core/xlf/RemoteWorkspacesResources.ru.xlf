@@ -17,6 +17,11 @@
         <target state="translated">Ссылки на CodeLens</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_CompilationAvailable">
+        <source>Project semantics availability</source>
+        <target state="new">Project semantics availability</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ConvertTupleToStructCodeRefactoring">
         <source>Convert tuple to struct refactoring</source>
         <target state="translated">Преобразовать кортеж в рефакторинг структуры</target>
@@ -89,7 +94,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_ProcessTelemetry">
         <source>Process telemetry</source>
-        <target state="new">Process telemetry</target>
+        <target state="translated">Телеметрия процессов</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_ProjectTelemetry">

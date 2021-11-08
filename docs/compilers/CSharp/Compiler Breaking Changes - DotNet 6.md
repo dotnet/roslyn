@@ -108,37 +108,3 @@ These are _function_type_conversions_.
         }
     }
     ```
-
-4. In Visual Studio 17.1, the contextual keyword `var` cannot be used as an explicit lambda return type.
-
-    ```csharp
-    using System;
-
-    F(var () => default);  // error: 'var' cannot be used as an explicit lambda return type
-    F(@var () => default); // ok
-
-    static void F(Func<var> f) { }
-
-    class var { }
-    ```
-
-5. In Visual Studio 17.1, `ref`/`ref readonly`/`in`/`out` are not allowed to be used on return/parameters of a method attributed with `UnmanagedCallersOnly`.  
-https://github.com/dotnet/roslyn/issues/57025
-
-    ```cs
-    using System.Runtime.InteropServices;
-    [UnmanagedCallersOnly]
-    static ref int M1() => throw null; // error CS8976: Cannot use 'ref', 'in', or 'out' in a method attributed with 'UnmanagedCallersOnly'.
-
-    [UnmanagedCallersOnly]
-    static ref readonly int M2() => throw null; // error CS8976: Cannot use 'ref', 'in', or 'out' in a method attributed with 'UnmanagedCallersOnly'.
-
-    [UnmanagedCallersOnly]
-    static void M3(ref int o) => throw null; // error CS8976: Cannot use 'ref', 'in', or 'out' in a method attributed with 'UnmanagedCallersOnly'.
-
-    [UnmanagedCallersOnly]
-    static void M4(in int o) => throw null; // error CS8976: Cannot use 'ref', 'in', or 'out' in a method attributed with 'UnmanagedCallersOnly'.
-
-    [UnmanagedCallersOnly]
-    static void M5(out int o) => throw null; // error CS8976: Cannot use 'ref', 'in', or 'out' in a method attributed with 'UnmanagedCallersOnly'.
-    ```

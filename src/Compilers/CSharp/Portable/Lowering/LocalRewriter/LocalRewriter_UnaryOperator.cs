@@ -589,11 +589,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(placeholder is not null);
 
-                AddPlaceholderReplacement(placeholder, replacement);
-                replacement = VisitExpression(conversion);
-                RemovePlaceholderReplacement(placeholder);
+                return ApplyConversion(conversion, placeholder, replacement);
             }
 
+            return replacement;
+        }
+
+        private BoundExpression ApplyConversion(BoundExpression conversion, BoundValuePlaceholder placeholder, BoundExpression replacement)
+        {
+            AddPlaceholderReplacement(placeholder, replacement);
+            replacement = VisitExpression(conversion);
+            RemovePlaceholderReplacement(placeholder);
             return replacement;
         }
 
@@ -738,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // do it now.
 
             // (int)(short)x
-            binaryOperand = MakeConversionNode(binaryOperand, binaryOperandType, @checked);
+            binaryOperand = MakeConversionNode(binaryOperand, binaryOperandType, @checked, markAsChecked: true);
 
             // Perform the addition.
 
@@ -760,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Generate the conversion back to the type of the unary operator.
 
             // (short)((int)(short)x + 1)
-            result = MakeConversionNode(binOp, unaryOperandType, @checked);
+            result = MakeConversionNode(binOp, unaryOperandType, @checked, markAsChecked: true);
             return result;
         }
 

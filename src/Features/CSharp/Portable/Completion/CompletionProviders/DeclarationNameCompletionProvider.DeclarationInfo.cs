@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 result = IsFollowingTypeOrComma<VariableDeclarationSyntax>(token, semanticModel,
                     v => v.Type,
-                    v => v.Parent is FieldDeclarationSyntax f ? f.Modifiers : (SyntaxTokenList?)null,
+                    v => v.Parent is FieldDeclarationSyntax f ? f.Modifiers : null,
                     GetPossibleMemberDeclarations,
                     cancellationToken);
                 return result.Type != null;
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                      typeSyntaxGetter: v => v.Type,
                      modifierGetter: v => v.Parent is LocalDeclarationStatementSyntax localDeclaration
                         ? localDeclaration.Modifiers
-                        : (SyntaxTokenList?)null, // Return null to bail out.
+                        : null, // Return null to bail out.
                      possibleDeclarationComputer,
                      cancellationToken);
                 if (result.Type != null)
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     typeSyntaxGetter: v => v.Type,
                     modifierGetter: v => v.Parent is UsingStatementSyntax or ForStatementSyntax
                         ? default(SyntaxTokenList)
-                        : (SyntaxTokenList?)null, // Return null to bail out.
+                        : null, // Return null to bail out.
                     possibleDeclarationComputer: d => ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Local)),
                     cancellationToken);
                 return result.Type != null;

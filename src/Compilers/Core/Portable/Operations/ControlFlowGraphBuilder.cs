@@ -5657,6 +5657,27 @@ oneMoreTime:
                                            operation.Type, IsImplicit(operation));
         }
 
+        public override IOperation? VisitFunctionPointerInvocation(IFunctionPointerInvocationOperation operation, int? argument)
+        {
+            EvalStackFrame frame = PushStackFrame();
+            var target = operation.Target;
+            var (visitedPointer, visitedArguments) = handlePointerAndArguments(target, operation.Arguments);
+            PopStackFrame(frame);
+            return new FunctionPointerInvocationOperation(visitedPointer, visitedArguments, semanticModel: null, operation.Syntax,
+                                           operation.Type, IsImplicit(operation));
+
+            (IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) handlePointerAndArguments(
+                IOperation instance, ImmutableArray<IArgumentOperation> arguments)
+            {
+                PushOperand(VisitRequired(instance));
+
+                ImmutableArray<IArgumentOperation> visitedArguments = VisitArguments(arguments);
+                IOperation visitedInstance = PopOperand();
+
+                return (visitedInstance, visitedArguments);
+            }
+        }
+
         private (IOperation? visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) VisitInstanceWithArguments(IOperation? instance, ImmutableArray<IArgumentOperation> arguments)
         {
             if (instance != null)
@@ -6320,6 +6341,26 @@ oneMoreTime:
                                  new NoneOperation(VisitArray(((Operation)operation).ChildOperations.ToImmutableArray()), semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation)));
         }
 
+        public override IOperation? VisitInterpolatedStringHandlerCreation(IInterpolatedStringHandlerCreationOperation operation, int? captureIdForResult)
+        {
+            return VisitNoneOperation(operation, captureIdForResult);
+        }
+
+        public override IOperation? VisitInterpolatedStringAddition(IInterpolatedStringAdditionOperation operation, int? captureIdForResult)
+        {
+            return VisitNoneOperation(operation, captureIdForResult);
+        }
+
+        public override IOperation? VisitInterpolatedStringAppend(IInterpolatedStringAppendOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override IOperation? VisitInterpolatedStringHandlerArgumentPlaceholder(IInterpolatedStringHandlerArgumentPlaceholderOperation operation, int? captureIdForResult)
+        {
+            return VisitNoneOperation(operation, captureIdForResult);
+        }
+
         public override IOperation VisitInterpolatedString(IInterpolatedStringOperation operation, int? captureIdForResult)
         {
             // We visit and rewrite the interpolation parts in two phases:
@@ -6345,31 +6386,35 @@ oneMoreTime:
             {
                 IInterpolatedStringContentOperation element = operation.Parts[i];
                 IInterpolatedStringContentOperation rewrittenElement;
-                if (element.Kind == OperationKind.Interpolation)
+                switch (element)
                 {
-                    var interpolation = (IInterpolationOperation)element;
+                    case IInterpolationOperation interpolation:
+                        IOperation? rewrittenFormatString;
+                        if (interpolation.FormatString != null)
+                        {
+                            Debug.Assert(interpolation.FormatString is ILiteralOperation or IConversionOperation { Operand: ILiteralOperation });
+                            rewrittenFormatString = VisitRequired(interpolation.FormatString, argument: null);
+                        }
+                        else
+                        {
+                            rewrittenFormatString = null;
+                        }
 
-                    IOperation? rewrittenFormatString;
-                    if (interpolation.FormatString != null)
-                    {
-                        Debug.Assert(interpolation.FormatString is ILiteralOperation or IConversionOperation { Operand: ILiteralOperation });
-                        rewrittenFormatString = VisitRequired(interpolation.FormatString, argument: null);
-                    }
-                    else
-                    {
-                        rewrittenFormatString = null;
-                    }
+                        var rewrittenAlignment = interpolation.Alignment != null ? PopOperand() : null;
+                        var rewrittenExpression = PopOperand();
+                        rewrittenElement = new InterpolationOperation(rewrittenExpression, rewrittenAlignment, rewrittenFormatString, semanticModel: null, element.Syntax, IsImplicit(element));
+                        break;
+                    case IInterpolatedStringTextOperation interpolatedStringText:
+                        Debug.Assert(interpolatedStringText.Text is ILiteralOperation or IConversionOperation { Operand: ILiteralOperation });
+                        var rewrittenInterpolationText = VisitRequired(interpolatedStringText.Text, argument: null);
+                        rewrittenElement = new InterpolatedStringTextOperation(rewrittenInterpolationText, semanticModel: null, element.Syntax, IsImplicit(element));
+                        break;
+                    case IInterpolatedStringAppendOperation interpolatedStringAppend:
+                        rewrittenElement = new InterpolatedStringAppendOperation(VisitRequired(interpolatedStringAppend.AppendCall), interpolatedStringAppend.Kind, semanticModel: null, interpolatedStringAppend.Syntax, IsImplicit(interpolatedStringAppend));
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(element.Kind);
 
-                    var rewrittenAlignment = interpolation.Alignment != null ? PopOperand() : null;
-                    var rewrittenExpression = PopOperand();
-                    rewrittenElement = new InterpolationOperation(rewrittenExpression, rewrittenAlignment, rewrittenFormatString, semanticModel: null, element.Syntax, IsImplicit(element));
-                }
-                else
-                {
-                    var interpolatedStringText = (IInterpolatedStringTextOperation)element;
-                    Debug.Assert(interpolatedStringText.Text is ILiteralOperation or IConversionOperation { Operand: ILiteralOperation });
-                    var rewrittenInterpolationText = VisitRequired(interpolatedStringText.Text, argument: null);
-                    rewrittenElement = new InterpolatedStringTextOperation(rewrittenInterpolationText, semanticModel: null, element.Syntax, IsImplicit(element));
                 }
 
                 partsBuilder.Add(rewrittenElement);

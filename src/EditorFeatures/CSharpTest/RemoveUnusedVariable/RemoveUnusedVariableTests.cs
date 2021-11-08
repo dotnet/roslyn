@@ -769,5 +769,32 @@ class C
     }
 }");
         }
+
+        [WorkItem(56924, "https://github.com/dotnet/roslyn/issues/56924")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveUnusedVariableInCatchInsideBadLocalDeclaration()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method(bool test)
+    {
+        if (test) var x = () => {
+            try { }
+            catch (Exception [|ex|]) { }
+        };
+    }
+}",
+@"class Class
+{
+    void Method(bool test)
+    {
+        if (test) var x = () => {
+            try { }
+            catch (Exception) { }
+        };
+    }
+}");
+        }
     }
 }

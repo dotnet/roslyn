@@ -35,10 +35,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         public bool CanFilter => _searchService?.CanFilter ?? false;
 
-        public async Task<NavigateToSearchLocation> SearchDocumentAsync(
-            Document document, string searchPattern, IImmutableSet<string> kinds,
+        public async Task SearchDocumentAsync(
+            Document document,
+            string searchPattern,
+            IImmutableSet<string> kinds,
             Func<INavigateToSearchResult, Task> onResultFound,
-            bool isFullyLoaded, CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
             if (_searchService != null)
             {
@@ -46,14 +48,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
                 foreach (var result in results)
                     await onResultFound(Convert(result)).ConfigureAwait(false);
             }
-
-            return NavigateToSearchLocation.Latest;
         }
 
-        public async Task<NavigateToSearchLocation> SearchProjectAsync(
-            Project project, ImmutableArray<Document> priorityDocuments, string searchPattern,
-            IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound,
-            bool isFullyLoaded, CancellationToken cancellationToken)
+        public async Task SearchProjectAsync(
+            Project project,
+            ImmutableArray<Document> priorityDocuments,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
         {
             if (_searchService != null)
             {
@@ -61,8 +64,29 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
                 foreach (var result in results)
                     await onResultFound(Convert(result)).ConfigureAwait(false);
             }
+        }
 
-            return NavigateToSearchLocation.Latest;
+        public Task SearchCachedDocumentsAsync(
+            Project project,
+            ImmutableArray<Document> priorityDocuments,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
+        {
+            // we don't support searching cached documents.
+            return Task.CompletedTask;
+        }
+
+        public Task SearchGeneratedDocumentsAsync(
+            Project project,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
+        {
+            // we don't support searching generated documents.
+            return Task.CompletedTask;
         }
 
         private static INavigateToSearchResult Convert(IVSTypeScriptNavigateToSearchResult result)
