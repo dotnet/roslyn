@@ -220,6 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundSequence VisitIndexImplicitIndexerAccess(BoundIndexOrRangePatternIndexerAccess node, bool isLeftOfAssignment) // TODO2 we're not using isLeftOfAssignment
         {
             Debug.Assert(node.ArgumentPlaceholders.Length == 1);
+            Debug.Assert(node.IndexerAccess is BoundIndexerAccess);
 
             Debug.Assert(TypeSymbol.Equals(
                 node.Argument.Type,
@@ -322,6 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundSequence VisitRangeImplicitIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
         {
             Debug.Assert(node.ArgumentPlaceholders.Length == 2);
+            Debug.Assert(node.IndexerAccess is BoundCall);
 
             Debug.Assert(TypeSymbol.Equals(
                 node.Argument.Type,

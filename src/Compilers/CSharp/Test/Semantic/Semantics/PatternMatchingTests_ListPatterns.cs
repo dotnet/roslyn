@@ -3016,7 +3016,43 @@ struct S
         _ = this is [2, ..var rest];
     }
 }";
-        // Note: no "warning CS8656: Call to non-readonly member ... from a 'readonly' member results in an implicit copy of 'this'"
+        var comp = CreateCompilationWithIndexAndRange(src);
+        comp.VerifyDiagnostics(
+            // (11,13): warning CS8656: Call to non-readonly member 'S.Length.get' from a 'readonly' member results in an implicit copy of 'this'.
+            //         _ = this[i]; // 1, 2
+            Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Length.get", "this").WithLocation(11, 13),
+            // (11,13): warning CS8656: Call to non-readonly member 'S.this[int].get' from a 'readonly' member results in an implicit copy of 'this'.
+            //         _ = this[i]; // 1, 2
+            Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.this[int].get", "this").WithLocation(11, 13),
+            // (12,13): warning CS8656: Call to non-readonly member 'S.Slice(int, int)' from a 'readonly' member results in an implicit copy of 'this'.
+            //         _ = this[r]; // 3, 4
+            Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Slice(int, int)", "this").WithLocation(12, 13),
+            // (12,13): warning CS8656: Call to non-readonly member 'S.Length.get' from a 'readonly' member results in an implicit copy of 'this'.
+            //         _ = this[r]; // 3, 4
+            Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Length.get", "this").WithLocation(12, 13)
+            );
+    }
+
+    [Fact]
+    public void PatternIndexRangeReadOnly_02()
+    {
+        var src = @"
+using System;
+struct S
+{
+    public readonly int this[int i] => 0;
+    public readonly int Length => 0;
+    public readonly int Slice(int x, int y) => 0;
+
+    readonly void M(Index i, Range r)
+    {
+        _ = this[i];
+        _ = this[r];
+
+        _ = this is [1];
+        _ = this is [2, ..var rest];
+    }
+}";
         var comp = CreateCompilationWithIndexAndRange(src);
         comp.VerifyDiagnostics();
     }
@@ -6297,7 +6333,7 @@ class C
 ");
     }
 
-    // PROTOTYPE this test takes 10 seconds to run...
+    // PROTOTYPE this test takes 7 seconds to run...
     [Theory]
     [CombinatorialData]
     public void Subsumption_Slice_00(

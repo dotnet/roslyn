@@ -588,7 +588,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.IndexOrRangePatternIndexerAccess:
                     {
                         var implicitIndexerAccess = (BoundIndexOrRangePatternIndexerAccess)originalLHS;
-                        if (implicitIndexerAccess.GetRefKind() == RefKind.None)
+                        Debug.Assert(implicitIndexerAccess.Argument.Type!.Equals(_compilation.GetWellKnownType(WellKnownType.System_Index)));
+                        if (implicitIndexerAccess.IndexerAccess.GetRefKind() == RefKind.None)
                         {
                             return TransformImplicitIndexerAccess(implicitIndexerAccess, stores, temps, isDynamicAssignment);
                         }

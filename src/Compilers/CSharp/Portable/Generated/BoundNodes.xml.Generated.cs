@@ -682,36 +682,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundIndexOrRangeIndexerPatternReceiverPlaceholder : BoundValuePlaceholderBase
     {
-        public BoundIndexOrRangeIndexerPatternReceiverPlaceholder(SyntaxNode syntax, uint valEscape, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.IndexOrRangeIndexerPatternReceiverPlaceholder, syntax, type, hasErrors)
+        public BoundIndexOrRangeIndexerPatternReceiverPlaceholder(SyntaxNode syntax, uint valEscape, BoundExpression expression, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.IndexOrRangeIndexerPatternReceiverPlaceholder, syntax, type, hasErrors || expression.HasErrors())
         {
 
+            RoslynDebug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.ValEscape = valEscape;
-        }
-
-        public BoundIndexOrRangeIndexerPatternReceiverPlaceholder(SyntaxNode syntax, uint valEscape, TypeSymbol type)
-            : base(BoundKind.IndexOrRangeIndexerPatternReceiverPlaceholder, syntax, type)
-        {
-
-            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-
-            this.ValEscape = valEscape;
+            this.Expression = expression;
         }
 
 
         public new TypeSymbol Type => base.Type!;
 
         public uint ValEscape { get; }
+
+        public BoundExpression Expression { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitIndexOrRangeIndexerPatternReceiverPlaceholder(this);
 
-        public BoundIndexOrRangeIndexerPatternReceiverPlaceholder Update(uint valEscape, TypeSymbol type)
+        public BoundIndexOrRangeIndexerPatternReceiverPlaceholder Update(uint valEscape, BoundExpression expression, TypeSymbol type)
         {
-            if (valEscape != this.ValEscape || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (valEscape != this.ValEscape || expression != this.Expression || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundIndexOrRangeIndexerPatternReceiverPlaceholder(this.Syntax, valEscape, type, this.HasErrors);
+                var result = new BoundIndexOrRangeIndexerPatternReceiverPlaceholder(this.Syntax, valEscape, expression, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -9597,7 +9592,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node) => null;
         public override BoundNode? VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node) => null;
         public override BoundNode? VisitIndexOrRangeIndexerPatternValuePlaceholder(BoundIndexOrRangeIndexerPatternValuePlaceholder node) => null;
-        public override BoundNode? VisitIndexOrRangeIndexerPatternReceiverPlaceholder(BoundIndexOrRangeIndexerPatternReceiverPlaceholder node) => null;
+        public override BoundNode? VisitIndexOrRangeIndexerPatternReceiverPlaceholder(BoundIndexOrRangeIndexerPatternReceiverPlaceholder node)
+        {
+            this.Visit(node.Expression);
+            return null;
+        }
         public override BoundNode? VisitListPatternReceiverPlaceholder(BoundListPatternReceiverPlaceholder node) => null;
         public override BoundNode? VisitListPatternUnloweredIndexPlaceholder(BoundListPatternUnloweredIndexPlaceholder node) => null;
         public override BoundNode? VisitSlicePatternReceiverPlaceholder(BoundSlicePatternReceiverPlaceholder node) => null;
@@ -10616,8 +10615,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitIndexOrRangeIndexerPatternReceiverPlaceholder(BoundIndexOrRangeIndexerPatternReceiverPlaceholder node)
         {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.ValEscape, type);
+            return node.Update(node.ValEscape, expression, type);
         }
         public override BoundNode? VisitListPatternReceiverPlaceholder(BoundListPatternReceiverPlaceholder node)
         {
@@ -12010,13 +12010,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitIndexOrRangeIndexerPatternReceiverPlaceholder(BoundIndexOrRangeIndexerPatternReceiverPlaceholder node)
         {
-            if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
-            {
-                return node;
-            }
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            BoundIndexOrRangeIndexerPatternReceiverPlaceholder updatedNode;
 
-            BoundIndexOrRangeIndexerPatternReceiverPlaceholder updatedNode = node.Update(node.ValEscape, infoAndType.Type!);
-            updatedNode.TopLevelNullability = infoAndType.Info;
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                updatedNode = node.Update(node.ValEscape, expression, infoAndType.Type!);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(node.ValEscape, expression, node.Type);
+            }
             return updatedNode;
         }
 
@@ -14545,6 +14550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitIndexOrRangeIndexerPatternReceiverPlaceholder(BoundIndexOrRangeIndexerPatternReceiverPlaceholder node, object? arg) => new TreeDumperNode("indexOrRangeIndexerPatternReceiverPlaceholder", null, new TreeDumperNode[]
         {
             new TreeDumperNode("valEscape", node.ValEscape, null),
+            new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

@@ -143,6 +143,8 @@
   <Node Name="BoundIndexOrRangeIndexerPatternReceiverPlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
+    <!-- For CheckValue -->
+    <Field Name="Expression" Type="BoundExpression"/>
   </Node>
 
   <!-- This node represents the receiver for a list pattern. It does not survive lowering -->

@@ -8056,7 +8056,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => GetValEscape(receiverOpt, LocalScopeDepth)
             };
 
-            var receiverPlaceholder = new BoundIndexOrRangeIndexerPatternReceiverPlaceholder(receiverOpt.Syntax, receiverValEscape, receiverOpt.Type) { WasCompilerGenerated = true };
+            var receiverPlaceholder = new BoundIndexOrRangeIndexerPatternReceiverPlaceholder(receiverOpt.Syntax, receiverValEscape, receiverOpt, receiverOpt.Type) { WasCompilerGenerated = true };
             if (!TryBindIndexOrRangeImplicitIndexer(syntax, receiverPlaceholder, receiverType, argIsIndex: argIsIndex,
                 out var lengthOrCountAccess, out var indexerOrSliceAccess, out var argumentPlaceholders, diagnostics))
             {

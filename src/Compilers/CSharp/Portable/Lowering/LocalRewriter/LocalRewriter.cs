@@ -975,15 +975,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.IndexOrRangePatternIndexerAccess:
                     return CanBePassedByReference(((BoundIndexOrRangePatternIndexerAccess)expr).IndexerAccess);
 
-                // TODO2 I'm not sure about this
                 case BoundKind.IndexOrRangeIndexerPatternReceiverPlaceholder:
+                case BoundKind.IndexOrRangeIndexerPatternValuePlaceholder:
                 case BoundKind.ListPatternReceiverPlaceholder:
+                case BoundKind.ListPatternUnloweredIndexPlaceholder:
                 case BoundKind.SlicePatternReceiverPlaceholder:
+                case BoundKind.SlicePatternUnloweredRangePlaceholder:
                     return true;
 
                 case BoundKind.Conversion:
                     return expr is BoundConversion { Conversion: { IsInterpolatedStringHandler: true }, Type: { IsValueType: true } };
             }
+
+            Debug.Assert(expr is not BoundValuePlaceholderBase, $"Placeholder kind {expr.Kind} must be handled explicitly");
 
             return false;
         }
