@@ -106,15 +106,14 @@ namespace Microsoft.CodeAnalysis
                 return _compilationWithReplacement;
             }
 
-            public Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken)
-            {
-                return _underlyingTracker.GetDependentSemanticVersionAsync(solution, cancellationToken);
-            }
-
             public Task<VersionStamp> GetDependentVersionAsync(SolutionState solution, CancellationToken cancellationToken)
-            {
-                return _underlyingTracker.GetDependentVersionAsync(solution, cancellationToken);
-            }
+                => _underlyingTracker.GetDependentVersionAsync(solution, cancellationToken);
+
+            public Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken)
+                => _underlyingTracker.GetDependentSemanticVersionAsync(solution, cancellationToken);
+
+            public Task<Checksum> GetDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken)
+                => _underlyingTracker.GetDependentChecksumAsync(solution, cancellationToken);
 
             public async Task<MetadataReference> GetMetadataReferenceAsync(SolutionState solution, ProjectState fromProject, ProjectReference projectReference, CancellationToken cancellationToken)
             {

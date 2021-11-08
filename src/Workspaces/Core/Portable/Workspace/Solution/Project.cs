@@ -490,6 +490,33 @@ namespace Microsoft.CodeAnalysis
             => _projectState.GetSemanticVersionAsync(cancellationToken);
 
         /// <summary>
+        /// Calculates a checksum that contains a project's checksum along with a checksum for each of the project's transitive dependencies.
+        /// </summary>
+        /// <remarks>
+        /// This checksum calculation is used to determine if a diagnostics need to be recalculated based on the last reported checksum.
+        /// The goal is to ensure that changes to
+        /// <list type="bullet">
+        ///    <item>Files inside the current project</item>
+        ///    <item>Project properties of the current project</item>
+        ///    <item>Visible files in referenced projects</item>
+        ///    <item>Project properties in referenced projects</item>
+        /// </list>
+        /// are reflected in the metadata we keep so that comparing solutions accurately tells us when we need to recompute diagnostics.   
+        /// 
+        /// <para>This method of checking for changes has a few important properties that differentiate it from other methods of determining project version.
+        /// <list type="bullet">
+        ///    <item>Changes to methods inside the current project will be reflected to compute updated diagnostics.
+        ///        <see cref="Project.GetDependentSemanticVersionAsync(CancellationToken)"/> does not change as it only returns top level changes.</item>
+        ///    <item>Reloading a project without making any changes will re-use cached diagnostics.
+        ///        <see cref="Project.GetDependentSemanticVersionAsync(CancellationToken)"/> changes as the project is removed, then added resulting in a version change.</item>
+        /// </list>   
+        /// Since diagnostic calculations happen OOP, these checksums already have been (or will be) created to do the diagnostics calculation anyway.
+        /// </para>
+        /// </remarks>
+        internal Task<Checksum> GetDependentChecksumAsync(CancellationToken cancellationToken)
+            => _solution.State.GetDependentChecksumAsync(this.Id, cancellationToken);
+
+        /// <summary>
         /// Creates a new instance of this project updated to have the new assembly name.
         /// </summary>
         public Project WithAssemblyName(string assemblyName)
