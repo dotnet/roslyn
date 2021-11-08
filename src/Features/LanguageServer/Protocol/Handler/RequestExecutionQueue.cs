@@ -15,6 +15,7 @@ using Roslyn.Utilities;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -56,10 +57,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly string _serverName;
         private readonly ImmutableArray<string> _supportedLanguages;
 
-        private readonly AsyncQueue<QueueItem> _queue;
+        private readonly AsyncQueue<IQueueItem> _queue;
         private readonly CancellationTokenSource _cancelSource;
         private readonly RequestTelemetryLogger _requestTelemetryLogger;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly IAsynchronousOperationListener _asynchronousOperationListener;
 
         private readonly ILspLogger _logger;
         private readonly LspWorkspaceManager _lspWorkspaceManager;
@@ -81,6 +83,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
             IGlobalOptionService globalOptions,
+            IAsynchronousOperationListenerProvider listenerProvider,
             ImmutableArray<string> supportedLanguages,
             string serverName,
             string serverTypeName)
@@ -90,7 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _supportedLanguages = supportedLanguages;
             _serverName = serverName;
 
-            _queue = new AsyncQueue<QueueItem>();
+            _queue = new AsyncQueue<IQueueItem>();
             _cancelSource = new CancellationTokenSource();
 
             // Pass the language client instance type name to the telemetry logger to ensure we can
@@ -102,7 +105,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _lspWorkspaceManager = new LspWorkspaceManager(logger, lspMiscellaneousFilesWorkspace, lspWorkspaceRegistrationService, _requestTelemetryLogger);
 
             // Start the queue processing
-            _ = ProcessQueueAsync();
+
+            _asynchronousOperationListener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
+            var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(ProcessQueueAsync));
+            _ = ProcessQueueAsync().CompletesAsyncOperation(token);
         }
 
         /// <summary>
@@ -112,7 +118,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public void Shutdown()
         {
             _cancelSource.Cancel();
-            DrainQueue();
+
+            // Tell the queue not to accept any more items.
+            _queue.Complete();
+
             _requestTelemetryLogger.Dispose();
             _lspWorkspaceManager.Dispose();
         }
@@ -148,7 +157,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Note: If the queue is not accepting any more items then TryEnqueue below will fail.
 
             var textDocument = handler.GetTextDocumentIdentifier(request);
-            var item = new QueueItem<TRequestType, TResponseType>(
+
+            // Create a combined cancellation token so either the client cancelling it's token or the queue
+            // shutting down cancels the request.
+            using var combinedTokenSource = _cancelSource.Token.CombineWith(requestCancellationToken);
+            var combinedCancellationToken = combinedTokenSource.Token;
+
+            var item = QueueItem<TRequestType, TResponseType>.Create(
                 mutatesSolutionState,
                 requiresLSPSolution,
                 clientCapabilities,
@@ -160,7 +175,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Trace.CorrelationManager.ActivityId,
                 _logger,
                 _requestTelemetryLogger,
-                requestCancellationToken);
+                combinedCancellationToken,
+                out var resultTask);
 
             var didEnqueue = _queue.TryEnqueue(item);
 
@@ -168,15 +184,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // The queue itself is threadsafe (_queue.TryEnqueue and _queue.Complete use the same lock).
             if (!didEnqueue)
             {
-                item.CompletionSource.SetException(new InvalidOperationException($"{_serverName} was requested to shut down."));
+                item.TrySetException(new InvalidOperationException($"{_serverName} was requested to shut down."));
             }
 
-            return item.CompletionSource.Task;
+            return resultTask;
         }
 
         private async Task ProcessQueueAsync()
         {
-            QueueItem? inProgressWorkItem = null;
+            IQueueItem? inProgressWorkItem = null;
             try
             {
                 while (!_cancelSource.IsCancellationRequested)
@@ -194,7 +210,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     if (work.MutatesSolutionState)
                     {
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
-                        await work.CallbackAsync(context, _cancelSource.Token).ConfigureAwait(false);
+                        await work.CallbackAsync(context).ConfigureAwait(false);
                     }
                     else
                     {
@@ -203,7 +219,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         // via NFW, though these errors don't put us into a bad state as far as the rest of the queue goes.
                         // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
                         // blocking the request queue for longer periods of time (it enforces parallelizabilty).
-                        _ = Task.Run(() => work.CallbackAsync(context, _cancelSource.Token), _cancelSource.Token).ReportNonFatalErrorAsync();
+                        _ = Task.Run(() => work.CallbackAsync(context), _cancelSource.Token).ReportNonFatalErrorAsync();
                     }
                 }
             }
@@ -232,23 +248,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Shutdown();
         }
 
-        /// <summary>
-        /// Cancels all requests in the queue and stops the queue from accepting any more requests. After this method
-        /// is called this queue is essentially useless.
-        /// </summary>
-        private void DrainQueue()
-        {
-            // Tell the queue not to accept any more items
-            _queue.Complete();
-
-            // Spin through the queue and cancel all waiting tasks.
-            while (_queue.TryDequeue(out var item))
-            {
-                _ = item.TrySetCanceled(_cancelSource.Token);
-            }
-        }
-
-        private RequestContext? CreateRequestContext(QueueItem queueItem)
+        private RequestContext? CreateRequestContext(IQueueItem queueItem)
         {
             var trackerToUse = queueItem.MutatesSolutionState
                 ? (IDocumentChangeTracker)_lspWorkspaceManager

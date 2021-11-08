@@ -81,7 +81,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _userVisibleServerName = userVisibleServerName;
             TelemetryServerName = telemetryServerTypeName;
 
-            Queue = new RequestExecutionQueue(logger, workspaceRegistrationService, lspMiscellaneousFilesWorkspace, globalOptions, supportedLanguages, userVisibleServerName, TelemetryServerName);
+            Queue = new RequestExecutionQueue(
+                logger,
+                workspaceRegistrationService,
+                lspMiscellaneousFilesWorkspace,
+                globalOptions,
+                listenerProvider,
+                supportedLanguages,
+                userVisibleServerName,
+                TelemetryServerName);
             Queue.RequestServerShutdown += RequestExecutionQueue_Errored;
         }
 

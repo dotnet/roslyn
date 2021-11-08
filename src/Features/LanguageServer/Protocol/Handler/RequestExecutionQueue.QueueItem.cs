@@ -15,12 +15,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     internal partial class RequestExecutionQueue
     {
-        private interface QueueItem
+        private interface IQueueItem
         {
             /// <summary>
             /// Begins executing the work specified by this queue item.
+            /// Note that this does not take in a cancellation token as the queue item
+            /// itself already has a combined cancellation token that is used.
             /// </summary>
-            public Task CallbackAsync(RequestContext? context, CancellationToken cancellationToken);
+            public Task CallbackAsync(RequestContext? context);
 
             /// <summary>
             /// Sets the result of this queue item to an exception.  Used if we fail to enqueue this item before it starts.
@@ -30,7 +32,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// <summary>
             /// Cancels this queue item if possible.  Used when the queue is shutting down and needs to be cleared.
             /// </summary>
-            public bool TrySetCanceled(CancellationToken cancellationToken);
+            public bool TrySetCanceled();
+
+            public CancellationToken CombinedCancellationToken { get; }
 
             /// <inheritdoc cref="IRequestHandler.RequiresLSPSolution" />
             public bool RequiresLSPSolution { get; }
@@ -52,11 +56,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             public ClientCapabilities ClientCapabilities { get; }
 
             /// <summary>
-            /// A cancellation token that represents the client's cancellation token for the request.
-            /// </summary>
-            public CancellationToken RequestCancellationToken { get; }
-
-            /// <summary>
             /// <see cref="CorrelationManager.ActivityId"/> used to properly correlate this work with the loghub
             /// tracing/logging subsystem.
             /// </summary>
@@ -65,7 +64,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             public RequestMetrics Metrics { get; }
         }
 
-        private readonly struct QueueItem<TRequestType, TResponseType> : QueueItem
+        private readonly struct QueueItem<TRequestType, TResponseType> : IQueueItem
         {
             private readonly ILspLogger _logger;
 
@@ -74,8 +73,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             /// <summary>
             /// A task completion source representing the result of this queue item's work.
+            /// This is the task that the client is waiting on.
             /// </summary>
-            public TaskCompletionSource<TResponseType?> CompletionSource { get; }
+            private readonly TaskCompletionSource<TResponseType?> _completionSource;
+
+            /// <summary>
+            /// A cancellation token combined from the queue's cancellation token and the client's 
+            /// cancellation token for the individual request.
+            /// </summary>
+            public readonly CancellationToken CombinedCancellationToken { get; }
 
             public bool RequiresLSPSolution { get; }
 
@@ -88,8 +94,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             public TextDocumentIdentifier? TextDocument { get; }
 
             public ClientCapabilities ClientCapabilities { get; }
-
-            public CancellationToken RequestCancellationToken { get; }
 
             public Guid ActivityId { get; }
 
@@ -107,9 +111,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Guid activityId,
                 ILspLogger logger,
                 RequestTelemetryLogger telemetryLogger,
-                CancellationToken requestCancellationToken)
+                CancellationToken combinedCancellationToken)
             {
-                CompletionSource = new TaskCompletionSource<TResponseType?>();
+                _completionSource = new TaskCompletionSource<TResponseType?>();
                 Metrics = new RequestMetrics(methodName, telemetryLogger);
 
                 _handler = handler;
@@ -123,7 +127,40 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 ClientName = clientName;
                 MethodName = methodName;
                 TextDocument = textDocument;
-                RequestCancellationToken = requestCancellationToken;
+                CombinedCancellationToken = combinedCancellationToken;
+            }
+
+            public static IQueueItem Create(
+                bool mutatesSolutionState,
+                bool requiresLSPSolution,
+                ClientCapabilities clientCapabilities,
+                string? clientName,
+                string methodName,
+                TextDocumentIdentifier? textDocument,
+                TRequestType request,
+                IRequestHandler<TRequestType, TResponseType> handler,
+                Guid activityId,
+                ILspLogger logger,
+                RequestTelemetryLogger telemetryLogger,
+                CancellationToken combinedCancellationToken,
+                out Task<TResponseType?> resultTask)
+            {
+                var queueItem = new QueueItem<TRequestType, TResponseType>(
+                    mutatesSolutionState,
+                    requiresLSPSolution,
+                    clientCapabilities,
+                    clientName,
+                    methodName,
+                    textDocument,
+                    request,
+                    handler,
+                    activityId,
+                    logger,
+                    telemetryLogger,
+                    combinedCancellationToken);
+
+                resultTask = queueItem._completionSource.Task;
+                return queueItem;
             }
 
             /// <summary>
@@ -131,12 +168,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// representing the task that the client is waiting for, then re-thrown so that
             /// the queue can correctly handle them depending on the type of request.
             /// </summary>
-            public async Task CallbackAsync(RequestContext? context, CancellationToken queueCancellationToken)
+            public async Task CallbackAsync(RequestContext? context)
             {
-                // Create a combined cancellation token so either the client cancelling it's token or the queue
-                // shutting down cancels the request.
-                using var combinedTokenSource = queueCancellationToken.CombineWith(queueCancellationToken);
-                var cancellationToken = combinedTokenSource.Token;
+                var cancellationToken = CombinedCancellationToken;
 
                 // Restore our activity id so that logging/tracking works.
                 Trace.CorrelationManager.ActivityId = ActivityId;
@@ -149,7 +183,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         _logger.TraceInformation($"{MethodName} - Canceled while in queue");
                         this.Metrics.RecordCancellation();
 
-                        CompletionSource.SetCanceled();
+                        _completionSource.SetCanceled();
                         return;
                     }
 
@@ -165,7 +199,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         _logger.TraceWarning($"Could not get request context for {MethodName}");
                         this.Metrics.RecordFailure();
 
-                        CompletionSource.SetResult(default);
+                        _completionSource.SetResult(default);
                         return;
                     }
 
@@ -173,7 +207,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                     this.Metrics.RecordSuccess();
 
-                    CompletionSource.SetResult(result);
+                    _completionSource.SetResult(result);
                 }
                 catch (OperationCanceledException ex)
                 {
@@ -183,7 +217,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                     // Only cancel the task completion source so the caller (client) can react.
                     // We don't need cancellation exceptions bubbling up to the request queue.
-                    CompletionSource.TrySetCanceled(ex.CancellationToken);
+                    _completionSource.TrySetCanceled(ex.CancellationToken);
                 }
                 catch (Exception ex)
                 {
@@ -192,7 +226,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     this.Metrics.RecordFailure();
 
                     // Pass the exception to the task completion source, so the caller (client) can react
-                    CompletionSource.SetException(ex);
+                    _completionSource.SetException(ex);
 
                     // Also allow the exception to flow back to the request queue to handle as appropriate
                     throw new InvalidOperationException($"Error handling '{MethodName}' request: {ex.Message}", ex);
@@ -205,12 +239,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             public bool TrySetException(Exception e)
             {
-                return CompletionSource.TrySetException(e);
+                return _completionSource.TrySetException(e);
             }
 
-            public bool TrySetCanceled(CancellationToken cancellationToken)
+            public bool TrySetCanceled()
             {
-                return CompletionSource.TrySetCanceled(cancellationToken);
+                return _completionSource.TrySetCanceled(CombinedCancellationToken);
             }
         }
     }

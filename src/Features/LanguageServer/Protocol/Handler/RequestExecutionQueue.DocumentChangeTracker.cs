@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -59,6 +60,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             public LspWorkspaceManager GetLspWorkspaceManager() => _queue._lspWorkspaceManager;
 
             public bool IsComplete() => _queue._queue.IsCompleted && _queue._queue.IsEmpty;
+
+            public async Task<bool> AreAllItemsCancelledAsync()
+            {
+                while (!_queue._queue.IsEmpty)
+                {
+                    var item = await _queue._queue.DequeueAsync().ConfigureAwait(false);
+                    if (!item.CombinedCancellationToken.IsCancellationRequested)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
         }
     }
 }
