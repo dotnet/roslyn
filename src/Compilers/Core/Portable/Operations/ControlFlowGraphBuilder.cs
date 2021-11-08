@@ -4489,7 +4489,7 @@ oneMoreTime:
 
             ImmutableArray<IArgumentOperation> makeArguments(ImmutableArray<IArgumentOperation> arguments, ref IOperation? instance)
             {
-                if (!arguments.IsEmpty)
+                if (!arguments.IsDefaultOrEmpty)
                 {
                     bool hasInstance = instance != null;
                     if (hasInstance)
