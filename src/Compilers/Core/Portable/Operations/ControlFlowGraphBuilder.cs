@@ -5714,11 +5714,11 @@ oneMoreTime:
                                            operation.Type, IsImplicit(operation));
 
             (IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) handlePointerAndArguments(
-                IOperation instance, ImmutableArray<IArgumentOperation> arguments)
+                IOperation targetPointer, ImmutableArray<IArgumentOperation> arguments)
             {
-                PushOperand(VisitRequired(instance));
+                PushOperand(VisitRequired(targetPointer));
 
-                ImmutableArray<IArgumentOperation> visitedArguments = VisitArguments(arguments);
+                ImmutableArray<IArgumentOperation> visitedArguments = VisitArguments(arguments, instancePushed: false);
                 IOperation visitedInstance = PopOperand();
 
                 return (visitedInstance, visitedArguments);
