@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 {
                     switch (project.Name)
                     {
-                        case "Project(netcoreapp2.1)":
+                        case "Project(net6)":
                             Assert.Equal("Project.NetCore", project.DefaultNamespace);
                             break;
 
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                             Assert.Equal("Project.NetStandard", project.DefaultNamespace);
                             break;
 
-                        case "Project(net461)":
+                        case "Project(net5)":
                             Assert.Equal("Project.NetFramework", project.DefaultNamespace);
                             break;
 
@@ -303,10 +303,10 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
                 var expectedNames = new HashSet<string>()
                 {
+                    "Project(net6)",
+                    "Project(net5)",
                     "Library(netstandard2",
-                    "Library(net461)",
-                    "Project(netcoreapp2",
-                    "Project(net461)"
+                    "Library(net5)"
                 };
 
                 var actualNames = new HashSet<string>();
@@ -354,13 +354,13 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
                     var referencedProject = workspace.CurrentSolution.GetProject(projectReference.ProjectId);
 
-                    if (project.OutputFilePath.Contains("netcoreapp2"))
+                    if (project.OutputFilePath.Contains("net6"))
                     {
-                        Assert.Contains("netstandard2", referencedProject.OutputFilePath);
+                        Assert.Contains("net5", referencedProject.OutputFilePath);
                     }
-                    else if (project.OutputFilePath.Contains("net461"))
+                    else if (project.OutputFilePath.Contains("net5"))
                     {
-                        Assert.Contains("net461", referencedProject.OutputFilePath);
+                        Assert.Contains("net5", referencedProject.OutputFilePath);
                     }
                     else
                     {
@@ -442,15 +442,15 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             DotNetRestore(@"Library\Library.csproj");
 
             // Override the TFM properties defined in the file
-            using (var workspace = CreateMSBuildWorkspace((PropertyNames.TargetFramework, ""), (PropertyNames.TargetFrameworks, "netcoreapp2.1;net461")))
+            using (var workspace = CreateMSBuildWorkspace((PropertyNames.TargetFramework, ""), (PropertyNames.TargetFrameworks, "net6;net5")))
             {
                 await workspace.OpenProjectAsync(projectFilePath);
 
                 // Assert that two projects have been loaded, one for each TFM.
                 Assert.Equal(2, workspace.CurrentSolution.ProjectIds.Count);
 
-                Assert.Contains(workspace.CurrentSolution.Projects, p => p.Name == "Library(netcoreapp2.1)");
-                Assert.Contains(workspace.CurrentSolution.Projects, p => p.Name == "Library(net461)");
+                Assert.Contains(workspace.CurrentSolution.Projects, p => p.Name == "Library(net6)");
+                Assert.Contains(workspace.CurrentSolution.Projects, p => p.Name == "Library(net5)");
             }
         }
 
