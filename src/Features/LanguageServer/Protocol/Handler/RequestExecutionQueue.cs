@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // The queue itself is threadsafe (_queue.TryEnqueue and _queue.Complete use the same lock).
             if (!didEnqueue)
             {
-                item.TrySetException(new InvalidOperationException($"{_serverName} was requested to shut down."));
+                return Task.FromException<TResponseType?>(new InvalidOperationException($"{_serverName} was requested to shut down."));
             }
 
             return resultTask;
