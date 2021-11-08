@@ -55,7 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 ///<param name='_
 }",
                 testHost,
-                Identifier("_"),
+                ParseOptions(Options.Regular),
+                Method("_"),
                 Method("_"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
@@ -917,7 +918,7 @@ class Program : IReadOnlyCollection<int,string>
                 Keyword("class"),
                 Class("Program"),
                 Punctuation.Colon,
-                Identifier("IReadOnlyCollection"),
+                Interface("IReadOnlyCollection"),
                 Punctuation.OpenAngle,
                 Keyword("int"),
                 Punctuation.Comma,

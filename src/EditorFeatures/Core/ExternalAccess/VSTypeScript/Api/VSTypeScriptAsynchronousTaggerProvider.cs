@@ -15,10 +15,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         protected VSTypeScriptAsynchronousTaggerProvider(
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider asyncListenerProvider,
-#pragma warning disable IDE0060 // TODO: use global options
             VSTypeScriptGlobalOptions globalOptions)
-#pragma warning restore IDE0060
-            : base(threadingContext, asyncListenerProvider.GetListener(FeatureAttribute.Classification))
+            : base(threadingContext, globalOptions.Service, asyncListenerProvider.GetListener(FeatureAttribute.Classification))
         {
         }
     }

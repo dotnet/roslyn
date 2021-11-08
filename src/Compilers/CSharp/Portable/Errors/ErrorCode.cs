@@ -2001,6 +2001,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_CompileTimeCheckedOverflow = 8973,
         WRN_MethGrpToNonDel = 8974,
         ERR_LambdaExplicitReturnTypeVar = 8975,
+        ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers = 8976,
 
         #endregion
 

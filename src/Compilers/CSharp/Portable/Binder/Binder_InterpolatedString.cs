@@ -529,7 +529,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Add the trailing out validity parameter for the first attempt.Note that we intentionally use `diagnostics` for resolving System.Boolean,
             // because we want to track that we're using the type no matter what.
             var boolType = GetSpecialType(SpecialType.System_Boolean, diagnostics, syntax);
-            var trailingConstructorValidityPlaceholder = new BoundInterpolatedStringArgumentPlaceholder(syntax, BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter, valSafeToEscape: LocalScopeDepth, boolType);
+            var trailingConstructorValidityPlaceholder =
+                new BoundInterpolatedStringArgumentPlaceholder(syntax, BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter, valSafeToEscape: LocalScopeDepth, boolType)
+                { WasCompilerGenerated = true };
             var outConstructorAdditionalArguments = additionalConstructorArguments.Add(trailingConstructorValidityPlaceholder);
             refKindsBuilder.Add(RefKind.Out);
             populateArguments(syntax, outConstructorAdditionalArguments, baseStringLength, numFormatHoles, intType, argumentsBuilder);
@@ -711,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (part is BoundStringInsert insert)
                     {
-                        methodName = "AppendFormatted";
+                        methodName = BoundInterpolatedString.AppendFormattedMethod;
                         argumentsBuilder.Add(insert.Value);
                         parameterNamesAndLocationsBuilder.Add(null);
                         isLiteral = false;
@@ -737,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var boundLiteral = (BoundLiteral)part;
                         Debug.Assert(boundLiteral.ConstantValue != null && boundLiteral.ConstantValue.IsString);
                         var literalText = ConstantValueUtils.UnescapeInterpolatedStringLiteral(boundLiteral.ConstantValue.StringValue);
-                        methodName = "AppendLiteral";
+                        methodName = BoundInterpolatedString.AppendLiteralMethod;
                         argumentsBuilder.Add(boundLiteral.Update(ConstantValue.Create(literalText), boundLiteral.Type));
                         isLiteral = true;
                         hasAlignment = false;
@@ -985,7 +987,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argumentIndex,
                         valSafeToEscapeScope,
                         placeholderType,
-                        hasErrors: argumentIndex == BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter));
+                        hasErrors: argumentIndex == BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter)
+                    { WasCompilerGenerated = true });
                 // We use the parameter refkind, rather than what the argument was actually passed with, because that will suppress duplicated errors
                 // about arguments being passed with the wrong RefKind. The user will have already gotten an error about mismatched RefKinds or it will
                 // be a place where refkinds are allowed to differ
