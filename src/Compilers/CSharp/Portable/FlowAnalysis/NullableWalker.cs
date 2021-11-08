@@ -3005,7 +3005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             bool canIgnoreAnonymousType(NamedTypeSymbol type)
             {
-                return AnonymousTypeManager.GetAnonymousTypePropertyTypesWithAnnotations(type).Any(t => canIgnoreAnyType(t.Type));
+                return AnonymousTypeManager.GetAnonymousTypeFieldTypes(type).Any(t => canIgnoreAnyType(t.Type));
             }
         }
 

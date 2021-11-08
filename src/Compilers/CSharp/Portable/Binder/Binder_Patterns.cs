@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RelationalPatternSyntax p => BindRelationalPattern(p, inputType, hasErrors, diagnostics),
                 TypePatternSyntax p => BindTypePattern(p, inputType, hasErrors, diagnostics),
                 ListPatternSyntax p => BindListPattern(p, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics),
-                SlicePatternSyntax p => BindSlicePattern(p, inputType, permitDesignations, ref hasErrors, misplaced: true, diagnostics),
+                SlicePatternSyntax p => BindSlicePattern(p, inputType, inputValEscape, permitDesignations, ref hasErrors, misplaced: true, diagnostics),
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
             };
         }
@@ -186,6 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundPattern BindSlicePattern(
             SlicePatternSyntax node,
             TypeSymbol inputType,
+            uint inputValEscape,
             bool permitDesignations,
             ref bool hasErrors,
             bool misplaced,
@@ -234,8 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_UnsupportedTypeForSlicePattern, node, inputType);
                 }
 
-                // PROTOTYPE(list-patterns) ExternalScope?
-                pattern = BindPattern(node.Pattern, sliceType, ExternalScope, permitDesignations, hasErrors, diagnostics);
+                pattern = BindPattern(node.Pattern, sliceType, GetValEscape(sliceType, inputValEscape), permitDesignations, hasErrors, diagnostics);
             }
 
             return new BoundSlicePattern(node, pattern, indexerAccess, sliceMethod, inputType: inputType, narrowedType: inputType, hasErrors);
@@ -244,6 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<BoundPattern> BindListPatternSubpatterns(
             SeparatedSyntaxList<PatternSyntax> subpatterns,
             TypeSymbol inputType,
+            uint inputValEscape,
             TypeSymbol elementType,
             bool permitDesignations,
             ref bool hasErrors,
@@ -257,13 +258,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundPattern boundPattern;
                 if (pattern is SlicePatternSyntax slice)
                 {
-                    boundPattern = BindSlicePattern(slice, inputType, permitDesignations, ref hasErrors, misplaced: sawSlice, diagnostics);
+                    boundPattern = BindSlicePattern(slice, inputType, GetValEscape(inputType, inputValEscape), permitDesignations, ref hasErrors, misplaced: sawSlice, diagnostics: diagnostics);
                     sawSlice = true;
                 }
                 else
                 {
-                    // PROTOTYPE(list-patterns) ExternalScope?
-                    boundPattern = BindPattern(pattern, elementType, ExternalScope, permitDesignations, hasErrors, diagnostics);
+                    boundPattern = BindPattern(pattern, elementType, GetValEscape(elementType, inputValEscape), permitDesignations, hasErrors, diagnostics);
                 }
 
                 builder.Add(boundPattern);
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ImmutableArray<BoundPattern> subpatterns = BindListPatternSubpatterns(
-                node.Patterns, inputType: narrowedType, elementType: elementType,
+                node.Patterns, inputType: narrowedType, inputValEscape, elementType: elementType,
                 permitDesignations, ref hasErrors, out bool sawSlice, diagnostics);
 
             BindPatternDesignation(
@@ -1476,7 +1476,7 @@ done:
                 }
                 else
                 {
-                    member = LookupMembersForPropertyPattern(inputType, expr, diagnostics, ref hasErrors);
+                    member = LookupMembersForPropertyPattern(inputType, expr, diagnostics, ref inputValEscape, ref hasErrors);
                     memberType = member.Type;
                     // If we're dealing with the member that makes the type countable, and the type is also indexable, then it will be assumed to always return a non-negative value
                     if (memberType.SpecialType == SpecialType.System_Int32 &&
@@ -1494,7 +1494,7 @@ done:
                     }
                 }
 
-                BoundPattern boundPattern = BindPattern(pattern, memberType, GetValEscape(memberType, inputValEscape), permitDesignations, hasErrors, diagnostics);
+                BoundPattern boundPattern = BindPattern(pattern, memberType, inputValEscape, permitDesignations, hasErrors, diagnostics);
                 builder.Add(new BoundPropertySubpattern(p, member, isLengthOrCount, boundPattern));
             }
 
@@ -1502,7 +1502,7 @@ done:
         }
 
         private BoundPropertySubpatternMember LookupMembersForPropertyPattern(
-            TypeSymbol inputType, ExpressionSyntax expr, BindingDiagnosticBag diagnostics, ref bool hasErrors)
+            TypeSymbol inputType, ExpressionSyntax expr, BindingDiagnosticBag diagnostics, ref uint inputValEscape, ref bool hasErrors)
         {
             BoundPropertySubpatternMember? receiver = null;
             Symbol? symbol = null;
@@ -1512,7 +1512,7 @@ done:
                     symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
                     break;
                 case MemberAccessExpressionSyntax { Name: IdentifierNameSyntax name } memberAccess when memberAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression):
-                    receiver = LookupMembersForPropertyPattern(inputType, memberAccess.Expression, diagnostics, ref hasErrors);
+                    receiver = LookupMembersForPropertyPattern(inputType, memberAccess.Expression, diagnostics, ref inputValEscape, ref hasErrors);
                     symbol = BindPropertyPatternMember(receiver.Type.StrippedType(), name, ref hasErrors, diagnostics);
                     break;
                 default:
@@ -1528,6 +1528,8 @@ done:
                 _ => CreateErrorType()
             };
 
+            // Note: since we're recursing on the receiver, the val escape correctly flows from inside out.
+            inputValEscape = GetValEscape(memberType, inputValEscape);
             return new BoundPropertySubpatternMember(expr, receiver, symbol, type: memberType, hasErrors);
         }
 

@@ -72,6 +72,16 @@ Microsoft.CodeAnalysis.LineMapping.LineMapping() -> void
 Microsoft.CodeAnalysis.LineMapping.LineMapping(Microsoft.CodeAnalysis.Text.LinePositionSpan span, int? characterOffset, Microsoft.CodeAnalysis.FileLinePositionSpan mappedSpan) -> void
 Microsoft.CodeAnalysis.LineMapping.MappedSpan.get -> Microsoft.CodeAnalysis.FileLinePositionSpan
 Microsoft.CodeAnalysis.LineMapping.Span.get -> Microsoft.CodeAnalysis.Text.LinePositionSpan
+Microsoft.CodeAnalysis.OperationKind.ListPattern = 114 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.SlicePattern = 115 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.Operations.IListPatternOperation
+Microsoft.CodeAnalysis.Operations.IListPatternOperation.DeclaredSymbol.get -> Microsoft.CodeAnalysis.ISymbol?
+Microsoft.CodeAnalysis.Operations.IListPatternOperation.IndexerSymbol.get -> Microsoft.CodeAnalysis.ISymbol?
+Microsoft.CodeAnalysis.Operations.IListPatternOperation.LengthSymbol.get -> Microsoft.CodeAnalysis.ISymbol?
+Microsoft.CodeAnalysis.Operations.IListPatternOperation.Patterns.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.IPatternOperation!>
+Microsoft.CodeAnalysis.Operations.ISlicePatternOperation
+Microsoft.CodeAnalysis.Operations.ISlicePatternOperation.Pattern.get -> Microsoft.CodeAnalysis.Operations.IPatternOperation?
+Microsoft.CodeAnalysis.Operations.ISlicePatternOperation.SliceSymbol.get -> Microsoft.CodeAnalysis.ISymbol?
 Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.CollapseTupleTypes = 512 -> Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions
 override Microsoft.CodeAnalysis.LineMapping.Equals(object? obj) -> bool
 override Microsoft.CodeAnalysis.LineMapping.GetHashCode() -> int
@@ -127,3 +137,7 @@ static Microsoft.CodeAnalysis.IncrementalValueProviderExtensions.WithComparer<TS
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetGenerators(string! language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetGeneratorsForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
 abstract Microsoft.CodeAnalysis.Compilation.GetUsedAssemblyReferences(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MetadataReference!>
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitListPattern(Microsoft.CodeAnalysis.Operations.IListPatternOperation! operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitSlicePattern(Microsoft.CodeAnalysis.Operations.ISlicePatternOperation! operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitListPattern(Microsoft.CodeAnalysis.Operations.IListPatternOperation! operation, TArgument argument) -> TResult?
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitSlicePattern(Microsoft.CodeAnalysis.Operations.ISlicePatternOperation! operation, TArgument argument) -> TResult?

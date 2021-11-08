@@ -3320,6 +3320,60 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IObjectOrCollectionInitializerOperation Initializer { get; }
     }
+    /// <summary>
+    /// Represents a C# list pattern.
+    /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.ListPattern"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
+    /// </remarks>
+    public interface IListPatternOperation : IPatternOperation
+    {
+        /// <summary>
+        /// The <c>Length</c> or <c>Count</c> property that is being used to fetch the length value.
+        /// Returns <c>null</c> if no such property is found.
+        /// </summary>
+        ISymbol? LengthSymbol { get; }
+        /// <summary>
+        /// The indexer that is being used to fetch elements.
+        /// Returns <c>null</c> for an array input.
+        /// </summary>
+        ISymbol? IndexerSymbol { get; }
+        /// <summary>
+        /// Returns subpatterns contained within the list pattern.
+        /// </summary>
+        ImmutableArray<IPatternOperation> Patterns { get; }
+        /// <summary>
+        /// Symbol declared by the pattern, if any.
+        /// </summary>
+        ISymbol? DeclaredSymbol { get; }
+    }
+    /// <summary>
+    /// Represents a C# slice pattern.
+    /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.SlicePattern"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
+    /// </remarks>
+    public interface ISlicePatternOperation : IPatternOperation
+    {
+        /// <summary>
+        /// The range indexer or the <c>Slice</c> method used to fetch the slice value.
+        /// </summary>
+        ISymbol? SliceSymbol { get; }
+        /// <summary>
+        /// The pattern that the slice value is matched with, if any.
+        /// </summary>
+        IPatternOperation? Pattern { get; }
+    }
     #endregion
 
     #region Implementations
@@ -7602,6 +7656,86 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitWith(this);
         public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitWith(this, argument);
     }
+    internal sealed partial class ListPatternOperation : BasePatternOperation, IListPatternOperation
+    {
+        internal ListPatternOperation(ISymbol? lengthSymbol, ISymbol? indexerSymbol, ImmutableArray<IPatternOperation> patterns, ISymbol? declaredSymbol, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(inputType, narrowedType, semanticModel, syntax, isImplicit)
+        {
+            LengthSymbol = lengthSymbol;
+            IndexerSymbol = indexerSymbol;
+            Patterns = SetParentOperation(patterns, this);
+            DeclaredSymbol = declaredSymbol;
+        }
+        public ISymbol? LengthSymbol { get; }
+        public ISymbol? IndexerSymbol { get; }
+        public ImmutableArray<IPatternOperation> Patterns { get; }
+        public ISymbol? DeclaredSymbol { get; }
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
+            {
+                0 when index < Patterns.Length
+                    => Patterns[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (!Patterns.IsEmpty) return (true, 0, 0);
+                    else goto case 0;
+                case 0 when previousIndex + 1 < Patterns.Length:
+                    return (true, 0, previousIndex + 1);
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.ListPattern;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitListPattern(this);
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitListPattern(this, argument);
+    }
+    internal sealed partial class SlicePatternOperation : BasePatternOperation, ISlicePatternOperation
+    {
+        internal SlicePatternOperation(ISymbol? sliceSymbol, IPatternOperation? pattern, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(inputType, narrowedType, semanticModel, syntax, isImplicit)
+        {
+            SliceSymbol = sliceSymbol;
+            Pattern = SetParentOperation(pattern, this);
+        }
+        public ISymbol? SliceSymbol { get; }
+        public IPatternOperation? Pattern { get; }
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
+            {
+                0 when Pattern != null
+                    => Pattern,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Pattern != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.SlicePattern;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitSlicePattern(this);
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitSlicePattern(this, argument);
+    }
     #endregion
     #region Cloner
     internal sealed partial class OperationCloner : OperationVisitor<object?, IOperation>
@@ -8160,6 +8294,16 @@ namespace Microsoft.CodeAnalysis.Operations
             var internalOperation = (WithOperation)operation;
             return new WithOperation(Visit(internalOperation.Operand), internalOperation.CloneMethod, Visit(internalOperation.Initializer), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
+        public override IOperation VisitListPattern(IListPatternOperation operation, object? argument)
+        {
+            var internalOperation = (ListPatternOperation)operation;
+            return new ListPatternOperation(internalOperation.LengthSymbol, internalOperation.IndexerSymbol, VisitArray(internalOperation.Patterns), internalOperation.DeclaredSymbol, internalOperation.InputType, internalOperation.NarrowedType, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitSlicePattern(ISlicePatternOperation operation, object? argument)
+        {
+            var internalOperation = (SlicePatternOperation)operation;
+            return new SlicePatternOperation(internalOperation.SliceSymbol, Visit(internalOperation.Pattern), internalOperation.InputType, internalOperation.NarrowedType, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
     }
     #endregion
     
@@ -8289,6 +8433,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual void VisitTypePattern(ITypePatternOperation operation) => DefaultVisit(operation);
         public virtual void VisitRelationalPattern(IRelationalPatternOperation operation) => DefaultVisit(operation);
         public virtual void VisitWith(IWithOperation operation) => DefaultVisit(operation);
+        public virtual void VisitListPattern(IListPatternOperation operation) => DefaultVisit(operation);
+        public virtual void VisitSlicePattern(ISlicePatternOperation operation) => DefaultVisit(operation);
     }
     public abstract partial class OperationVisitor<TArgument, TResult>
     {
@@ -8415,6 +8561,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual TResult? VisitTypePattern(ITypePatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitRelationalPattern(IRelationalPatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitWith(IWithOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult? VisitListPattern(IListPatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult? VisitSlicePattern(ISlicePatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
     }
     #endregion
 }
