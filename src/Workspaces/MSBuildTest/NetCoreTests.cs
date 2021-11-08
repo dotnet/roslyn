@@ -140,30 +140,29 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             DotNetRestore(@"Project\Project.csproj");
             DotNetRestore(@"Library2\Library2.csproj");
 
-            using (var workspace = CreateMSBuildWorkspace())
-            {
-                var project = await workspace.OpenProjectAsync(projectFilePath);
+            // Warning: Found project reference without a matching metadata reference: Library1.csproj
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
+            var project = await workspace.OpenProjectAsync(projectFilePath);
 
-                // Assert that there is are two projects loaded (Project.csproj references Library1.csproj).
-                Assert.Equal(2, workspace.CurrentSolution.ProjectIds.Count);
+            // Assert that there is are two projects loaded (Project.csproj references Library1.csproj).
+            Assert.Equal(2, workspace.CurrentSolution.ProjectIds.Count);
 
-                // Assert that the project does not have any diagnostics in Program.cs
-                var document = project.Documents.First(d => d.Name == "Program.cs");
-                var semanticModel = await document.GetSemanticModelAsync();
-                var diagnostics = semanticModel.GetDiagnostics();
-                Assert.Empty(diagnostics);
+            // Assert that the project does not have any diagnostics in Program.cs
+            var document = project.Documents.First(d => d.Name == "Program.cs");
+            var semanticModel = await document.GetSemanticModelAsync();
+            var diagnostics = semanticModel.GetDiagnostics();
+            Assert.Empty(diagnostics);
 
-                var library2 = await workspace.OpenProjectAsync(library2FilePath);
+            var library2 = await workspace.OpenProjectAsync(library2FilePath);
 
-                // Assert that there are now three projects loaded (Library2.csproj also references Library1.csproj)
-                Assert.Equal(3, workspace.CurrentSolution.ProjectIds.Count);
+            // Assert that there are now three projects loaded (Library2.csproj also references Library1.csproj)
+            Assert.Equal(3, workspace.CurrentSolution.ProjectIds.Count);
 
-                // Assert that there is a project reference between Project.csproj and Library1.csproj
-                AssertSingleProjectReference(project, library1FilePath);
+            // Assert that there is a project reference between Project.csproj and Library1.csproj
+            AssertSingleProjectReference(project, library1FilePath);
 
-                // Assert that there is a project reference between Library2.csproj and Library1.csproj
-                AssertSingleProjectReference(library2, library1FilePath);
-            }
+            // Assert that there is a project reference between Library2.csproj and Library1.csproj
+            AssertSingleProjectReference(library2, library1FilePath);
 
             static void AssertSingleProjectReference(Project project, string projectRefFilePath)
             {
@@ -417,17 +416,15 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             var projectFilePath = GetSolutionFileName(@"InspectedLibrary\InspectedLibrary.csproj");
 
-            using (var workspace = CreateMSBuildWorkspace(("Configuration", "Release")))
-            {
-                workspace.LoadMetadataForReferencedProjects = true;
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: true, ("Configuration", "Release"));
+            workspace.LoadMetadataForReferencedProjects = true;
 
-                var project = await workspace.OpenProjectAsync(projectFilePath);
+            var project = await workspace.OpenProjectAsync(projectFilePath);
 
-                Assert.Empty(project.ProjectReferences);
-                Assert.Empty(workspace.Diagnostics);
+            Assert.Empty(project.ProjectReferences);
+            Assert.Empty(workspace.Diagnostics);
 
-                var compilation = await project.GetCompilationAsync();
-            }
+            var compilation = await project.GetCompilationAsync();
         }
 
         [ConditionalFact(typeof(MSBuildInstalled), typeof(DotNetCoreSdk.IsAvailable))]
@@ -442,7 +439,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             DotNetRestore(@"Library\Library.csproj");
 
             // Override the TFM properties defined in the file
-            using (var workspace = CreateMSBuildWorkspace((PropertyNames.TargetFramework, ""), (PropertyNames.TargetFrameworks, "net6;net5")))
+            using (var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: true, (PropertyNames.TargetFramework, ""), (PropertyNames.TargetFrameworks, "net6;net5")))
             {
                 await workspace.OpenProjectAsync(projectFilePath);
 
@@ -467,26 +464,25 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             DotNetRestore(@"Library\Library.csproj");
             DotNetRestore(@"VBProject\VBProject.vbproj");
 
-            using (var workspace = CreateMSBuildWorkspace())
-            {
-                var project = await workspace.OpenProjectAsync(vbProjectFilePath);
+            // Warning:Found project reference without a matching metadata reference: Library.csproj
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
+            var project = await workspace.OpenProjectAsync(vbProjectFilePath);
 
-                // Assert that there is are two projects loaded (VBProject.vbproj references Library.csproj).
-                Assert.Equal(2, workspace.CurrentSolution.ProjectIds.Count);
+            // Assert that there is are two projects loaded (VBProject.vbproj references Library.csproj).
+            Assert.Equal(2, workspace.CurrentSolution.ProjectIds.Count);
 
-                // Assert that there is a project reference between VBProject.vbproj and Library.csproj
-                AssertSingleProjectReference(project, libraryFilePath);
+            // Assert that there is a project reference between VBProject.vbproj and Library.csproj
+            AssertSingleProjectReference(project, libraryFilePath);
 
-                // Assert that the project does not have any diagnostics in Program.vb
-                var document = project.Documents.First(d => d.Name == "Program.vb");
-                var semanticModel = await document.GetSemanticModelAsync();
-                var diagnostics = semanticModel.GetDiagnostics();
-                Assert.Empty(diagnostics.Where(d => d.Severity >= DiagnosticSeverity.Warning));
+            // Assert that the project does not have any diagnostics in Program.vb
+            var document = project.Documents.First(d => d.Name == "Program.vb");
+            var semanticModel = await document.GetSemanticModelAsync();
+            var diagnostics = semanticModel.GetDiagnostics();
+            Assert.Empty(diagnostics.Where(d => d.Severity >= DiagnosticSeverity.Warning));
 
-                var compilation = await project.GetCompilationAsync();
-                var option = compilation.Options as VisualBasicCompilationOptions;
-                Assert.Contains("LibraryHelperClass = Library.MyHelperClass", option.GlobalImports.Select(i => i.Name));
-            }
+            var compilation = await project.GetCompilationAsync();
+            var option = compilation.Options as VisualBasicCompilationOptions;
+            Assert.Contains("LibraryHelperClass = Library.MyHelperClass", option.GlobalImports.Select(i => i.Name));
 
             static void AssertSingleProjectReference(Project project, string projectRefFilePath)
             {

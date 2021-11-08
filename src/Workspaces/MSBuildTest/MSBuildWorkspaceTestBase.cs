@@ -151,10 +151,14 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        protected static MSBuildWorkspace CreateMSBuildWorkspace(params (string key, string value)[] additionalProperties)
+        protected static MSBuildWorkspace CreateMSBuildWorkspace(bool throwOnWorkspaceFailed = true, params (string key, string value)[] additionalProperties)
         {
             var workspace = MSBuildWorkspace.Create(CreateProperties(additionalProperties));
-            workspace.WorkspaceFailed += (s, e) => throw new Exception($"Workspace failure {e.Diagnostic.Kind}:{e.Diagnostic.Message}");
+            if (throwOnWorkspaceFailed)
+            {
+                workspace.WorkspaceFailed += (s, e) => throw new Exception($"Workspace failure {e.Diagnostic.Kind}:{e.Diagnostic.Message}");
+            }
+
             return workspace;
         }
 

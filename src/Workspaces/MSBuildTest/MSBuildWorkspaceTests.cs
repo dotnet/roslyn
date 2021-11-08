@@ -209,7 +209,8 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             CreateFiles(GetSolutionWithDuplicatedGuidFiles());
             var solutionFilePath = GetSolutionFileName("DuplicatedGuids.sln");
 
-            using var workspace = CreateMSBuildWorkspace();
+            // Warning:Found project reference without a matching metadata reference
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var solution = await workspace.OpenSolutionAsync(solutionFilePath);
         }
 
@@ -220,7 +221,8 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             CreateFiles(GetSolutionWithCircularProjectReferences());
             var solutionFilePath = GetSolutionFileName("CircularSolution.sln");
 
-            using var workspace = CreateMSBuildWorkspace();
+            //  Warning:Found project reference without a matching metadata reference
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var solution = await workspace.OpenSolutionAsync(solutionFilePath);
 
             // Verify we can get compilations for both projects
@@ -437,7 +439,7 @@ class C1
 
             var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
-            using var workspace = CreateMSBuildWorkspace(("ShouldUnsetParentConfigurationAndPlatform", bool.TrueString));
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: true, ("ShouldUnsetParentConfigurationAndPlatform", bool.TrueString));
             var project = await workspace.OpenProjectAsync(projectFilePath);
             var document = project.Documents.First();
             var tree = await document.GetSyntaxTreeAsync();
@@ -549,7 +551,8 @@ class C1
                 .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.WithoutCSharpTargetsImported));
             var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
 
-            using var workspace = CreateMSBuildWorkspace();
+            //Msbuild failed when processing the file with message: Project does not contain 'Compile' target.
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var solution = await workspace.OpenSolutionAsync(solutionFilePath);
             var project = solution.Projects.First();
             Assert.NotEmpty(project.Documents);
@@ -562,7 +565,8 @@ class C1
                 .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", Resources.ProjectFiles.VisualBasic.WithoutVBTargetsImported));
             var projectFilePath = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
 
-            using var workspace = CreateMSBuildWorkspace();
+            //Msbuild failed when processing the file with message: Project does not contain 'Compile' target.
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var project = await workspace.OpenProjectAsync(projectFilePath);
             Assert.NotEmpty(project.Documents);
         }
@@ -660,7 +664,8 @@ class C1
                 .ReplaceFileElement(@"VisualBasicProject\VisualBasicProject.vbproj", "LangVersion", "15.3"));
             var projectFilePath = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
 
-            using var workspace = CreateMSBuildWorkspace();
+            // Warning:Found project reference without a matching metadata reference:
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var project = await workspace.OpenProjectAsync(projectFilePath);
             Assert.Equal(VB.LanguageVersion.VisualBasic15_3, ((VB.VisualBasicParseOptions)project.ParseOptions).LanguageVersion);
         }
@@ -672,7 +677,8 @@ class C1
                 .ReplaceFileElement(@"VisualBasicProject\VisualBasicProject.vbproj", "LangVersion", "Latest"));
             var projectFilePath = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
 
-            using var workspace = CreateMSBuildWorkspace();
+            //  Warning:Found project reference without a matching metadata reference
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var project = await workspace.OpenProjectAsync(projectFilePath);
             Assert.Equal(VB.LanguageVersionFacts.MapSpecifiedToEffectiveVersion(VB.LanguageVersion.Latest), ((VB.VisualBasicParseOptions)project.ParseOptions).LanguageVersion);
             Assert.Equal(VB.LanguageVersion.Latest, ((VB.VisualBasicParseOptions)project.ParseOptions).SpecifiedLanguageVersion);
@@ -700,7 +706,8 @@ class C1
                 .WithFile(@"VisualBasicProject_Circular_Target.vbproj", Resources.ProjectFiles.VisualBasic.Circular_Target));
             var projectFilePath = GetSolutionFileName(@"VisualBasicProject_Circular_Top.vbproj");
 
-            using var workspace = CreateMSBuildWorkspace();
+            // The referenced project 'VisualBasic_Circular_Target.vbproj' does not exist
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var project = await workspace.OpenProjectAsync(projectFilePath);
             Assert.Empty(project.ProjectReferences);
         }
@@ -717,7 +724,9 @@ class C1
             var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
             // Ensure the Xaml compiler does not run in a separate appdomain. It appears that this won't work within xUnit.
-            using var workspace = CreateMSBuildWorkspace(("AlwaysCompileMarkupFilesInSeparateDomain", "false"));
+            using var workspace = CreateMSBuildWorkspace(
+                throwOnWorkspaceFailed: false, // TODO: Xaml design-time targets are not running?
+                ("AlwaysCompileMarkupFilesInSeparateDomain", "false"));
             var project = await workspace.OpenProjectAsync(projectFilePath);
             var documents = project.Documents.ToList();
 
@@ -798,7 +807,7 @@ class C1
 
             var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
 
-            using var workspace = CreateMSBuildWorkspace();
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var solution = await workspace.OpenSolutionAsync(solutionFilePath);
             var project = solution.Projects.First();
             var documents = project.Documents.Where(d => d.Name == "CSharpClass.cs").ToList();
@@ -898,9 +907,14 @@ class C1
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var solutionFilePath = GetSolutionFileName(@"http://localhost/Invalid/InvalidSolution.sln");
 
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
+
+#if NETCOREAPP
+            await Assert.ThrowsAsync<FileNotFoundException>(async () =>
+#else
             await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+#endif
             {
-                using var workspace = CreateMSBuildWorkspace();
                 await workspace.OpenSolutionAsync(solutionFilePath);
             });
         }
@@ -948,7 +962,7 @@ class C1
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
 
-            using var workspace = CreateMSBuildWorkspace();
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             // open source file so it cannot be read by workspace;
             var sourceFile = GetSolutionFileName(@"CSharpProject\CSharpClass.cs");
             var file = File.Open(sourceFile, FileMode.Open, FileAccess.Write, FileShare.None);
@@ -977,7 +991,7 @@ class C1
 
             var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
 
-            using var workspace = CreateMSBuildWorkspace();
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var solution = await workspace.OpenSolutionAsync(solutionFilePath);
             Assert.Single(workspace.Diagnostics);
         }
@@ -1004,10 +1018,14 @@ class C1
                 .WithFile(@"TestSolution.sln", Resources.SolutionFiles.InvalidProjectPath));
             var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
 
-            using var workspace = CreateMSBuildWorkspace();
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             workspace.SkipUnrecognizedProjects = false;
 
+#if NETCOREAPP
+            await Assert.ThrowsAsync<FileNotFoundException>(() => workspace.OpenSolutionAsync(solutionFilePath));
+#else
             await Assert.ThrowsAsync<InvalidOperationException>(() => workspace.OpenSolutionAsync(solutionFilePath));
+#endif
         }
 
         [ConditionalFact(typeof(MSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
@@ -1019,7 +1037,7 @@ class C1
                 .WithFile(@"TestSolution.sln", Resources.SolutionFiles.NonExistentProject));
             var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
 
-            using var workspace = CreateMSBuildWorkspace();
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var solution = await workspace.OpenSolutionAsync(solutionFilePath);
 
             Assert.Single(workspace.Diagnostics);
@@ -1049,7 +1067,7 @@ class C1
                 .WithFile(@"CSharpProject\CSharpProject.noproj", Resources.ProjectFiles.CSharp.CSharpProject));
             var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
 
-            using var workspace = CreateMSBuildWorkspace();
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var solution = await workspace.OpenSolutionAsync(solutionFilePath);
             Assert.Empty(solution.ProjectIds);
         }
@@ -1077,7 +1095,7 @@ class C1
 
             var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
 
-            using var workspace = CreateMSBuildWorkspace();
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var solution = await workspace.OpenSolutionAsync(solutionFilePath);
 
             Assert.Single(workspace.Diagnostics);
@@ -1197,7 +1215,7 @@ class C1
                 .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", Resources.ProjectFiles.VisualBasic.InvalidProjectReference));
             var projectFilePath = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
 
-            using var workspace = CreateMSBuildWorkspace();
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var project = await workspace.OpenProjectAsync(projectFilePath);
 
             Assert.Single(project.Solution.ProjectIds); // didn't really open referenced project due to invalid file path.
@@ -1214,7 +1232,7 @@ class C1
                 .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", Resources.ProjectFiles.VisualBasic.InvalidProjectReference));
             var projectFilePath = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
 
-            using var workspace = CreateMSBuildWorkspace();
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             workspace.SkipUnrecognizedProjects = false;
 #if NETCOREAPP
             await Assert.ThrowsAsync<FileNotFoundException>(() => workspace.OpenProjectAsync(projectFilePath));
@@ -1230,7 +1248,7 @@ class C1
                 .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", Resources.ProjectFiles.VisualBasic.NonExistentProjectReference));
             var projectFilePath = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
 
-            using var workspace = CreateMSBuildWorkspace();
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var project = await workspace.OpenProjectAsync(projectFilePath);
 
             Assert.Single(project.Solution.ProjectIds); // didn't really open referenced project due to invalid file path.
@@ -1249,7 +1267,7 @@ class C1
 
             await Assert.ThrowsAsync<FileNotFoundException>(async () =>
             {
-                using var workspace = CreateMSBuildWorkspace();
+                using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
                 workspace.SkipUnrecognizedProjects = false;
                 await workspace.OpenProjectAsync(projectFilePath);
             });
@@ -1263,7 +1281,7 @@ class C1
                 .WithFile(@"CSharpProject\CSharpProject.noproj", Resources.ProjectFiles.CSharp.CSharpProject));
             var projectFilePath = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
 
-            using var workspace = CreateMSBuildWorkspace();
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var project = await workspace.OpenProjectAsync(projectFilePath);
 
             Assert.Single(project.Solution.ProjectIds); // didn't really open referenced project due to unrecognized extension.
@@ -1346,7 +1364,7 @@ class C1
             // keep metadata reference from holding files open
             Workspace.TestHookStandaloneProjectsDoNotHoldReferences = true;
 
-            using var workspace = CreateMSBuildWorkspace();
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             workspace.SkipUnrecognizedProjects = true;
 
             var project = await workspace.OpenProjectAsync(projectFilePath);
@@ -1389,7 +1407,8 @@ class C1
             // keep metadata reference from holding files open
             Workspace.TestHookStandaloneProjectsDoNotHoldReferences = true;
 
-            using var workspace = CreateMSBuildWorkspace();
+            // Warning:Found project reference without a matching metadata reference
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             workspace.LoadMetadataForReferencedProjects = true;
             var project = await workspace.OpenProjectAsync(projectFilePath);
 
@@ -1445,7 +1464,8 @@ class C1
             // keep metadata reference from holding files open
             Workspace.TestHookStandaloneProjectsDoNotHoldReferences = true;
 
-            using var workspace = CreateMSBuildWorkspace();
+            // The reference assemblies for .NETFramework,Version=v4.0 were not found.
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var project = await workspace.OpenProjectAsync(projectFilePath);
             var compilation = await project.GetCompilationAsync();
             var diagnostics = compilation.GetDiagnostics();
@@ -1632,7 +1652,7 @@ class C1
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var solutionFilePath = GetSolutionFileName("TestSolution.sln");
 
-            using var workspace = CreateMSBuildWorkspace(("Configuration", "Release"));
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: true, ("Configuration", "Release"));
             var sol = await workspace.OpenSolutionAsync(solutionFilePath);
             var project = sol.Projects.First();
             var options = project.ParseOptions;
@@ -2276,7 +2296,8 @@ class C1
 
             var projectFullPath = GetSolutionFileName(projPath);
 
-            using var workspace = CreateMSBuildWorkspace();
+            // Warning:Found project reference without a matching metadata reference
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             workspace.LoadMetadataForReferencedProjects = true;
 
             var proj = await workspace.OpenProjectAsync(projectFullPath);
@@ -2403,7 +2424,8 @@ class C1
 
             var fullPath = GetSolutionFileName(@"CSharpProjectReference.sln");
 
-            using var workspace = CreateMSBuildWorkspace();
+            // Warning:Found project reference without a matching metadata reference
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var sol = await workspace.OpenSolutionAsync(fullPath);
             var proj = sol.Projects.First();
             var comp = await proj.GetCompilationAsync();
@@ -2471,7 +2493,8 @@ class C1
 
             var fullPath = GetSolutionFileName(@"CSharpProjectReference.sln");
 
-            using var workspace = CreateMSBuildWorkspace();
+            // Workspace failure Warning:Found project reference without a matching metadata reference
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var sol = await workspace.OpenSolutionAsync(fullPath);
             foreach (var project in sol.Projects)
             {
@@ -2568,7 +2591,7 @@ class C1
             var projectFile = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
             using (File.Open(projectFile, FileMode.Open, FileAccess.ReadWrite))
             {
-                using var workspace = CreateMSBuildWorkspace();
+                using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
                 await workspace.OpenProjectAsync(projectFile);
                 var diagnostic = Assert.Single(workspace.Diagnostics);
                 Assert.Contains("The process cannot access the file", diagnostic.Message);
@@ -2630,7 +2653,7 @@ class C1
             CreateFiles(files);
             var solutionFilePath = GetSolutionFileName("TestSolution.sln");
 
-            using var workspace = CreateMSBuildWorkspace();
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var solution = await workspace.OpenSolutionAsync(solutionFilePath);
         }
 
@@ -2677,7 +2700,8 @@ class C1
             CreateFiles(files);
             var solutionFilePath = GetSolutionFileName("DuplicatedGuids.sln");
 
-            using var workspace = CreateMSBuildWorkspace();
+            // Workspace failure Warning:Found project reference without a matching metadata reference
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var solution = await workspace.OpenSolutionAsync(solutionFilePath);
             Assert.Equal(2, solution.ProjectIds.Count);
 
@@ -2703,7 +2727,7 @@ class C1
             CreateFiles(files);
             var solutionFilePath = GetSolutionFileName("DuplicatedGuids.sln");
 
-            using var workspace = CreateMSBuildWorkspace();
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var solution = await workspace.OpenSolutionAsync(solutionFilePath);
             Assert.Equal(3, solution.ProjectIds.Count);
 
@@ -2763,7 +2787,7 @@ class C1
 
             var projPath = GetSolutionFileName("Encoding.csproj");
 
-            using var workspace = CreateMSBuildWorkspace();
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var project = await workspace.OpenProjectAsync(projPath);
             var document = project.Documents.First(d => d.Name == "class1.cs");
             var text = await document.GetTextAsync();
@@ -2961,7 +2985,7 @@ class C { }";
 
             var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
-            using var workspace = CreateMSBuildWorkspace();
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var proj = await workspace.OpenProjectAsync(projectFilePath);
 
             var diagnostic = Assert.Single(workspace.Diagnostics);
@@ -2978,7 +3002,7 @@ class C { }";
 
             var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
-            using var workspace = CreateMSBuildWorkspace();
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var proj = await workspace.OpenProjectAsync(projectFilePath);
 
             var diagnostic = Assert.Single(workspace.Diagnostics);
@@ -2995,7 +3019,7 @@ class C { }";
 
             var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
 
-            using var workspace = CreateMSBuildWorkspace();
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var solution = await workspace.OpenSolutionAsync(solutionFilePath);
 
             var diagnostic = Assert.Single(workspace.Diagnostics);
@@ -3013,7 +3037,7 @@ class C { }";
 
             var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
-            using var workspace = CreateMSBuildWorkspace();
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var proj = await workspace.OpenProjectAsync(projectFilePath);
 
             var diagnostic = Assert.Single(workspace.Diagnostics);
@@ -3095,7 +3119,8 @@ class C { }";
 
             var solutionFilePath = GetSolutionFileName(@"TestVB2.sln");
 
-            using var workspace = CreateMSBuildWorkspace();
+            // The reference assemblies for .NETFramework,Version=v3.5 were not found To resolve this, install the Developer Pack 
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var solution = await workspace.OpenSolutionAsync(solutionFilePath);
 
             // Neither project should contain any unresolved metadata references
@@ -3136,7 +3161,8 @@ class C { }";
 
             var fullPath = GetSolutionFileName(@"CSharpProjectReference.sln");
 
-            using var workspace = CreateMSBuildWorkspace();
+            // Warning:Found project reference without a matching metadata reference
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var solution = await workspace.OpenSolutionAsync(fullPath);
             var project = solution.Projects.Single(p => p.FilePath.EndsWith("CSharpProject_ProjectReference.csproj"));
 
