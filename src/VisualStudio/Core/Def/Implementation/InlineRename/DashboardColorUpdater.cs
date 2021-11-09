@@ -11,8 +11,8 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
 {
-    [Export(typeof(IDashboardColorUpdater))]
-    internal class DashboardColorUpdater : IDashboardColorUpdater
+    [Export(typeof(IInlineRenameColorUpdater))]
+    internal class DashboardColorUpdater : IInlineRenameColorUpdater
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -22,12 +22,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
 
         public void UpdateColors()
         {
-            DashboardColors.SystemCaptionTextColorKey = EnvironmentColors.SystemWindowTextColorKey;
-            DashboardColors.SystemCaptionTextBrushKey = EnvironmentColors.SystemWindowTextBrushKey;
-            DashboardColors.CheckBoxTextBrushKey = EnvironmentColors.SystemWindowTextBrushKey;
-            DashboardColors.BackgroundBrushKey = VsBrushes.CommandBarGradientBeginKey;
-            DashboardColors.AccentBarColorKey = EnvironmentColors.FileTabInactiveDocumentBorderEdgeBrushKey;
-            DashboardColors.ButtonStyleKey = VsResourceKeys.ButtonStyleKey;
+            InlineRenameColors.SystemCaptionTextColorKey = EnvironmentColors.SystemWindowTextColorKey;
+            InlineRenameColors.SystemCaptionTextBrushKey = EnvironmentColors.SystemWindowTextBrushKey;
+            InlineRenameColors.CheckBoxTextBrushKey = EnvironmentColors.SystemWindowTextBrushKey;
+            InlineRenameColors.BackgroundBrushKey = VsBrushes.CommandBarGradientBeginKey;
+            InlineRenameColors.AccentBarColorKey = EnvironmentColors.FileTabInactiveDocumentBorderEdgeBrushKey;
+            InlineRenameColors.ButtonStyleKey = VsResourceKeys.ButtonStyleKey;
         }
     }
 }
