@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static TypeSymbol? InferBestType(
             ImmutableArray<BoundExpression> exprs,
             ConversionsBase conversions,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+            bool unwrapFunctionType)
         {
             // SPEC:    7.5.2.14 Finding the best common type of a set of expressions
             // SPEC:    In some cases, a common type needs to be inferred for a set of expressions. In particular, the element types of implicitly typed arrays and
@@ -87,7 +88,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = GetBestType(builder, conversions, ref useSiteInfo);
             builder.Free();
 
-            return (result as FunctionTypeSymbol)?.GetInternalDelegateType() ?? result;
+            if (unwrapFunctionType && result is FunctionTypeSymbol functionType)
+            {
+                return functionType.GetInternalDelegateType();
+            }
+            return result;
         }
 
         /// <remarks>
