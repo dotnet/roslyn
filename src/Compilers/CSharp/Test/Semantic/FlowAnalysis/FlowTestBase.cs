@@ -85,12 +85,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected DataFlowAnalysis CompileAndAnalyzeDataFlowConstructorInitializer(string program, params MetadataReference[] references)
         {
-            return CompileAndGetModelAndConstructorInitializer(program, (model, expression) => model.AnalyzeDataFlow(expression), references);
+            return CompileAndGetModelAndConstructorInitializer(program, (model, constructorInitializer) => model.AnalyzeDataFlow(constructorInitializer), references);
         }
 
         protected DataFlowAnalysis CompileAndAnalyzeDataFlowPrimaryConstructorInitializer(string program, params MetadataReference[] references)
         {
-            return CompileAndGetModelAndPrimaryConstructorInitializer(program, (model, expression) => model.AnalyzeDataFlow(expression), references);
+            return CompileAndGetModelAndPrimaryConstructorInitializer(program, (model, primaryConstructorInitializer) => model.AnalyzeDataFlow(primaryConstructorInitializer), references);
         }
 
         protected DataFlowAnalysis CompileAndAnalyzeDataFlowStatements(string program)
