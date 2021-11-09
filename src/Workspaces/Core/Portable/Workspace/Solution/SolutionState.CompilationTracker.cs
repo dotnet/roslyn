@@ -1170,7 +1170,7 @@ namespace Microsoft.CodeAnalysis
                 var projectChecksum = await this.ProjectState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
                 tempChecksumArray.Add(projectChecksum);
 
-                // Calculate a checksum this project and for each dependent project that could affect diagnostics for
+                // Calculate a checksum this project and for each dependent project that could affect semantics for
                 // this project. Ensure that the checksum calculation orders the projects consistently so that we get
                 // the same checksum across sessions of VS.  Note: we use the project filepath+name as a unique way
                 // to reference a project.  This matches the logic in our persistence-service implemention as to how
