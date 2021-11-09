@@ -30,6 +30,16 @@ jobs:
     configuration: Release
     queueName: Build.Windows.Amd64.VS2022.Pre.Open
 
+- ${{ if neq($(Build.Reason), "PullRequest") }}:
+  - template: eng/pipelines/test-windows-job.yml
+    parameters:
+      testRunName: 'Test Windows Desktop Debug 32'
+      jobName: Test_Windows_Desktop_Debug_32
+      buildJobName: Build_Windows_Debug
+      testArtifactName: Transport_Artifacts_Windows_Debug
+      configuration: Debug
+      testArguments: -testDesktop -test32
+
 - template: eng/pipelines/test-windows-job.yml
   parameters:
     testRunName: 'Test Windows Desktop Debug 64'
@@ -48,6 +58,16 @@ jobs:
     configuration: Debug
     testArguments: -testCoreClr
 
+- ${{ if neq($(Build.Reason), "PullRequest") }}:
+  - template: eng/pipelines/test-windows-job-single-machine.yml
+    parameters:
+      testRunName: 'Test Windows CoreClr Debug Single Machine'
+      jobName: Test_Windows_CoreClr_Debug_Single_Machine
+      buildJobName: Build_Windows_Debug
+      testArtifactName: Transport_Artifacts_Windows_Debug
+      configuration: Debug
+      testArguments: -testCoreClr
+
 - template: eng/pipelines/test-windows-job.yml
   parameters:
     testRunName: 'Test Windows Desktop Release 32'
@@ -65,6 +85,16 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
     testArguments: -testDesktop -test64 -helixQueueName Windows.10.Amd64.Server19H1.ES.Open
+
+- ${{ if neq($(Build.Reason), "PullRequest") }}:
+  - template: eng/pipelines/test-windows-job.yml
+    parameters:
+      testRunName: 'Test Windows Desktop Release 64'
+      jobName: Test_Windows_Desktop_Release_64
+      buildJobName: Build_Windows_Release
+      testArtifactName: Transport_Artifacts_Windows_Release
+      configuration: Release
+      testArguments: -testDesktop -test64
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -100,6 +130,17 @@ jobs:
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
     testArguments: --testCoreClr --helixQueueName Ubuntu.1804.Amd64.Open
+
+- ${{ if neq($(Build.Reason), "PullRequest") }}:
+  - template: eng/pipelines/test-unix-job-single-machine.yml
+    parameters:
+      testRunName: 'Test Linux Debug Single Machine'
+      jobName: Test_Linux_Debug_Single_Machine
+      buildJobName: Build_Unix_Debug
+      testArtifactName: Transport_Artifacts_Unix_Debug
+      configuration: Debug
+      testArguments: --testCoreClr
+      queueName: 'Build.Ubuntu.1804.amd64.Open'
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:
