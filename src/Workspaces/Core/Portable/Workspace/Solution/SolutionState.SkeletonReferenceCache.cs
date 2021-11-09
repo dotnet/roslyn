@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -111,19 +112,19 @@ internal partial class SolutionState
             // being passed in.  If so, we can just reuse what we already computed before.
             var version = await compilationTracker.GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
 
-            var referenceSet = await TryGetOrCreateReferenceSetAsync(
+            var referenceSet = await TryGetOrBuildReferenceSetWorkerAsync(
                 compilationTracker, solution, version, cancellationToken).ConfigureAwait(false);
             return referenceSet?.GetMetadataReference(properties);
         }
 
-        private async Task<SkeletonReferenceSet?> TryGetOrCreateReferenceSetAsync(
+        private async Task<SkeletonReferenceSet?> TryGetOrBuildReferenceSetWorkerAsync(
             ICompilationTracker compilationTracker,
             SolutionState solution,
             VersionStamp version,
             CancellationToken cancellationToken)
         {
             var workspace = solution.Workspace;
-            if (TryReadSkeletonReferenceSetAtThisVersion(version, out var referenceSet))
+            if (TryGetSkeletonReferenceSetMatchingThisVersion(version, out var referenceSet))
                 return referenceSet;
 
             // okay, we don't have anything cached with this version. so create one now.  Note: this is expensive
@@ -131,14 +132,13 @@ internal partial class SolutionState
             using (await _emitGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 // after taking the gate, another thread may have succeeded.  See if we can use their version if so:
-                if (TryReadSkeletonReferenceSetAtThisVersion(version, out referenceSet))
+                if (TryGetSkeletonReferenceSetMatchingThisVersion(version, out referenceSet))
                     return referenceSet;
 
                 // Ok, first thread to get in and actually do this work.  Build the compilation and try to emit it.
                 // Regardless of if we succeed or fail, store this result so this only happens once.
 
-                var compilation = await compilationTracker.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
-                var storage = TryCreateMetadataStorage(workspace, compilation, cancellationToken);
+                referenceSet = await TryReadOrBuildSkeletonReferenceSetAsync(compilationTracker, solution, cancellationToken).ConfigureAwait(false);
 
                 lock (_stateGate)
                 {
@@ -146,34 +146,65 @@ internal partial class SolutionState
                     // if we didn't, that's ok too, we'll just say that for this requested version, that we can
                     // return any prior computed reference set (including 'null' if we've never successfully made
                     // a skeleton).
-                    if (storage != null)
-                        _skeletonReferenceSet = new SkeletonReferenceSet(storage, compilation.AssemblyName, new DeferredDocumentationProvider(compilation));
-
+                    _skeletonReferenceSet = referenceSet ?? _skeletonReferenceSet;
                     _version = version;
 
                     return _skeletonReferenceSet;
                 }
             }
-        }
 
-        private bool TryReadSkeletonReferenceSetAtThisVersion(VersionStamp version, out SkeletonReferenceSet? result)
-        {
-            lock (_stateGate)
+            bool TryGetSkeletonReferenceSetMatchingThisVersion(VersionStamp version, out SkeletonReferenceSet? result)
             {
-                // if we're asking about the same version as we've cached, then return whatever have (regardless of
-                // whether it succeeded or not.
-                if (version == _version)
+                lock (_stateGate)
                 {
-                    result = _skeletonReferenceSet;
-                    return true;
+                    // if we're asking about the same version as we've cached, then return whatever have (regardless of
+                    // whether it succeeded or not.
+                    if (version == _version)
+                    {
+                        result = _skeletonReferenceSet;
+                        return true;
+                    }
                 }
-            }
 
-            result = null;
-            return false;
+                result = null;
+                return false;
+            }
         }
 
-        private static ITemporaryStreamStorage? TryCreateMetadataStorage(Workspace workspace, Compilation compilation, CancellationToken cancellationToken)
+        private async Task<SkeletonReferenceSet?> TryReadOrBuildSkeletonReferenceSetAsync(
+            ICompilationTracker compilationTracker, SolutionState solution, CancellationToken cancellationToken)
+        {
+            var workspace = solution.Workspace;
+            var projectId = compilationTracker.ProjectState.Id;
+
+            // First, try to read in from the persistence layer if a previous sessions stored a value there.
+            var checksum = await compilationTracker.GetDependentChecksumAsync(solution, cancellationToken).ConfigureAwait(false);
+            var referenceSet = await TryReadFromPersistentStorageAsync(workspace, projectId, checksum, cancellationToken).ConfigureAwait(false);
+            if (referenceSet != null)
+                return referenceSet;
+
+            // If not, actually go and build the entire compilation and return a wrapper around that.
+            var compilation = await compilationTracker.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
+
+            using var peStream = SerializableBytes.CreateWritableStream();
+            using var xmlDocumentationStream = SerializableBytes.CreateWritableStream();
+
+            var assemblyName = compilation.AssemblyName;
+
+            var storage = TryCreateMetadataStorage(workspace, compilation, peStream, xmlDocumentationStream, cancellationToken);
+            referenceSet = storage == null ? null : new SkeletonReferenceSet(storage, assemblyName, new DeferredDocumentationProvider(compilation));
+
+            // Finally, write this out to disk so that 
+            await WriteToPersistentStorageAsync(
+                workspace, projectId, checksum, peStream, xmlDocumentationStream, assemblyName, failed: storage == null, cancellationToken);
+        }
+
+        private static ITemporaryStreamStorage? TryCreateMetadataStorage(
+            Workspace workspace,
+            Compilation compilation,
+            Stream peStream,
+            Stream xmlDocumentationStream,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -183,12 +214,13 @@ internal partial class SolutionState
 
                 using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_EmitMetadataOnlyImage, cancellationToken))
                 {
-                    // TODO: make it to use SerializableBytes.WritableStream rather than MemoryStream so that
-                    //       we don't allocate anything for skeleton assembly.
-                    using var stream = SerializableBytes.CreateWritableStream();
                     // note: cloning compilation so we don't retain all the generated symbols after its emitted.
                     // * REVIEW * is cloning clone p2p reference compilation as well?
-                    var emitResult = compilation.Clone().Emit(stream, options: s_metadataOnlyEmitOptions, cancellationToken: cancellationToken);
+                    var emitResult = compilation.Clone().Emit(
+                        peStream: peStream,
+                        xmlDocumentationStream: xmlDocumentationStream,
+                        options: s_metadataOnlyEmitOptions,
+                        cancellationToken: cancellationToken);
 
                     if (emitResult.Success)
                     {
@@ -197,8 +229,8 @@ internal partial class SolutionState
                         var temporaryStorageService = workspace.Services.GetRequiredService<ITemporaryStorageService>();
                         var storage = temporaryStorageService.CreateTemporaryStreamStorage(cancellationToken);
 
-                        stream.Position = 0;
-                        storage.WriteStream(stream, cancellationToken);
+                        peStream.Position = 0;
+                        storage.WriteStream(peStream, cancellationToken);
 
                         return storage;
                     }
