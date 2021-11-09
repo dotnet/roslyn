@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Analyze data-flow within a part of a method body.
-        /// /// note: For C# ConstructorInitializerSyntax and PrimaryConstructorBaseTypeSyntax are treated as a regular statement here
+        /// note: For C# ConstructorInitializerSyntax and PrimaryConstructorBaseTypeSyntax are treated as a regular statement here
         /// </summary>
         public static DataFlowAnalysis AnalyzeDataFlow(this SemanticModel semanticModel, SyntaxNode statementOrExpression)
         {
