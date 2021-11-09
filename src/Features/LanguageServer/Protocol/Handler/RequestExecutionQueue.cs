@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             // Start the queue processing
             _asynchronousOperationListener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
-            var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(ProcessQueueAsync));
+            var token = _asynchronousOperationListener.BeginAsyncOperation($"{nameof(ProcessQueueAsync)}_{serverTypeName}");
             _ = ProcessQueueAsync().CompletesAsyncOperation(token);
         }
 
