@@ -944,33 +944,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public async Task<MetadataReference> GetMetadataReferenceAsync(
-                SolutionState solution,
-                ProjectState fromProject,
-                ProjectReference projectReference,
-                CancellationToken cancellationToken)
-            {
-                try
-                {
-                    // If same language then we can wrap the other project's compilation into a compilation reference
-                    if (this.ProjectState.LanguageServices == fromProject.LanguageServices)
-                    {
-                        // otherwise, base it off the compilation by building it first.
-                        var compilation = await this.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
-                        return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
-                    }
-                    else
-                    {
-                        // otherwise get a metadata only image reference that is built by emitting the metadata from the referenced project's compilation and re-importing it.
-                        return await this.GetMetadataOnlyImageReferenceAsync(solution, projectReference, cancellationToken).ConfigureAwait(false);
-                    }
-                }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
-                {
-                    throw ExceptionUtilities.Unreachable;
-                }
-            }
-
             /// <summary>
             /// Attempts to get (without waiting) a metadata reference to a possibly in progress
             /// compilation. Only actual compilation references are returned. Could potentially 
@@ -991,49 +964,6 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return null;
-            }
-
-            /// <summary>
-            /// Gets a metadata reference to the metadata-only-image corresponding to the compilation.
-            /// </summary>
-            private async Task<MetadataReference> GetMetadataOnlyImageReferenceAsync(
-                SolutionState solution, ProjectReference projectReference, CancellationToken cancellationToken)
-            {
-                try
-                {
-                    using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_GetMetadataOnlyImage, cancellationToken))
-                    {
-                        var workspace = solution.Workspace;
-                        var version = await this.GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
-
-                        workspace.LogTestMessage($"Looking for a cached skeleton assembly for {projectReference.ProjectId} before taking the lock...");
-
-                        var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
-
-                        // Attempt to reuse an existing skeleton cached for this compilation tracker.
-                        var reference = this.CachedSkeletonReferences.TryGetReference(version, properties);
-                        if (reference != null)
-                        {
-                            workspace.LogTestMessage($"Reusing the already cached skeleton assembly for {projectReference.ProjectId}");
-                            return reference;
-                        }
-
-                        // using async build lock so we don't get multiple consumers attempting to build metadata-only images for the same compilation.
-                        using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                        {
-                            workspace.LogTestMessage($"Build lock taken for {ProjectState.Id}...");
-
-                            // okay, we still don't have one. bring the compilation to final state since we are going to use it to create skeleton assembly
-                            var compilationInfo = await this.GetOrBuildCompilationInfoAsync(solution, lockGate: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                            return this.CachedSkeletonReferences.GetOrBuildReference(
-                                workspace, properties, compilationInfo.Compilation, version, cancellationToken);
-                        }
-                    }
-                }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
-                {
-                    throw ExceptionUtilities.Unreachable;
-                }
             }
 
             public Task<bool> HasSuccessfullyLoadedAsync(SolutionState solution, CancellationToken cancellationToken)

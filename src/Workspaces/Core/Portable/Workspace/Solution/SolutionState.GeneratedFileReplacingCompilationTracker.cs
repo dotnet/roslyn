@@ -115,21 +115,6 @@ namespace Microsoft.CodeAnalysis
             public Task<Checksum> GetDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken)
                 => _underlyingTracker.GetDependentChecksumAsync(solution, cancellationToken);
 
-            public async Task<MetadataReference> GetMetadataReferenceAsync(SolutionState solution, ProjectState fromProject, ProjectReference projectReference, CancellationToken cancellationToken)
-            {
-                var compilation = await GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
-
-                // If it's the same language we can just make a CompilationReference
-                if (this.ProjectState.LanguageServices == fromProject.LanguageServices)
-                    return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
-
-                // Otherwise we need to create a skeleton for this project.  See if we can reuse an existing
-                // one, or create a new one when we can't.
-                var version = await GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
-                var properties = new MetadataReferenceProperties(MetadataImageKind.Assembly, projectReference.Aliases, projectReference.EmbedInteropTypes);
-                return this.CachedSkeletonReferences.GetOrBuildReference(solution.Workspace, properties, compilation, version, cancellationToken);
-            }
-
             public CompilationReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
             {
                 // This method is used if you're forking a solution with partial semantics, and used to quickly produce references.
