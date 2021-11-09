@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         ///   <item>The <see cref="Project.GetDependentVersionAsync(CancellationToken)"/> of the project snapshot that was used to calculate diagnostics.
         ///       <para>Note that this version can change even when nothing has actually changed (for example, forking the LSP text, reloading the same project).
         ///       So we additionally store:</para></item>
-        ///   <item>A checksum representing the project and its dependencies from <see cref="CalculateDependentProjectChecksumAsync(Project, CancellationToken)"/>.</item>
+        ///   <item>A checksum representing the project and its dependencies from <see cref="Project.GetDependentChecksumAsync(CancellationToken)"/>.</item>
         /// </list>
         /// This is used to determine if we need to re-calculate diagnostics.
         /// </summary>
