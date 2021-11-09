@@ -30,13 +30,13 @@ namespace Microsoft.CodeAnalysis
             [DisallowNull]
             private Compilation? _compilationWithReplacement;
 
-            public CachedSkeletonReferences CachedSkeletonReferences { get; }
+            public SkeletonReferenceCache SkeletonReferenceCache { get; }
 
             public GeneratedFileReplacingCompilationTracker(ICompilationTracker underlyingTracker, SourceGeneratedDocumentState replacementDocumentState)
             {
                 _underlyingTracker = underlyingTracker;
                 _replacedGeneratedDocumentState = replacementDocumentState;
-                CachedSkeletonReferences = underlyingTracker.CachedSkeletonReferences.Clone();
+                SkeletonReferenceCache = underlyingTracker.SkeletonReferenceCache.Clone();
             }
 
             public ProjectState ProjectState => _underlyingTracker.ProjectState;

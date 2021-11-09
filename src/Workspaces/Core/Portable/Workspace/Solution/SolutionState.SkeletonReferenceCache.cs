@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -43,7 +42,7 @@ internal partial class SolutionState
     /// different semantics) will not leak backward to a prior <see cref="ProjectState"/>, causing it to see a view of the world
     /// inapplicable to its current snapshot.
     /// </summary>
-    private partial class CachedSkeletonReferences
+    private partial class SkeletonReferenceCache
     {
         /// <summary>
         /// Mapping from compilation instance to metadata-references for it.  This allows us to associate the same
@@ -79,12 +78,12 @@ internal partial class SolutionState
         /// </summary>
         private SkeletonReferenceSet? _skeletonReferenceSet;
 
-        public CachedSkeletonReferences()
+        public SkeletonReferenceCache()
             : this(version: null, skeletonReferenceSet: null)
         {
         }
 
-        private CachedSkeletonReferences(
+        private SkeletonReferenceCache(
             VersionStamp? version,
             SkeletonReferenceSet? skeletonReferenceSet)
         {
@@ -93,12 +92,12 @@ internal partial class SolutionState
         }
 
         /// <summary>
-        /// Produces a copy of the <see cref="CachedSkeletonReferences"/>, allowing forks of <see cref="ProjectState"/> to
+        /// Produces a copy of the <see cref="SkeletonReferenceCache"/>, allowing forks of <see cref="ProjectState"/> to
         /// reuse <see cref="MetadataReference"/>s when their dependent semantic version matches ours.  In the case where
         /// the version is different, then the clone will attempt to make a new skeleton reference for that version.  If it
         /// succeeds, it will use that.  If it fails however, it can still use our skeletons.
         /// </summary>
-        public CachedSkeletonReferences Clone()
+        public SkeletonReferenceCache Clone()
         {
             lock (_stateGate)
             {
@@ -106,7 +105,7 @@ internal partial class SolutionState
                 // can use this data if either the version changed, or they weren't able to build a skeleton for themselves.
                 // By passing along a copy we ensure that if they have a different version, they'll end up producing a new
                 // SkeletonReferenceSet where they'll store their own data in which will not affect prior ProjectStates.
-                return new CachedSkeletonReferences(_version, _skeletonReferenceSet);
+                return new SkeletonReferenceCache(_version, _skeletonReferenceSet);
             }
         }
 

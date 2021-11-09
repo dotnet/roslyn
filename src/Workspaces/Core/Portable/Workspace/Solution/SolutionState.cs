@@ -1914,7 +1914,7 @@ namespace Microsoft.CodeAnalysis
                     workspace.LogTestMessage($"Looking for a cached skeleton assembly for {projectReference.ProjectId} before taking the lock...");
 
                     var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
-                    return await tracker.CachedSkeletonReferences.GetOrBuildReferenceAsync(
+                    return await tracker.SkeletonReferenceCache.GetOrBuildReferenceAsync(
                         tracker, this, properties, cancellationToken).ConfigureAwait(false);
                 }
             }

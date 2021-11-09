@@ -44,18 +44,18 @@ namespace Microsoft.CodeAnalysis
             // guarantees only one thread is building at a time
             private readonly SemaphoreSlim _buildLock = new(initialCount: 1);
 
-            public CachedSkeletonReferences CachedSkeletonReferences { get; }
+            public SkeletonReferenceCache SkeletonReferenceCache { get; }
 
             private CompilationTracker(
                 ProjectState project,
                 CompilationTrackerState state,
-                CachedSkeletonReferences cachedSkeletonReferences)
+                SkeletonReferenceCache cachedSkeletonReferences)
             {
                 Contract.ThrowIfNull(project);
 
                 this.ProjectState = project;
                 _stateDoNotAccessDirectly = state;
-                this.CachedSkeletonReferences = cachedSkeletonReferences;
+                this.SkeletonReferenceCache = cachedSkeletonReferences;
             }
 
             /// <summary>
@@ -147,13 +147,13 @@ namespace Microsoft.CodeAnalysis
                     var newState = CompilationTrackerState.Create(
                         solutionServices, baseCompilation, state.GeneratorInfo, state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken), intermediateProjects);
 
-                    return new CompilationTracker(newProject, newState, this.CachedSkeletonReferences.Clone());
+                    return new CompilationTracker(newProject, newState, this.SkeletonReferenceCache.Clone());
                 }
                 else
                 {
                     // We have no compilation, but we might have information about generated docs.
                     var newState = new NoCompilationState(state.GeneratorInfo.WithDocumentsAreFinal(false));
-                    return new CompilationTracker(newProject, newState, this.CachedSkeletonReferences.Clone());
+                    return new CompilationTracker(newProject, newState, this.SkeletonReferenceCache.Clone());
                 }
             }
 
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis
                     this.ProjectState.Id,
                     metadataReferenceToProjectId);
 
-                return new CompilationTracker(inProgressProject, finalState, this.CachedSkeletonReferences.Clone());
+                return new CompilationTracker(inProgressProject, finalState, this.SkeletonReferenceCache.Clone());
             }
 
             /// <summary>

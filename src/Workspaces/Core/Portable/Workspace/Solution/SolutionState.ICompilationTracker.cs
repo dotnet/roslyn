@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
         {
             ProjectState ProjectState { get; }
 
-            CachedSkeletonReferences CachedSkeletonReferences { get; }
+            SkeletonReferenceCache SkeletonReferenceCache { get; }
 
             /// <summary>
             /// Returns <see langword="true"/> if this <see cref="Project"/>/<see cref="Compilation"/> could produce the
