@@ -1176,7 +1176,7 @@ namespace Microsoft.CodeAnalysis
                 // to reference a project.  This matches the logic in our persistence-service implemention as to how
                 // information is associated with a project.
                 var transitiveDependencies = solution.GetProjectDependencyGraph().GetProjectsThatThisProjectTransitivelyDependsOn(this.ProjectState.Id);
-                var orderedProjectIds = transitiveDependencies.Add(this.ProjectState.Id).OrderBy(id =>
+                var orderedProjectIds = transitiveDependencies.OrderBy(id =>
                 {
                     var depProject = solution.GetRequiredProjectState(id);
                     return (depProject.FilePath, depProject.Name);
