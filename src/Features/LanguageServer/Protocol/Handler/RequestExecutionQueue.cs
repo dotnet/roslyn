@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// The queue containing the ordered LSP requests along with a combined cancellation token
         /// representing the queue's cancellation token and the individual request cancellation token.
         /// </summary>
-        private readonly AsyncQueue<(IQueueItem queueItem, CancellationToken cancellationToken)> _queue;
-        private readonly CancellationTokenSource _cancelSource;
+        private readonly AsyncQueue<(IQueueItem queueItem, CancellationToken cancellationToken)> _queue = new();
+        private readonly CancellationTokenSource _cancelSource = new CancellationTokenSource();
         private readonly RequestTelemetryLogger _requestTelemetryLogger;
         private readonly IGlobalOptionService _globalOptions;
         private readonly IAsynchronousOperationListener _asynchronousOperationListener;
@@ -96,9 +96,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
             _supportedLanguages = supportedLanguages;
             _serverName = serverName;
-
-            _queue = new();
-            _cancelSource = new CancellationTokenSource();
 
             // Pass the language client instance type name to the telemetry logger to ensure we can
             // differentiate between the different C# LSP servers that have the same client name.
@@ -166,7 +163,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             // Create a combined cancellation token so either the client cancelling it's token or the queue
             // shutting down cancels the request.
-            using var combinedTokenSource = _cancelSource.Token.CombineWith(requestCancellationToken);
+            var combinedTokenSource = _cancelSource.Token.CombineWith(requestCancellationToken);
             var combinedCancellationToken = combinedTokenSource.Token;
 
             var (item, resultTask) = QueueItem<TRequestType, TResponseType>.Create(

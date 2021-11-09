@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         this.Metrics.RecordSuccess();
                     }
 
-                    _completionSource.SetResult(result);
+                    _completionSource.TrySetResult(result);
                 }
                 catch (OperationCanceledException ex)
                 {
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     _logger.TraceException(ex);
                     this.Metrics.RecordFailure();
 
-                    _completionSource.SetException(ex);
+                    _completionSource.TrySetException(ex);
                 }
                 finally
                 {
