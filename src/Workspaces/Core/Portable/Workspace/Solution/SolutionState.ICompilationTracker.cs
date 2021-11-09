@@ -34,8 +34,10 @@ namespace Microsoft.CodeAnalysis
             ICompilationTracker Fork(SolutionServices solutionServices, ProjectState newProject, CompilationAndGeneratorDriverTranslationAction? translate = null, CancellationToken cancellationToken = default);
             ICompilationTracker FreezePartialStateWithTree(SolutionState solution, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken);
             Task<Compilation> GetCompilationAsync(SolutionState solution, CancellationToken cancellationToken);
-            Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken);
+
             Task<VersionStamp> GetDependentVersionAsync(SolutionState solution, CancellationToken cancellationToken);
+            Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken);
+            Task<Checksum> GetDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken);
 
             /// <summary>
             /// Get a metadata reference to this compilation info's compilation with respect to

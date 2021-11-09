@@ -1078,12 +1078,13 @@ namespace Microsoft.CodeAnalysis
                 return state is FinalState finalState ? finalState.GeneratorInfo.Documents.GetState(documentId) : null;
             }
 
-            #region Versions
+            #region Versions and Checksums
 
             // Dependent Versions are stored on compilation tracker so they are more likely to survive when unrelated solution branching occurs.
 
             private AsyncLazy<VersionStamp>? _lazyDependentVersion;
             private AsyncLazy<VersionStamp>? _lazyDependentSemanticVersion;
+            private AsyncLazy<Checksum>? _lazyDependentChecksum;
 
             public Task<VersionStamp> GetDependentVersionAsync(SolutionState solution, CancellationToken cancellationToken)
             {
@@ -1148,6 +1149,52 @@ namespace Microsoft.CodeAnalysis
 
                 return version;
             }
+
+            public Task<Checksum> GetDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken)
+            {
+                if (_lazyDependentChecksum == null)
+                {
+                    var tmp = solution; // temp. local to avoid a closure allocation for the fast path
+                    // note: solution is captured here, but it will go away once GetValueAsync executes.
+                    Interlocked.CompareExchange(ref _lazyDependentChecksum, new AsyncLazy<Checksum>(c => ComputeDependentChecksumAsync(tmp, c), cacheResult: true), null);
+                }
+
+                return _lazyDependentChecksum.GetValueAsync(cancellationToken);
+            }
+
+            private async Task<Checksum> ComputeDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken)
+            {
+                using var tempChecksumArray = TemporaryArray<Checksum>.Empty;
+
+                // Get the checksum for the project itself.
+                var projectChecksum = await this.ProjectState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+                tempChecksumArray.Add(projectChecksum);
+
+                // Calculate a checksum this project and for each dependent project that could affect semantics for
+                // this project. Ensure that the checksum calculation orders the projects consistently so that we get
+                // the same checksum across sessions of VS.  Note: we use the project filepath+name as a unique way
+                // to reference a project.  This matches the logic in our persistence-service implemention as to how
+                // information is associated with a project.
+                var transitiveDependencies = solution.GetProjectDependencyGraph().GetProjectsThatThisProjectTransitivelyDependsOn(this.ProjectState.Id);
+                var orderedProjectIds = transitiveDependencies.Add(this.ProjectState.Id).OrderBy(id =>
+                {
+                    var depProject = solution.GetRequiredProjectState(id);
+                    return (depProject.FilePath, depProject.Name);
+                });
+
+                foreach (var projectId in orderedProjectIds)
+                {
+                    var referencedProject = solution.GetRequiredProjectState(projectId);
+
+                    // Note that these checksums should only actually be calculated once, if the project is unchanged
+                    // the same checksum will be returned.
+                    var referencedProjectChecksum = await referencedProject.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+                    tempChecksumArray.Add(referencedProjectChecksum);
+                }
+
+                return Checksum.Create(tempChecksumArray.ToImmutableAndClear());
+            }
+
             #endregion
         }
     }
