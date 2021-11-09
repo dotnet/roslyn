@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -23,6 +24,8 @@ namespace Microsoft.CodeAnalysis
             private readonly ICompilationTracker _underlyingTracker;
             private readonly SourceGeneratedDocumentState _replacedGeneratedDocumentState;
 
+            private AsyncLazy<Checksum>? _lazyDependentChecksum;
+
             /// <summary>
             /// The lazily-produced compilation that has the generated document updated. This is initialized by call to
             /// <see cref="GetCompilationAsync"/>.
@@ -31,6 +34,7 @@ namespace Microsoft.CodeAnalysis
             private Compilation? _compilationWithReplacement;
 
             public SkeletonReferenceCache SkeletonReferenceCache { get; }
+            public ProjectState ProjectState => _underlyingTracker.ProjectState;
 
             public GeneratedFileReplacingCompilationTracker(ICompilationTracker underlyingTracker, SourceGeneratedDocumentState replacementDocumentState)
             {
@@ -38,8 +42,6 @@ namespace Microsoft.CodeAnalysis
                 _replacedGeneratedDocumentState = replacementDocumentState;
                 SkeletonReferenceCache = underlyingTracker.SkeletonReferenceCache.Clone();
             }
-
-            public ProjectState ProjectState => _underlyingTracker.ProjectState;
 
             public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary)
             {
@@ -113,7 +115,21 @@ namespace Microsoft.CodeAnalysis
                 => _underlyingTracker.GetDependentSemanticVersionAsync(solution, cancellationToken);
 
             public Task<Checksum> GetDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken)
-                => _underlyingTracker.GetDependentChecksumAsync(solution, cancellationToken);
+            {
+                if (_lazyDependentChecksum == null)
+                {
+                    var tmp = solution; // temp. local to avoid a closure allocation for the fast path
+                    // note: solution is captured here, but it will go away once GetValueAsync executes.
+                    Interlocked.CompareExchange(ref _lazyDependentChecksum, new AsyncLazy<Checksum>(c => ComputeDependentChecksumAsync(tmp, c), cacheResult: true), null);
+                }
+
+                return _lazyDependentChecksum.GetValueAsync(cancellationToken);
+            }
+
+            private async Task<Checksum> ComputeDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken)
+                => Checksum.Create(
+                    await _underlyingTracker.GetDependentChecksumAsync(solution, cancellationToken).ConfigureAwait(false),
+                    await _replacedGeneratedDocumentState.GetChecksumAsync(cancellationToken).ConfigureAwait(false));
 
             public CompilationReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
             {
