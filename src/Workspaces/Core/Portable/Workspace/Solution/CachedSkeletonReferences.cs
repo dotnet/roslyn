@@ -305,15 +305,14 @@ internal partial class SolutionState
             private readonly DeferredDocumentationProvider _documentationProvider;
 
             /// <summary>
-            /// Protection for <see cref="_metadataReferences"/>.
-            /// </summary>
-            private readonly object _gate = new();
-
-            /// <summary>
             /// Use WeakReference so we don't keep MetadataReference's alive if they are not being consumed. 
-            /// Note: if the weak-reference is actuall <see langword="null"/> (not that it points to null),
-            /// that means 
+            /// Note: if the weak-reference is actually <see langword="null"/> (not that it points to null),
+            /// that means we know we were unable to generate a reference for those properties, and future
+            /// calls can early exit.
             /// </summary>
+            /// <remarks>
+            /// This instance should be locked when being read/written.
+            /// </remarks>
             private readonly Dictionary<MetadataReferenceProperties, WeakReference<MetadataReference>?> _metadataReferences = new();
 
             public SkeletonReferenceSet(
@@ -329,7 +328,7 @@ internal partial class SolutionState
             public MetadataReference? GetMetadataReference(MetadataReferenceProperties properties)
             {
                 // lookup first and eagerly return cached value if we have it.
-                lock (_gate)
+                lock (_metadataReferences)
                 {
                     if (TryGetExisting_NoLock(properties, out var metadataReference))
                         return metadataReference;
@@ -340,7 +339,7 @@ internal partial class SolutionState
                     var metadataReference = CreateReference(properties.Aliases, properties.EmbedInteropTypes, _documentationProvider);
                     var weakMetadata = metadataReference == null ? null : new WeakReference<MetadataReference>(metadataReference);
 
-                    lock (_gate)
+                    lock (_metadataReferences)
                     {
                         // see if someone beat us to writing this.
                         if (TryGetExisting_NoLock(properties, out var existingMetadataReference))
