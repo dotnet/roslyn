@@ -798,6 +798,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 #End Region
 
 #Region "Syntax And Semantic Utils"
+        Protected Overrides Function IsCompilationUnitWithGlobalStatements(node As SyntaxNode) As Boolean
+            Return False
+        End Function
+
+        Protected Overrides Function IsGlobalStatement(node As SyntaxNode) As Boolean
+            Return False
+        End Function
+
         Protected Overrides Function GetGlobalStatementDiagnosticSpan(node As SyntaxNode) As TextSpan
             Return Nothing
         End Function

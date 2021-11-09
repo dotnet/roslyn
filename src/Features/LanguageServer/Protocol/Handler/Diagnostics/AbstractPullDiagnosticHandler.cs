@@ -25,9 +25,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     /// <summary>
     /// Root type for both document and workspace diagnostic pull requests.
     /// </summary>
-    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport> : IRequestHandler<TDiagnosticsParams, TReport[]?>
-        where TReport : VSInternalDiagnosticReport
+    /// <typeparam name="TDiagnosticsParams">The LSP input param type</typeparam>
+    /// <typeparam name="TReport">The LSP type that is reported via IProgress</typeparam>
+    /// <typeparam name="TReturn">The LSP type that is returned on completion of the request.</typeparam>
+    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : IRequestHandler<TDiagnosticsParams, TReturn?> where TDiagnosticsParams : IPartialResultParams<TReport[]>
     {
+        protected record struct PreviousResult(string PreviousResultId, TextDocumentIdentifier TextDocument);
+
         /// <summary>
         /// Special value we use to designate workspace diagnostics vs document diagnostics.  Document diagnostics
         /// should always <see cref="VSInternalDiagnosticReport.Supersedes"/> a workspace diagnostic as the former are 'live'
@@ -79,15 +83,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams diagnosticsParams);
 
         /// <summary>
-        /// Gets the progress object to stream results to.
-        /// </summary>
-        protected abstract IProgress<TReport[]>? GetProgress(TDiagnosticsParams diagnosticsParams);
-
-        /// <summary>
         /// Retrieve the previous results we reported.  Used so we can avoid resending data for unchanged files. Also
         /// used so we can report which documents were removed and can have all their diagnostics cleared.
         /// </summary>
-        protected abstract VSInternalDiagnosticParams[]? GetPreviousResults(TDiagnosticsParams diagnosticsParams);
+        protected abstract ImmutableArray<PreviousResult>? GetPreviousResults(TDiagnosticsParams diagnosticsParams);
 
         /// <summary>
         /// Returns all the documents that should be processed in the desired order to process them in.
@@ -98,7 +97,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// Creates the <see cref="VSInternalDiagnosticReport"/> instance we'll report back to clients to let them know our
         /// progress.  Subclasses can fill in data specific to their needs as appropriate.
         /// </summary>
-        protected abstract TReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId);
+        protected abstract TReport CreateReport(TextDocumentIdentifier identifier, LSP.Diagnostic[]? diagnostics, string? resultId);
+
+        protected abstract TReturn? CreateReturn(BufferedProgress<TReport> progress);
 
         /// <summary>
         /// Produce the diagnostics for the specified document.
@@ -110,17 +111,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// </summary>
         protected abstract DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData);
 
-        public async Task<TReport[]?> HandleRequestAsync(
+        public async Task<TReturn?> HandleRequestAsync(
             TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
             context.TraceInformation($"{this.GetType()} started getting diagnostics");
 
             // The progress object we will stream reports to.
-            using var progress = BufferedProgress.Create(GetProgress(diagnosticsParams));
+            using var progress = BufferedProgress.Create(diagnosticsParams.PartialResultToken);
 
             // Get the set of results the request said were previously reported.  We can use this to determine both
             // what to skip, and what files we have to tell the client have been removed.
-            var previousResults = GetPreviousResults(diagnosticsParams) ?? Array.Empty<VSInternalDiagnosticParams>();
+            var previousResults = GetPreviousResults(diagnosticsParams) ?? ImmutableArray<PreviousResult>.Empty;
             context.TraceInformation($"previousResults.Length={previousResults.Length}");
 
             // First, let the client know if any workspace documents have gone away.  That way it can remove those for
@@ -151,7 +152,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 if (newResultId != null)
                 {
                     context.TraceInformation($"Diagnostics were changed for document: {document.FilePath}");
-                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, document, newResultId, cancellationToken).ConfigureAwait(false));
+                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, document, newResultId, context.ClientCapabilities, cancellationToken).ConfigureAwait(false));
                 }
                 else
                 {
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // If we had a progress object, then we will have been reporting to that.  Otherwise, take what we've been
             // collecting and return that.
             context.TraceInformation($"{this.GetType()} finished getting diagnostics");
-            return progress.GetValues();
+            return CreateReturn(progress);
         }
 
         private static bool IncludeDocument(Document document, string? clientName)
@@ -182,12 +183,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return wantsRazorDoc == isRazorDoc;
         }
 
-        private static Dictionary<Document, VSInternalDiagnosticParams> GetDocumentToPreviousDiagnosticParams(
-            RequestContext context, VSInternalDiagnosticParams[] previousResults)
+        private static Dictionary<Document, PreviousResult> GetDocumentToPreviousDiagnosticParams(
+            RequestContext context, ImmutableArray<PreviousResult> previousResults)
         {
             Contract.ThrowIfNull(context.Solution);
 
-            var result = new Dictionary<Document, VSInternalDiagnosticParams>();
+            var result = new Dictionary<Document, PreviousResult>();
             foreach (var diagnosticParams in previousResults)
             {
                 if (diagnosticParams.TextDocument != null)
@@ -205,6 +206,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             RequestContext context,
             Document document,
             string resultId,
+            ClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
         {
             // Being asked about this document for the first time.  Or being asked again and we have different
@@ -219,7 +221,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             context.TraceInformation($"Getting '{(isPull ? "pull" : "push")}' diagnostics with mode '{diagnosticMode}'");
 
-            using var _ = ArrayBuilder<VSDiagnostic>.GetInstance(out var result);
+            using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var result);
 
             if (isPull)
             {
@@ -228,13 +230,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 context.TraceInformation($"Got {diagnostics.Length} diagnostics");
 
                 foreach (var diagnostic in diagnostics)
-                    result.Add(ConvertDiagnostic(document, text, diagnostic));
+                    result.Add(ConvertDiagnostic(document, text, diagnostic, clientCapabilities));
             }
 
             return CreateReport(ProtocolConversions.DocumentToTextDocumentIdentifier(document), result.ToArray(), resultId);
         }
 
-        private void HandleRemovedDocuments(RequestContext context, VSInternalDiagnosticParams[] previousResults, BufferedProgress<TReport> progress)
+        private void HandleRemovedDocuments(RequestContext context, ImmutableArray<PreviousResult> previousResults, BufferedProgress<TReport> progress)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -266,7 +268,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// <param name="document">the document we are currently calculating results for.</param>
         /// <returns>Null when diagnostics are unchanged, otherwise returns a non-null new resultId.</returns>
         private async Task<string?> GetNewResultIdAsync(
-            Dictionary<Document, VSInternalDiagnosticParams> documentToPreviousDiagnosticParams,
+            Dictionary<Document, PreviousResult> documentToPreviousDiagnosticParams,
             Document document,
             CancellationToken cancellationToken)
         {
@@ -317,7 +319,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
         }
 
-        private VSDiagnostic ConvertDiagnostic(Document document, SourceText text, DiagnosticData diagnosticData)
+        private LSP.Diagnostic ConvertDiagnostic(Document document, SourceText text, DiagnosticData diagnosticData, ClientCapabilities capabilities)
         {
             Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
             Contract.ThrowIfNull(diagnosticData.DataLocation, $"Got a document diagnostic that did not have a {nameof(diagnosticData.DataLocation)}");
@@ -330,25 +332,42 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             //   3.  The VS LSP client does not support document pull diagnostics for files outside our content type.
             //   4.  This matches classic behavior where we only squiggle the original location anyway.
             var useMappedSpan = false;
-            return new VSDiagnostic
+            if (!capabilities.HasVisualStudioLspCapability())
             {
-                Source = GetType().Name,
-                Code = diagnosticData.Id,
-                CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.HelpLink),
-                Message = diagnosticData.Message,
-                Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
-                Range = ProtocolConversions.LinePositionToRange(DiagnosticData.GetLinePositionSpan(diagnosticData.DataLocation, text, useMappedSpan)),
-                Tags = ConvertTags(diagnosticData),
-                DiagnosticType = diagnosticData.Category,
-                Projects = new[]
+                var diagnostic = CreateBaseLspDiagnostic();
+                return diagnostic;
+            }
+            else
+            {
+                var vsDiagnostic = CreateBaseLspDiagnostic();
+                vsDiagnostic.DiagnosticType = diagnosticData.Category;
+                vsDiagnostic.Projects = new[]
                 {
                     new VSDiagnosticProjectInformation
                     {
                         ProjectIdentifier = project.Id.Id.ToString(),
                         ProjectName = project.Name,
                     },
-                },
-            };
+                };
+
+                return vsDiagnostic;
+            }
+
+            // We can just use VSDiagnostic as it doesn't have any default properties set that
+            // would get automatically serialized.
+            LSP.VSDiagnostic CreateBaseLspDiagnostic()
+            {
+                return new LSP.VSDiagnostic
+                {
+                    Source = "Roslyn",
+                    Code = diagnosticData.Id,
+                    CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.HelpLink),
+                    Message = diagnosticData.Message,
+                    Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
+                    Range = ProtocolConversions.LinePositionToRange(DiagnosticData.GetLinePositionSpan(diagnosticData.DataLocation, text, useMappedSpan)),
+                    Tags = ConvertTags(diagnosticData),
+                };
+            }
         }
 
         private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(DiagnosticSeverity severity)
