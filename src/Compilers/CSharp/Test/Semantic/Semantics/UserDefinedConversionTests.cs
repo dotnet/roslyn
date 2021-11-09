@@ -1710,7 +1710,7 @@ namespace System
 ";
 
             var comp = CreateEmptyCompilation(code);
-            var verifier = CompileAndVerify(comp);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
 
             // Note that no int? is being created.
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
@@ -1754,7 +1754,7 @@ namespace System
 ";
 
             var comp = CreateEmptyCompilation(code);
-            var verifier = CompileAndVerify(comp);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
@@ -1802,7 +1802,7 @@ namespace System
 ";
 
             var comp = CreateEmptyCompilation(code);
-            var verifier = CompileAndVerify(comp);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
 
             // Note that no int? is being created.
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
@@ -1837,7 +1837,7 @@ public struct S
 ";
 
             var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "0");
+            var verifier = CompileAndVerify(comp, expectedOutput: "0", verify: Verification.Skipped);
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
@@ -1882,7 +1882,7 @@ public struct S
 ";
 
             var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "0");
+            var verifier = CompileAndVerify(comp, expectedOutput: "0", verify: Verification.Skipped);
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
