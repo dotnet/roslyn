@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Order;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -26,6 +27,7 @@ using Moq;
 namespace IdeBenchmarks.InheritanceMargin
 {
     [MemoryDiagnoser]
+    [Orderer(methodOrderPolicy: MethodOrderPolicy.Declared)]
     public class InheritanceMarginGlyphBenchmarks
     {
         private const int MemberCount = 500;
@@ -38,8 +40,10 @@ namespace IdeBenchmarks.InheritanceMargin
         private readonly UseExportProviderAttribute _useExportProviderAttribute = new();
         private readonly IWpfTextView _mockTextView;
 
-        private Application _wpfApp;
-        private Canvas _canvas;
+        /// <summary>
+        /// The WPF application that is shared by all the benchmarks. This is static because WPF only allows one application per AppDomain.
+        /// </summary>
+        private static Application? s_wpfApp;
         private ImmutableArray<InheritanceMarginTag> _tags;
         private IThreadingContext _threadingContext;
         private IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
@@ -50,25 +54,31 @@ namespace IdeBenchmarks.InheritanceMargin
 
         public InheritanceMarginGlyphBenchmarks()
         {
-            _wpfApp = null!;
             _threadingContext = null!;
             _streamingFindUsagesPresenter = null!;
             _classificationTypeMap = null!;
             _classificationFormatMap = null!;
             _operationExecutor = null!;
             _listener = null!;
-            _canvas = null!;
             var mockTextView = new Mock<IWpfTextView>();
             mockTextView.Setup(textView => textView.ZoomLevel).Returns(100);
             _mockTextView = mockTextView.Object;
         }
 
-        [GlobalSetup]
+        // Note: Make sure this is targeting the first declarated benchmark method so that the test Application so that
+        // the test Application could be created.
+        [GlobalSetup(Target = nameof(GlyphRefreshBaseline))]
         public Task SetupAsync()
         {
-            // Note: WPF only allows one application per appDomain, and benchmark.net
-            // would run all this method for all the Benchmark method within the class.
             return SetupWpfApplicaitonAsync();
+        }
+
+        // Note: Make sure this is targeting the last declarated benchmark method so that the test Application
+        // could be shutdown.
+        [GlobalCleanup(Target = nameof(BenchmarkGlyphRefresh))]
+        public void Cleanup()
+        {
+            RunOnUIThread(() => s_wpfApp!.Shutdown());
         }
 
         [IterationSetup]
@@ -84,10 +94,20 @@ namespace IdeBenchmarks.InheritanceMargin
             _useExportProviderAttribute.After(null);
         }
 
-        [GlobalCleanup]
-        public void Cleanup()
+        [Benchmark(Baseline = true)]
+        public void GlyphRefreshBaseline()
         {
-            RunOnUIThread(() => _wpfApp.Shutdown());
+            RunOnUIThread(() =>
+            {
+                var canvas = (Canvas)s_wpfApp!.MainWindow.Content;
+                for (var i = 0; i < Iterations; i++)
+                {
+                    for (var j = 0; j < _tags.Length; j++)
+                    {
+                        var tag = _tags[j];
+                    }
+                }
+            });
         }
 
         [Benchmark]
@@ -95,6 +115,7 @@ namespace IdeBenchmarks.InheritanceMargin
         {
             RunOnUIThread(() =>
             {
+                var canvas = (Canvas)s_wpfApp!.MainWindow.Content;
                 for (var i = 0; i < Iterations; i++)
                 {
                     // Add & remove glyphs from the Canvas, which simulates the real refreshing scenanrio when user is scrolling up/down.
@@ -111,10 +132,11 @@ namespace IdeBenchmarks.InheritanceMargin
                             _mockTextView,
                             _listener);
                         Canvas.SetTop(glyph, j * WidthAndHeightOfGlyph);
-                        _canvas.Children.Add(glyph);
+                        canvas.Children.Add(glyph);
                     }
-                    _canvas.Measure(new Size(WidthAndHeightOfGlyph, HeightOfCanvas));
-                    _canvas.Children.Clear();
+
+                    canvas.Measure(new Size(WidthAndHeightOfGlyph, HeightOfCanvas));
+                    canvas.Children.Clear();
                 }
             });
         }
@@ -146,7 +168,7 @@ namespace IdeBenchmarks.InheritanceMargin
         private void RunOnUIThread(Action action)
         {
 #pragma warning disable VSTHRD001 // Only used for Benchmark purpose
-            _wpfApp.Dispatcher.Invoke(() =>
+            s_wpfApp!.Dispatcher.Invoke(() =>
 #pragma warning restore VSTHRD001
             {
                 action?.Invoke();
@@ -160,22 +182,24 @@ namespace IdeBenchmarks.InheritanceMargin
                 var tcs = new TaskCompletionSource<bool>();
                 var mainThread = new Thread(() =>
                 {
-                    _wpfApp = new Application();
-                    _wpfApp.MainWindow = new Window();
-                    _wpfApp.Startup += (sender, args) =>
+                    s_wpfApp = new Application
+                    {
+                        MainWindow = new Window(),
+                        ShutdownMode = ShutdownMode.OnExplicitShutdown
+                    };
+
+                    s_wpfApp.Startup += (sender, args) =>
                     {
                         tcs.SetResult(true);
                     };
 
-                    _canvas = new Canvas()
+                    s_wpfApp.MainWindow.Content = new Canvas()
                     {
                         ClipToBounds = true,
                         Width = WidthAndHeightOfGlyph,
                         Height = HeightOfCanvas
                     };
-
-                    _wpfApp.MainWindow.Content = _canvas;
-                    _wpfApp.Run();
+                    s_wpfApp.Run();
                 });
 
                 mainThread.SetApartmentState(ApartmentState.STA);
@@ -183,7 +207,7 @@ namespace IdeBenchmarks.InheritanceMargin
                 return tcs.Task;
             }
 
-            _wpfApp = Application.Current;
+            s_wpfApp = Application.Current;
             return Task.CompletedTask;
         }
 
