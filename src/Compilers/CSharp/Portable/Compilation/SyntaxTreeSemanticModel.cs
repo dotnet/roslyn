@@ -2264,19 +2264,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public override DataFlowAnalysis AnalyzeDataFlow(ConstructorInitializerSyntax init)
+        public override DataFlowAnalysis AnalyzeDataFlow(ConstructorInitializerSyntax constructorInitializer)
         {
-            if (init == null)
+            if (constructorInitializer == null)
             {
-                throw new ArgumentNullException(nameof(init));
+                throw new ArgumentNullException(nameof(constructorInitializer));
             }
 
-            if (!IsInTree(init))
+            if (!IsInTree(constructorInitializer))
             {
                 throw new ArgumentException("expression not within tree");
             }
 
-            var context = RegionAnalysisContext(init);
+            var context = RegionAnalysisContext(constructorInitializer);
             var result = new CSharpDataFlowAnalysis(context);
             return result;
         }

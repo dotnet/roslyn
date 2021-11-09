@@ -54,19 +54,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new RegionAnalysisContext(Compilation, member, boundNode, first, last);
         }
 
-        private RegionAnalysisContext RegionAnalysisContext(ConstructorInitializerSyntax init)
+        private RegionAnalysisContext RegionAnalysisContext(ConstructorInitializerSyntax constructorInitializer)
         {
-            var memberModel = GetMemberModel(init);
+            var memberModel = GetMemberModel(constructorInitializer);
             if (memberModel == null)
             {
                 // Recover from error cases
-                var node = new BoundBadStatement(init, ImmutableArray<BoundNode>.Empty, hasErrors: true);
+                var node = new BoundBadStatement(constructorInitializer, ImmutableArray<BoundNode>.Empty, hasErrors: true);
                 return new RegionAnalysisContext(Compilation, null, node, node, node);
             }
 
             Symbol member;
             BoundNode boundNode = GetBoundRoot(memberModel, out member);
-            var first = memberModel.GetUpperBoundNode(init, promoteToBindable: true);
+            var first = memberModel.GetUpperBoundNode(constructorInitializer, promoteToBindable: true);
             var last = first;
             return new RegionAnalysisContext(this.Compilation, member, boundNode, first, last);
         }
