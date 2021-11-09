@@ -11,35 +11,48 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
     internal class VisualStudioMSBuildInstalled : ExecutionCondition
     {
+#if NET472_OR_GREATER
         private static readonly VisualStudioInstance? s_instance;
+        private readonly Version _minimumVersion;
 
         static VisualStudioMSBuildInstalled()
         {
-            s_instance = MSBuildLocator.QueryVisualStudioInstances()
-                .OrderByDescending(instances => instances.Version)
-                .FirstOrDefault();
-
-            if (s_instance != null && !MSBuildLocator.IsRegistered)
+            var installedVisualStudios = MSBuildLocator.QueryVisualStudioInstances().ToArray();
+            foreach (var visualStudioInstall in installedVisualStudios)
             {
-                MSBuildLocator.RegisterInstance(s_instance);
+                if (visualStudioInstall.Version.Major == 17 &&
+                    visualStudioInstall.Version.Minor == 0)
+                {
+                    MSBuildLocator.RegisterInstance(visualStudioInstall);
+                    s_instance = visualStudioInstall;
+                }
             }
         }
+#endif
 
-        private readonly Version _minimumVersion;
-
-        public VisualStudioMSBuildInstalled() : this(new Version(15, 0))
+        public VisualStudioMSBuildInstalled()
+#if NET472_OR_GREATER
+            : this(new Version(16, 9))
+#endif
         {
         }
 
+#if NET472_OR_GREATER
         internal VisualStudioMSBuildInstalled(Version minimumVersion)
         {
             _minimumVersion = minimumVersion;
         }
+#endif
 
-        public override bool ShouldSkip => s_instance is null || s_instance.Version < _minimumVersion;
+        public override bool ShouldSkip
+#if NET472_OR_GREATER
+            => s_instance is null || s_instance.Version < _minimumVersion;
+#else
+            => true;
+#endif
 
         public override string SkipReason
-#if !NETCOREAPP
+#if NET472_OR_GREATER
             => $"Could not locate Visual Studio with MSBuild {_minimumVersion} or higher installed";
 #else
             => $"Test runs on .NET Framework only.";

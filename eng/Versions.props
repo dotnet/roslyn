@@ -209,7 +209,7 @@
      -->
     <NuGetCommonVersion>6.0.0-rc.258</NuGetCommonVersion>
     <NuGetConfigurationVersion>$(NuGetCommonVersion)</NuGetConfigurationVersion>
-    <NuGetFrameworkVersion>$(NuGetCommonVersion)</NuGetFrameworkVersion>
+    <NuGetFrameworksVersion>$(NuGetCommonVersion)</NuGetFrameworksVersion>
     <NuGetPackagingVersion>$(NuGetCommonVersion)</NuGetPackagingVersion>
     <NuGetProtocolVersion>$(NuGetCommonVersion)</NuGetProtocolVersion>
     <NuGetVersioningVersion>$(NuGetCommonVersion)</NuGetVersioningVersion>

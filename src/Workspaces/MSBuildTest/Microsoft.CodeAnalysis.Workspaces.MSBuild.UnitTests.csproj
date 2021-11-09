@@ -36,7 +36,7 @@
      -->
     <PackageReference Include="NuGet.Common" Version="$(NuGetCommonVersion)" />
     <PackageReference Include="NuGet.Configuration" Version="$(NuGetConfigurationVersion)" />
-    <PackageReference Include="NuGet.Frameworks" Version="$(NuGetFrameworkVersion)" />
+    <PackageReference Include="NuGet.Frameworks" Version="$(NuGetFrameworksVersion)" />
     <PackageReference Include="NuGet.Packaging" Version="$(NuGetPackagingVersion)" />
     <PackageReference Include="NuGet.Protocol" Version="$(NuGetProtocolVersion)" />
     <PackageReference Include="NuGet.Versioning" Version="$(NuGetVersioningVersion)" />
@@ -69,4 +69,10 @@
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
+
+  <Target Name="_DoNotCopyMicrosoftBuildFramework" AfterTargets="ResolvePackageAssets">
+    <ItemGroup Condition="$(TargetFramework) == 'net472'">
+      <RuntimeCopyLocalItems Remove="@(RuntimeCopyLocalItems)" Condition="'%(RuntimeCopyLocalItems.NuGetPackageId)' == 'Microsoft.Build.Framework'" />
+    </ItemGroup>
+  </Target>
 </Project>
