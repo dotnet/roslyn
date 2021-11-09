@@ -1042,6 +1042,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Analyze data-flow within a primary constructor base type.
+        /// </summary>
+        public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel? semanticModel, PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.AnalyzeDataFlow(primaryConstructorBaseType);
+        }
+
+        /// <summary>
         /// Analyze data-flow within an expression.
         /// </summary>
         public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel? semanticModel, ExpressionSyntax expression)

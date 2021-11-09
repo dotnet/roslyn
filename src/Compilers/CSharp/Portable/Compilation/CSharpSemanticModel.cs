@@ -2414,9 +2414,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Analyze data-flow within an ConstructorInitializerSyntax. 
         /// </summary>
-        /// <param name="expression">The ctor-init within the associated SyntaxTree to analyze.</param>
+        /// <param name="constructorInitializer">The ctor-init within the associated SyntaxTree to analyze.</param>
         /// <returns>An object that can be used to obtain the result of the data flow analysis.</returns>
-        public virtual DataFlowAnalysis AnalyzeDataFlow(ConstructorInitializerSyntax expression)
+        public virtual DataFlowAnalysis AnalyzeDataFlow(ConstructorInitializerSyntax constructorInitializer)
+        {
+            // Only supported on a SyntaxTreeSemanticModel.
+            throw new NotSupportedException();
+        }
+
+        /// <summary>
+        /// Analyze data-flow within an PrimaryConstructorBaseTypeSyntax. 
+        /// </summary>
+        /// <param name="primaryConstructorBaseType">The primary constructor base type within the associated SyntaxTree to analyze.</param>
+        /// <returns>An object that can be used to obtain the result of the data flow analysis.</returns>
+        public virtual DataFlowAnalysis AnalyzeDataFlow(PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType)
         {
             // Only supported on a SyntaxTreeSemanticModel.
             throw new NotSupportedException();
@@ -5256,8 +5267,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.AnalyzeDataFlow(statementSyntax);
                 case ExpressionSyntax expressionSyntax:
                     return this.AnalyzeDataFlow(expressionSyntax);
-                case ConstructorInitializerSyntax init:
-                    return this.AnalyzeDataFlow(init);
+                case ConstructorInitializerSyntax constructorInitializer:
+                    return this.AnalyzeDataFlow(constructorInitializer);
+                case PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType:
+                    return this.AnalyzeDataFlow(primaryConstructorBaseType);
                 default:
                     throw new ArgumentException("statementOrExpression is not a StatementSyntax or an ExpressionSyntax or a ConstructorInitializerSyntax.");
             }

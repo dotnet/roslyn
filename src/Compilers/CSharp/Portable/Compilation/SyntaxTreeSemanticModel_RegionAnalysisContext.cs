@@ -22,6 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (expression.Kind() == SyntaxKind.ParenthesizedExpression)
                 expression = ((ParenthesizedExpressionSyntax)expression).Expression;
 
+            return RegionAnalysisContext<ExpressionSyntax>(expression);
+        }
+
+        private RegionAnalysisContext RegionAnalysisContext<T>(T expression)
+            where T : CSharpSyntaxNode
+        {
             var memberModel = GetMemberModel(expression);
             if (memberModel == null)
             {
@@ -52,23 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var first = memberModel.GetUpperBoundNode(firstStatement, promoteToBindable: true);
             var last = memberModel.GetUpperBoundNode(lastStatement, promoteToBindable: true);
             return new RegionAnalysisContext(Compilation, member, boundNode, first, last);
-        }
-
-        private RegionAnalysisContext RegionAnalysisContext(ConstructorInitializerSyntax constructorInitializer)
-        {
-            var memberModel = GetMemberModel(constructorInitializer);
-            if (memberModel == null)
-            {
-                // Recover from error cases
-                var node = new BoundBadStatement(constructorInitializer, ImmutableArray<BoundNode>.Empty, hasErrors: true);
-                return new RegionAnalysisContext(Compilation, null, node, node, node);
-            }
-
-            Symbol member;
-            BoundNode boundNode = GetBoundRoot(memberModel, out member);
-            var first = memberModel.GetUpperBoundNode(constructorInitializer, promoteToBindable: true);
-            var last = first;
-            return new RegionAnalysisContext(this.Compilation, member, boundNode, first, last);
         }
     }
 }
