@@ -30,7 +30,7 @@ jobs:
     configuration: Release
     queueName: Build.Windows.Amd64.VS2022.Pre.Open
 
-- ${{ if ne(variables['Build.Reason'], "PullRequest") }}:
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
   - template: eng/pipelines/test-windows-job.yml
     parameters:
       testRunName: 'Test Windows Desktop Debug 32'
@@ -58,7 +58,7 @@ jobs:
     configuration: Debug
     testArguments: -testCoreClr
 
-- ${{ if ne(variables['Build.Reason'], "PullRequest") }}:
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
   - template: eng/pipelines/test-windows-job-single-machine.yml
     parameters:
       testRunName: 'Test Windows CoreClr Debug Single Machine'
@@ -86,7 +86,7 @@ jobs:
     configuration: Release
     testArguments: -testDesktop -test64 -helixQueueName Windows.10.Amd64.Server19H1.ES.Open
 
-- ${{ if ne(variables['Build.Reason'], "PullRequest") }}:
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
   - template: eng/pipelines/test-windows-job.yml
     parameters:
       testRunName: 'Test Windows Desktop Release 64'
@@ -131,7 +131,7 @@ jobs:
     configuration: Debug
     testArguments: --testCoreClr --helixQueueName Ubuntu.1804.Amd64.Open
 
-- ${{ if ne(variables['Build.Reason'], "PullRequest") }}:
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
   - template: eng/pipelines/test-unix-job-single-machine.yml
     parameters:
       testRunName: 'Test Linux Debug Single Machine'
