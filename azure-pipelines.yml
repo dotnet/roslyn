@@ -21,7 +21,7 @@ jobs:
     jobName: Build_Windows_Debug
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
-    queueName: BuildPool.Windows.10.Amd64.Open
+    queueName: Build.Windows.10.Amd64.Open
 
 - template: eng/pipelines/build-windows-job.yml
   parameters:
@@ -127,7 +127,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
     testArguments: --testCoreClr
-    queueName: 'BuildPool.Ubuntu.1604.amd64.Open'
+    queueName: 'Build.Ubuntu.1604.amd64.Open'
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:
