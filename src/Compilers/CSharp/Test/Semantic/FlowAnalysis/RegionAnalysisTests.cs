@@ -2623,9 +2623,14 @@ class C
         public void TestDataFlowsInCtorInitPublicApi()
         {
             var program = @"
-record Base(int x)
-
-record C(int x, int y) /*<bind>*/ : Base(x + y) /*</bind>*/;
+class C
+{
+    C(int x)
+    {}
+    
+    C(int x, int y) /*<bind>*/ : this(x + y) /*</bind>*/
+    {}
+}
 ";
             var analysis = CompileAndGetModelAndConstructorInitializer(program,
                 (model, constructorInitializer) => CSharpExtensions.AnalyzeDataFlow(model, constructorInitializer)
@@ -2638,9 +2643,14 @@ record C(int x, int y) /*<bind>*/ : Base(x + y) /*</bind>*/;
         public void TestDataFlowsInCtorInitPublicApi2()
         {
             var program = @"
-record Base(int x)
-
-record C(int x, int y) /*<bind>*/ : Base(x + y) /*</bind>*/;
+class C
+{
+    C(int x)
+    {}
+    
+    C(int x, int y) /*<bind>*/ : this(x + y) /*</bind>*/
+    {}
+}
 ";
             var analysis = CompileAndGetModelAndConstructorInitializer(program,
                 (model, constructorInitializer) => global::Microsoft.CodeAnalysis.ModelExtensions.AnalyzeDataFlow(model, constructorInitializer)
