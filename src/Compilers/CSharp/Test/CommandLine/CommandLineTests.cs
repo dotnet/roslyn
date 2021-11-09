@@ -14195,6 +14195,7 @@ public class Generator : ISourceGenerator
         [Theory]
         [InlineData("a.txt", "b.txt", 2)]
         [InlineData("a.txt", "a.txt", 1)]
+        [InlineData("a.txt", "A.txt", 1)]
         [InlineData("abc/a.txt", "def/a.txt", 2)]
         [InlineData("abc/a.txt", "abc/a.txt", 1)]
         [InlineData("abc/a.txt", "abc\\a.txt", 1)]
@@ -14245,6 +14246,15 @@ public class Generator : ISourceGenerator
 
             CleanupAllGeneratedFiles(srcDirectory.Path);
         }
+
+        [ConditionalTheory(typeof(UnixLikeOnly))]
+        [InlineData("a.txt", "A.txt", 2)]
+        [InlineData("abc/a.txt", "abc/A.txt", 2)]
+        [InlineData("abc/a.txt", "ABC/a.txt", 2)]
+        [InlineData("abc/a.txt", "./../abc/A.txt", 2)]
+        [InlineData("abc/a.txt", "./../ABC/a.txt", 2)]
+        public void TestDuplicateAdditionalFiles_Linux(string additionalFilePath1, string additionalFilePath2, int expectedCount) => TestDuplicateAdditionalFiles(additionalFilePath1, additionalFilePath2, expectedCount);
+
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]

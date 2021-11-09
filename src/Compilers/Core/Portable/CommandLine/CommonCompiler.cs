@@ -1449,7 +1449,7 @@ namespace Microsoft.CodeAnalysis
         protected virtual ImmutableArray<AdditionalTextFile> ResolveAdditionalFilesFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger? touchedFilesLogger)
         {
             var builder = ArrayBuilder<AdditionalTextFile>.GetInstance();
-            var filePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var filePaths = new HashSet<string>(PathUtilities.Comparer);
 
             foreach (var file in Arguments.AdditionalFiles)
             {
