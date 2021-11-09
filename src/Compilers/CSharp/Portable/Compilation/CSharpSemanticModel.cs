@@ -5272,7 +5272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType:
                     return this.AnalyzeDataFlow(primaryConstructorBaseType);
                 default:
-                    throw new ArgumentException("statementOrExpression is not a StatementSyntax or an ExpressionSyntax or a ConstructorInitializerSyntax.");
+                    throw new ArgumentException("statementOrExpression is not a StatementSyntax or an ExpressionSyntax or a ConstructorInitializerSyntax or a PrimaryConstructorBaseTypeSyntax.");
             }
         }
 
