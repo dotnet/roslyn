@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             await waiter.ExpeditedWaitAsync();
 
             // remaining tasks should be canceled
-            var areAllItemsCancelled = await testLspServer.GetQueueAccessor().AreAllItemsCancelledAsync();
+            var areAllItemsCancelled = await testLspServer.GetQueueAccessor().AreAllItemsCancelledUnsafeAsync();
             Assert.True(areAllItemsCancelled);
         }
 

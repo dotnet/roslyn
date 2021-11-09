@@ -61,12 +61,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             public bool IsComplete() => _queue._queue.IsCompleted && _queue._queue.IsEmpty;
 
-            public async Task<bool> AreAllItemsCancelledAsync()
+            /// <summary>
+            /// Test only method to validate that remaining items in the queue are cancelled.
+            /// This directly mutates the queue in an unsafe way, so ensure that all relevant queue operations
+            /// are done before calling.
+            /// </summary>
+            public async Task<bool> AreAllItemsCancelledUnsafeAsync()
             {
                 while (!_queue._queue.IsEmpty)
                 {
-                    var item = await _queue._queue.DequeueAsync().ConfigureAwait(false);
-                    if (!item.CombinedCancellationToken.IsCancellationRequested)
+                    var (_, cancellationToken) = await _queue._queue.DequeueAsync().ConfigureAwait(false);
+                    if (!cancellationToken.IsCancellationRequested)
                     {
                         return false;
                     }

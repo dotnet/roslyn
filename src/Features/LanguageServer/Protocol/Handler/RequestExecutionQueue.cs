@@ -57,7 +57,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly string _serverName;
         private readonly ImmutableArray<string> _supportedLanguages;
 
-        private readonly AsyncQueue<IQueueItem> _queue;
+        /// <summary>
+        /// The queue containing the ordered LSP requests along with a combined cancellation token
+        /// representing the queue's cancellation token and the individual request cancellation token.
+        /// </summary>
+        private readonly AsyncQueue<(IQueueItem queueItem, CancellationToken cancellationToken)> _queue;
         private readonly CancellationTokenSource _cancelSource;
         private readonly RequestTelemetryLogger _requestTelemetryLogger;
         private readonly IGlobalOptionService _globalOptions;
@@ -93,7 +97,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _supportedLanguages = supportedLanguages;
             _serverName = serverName;
 
-            _queue = new AsyncQueue<IQueueItem>();
+            _queue = new();
             _cancelSource = new CancellationTokenSource();
 
             // Pass the language client instance type name to the telemetry logger to ensure we can
@@ -119,6 +123,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _cancelSource.Cancel();
 
             // Tell the queue not to accept any more items.
+            // Note: We do not need to spin through the queue manually and cancel items as
+            // 1.  New queue instances are created for each server, so items in the queue would be gc'd.
+            // 2.  Their cancellation tokens are linked to the queue's _cancelSource so are also cancelled.
             _queue.Complete();
 
             _requestTelemetryLogger.Dispose();
@@ -176,7 +183,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _requestTelemetryLogger,
                 combinedCancellationToken);
 
-            var didEnqueue = _queue.TryEnqueue(item);
+            var didEnqueue = _queue.TryEnqueue((item, combinedCancellationToken));
 
             // If the queue has been shut down the enqueue will fail, so we just fault the task immediately.
             // The queue itself is threadsafe (_queue.TryEnqueue and _queue.Complete use the same lock).
@@ -190,52 +197,67 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private async Task ProcessQueueAsync()
         {
-            IQueueItem? inProgressWorkItem = null;
             try
             {
                 while (!_cancelSource.IsCancellationRequested)
                 {
-                    var work = await _queue.DequeueAsync(_cancelSource.Token).ConfigureAwait(false);
-                    inProgressWorkItem = work;
 
-                    // Record when the work item was been de-queued and the request context preparation started.
-                    work.Metrics.RecordExecutionStart();
-
-                    // Restore our activity id so that logging/tracking works across asynchronous calls.
-                    Trace.CorrelationManager.ActivityId = work.ActivityId;
-                    var context = CreateRequestContext(work);
-
-                    if (work.MutatesSolutionState)
+                    // First attempt to de-queue the work item in its own try-catch.
+                    // This is because before we de-queue we do not have access to the queue item's linked cancellation token.
+                    (IQueueItem work, CancellationToken cancellationToken) queueItem;
+                    try
                     {
-                        // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
-                        await work.CallbackAsync(context).ConfigureAwait(false);
+                        queueItem = await _queue.DequeueAsync(_cancelSource.Token).ConfigureAwait(false);
                     }
-                    else
+                    catch (OperationCanceledException ex) when (ex.CancellationToken == _cancelSource.Token)
                     {
-                        // Non mutating are fire-and-forget because they are by definition readonly. Any errors
-                        // will be sent back to the client but we can still capture errors in queue processing
-                        // via NFW, though these errors don't put us into a bad state as far as the rest of the queue goes.
-                        // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
-                        // blocking the request queue for longer periods of time (it enforces parallelizabilty).
-                        _ = Task.Run(() => work.CallbackAsync(context), _cancelSource.Token).ReportNonFatalErrorAsync();
+                        // The queue's cancellation token was invoked which means we are shutting down the queue.
+                        // Exit out of the loop so we stop processing new items.
+                        return;
+                    }
+
+                    try
+                    {
+                        var (work, cancellationToken) = queueItem;
+                        // Record when the work item was been de-queued and the request context preparation started.
+                        work.Metrics.RecordExecutionStart();
+
+                        // Restore our activity id so that logging/tracking works across asynchronous calls.
+                        Trace.CorrelationManager.ActivityId = work.ActivityId;
+                        var context = CreateRequestContext(work);
+
+                        if (work.MutatesSolutionState)
+                        {
+                            // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
+                            // Since we're explicitly awaiting exceptions to mutating requests will bubble up here.
+                            await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            // Non mutating are fire-and-forget because they are by definition readonly. Any errors
+                            // will be sent back to the client but we can still capture errors in queue processing
+                            // via NFW, though these errors don't put us into a bad state as far as the rest of the queue goes.
+                            // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
+                            // blocking the request queue for longer periods of time (it enforces parallelizabilty).
+                            _ = Task.Run(() => work.CallbackAsync(context, cancellationToken), cancellationToken).ReportNonFatalErrorAsync();
+                        }
+                    }
+                    catch (OperationCanceledException ex) when (ex.CancellationToken == queueItem.cancellationToken)
+                    {
+                        // Explicitly ignore this exception as cancellation occured as a result of our linked cancellation token.
+                        // This means either the queue is shutting down or the request itself was cancelled.
+                        //   1.  If the queue is shutting down, then while loop will exit before the next iteration since it checks for cancellation.
+                        //   2.  Request cancellations are normal so no need to report anything there.
                     }
                 }
             }
-            catch (OperationCanceledException e) when (e.CancellationToken == _cancelSource.Token)
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
             {
-                // If cancellation occurs as a result of our token, then it was either because we cancelled it in the Shutdown
-                // method, if it happened during a mutating request, or because the queue was completed in the Shutdown method
-                // if it happened while waiting to dequeue the next item. Either way, we're already shutting down so we don't
-                // want to log it.
-            }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
-            {
-                _logger.TraceException(e);
-
-                // If there was an in progress work item that failed in the queue logic, set the result of the queue item
-                // to the exception so that it bubbles back to the caller.
-                inProgressWorkItem?.TrySetException(e);
-                OnRequestServerShutdown($"Error occurred processing queue in {_serverName}: {e.Message}.");
+                // We encountered an unexpected exception in processing the queue or in a mutating request.
+                // Log it, shutdown the queue, and exit the loop.
+                _logger.TraceException(ex);
+                OnRequestServerShutdown($"Error occurred processing queue in {_serverName}: {ex.Message}.");
+                return;
             }
         }
 
