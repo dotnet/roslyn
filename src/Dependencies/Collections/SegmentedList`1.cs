@@ -1107,11 +1107,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             if (_size > 1)
             {
-#if NET
-                _items.AsSpan(0, _size).Sort(comparison);
-#else
                 SegmentedArray.Sort<T>(_items, 0, _size, Comparer<T>.Create(comparison));
-#endif
             }
             _version++;
         }
