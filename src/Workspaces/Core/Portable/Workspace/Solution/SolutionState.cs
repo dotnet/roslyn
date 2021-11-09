@@ -1869,7 +1869,8 @@ namespace Microsoft.CodeAnalysis
         private static readonly ConditionalWeakTable<ISymbol, ProjectId> s_assemblyOrModuleSymbolToProjectMap = new();
 
         /// <summary>
-        /// Get a metadata reference for the project's compilation
+        /// Get a metadata reference for the project's compilation.  Returns <see langword="null"/> upon failure, which 
+        /// can happen when trying to build a skeleton reference that fails to build.
         /// </summary>
         public Task<MetadataReference?> GetMetadataReferenceAsync(ProjectReference projectReference, ProjectState fromProject, CancellationToken cancellationToken)
         {
