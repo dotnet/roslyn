@@ -178,7 +178,6 @@ namespace N.;
                     Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("N.X.field", "null").WithLocation(4, 21));
         }
 
-        // Check that EmitMetadataOnly works
         [Fact]
         public void EmitMetadataOnly()
         {
@@ -244,6 +243,168 @@ class Test2
                 emitResult.Diagnostics.Verify();
                 Assert.True(output.ToArray().Length > 0, "no metadata emitted");
             }
+        }
+
+        [Fact]
+        public void EmitMetadataOnly_XmlDocs_NoDocMode_Success()
+        {
+            CSharpCompilation comp = CreateCompilation(@"
+namespace Goo.Bar
+{
+    /// <summary>This should be emitted</summary>
+    public class Test1
+    {
+        public static void SayHello()
+        {
+            Console.WriteLine(""hello"");
+        }
+    }  
+}     
+");
+
+            EmitResult emitResult;
+            byte[] mdOnlyImage;
+            byte[] xmlDocBytes;
+
+            using (var peStream = new MemoryStream())
+            using (var xmlStream = new MemoryStream())
+            {
+                emitResult = comp.Emit(peStream, xmlDocumentationStream: xmlStream, options: new EmitOptions(metadataOnly: true));
+                mdOnlyImage = peStream.ToArray();
+                xmlDocBytes = xmlStream.ToArray();
+            }
+
+            Assert.True(emitResult.Success);
+            emitResult.Diagnostics.Verify();
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
+
+            // nothing is actually emitted here as we haven't set the documentation mode
+            Assert.True(xmlDocBytes.Length == 0, "no xml emitted");
+        }
+
+        [Fact]
+        public void EmitMetadataOnly_XmlDocs_NoDocMode_SyntaxError()
+        {
+            CSharpCompilation comp = CreateCompilation(@"
+namespace Goo.Bar
+{
+    /// <summary>This should fail to emit
+    public class Test1
+    {
+        public static void SayHello()
+        {
+            Console.WriteLine(""hello"");
+        }
+    }  
+}     
+");
+
+            EmitResult emitResult;
+            byte[] mdOnlyImage;
+            byte[] xmlDocBytes;
+
+            using (var peStream = new MemoryStream())
+            using (var xmlStream = new MemoryStream())
+            {
+                emitResult = comp.Emit(peStream, xmlDocumentationStream: xmlStream, options: new EmitOptions(metadataOnly: true));
+                mdOnlyImage = peStream.ToArray();
+                xmlDocBytes = xmlStream.ToArray();
+            }
+
+            Assert.True(emitResult.Success);
+            emitResult.Diagnostics.Verify();
+
+            // Even though docs failed, we should still produce the peStream.
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
+            Assert.True(xmlDocBytes.Length == 0, "no xml emitted");
+        }
+
+        [Fact]
+        public void EmitMetadataOnly_XmlDocs_DiagnoseDocMode_SyntaxError()
+        {
+            CSharpCompilation comp = CreateCompilation(@"
+namespace Goo.Bar
+{
+    /// <summary>This should fail to emit
+    public class Test1
+    {
+        public static void SayHello()
+        {
+            Console.WriteLine(""hello"");
+        }
+    }  
+}     
+", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
+
+            EmitResult emitResult;
+            byte[] mdOnlyImage;
+            byte[] xmlDocBytes;
+
+            using (var peStream = new MemoryStream())
+            using (var xmlStream = new MemoryStream())
+            {
+                emitResult = comp.Emit(peStream, xmlDocumentationStream: xmlStream, options: new EmitOptions(metadataOnly: true));
+                mdOnlyImage = peStream.ToArray();
+                xmlDocBytes = xmlStream.ToArray();
+            }
+
+            // This should not fail the emit (as it's a warning).
+            Assert.True(emitResult.Success);
+            emitResult.Diagnostics.Verify(
+                // (5,1): warning CS1570: XML comment has badly formed XML -- 'Expected an end tag for element 'summary'.'
+                //     public class Test1
+                Diagnostic(ErrorCode.WRN_XMLParseError, "").WithArguments("summary").WithLocation(5, 1),
+                // (7,28): warning CS1591: Missing XML comment for publicly visible type or member 'Test1.SayHello()'
+                //         public static void SayHello()
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "SayHello").WithArguments("Goo.Bar.Test1.SayHello()").WithLocation(7, 28));
+
+            // Even though docs failed, we should still produce the peStream.
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
+            Assert.True(xmlDocBytes.Length == 0, "no xml emitted");
+        }
+
+        [Fact]
+        public void EmitMetadataOnly_XmlDocs_DiagnoseDocMode_SemanticWarning()
+        {
+            CSharpCompilation comp = CreateCompilation(@"
+namespace Goo.Bar
+{
+    /// <summary><see cref=""T""/></summary>
+    public class Test1
+    {
+        public static void SayHello()
+        {
+            Console.WriteLine(""hello"");
+        }
+    }  
+}     
+", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
+
+            EmitResult emitResult;
+            byte[] mdOnlyImage;
+            byte[] xmlDocBytes;
+
+            using (var peStream = new MemoryStream())
+            using (var xmlStream = new MemoryStream())
+            {
+                emitResult = comp.Emit(peStream, xmlDocumentationStream: xmlStream, options: new EmitOptions(metadataOnly: true));
+                mdOnlyImage = peStream.ToArray();
+                xmlDocBytes = xmlStream.ToArray();
+            }
+
+            // This should not fail the emit (as it's a warning).
+            Assert.True(emitResult.Success);
+            emitResult.Diagnostics.Verify(
+                // (4,29): warning CS1574: XML comment has cref attribute 'T' that could not be resolved
+                //     /// <summary><see cref="T"/></summary>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "T").WithArguments("T").WithLocation(4, 29),
+                // (7,28): warning CS1591: Missing XML comment for publicly visible type or member 'Test1.SayHello()'
+                //         public static void SayHello()
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "SayHello").WithArguments("Goo.Bar.Test1.SayHello()").WithLocation(7, 28));
+
+            // Even though docs failed, we should still produce the peStream.
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
+            Assert.True(xmlDocBytes.Length == 0, "no xml emitted");
         }
 
         [Fact]

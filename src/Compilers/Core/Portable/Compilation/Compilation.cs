@@ -2237,14 +2237,23 @@ namespace Microsoft.CodeAnalysis
         internal abstract void AddDebugSourceDocumentsForChecksumDirectives(DebugDocumentsBuilder documentsBuilder, SyntaxTree tree, DiagnosticBag diagnostics);
 
         /// <summary>
-        /// Update resources and generate XML documentation comments.
+        /// Update resources.
         /// </summary>
         /// <returns>True if successful.</returns>
-        internal abstract bool GenerateResourcesAndDocumentationComments(
-            CommonPEModuleBuilder moduleBeingBuilt,
-            Stream? xmlDocumentationStream,
-            Stream? win32ResourcesStream,
+        internal abstract bool GenerateResources(
+            CommonPEModuleBuilder moduleBuilder,
+            Stream? win32Resources,
             bool useRawWin32Resources,
+            DiagnosticBag diagnostics,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Generate XML documentation comments.
+        /// </summary>
+        /// <returns>True if successful.</returns>
+        internal abstract bool GenerateDocumentationComments(
+            CommonPEModuleBuilder moduleBuilder,
+            Stream? xmlDocStream,
             string? outputNameOverride,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken);
@@ -2627,6 +2636,7 @@ namespace Microsoft.CodeAnalysis
                 cancellationToken);
 
             bool success = false;
+            bool metadataOnlyXmlDocsSucceeded = true;
 
             if (moduleBeingBuilt != null)
             {
@@ -2645,14 +2655,14 @@ namespace Microsoft.CodeAnalysis
                     {
                         // NOTE: We generate documentation even in presence of compile errors.
                         // https://github.com/dotnet/roslyn/issues/37996 tracks revisiting this behavior.
-                        if (!GenerateResourcesAndDocumentationComments(
-                            moduleBeingBuilt,
-                            xmlDocumentationStream,
-                            win32Resources,
-                            useRawWin32Resources: rebuildData is object,
-                            options.OutputNameOverride,
-                            diagnostics,
-                            cancellationToken))
+                        if (!GenerateResources(
+                                moduleBeingBuilt, win32Resources, useRawWin32Resources: rebuildData is object, diagnostics, cancellationToken))
+                        {
+                            success = false;
+                        }
+
+                        if (!GenerateDocumentationComments(
+                                moduleBeingBuilt, xmlDocumentationStream, options.OutputNameOverride, diagnostics, cancellationToken))
                         {
                             success = false;
                         }
@@ -2660,6 +2670,21 @@ namespace Microsoft.CodeAnalysis
                         if (success)
                         {
                             ReportUnusedImports(diagnostics, cancellationToken);
+                        }
+                    }
+                    else if (xmlDocumentationStream != null)
+                    {
+                        // If we're in metadata only, and the caller asks for xml docs, then still proceed and generate
+                        // those. note: if this fails, we do not want it to gate production of the peStream below (hence
+                        // why we do not write to 'success').  Though it will still indicate (through final result value
+                        // and diagnostics) that there was a problem.
+                        using var memoryStream = new MemoryStream();
+                        metadataOnlyXmlDocsSucceeded = GenerateDocumentationComments(
+                            moduleBeingBuilt, memoryStream, options.OutputNameOverride, diagnostics, cancellationToken);
+
+                        if (metadataOnlyXmlDocsSucceeded)
+                        {
+                            memoryStream.CopyTo(xmlDocumentationStream);
                         }
                     }
                 }
@@ -2695,7 +2720,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return new EmitResult(success, diagnostics.ToReadOnlyAndFree());
+            return new EmitResult(success && metadataOnlyXmlDocsSucceeded, diagnostics.ToReadOnlyAndFree());
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
