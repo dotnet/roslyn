@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly RecentItemsManager _recentItemsManager;
         private readonly IGlobalOptionService _globalOptions;
 
-        private const string AggressiveDefaultsMatchingOptionName = "AggressiveDefaultsMatchingOption";
+        public const string AggressiveDefaultsMatchingOptionName = "AggressiveDefaultsMatchingOption";
 
         /// <summary>
         /// For telemetry.
@@ -240,6 +240,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 var (selectedItemIndex, selectionHint, uniqueItem) = filteringResult.Value;
                 var useAggressiveDefaultsMatching = session.TextView.Options.GetOptionValue<bool>(AggressiveDefaultsMatchingOptionName);
+
+                (selectedItemIndex, var forchHardSelection) = GetDefaultsMatch(filterText, initialListOfItemsToBeIncluded, selectedItemIndex, data.Defaults, useAggressiveDefaultsMatching);
+                if (forchHardSelection)
+                    selectionHint = UpdateSelectionHint.Selected;
+
                 var showCompletionItemFilters = _globalOptions.GetOption(CompletionViewOptions.ShowCompletionItemFilters, document?.Project.Language);
                 var updatedFilters = showCompletionItemFilters
                     ? GetUpdatedFilters(initialListOfItemsToBeIncluded, data.SelectedFilters)
@@ -755,25 +760,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         private static (int index, bool forceHardSelection) GetDefaultsMatch(
             string filterText,
-            ImmutableArray<(RoslynCompletionItem item, PatternMatch? patterMatch)> itemsWithMatch,
+            List<MatchResult<VSCompletionItem>> itemsWithMatch,
             int selectedIndex,
             ImmutableArray<string> defaults,
             bool aggressive)
         {
             // We only preselect when we are very confident with the selection, so don't override it.
-            if (defaults.IsDefaultOrEmpty || itemsWithMatch[selectedIndex].item.Rules.MatchPriority >= MatchPriority.Preselect)
+            if (defaults.IsDefaultOrEmpty || itemsWithMatch[selectedIndex].RoslynCompletionItem.Rules.MatchPriority >= MatchPriority.Preselect)
                 return (selectedIndex, false);
 
             if (aggressive)
             {
                 foreach (var defaultText in defaults)
                 {
-                    for (var itemIndex = 0; (itemIndex < itemsWithMatch.Length); ++itemIndex)
+                    for (var itemIndex = 0; (itemIndex < itemsWithMatch.Count); ++itemIndex)
                     {
-                        var (item, patternMatch) = itemsWithMatch[itemIndex];
-                        if (item.FilterText == defaultText)
+                        var itemWithMatch = itemsWithMatch[itemIndex];
+                        if (itemWithMatch.RoslynCompletionItem.FilterText == defaultText)
                         {
-                            if (patternMatch == null || patternMatch.Value.Kind <= PatternMatchKind.Prefix)
+                            if (itemWithMatch.PatternMatch == null || itemWithMatch.PatternMatch.Value.Kind <= PatternMatchKind.Prefix)
                                 return (itemIndex, true);
 
                             break;
@@ -790,21 +795,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     // If there is no applicableToSpan, then all items are equally similar.
                     similarItemsStart = 0;
-                    dissimilarItemIndex = itemsWithMatch.Length;
+                    dissimilarItemIndex = itemsWithMatch.Count;
                 }
                 else
                 {
                     // Assume that the selectedIndex is in the middle of a range of -- as far as the pattern matcher is concerned --
                     // equivalent items. Find the first & last items in the range and use that to limit the items searched for from
-                    // the defaults list.                    
-                    var (_, selectedItemMatch) = itemsWithMatch[selectedIndex];
+                    // the defaults list.          
+                    var selectedItemMatch = itemsWithMatch[selectedIndex].PatternMatch;
                     if (!selectedItemMatch.HasValue)
                         return (selectedIndex, false);
 
                     similarItemsStart = selectedIndex;
                     while (--similarItemsStart >= 0)
                     {
-                        var (_, itemMatch) = itemsWithMatch[similarItemsStart];
+                        var itemMatch = itemsWithMatch[similarItemsStart].PatternMatch;
                         if ((!itemMatch.HasValue) || itemMatch.Value.CompareTo(selectedItemMatch.Value) > 0)
                             break;
                     }
@@ -812,9 +817,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     similarItemsStart++;
 
                     dissimilarItemIndex = selectedIndex;
-                    while (++dissimilarItemIndex < itemsWithMatch.Length)
+                    while (++dissimilarItemIndex < itemsWithMatch.Count)
                     {
-                        var (_, itemMatch) = itemsWithMatch[dissimilarItemIndex];
+                        var itemMatch = itemsWithMatch[dissimilarItemIndex].PatternMatch;
                         if ((!itemMatch.HasValue) || itemMatch.Value.CompareTo(selectedItemMatch.Value) > 0)
                             break;
                     }
@@ -826,7 +831,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     {
                         for (var itemIndex = similarItemsStart; (itemIndex < dissimilarItemIndex); ++itemIndex)
                         {
-                            if (itemsWithMatch[itemIndex].item.FilterText == defaultText)
+                            if (itemsWithMatch[itemIndex].RoslynCompletionItem.FilterText == defaultText)
                             {
                                 return (itemIndex, false);
                             }
