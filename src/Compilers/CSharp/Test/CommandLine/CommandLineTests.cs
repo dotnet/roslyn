@@ -14205,8 +14205,12 @@ public class Generator : ISourceGenerator
         [InlineData("abc/a.txt", "abc\\..\\a.txt", 2)]
         [InlineData("abc/a.txt", "abc\\..\\abc\\a.txt", 1)]
         [InlineData("abc/a.txt", "./abc/a.txt", 1)]
-        [InlineData("abc/a.txt", "../abc/../abc/a.txt", 1)]
-        [InlineData("abc/a.txt", "../abc\\../abc\\a.txt", 1)]
+        [InlineData("abc/a.txt", "../abc/../abc/a.txt", 2)]
+        [InlineData("abc/a.txt", "./abc/../abc/a.txt", 1)]
+        [InlineData("../abc/a.txt", "../abc/../abc/a.txt", 1)]
+        [InlineData("abc/a.txt", "../abc\\../abc\\a.txt", 2)]
+        [InlineData("abc/a.txt", "./abc\\../abc\\a.txt", 1)]
+        [InlineData("../abc/a.txt", "../abc\\../abc\\a.txt", 1)]
         [InlineData("../abc/a.txt", "../abc/a.txt", 1)]
         [InlineData("./abc/a.txt", "abc/a.txt", 1)]
         public void TestDuplicateAdditionalFiles(string additionalFilePath1, string additionalFilePath2, int expectedCount)
@@ -14222,7 +14226,7 @@ public class Generator : ISourceGenerator
             var additionalFile2 = expectedCount == 2 ? srcDirectory.CreateFile(additionalFilePath2) : null;
 
             string path1 = additionalFile1.Path;
-            string path2 = additionalFile2?.Path ?? path1;
+            string path2 = additionalFile2?.Path ?? Path.Combine(srcDirectory.Path, additionalFilePath2);
 
             int count = 0;
             var generator = new PipelineCallbackGenerator(ctx =>

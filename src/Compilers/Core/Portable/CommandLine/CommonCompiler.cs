@@ -1453,7 +1453,8 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var file in Arguments.AdditionalFiles)
             {
-                if (filePaths.Add(file.Path))
+                Debug.Assert(PathUtilities.IsAbsolute(file.Path));
+                if (filePaths.Add(PathUtilities.ExpandAbsolutePathWithRelativeParts(file.Path)))
                 {
                     builder.Add(new AdditionalTextFile(file, this));
                 }
