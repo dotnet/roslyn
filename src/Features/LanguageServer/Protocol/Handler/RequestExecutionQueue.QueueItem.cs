@@ -20,34 +20,34 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// <summary>
             /// Begins executing the work specified by this queue item.
             /// </summary>
-            public Task CallbackAsync(RequestContext? context, CancellationToken cancellationToken);
+            Task CallbackAsync(RequestContext? context, CancellationToken cancellationToken);
 
             /// <inheritdoc cref="IRequestHandler.RequiresLSPSolution" />
-            public bool RequiresLSPSolution { get; }
+            bool RequiresLSPSolution { get; }
 
             /// <inheritdoc cref="IRequestHandler.MutatesSolutionState" />
-            public bool MutatesSolutionState { get; }
+            bool MutatesSolutionState { get; }
 
             /// <inheritdoc cref="RequestContext.ClientName" />
-            public string? ClientName { get; }
+            string? ClientName { get; }
 
-            public string MethodName { get; }
+            string MethodName { get; }
 
             /// <summary>
             /// The document identifier that will be used to find the solution and document for this request. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/>.
             /// </summary>
-            public TextDocumentIdentifier? TextDocument { get; }
+            TextDocumentIdentifier? TextDocument { get; }
 
             /// <inheritdoc cref="RequestContext.ClientCapabilities" />
-            public ClientCapabilities ClientCapabilities { get; }
+            ClientCapabilities ClientCapabilities { get; }
 
             /// <summary>
             /// <see cref="CorrelationManager.ActivityId"/> used to properly correlate this work with the loghub
             /// tracing/logging subsystem.
             /// </summary>
-            public Guid ActivityId { get; }
+            Guid ActivityId { get; }
 
-            public RequestMetrics Metrics { get; }
+            RequestMetrics Metrics { get; }
         }
 
         private class QueueItem<TRequestType, TResponseType> : IQueueItem
