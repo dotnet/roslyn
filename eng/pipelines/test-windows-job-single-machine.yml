@@ -27,7 +27,7 @@ jobs:
   dependsOn: ${{ parameters.buildJobName }}
   pool:
     name: NetCore1ESPool-Svc-Public
-    demands ImageOverride -equals ${{ parameters.queueName }}
+    demands: ImageOverride -equals ${{ parameters.queueName }}
   timeoutInMinutes: 120
   variables:
     DOTNET_ROLL_FORWARD: LatestMajor
