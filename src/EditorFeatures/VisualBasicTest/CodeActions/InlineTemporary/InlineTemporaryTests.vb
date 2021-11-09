@@ -2903,7 +2903,7 @@ Imports System.Linq
 Module Program
     Sub Main()
         Dim y = From x In ""
- _
+                            _
         [Take]()
         Dim t = 1
     End Sub
@@ -2939,7 +2939,7 @@ Imports System.Linq
 Module Program
     Sub Main()
         Dim y = From x In ""
- _ ' Test
+                            _ ' Test
         [Take]()
         Dim t = 1
     End Sub
