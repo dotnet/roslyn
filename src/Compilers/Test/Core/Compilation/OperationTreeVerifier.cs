@@ -972,6 +972,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IFlowCaptureReferenceOperation));
             LogString($": {operation.Id.Value}");
+            if (operation.IsInitialization)
+            {
+                LogString(" (IsInitialization)");
+            }
             LogCommonPropertiesAndNewLine(operation);
         }
 
