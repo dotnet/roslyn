@@ -88,6 +88,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return CompileAndGetModelAndConstructorInitializer(program, (model, expression) => model.AnalyzeDataFlow(expression), references);
         }
 
+        protected DataFlowAnalysis CompileAndAnalyzeDataFlowPrimaryConstructorInitializer(string program, params MetadataReference[] references)
+        {
+            return CompileAndGetModelAndPrimaryConstructorInitializer(program, (model, expression) => model.AnalyzeDataFlow(expression), references);
+        }
+
         protected DataFlowAnalysis CompileAndAnalyzeDataFlowStatements(string program)
         {
             return CompileAndGetModelAndStatements(program, (model, stmt1, stmt2) => model.AnalyzeDataFlow(stmt1, stmt2));
@@ -107,6 +112,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             int end = program.IndexOf(EndString, StringComparison.Ordinal);
             ConstructorInitializerSyntax syntaxToBind = null;
             foreach (var expr in GetSyntaxNodeList(tree).OfType<ConstructorInitializerSyntax>())
+            {
+                if (expr.SpanStart >= start && expr.Span.End <= end)
+                {
+                    syntaxToBind = expr;
+                    break;
+                }
+            }
+
+            Assert.NotNull(syntaxToBind);
+            return analysisDelegate(model, syntaxToBind);
+        }
+
+        protected T CompileAndGetModelAndPrimaryConstructorInitializer<T>(string program, Func<SemanticModel, PrimaryConstructorBaseTypeSyntax, T> analysisDelegate, params MetadataReference[] references)
+        {
+            var comp = CreateCompilation(program, parseOptions: TestOptions.RegularPreview, references: references);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            int start = program.IndexOf(StartString, StringComparison.Ordinal) + StartString.Length;
+            int end = program.IndexOf(EndString, StringComparison.Ordinal);
+            PrimaryConstructorBaseTypeSyntax syntaxToBind = null;
+            foreach (var expr in GetSyntaxNodeList(tree).OfType<PrimaryConstructorBaseTypeSyntax>())
             {
                 if (expr.SpanStart >= start && expr.Span.End <= end)
                 {

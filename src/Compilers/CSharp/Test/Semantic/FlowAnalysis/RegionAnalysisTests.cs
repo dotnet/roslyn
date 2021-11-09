@@ -2717,6 +2717,32 @@ class C
         }
         #endregion
 
+        #region "primary constructor initalizer"
+        [Fact]
+        public void TestDataFlowsInPrimaryCtorInit()
+        {
+            var analysis = CompileAndAnalyzeDataFlowPrimaryConstructorInitializer(@"
+record Base(int x)
+
+record C(int x, int y) /*<bind>*/ : Base(x + y) /*</bind>*/;
+");
+            Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
+
+        [Fact]
+        public void TestDataFlowsInPrimaryCtorInitVariablesDeclared()
+        {
+            var analysis = CompileAndAnalyzeDataFlowPrimaryConstructorInitializer(@"
+record Base(int x);
+
+record C(int x, int y) /*<bind>*/ : Base((x++ + y is var b) switch { _ => b * 2}) /*</bind>*/;
+");
+            Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("x, b", GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("b", GetSymbolNamesJoined(analysis.VariablesDeclared));
+        }
+        #endregion
+
         #region "Statements"
 
         [Fact]
