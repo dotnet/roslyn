@@ -71,15 +71,27 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public sealed class CancelledResult : GeneratorDriverRunResult
+        /// <summary>
+        /// Result type retrurned when the <see cref="CancellationToken"/> passed to the <see cref="GeneratorDriver"/> is cancelled
+        /// and the host has opted into cancellation timing via <see cref="GeneratorDriverOptions.EnableCancellationTiming"/>
+        /// </summary>
+        /// <remarks>
+        /// This type allows a host that has opted into cancellation timing to see if a run was canceled, and which generators
+        /// where running at the time cancellation occured. The majority of results will be empty, even if one or more generators
+        /// successfully ran.
+        /// </remarks>
+        public sealed class CanceledResult : GeneratorDriverRunResult
         {
-            internal CancelledResult(TimeSpan elapsedTime, GeneratorRunResult? cancelledOn)
+            internal CanceledResult(TimeSpan elapsedTime, ImmutableArray<GeneratorRunResult> runningAtCancellation)
                 : base(ImmutableArray<GeneratorRunResult>.Empty, elapsedTime)
             {
-                LastGeneratorRunning = cancelledOn;
+                GeneratorsRunningAtCancellation = runningAtCancellation;
             }
 
-            public GeneratorRunResult? LastGeneratorRunning { get; }
+            /// <summary>
+            /// Gets the set of generators that were running when the cancellation occured.
+            /// </summary>
+            public ImmutableArray<GeneratorRunResult> GeneratorsRunningAtCancellation { get; }
         }
     }
 

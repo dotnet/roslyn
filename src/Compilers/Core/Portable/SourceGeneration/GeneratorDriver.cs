@@ -131,9 +131,9 @@ namespace Microsoft.CodeAnalysis
         {
             if (_state.Cancelled)
             {
-                Debug.Assert(_state.Options.EnableGracefulCancellation);
+                Debug.Assert(_state.Options.EnableCancellationTiming);
 
-                return new GeneratorDriverRunResult.CancelledResult(_state.ElapsedTime, getCancelledRunResult(_state));
+                return new GeneratorDriverRunResult.CanceledResult(_state.ElapsedTime, getCanceledRunResult(_state));
             }
 
             var results = _state.Generators.ZipAsArray(
@@ -160,17 +160,20 @@ namespace Microsoft.CodeAnalysis
                 return sources.ToImmutableAndFree();
             }
 
-            static GeneratorRunResult? getCancelledRunResult(GeneratorDriverState driverState)
+            static ImmutableArray<GeneratorRunResult> getCanceledRunResult(GeneratorDriverState driverState)
             {
                 for (int i = 0; i < driverState.GeneratorStates.Length; i++)
                 {
                     if (driverState.GeneratorStates[i].Cancelled)
                     {
-                        return new GeneratorRunResult(driverState.Generators[i], ImmutableArray<GeneratedSourceResult>.Empty, ImmutableArray<Diagnostic>.Empty, exception: null, elapsedTime: driverState.GeneratorStates[i].ElapsedTime);
+                        // Today we always run in series, so there can only ever be a single cancelled generator.
+                        // In the future we might have multiple generators running at the same time, so want to
+                        // be forward compatible for that case by using an array.
+                        return ImmutableArray.Create(new GeneratorRunResult(driverState.Generators[i], ImmutableArray<GeneratedSourceResult>.Empty, ImmutableArray<Diagnostic>.Empty, exception: null, elapsedTime: driverState.GeneratorStates[i].ElapsedTime));
                     }
                 }
 
-                return null;
+                return ImmutableArray<GeneratorRunResult>.Empty;
             }
         }
 
@@ -280,7 +283,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     stateBuilder[i] = SetGeneratorException(MessageProvider, stateBuilder[i], state.Generators[i], ufe.InnerException, diagnosticsBag, generatorTimer.Elapsed);
                 }
-                catch (OperationCanceledException) when (state.Options.EnableGracefulCancellation)
+                catch (OperationCanceledException) when (state.Options.EnableCancellationTiming)
                 {
                     // when cancelled, we record the time it spent generating, but don't include anything that was partially generated.
                     // this allows us to know if a runnning generator is frequently causing the cancellation

@@ -2123,7 +2123,7 @@ class C { }
         }
 
         [Fact]
-        public void Generator_Driver_Supports_Graceful_Cancellation()
+        public void Generator_Driver_Supports_Timed_Cancellation()
         {
             var source = @"
 class C { }
@@ -2140,13 +2140,13 @@ class C { }
                 ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => cts.Cancel());
             });
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator.AsSourceGenerator() }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, true));
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator.AsSourceGenerator() }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, enableCancellationTiming: true));
             driver = driver.RunGenerators(compilation, cts.Token);
 
             Assert.True(cts.Token.IsCancellationRequested);
 
             var runResult = driver.GetRunResult();
-            Assert.IsType<GeneratorDriverRunResult.CancelledResult>(runResult);
+            Assert.IsType<GeneratorDriverRunResult.CanceledResult>(runResult);
             Assert.Empty(runResult.Results);
         }
 
@@ -2166,15 +2166,17 @@ class C { }
             var generator = new PipelineCallbackGenerator(ctx =>
             {
                 ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => { context.AddSource("gen", ""); cts.Cancel(); });
-            });
+            }).AsSourceGenerator();
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator.AsSourceGenerator() }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, true));
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, enableCancellationTiming: true));
             driver = driver.RunGenerators(compilation, cts.Token);
 
             Assert.True(cts.Token.IsCancellationRequested);
 
             var runResult = driver.GetRunResult();
-            Assert.IsType<GeneratorDriverRunResult.CancelledResult>(runResult);
+            var canceledRunResult = Assert.IsType<GeneratorDriverRunResult.CanceledResult>(runResult);
+            var result = Assert.Single(canceledRunResult.GeneratorsRunningAtCancellation);
+            Assert.Same(generator, result.Generator);
             Assert.Empty(runResult.Results);
         }
 
@@ -2202,13 +2204,13 @@ class C { }
                 ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => invoked = true);
             });
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator.AsSourceGenerator(), generator2.AsSourceGenerator() }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, true));
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator.AsSourceGenerator(), generator2.AsSourceGenerator() }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, enableCancellationTiming: true));
             driver = driver.RunGenerators(compilation, cts.Token);
 
             Assert.True(cts.Token.IsCancellationRequested);
 
             var runResult = driver.GetRunResult();
-            Assert.IsType<GeneratorDriverRunResult.CancelledResult>(runResult);
+            Assert.IsType<GeneratorDriverRunResult.CanceledResult>(runResult);
             Assert.Empty(runResult.Results);
             Assert.False(invoked);
         }
@@ -2235,15 +2237,18 @@ class C { }
             var generator2 = new PipelineCallbackGenerator2(ctx =>
             {
                 ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => cts.Cancel());
-            });
+            }).AsSourceGenerator();
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator.AsSourceGenerator(), generator2.AsSourceGenerator() }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, true));
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator.AsSourceGenerator(), generator2 }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, enableCancellationTiming: true));
             driver = driver.RunGenerators(compilation, cts.Token);
 
             Assert.True(cts.Token.IsCancellationRequested);
 
             var runResult = driver.GetRunResult();
-            Assert.IsType<GeneratorDriverRunResult.CancelledResult>(runResult);
+            var canceledRunResult = Assert.IsType<GeneratorDriverRunResult.CanceledResult>(runResult);
+            var result = Assert.Single(canceledRunResult.GeneratorsRunningAtCancellation);
+            Assert.Same(generator2, result.Generator);
+
             Assert.Empty(runResult.Results);
             Assert.Equal(1, callCount);
 
@@ -2272,35 +2277,38 @@ class C { }
             var generator = new PipelineCallbackGenerator(ctx =>
             {
                 ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => { cts.Cancel(); context.AddSource("gen1", ""); });
-            });
+            }).AsSourceGenerator();
 
             var generator2 = new PipelineCallbackGenerator2(ctx =>
             {
                 ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => { cts2.Cancel(); context.AddSource("gen2", ""); });
-            });
+            }).AsSourceGenerator();
 
             var generator3 = new CallbackGenerator(ctx => { }, ctx => ctx.AddSource("gen3", ""));
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator.AsSourceGenerator(), generator2.AsSourceGenerator(), generator3 }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, true));
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator, generator2, generator3 }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, enableCancellationTiming: true));
             driver = driver.RunGenerators(compilation, cts.Token);
 
             Assert.True(cts.Token.IsCancellationRequested);
 
             var runResult = driver.GetRunResult();
-            Assert.IsType<GeneratorDriverRunResult.CancelledResult>(runResult);
+            var canceledRunResult = Assert.IsType<GeneratorDriverRunResult.CanceledResult>(runResult);
+            var result = Assert.Single(canceledRunResult.GeneratorsRunningAtCancellation);
+            Assert.Same(generator, result.Generator);
             Assert.Empty(runResult.Results);
 
             // run a second time, with a different generator causing cancellation
             driver = driver.RunGenerators(compilation, cts2.Token);
-            Assert.True(cts.Token.IsCancellationRequested);
+            Assert.True(cts2.Token.IsCancellationRequested);
 
             var runResult2 = driver.GetRunResult();
-            Assert.IsType<GeneratorDriverRunResult.CancelledResult>(runResult);
+            var canceledRunResult2 = Assert.IsType<GeneratorDriverRunResult.CanceledResult>(runResult2);
+            var result2 = Assert.Single(canceledRunResult2.GeneratorsRunningAtCancellation);
+            Assert.Same(generator2, result2.Generator);
             Assert.Empty(runResult2.Results);
 
             // run a third time with no cancellation
             driver = driver.RunGenerators(compilation, cancellationToken: default);
-            Assert.True(cts.Token.IsCancellationRequested);
 
             var runResult3 = driver.GetRunResult();
             Assert.Equal(3, runResult3.Results.Length);

@@ -15,17 +15,17 @@ namespace Microsoft.CodeAnalysis
     {
         public readonly IncrementalGeneratorOutputKind DisabledOutputs;
 
-        public readonly bool EnableGracefulCancellation;
+        public readonly bool EnableCancellationTiming;
 
         public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs)
-            : this(disabledOutputs, enableGracefulCancellation: false)
+            : this(disabledOutputs, enableCancellationTiming: false)
         {
         }
 
-        public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs, bool enableGracefulCancellation)
+        public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs, bool enableCancellationTiming)
         {
             DisabledOutputs = disabledOutputs;
-            EnableGracefulCancellation = enableGracefulCancellation;
+            EnableCancellationTiming = enableCancellationTiming;
         }
 
     }
