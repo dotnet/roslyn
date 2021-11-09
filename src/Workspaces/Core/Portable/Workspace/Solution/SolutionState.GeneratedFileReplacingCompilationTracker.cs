@@ -54,22 +54,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public bool? ContainsSymbolsWithNameFromDeclarationOnlyCompilation(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
-            {
-                // TODO: This only needs to be implemented if a feature that operates from a source generated file needs to search for declarations
-                // with other names; those APIs are only used by certain code fixes which isn't a need for now. This will need to be fixed up when
-                // we complete https://github.com/dotnet/roslyn/issues/49533.
-                throw new NotImplementedException();
-            }
-
-            public bool? ContainsSymbolsWithNameFromDeclarationOnlyCompilation(string name, SymbolFilter filter, CancellationToken cancellationToken)
-            {
-                // TODO: This only needs to be implemented if a feature that operates from a source generated file needs to search for declarations
-                // with other names; those APIs are only used by certain code fixes which isn't a need for now. This will need to be fixed up when
-                // we complete https://github.com/dotnet/roslyn/issues/49533.
-                throw new NotImplementedException();
-            }
-
             public ICompilationTracker Fork(SolutionServices solutionServices, ProjectState newProject, CompilationAndGeneratorDriverTranslationAction? translate = null, CancellationToken cancellationToken = default)
             {
                 // TODO: This only needs to be implemented if a feature that operates from a source generated file then makes
@@ -122,15 +106,14 @@ namespace Microsoft.CodeAnalysis
                 return _compilationWithReplacement;
             }
 
-            public Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken)
-            {
-                return _underlyingTracker.GetDependentSemanticVersionAsync(solution, cancellationToken);
-            }
-
             public Task<VersionStamp> GetDependentVersionAsync(SolutionState solution, CancellationToken cancellationToken)
-            {
-                return _underlyingTracker.GetDependentVersionAsync(solution, cancellationToken);
-            }
+                => _underlyingTracker.GetDependentVersionAsync(solution, cancellationToken);
+
+            public Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken)
+                => _underlyingTracker.GetDependentSemanticVersionAsync(solution, cancellationToken);
+
+            public Task<Checksum> GetDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken)
+                => _underlyingTracker.GetDependentChecksumAsync(solution, cancellationToken);
 
             public async Task<MetadataReference> GetMetadataReferenceAsync(SolutionState solution, ProjectState fromProject, ProjectReference projectReference, CancellationToken cancellationToken)
             {

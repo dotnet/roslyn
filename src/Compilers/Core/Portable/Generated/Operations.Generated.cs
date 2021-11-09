@@ -6877,14 +6877,16 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class FlowCaptureReferenceOperation : Operation, IFlowCaptureReferenceOperation
     {
-        internal FlowCaptureReferenceOperation(CaptureId id, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
+        internal FlowCaptureReferenceOperation(CaptureId id, bool isInitialization, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             Id = id;
+            IsInitialization = isInitialization;
             OperationConstantValue = constantValue;
             Type = type;
         }
         public CaptureId Id { get; }
+        public bool IsInitialization { get; }
         protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
         protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type { get; }
@@ -8377,7 +8379,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, object? argument)
         {
             var internalOperation = (FlowCaptureReferenceOperation)operation;
-            return new FlowCaptureReferenceOperation(internalOperation.Id, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
+            return new FlowCaptureReferenceOperation(internalOperation.Id, internalOperation.IsInitialization, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
         }
         public override IOperation VisitCoalesceAssignment(ICoalesceAssignmentOperation operation, object? argument)
         {

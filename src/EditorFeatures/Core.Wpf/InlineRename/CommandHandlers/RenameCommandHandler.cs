@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.Telemetry;
 
 #if !COCOA
 using System.Linq;
@@ -113,7 +114,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
 
                 errorReportingService.ShowGlobalErrorInfo(
-                    string.Format(EditorFeaturesWpfResources.Error_performing_rename_0, ex.Message),
+                    message: string.Format(EditorFeaturesWpfResources.Error_performing_rename_0, ex.Message),
+                    TelemetryFeatureName.InlineRename,
                     ex,
                     new InfoBarUI(
                         WorkspacesResources.Show_Stack_Trace,

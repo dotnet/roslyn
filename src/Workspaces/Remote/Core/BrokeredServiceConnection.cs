@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
@@ -453,9 +454,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 return true;
             }
 
-            // report telemetry event:
-            Logger.Log(FunctionId.FeatureNotAvailable, $"{_serviceDescriptor.Moniker}: {exception.GetType()}: {exception.Message}");
-
             return FatalError.ReportAndCatch(exception);
         }
 
@@ -508,7 +506,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 internalException = exception;
             }
 
-            _errorReportingService.ShowFeatureNotAvailableErrorInfo(message, internalException);
+            _errorReportingService.ShowFeatureNotAvailableErrorInfo(message, TelemetryFeatureName.GetRemoteFeatureName(_serviceDescriptor.ComponentName, _serviceDescriptor.SimpleName), internalException);
         }
     }
 }

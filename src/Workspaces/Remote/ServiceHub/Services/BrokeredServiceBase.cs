@@ -55,7 +55,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected BrokeredServiceBase(in ServiceConstructionArguments arguments)
         {
-            TraceLogger = (TraceSource)arguments.ServiceProvider.GetService(typeof(TraceSource));
+            var traceSource = (TraceSource?)arguments.ServiceProvider.GetService(typeof(TraceSource));
+            Contract.ThrowIfNull(traceSource);
+            TraceLogger = traceSource;
 
             TestData = (RemoteHostTestData?)arguments.ServiceProvider.GetService(typeof(RemoteHostTestData));
             WorkspaceManager = TestData?.WorkspaceManager ?? RemoteWorkspaceManager.Default;

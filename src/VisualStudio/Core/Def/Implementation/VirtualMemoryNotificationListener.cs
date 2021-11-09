@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -162,7 +163,9 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             // Show info bar.
             _workspace.Services.GetRequiredService<IErrorReportingService>()
-                .ShowGlobalErrorInfo(ServicesVSResources.Visual_Studio_has_suspended_some_advanced_features_to_improve_performance,
+                .ShowGlobalErrorInfo(
+                    message: ServicesVSResources.Visual_Studio_has_suspended_some_advanced_features_to_improve_performance,
+                    TelemetryFeatureName.VirtualMemoryNotification,
                     exception: null,
                     new InfoBarUI(ServicesVSResources.Re_enable, InfoBarUI.UIKind.Button, RenableBackgroundAnalysis),
                     new InfoBarUI(ServicesVSResources.Learn_more, InfoBarUI.UIKind.HyperLink,
