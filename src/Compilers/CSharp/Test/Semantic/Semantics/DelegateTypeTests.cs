@@ -4306,6 +4306,58 @@ class Program
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
+        [WorkItem(57627, "https://github.com/dotnet/roslyn/issues/57627")]
+        [Fact]
+        public void OverloadResolution_48()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+
+delegate void MyAction();
+delegate T MyFunc<T>();
+
+class A
+{
+    public static void F(object o) { Console.WriteLine(""F(object o)""); }
+    public static void F(object o, string format, params object[] args) { Console.WriteLine(""F(object o, string format, params object[] args)""); }
+    
+    public static void F<T>(T t) { Console.WriteLine(""F<T>(T t)""); }
+    public static void F<T>(T t, string format, params object[] args) { Console.WriteLine(""F<T>(T t, string format, params object[] args)""); }
+    
+    public static void F(MyAction a) { Console.WriteLine(""F(MyAction a)""); }
+    public static void F(MyAction a, string format, params object[] args) { Console.WriteLine(""F(MyAction a, string format, params object[] args)""); }
+    
+    public static void F<T>(MyFunc<T> f) { Console.WriteLine(""F<T>(MyFunc<T> f)""); }
+    public static void F<T>(MyFunc<T> f, string format, params object[] args) { Console.WriteLine(""F<T>(MyFunc<T> f, string format, params object[] args)""); }
+}
+
+class B
+{
+    static async Task Main()
+    {
+        A.F(() => { });
+        A.F(() => { }, """");
+        A.F(() => { }, ""{0}"", 1);
+        A.F(async () => await Task.FromResult<object>(null));
+        A.F(async () => await Task.FromResult<object>(null), """");
+        A.F(async () => await Task.FromResult<object>(null), ""{0}"", 1);
+    }
+}";
+
+            string expectedOutput =
+@"F(MyAction a)
+F(MyAction a, string format, params object[] args)
+F(MyAction a, string format, params object[] args)
+F<T>(MyFunc<T> f)
+F<T>(MyFunc<T> f, string format, params object[] args)
+F<T>(MyFunc<T> f, string format, params object[] args)
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
         [Fact]
         public void BestCommonType_01()
         {
