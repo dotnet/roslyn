@@ -222,6 +222,11 @@
         <target state="translated">Açık dönüş türü olmadan, anonim yöntemlerde AsyncMethodBuilder özniteliğine izin verilmez.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotBeMadeNullable">
+        <source>'{0}' cannot be made nullable.</source>
+        <target state="new">'{0}' cannot be made nullable.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotClone">
         <source>The receiver type '{0}' is not a valid record type and is not a struct type.</source>
         <target state="translated">'{0}' alıcı türü geçerli bir kayıt türü değil ve bir yapı türü değil.</target>

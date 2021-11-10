@@ -262,6 +262,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </remarks>
         protected abstract bool AreEquivalentActiveStatements(SyntaxNode oldStatement, SyntaxNode newStatement, int statementPart);
 
+        protected abstract bool IsCompilationUnitWithGlobalStatements(SyntaxNode node);
+        protected abstract bool IsGlobalStatement(SyntaxNode node);
         protected abstract TextSpan GetGlobalStatementDiagnosticSpan(SyntaxNode node);
 
         /// <summary>
@@ -719,7 +721,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        internal static Dictionary<SyntaxNode, EditKind> BuildEditMap(EditScript<SyntaxNode> editScript)
+        internal Dictionary<SyntaxNode, EditKind> BuildEditMap(EditScript<SyntaxNode> editScript)
         {
             var map = new Dictionary<SyntaxNode, EditKind>(editScript.Edits.Length);
 
@@ -736,6 +738,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     map.Add(edit.NewNode, edit.Kind);
                 }
+            }
+
+            // When a global statement is updated, inserted or deleted it means that the containing
+            // compilation unit has been updated. This update is not recorded in the edit script
+            // since compilation unit contains other items then global statements as well and 
+            // we only want it to be updated in presence of changed global statements.
+            if ((IsCompilationUnitWithGlobalStatements(editScript.Match.OldRoot) || IsCompilationUnitWithGlobalStatements(editScript.Match.NewRoot)) &&
+                map.Any(entry => IsGlobalStatement(entry.Key)))
+            {
+                map.Add(editScript.Match.OldRoot, EditKind.Update);
+                map.Add(editScript.Match.NewRoot, EditKind.Update);
             }
 
             return map;

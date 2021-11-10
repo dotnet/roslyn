@@ -222,6 +222,11 @@
         <target state="translated">L'attributo AsyncMethodBuilder non è consentito in metodi anonimi senza un tipo restituito esplicito.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotBeMadeNullable">
+        <source>'{0}' cannot be made nullable.</source>
+        <target state="new">'{0}' cannot be made nullable.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotClone">
         <source>The receiver type '{0}' is not a valid record type and is not a struct type.</source>
         <target state="translated">Il tipo di ricevitore '{0}' non è un tipo di record valido e non è un tipo struct.</target>
