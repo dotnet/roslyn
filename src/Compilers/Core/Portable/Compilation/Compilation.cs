@@ -2654,14 +2654,8 @@ namespace Microsoft.CodeAnalysis
                     {
                         // NOTE: We generate documentation even in presence of compile errors.
                         // https://github.com/dotnet/roslyn/issues/37996 tracks revisiting this behavior.
-                        if (!GenerateResources(
-                                moduleBeingBuilt, win32Resources, useRawWin32Resources: rebuildData is object, diagnostics, cancellationToken))
-                        {
-                            success = false;
-                        }
-
-                        if (!GenerateDocumentationComments(
-                                moduleBeingBuilt, xmlDocumentationStream, options.OutputNameOverride, diagnostics, cancellationToken))
+                        if (!GenerateResources(moduleBeingBuilt, win32Resources, useRawWin32Resources: rebuildData is object, diagnostics, cancellationToken) ||
+                            !GenerateDocumentationComments(moduleBeingBuilt, xmlDocumentationStream, options.OutputNameOverride, diagnostics, cancellationToken)
                         {
                             success = false;
                         }

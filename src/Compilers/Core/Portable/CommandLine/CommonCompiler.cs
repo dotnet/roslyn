@@ -1256,17 +1256,9 @@ namespace Microsoft.CodeAnalysis
                                         return;
                                     }
 
-                                    if (!compilation.GenerateResources(
-                                            moduleBeingBuilt, win32ResourceStreamOpt, useRawWin32Resources: false, diagnostics, cancellationToken))
-                                    {
-                                        success = false;
-                                    }
-
-                                    if (!compilation.GenerateDocumentationComments(
-                                            moduleBeingBuilt, xmlStreamDisposerOpt?.Stream, emitOptions.OutputNameOverride, diagnostics, cancellationToken))
-                                    {
-                                        success = false;
-                                    }
+                                    success =
+                                        compilation.GenerateResources(moduleBeingBuilt, win32ResourceStreamOpt, useRawWin32Resources: false, diagnostics, cancellationToken) &&
+                                        compilation.GenerateDocumentationComments(moduleBeingBuilt, xmlStreamDisposerOpt?.Stream, emitOptions.OutputNameOverride, diagnostics, cancellationToken);
                                 }
                             }
 
