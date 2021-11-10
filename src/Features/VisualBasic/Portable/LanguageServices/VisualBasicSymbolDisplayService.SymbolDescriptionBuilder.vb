@@ -29,9 +29,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             Public Sub New(semanticModel As SemanticModel,
                            position As Integer,
                            workspace As Workspace,
-                           anonymousTypeDisplayService As IAnonymousTypeDisplayService,
+                           structuralTypeDisplayService As IStructuralTypeDisplayService,
                            cancellationToken As CancellationToken)
-                MyBase.New(semanticModel, position, workspace, anonymousTypeDisplayService, cancellationToken)
+                MyBase.New(semanticModel, position, workspace, structuralTypeDisplayService, cancellationToken)
             End Sub
 
             Protected Overrides Sub AddDeprecatedPrefix()

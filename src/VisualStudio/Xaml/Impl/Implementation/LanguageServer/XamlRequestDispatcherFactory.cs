@@ -59,7 +59,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
                 _feedbackService = feedbackService;
             }
 
-            protected override async Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(RequestExecutionQueue queue, RequestType request, ClientCapabilities clientCapabilities, string? clientName, string methodName, bool mutatesSolutionState, bool requiresLSPSolution, IRequestHandler<RequestType, ResponseType> handler, CancellationToken cancellationToken)
+            protected override async Task<ResponseType?> ExecuteRequestAsync<RequestType, ResponseType>(
+                RequestExecutionQueue queue, RequestType request, ClientCapabilities clientCapabilities, string? clientName, string methodName, bool mutatesSolutionState, bool requiresLSPSolution, IRequestHandler<RequestType, ResponseType> handler, CancellationToken cancellationToken)
+                where RequestType : class
+                where ResponseType : default
             {
                 var textDocument = handler.GetTextDocumentIdentifier(request);
 

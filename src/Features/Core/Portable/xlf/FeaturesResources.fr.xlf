@@ -240,6 +240,16 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Attend de façon asynchrone que la tâche soit terminée.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Await_the_preceding_expression">
+        <source>Await the preceding expression</source>
+        <target state="new">Await the preceding expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Await_the_preceding_expression_and_add_ConfigureAwait_0">
+        <source>Await the preceding expression and add ConfigureAwait({0}).</source>
+        <target state="new">Await the preceding expression and add ConfigureAwait({0}).</target>
+        <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
+      </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
         <target state="translated">La tâche attendue retourne '{0}'</target>
@@ -600,9 +610,24 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Mise en forme du document</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_abstract_method_0">
+        <source>Generate abstract method '{0}'</source>
+        <target state="new">Generate abstract method '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_abstract_property_0">
+        <source>Generate abstract property '{0}'</source>
+        <target state="new">Generate abstract property '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Générer des opérateurs de comparaison</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constant_0">
+        <source>Generate constant '{0}'</source>
+        <target state="new">Generate constant '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor_in_0_with_fields">
@@ -615,9 +640,24 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Générer le constructeur dans '{0}' (avec les propriétés)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_enum_member_0">
+        <source>Generate enum member '{0}'</source>
+        <target state="new">Generate enum member '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_field_0">
+        <source>Generate field '{0}'</source>
+        <target state="new">Generate field '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_for_0">
         <source>Generate for '{0}'</source>
         <target state="translated">Générer pour '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_method_0">
+        <source>Generate method '{0}'</source>
+        <target state="new">Generate method '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
@@ -628,6 +668,21 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       <trans-unit id="Generate_parameter_0_and_overrides_implementations">
         <source>Generate parameter '{0}' (and overrides/implementations)</source>
         <target state="translated">Générer le paramètre '{0}' (et les substitutions/implémentations)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_property_0">
+        <source>Generate property '{0}'</source>
+        <target state="new">Generate property '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_read_only_field_0">
+        <source>Generate read-only field '{0}'</source>
+        <target state="new">Generate read-only field '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_read_only_property_0">
+        <source>Generate read-only property '{0}'</source>
+        <target state="new">Generate read-only property '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -850,6 +905,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">{0} doit retourner un flux qui prend en charge les opérations de lecture et de recherche.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Miscellaneous_Files">
+        <source>Miscellaneous Files</source>
+        <target state="new">Miscellaneous Files</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Missing_control_character">
         <source>Missing control character</source>
         <target state="translated">Caractère de contrôle manquant</target>
@@ -953,6 +1013,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       <trans-unit id="Move_file_to_project_root_folder">
         <source>Move file to project root folder</source>
         <target state="translated">Déplacer le fichier dans le dossier racine du projet</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_static_members_to_another_type">
+        <source>Move static members to another type...</source>
+        <target state="new">Move static members to another type...</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -1156,11 +1221,11 @@ Cette option est recommandée si vous savez que le retour sur trace va être un 
       </trans-unit>
       <trans-unit id="Regex_balancing_group_long">
         <source>A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
-    
+
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="translated">Une définition de groupe d'équilibrage supprime la définition d'un groupe défini et stocke, dans le groupe actuel, l'intervalle entre le groupe défini et le groupe actuel.
+        <target state="needs-review-translation">Une définition de groupe d'équilibrage supprime la définition d'un groupe défini et stocke, dans le groupe actuel, l'intervalle entre le groupe défini et le groupe actuel.
     
 'nom1' est le groupe actuel facultatif, 'nom2' est un groupe défini et 'sous-expression' est un modèle d'expression régulière valide. La définition du groupe d'équilibrage supprime la définition de name2 et stocke l'intervalle entre name2 et name1 dans name1. Si aucun groupe name2 n'est défini, la correspondance fait l'objet d'une rétroaction. Dans la mesure où la suppression de la dernière définition de name2 révèle la définition précédente de name2, cette construction vous permet d'utiliser la pile de captures du groupe name2 en tant que compteur permettant d'effectuer le suivi des constructions imbriquées telles que les parenthèses ou les crochets d'ouverture et de fermeture.
 
@@ -2300,6 +2365,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Trop de )'s</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
       </trans-unit>
+      <trans-unit id="Types_colon">
+        <source>Types:</source>
+        <target state="new">Types:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">Impossible de lire le fichier source '{0}' ou le PDB généré pour le projet conteneur. Les changements apportés à ce fichier durant le débogage ne seront pas appliqués tant que son contenu ne correspondra pas à la source générée.</target>
@@ -3235,36 +3305,6 @@ Si le spécificateur de format "M" est utilisé sans autres spécificateurs de f
         <target state="translated">Générer tout</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_enum_member_1_0">
-        <source>Generate enum member '{1}.{0}'</source>
-        <target state="translated">Générer le membre enum '{1}.{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constant_1_0">
-        <source>Generate constant '{1}.{0}'</source>
-        <target state="translated">Générer la constante '{1}.{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_property_1_0">
-        <source>Generate read-only property '{1}.{0}'</source>
-        <target state="translated">Générer la propriété en lecture seule '{1}.{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_property_1_0">
-        <source>Generate property '{1}.{0}'</source>
-        <target state="translated">Générer la propriété '{1}.{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_field_1_0">
-        <source>Generate read-only field '{1}.{0}'</source>
-        <target state="translated">Générer le champ en lecture seule '{1}.{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_1_0">
-        <source>Generate field '{1}.{0}'</source>
-        <target state="translated">Générer le champ '{1}.{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_local_0">
         <source>Generate local '{0}'</source>
         <target state="translated">Générer le '{0}' local</target>
@@ -3348,11 +3388,6 @@ Si le spécificateur de format "M" est utilisé sans autres spécificateurs de f
       <trans-unit id="Introduce_query_variable_for_0">
         <source>Introduce query variable for '{0}'</source>
         <target state="translated">Introduire une variable de requête pour '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Anonymous_Types_colon">
-        <source>Anonymous Types:</source>
-        <target state="translated">Types anonymes :</target>
         <note />
       </trans-unit>
       <trans-unit id="is_">
@@ -3477,21 +3512,6 @@ Si le spécificateur de format "g" est utilisé sans autres spécificateurs de f
       <trans-unit id="Unknown_symbol_kind">
         <source>Unknown symbol kind</source>
         <target state="translated">Genre de symbole inconnu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_abstract_property_1_0">
-        <source>Generate abstract property '{1}.{0}'</source>
-        <target state="translated">Générer la propriété abstraite '{1}.{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_abstract_method_1_0">
-        <source>Generate abstract method '{1}.{0}'</source>
-        <target state="translated">Générer la méthode abstraite '{1}.{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_method_1_0">
-        <source>Generate method '{1}.{0}'</source>
-        <target state="translated">Générer la méthode '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Requested_assembly_already_loaded_from_0">
@@ -4163,16 +4183,6 @@ Version utilisée dans : {2}</target>
       <trans-unit id="Add_missing_param_nodes">
         <source>Add missing param nodes</source>
         <target state="translated">Ajouter les nœuds de paramètre manquants</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_containing_scope_async">
-        <source>Make containing scope async</source>
-        <target state="translated">Rendre la portée contenante async</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_containing_scope_async_return_Task">
-        <source>Make containing scope async (return Task)</source>
-        <target state="translated">Rendre la portée contenante async (retourner Task)</target>
         <note />
       </trans-unit>
       <trans-unit id="paren_Unknown_paren">

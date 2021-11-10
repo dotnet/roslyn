@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Always generate the conversion, even if the expression is not convertible to the given type.
             // We want the erroneous conversion in the tree.
             var result = new BoundParameterEqualsValue(defaultValueSyntax, parameter, defaultValueBinder.GetDeclaredLocalsForScope(defaultValueSyntax),
-                              defaultValueBinder.GenerateConversionForAssignment(parameter.Type, valueBeforeConversion, diagnostics, isDefaultParameter: true));
+                              defaultValueBinder.GenerateConversionForAssignment(parameter.Type, valueBeforeConversion, diagnostics, ConversionForAssignmentFlags.DefaultParameter));
 
             return result;
         }
@@ -5915,7 +5915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    boundLeft = new BoundPointerIndirectionOperator(exprSyntax, boundLeft, pointedAtType, hasErrors)
+                    boundLeft = new BoundPointerIndirectionOperator(exprSyntax, boundLeft, refersToLocation: false, pointedAtType, hasErrors)
                     {
                         WasCompilerGenerated = true, // don't interfere with the type info for exprSyntax.
                     };
@@ -7693,7 +7693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_PtrIndexSingle, node);
                 }
                 return new BoundPointerElementAccess(node, expr, BadExpression(node, BuildArgumentsForErrorRecovery(analyzedArguments)).MakeCompilerGenerated(),
-                    CheckOverflowAtRuntime, pointedAtType, hasErrors: true);
+                    CheckOverflowAtRuntime, refersToLocation: false, pointedAtType, hasErrors: true);
             }
 
             if (pointedAtType.IsVoidType())
@@ -7705,7 +7705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression index = arguments[0];
 
             index = ConvertToArrayIndex(index, diagnostics, allowIndexAndRange: false);
-            return new BoundPointerElementAccess(node, expr, index, CheckOverflowAtRuntime, pointedAtType, hasErrors);
+            return new BoundPointerElementAccess(node, expr, index, CheckOverflowAtRuntime, refersToLocation: false, pointedAtType, hasErrors);
         }
 
         private static bool ReportRefOrOutArgument(AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics)

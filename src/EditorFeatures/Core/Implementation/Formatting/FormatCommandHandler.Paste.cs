@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return;
             }
 
-            if (!args.SubjectBuffer.GetFeatureOnOffOption(FormattingOptions2.FormatOnPaste) ||
+            if (!args.SubjectBuffer.GetFeatureOnOffOption(FormattingBehaviorOptions.FormatOnPaste) ||
                 !caretPosition.HasValue)
             {
                 return;

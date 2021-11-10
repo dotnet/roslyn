@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -70,6 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForOtherParameters),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.SuppressForParametersThatMatchMethodIntent),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.SuppressForParametersThatMatchArgumentName),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.EnabledForTypes),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForImplicitVariableTypes),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForLambdaParameterTypes),
@@ -92,9 +94,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             return SpecializedCollections.SingletonEnumerable(visibleSpanOpt.Value);
         }
 
-        protected override async Task ProduceTagsAsync(TaggerContext<InlineHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+        protected override async Task ProduceTagsAsync(
+            TaggerContext<InlineHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, CancellationToken cancellationToken)
         {
-            var cancellationToken = context.CancellationToken;
             var document = documentSnapshotSpan.Document;
             if (document == null)
                 return;

@@ -74,6 +74,12 @@ class SomeOtherClass
                         Assert.Equal(expected: 24, actual: reference.Column);
                     }
                 });
+
+            VisualStudio.FindReferencesWindow.NavigateTo(activeWindowCaption, results[0], isPreview: false);
+            // Assert we are in the right file now
+            VisualStudio.Editor.Activate();
+            Assert.Equal("Class1.cs", VisualStudio.Shell.GetActiveWindowCaption());
+            Assert.Equal("Program", VisualStudio.Editor.GetLineTextAfterCaret());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]

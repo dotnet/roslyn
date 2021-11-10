@@ -132,9 +132,9 @@ class Program {
                 // (5,63): error CS1010: Newline in constant
                 //         Console.WriteLine($"Jenny don\'t change your number { ");
                 Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(5, 63),
-                // (5,66): error CS8967: Newlines are not allowed inside a non-verbatim interpolated string
-                //         Console.WriteLine($"Jenny don\'t change your number { ");
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "").WithLocation(5, 66),
+                // (6,5): error CS1010: Newline in constant
+                //     }
+                Diagnostic(ErrorCode.ERR_NewlineInConst, "}").WithLocation(6, 5),
                 // (6,6): error CS1026: ) expected
                 //     }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 6),
@@ -159,9 +159,9 @@ class Program {
 }";
             // too many diagnostics perhaps, but it starts the right way.
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (5,71): error CS8077: A single-line comment may not be used in an interpolated string.
-                //         Console.WriteLine($"Jenny don\'t change your number { 8675309 // ");
-                Diagnostic(ErrorCode.ERR_SingleLineCommentInExpressionHole, "//").WithLocation(5, 71),
+                // (6,5): error CS1010: Newline in constant
+                //     }
+                Diagnostic(ErrorCode.ERR_NewlineInConst, "}").WithLocation(6, 5),
                 // (6,6): error CS1026: ) expected
                 //     }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 6),
@@ -186,12 +186,12 @@ class Program {
 }";
             // too many diagnostics perhaps, but it starts the right way.
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (5,60): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
+                //         Console.WriteLine($"Jenny don\'t change your number { 8675309 /* ");
+                Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, " {").WithLocation(5, 60),
                 // (5,71): error CS1035: End-of-file found, '*/' expected
                 //         Console.WriteLine($"Jenny don\'t change your number { 8675309 /* ");
                 Diagnostic(ErrorCode.ERR_OpenEndedComment, "").WithLocation(5, 71),
-                // (5,77): error CS8967: Newlines are not allowed inside a non-verbatim interpolated string
-                //         Console.WriteLine($"Jenny don\'t change your number { 8675309 /* ");
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "").WithLocation(5, 77),
                 // (7,2): error CS1026: ) expected
                 // }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 2),
@@ -358,12 +358,13 @@ class Program
         Console.WriteLine( $""{"" );
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(   // (6,31): error CS1010: Newline in constant
-                                                                         //         Console.WriteLine( $"{" );
-                Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(6, 31),
-                // (6,35): error CS8958: Newlines are not allowed inside a non-verbatim interpolated string
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (6,31): error CS1010: Newline in constant
                 //         Console.WriteLine( $"{" );
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "").WithLocation(6, 35),
+                Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(6, 31),
+                // (7,5): error CS1010: Newline in constant
+                //     }
+                Diagnostic(ErrorCode.ERR_NewlineInConst, "}").WithLocation(7, 5),
                 // (7,6): error CS1026: ) expected
                 //     }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 6),
@@ -7110,10 +7111,11 @@ i:10
 literal:text
 ");
             verifier.VerifyDiagnostics(
-                // (6,27): warning CS8947: Parameter i occurs after CustomHandler in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller
-                // to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
+                // (6,27): warning CS8947: Parameter 'i' occurs after 'c' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to
+                //         reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
                 //     public static void M([InterpolatedStringHandlerArgumentAttribute("i")] CustomHandler c, int i) => Console.WriteLine(c.ToString());
-                Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("i", "CustomHandler").WithLocation(6, 27)
+                Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("i", "c").WithLocation(6, 27)
+
 
             );
 
@@ -7126,10 +7128,11 @@ literal:text
                 // (1,10): error CS8950: Parameter 'i' is an argument to the interpolated string handler conversion on parameter 'c', but is specified after the interpolated string constant. Reorder the arguments to move 'i' before 'c'.
                 // C.M($"", 1);
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString, "1").WithArguments("i", "c").WithLocation(1, 7 + expression.Length),
-                // (6,27): warning CS8947: Parameter i occurs after CustomHandler in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller
-                // to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
+                // (6,27): warning CS8947: Parameter 'i' occurs after 'c' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to
+                //         reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
                 //     public static void M([InterpolatedStringHandlerArgumentAttribute("i")] CustomHandler c, int i) => Console.WriteLine(c.ToString());
-                Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("i", "CustomHandler").WithLocation(6, 27)
+                Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("i", "c").WithLocation(6, 27)
+
             );
 
             static void validate(ModuleSymbol module)
@@ -7265,9 +7268,11 @@ public partial struct CustomHandler
                 // (4,5): error CS8951: Parameter 'i' is not explicitly provided, but is used as an argument to the interpolated string handler conversion on parameter 'c'. Specify the value of 'i' before 'c'.
                 // C.M($"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentOptionalNotSpecified, expression).WithArguments("i", "c").WithLocation(4, 5),
-                // (8,27): warning CS8947: Parameter i occurs after CustomHandler in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
-                //     public static void M([InterpolatedStringHandlerArgumentAttribute("i")] CustomHandler c, params int[] i) { }
-                Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("i", "CustomHandler").WithLocation(8, 27)
+                // (8,27): warning CS8947: Parameter 'i' occurs after 'c' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder
+                //         parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
+                //     public static void M([InterpolatedStringHandlerArgumentAttribute("i")] CustomHandler c, int i = 0) { }
+                Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("i", "c").WithLocation(8, 27)
+
             );
         }
 
@@ -7301,9 +7306,10 @@ public partial struct CustomHandler
                 // (4,5): error CS8951: Parameter 'i' is not explicitly provided, but is used as an argument to the interpolated string handler conversion on parameter 'c'. Specify the value of 'i' before 'c'.
                 // C.M($"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentOptionalNotSpecified, expression).WithArguments("i", "c").WithLocation(4, 5),
-                // (8,27): warning CS8947: Parameter i occurs after CustomHandler in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
+                // (8,27): warning CS8947: Parameter 'i' occurs after 'c' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder
+                //         parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
                 //     public static void M([InterpolatedStringHandlerArgumentAttribute("i")] CustomHandler c, params int[] i) { }
-                Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("i", "CustomHandler").WithLocation(8, 27)
+                Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("i", "c").WithLocation(8, 27)
             );
         }
 

@@ -1256,7 +1256,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var baseParameter = baseParameters[i];
                     var baseParameterType = baseParameter.TypeWithAnnotations;
-                    var overrideParameter = overrideParameters[i + overrideParameterOffset];
+                    int parameterIndex = i + overrideParameterOffset;
+                    var overrideParameter = overrideParameters[parameterIndex];
                     var overrideParameterType = getNotNullIfNotNullOutputType(overrideParameter.TypeWithAnnotations, overrideParameter.NotNullIfParameterNotNull);
                     // check nested nullability
                     if (!isValidNullableConversion(

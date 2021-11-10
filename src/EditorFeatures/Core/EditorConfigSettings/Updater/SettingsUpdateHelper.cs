@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                     newEntry = "\r\n" + newEntry; // TODO(jmarolf): do we need to read in the users newline settings?
                 }
 
-                return (editorConfigText.WithChanges((TextChange)new TextChange(new TextSpan(lastValidSpecificHeaderSpanEnd.Value.Span.End, 0), newEntry)), lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd);
+                return (editorConfigText.WithChanges(new TextChange(new TextSpan(lastValidSpecificHeaderSpanEnd.Value.Span.End, 0), newEntry)), lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd);
             }
             else if (lastValidHeaderSpanEnd.HasValue)
             {
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                     newEntry = "\r\n" + newEntry; // TODO(jmarolf): do we need to read in the users newline settings?
                 }
 
-                return (editorConfigText.WithChanges((TextChange)new TextChange(new TextSpan(lastValidHeaderSpanEnd.Value.Span.End, 0), newEntry)), lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd);
+                return (editorConfigText.WithChanges(new TextChange(new TextSpan(lastValidHeaderSpanEnd.Value.Span.End, 0), newEntry)), lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd);
             }
 
             // We need to generate a new header such as '[*.cs]' or '[*.vb]':
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                 prefix += "[*.vb]\r\n";
             }
 
-            var result = editorConfigText.WithChanges((TextChange)new TextChange(new TextSpan(editorConfigText.Length, 0), prefix + newEntry));
+            var result = editorConfigText.WithChanges(new TextChange(new TextSpan(editorConfigText.Length, 0), prefix + newEntry));
             return (result, lastValidHeaderSpanEnd, result.Lines[^2]);
         }
     }
