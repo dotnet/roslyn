@@ -28,18 +28,23 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         public Task<TextLoader?> LoadSourceDocumentAsync(SourceDocument sourceDocument, CancellationToken cancellationToken)
         {
             // If we already have the embedded text then use that directly
+            SourceText? sourceText = null;
             if (sourceDocument.EmbeddedTextBytes is not null)
             {
-                var textLoader = TryLoadSourceFromEmbeddedSource(sourceDocument);
-                return Task.FromResult<TextLoader?>(textLoader);
+                sourceText = TryLoadSourceFromEmbeddedSource(sourceDocument.EmbeddedTextBytes);
             }
 
             // Otherwise, check the easiest (but most unlikely) case which is the document exists on the disk
             if (sourceText is null && File.Exists(sourceDocument.FilePath))
             {
-                var textLoader = IOUtilities.PerformIO(() => TryLoadSourceFromDisk(sourceDocument));
-                if (textLoader is not null)
-                    return Task.FromResult<TextLoader?>(textLoader);
+                sourceText = IOUtilities.PerformIO(() => TryLoadSourceFromDisk(sourceDocument));
+            }
+
+            if (sourceText is not null)
+            {
+                var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default, sourceDocument.FilePath);
+                var textLoader = TextLoader.From(textAndVersion);
+                return Task.FromResult<TextLoader?>(textLoader);
             }
 
             // TODO: Call the debugger to download the file
@@ -49,11 +54,10 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return Task.FromResult<TextLoader?>(null);
         }
 
-        private static TextLoader? TryLoadSourceFromEmbeddedSource(SourceDocument sourceDocument)
+        private static SourceText? TryLoadSourceFromEmbeddedSource(byte[] embeddedTextBytes)
         {
-            var blob = sourceDocument.EmbeddedTextBytes;
-            var uncompressedSize = BitConverter.ToInt32(blob, 0);
-            var stream = new MemoryStream(blob, sizeof(int), blob.Length - sizeof(int));
+            var uncompressedSize = BitConverter.ToInt32(embeddedTextBytes, 0);
+            var stream = new MemoryStream(embeddedTextBytes, sizeof(int), embeddedTextBytes.Length - sizeof(int));
 
             if (uncompressedSize != 0)
             {
@@ -74,13 +78,11 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             using (stream)
             {
-                var embeddedText = EncodedStringText.Create(stream);
-                var textAndVersion = TextAndVersion.Create(embeddedText, VersionStamp.Default, sourceDocument.FilePath);
-                return TextLoader.From(textAndVersion);
+                return EncodedStringText.Create(stream);
             }
         }
 
-        private static TextLoader? TryLoadSourceFromDisk(SourceDocument sourceDocument)
+        private static SourceText? TryLoadSourceFromDisk(SourceDocument sourceDocument)
         {
             using var fileStream = new FileStream(sourceDocument.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
             if (fileStream is null)
@@ -92,8 +94,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             if (fileChecksum.SequenceEqual(sourceDocument.Checksum))
             {
-                var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default, sourceDocument.FilePath);
-                return TextLoader.From(textAndVersion);
+                return sourceText;
             }
 
             return null;
