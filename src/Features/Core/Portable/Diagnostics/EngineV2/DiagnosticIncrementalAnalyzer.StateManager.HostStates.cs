@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private HostAnalyzerStateSets GetOrCreateHostStateSets(Project project, ProjectAnalyzerStateSets projectStateSets)
             {
-                var key = new HostAnalyzerStateSetKey { Language = project.Language, Analyzers = project.Solution.State.Analyzers };
+                var key = new HostAnalyzerStateSetKey(project.Language, project.Solution.State.Analyzers);
                 var hostStateSets = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, key, CreateLanguageSpecificAnalyzerMap);
                 return hostStateSets.WithExcludedAnalyzers(projectStateSets.SkippedAnalyzersInfo.SkippedAnalyzers);
 

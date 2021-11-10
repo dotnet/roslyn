@@ -311,8 +311,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private readonly struct HostAnalyzerStateSetKey
             {
-                public string Language { get; set; }
-                public HostDiagnosticAnalyzers Analyzers { get; set; }
+                public HostAnalyzerStateSetKey(string language, HostDiagnosticAnalyzers analyzers)
+                {
+                    Language = language;
+                    Analyzers = analyzers;
+                }
+
+                public string Language { get; }
+                public HostDiagnosticAnalyzers Analyzers { get; }
             }
         }
     }
