@@ -2,16 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using System.Drawing;
 using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 {
@@ -22,38 +24,40 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
     {
         private readonly ISettingsEditorView _whitespaceView;
         private readonly ISettingsEditorView _codeStyleView;
-        private readonly ISettingsEditorView _analyzerSettingsView;
+        private readonly ISettingsEditorView _analyzerView;
         private readonly Workspace _workspace;
         private readonly string _filepath;
         private readonly IThreadingContext _threadingContext;
         private readonly EditorTextUpdater _textUpdater;
 
-        public static string Whitespace => ServicesVSResources.Whitespace;
-        public static string CodeStyle => ServicesVSResources.Code_Style;
-        public static string Analyzers => ServicesVSResources.Analyzers;
+        public static string WhitespaceTabTitle => ServicesVSResources.Whitespace;
+        public UserControl WhitespaceControl => _whitespaceView.SettingControl;
+        public static string CodeStyleTabTitle => ServicesVSResources.Code_Style;
+        public UserControl CodeStyleControl => _codeStyleView.SettingControl;
+        public static string AnalyzersTabTitle => ServicesVSResources.Analyzers;
+        public UserControl AnalyzersControl => _analyzerView.SettingControl;
 
         public SettingsEditorControl(ISettingsEditorView whitespaceView,
                                      ISettingsEditorView codeStyleView,
-                                     ISettingsEditorView analyzerSettingsView,
+                                     ISettingsEditorView analyzerView,
                                      Workspace workspace,
                                      string filepath,
                                      IThreadingContext threadingContext,
                                      IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
                                      IVsTextLines textLines)
         {
-            InitializeComponent();
             DataContext = this;
             _workspace = workspace;
             _filepath = filepath;
             _threadingContext = threadingContext;
             _textUpdater = new EditorTextUpdater(editorAdaptersFactoryService, textLines);
             _whitespaceView = whitespaceView;
-            WhitespaceTab.Content = _whitespaceView.SettingControl;
             _codeStyleView = codeStyleView;
-            CodeStyleTab.Content = _codeStyleView.SettingControl;
-            _analyzerSettingsView = analyzerSettingsView;
-            AnalyzersTab.Content = _analyzerSettingsView.SettingControl;
+            _analyzerView = analyzerView;
+            InitializeComponent();
         }
+
+        public Border SearchControlParent => SearchControl;
 
         internal void SynchronizeSettings()
         {
@@ -75,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 var originalText = await analyzerConfigDocument.GetTextAsync(default).ConfigureAwait(false);
                 var updatedText = await _whitespaceView.UpdateEditorConfigAsync(originalText).ConfigureAwait(false);
                 updatedText = await _codeStyleView.UpdateEditorConfigAsync(updatedText).ConfigureAwait(false);
-                updatedText = await _analyzerSettingsView.UpdateEditorConfigAsync(updatedText).ConfigureAwait(false);
+                updatedText = await _analyzerView.UpdateEditorConfigAsync(updatedText).ConfigureAwait(false);
                 _textUpdater.UpdateText(updatedText.GetTextChanges(originalText));
             });
         }
@@ -85,14 +89,53 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             {
                 _whitespaceView.TableControl,
                 _codeStyleView.TableControl,
-                _analyzerSettingsView.TableControl,
+                _analyzerView.TableControl,
             };
 
         internal void OnClose()
         {
             _whitespaceView.OnClose();
             _codeStyleView.OnClose();
-            _analyzerSettingsView.OnClose();
+            _analyzerView.OnClose();
+        }
+
+        private void tabsSettingsEditor_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var previousTabItem = e.RemovedItems.Count > 0 ? e.RemovedItems[0] as TabItem : null;
+            var selectedTabItem = e.AddedItems.Count > 0 ? e.AddedItems[0] as TabItem : null;
+
+            if (previousTabItem is not null && selectedTabItem is not null)
+            {
+                if (ReferenceEquals(selectedTabItem.Tag, previousTabItem.Tag))
+                {
+                    return;
+                }
+
+                if (GetTabItem(previousTabItem.Tag) is ContentPresenter prevFrame &&
+                    GetTabItem(selectedTabItem.Tag) is ContentPresenter currentFrame)
+                {
+                    prevFrame.Visibility = Visibility.Hidden;
+                    currentFrame.Visibility = Visibility.Visible;
+                }
+            }
+
+            ContentPresenter GetTabItem(object tag)
+            {
+                if (ReferenceEquals(tag, WhitespaceControl))
+                {
+                    return WhitespaceFrame;
+                }
+                else if (ReferenceEquals(tag, CodeStyleControl))
+                {
+                    return CodeStyleFrame;
+                }
+                else if (ReferenceEquals(tag, AnalyzersControl))
+                {
+                    return AnalyzersFrame;
+                }
+
+                throw ExceptionUtilities.Unreachable;
+            }
         }
     }
 }

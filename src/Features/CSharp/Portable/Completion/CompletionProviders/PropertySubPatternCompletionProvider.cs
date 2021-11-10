@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -32,6 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         public PropertySubpatternCompletionProvider()
         {
         }
+
+        internal override string Language => LanguageNames.CSharp;
 
         // Examples:
         // is { $$
@@ -67,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             // Find the members that can be tested.
             var members = GetCandidatePropertiesAndFields(document, semanticModel, position, type);
-            members = members.WhereAsArray(m => m.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation));
+            members = members.WhereAsArray(m => m.IsEditorBrowsable(context.CompletionOptions.HideAdvancedMembers, semanticModel.Compilation));
 
             if (memberAccess is null)
             {
@@ -156,12 +159,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
 
         private static readonly CompletionItemRules s_rules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
 
-        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) || text[characterPosition] == ' ';
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters.Add(' ');

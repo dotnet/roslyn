@@ -240,6 +240,16 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Attende in modalità asincrona il completamento dell'attività.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Await_the_preceding_expression">
+        <source>Await the preceding expression</source>
+        <target state="new">Await the preceding expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Await_the_preceding_expression_and_add_ConfigureAwait_0">
+        <source>Await the preceding expression and add ConfigureAwait({0}).</source>
+        <target state="new">Await the preceding expression and add ConfigureAwait({0}).</target>
+        <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
+      </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
         <target state="translated">L'attività attesa restituisce '{0}'</target>
@@ -553,6 +563,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
         <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
         <target state="translated">I metodi dei record implementati in modo esplicito devono avere nomi di parametro corrispondenti all'equivalente generato dal compilatore '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Explicitly_inherit_documentation">
+        <source>Explicitly inherit documentation</source>
+        <target state="new">Explicitly inherit documentation</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
@@ -4173,16 +4188,6 @@ Questa versione è usata {2}</target>
       <trans-unit id="Add_missing_param_nodes">
         <source>Add missing param nodes</source>
         <target state="translated">Aggiungi nodi di parametro mancanti</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_containing_scope_async">
-        <source>Make containing scope async</source>
-        <target state="translated">Rendi asincrono l'ambito contenitore</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_containing_scope_async_return_Task">
-        <source>Make containing scope async (return Task)</source>
-        <target state="translated">Rendi asincrono l'ambito contenitore (restituisci Task)</target>
         <note />
       </trans-unit>
       <trans-unit id="paren_Unknown_paren">

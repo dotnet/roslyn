@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         protected readonly JsonRpc JsonRpc;
         protected readonly RequestDispatcher RequestDispatcher;
         protected readonly RequestExecutionQueue Queue;
-        protected readonly ILspWorkspaceRegistrationService WorkspaceRegistrationService;
+        protected readonly LspWorkspaceRegistrationService WorkspaceRegistrationService;
         protected readonly IAsynchronousOperationListener Listener;
         protected readonly ILspLogger Logger;
         protected readonly string? ClientName;
@@ -54,7 +54,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             AbstractRequestDispatcherFactory requestDispatcherFactory,
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
-            ILspWorkspaceRegistrationService workspaceRegistrationService,
+            LspWorkspaceRegistrationService workspaceRegistrationService,
+            LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspLogger logger,
@@ -80,7 +81,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _userVisibleServerName = userVisibleServerName;
             TelemetryServerName = telemetryServerTypeName;
 
-            var lspMiscellaneousFilesWorkspace = new LspMiscellaneousFilesWorkspace(logger);
             Queue = new RequestExecutionQueue(logger, workspaceRegistrationService, lspMiscellaneousFilesWorkspace, globalOptions, supportedLanguages, userVisibleServerName, TelemetryServerName);
             Queue.RequestServerShutdown += RequestExecutionQueue_Errored;
         }

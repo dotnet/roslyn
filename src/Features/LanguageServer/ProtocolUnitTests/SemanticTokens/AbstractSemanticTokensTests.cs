@@ -61,10 +61,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
                 PreviousResultId = previousResultId
             };
 
-        protected static void UpdateDocumentText(string updatedText, Workspace workspace)
+        protected static async Task UpdateDocumentTextAsync(string updatedText, Workspace workspace)
         {
             var docId = ((TestWorkspace)workspace).Documents.First().Id;
-            ((TestWorkspace)workspace).ChangeDocument(docId, SourceText.From(updatedText));
+            await ((TestWorkspace)workspace).ChangeDocumentAsync(docId, SourceText.From(updatedText));
         }
 
         // VS doesn't currently support multi-line tokens, so we want to verify that we aren't

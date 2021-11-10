@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Storage
 {
-    [ExportOptionProvider, Shared]
+    [ExportSolutionOptionProvider, Shared]
     internal sealed class StorageOptions : IOptionProvider
     {
         internal const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";

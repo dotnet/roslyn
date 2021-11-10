@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
+        internal override string Language => LanguageNames.CSharp;
+
         protected override SyntaxNode GetSyntax(SyntaxToken token)
         {
             return token.GetAncestor<EventFieldDeclarationSyntax>()
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 ?? throw ExceptionUtilities.UnexpectedValue(token);
         }
 
-        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
             => CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;

@@ -157,6 +157,7 @@ namespace BuildBoss
                 var name = packageReference.Name.Replace(".", "").Replace("-", "");
                 yield return $"$({name}Version)";
                 yield return $"$({name}FixedVersion)";
+                yield return $"$(RefOnly{name}Version)";
             }
         }
 
@@ -234,8 +235,8 @@ namespace BuildBoss
         }
 
         /// <summary>
-        /// Unit test projects should not reference each other.  In order for unit tests to be run / F5 they must be 
-        /// modeled as deployment projects.  Having Unit Tests reference each other hurts that because it ends up 
+        /// Unit test projects should not reference each other.  In order for unit tests to be run / F5 they must be
+        /// modeled as deployment projects.  Having Unit Tests reference each other hurts that because it ends up
         /// putting two copies of the unit test DLL into the UnitTest folder:
         ///
         ///     1. UnitTests\Current\TheUnitTest\TheUnitTest.dll
@@ -244,7 +245,7 @@ namespace BuildBoss
         ///             TheOtherTests.dll
         ///
         /// This is problematic as all of our tools do directory based searches for unit test DLLs.  Hence they end up
-        /// getting counted twice. 
+        /// getting counted twice.
         ///
         /// Consideration was given to fixing up all of the tools but it felt like fighting against the grain.  Pretty
         /// much every repo has this practice.

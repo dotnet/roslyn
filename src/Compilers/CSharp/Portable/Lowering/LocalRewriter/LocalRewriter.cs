@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Conditional("DEBUG")]
         private static void AssertPlaceholderReplacement(BoundValuePlaceholderBase placeholder, BoundExpression value)
         {
-            Debug.Assert(value.Type is { } && value.Type.Equals(placeholder.Type, TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(value.Type is { } && (value.Type.Equals(placeholder.Type, TypeCompareKind.AllIgnoreOptions) || value.HasErrors));
         }
 
         /// <summary>
@@ -687,10 +687,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VisitExpression(node.Expression),
                     out BoundAssignmentOperator arrayAssign);
 
+                BoundExpression makeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(node.Indices[0], out PatternIndexOffsetLoweringStrategy strategy);
+
                 var indexOffsetExpr = MakePatternIndexOffsetExpression(
-                    node.Indices[0],
+                    makeOffsetInput,
                     F.ArrayLength(arrayLocal),
-                    out _);
+                    strategy);
 
                 resultExpr = F.Sequence(
                     ImmutableArray.Create(arrayLocal.LocalSymbol),
