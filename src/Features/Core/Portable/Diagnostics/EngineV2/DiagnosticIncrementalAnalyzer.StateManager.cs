@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 VerifyUniqueStateNames(hostStates.Concat(stateSets));
             }
 
-            private struct HostAnalyzerStateSetKey
+            private readonly struct HostAnalyzerStateSetKey
             {
                 public string Language { get; set; }
                 public HostDiagnosticAnalyzers Analyzers { get; set; }
