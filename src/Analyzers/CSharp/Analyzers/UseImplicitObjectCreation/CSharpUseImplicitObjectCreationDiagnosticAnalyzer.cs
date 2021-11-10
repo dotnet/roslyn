@@ -52,14 +52,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
                 return;
             }
 
-            // type is apparent if we the object creation location is closely tied (spatially) to the explicit type.  Specifically:
+            // type is apparent if the object creation location is closely tied (spatially) to the explicit type.  Specifically:
             //
             // 1. Variable declarations.    i.e. `List<int> list = new ...`.  Note: we will suppress ourselves if this
             //    is a field and the 'var' preferences would lead to preferring this as `var list = ...`
             // 2. Expression-bodied constructs with an explicit return type.  i.e. `List<int> Prop => new ...` or
             //    `List<int> GetValue(...) => ...` The latter doesn't necessarily have the object creation spatially next to
             //    the type.  However, the type is always in a very easy to ascertain location in C#, so it is treated as
-            //    apparent. 
+            //    apparent.
+            // 3. Array/Collection initializers.  i.e. `new Foo[] { new ... }` or `List<Foo> { new ... }`
 
             var objectCreation = (ObjectCreationExpressionSyntax)context.Node;
 
@@ -90,6 +91,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
                     OperatorDeclarationSyntax op => op.ReturnType,
                     BasePropertyDeclarationSyntax property => property.Type,
                     AccessorDeclarationSyntax(SyntaxKind.GetAccessorDeclaration) { Parent: AccessorListSyntax { Parent: BasePropertyDeclarationSyntax baseProperty } } accessor => baseProperty.Type,
+                    _ => null,
+                };
+            }
+            else if (objectCreation.Parent.IsKind(SyntaxKind.ArrayInitializerExpression, SyntaxKind.CollectionInitializerExpression))
+            {
+                typeNode = objectCreation.Parent.Parent switch
+                {
+                    ArrayCreationExpressionSyntax arrayCreation => arrayCreation.Type.ElementType,
+                    ObjectCreationExpressionSyntax { Type: QualifiedNameSyntax { Right: GenericNameSyntax { TypeArgumentList: TypeArgumentListSyntax argumentList } } } => argumentList.Arguments.Count == 1 ? argumentList.Arguments[0] : null,
                     _ => null,
                 };
             }
