@@ -9,6 +9,7 @@ using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -82,9 +83,19 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     return null;
             }
 
+            Encoding? defaultEncoding = null;
+            if (pdbCompilationOptions.TryGetValue("default-encoding", out var encodingString))
+            {
+                defaultEncoding = Encoding.GetEncoding(encodingString);
+            }
+            else if (pdbCompilationOptions.TryGetValue("fallback-encoding", out var fallbackEncodingString))
+            {
+                defaultEncoding = Encoding.GetEncoding(fallbackEncodingString);
+            }
+
             // Get text loaders for our documents. We do this here because if we can't load any of the files, then
             // we can't provide any results, so there is no point adding a project to the workspace etc.
-            var textLoaderTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(sd, cancellationToken)).ToArray();
+            var textLoaderTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(sd, defaultEncoding, cancellationToken)).ToArray();
             var textLoaders = await Task.WhenAll(textLoaderTasks).ConfigureAwait(false);
             if (textLoaders.Where(t => t is null).Any())
                 return null;
@@ -151,7 +162,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     }
                 }
 
-                using (var textWriter = new StreamWriter(tempFilePath, append: false, encoding: MetadataAsSourceGeneratedFileInfo.Encoding))
+                using (var textWriter = new StreamWriter(tempFilePath, append: false, encoding: text.Encoding ?? Encoding.UTF8))
                 {
                     text.Write(textWriter, cancellationToken);
                 }
@@ -237,7 +248,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         {
             if (_fileToDocumentMap.TryGetValue(filePath, out var documentId))
             {
-                workspace.OnDocumentClosed(documentId, new FileTextLoader(filePath, MetadataAsSourceGeneratedFileInfo.Encoding));
+                var document = workspace.CurrentSolution.GetDocument(documentId);
+                workspace.OnDocumentClosed(documentId, new FileTextLoader(filePath, document?.GetTextSynchronously(CancellationToken.None).Encoding ?? Encoding.UTF8));
 
                 return true;
             }

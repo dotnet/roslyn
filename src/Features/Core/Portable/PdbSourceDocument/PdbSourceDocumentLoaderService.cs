@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         {
         }
 
-        public Task<TextLoader?> LoadSourceDocumentAsync(SourceDocument sourceDocument, CancellationToken cancellationToken)
+        public Task<TextLoader?> LoadSourceDocumentAsync(SourceDocument sourceDocument, Encoding? defaultEncoding, CancellationToken cancellationToken)
         {
             // If we already have the embedded text then use that directly
             SourceText? sourceText = null;
             if (sourceDocument.EmbeddedTextBytes is not null)
             {
-                sourceText = TryLoadSourceFromEmbeddedSource(sourceDocument.EmbeddedTextBytes);
+                sourceText = TryLoadSourceFromEmbeddedSource(sourceDocument.EmbeddedTextBytes, defaultEncoding);
             }
 
             // Otherwise, check the easiest (but most unlikely) case which is the document exists on the disk
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return Task.FromResult<TextLoader?>(null);
         }
 
-        private static SourceText? TryLoadSourceFromEmbeddedSource(byte[] embeddedTextBytes)
+        private static SourceText? TryLoadSourceFromEmbeddedSource(byte[] embeddedTextBytes, Encoding? defaultEncoding)
         {
             var uncompressedSize = BitConverter.ToInt32(embeddedTextBytes, 0);
             var stream = new MemoryStream(embeddedTextBytes, sizeof(int), embeddedTextBytes.Length - sizeof(int));
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             using (stream)
             {
-                return EncodedStringText.Create(stream);
+                return EncodedStringText.Create(stream, defaultEncoding: defaultEncoding);
             }
         }
 
