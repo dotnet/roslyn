@@ -239,11 +239,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     return null;
 
                 var (selectedItemIndex, selectionHint, uniqueItem) = filteringResult.Value;
-                var useAggressiveDefaultsMatching = session.TextView.Options.GetOptionValue<bool>(AggressiveDefaultsMatchingOptionName);
 
-                (selectedItemIndex, var forchHardSelection) = GetDefaultsMatch(filterText, initialListOfItemsToBeIncluded, selectedItemIndex, data.Defaults, useAggressiveDefaultsMatching);
-                if (forchHardSelection)
-                    selectionHint = UpdateSelectionHint.Selected;
+                // Editor is providing us a list of "default" items to consider for selection.
+                if (!data.Defaults.IsDefaultOrEmpty)
+                {
+                    var tick = Environment.TickCount;
+
+                    var selectedItem = initialListOfItemsToBeIncluded[selectedItemIndex].RoslynCompletionItem;
+
+                    // "Preselect" is only used when we have high confidence with the selection, so don't override it.
+                    if (selectedItem.Rules.MatchPriority < MatchPriority.Preselect)
+                    {
+                        int defaultsMatchingIndex;
+                        var useAggressiveDefaultsMatching = session.TextView.Options.GetOptionValue<bool>(AggressiveDefaultsMatchingOptionName);
+
+                        if (useAggressiveDefaultsMatching)
+                        {
+                            defaultsMatchingIndex = GetAggressiveDefaultsMatch(initialListOfItemsToBeIncluded, data.Defaults);
+                            if (!hasSuggestedItemOptions && defaultsMatchingIndex >= 0)
+                                selectionHint = UpdateSelectionHint.Selected;
+                        }
+                        else
+                        {
+                            defaultsMatchingIndex = GetDefaultsMatch(filterText, initialListOfItemsToBeIncluded, selectedItemIndex, data.Defaults);
+                        }
+
+                        if (defaultsMatchingIndex >= 0)
+                        {
+                            selectedItemIndex = defaultsMatchingIndex;
+                        }
+                    }
+
+                    AsyncCompletionLogger.LogGetDefaultsMatchTicksDataPoint(Environment.TickCount - tick);
+                }
 
                 var showCompletionItemFilters = _globalOptions.GetOption(CompletionViewOptions.ShowCompletionItemFilters, document?.Project.Language);
                 var updatedFilters = showCompletionItemFilters
@@ -758,89 +786,74 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 || c == '_';
         }
 
-        private static (int index, bool forceHardSelection) GetDefaultsMatch(
+        private static int GetAggressiveDefaultsMatch(List<MatchResult<VSCompletionItem>> itemsWithMatch, ImmutableArray<string> defaults)
+        {
+            Debug.Assert(!defaults.IsDefaultOrEmpty);
+
+            foreach (var defaultText in defaults)
+            {
+                for (var i = 0; (i < itemsWithMatch.Count); ++i)
+                {
+                    var itemWithMatch = itemsWithMatch[i];
+                    if (itemWithMatch.RoslynCompletionItem.FilterText == defaultText)
+                    {
+                        if (itemWithMatch.PatternMatch == null || itemWithMatch.PatternMatch.Value.Kind <= PatternMatchKind.Prefix)
+                            return i;
+
+                        break;
+                    }
+                }
+            }
+
+            return -1;
+        }
+
+        private static int GetDefaultsMatch(
             string filterText,
             List<MatchResult<VSCompletionItem>> itemsWithMatch,
             int selectedIndex,
-            ImmutableArray<string> defaults,
-            bool aggressive)
+            ImmutableArray<string> defaults)
         {
-            // We only preselect when we are very confident with the selection, so don't override it.
-            if (defaults.IsDefaultOrEmpty || itemsWithMatch[selectedIndex].RoslynCompletionItem.Rules.MatchPriority >= MatchPriority.Preselect)
-                return (selectedIndex, false);
+            Debug.Assert(!defaults.IsDefaultOrEmpty);
 
-            if (aggressive)
+            int inferiorItemIndex;
+            if (filterText.Length == 0)
             {
-                foreach (var defaultText in defaults)
-                {
-                    for (var itemIndex = 0; (itemIndex < itemsWithMatch.Count); ++itemIndex)
-                    {
-                        var itemWithMatch = itemsWithMatch[itemIndex];
-                        if (itemWithMatch.RoslynCompletionItem.FilterText == defaultText)
-                        {
-                            if (itemWithMatch.PatternMatch == null || itemWithMatch.PatternMatch.Value.Kind <= PatternMatchKind.Prefix)
-                                return (itemIndex, true);
-
-                            break;
-                        }
-                    }
-                }
+                // Without filterText, all items are eually good match, so we have to consider all of them.
+                inferiorItemIndex = itemsWithMatch.Count;
             }
             else
             {
-                int similarItemsStart;
-                int dissimilarItemIndex;
+                // Because the items are sorted based on pattern-matching score, the selectedIndex is in the middle of a range of
+                // -- as far as the pattern matcher is concerned -- equivalent items. Find the last items in the range and use that
+                // to limit the items searched for from the defaults list.          
+                var selectedItemMatch = itemsWithMatch[selectedIndex].PatternMatch;
 
-                if (filterText.Length == 0)
+                if (!selectedItemMatch.HasValue)
+                    return -1;
+
+                inferiorItemIndex = selectedIndex;
+                while (++inferiorItemIndex < itemsWithMatch.Count)
                 {
-                    // If there is no applicableToSpan, then all items are equally similar.
-                    similarItemsStart = 0;
-                    dissimilarItemIndex = itemsWithMatch.Count;
-                }
-                else
-                {
-                    // Assume that the selectedIndex is in the middle of a range of -- as far as the pattern matcher is concerned --
-                    // equivalent items. Find the first & last items in the range and use that to limit the items searched for from
-                    // the defaults list.          
-                    var selectedItemMatch = itemsWithMatch[selectedIndex].PatternMatch;
-                    if (!selectedItemMatch.HasValue)
-                        return (selectedIndex, false);
-
-                    similarItemsStart = selectedIndex;
-                    while (--similarItemsStart >= 0)
-                    {
-                        var itemMatch = itemsWithMatch[similarItemsStart].PatternMatch;
-                        if ((!itemMatch.HasValue) || itemMatch.Value.CompareTo(selectedItemMatch.Value) > 0)
-                            break;
-                    }
-
-                    similarItemsStart++;
-
-                    dissimilarItemIndex = selectedIndex;
-                    while (++dissimilarItemIndex < itemsWithMatch.Count)
-                    {
-                        var itemMatch = itemsWithMatch[dissimilarItemIndex].PatternMatch;
-                        if ((!itemMatch.HasValue) || itemMatch.Value.CompareTo(selectedItemMatch.Value) > 0)
-                            break;
-                    }
-                }
-
-                if (dissimilarItemIndex > selectedIndex + 1)
-                {
-                    foreach (var defaultText in defaults)
-                    {
-                        for (var itemIndex = similarItemsStart; (itemIndex < dissimilarItemIndex); ++itemIndex)
-                        {
-                            if (itemsWithMatch[itemIndex].RoslynCompletionItem.FilterText == defaultText)
-                            {
-                                return (itemIndex, false);
-                            }
-                        }
-                    }
+                    // Ignore the case when trying to match the filter text with defaults.
+                    // e.g. a default "Console" would be a match for filter text "c" and therefore to be selected,
+                    // even if the CompletionService returns item "char" which is a case-sensitive prefix match.
+                    var itemMatch = itemsWithMatch[inferiorItemIndex].PatternMatch;
+                    if (!itemMatch.HasValue || itemMatch.Value.Kind != selectedItemMatch.Value.Kind)
+                        break;
                 }
             }
 
-            return (selectedIndex, false);
+            foreach (var defaultText in defaults)
+            {
+                for (var i = 0; i < inferiorItemIndex; ++i)
+                {
+                    if (itemsWithMatch[i].RoslynCompletionItem.FilterText == defaultText)
+                        return i;
+                }
+            }
+
+            return -1;
         }
     }
 }
