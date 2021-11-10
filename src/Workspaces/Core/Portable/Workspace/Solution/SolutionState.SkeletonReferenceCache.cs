@@ -107,10 +107,7 @@ internal partial class SolutionState
             MetadataReferenceProperties properties,
             CancellationToken cancellationToken)
         {
-            // First, just see if we have cached a reference set that is complimentary with the version of the project
-            // being passed in.  If so, we can just reuse what we already computed before.
             var version = await compilationTracker.GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
-
             var referenceSet = await TryGetOrCreateReferenceSetAsync(
                 compilationTracker, solution, version, cancellationToken).ConfigureAwait(false);
             return referenceSet?.GetMetadataReference(properties);
@@ -122,7 +119,8 @@ internal partial class SolutionState
             VersionStamp version,
             CancellationToken cancellationToken)
         {
-            var workspace = solution.Workspace;
+            // First, just see if we have cached a reference set that is complimentary with the version of the project
+            // being passed in.  If so, we can just reuse what we already computed before.
             if (TryReadSkeletonReferenceSetAtThisVersion(version, out var referenceSet))
                 return referenceSet;
 
@@ -138,7 +136,7 @@ internal partial class SolutionState
                 // Regardless of if we succeed or fail, store this result so this only happens once.
 
                 var compilation = await compilationTracker.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
-                var storage = TryCreateMetadataStorage(workspace, compilation, cancellationToken);
+                var storage = TryCreateMetadataStorage(solution.Workspace, compilation, cancellationToken);
 
                 lock (_stateGate)
                 {
