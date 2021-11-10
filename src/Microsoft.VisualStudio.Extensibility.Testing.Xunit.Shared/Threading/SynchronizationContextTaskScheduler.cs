@@ -39,7 +39,7 @@ namespace Xunit.Threading
             return false;
         }
 
-        protected override IEnumerable<Task> GetScheduledTasks()
+        protected override IEnumerable<Task>? GetScheduledTasks()
         {
             return null;
         }

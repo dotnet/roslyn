@@ -4,6 +4,8 @@
 namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
 {
     using System;
+    using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.Threading.Tasks;
     using global::Xunit;
     using global::Xunit.Harness;
@@ -12,9 +14,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
 
     public abstract class AbstractIdeIntegrationTest : IAsyncLifetime, IDisposable
     {
-        private JoinableTaskContext _joinableTaskContext;
-        private JoinableTaskCollection _joinableTaskCollection;
-        private JoinableTaskFactory _joinableTaskFactory;
+        private JoinableTaskContext? _joinableTaskContext;
+        private JoinableTaskCollection? _joinableTaskCollection;
+        private JoinableTaskFactory? _joinableTaskFactory;
 
         protected AbstractIdeIntegrationTest()
         {
@@ -30,6 +32,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
             }
         }
 
+        [AllowNull]
         protected JoinableTaskContext JoinableTaskContext
         {
             get
@@ -70,6 +73,11 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
 
         public virtual async Task DisposeAsync()
         {
+            if (_joinableTaskCollection is null)
+            {
+                throw new InvalidOperationException();
+            }
+
             await _joinableTaskCollection.JoinTillEmptyAsync();
             JoinableTaskContext = null;
         }

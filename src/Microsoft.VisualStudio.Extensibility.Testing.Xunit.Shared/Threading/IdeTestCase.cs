@@ -15,11 +15,13 @@ namespace Xunit.Threading
     {
         [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("Called by the deserializer; should only be called by deriving classes for deserialization purposes", error: true)]
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public IdeTestCase()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
         }
 
-        public IdeTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, VisualStudioVersion visualStudioVersion, string rootSuffix, object[] testMethodArguments = null)
+        public IdeTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, VisualStudioVersion visualStudioVersion, string rootSuffix, object?[]? testMethodArguments = null)
             : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, testMethodArguments)
         {
             SharedData = WpfTestSharedData.Instance;

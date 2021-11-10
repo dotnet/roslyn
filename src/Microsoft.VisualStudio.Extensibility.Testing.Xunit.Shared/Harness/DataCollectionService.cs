@@ -19,7 +19,7 @@ namespace Xunit.Harness
         [ThreadStatic]
         private static bool _inHandler;
 
-        public static ITest CurrentTest { get; set; }
+        public static ITest? CurrentTest { get; set; }
 
         private static string CurrentTestName
         {

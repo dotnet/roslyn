@@ -38,6 +38,6 @@ namespace Xunit.Threading
 
         public Semaphore TestSerializationGate => _testSerializationGate;
 
-        public Exception Exception { get; set; }
+        public Exception? Exception { get; set; }
     }
 }

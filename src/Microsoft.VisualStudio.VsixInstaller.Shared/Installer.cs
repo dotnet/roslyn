@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.VsixInstaller
 
             return;
 
-            Assembly HandleAssemblyResolve(object sender, ResolveEventArgs args)
+            Assembly? HandleAssemblyResolve(object sender, ResolveEventArgs args)
             {
                 string path = Path.Combine(installationPath, @"Common7\IDE\PrivateAssemblies", new AssemblyName(args.Name).Name + ".dll");
                 if (File.Exists(path))

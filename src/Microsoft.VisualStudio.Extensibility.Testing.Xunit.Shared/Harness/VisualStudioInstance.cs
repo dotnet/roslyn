@@ -111,7 +111,7 @@ namespace Xunit.Harness
 
         public bool IsRunning => !HostProcess.HasExited;
 
-        private static DTE GetDebuggerHostDte()
+        private static DTE? GetDebuggerHostDte()
         {
             var currentProcessId = Process.GetCurrentProcess().Id;
             foreach (var process in Process.GetProcessesByName("devenv"))

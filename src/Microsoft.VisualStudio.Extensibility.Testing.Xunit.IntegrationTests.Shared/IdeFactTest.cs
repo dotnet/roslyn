@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
             var taskSchedulerService = taskSchedulerServiceObject as IVsTaskSchedulerService2;
             Assert.NotNull(taskSchedulerService);
 
-            Assert.Same(JoinableTaskContext, taskSchedulerService.GetAsyncTaskContext());
+            Assert.Same(JoinableTaskContext, taskSchedulerService!.GetAsyncTaskContext());
         }
 
         /// <summary>

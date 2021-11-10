@@ -51,7 +51,7 @@ namespace Xunit.Harness
         /// <summary>
         /// Used to make sure we aren't adding dupe entries to the list of Watson entries.
         /// </summary>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if ((obj is FeedbackItemDotNetEntry dotNetEntry)
                 && (EventId == dotNetEntry.EventId)

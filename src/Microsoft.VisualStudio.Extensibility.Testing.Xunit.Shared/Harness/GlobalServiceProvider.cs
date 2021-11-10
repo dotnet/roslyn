@@ -10,7 +10,7 @@ namespace Xunit.Harness
 
     public static class GlobalServiceProvider
     {
-        private static IServiceProvider _serviceProvider;
+        private static IServiceProvider? _serviceProvider;
 
         public static IServiceProvider ServiceProvider
         {
@@ -23,11 +23,16 @@ namespace Xunit.Harness
         private static IServiceProvider GetGlobalServiceProvider()
         {
             var oleMessageFilterForCallingThread = GetOleMessageFilterForCallingThread();
-            var oleServiceProvider = (IOleServiceProvider)oleMessageFilterForCallingThread;
+            var oleServiceProvider = (IOleServiceProvider?)oleMessageFilterForCallingThread;
+            if (oleServiceProvider is null)
+            {
+                throw new InvalidOperationException();
+            }
+
             return new ServiceProvider(oleServiceProvider);
         }
 
-        private static object GetOleMessageFilterForCallingThread()
+        private static object? GetOleMessageFilterForCallingThread()
         {
             if (Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA)
             {

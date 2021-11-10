@@ -72,6 +72,6 @@ namespace Xunit.InProcess
 #pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
 
         // Ensure InProcComponents live forever
-        public override object InitializeLifetimeService() => null;
+        public override object? InitializeLifetimeService() => null;
     }
 }

@@ -19,6 +19,6 @@ namespace Xunit
         /// <item><description>Another value to use a custom experimental instance</description></item>
         /// </list>
         /// </value>
-        string RootSuffix { get; }
+        string? RootSuffix { get; }
     }
 }

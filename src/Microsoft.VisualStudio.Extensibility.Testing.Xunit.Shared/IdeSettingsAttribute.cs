@@ -27,7 +27,7 @@ namespace Xunit
             set;
         }
 
-        public string RootSuffix
+        public string? RootSuffix
         {
             get;
             set;

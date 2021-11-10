@@ -39,9 +39,9 @@ namespace Xunit.InProcess
             ITest test,
             IMessageBus messageBus,
             Type testClass,
-            object[] constructorArguments,
+            object?[]? constructorArguments,
             MethodInfo testMethod,
-            object[] testMethodArguments)
+            object?[]? testMethodArguments)
         {
             var aggregator = new ExceptionAggregator();
             var beforeAfterAttributes = new BeforeAfterTestAttribute[0];

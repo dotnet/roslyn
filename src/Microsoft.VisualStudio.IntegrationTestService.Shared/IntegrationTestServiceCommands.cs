@@ -31,37 +31,39 @@ namespace Microsoft.VisualStudio.IntegrationTestService
         private readonly MenuCommand _startMenuCmd;
         private readonly MenuCommand _stopMenuCmd;
 
-        private IntegrationService _service;
-        private IpcChannel _serviceChannel;
-        private ObjRef _marshalledService;
+        private IntegrationService? _service;
+        private IpcChannel? _serviceChannel;
+        private ObjRef? _marshalledService;
 
         private IntegrationTestServiceCommands(Package package)
         {
             _package = package ?? throw new ArgumentNullException(nameof(package));
 
+            var startMenuCmdId = new CommandID(GuidIntegrationTestCmdSet, CmdIdStartIntegrationTestService);
+            _startMenuCmd = new MenuCommand(StartServiceCallback, startMenuCmdId)
+            {
+                Enabled = true,
+                Visible = true,
+            };
+
+            var stopMenuCmdId = new CommandID(GuidIntegrationTestCmdSet, CmdIdStopIntegrationTestService);
+            _stopMenuCmd = new MenuCommand(StopServiceCallback, stopMenuCmdId)
+            {
+                Enabled = false,
+                Visible = false,
+            };
+
             if (ServiceProvider.GetService(typeof(IMenuCommandService)) is OleMenuCommandService menuCommandService)
             {
-                var startMenuCmdId = new CommandID(GuidIntegrationTestCmdSet, CmdIdStartIntegrationTestService);
-                _startMenuCmd = new MenuCommand(StartServiceCallback, startMenuCmdId)
-                {
-                    Enabled = true,
-                    Visible = true,
-                };
                 menuCommandService.AddCommand(_startMenuCmd);
-
-                var stopMenuCmdId = new CommandID(GuidIntegrationTestCmdSet, CmdIdStopIntegrationTestService);
-                _stopMenuCmd = new MenuCommand(StopServiceCallback, stopMenuCmdId)
-                {
-                    Enabled = false,
-                    Visible = false,
-                };
                 menuCommandService.AddCommand(_stopMenuCmd);
             }
         }
 
-        public static IntegrationTestServiceCommands Instance
+        public static IntegrationTestServiceCommands? Instance
         {
-            get; private set;
+            get;
+            private set;
         }
 
         private IServiceProvider ServiceProvider => _package;

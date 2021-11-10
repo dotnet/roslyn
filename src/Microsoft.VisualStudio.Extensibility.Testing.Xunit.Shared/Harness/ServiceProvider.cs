@@ -19,7 +19,7 @@ namespace Xunit.Harness
             _serviceProvider = serviceProvider;
         }
 
-        public object GetService(Type serviceType)
+        public object? GetService(Type serviceType)
         {
             if (serviceType is null)
             {
@@ -29,7 +29,7 @@ namespace Xunit.Harness
             return GetService(serviceType.GUID);
         }
 
-        private object GetService(Guid serviceGuid)
+        private object? GetService(Guid serviceGuid)
         {
             if (serviceGuid == typeof(IOleServiceProvider).GUID)
             {
