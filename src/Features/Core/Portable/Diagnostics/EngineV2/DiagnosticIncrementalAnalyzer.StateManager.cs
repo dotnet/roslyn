@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -309,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 VerifyUniqueStateNames(hostStates.Concat(stateSets));
             }
 
-            private readonly struct HostAnalyzerStateSetKey
+            private readonly struct HostAnalyzerStateSetKey : IEquatable<HostAnalyzerStateSetKey>
             {
                 public HostAnalyzerStateSetKey(string language, HostDiagnosticAnalyzers analyzers)
                 {
@@ -319,6 +320,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 public string Language { get; }
                 public HostDiagnosticAnalyzers Analyzers { get; }
+
+                public bool Equals(HostAnalyzerStateSetKey other)
+                    => Language == other.Language && Analyzers == other.Analyzers;
+
+                public override bool Equals(object? obj)
+                    => obj is HostAnalyzerStateSetKey key && Equals(key);
+
+                public override int GetHashCode()
+                    => Hash.Combine(Language.GetHashCode(), Analyzers.GetHashCode());
             }
         }
     }
