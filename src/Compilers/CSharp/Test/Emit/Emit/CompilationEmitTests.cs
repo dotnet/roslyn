@@ -277,18 +277,16 @@ namespace Goo.Bar
             Assert.True(emitResult.Success);
             emitResult.Diagnostics.Verify();
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-
-            // nothing is actually emitted here as we haven't set the documentation mode
-            Assert.True(xmlDocBytes.Length == 0, "no xml emitted");
+            Assert.True(xmlDocBytes.Length > 0, "no xml emitted");
         }
 
         [Fact]
-        public void EmitMetadataOnly_XmlDocs_NoDocMode_SyntaxError()
+        public void EmitMetadataOnly_XmlDocs_NoDocMode_SyntaxWarning()
         {
             CSharpCompilation comp = CreateCompilation(@"
 namespace Goo.Bar
 {
-    /// <summary>This should fail to emit
+    /// <summary>This should still emit
     public class Test1
     {
         public static void SayHello()
@@ -314,18 +312,17 @@ namespace Goo.Bar
             Assert.True(emitResult.Success);
             emitResult.Diagnostics.Verify();
 
-            // Even though docs failed, we should still produce the peStream.
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.True(xmlDocBytes.Length == 0, "no xml emitted");
+            Assert.True(xmlDocBytes.Length > 0, "no xml emitted");
         }
 
         [Fact]
-        public void EmitMetadataOnly_XmlDocs_DiagnoseDocMode_SyntaxError()
+        public void EmitMetadataOnly_XmlDocs_DiagnoseDocMode_SyntaxWarning()
         {
             CSharpCompilation comp = CreateCompilation(@"
 namespace Goo.Bar
 {
-    /// <summary>This should fail to emit
+    /// <summary>This should still emit
     public class Test1
     {
         public static void SayHello()
@@ -358,9 +355,8 @@ namespace Goo.Bar
                 //         public static void SayHello()
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "SayHello").WithArguments("Goo.Bar.Test1.SayHello()").WithLocation(7, 28));
 
-            // Even though docs failed, we should still produce the peStream.
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.True(xmlDocBytes.Length == 0, "no xml emitted");
+            Assert.True(xmlDocBytes.Length > 0, "no xml emitted");
         }
 
         [Fact]
@@ -402,9 +398,86 @@ namespace Goo.Bar
                 //         public static void SayHello()
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "SayHello").WithArguments("Goo.Bar.Test1.SayHello()").WithLocation(7, 28));
 
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
+            Assert.True(xmlDocBytes.Length > 0, "no xml emitted");
+        }
+
+        [Fact]
+        public void EmitMetadataOnly_XmlDocs_DiagnoseDocMode_Success()
+        {
+            CSharpCompilation comp = CreateCompilation(@"
+namespace Goo.Bar
+{
+    /// <summary>This should emit</summary>
+    public class Test1
+    {
+        public static void SayHello()
+        {
+            Console.WriteLine(""hello"");
+        }
+    }  
+}     
+", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
+
+            EmitResult emitResult;
+            byte[] mdOnlyImage;
+            byte[] xmlDocBytes;
+
+            using (var peStream = new MemoryStream())
+            using (var xmlStream = new MemoryStream())
+            {
+                emitResult = comp.Emit(peStream, xmlDocumentationStream: xmlStream, options: new EmitOptions(metadataOnly: true));
+                mdOnlyImage = peStream.ToArray();
+                xmlDocBytes = xmlStream.ToArray();
+            }
+
+            // This should not fail the emit (as it's a warning).
+            Assert.True(emitResult.Success);
+            emitResult.Diagnostics.Verify(
+                // (7,28): warning CS1591: Missing XML comment for publicly visible type or member 'Test1.SayHello()'
+                //         public static void SayHello()
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "SayHello").WithArguments("Goo.Bar.Test1.SayHello()").WithLocation(7, 28));
+
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
+            Assert.True(xmlDocBytes.Length > 0, "no xml emitted");
+        }
+
+        [Fact]
+        public void EmitMetadataOnly_XmlDocs_ParseDocMode_Success()
+        {
+            CSharpCompilation comp = CreateCompilation(@"
+namespace Goo.Bar
+{
+    /// <summary>This should emit</summary>
+    public class Test1
+    {
+        public static void SayHello()
+        {
+            Console.WriteLine(""hello"");
+        }
+    }  
+}     
+", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse));
+
+            EmitResult emitResult;
+            byte[] mdOnlyImage;
+            byte[] xmlDocBytes;
+
+            using (var peStream = new MemoryStream())
+            using (var xmlStream = new MemoryStream())
+            {
+                emitResult = comp.Emit(peStream, xmlDocumentationStream: xmlStream, options: new EmitOptions(metadataOnly: true));
+                mdOnlyImage = peStream.ToArray();
+                xmlDocBytes = xmlStream.ToArray();
+            }
+
+            // This should not fail the emit (as it's a warning).
+            Assert.True(emitResult.Success);
+            emitResult.Diagnostics.Verify();
+
             // Even though docs failed, we should still produce the peStream.
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.True(xmlDocBytes.Length == 0, "no xml emitted");
+            Assert.True(xmlDocBytes.Length > 0, "no xml emitted");
         }
 
         [Fact]

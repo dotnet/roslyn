@@ -2684,6 +2684,7 @@ namespace Microsoft.CodeAnalysis
 
                         if (metadataOnlyXmlDocsSucceeded)
                         {
+                            memoryStream.Position = 0;
                             memoryStream.CopyTo(xmlDocumentationStream);
                         }
                     }
