@@ -2636,7 +2636,6 @@ namespace Microsoft.CodeAnalysis
                 cancellationToken);
 
             bool success = false;
-            bool metadataOnlyXmlDocsSucceeded = true;
 
             if (moduleBeingBuilt != null)
             {
@@ -2674,19 +2673,9 @@ namespace Microsoft.CodeAnalysis
                     }
                     else if (xmlDocumentationStream != null)
                     {
-                        // If we're in metadata only, and the caller asks for xml docs, then still proceed and generate
-                        // those. note: if this fails, we do not want it to gate production of the peStream below (hence
-                        // why we do not write to 'success').  Though it will still indicate (through final result value
-                        // and diagnostics) that there was a problem.
-                        using var memoryStream = new MemoryStream();
-                        metadataOnlyXmlDocsSucceeded = GenerateDocumentationComments(
-                            moduleBeingBuilt, memoryStream, options.OutputNameOverride, diagnostics, cancellationToken);
-
-                        if (metadataOnlyXmlDocsSucceeded)
-                        {
-                            memoryStream.Position = 0;
-                            memoryStream.CopyTo(xmlDocumentationStream);
-                        }
+                        // If we're in metadata only, and the caller asks for xml docs, then still proceed and generate // those.
+                        success = GenerateDocumentationComments(
+                            moduleBeingBuilt, xmlDocumentationStream, options.OutputNameOverride, diagnostics, cancellationToken);
                     }
                 }
                 finally
@@ -2721,7 +2710,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return new EmitResult(success && metadataOnlyXmlDocsSucceeded, diagnostics.ToReadOnlyAndFree());
+            return new EmitResult(success, diagnostics.ToReadOnlyAndFree());
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
