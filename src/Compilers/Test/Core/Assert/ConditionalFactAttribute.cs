@@ -158,7 +158,6 @@ namespace Roslyn.Test.Utilities
 #endif
 
         public static bool IsWindows => Path.DirectorySeparatorChar == '\\';
-        public static bool IsWindows11OrGreater => IsWindows && Environment.OSVersion.Version.Build >= 22_000;
         public static bool IsUnix => !IsWindows;
         public static bool IsMacOS => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
         public static bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
@@ -170,6 +169,19 @@ namespace Roslyn.Test.Utilities
         public static bool IsCoreClrUnix => IsCoreClr && IsUnix;
         public static bool IsMonoOrCoreClr => IsMono || IsCoreClr;
         public static bool RuntimeSupportsCovariantReturnsOfClasses => Type.GetType("System.Runtime.CompilerServices.RuntimeFeature")?.GetField("CovariantReturnsOfClasses") != null;
+
+        private static readonly Lazy<bool> s_operatingSystemRestrictsFileNames = new Lazy<bool>(() =>
+        {
+            var tempDir = Path.GetTempPath();
+            var path = Path.GetFullPath(Path.Combine(tempDir, "aux.txt"));
+            return path.StartsWith(@"\\.\", StringComparison.Ordinal);
+        });
+
+        /// <summary>
+        /// Is this a version of Windows that has ancient restrictions on file names. For example 
+        /// prevents file names that are aux, com1, etc ...
+        /// </summary>
+        public static bool OperatingSystemRestrictsFileNames => s_operatingSystemRestrictsFileNames.Value;
     }
 
     public enum ExecutionArchitecture

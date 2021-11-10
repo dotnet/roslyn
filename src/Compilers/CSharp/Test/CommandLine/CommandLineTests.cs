@@ -9515,19 +9515,18 @@ using System.Diagnostics; // Unused.
         [InlineData("a.cs /out:com1.dll")]
         [InlineData("a.cs /doc:..\\lpt2.xml")]
         [InlineData("a.cs /pdb:..\\prn.pdb")]
-        [ConditionalTheory(typeof(WindowsOnly))]
+        [Theory]
         public void ReservedDeviceNameAsFileName(string commandLine)
         {
             var parsedArgs = DefaultParse(commandLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries), WorkingDirectory);
-            if (ExecutionConditionUtil.IsWindows11OrGreater)
-            {
-                // Windows 11 and greater removed the restrictions around the file names
-                Assert.Equal(0, parsedArgs.Errors.Length);
-            }
-            else
+            if (ExecutionConditionUtil.OperatingSystemRestrictsFileNames)
             {
                 Assert.Equal(1, parsedArgs.Errors.Length);
                 Assert.Equal((int)ErrorCode.FTL_InvalidInputFileName, parsedArgs.Errors.First().Code);
+            }
+            else
+            {
+                Assert.Equal(0, parsedArgs.Errors.Length);
             }
         }
 
