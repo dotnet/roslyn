@@ -4,7 +4,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -56,11 +55,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
                     await TestServices.Editor.SetUseSuggestionModeAsync(false, HangMitigatingCancellationToken);
                     await ClearEditorAsync(HangMitigatingCancellationToken);
                 }
-
-                // Work around potential hangs in 16.10p2 caused by the roslyn LSP server not completing initialization before solution closed.
-                // By waiting for the async operation tracking roslyn LSP server activation to complete we should never
-                // encounter the scenario where the solution closes while activation is incomplete.
-                await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LanguageServer, waitForWorkspaceFirst: true, HangMitigatingCancellationToken);
             }
         }
 
