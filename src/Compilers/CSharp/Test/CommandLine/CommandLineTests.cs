@@ -14195,23 +14195,16 @@ public class Generator : ISourceGenerator
         [Theory]
         [InlineData("a.txt", "b.txt", 2)]
         [InlineData("a.txt", "a.txt", 1)]
-        [InlineData("a.txt", "A.txt", 1)]
         [InlineData("abc/a.txt", "def/a.txt", 2)]
         [InlineData("abc/a.txt", "abc/a.txt", 1)]
-        [InlineData("abc/a.txt", "abc\\a.txt", 1)]
         [InlineData("abc/a.txt", "abc/../a.txt", 2)]
         [InlineData("abc/a.txt", "abc/./a.txt", 1)]
         [InlineData("abc/a.txt", "abc/../abc/a.txt", 1)]
         [InlineData("abc/a.txt", "abc/.././abc/a.txt", 1)]
-        [InlineData("abc/a.txt", "abc\\..\\a.txt", 2)]
-        [InlineData("abc/a.txt", "abc\\..\\abc\\a.txt", 1)]
         [InlineData("abc/a.txt", "./abc/a.txt", 1)]
         [InlineData("abc/a.txt", "../abc/../abc/a.txt", 2)]
         [InlineData("abc/a.txt", "./abc/../abc/a.txt", 1)]
         [InlineData("../abc/a.txt", "../abc/../abc/a.txt", 1)]
-        [InlineData("abc/a.txt", "../abc\\../abc\\a.txt", 2)]
-        [InlineData("abc/a.txt", "./abc\\../abc\\a.txt", 1)]
-        [InlineData("../abc/a.txt", "../abc\\../abc\\a.txt", 1)]
         [InlineData("../abc/a.txt", "../abc/a.txt", 1)]
         [InlineData("./abc/a.txt", "abc/a.txt", 1)]
         public void TestDuplicateAdditionalFiles(string additionalFilePath1, string additionalFilePath2, int expectedCount)
@@ -14246,6 +14239,19 @@ public class Generator : ISourceGenerator
 
             CleanupAllGeneratedFiles(srcDirectory.Path);
         }
+
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData("abc/a.txt", "abc\\a.txt", 1)]
+        [InlineData("abc\\a.txt", "abc\\a.txt", 1)]
+        [InlineData("abc/a.txt", "abc\\..\\a.txt", 2)]
+        [InlineData("abc/a.txt", "abc\\..\\abc\\a.txt", 1)]
+        [InlineData("abc/a.txt", "../abc\\../abc\\a.txt", 2)]
+        [InlineData("abc/a.txt", "./abc\\../abc\\a.txt", 1)]
+        [InlineData("../abc/a.txt", "../abc\\../abc\\a.txt", 1)]
+        [InlineData("a.txt", "A.txt", 1)]
+        [InlineData("abc/a.txt", "ABC\\a.txt", 1)]
+        [InlineData("abc/a.txt", "ABC\\A.txt", 1)]
+        public void TestDuplicateAdditionalFiles_Windows(string additionalFilePath1, string additionalFilePath2, int expectedCount) => TestDuplicateAdditionalFiles(additionalFilePath1, additionalFilePath2, expectedCount);
 
         [ConditionalTheory(typeof(UnixLikeOnly))]
         [InlineData("a.txt", "A.txt", 2)]
