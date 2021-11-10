@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
@@ -23,12 +24,14 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         private static ImmutableArray<TelemetrySession> s_telemetrySessions = ImmutableArray<TelemetrySession>.Empty;
         private static ImmutableArray<TraceSource> s_loggers = ImmutableArray<TraceSource>.Empty;
 
+        private static int s_dumpsSubmitted;
+
         public static void InitializeFatalErrorHandlers()
         {
             // Set both handlers to non-fatal Watson. Never fail-fast the ServiceHub process.
             // Any exception that is not recovered from shall be propagated and communicated to the client.
-            var nonFatalHandler = new Action<Exception>(ReportNonFatal);
-            var fatalHandler = nonFatalHandler;
+            var nonFatalHandler = new FatalError.NonFatalHandlerDelegate(ReportNonFatal);
+            var fatalHandler = new Action<Exception>(static (exception) => ReportNonFatal(exception, forceDump: false));
 
             FatalError.Handler = fatalHandler;
             FatalError.NonFatalHandler = nonFatalHandler;
@@ -78,7 +81,9 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// Report Non-Fatal Watson for a given unhandled exception.
         /// </summary>
         /// <param name="exception">Exception that triggered this non-fatal error</param>
-        public static void ReportNonFatal(Exception exception)
+        /// <param name="forceDump">Force a dump to be created, even if the telemetry system is not
+        /// requesting one; we will still do a client-side limit to avoid sending too much at once.</param>
+        public static void ReportNonFatal(Exception exception, bool forceDump)
         {
             try
             {
@@ -99,6 +104,13 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                     exceptionObject: exception,
                     gatherEventDetails: faultUtility =>
                     {
+                        if (forceDump)
+                        {
+                            // Let's just send a maximum of three; number chosen arbitrarily
+                            if (Interlocked.Increment(ref s_dumpsSubmitted) <= 3)
+                                faultUtility.AddProcessDump(currentProcess.Id);
+                        }
+
                         if (faultUtility is FaultEvent { IsIncludedInWatsonSample: true })
                         {
                             // add ServiceHub log files:

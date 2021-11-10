@@ -20,8 +20,14 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 {
     internal static class FatalError
     {
+        /// <summary>
+        /// A delegate type for our NonFatalHandler; this is necessary since this file must build on .NET 2.0 where
+        /// multi-parameter Action hadn't been invented yet.
+        /// </summary>
+        public delegate void NonFatalHandlerDelegate(Exception exception, bool forceDump);
+
         private static Action<Exception>? s_fatalHandler;
-        private static Action<Exception>? s_nonFatalHandler;
+        private static NonFatalHandlerDelegate? s_nonFatalHandler;
 
 #pragma warning disable IDE0052 // Remove unread private members - We want to hold onto last exception to make investigation easier
         private static Exception? s_reportedException;
@@ -55,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// if the host desires to NOT crash the process on a non fatal exception.
         /// </summary>
         [DisallowNull]
-        public static Action<Exception>? NonFatalHandler
+        public static NonFatalHandlerDelegate? NonFatalHandler
         {
             get
             {
@@ -200,7 +206,14 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         [DebuggerHidden]
         public static bool ReportAndCatch(Exception exception)
         {
-            Report(exception, s_nonFatalHandler);
+            Report(exception, static (exception) => s_nonFatalHandler?.Invoke(exception, forceDump: false));
+            return true;
+        }
+
+        [DebuggerHidden]
+        public static bool ReportWithDumpAndCatch(Exception exception)
+        {
+            Report(exception, static (exception) => s_nonFatalHandler?.Invoke(exception, forceDump: true));
             return true;
         }
 
