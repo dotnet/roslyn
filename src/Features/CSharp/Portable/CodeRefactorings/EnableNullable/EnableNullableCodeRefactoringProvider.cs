@@ -38,8 +38,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             if (!textSpan.IsEmpty)
                 return;
 
-            if (document.Project.CompilationOptions!.NullableContextOptions != NullableContextOptions.Disable)
+            if (document.Project is not
+                {
+                    ParseOptions: CSharpParseOptions { LanguageVersion: >= LanguageVersion.CSharp8 },
+                    CompilationOptions.NullableContextOptions: NullableContextOptions.Disable,
+                })
+            {
                 return;
+            }
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(textSpan.Start, findInsideTrivia: true);
