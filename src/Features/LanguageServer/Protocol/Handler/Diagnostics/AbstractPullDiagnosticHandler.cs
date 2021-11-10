@@ -81,7 +81,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             IDiagnosticAnalyzerService analyzerService)
         {
             _analyzerService = analyzerService;
-            DiagnosticService = diagnosticService;
         }
 
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams diagnosticsParams);
@@ -338,15 +337,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         ///    <item>Visible files in referenced projects</item>
         ///    <item>Project properties in referenced projects</item>
         /// </list>
-        /// are reflected in the metadata we keep so that comparing solutions accurately tells us when we need to recompute diagnostics.   
-        /// 
+        /// are reflected in the metadata we keep so that comparing solutions accurately tells us when we need to recompute diagnostics.
+        ///
         /// <para>This method of checking for changes has a few important properties that differentiate it from other methods of determining project version.
         /// <list type="bullet">
         ///    <item>Changes to methods inside the current project will be reflected to compute updated diagnostics.
         ///        <see cref="Project.GetDependentSemanticVersionAsync(CancellationToken)"/> does not change as it only returns top level changes.</item>
         ///    <item>Reloading a project without making any changes will re-use cached diagnostics.
         ///        <see cref="Project.GetDependentSemanticVersionAsync(CancellationToken)"/> changes as the project is removed, then added resulting in a version change.</item>
-        /// </list>   
+        /// </list>
         /// Since diagnostic calculations happen OOP, these checksums already have been (or will be) created to do the diagnostics calculation anyway.
         /// </para>
         /// </remarks>
