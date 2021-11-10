@@ -140,14 +140,10 @@ internal partial class SolutionState
 
                 lock (_stateGate)
                 {
-                    // If we successfully created the metadata storage, then create the new set that points to it.
-                    // if we didn't, that's ok too, we'll just say that for this requested version, that we can
-                    // return any prior computed reference set (including 'null' if we've never successfully made
-                    // a skeleton).
-                    _skeletonReferenceSet = referenceSet ?? _skeletonReferenceSet;
+                    _skeletonReferenceSet = referenceSet;
                     _version = version;
 
-                    return _skeletonReferenceSet;
+                    return referenceSet;
                 }
             }
 
@@ -189,12 +185,22 @@ internal partial class SolutionState
 
             var assemblyName = compilation.AssemblyName;
 
-            var storage = TryCreateMetadataStorage(workspace, compilation, peStream, xmlDocumentationStream, cancellationToken);
-            referenceSet = storage == null ? null : new SkeletonReferenceSet(storage, assemblyName, new DeferredDocumentationProvider(compilation));
+            var success = TryEmitMetadata(workspace, compilation, peStream, xmlDocumentationStream, cancellationToken);
+
+            // If we successfully emitted the skeleton, then create the new set that points to it.
+            // if we didn't, that's ok too we just reuse what we have.  We'll also write this out
+            // against this current checksum so that future host sessions will still be able to use this.
+            referenceSet = success
+                ? new SkeletonReferenceSet(storage, assemblyName, new DeferredDocumentationProvider(compilation))
+                : _skeletonReferenceSet;
 
             // Finally, write this out to disk so that 
             await WriteToPersistentStorageAsync(
-                workspace, projectId, checksum, peStream, xmlDocumentationStream, assemblyName, failed: storage == null, cancellationToken);
+                workspace,
+                projectId,
+                checksum,
+                referenceSet,
+                cancellationToken).ConfigureAwait(false);
         }
 
         private static ITemporaryStreamStorage? TryCreateMetadataStorage(

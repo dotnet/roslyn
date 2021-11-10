@@ -26,5 +26,17 @@ internal partial class SolutionState
         /// automatically will fail 
         /// </summary>
         private static readonly Checksum s_persistenceVersion = Checksum.Create("1");
+
+        private Task WriteToPersistentStorageAsync(
+            Workspace workspace,
+            ProjectId projectId,
+            Checksum checksum,
+            Stream peStream,
+            Stream xmlDocumentationStream,
+            string? assemblyName,
+            CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
