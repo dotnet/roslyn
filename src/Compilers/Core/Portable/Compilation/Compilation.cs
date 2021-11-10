@@ -2667,7 +2667,7 @@ namespace Microsoft.CodeAnalysis
                     }
                     else if (xmlDocumentationStream != null)
                     {
-                        // If we're in metadata only, and the caller asks for xml docs, then still proceed and generate // those.
+                        // If we're in metadata only, and the caller asks for xml docs, then still proceed and generate those.
                         success = GenerateDocumentationComments(
                             moduleBeingBuilt, xmlDocumentationStream, options.OutputNameOverride, diagnostics, cancellationToken);
                     }
