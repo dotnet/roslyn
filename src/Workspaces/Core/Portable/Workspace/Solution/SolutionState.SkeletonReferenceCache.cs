@@ -183,8 +183,6 @@ internal partial class SolutionState
 
                 using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_EmitMetadataOnlyImage, cancellationToken))
                 {
-                    // TODO: make it to use SerializableBytes.WritableStream rather than MemoryStream so that
-                    //       we don't allocate anything for skeleton assembly.
                     using var stream = SerializableBytes.CreateWritableStream();
                     // note: cloning compilation so we don't retain all the generated symbols after its emitted.
                     // * REVIEW * is cloning clone p2p reference compilation as well?
