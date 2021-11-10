@@ -158,6 +158,7 @@ namespace Roslyn.Test.Utilities
 #endif
 
         public static bool IsWindows => Path.DirectorySeparatorChar == '\\';
+        public static bool IsWindows11OrGreater => IsWindows && Environment.OSVersion.Version.Build >= 22_000;
         public static bool IsUnix => !IsWindows;
         public static bool IsMacOS => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
         public static bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
