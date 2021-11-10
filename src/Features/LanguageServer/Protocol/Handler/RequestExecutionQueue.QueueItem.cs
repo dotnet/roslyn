@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             public readonly RequestMetrics Metrics;
 
-            public QueueItem(
+            private QueueItem(
                 bool mutatesSolutionState,
                 bool requiresLSPSolution,
                 ClientCapabilities clientCapabilities,
@@ -87,6 +87,80 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 TextDocument = textDocument;
                 HandleQueueFailure = handleQueueFailure;
                 CancellationToken = cancellationToken;
+            }
+
+            public static (QueueItem queueItem, Task<TResult?> result) Create<TResult>(
+                bool mutatesSolutionState,
+                bool requiresLSPSolution,
+                ClientCapabilities clientCapabilities,
+                string? clientName,
+                string methodName,
+                TextDocumentIdentifier? textDocument,
+                Guid activityId,
+                ILspLogger logger,
+                RequestTelemetryLogger telemetryLogger,
+                Func<RequestContext, CancellationToken, Task<TResult>> callbackAsync,
+                CancellationToken cancellationToken)
+            {
+                // Create a task completion source that will represent the processing of this request to the caller
+                var completion = new TaskCompletionSource<TResult?>();
+
+                // Note: If the queue is not accepting any more items then TryEnqueue below will fail.
+                var item = new QueueItem(
+                    mutatesSolutionState,
+                    requiresLSPSolution,
+                    clientCapabilities,
+                    clientName,
+                    methodName,
+                    textDocument,
+                    activityId,
+                    logger,
+                    telemetryLogger,
+                    handleQueueFailure: exception => completion.TrySetException(exception),
+                    callbackAsync: async (context, cancellationToken) =>
+                    {
+                        // Check if cancellation was requested while this was waiting in the queue
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            completion.SetCanceled();
+
+                            return;
+                        }
+
+                        // If we weren't able to get a corresponding context for this request (for example, we
+                        // couldn't map a doc request to a particular Document, or we couldn't find an appropriate
+                        // Workspace for a global operation), then just immediately complete the request with a
+                        // 'null' response.  Note: the lsp spec was checked to ensure that 'null' is valid for all
+                        // the requests this could happen for.  However, this assumption may not hold in the future.
+                        // If that turns out to be the case, we could defer to the individual handler to decide
+                        // what to do.
+                        if (context == null)
+                        {
+                            completion.SetResult(default);
+                            return;
+                        }
+
+                        try
+                        {
+                            var result = await callbackAsync(context.Value, cancellationToken).ConfigureAwait(false);
+                            completion.SetResult(result);
+                        }
+                        catch (OperationCanceledException ex)
+                        {
+                            completion.TrySetCanceled(ex.CancellationToken);
+                        }
+                        catch (Exception exception)
+                        {
+                            // Pass the exception to the task completion source, so the caller of the ExecuteAsync method can react
+                            completion.SetException(exception);
+
+                            // Also allow the exception to flow back to the request queue to handle as appropriate
+                            throw new InvalidOperationException($"Error handling '{methodName}' request: {exception.Message}", exception);
+                        }
+                    },
+                    cancellationToken);
+
+                return (item, completion.Task);
             }
 
             /// <summary>
