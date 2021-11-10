@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly ImmutableSegmentedDictionary<object, IStateTable>.Builder _tableBuilder = ImmutableSegmentedDictionary.CreateBuilder<object, IStateTable>();
             private readonly ImmutableArray<ISyntaxInputNode> _syntaxInputNodes;
-            private readonly IIncrementalGeneratorNode<SyntaxTree> _syntaxTreesInputNode;
             private readonly ImmutableDictionary<ISyntaxInputNode, Exception>.Builder _syntaxExceptions = ImmutableDictionary.CreateBuilder<ISyntaxInputNode, Exception>();
             private readonly DriverStateTable _previousTable;
             private readonly CancellationToken _cancellationToken;
@@ -45,13 +44,12 @@ namespace Microsoft.CodeAnalysis
 
             public Compilation Compilation { get; }
 
-            public Builder(Compilation compilation, GeneratorDriverState driverState, ImmutableArray<ISyntaxInputNode> syntaxInputNodes, IIncrementalGeneratorNode<SyntaxTree> syntaxTreesInputNode, CancellationToken cancellationToken = default)
+            public Builder(Compilation compilation, GeneratorDriverState driverState, ImmutableArray<ISyntaxInputNode> syntaxInputNodes, CancellationToken cancellationToken = default)
             {
                 Compilation = compilation;
                 DriverState = driverState;
                 _previousTable = driverState.StateTable;
                 _syntaxInputNodes = syntaxInputNodes;
-                _syntaxTreesInputNode = syntaxTreesInputNode;
                 _cancellationToken = cancellationToken;
             }
 
@@ -86,12 +84,12 @@ namespace Microsoft.CodeAnalysis
                     if (syntaxInputBuilders.Count == 0)
                     {
                         // bring over the previously cached syntax tree inputs
-                        _tableBuilder[_syntaxTreesInputNode] = _previousTable._tables[_syntaxTreesInputNode];
+                        _tableBuilder[SharedInputNodes.SyntaxTrees] = _previousTable._tables[SharedInputNodes.SyntaxTrees];
                     }
                     else
                     {
                         GeneratorRunStateTable.Builder temporaryRunStateBuilder = new GeneratorRunStateTable.Builder(DriverState.TrackIncrementalSteps);
-                        NodeStateTable<SyntaxTree> syntaxTreeState = GetLatestStateTableForNode(_syntaxTreesInputNode);
+                        NodeStateTable<SyntaxTree> syntaxTreeState = GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees);
 
                         // update each tree for the builders, sharing the semantic model
                         foreach ((var tree, var state, var syntaxTreeIndex, var stepInfo) in syntaxTreeState)

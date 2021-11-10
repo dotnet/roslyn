@@ -2704,8 +2704,7 @@ class C { }
             Assert.Contains(WellKnownGeneratorInputs.AdditionalTexts, runResult.TrackedSteps.Keys);
             Assert.Contains(WellKnownGeneratorInputs.MetadataReferences, runResult.TrackedSteps.Keys);
 
-            // Assert that a syntax provider records the Syntax Trees step as well as itself.
-            Assert.Contains(WellKnownGeneratorInputs.SyntaxTrees, runResult.TrackedSteps.Keys);
+            // Assert that a syntax provider records itself.
             Assert.Contains("Syntax", runResult.TrackedSteps.Keys);
 
             // Source output steps have the well-defined SourceOutputStep name
@@ -2731,12 +2730,10 @@ class C { }
 
             var generator1 = new PipelineCallbackGenerator(ctx =>
             {
-                ctx.RegisterSourceOutput(ctx.SyntaxProvider.CreateSyntaxProvider((node, ct) => node is ClassDeclarationSyntax, (context, ct) => context.Node), (context, ct) => { });
                 ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider, (context, ct) => { });
             });
             var generator2 = new LocalPipelineCallbackGenerator(ctx =>
             {
-                ctx.RegisterSourceOutput(ctx.SyntaxProvider.CreateSyntaxProvider((node, ct) => node is ClassDeclarationSyntax, (context, ct) => context.Node), (context, ct) => { });
                 ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider, (context, ct) => { });
             });
 
@@ -2744,8 +2741,6 @@ class C { }
             driver = driver.RunGenerators(compilation);
             Assert.All(driver.GetRunResult().Results,
                 result => Assert.Contains(WellKnownGeneratorInputs.AdditionalTexts, result.TrackedSteps.Keys));
-            Assert.All(driver.GetRunResult().Results,
-                result => Assert.Contains(WellKnownGeneratorInputs.SyntaxTrees, result.TrackedSteps.Keys));
         }
 
         // Introduce a local type here since GeneratorDriver validates that each generator is only included once

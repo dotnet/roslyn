@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis
 
         public const string AdditionalTexts = nameof(AdditionalTexts);
 
-        public const string SyntaxTrees = nameof(SyntaxTrees);
-
         public const string AnalyzerConfigOptions = nameof(AnalyzerConfigOptions);
 
         public const string MetadataReferences = nameof(MetadataReferences);

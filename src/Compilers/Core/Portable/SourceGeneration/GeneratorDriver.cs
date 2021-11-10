@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis
     /// </remarks>
     public abstract class GeneratorDriver
     {
-        private static readonly IIncrementalGeneratorNode<SyntaxTree> SyntaxTreesInputNode = SharedInputNodes.SyntaxTrees.WithTrackingName(WellKnownGeneratorInputs.SyntaxTrees);
-
         internal readonly GeneratorDriverState _state;
 
         internal GeneratorDriver(GeneratorDriverState state)
@@ -241,7 +239,7 @@ namespace Microsoft.CodeAnalysis
             }
             constantSourcesBuilder.Free();
 
-            var driverStateBuilder = new DriverStateTable.Builder(compilation, _state, syntaxInputNodes.ToImmutableAndFree(), SyntaxTreesInputNode, cancellationToken);
+            var driverStateBuilder = new DriverStateTable.Builder(compilation, _state, syntaxInputNodes.ToImmutableAndFree(), cancellationToken);
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
                 var generatorState = stateBuilder[i];
