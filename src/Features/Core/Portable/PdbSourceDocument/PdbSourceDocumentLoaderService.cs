@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -27,14 +28,14 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         public Task<TextLoader?> LoadSourceDocumentAsync(SourceDocument sourceDocument, CancellationToken cancellationToken)
         {
             // If we already have the embedded text then use that directly
-            if (sourceDocument.EmbeddedText is not null)
+            if (sourceDocument.EmbeddedTextBytes is not null)
             {
-                var textAndVersion = TextAndVersion.Create(sourceDocument.EmbeddedText, VersionStamp.Default, sourceDocument.FilePath);
-                return Task.FromResult<TextLoader?>(TextLoader.From(textAndVersion));
+                var textLoader = TryLoadSourceFromEmbeddedSource(sourceDocument);
+                return Task.FromResult<TextLoader?>(textLoader);
             }
 
             // Otherwise, check the easiest (but most unlikely) case which is the document exists on the disk
-            if (File.Exists(sourceDocument.FilePath))
+            if (sourceText is null && File.Exists(sourceDocument.FilePath))
             {
                 var textLoader = IOUtilities.PerformIO(() => TryLoadSourceFromDisk(sourceDocument));
                 if (textLoader is not null)
@@ -46,6 +47,37 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // or maybe they'll return a stream, in which case we could create a new StreamTextLoader
 
             return Task.FromResult<TextLoader?>(null);
+        }
+
+        private static TextLoader? TryLoadSourceFromEmbeddedSource(SourceDocument sourceDocument)
+        {
+            var blob = sourceDocument.EmbeddedTextBytes;
+            var uncompressedSize = BitConverter.ToInt32(blob, 0);
+            var stream = new MemoryStream(blob, sizeof(int), blob.Length - sizeof(int));
+
+            if (uncompressedSize != 0)
+            {
+                var decompressed = new MemoryStream(uncompressedSize);
+
+                using (var deflater = new DeflateStream(stream, CompressionMode.Decompress))
+                {
+                    deflater.CopyTo(decompressed);
+                }
+
+                if (decompressed.Length != uncompressedSize)
+                {
+                    return null;
+                }
+
+                stream = decompressed;
+            }
+
+            using (stream)
+            {
+                var embeddedText = EncodedStringText.Create(stream);
+                var textAndVersion = TextAndVersion.Create(embeddedText, VersionStamp.Default, sourceDocument.FilePath);
+                return TextLoader.From(textAndVersion);
+            }
         }
 
         private static TextLoader? TryLoadSourceFromDisk(SourceDocument sourceDocument)
