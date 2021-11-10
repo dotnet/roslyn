@@ -279,6 +279,7 @@
                 case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
                 case ErrorCode.WRN_CompileTimeCheckedOverflow:
                 case ErrorCode.WRN_MethGrpToNonDel:
+                case ErrorCode.WRN_AnnotationOnSliceReturnType:
                     return true;
                 default:
                     return false;

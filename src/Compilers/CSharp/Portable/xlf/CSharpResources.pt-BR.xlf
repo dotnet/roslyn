@@ -1302,11 +1302,6 @@
         <target state="translated">tipo de retorno de lambda</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureLengthPattern">
-        <source>length pattern</source>
-        <target state="new">length pattern</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureLineSpanDirective">
         <source>line span directive</source>
         <target state="translated">diretiva de extensão de linha</target>
@@ -1370,6 +1365,16 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">O assembly carregado referencia o .NET Framework, mas não há suporte para isso.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnnotationOnSliceReturnType">
+        <source>The annotation on the output type '{0}' is ignored.</source>
+        <target state="new">The annotation on the output type '{0}' is ignored.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnnotationOnSliceReturnType_Title">
+        <source>The annotation on the output type is ignored.</source>
+        <target state="new">The annotation on the output type is ignored.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttrDependentTypeNotAllowed">

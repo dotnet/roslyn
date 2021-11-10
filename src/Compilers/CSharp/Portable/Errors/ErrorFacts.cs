@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             nullableWarnings.Add(GetId(ErrorCode.WRN_ParameterDisallowsNull));
             nullableWarnings.Add(GetId(ErrorCode.WRN_ParameterNotNullIfNotNull));
             nullableWarnings.Add(GetId(ErrorCode.WRN_ReturnNotNullIfNotNull));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_AnnotationOnSliceReturnType));
 
             NullableWarnings = nullableWarnings.ToImmutable();
         }
@@ -486,6 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
                 case ErrorCode.WRN_CompileTimeCheckedOverflow:
                 case ErrorCode.WRN_MethGrpToNonDel:
+                case ErrorCode.WRN_AnnotationOnSliceReturnType:
                     return 1;
                 default:
                     return 0;

@@ -2620,13 +2620,13 @@ class C<T>
         else
             rest.ToString(); // 1
 
-        if (new C<int?>() is [1, ..var rest2])
-            rest2.Value.ToString(); // 2
+        if (new C<int?>() is [1, ..var rest2]) // ignored 2
+            rest2.Value.ToString(); // 2 (no warning)
         else
             rest2.Value.ToString(); // 3, 4
 
-        if (new C<string?>() is [1, ..var rest3])
-            rest3.ToString(); // 5
+        if (new C<string?>() is [1, ..var rest3]) // ignored 5
+            rest3.ToString(); // 5 (no warning)
         else
             rest3.ToString(); // 6, 7
 
@@ -2638,9 +2638,9 @@ class C<T>
         else
             rest4.ToString(); // 8, 9
 
-        if (new C<T>() is [1, ..var rest5])
+        if (new C<T>() is [1, ..var rest5]) // ignored 10
         {
-            rest5.ToString(); // 10
+            rest5.ToString(); // 10; (no warning)
             rest5 = default;
         }
     }
@@ -2651,18 +2651,18 @@ class C<T>
             // (14,13): error CS0165: Use of unassigned local variable 'rest'
             //             rest.ToString(); // 1
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest").WithArguments("rest").WithLocation(14, 13),
-            // (17,13): warning CS8629: Nullable value type may be null.
-            //             rest2.Value.ToString(); // 2
-            Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "rest2").WithLocation(17, 13),
+            // (16,36): warning CS8978: The annotation on the output type 'int?' is ignored.
+            //         if (new C<int?>() is [1, ..var rest2]) // ignored 2
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "var rest2").WithArguments("int?").WithLocation(16, 36),
             // (19,13): warning CS8629: Nullable value type may be null.
             //             rest2.Value.ToString(); // 3, 4
             Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "rest2").WithLocation(19, 13),
             // (19,13): error CS0165: Use of unassigned local variable 'rest2'
             //             rest2.Value.ToString(); // 3, 4
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest2").WithArguments("rest2").WithLocation(19, 13),
-            // (22,13): warning CS8602: Dereference of a possibly null reference.
-            //             rest3.ToString(); // 5
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest3").WithLocation(22, 13),
+            // (21,39): warning CS8978: The annotation on the output type 'string?' is ignored.
+            //         if (new C<string?>() is [1, ..var rest3]) // ignored 5
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "var rest3").WithArguments("string?").WithLocation(21, 39),
             // (24,13): warning CS8602: Dereference of a possibly null reference.
             //             rest3.ToString(); // 6, 7
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest3").WithLocation(24, 13),
@@ -2675,9 +2675,9 @@ class C<T>
             // (32,13): error CS0165: Use of unassigned local variable 'rest4'
             //             rest4.ToString(); // 8, 9
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest4").WithArguments("rest4").WithLocation(32, 13),
-            // (36,13): warning CS8602: Dereference of a possibly null reference.
-            //             rest5.ToString(); // 10
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest5").WithLocation(36, 13)
+            // (34,33): warning CS8978: The annotation on the output type 'T' is ignored.
+            //         if (new C<T>() is [1, ..var rest5]) // ignored 10
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "var rest5").WithArguments("T").WithLocation(34, 33)
             );
 
         var tree = compilation.SyntaxTrees.Single();
@@ -2700,7 +2700,7 @@ class C<T>
     }
 
     [Fact]
-    public void SlicePattern_Nullability_NullableValue()
+    public void SlicePattern_Nullability_AnnotationIgnored()
     {
         var source = @"
 #nullable enable
@@ -2721,13 +2721,13 @@ class C
 ";
         var compilation = CreateCompilation(source);
         compilation.VerifyEmitDiagnostics(
-                // (12,13): warning CS8602: Dereference of a possibly null reference.
-                //             slice.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "slice").WithLocation(12, 13),
-                // (14,13): warning CS8602: Dereference of a possibly null reference.
-                //             list.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "list").WithLocation(14, 13)
-        );
+            // (11,27): warning CS8978: The annotation on the output type 'int[]?' is ignored.
+            //         if (this is [1, ..var slice])
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "var slice").WithArguments("int[]?").WithLocation(11, 27),
+            // (13,27): warning CS8978: The annotation on the output type 'int[]?' is ignored.
+            //         if (this is [1, ..[] list])
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "[] list").WithArguments("int[]?").WithLocation(13, 27)
+            );
 
         var tree = compilation.SyntaxTrees.Single();
         var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -2772,13 +2772,13 @@ class C<T>
         else
             rest.ToString(); // 1
 
-        if (new C<int?>() is [1, ..var rest2])
-            rest2.Value.ToString(); // 2
+        if (new C<int?>() is [1, ..var rest2]) // ignored 2
+            rest2.Value.ToString(); // 2 (no warning)
         else
             rest2.Value.ToString(); // 3, 4
 
-        if (new C<string?>() is [1, ..var rest3])
-            rest3.ToString(); // 5
+        if (new C<string?>() is [1, ..var rest3]) // ignored 5
+            rest3.ToString(); // 5 (no warning)
         else
             rest3.ToString(); // 6, 7
 
@@ -2797,18 +2797,18 @@ class C<T>
             // (15,13): error CS0165: Use of unassigned local variable 'rest'
             //             rest.ToString(); // 1
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest").WithArguments("rest").WithLocation(15, 13),
-            // (18,13): warning CS8629: Nullable value type may be null.
-            //             rest2.Value.ToString(); // 2
-            Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "rest2").WithLocation(18, 13),
+            // (17,36): warning CS8978: The annotation on the output type 'int?' is ignored.
+            //         if (new C<int?>() is [1, ..var rest2]) // ignored 2
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "var rest2").WithArguments("int?").WithLocation(17, 36),
             // (20,13): warning CS8629: Nullable value type may be null.
             //             rest2.Value.ToString(); // 3, 4
             Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "rest2").WithLocation(20, 13),
             // (20,13): error CS0165: Use of unassigned local variable 'rest2'
             //             rest2.Value.ToString(); // 3, 4
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest2").WithArguments("rest2").WithLocation(20, 13),
-            // (23,13): warning CS8602: Dereference of a possibly null reference.
-            //             rest3.ToString(); // 5
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest3").WithLocation(23, 13),
+            // (22,39): warning CS8978: The annotation on the output type 'string?' is ignored.
+            //         if (new C<string?>() is [1, ..var rest3]) // ignored 5
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "var rest3").WithArguments("string?").WithLocation(22, 39),
             // (25,13): warning CS8602: Dereference of a possibly null reference.
             //             rest3.ToString(); // 6, 7
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest3").WithLocation(25, 13),
@@ -3413,12 +3413,30 @@ class C
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyEmitDiagnostics(
+            // (16,17): warning CS8978: The annotation on the output type 'object?' is ignored.
+            //             [.. null] => 0,
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "null").WithArguments("object?").WithLocation(16, 17),
             // (20,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[.. null, _]' is not covered.
             //         _ = this switch // no tests for [.. null, _]
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[.. null, _]").WithLocation(20, 18),
+            // (24,17): warning CS8978: The annotation on the output type 'object?' is ignored.
+            //             [.. not null] => 0,
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "not null").WithArguments("object?").WithLocation(24, 17),
             // (27,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[.. not null, _]' is not covered.
             //         _ = this switch // no test for [.. not null, _]
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[.. not null, _]").WithLocation(27, 18)
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[.. not null, _]").WithLocation(27, 18),
+            // (31,17): warning CS8978: The annotation on the output type 'object?' is ignored.
+            //             [.. null] => 0,
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "null").WithArguments("object?").WithLocation(31, 17),
+            // (38,17): warning CS8978: The annotation on the output type 'object?' is ignored.
+            //             [.. not null] => 0,
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "not null").WithArguments("object?").WithLocation(38, 17),
+            // (46,17): warning CS8978: The annotation on the output type 'object?' is ignored.
+            //             [.. null] => 0,
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "null").WithArguments("object?").WithLocation(46, 17),
+            // (54,23): warning CS8978: The annotation on the output type 'object?' is ignored.
+            //             [null, .. null] => 0,
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "null").WithArguments("object?").WithLocation(54, 23)
             );
     }
 
@@ -3456,7 +3474,10 @@ class D
         compilation.VerifyEmitDiagnostics(
             // (12,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
             //         _ = this switch
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(12, 18)
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(12, 18),
+            // (17,17): warning CS8978: The annotation on the output type 'D?' is ignored.
+            //             [.. null] => 0,
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "null").WithArguments("D?").WithLocation(17, 17)
             );
     }
 
@@ -3549,27 +3570,60 @@ class C
         // Note: we don't try to explain nested slice patterns right now so all these just produce a fallback example
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyEmitDiagnostics(
-                // (27,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
-                //         _ = this switch // didn't test for [.. [not null]] // // 2
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(27, 18),
-                // (33,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
-                //         _ = this switch // didn't test for [.. [not null]] // // 3
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(33, 18),
-                // (40,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-                //         _ = this switch // didn't test for [.. null, _] // we're trying to construct an example with Length=1, the slice may not be null // 4
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(40, 18),
-                // (46,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-                //         _ = this switch // didn't test for [_, .. null, _, _, _] // we're trying to construct an example with Length=4, the slice may not be null // 5
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(46, 18),
-                // (58,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-                //         _ = this switch // didn't test for [_, .. [_, null], _] // 7
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(58, 18),
-                // (64,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-                //         _ = this switch // didn't test for [_, .. [_, null], _, _] // 8
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(64, 18),
-                // (70,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-                //         _ = this switch // didn't test for [_, .. [_, null, _], _] // 9
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(70, 18)
+            // (15,17): warning CS8978: The annotation on the output type 'C?' is ignored.
+            //             [.. null] => 0,
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "null").WithArguments("C?").WithLocation(15, 17),
+            // (23,17): warning CS8978: The annotation on the output type 'C?' is ignored.
+            //             [.. [null]] => 0,
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "[null]").WithArguments("C?").WithLocation(23, 17),
+            // (27,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+            //         _ = this switch // didn't test for [.. [not null]] // // 2
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(27, 18),
+            // (30,17): warning CS8978: The annotation on the output type 'C?' is ignored.
+            //             [.. [null]] => 0,
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "[null]").WithArguments("C?").WithLocation(30, 17),
+            // (33,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+            //         _ = this switch // didn't test for [.. [not null]] // // 3
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(33, 18),
+            // (36,17): warning CS8978: The annotation on the output type 'C?' is ignored.
+            //             [.. null] => 0,
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "null").WithArguments("C?").WithLocation(36, 17),
+            // (40,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
+            //         _ = this switch // didn't test for [.. null, _] // we're trying to construct an example with Length=1, the slice may not be null // 4
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(40, 18),
+            // (43,17): warning CS8978: The annotation on the output type 'C?' is ignored.
+            //             [.. [not null]] => 0,
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "[not null]").WithArguments("C?").WithLocation(43, 17),
+            // (46,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
+            //         _ = this switch // didn't test for [_, .. null, _, _, _] // we're trying to construct an example with Length=4, the slice may not be null // 5
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(46, 18),
+            // (49,20): warning CS8978: The annotation on the output type 'C?' is ignored.
+            //             [_, .. [_, not null], _] => 0,
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "[_, not null]").WithArguments("C?").WithLocation(49, 20),
+            // (55,20): warning CS8978: The annotation on the output type 'C?' is ignored.
+            //             [_, .. [_, _], _] => 0,
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "[_, _]").WithArguments("C?").WithLocation(55, 20),
+            // (58,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
+            //         _ = this switch // didn't test for [_, .. [_, null], _] // 7
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(58, 18),
+            // (61,20): warning CS8978: The annotation on the output type 'C?' is ignored.
+            //             [_, .. null or [_, not null], _] => 0,
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "null or [_, not null]").WithArguments("C?").WithLocation(61, 20),
+            // (64,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
+            //         _ = this switch // didn't test for [_, .. [_, null], _, _] // 8
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(64, 18),
+            // (67,20): warning CS8978: The annotation on the output type 'C?' is ignored.
+            //             [_, .. null or [_, not null], _, _] => 0,
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "null or [_, not null]").WithArguments("C?").WithLocation(67, 20),
+            // (70,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
+            //         _ = this switch // didn't test for [_, .. [_, null, _], _] // 9
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(70, 18),
+            // (73,20): warning CS8978: The annotation on the output type 'C?' is ignored.
+            //             [_, .. null or [_, not null, _], _] => 0,
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "null or [_, not null, _]").WithArguments("C?").WithLocation(73, 20),
+            // (79,17): warning CS8978: The annotation on the output type 'C?' is ignored.
+            //             [.. { Length: 1 }] => 0,
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "{ Length: 1 }").WithArguments("C?").WithLocation(79, 17)
             );
     }
 
@@ -4947,17 +5001,17 @@ class C
             { Length: not 1 }  => 0,
             [<0, ..] => 0,
             [..[>= 0]] => 1,
-            [_] => 2,  // unreachable 2
+            [_] => 2, // unreachable 2
         };
     }
 }" + TestSources.GetSubArray;
         var comp = CreateCompilationWithIndexAndRange(src);
         comp.VerifyEmitDiagnostics(
                 // (11,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //             [_] => 2, // unreachable
+                //             [_] => 2, // unreachable 1
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[_]").WithLocation(11, 13),
                 // (18,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //             [_] => 2,
+                //             [_] => 2, // unreachable 2
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[_]").WithLocation(18, 13)
                 );
 
@@ -5000,7 +5054,7 @@ class C
             { Length: not 1 }  => 0,
             [<0, ..] => 0,
             [..[>= 0]] => 1,
-            [_] => 2,  // unreachable 2
+            [_] => 2, // unreachable 2
         }`
 ", index: 1)
         );
@@ -5449,14 +5503,11 @@ class C
 ");
     }
 
-    [Theory]
-    [PairwiseData]
-    public void Subsumption_Slice_00(
-        [CombinatorialRange(0, 18)] int c1,
-        [CombinatorialRange(0, 18)] int c2,
-        [CombinatorialValues("System.Span<int>", "int[]")] string type)
+    [Fact]
+    public void Subsumption_Slice_00()
     {
-        var cases = new string[18]
+        const int Count = 18;
+        var cases = new string[Count]
         {
            "[1,2,3]",
            "[1,2,3,..[]]",
@@ -5478,10 +5529,14 @@ class C
            "[1, ..[2, ..[], 3]]"
         };
 
-        var case1 = cases[c1];
-        var case2 = cases[c2];
+        var r = new Random();
+        for (int i = 0; i < 50; i++)
+        {
+            var case1 = cases[r.Next(Count)];
+            var case2 = cases[r.Next(Count)];
+            var type = r.Next(2) == 0 ? "System.Span<int>" : "int[]";
 
-        var src = @"
+            var src = @"
 class C
 {
     void Test(" + type + @" a)
@@ -5494,11 +5549,12 @@ class C
         }
     }
 }";
-        var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { src, TestSources.GetSubArray }, parseOptions: TestOptions.RegularWithListPatterns);
-        comp.VerifyEmitDiagnostics(
-            // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
-            Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, case2).WithLocation(9, 18)
-            );
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { src, TestSources.GetSubArray }, parseOptions: TestOptions.RegularWithListPatterns);
+            comp.VerifyEmitDiagnostics(
+                // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, case2).WithLocation(9, 18)
+                );
+        }
     }
 
     [Fact]
@@ -5958,7 +6014,11 @@ record ConsList(object Head, ConsList? Tail)
 ";
         // Note: this pattern doesn't work well because list-patterns needs a functional Length
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, IsExternalInitTypeDefinition });
-        compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics(
+            // (17,32): warning CS8978: The annotation on the output type 'ConsList?' is ignored.
+            //             case [var head, .. var tail]:
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "var tail").WithArguments("ConsList?").WithLocation(17, 32)
+            );
         var verifier = CompileAndVerify(compilation, verify: Verification.Fails);
         verifier.VerifyIL("ConsList.Print", @"
 {

@@ -2006,6 +2006,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnsupportedTypeForSlicePattern,
         ERR_MisplacedSlicePattern,
 
+        WRN_AnnotationOnSliceReturnType = 8978,
+
         #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
