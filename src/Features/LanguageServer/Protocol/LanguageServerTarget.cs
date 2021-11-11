@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -387,9 +388,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 documentDiagnosticParams, _clientCapabilities, ClientName, cancellationToken);
         }
 
-        [JsonRpcMethod(ExperimentalMethods.WorkspaceDiagnostic, UseSingleObjectParameterDeserialization = true)]
-        public Task<WorkspaceDiagnosticReport?> HandleWorkspaceDiagnosticsAsync(WorkspaceDiagnosticParams workspaceDiagnosticParams, CancellationToken cancellationToken)
+        [JsonRpcMethod(ExperimentalMethods.WorkspaceDiagnostic, ClientRequiresNamedArguments = true)]
+        public Task<WorkspaceDiagnosticReport?> HandleWorkspaceDiagnosticsAsync(
+            [JsonProperty(PropertyName = "previousResultIds")] PreviousResultId[] previousResultIds,
+            [JsonProperty(PropertyName = "identifier")] string? identifier = null,
+            [JsonProperty(PropertyName = Methods.WorkDoneTokenName)] IProgress<WorkspaceDiagnosticReport>? workDoneToken = null,
+            [JsonProperty(PropertyName = Methods.PartialResultTokenName)] IProgress<WorkspaceDiagnosticReport>? partialResultToken = null,
+            CancellationToken cancellationToken = default)
         {
+            var workspaceDiagnosticParams = new WorkspaceDiagnosticParams(identifier, previousResultIds, workDoneToken, partialResultToken);
             Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
             return RequestDispatcher.ExecuteRequestAsync<WorkspaceDiagnosticParams, WorkspaceDiagnosticReport?>(Queue, ExperimentalMethods.WorkspaceDiagnostic,
                 workspaceDiagnosticParams, _clientCapabilities, ClientName, cancellationToken);

@@ -1042,7 +1042,7 @@ class A {";
 
             if (useVSDiagnostics)
             {
-                BufferedProgress<VSInternalDiagnosticReport>? progress = useProgress ? BufferedProgress.Create<VSInternalDiagnosticReport>(null) : null;
+                BufferedProgress<VSInternalDiagnosticReport[]>? progress = useProgress ? BufferedProgress.Create<VSInternalDiagnosticReport[]>(null) : null;
                 var diagnostics = await testLspServer.ExecuteRequestAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
                     VSInternalMethods.DocumentPullDiagnosticName,
                     CreateDocumentDiagnosticParams(uri, previousResultId, progress),
@@ -1053,7 +1053,7 @@ class A {";
                 if (useProgress)
                 {
                     Assert.Null(diagnostics);
-                    diagnostics = progress!.Value.GetValues();
+                    diagnostics = progress!.Value.GetFlattenedValues();
                 }
 
                 AssertEx.NotNull(diagnostics);
@@ -1093,7 +1093,7 @@ class A {";
             static DocumentDiagnosticParams CreateProposedDocumentDiagnosticParams(
                 Uri uri,
                 string? previousResultId = null,
-                IProgress<DocumentDiagnosticPartialReport[]>? progress = null)
+                IProgress<DocumentDiagnosticPartialReport>? progress = null)
             {
                 return new DocumentDiagnosticParams(new TextDocumentIdentifier { Uri = uri }, null, previousResultId, progress, null);
             }
@@ -1109,7 +1109,7 @@ class A {";
 
             if (useVSDiagnostics)
             {
-                BufferedProgress<VSInternalWorkspaceDiagnosticReport>? progress = useProgress ? BufferedProgress.Create<VSInternalWorkspaceDiagnosticReport>(null) : null;
+                BufferedProgress<VSInternalWorkspaceDiagnosticReport[]>? progress = useProgress ? BufferedProgress.Create<VSInternalWorkspaceDiagnosticReport[]>(null) : null;
                 var diagnostics = await testLspServer.ExecuteRequestAsync<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]>(
                 VSInternalMethods.WorkspacePullDiagnosticName,
                 CreateWorkspaceDiagnosticParams(previousResults, progress),
@@ -1120,7 +1120,7 @@ class A {";
                 if (useProgress)
                 {
                     Assert.Null(diagnostics);
-                    diagnostics = progress!.Value.GetValues();
+                    diagnostics = progress!.Value.GetFlattenedValues();
                 }
 
                 AssertEx.NotNull(diagnostics);
@@ -1151,7 +1151,7 @@ class A {";
 
             static WorkspaceDiagnosticParams CreateProposedWorkspaceDiagnosticParams(
                 ImmutableArray<(string resultId, Uri uri)>? previousResults = null,
-                IProgress<WorkspaceDiagnosticReport[]>? progress = null)
+                IProgress<WorkspaceDiagnosticReport>? progress = null)
             {
                 var previousResultsLsp = previousResults?.Select(r => new PreviousResultId(r.uri, r.resultId)).ToArray() ?? Array.Empty<PreviousResultId>();
                 return new WorkspaceDiagnosticParams(identifier: null, previousResultsLsp, workDoneToken: null, partialResultToken: progress);

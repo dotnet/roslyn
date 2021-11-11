@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var document = context.Document;
             Contract.ThrowIfNull(document);
 
-            using var progress = BufferedProgress.Create<VSInternalReferenceItem>(referenceParams.PartialResultToken);
+            using var progress = BufferedProgress.Create<VSInternalReferenceItem[]>(referenceParams.PartialResultToken);
 
             var findUsagesService = document.GetRequiredLanguageService<IFindUsagesLSPService>();
             var position = await document.GetPositionFromLinePositionAsync(
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             await findUsagesService.FindReferencesAsync(document, position, findUsagesContext, cancellationToken).ConfigureAwait(false);
             await findUsagesContext.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
 
-            return progress.GetValues();
+            return progress.GetFlattenedValues();
         }
     }
 }

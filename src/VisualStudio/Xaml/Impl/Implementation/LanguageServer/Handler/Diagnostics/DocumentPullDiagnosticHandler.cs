@@ -30,8 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams request)
             => request.TextDocument;
 
-        protected override VSInternalDiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
-            => new VSInternalDiagnosticReport { Diagnostics = diagnostics, ResultId = resultId };
+        protected override VSInternalDiagnosticReport[] CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
+            => new VSInternalDiagnosticReport[] { new VSInternalDiagnosticReport { Diagnostics = diagnostics, ResultId = resultId } };
 
         protected override ImmutableArray<Document> GetDocuments(RequestContext context)
         {

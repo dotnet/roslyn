@@ -87,7 +87,7 @@ class B
 
             // BufferedProgress wraps individual elements in an array, so when they are nested them like this,
             // with the test creating one, and the handler another, we have to unwrap.
-            results = progress.GetValues().Cast<LSP.VSInternalReferenceItem>().ToArray();
+            results = progress.GetValues().Cast<LSP.VSInternalReferenceItem[]>().SelectMany(val => val).ToArray();
 
             Assert.NotNull(results);
             Assert.NotEmpty(results);

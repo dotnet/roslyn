@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport, VSInternalWorkspaceDiagnosticReport[]>
+    internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[], VSInternalWorkspaceDiagnosticReport[]>
     {
         public override string Method => VSInternalMethods.WorkspacePullDiagnosticName;
 
@@ -28,15 +28,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalWorkspaceDiagnosticsParams request)
             => null;
 
-        protected override VSInternalWorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
-            => new VSInternalWorkspaceDiagnosticReport
+        protected override VSInternalWorkspaceDiagnosticReport[] CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
+            => new VSInternalWorkspaceDiagnosticReport[]
             {
-                TextDocument = identifier,
-                Diagnostics = diagnostics,
-                ResultId = resultId,
-                // Mark these diagnostics as having come from us.  They will be superseded by any diagnostics for the
-                // same file produced by the DocumentPullDiagnosticHandler.
-                Identifier = WorkspaceDiagnosticIdentifier,
+                new VSInternalWorkspaceDiagnosticReport
+                {
+                    TextDocument = identifier,
+                    Diagnostics = diagnostics,
+                    ResultId = resultId,
+                    // Mark these diagnostics as having come from us.  They will be superseded by any diagnostics for the
+                    // same file produced by the DocumentPullDiagnosticHandler.
+                    Identifier = WorkspaceDiagnosticIdentifier,
+                }
             };
 
         protected override ImmutableArray<PreviousResult>? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
@@ -63,9 +66,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return DiagnosticService.GetPullDiagnosticsAsync(document, includeSuppressedDiagnostics: false, diagnosticMode, cancellationToken).AsTask();
         }
 
-        protected override VSInternalWorkspaceDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalWorkspaceDiagnosticReport> progress)
+        protected override VSInternalWorkspaceDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalWorkspaceDiagnosticReport[]> progress)
         {
-            return progress.GetValues();
+            return progress.GetFlattenedValues();
         }
 
         internal static ImmutableArray<Document> GetWorkspacePullDocuments(RequestContext context)

@@ -19,15 +19,15 @@ using WorkspaceDocumentDiagnosticReport = SumType<WorkspaceFullDocumentDiagnosti
 // See https://github.com/microsoft/vscode-languageserver-node/blob/main/protocol/src/common/proposed.diagnostics.md#textDocument_diagnostic
 using DocumentDiagnosticPartialReport = SumType<SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>, DocumentDiagnosticPartialResult>;
 
-internal class DocumentDiagnosticParams : IPartialResultParams<DocumentDiagnosticPartialReport[]>
+internal class DocumentDiagnosticParams : IPartialResultParams<DocumentDiagnosticPartialReport>
 {
     [JsonConstructor]
     public DocumentDiagnosticParams(
         TextDocumentIdentifier textDocument,
         string? identifier,
         string? previousResultId,
-        IProgress<DocumentDiagnosticPartialReport[]>? partialResultToken,
-        IProgress<DocumentDiagnosticPartialReport[]>? workDoneToken)
+        IProgress<DocumentDiagnosticPartialReport>? partialResultToken,
+        IProgress<DocumentDiagnosticPartialReport>? workDoneToken)
     {
         TextDocument = textDocument ?? throw new ArgumentNullException(nameof(textDocument));
         Identifier = identifier;
@@ -46,10 +46,10 @@ internal class DocumentDiagnosticParams : IPartialResultParams<DocumentDiagnosti
     public string? PreviousResultId { get; set; }
 
     [JsonProperty(PropertyName = Methods.PartialResultTokenName, NullValueHandling = NullValueHandling.Ignore)]
-    public IProgress<DocumentDiagnosticPartialReport[]>? PartialResultToken { get; set; }
+    public IProgress<DocumentDiagnosticPartialReport>? PartialResultToken { get; set; }
 
     [JsonProperty(PropertyName = Methods.WorkDoneTokenName, NullValueHandling = NullValueHandling.Ignore)]
-    public IProgress<DocumentDiagnosticPartialReport[]>? WorkDoneToken { get; set; }
+    public IProgress<DocumentDiagnosticPartialReport>? WorkDoneToken { get; set; }
 }
 
 [DataContract]
@@ -109,14 +109,14 @@ internal class DocumentDiagnosticPartialResult
     public Dictionary<Uri, DocumentDiagnosticReport> RelatedDocuments { get; }
 }
 
-internal class WorkspaceDiagnosticParams : IPartialResultParams<WorkspaceDiagnosticReport[]>
+internal class WorkspaceDiagnosticParams : IPartialResultParams<WorkspaceDiagnosticReport>
 {
     [JsonConstructor]
     public WorkspaceDiagnosticParams(
         string? identifier,
         PreviousResultId[] previousResultIds,
-        IProgress<WorkspaceDiagnosticReport[]>? workDoneToken,
-        IProgress<WorkspaceDiagnosticReport[]>? partialResultToken)
+        IProgress<WorkspaceDiagnosticReport>? workDoneToken,
+        IProgress<WorkspaceDiagnosticReport>? partialResultToken)
     {
         Identifier = identifier;
         PreviousResultIds = previousResultIds;
@@ -131,10 +131,10 @@ internal class WorkspaceDiagnosticParams : IPartialResultParams<WorkspaceDiagnos
     public PreviousResultId[] PreviousResultIds { get; }
 
     [JsonProperty(PropertyName = Methods.WorkDoneTokenName, NullValueHandling = NullValueHandling.Ignore)]
-    public IProgress<WorkspaceDiagnosticReport[]>? WorkDoneToken { get; set; }
+    public IProgress<WorkspaceDiagnosticReport>? WorkDoneToken { get; set; }
 
     [JsonProperty(PropertyName = Methods.PartialResultTokenName, NullValueHandling = NullValueHandling.Ignore)]
-    public IProgress<WorkspaceDiagnosticReport[]>? PartialResultToken { get; set; }
+    public IProgress<WorkspaceDiagnosticReport>? PartialResultToken { get; set; }
 }
 
 internal class PreviousResultId

@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    internal class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport, VSInternalDiagnosticReport[]>
+    internal class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[], VSInternalDiagnosticReport[]>
     {
         private readonly IDiagnosticAnalyzerService _analyzerService;
 
@@ -30,17 +30,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.TextDocument;
 
-        protected override VSInternalDiagnosticReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
-            => new VSInternalDiagnosticReport
+        protected override VSInternalDiagnosticReport[] CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
+            => new VSInternalDiagnosticReport[]
             {
-                Diagnostics = diagnostics,
-                ResultId = resultId,
-                Identifier = DocumentDiagnosticIdentifier,
-                // Mark these diagnostics as superseding any diagnostics for the same document from the
-                // WorkspacePullDiagnosticHandler. We are always getting completely accurate and up to date diagnostic
-                // values for a particular file, so our results should always be preferred over the workspace-pull
-                // values which are cached and may be out of date.
-                Supersedes = WorkspaceDiagnosticIdentifier,
+                new VSInternalDiagnosticReport
+                {
+                    Diagnostics = diagnostics,
+                    ResultId = resultId,
+                    Identifier = DocumentDiagnosticIdentifier,
+                    // Mark these diagnostics as superseding any diagnostics for the same document from the
+                    // WorkspacePullDiagnosticHandler. We are always getting completely accurate and up to date diagnostic
+                    // values for a particular file, so our results should always be preferred over the workspace-pull
+                    // values which are cached and may be out of date.
+                    Supersedes = WorkspaceDiagnosticIdentifier,
+                }
             };
 
         protected override ImmutableArray<PreviousResult>? GetPreviousResults(VSInternalDocumentDiagnosticsParams diagnosticsParams)
@@ -72,9 +75,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return _analyzerService.GetDiagnosticsForSpanAsync(document, range: null, cancellationToken: cancellationToken);
         }
 
-        protected override VSInternalDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalDiagnosticReport> progress)
+        protected override VSInternalDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalDiagnosticReport[]> progress)
         {
-            return progress.GetValues();
+            return progress.GetFlattenedValues();
         }
 
         internal static ImmutableArray<Document> GetRequestedDocument(RequestContext context)

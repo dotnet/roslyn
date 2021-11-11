@@ -75,17 +75,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _threadingContext.DisposalToken);
 
             await searcher.SearchAsync(searchCurrentDocument: false, cancellationToken).ConfigureAwait(false);
-            return progress.GetValues();
+            return progress.GetFlattenedValues();
         }
 
         private class LSPNavigateToCallback : INavigateToSearchCallback
         {
             private readonly RequestContext _context;
-            private readonly BufferedProgress<SymbolInformation> _progress;
+            private readonly BufferedProgress<SymbolInformation[]> _progress;
 
             public LSPNavigateToCallback(
                 RequestContext context,
-                BufferedProgress<SymbolInformation> progress)
+                BufferedProgress<SymbolInformation[]> progress)
             {
                 _context = context;
                 _progress = progress;
@@ -99,13 +99,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     return;
 
                 Contract.ThrowIfNull(location);
-                _progress.Report(new VSSymbolInformation
+                _progress.Report(new VSSymbolInformation[]
                 {
-                    Name = result.Name,
-                    ContainerName = result.AdditionalInformation,
-                    Kind = ProtocolConversions.NavigateToKindToSymbolKind(result.Kind),
-                    Location = location,
-                    Icon = VSLspExtensionConversions.GetImageIdFromGlyph(result.NavigableItem.Glyph)
+                    new VSSymbolInformation
+                    {
+                        Name = result.Name,
+                        ContainerName = result.AdditionalInformation,
+                        Kind = ProtocolConversions.NavigateToKindToSymbolKind(result.Kind),
+                        Location = location,
+                        Icon = VSLspExtensionConversions.GetImageIdFromGlyph(result.NavigableItem.Glyph)
+                    }
                 });
             }
 

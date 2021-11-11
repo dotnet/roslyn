@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
         /// Creates the <see cref="VSInternalDiagnosticReport"/> instance we'll report back to clients to let them know our
         /// progress. 
         /// </summary>
-        protected abstract TReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId);
+        protected abstract TReport[] CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId);
 
         protected AbstractPullDiagnosticHandler(IXamlPullDiagnosticService xamlDiagnosticService)
         {
@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                             diagnosticReport.ResultId));
             }
 
-            return progress.GetValues();
+            return progress.GetFlattenedValues();
         }
 
         /// <summary>
