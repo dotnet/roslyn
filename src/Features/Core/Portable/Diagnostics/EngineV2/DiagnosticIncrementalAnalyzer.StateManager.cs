@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -21,14 +22,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// </summary>
         private partial class StateManager
         {
-            private readonly IPersistentStorageService _persistentStorageService;
+            private readonly Workspace _workspace;
             private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
             /// <summary>
             /// Analyzers supplied by the host (IDE). These are built-in to the IDE, the compiler, or from an installed IDE extension (VSIX). 
             /// Maps language name to the analyzers and their state.
             /// </summary>
-            private ImmutableDictionary<string, HostAnalyzerStateSets> _hostAnalyzerStateMap;
+            private ImmutableDictionary<HostAnalyzerStateSetKey, HostAnalyzerStateSets> _hostAnalyzerStateMap;
 
             /// <summary>
             /// Analyzers referenced by the project via a PackageReference.
@@ -40,12 +41,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs>? ProjectAnalyzerReferenceChanged;
 
-            public StateManager(IPersistentStorageService persistentStorageService, DiagnosticAnalyzerInfoCache analyzerInfoCache)
+            public StateManager(Workspace workspace, DiagnosticAnalyzerInfoCache analyzerInfoCache)
             {
-                _persistentStorageService = persistentStorageService;
+                _workspace = workspace;
                 _analyzerInfoCache = analyzerInfoCache;
 
-                _hostAnalyzerStateMap = ImmutableDictionary<string, HostAnalyzerStateSets>.Empty;
+                _hostAnalyzerStateMap = ImmutableDictionary<HostAnalyzerStateSetKey, HostAnalyzerStateSets>.Empty;
                 _projectAnalyzerStateMap = new ConcurrentDictionary<ProjectId, ProjectAnalyzerStateSets>(concurrencyLevel: 2, capacity: 10);
             }
 
@@ -310,6 +311,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var hostStates = GetAllHostStateSets().Where(state => !projectAnalyzers.Contains(state.Analyzer));
 
                 VerifyUniqueStateNames(hostStates.Concat(stateSets));
+            }
+
+            private readonly struct HostAnalyzerStateSetKey : IEquatable<HostAnalyzerStateSetKey>
+            {
+                public HostAnalyzerStateSetKey(string language, ImmutableDictionary<object, AnalyzerReference> analyzerReferences)
+                {
+                    Language = language;
+                    AnalyzerReferences = analyzerReferences;
+                }
+
+                public string Language { get; }
+                public ImmutableDictionary<object, AnalyzerReference> AnalyzerReferences { get; }
+
+                public bool Equals(HostAnalyzerStateSetKey other)
+                    => Language == other.Language && AnalyzerReferences == other.AnalyzerReferences;
+
+                public override bool Equals(object? obj)
+                    => obj is HostAnalyzerStateSetKey key && Equals(key);
+
+                public override int GetHashCode()
+                    => Hash.Combine(Language.GetHashCode(), AnalyzerReferences.GetHashCode());
             }
         }
     }
