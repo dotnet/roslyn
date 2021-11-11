@@ -6424,8 +6424,8 @@ Test3(() => () => 3);
 Test4(() => () => 4);
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (6,6): warning CS8321: The local function 'Test3' is declared but never used
                 // void Test3<T>(Func<Func<T>> exp) {}
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Test3").WithArguments("Test3").WithLocation(6, 6),
@@ -6437,14 +6437,14 @@ Test4(() => () => 4);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test3").WithArguments("Test3<T>(System.Func<System.Func<T>>)").WithLocation(11, 1),
                 // (12,1): error CS0411: The type arguments for method 'Test4<T>(Func<Expression<Func<T>>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 // Test4(() => () => 4);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test4").WithArguments("Test4<T>(System.Func<System.Linq.Expressions.Expression<System.Func<T>>>)").WithLocation(12, 1));
-
-            CompileAndVerify(source, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(source);
-
-            // PROTOTYPE: Test with Func<D>.
-            // PROTOTYPE: Test with D<T> instead of Func<T>.
-            // PROTOTYPE: Test with T and () => () => 1, and Func<T> and () => () => () => 2.
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test4").WithArguments("Test4<T>(System.Func<System.Linq.Expressions.Expression<System.Func<T>>>)").WithLocation(12, 1)
+            };
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [WorkItem(57517, "https://github.com/dotnet/roslyn/issues/57517")]
@@ -6524,8 +6524,8 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (10,9): error CS0411: The type arguments for method 'Program.M1<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M1(() => F);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(System.Func<T>)").WithLocation(10, 9),
@@ -6537,10 +6537,14 @@ class Program
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(System.Func<T>)").WithLocation(12, 9),
                 // (13,9): error CS0411: The type arguments for method 'Program.M2<T>(Expression<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M2(() => () => 2);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("Program.M2<T>(System.Linq.Expressions.Expression<System.Func<T>>)").WithLocation(13, 9));
-
-            CompileAndVerify(source, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(source);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("Program.M2<T>(System.Linq.Expressions.Expression<System.Func<T>>)").WithLocation(13, 9)
+            };
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [WorkItem(57517, "https://github.com/dotnet/roslyn/issues/57517")]
@@ -6567,8 +6571,8 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (11,9): error CS0411: The type arguments for method 'Program.M1<T>(Func<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M1(() => () => F);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(System.Func<System.Func<T>>)").WithLocation(11, 9),
@@ -6586,10 +6590,14 @@ class Program
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("Program.M2<T>(System.Func<System.Linq.Expressions.Expression<System.Func<T>>>)").WithLocation(15, 9),
                 // (16,9): error CS0411: The type arguments for method 'Program.M3<T>(Expression<Func<Func<T>>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M3(() => () => () => 3);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M3").WithArguments("Program.M3<T>(System.Linq.Expressions.Expression<System.Func<System.Func<T>>>)").WithLocation(16, 9));
-
-            CompileAndVerify(source, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(source);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M3").WithArguments("Program.M3<T>(System.Linq.Expressions.Expression<System.Func<System.Func<T>>>)").WithLocation(16, 9)
+            };
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [WorkItem(57517, "https://github.com/dotnet/roslyn/issues/57517")]
