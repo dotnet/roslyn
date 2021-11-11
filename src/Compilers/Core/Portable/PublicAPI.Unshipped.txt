@@ -5,7 +5,6 @@ const Microsoft.CodeAnalysis.WellKnownGeneratorInputs.AnalyzerConfigOptions = "A
 const Microsoft.CodeAnalysis.WellKnownGeneratorInputs.Compilation = "Compilation" -> string!
 const Microsoft.CodeAnalysis.WellKnownGeneratorInputs.MetadataReferences = "MetadataReferences" -> string!
 const Microsoft.CodeAnalysis.WellKnownGeneratorInputs.ParseOptions = "ParseOptions" -> string!
-const Microsoft.CodeAnalysis.WellKnownGeneratorInputs.SyntaxTrees = "SyntaxTrees" -> string!
 const Microsoft.CodeAnalysis.WellKnownGeneratorOutputs.ImplementationSourceOutput = "ImplementationSourceOutput" -> string!
 const Microsoft.CodeAnalysis.WellKnownGeneratorOutputs.SourceOutput = "SourceOutput" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.PrintMembersMethodName = "PrintMembers" -> string!
