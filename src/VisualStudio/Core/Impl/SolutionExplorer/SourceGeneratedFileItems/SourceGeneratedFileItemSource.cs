@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.Internal.VisualStudio.PlatformUI;
@@ -29,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         /// The returned collection of items. Can only be mutated on the UI thread, as other parts of WPF are subscribed to the change
         /// events and expect that.
         /// </summary>
-        private readonly BulkObservableCollectionWithInit<BaseItem> _items = new();
+        private readonly BulkObservableCollectionWithInit<BaseItem> _items;
 
         /// <summary>
         /// Gate to guard mutation of <see cref="_resettableDelay"/>.
@@ -41,6 +42,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public SourceGeneratedFileItemSource(SourceGeneratorItem parentGeneratorItem, Workspace workspace, IAsynchronousOperationListener asyncListener, IThreadingContext threadingContext)
         {
+            // Construction of BulkObservableCollection requires the main thread
+            threadingContext.ThrowIfNotOnUIThread();
+            _items = new BulkObservableCollectionWithInit<BaseItem>();
+
             _parentGeneratorItem = parentGeneratorItem;
             _workspace = workspace;
             _asyncListener = asyncListener;
