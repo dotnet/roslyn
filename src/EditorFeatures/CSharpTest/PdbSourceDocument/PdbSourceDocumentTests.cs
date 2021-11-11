@@ -610,7 +610,7 @@ public class C
         [InlineData(Location.OnDisk, "us-ascii")]
         [InlineData(Location.OnDisk, "iso-8859-1")]
         [InlineData(Location.OnDisk, "utf-8")]
-        public async Task UTF32EmbeddedSource(Location pdbLocation, string encodingWebName)
+        public async Task EncodedEmbeddedSource(Location pdbLocation, string encodingWebName)
         {
             var source = @"
 public class C
@@ -619,8 +619,6 @@ public class C
 }";
 
             var encoding = Encoding.GetEncoding(encodingWebName);
-            // make sure the encoding webname actually round-trips, or this test will fail for other reasons
-            Assert.Equal(encoding, Encoding.GetEncoding(encoding.WebName));
 
             await RunTestAsync(async path =>
             {
@@ -631,9 +629,39 @@ public class C
 
                 var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, expectNullResult: false);
 
-                Assert.NotNull(actualText);
-                Assert.Equal(encoding, actualText!.Encoding);
-                Assert.Equal(source, actualText.ToString());
+                AssertEx.NotNull(actualText);
+                AssertEx.NotNull(actualText.Encoding);
+                AssertEx.Equal(encoding.WebName, actualText.Encoding.WebName);
+                AssertEx.EqualOrDiff(source, actualText.ToString());
+            });
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task EncodedEmbeddedSource_SJIS(Location pdbLocation)
+        {
+            var source = @"
+public class C
+{
+    // ワ
+    public event System.EventHandler E { add { } remove { } }
+}";
+
+            var encoding = Encoding.GetEncoding("SJIS");
+
+            await RunTestAsync(async path =>
+            {
+                using var ms = new MemoryStream(encoding.GetBytes(source));
+                var encodedSourceText = EncodedStringText.Create(ms, encoding, canBeEmbedded: true);
+
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.Embedded, encodedSourceText, c => c.GetMember("C.E"));
+
+                var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, expectNullResult: false);
+
+                AssertEx.NotNull(actualText);
+                AssertEx.NotNull(actualText.Encoding);
+                AssertEx.Equal(encoding.WebName, actualText.Encoding.WebName);
+                AssertEx.EqualOrDiff(source, actualText.ToString());
             });
         }
 

@@ -249,7 +249,11 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             if (_fileToDocumentMap.TryGetValue(filePath, out var documentId))
             {
                 var document = workspace.CurrentSolution.GetDocument(documentId);
-                workspace.OnDocumentClosed(documentId, new FileTextLoader(filePath, document?.GetTextSynchronously(CancellationToken.None).Encoding ?? Encoding.UTF8));
+                // This method is ultimately called from an RDT event on the UI thread, so we get the text
+                // synchronously. We need the text to preserve the encoding.
+                var encoding = document?.GetTextSynchronously(CancellationToken.None).Encoding;
+
+                workspace.OnDocumentClosed(documentId, new FileTextLoader(filePath, encoding ?? Encoding.UTF8));
 
                 return true;
             }
