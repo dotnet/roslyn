@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -10,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
@@ -355,6 +357,67 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             // The base analyzer may impose further limitations
             return base.ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken);
+        }
+
+        /// <summary>
+        /// Gets the type symbol satisfying the collection initializer.
+        /// </summary>
+        /// <param name="context">The analysis context.</param>
+        /// <param name="collectionTypeSymbol">The collection's type symbol.</param>
+        /// <param name="argumentTypeSymbols">A list containing the initializer arguments as type symbols.</param>
+        /// <param name="targetIndex">The index of the target object in the initializer arguments.</param>
+        /// <returns>The type symbol if matched, otherwise null.</returns>
+        internal static ITypeSymbol? GetTypeSymbolThatSatisfiesCollectionInitializer(
+            SyntaxNodeAnalysisContext context,
+            ITypeSymbol collectionTypeSymbol,
+            IImmutableList<ITypeSymbol> argumentTypeSymbols,
+            int targetIndex)
+        {
+            IParameterSymbol? matchingParameter = null;
+
+            // First make sure the collection type implements IEnumerable
+            var enumableTypeSymbol = context.Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
+            if (!collectionTypeSymbol.Implements(enumableTypeSymbol))
+            {
+                return null;
+            }
+
+            // Find a matching Add method symbol
+            var matchingMethodSymbol = collectionTypeSymbol
+                .GetMembers("Add")
+                .OfType<IMethodSymbol>()
+                .FirstOrDefault(methodSymbol =>
+                {
+                    var parameters = methodSymbol.Parameters;
+
+                    if (parameters.Length != argumentTypeSymbols.Count)
+                    {
+                        return false;
+                    }
+
+                    // Match parameters to the initializer arguments
+                    for (var i = 0; i < argumentTypeSymbols.Count; i++)
+                    {
+                        if (!argumentTypeSymbols[i].InheritsFromOrImplementsOrEqualsIgnoringConstruction(parameters[i].Type))
+                        {
+                            return false;
+                        }
+
+                        if (i == targetIndex)
+                        {
+                            matchingParameter = parameters[i];
+                        }
+                    }
+
+                    return true;
+                });
+
+            if (matchingMethodSymbol == null || matchingParameter == null)
+            {
+                return null;
+            }
+
+            return matchingParameter.Type;
         }
     }
 }

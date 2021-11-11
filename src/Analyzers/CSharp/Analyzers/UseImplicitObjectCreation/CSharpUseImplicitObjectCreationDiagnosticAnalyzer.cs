@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -60,11 +61,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
             //    `List<int> GetValue(...) => ...` The latter doesn't necessarily have the object creation spatially next to
             //    the type.  However, the type is always in a very easy to ascertain location in C#, so it is treated as
             //    apparent.
-            // 3. Array/Collection initializers.  i.e. `new Foo[] { new ... }` or `List<Foo> { new ... }`
+            // 3. Array initializer.  i.e. `new Foo[] { new ... }`
+            // 4. Object creation with collection initializer.  i.e `new List<Foo> { new ... }`
+            // 5. Complex element initializer with collection initializer.  i.e `new Dictionary<X, Y> { { new ..., new ... } }`
 
             var objectCreation = (ObjectCreationExpressionSyntax)context.Node;
 
-            TypeSyntax? typeNode;
+            ITypeSymbol? typeNodeSymbol = null;
+            TypeSyntax? typeNode = null;
 
             if (objectCreation.Parent.IsKind(SyntaxKind.EqualsValueClause) &&
                 objectCreation.Parent.Parent.IsKind(SyntaxKind.VariableDeclarator) &&
@@ -94,14 +98,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
                     _ => null,
                 };
             }
-            else if (objectCreation.Parent.IsKind(SyntaxKind.ArrayInitializerExpression, SyntaxKind.CollectionInitializerExpression))
+            else if (objectCreation.Parent.IsKind(SyntaxKind.ArrayInitializerExpression) &&
+                objectCreation.Parent.Parent is ArrayCreationExpressionSyntax arrayCreation)
             {
-                typeNode = objectCreation.Parent.Parent switch
-                {
-                    ArrayCreationExpressionSyntax arrayCreation => arrayCreation.Type.ElementType,
-                    ObjectCreationExpressionSyntax { Type: QualifiedNameSyntax { Right: GenericNameSyntax { TypeArgumentList: TypeArgumentListSyntax argumentList } } } => argumentList.Arguments.Count == 1 ? argumentList.Arguments[0] : null,
-                    _ => null,
-                };
+                typeNode = arrayCreation.Type.ElementType;
+            }
+            else if (objectCreation.Parent.IsKind(SyntaxKind.CollectionInitializerExpression) &&
+                objectCreation.Parent.Parent is ObjectCreationExpressionSyntax collectionObjectCreation)
+            {
+                var collectionTypeSymbol = semanticModel.GetTypeInfo(collectionObjectCreation, cancellationToken).Type!;
+                var targetTypeSymbol = semanticModel.GetTypeInfo(objectCreation, cancellationToken).Type!;
+                var argumentTypeSymbols = new[] { targetTypeSymbol }.ToImmutableList();
+
+                typeNodeSymbol = CSharpUseImplicitTypeHelper.GetTypeSymbolThatSatisfiesCollectionInitializer(
+                    context,
+                    collectionTypeSymbol,
+                    argumentTypeSymbols,
+                    0);
+            }
+            else if (objectCreation.Parent.IsKind(SyntaxKind.ComplexElementInitializerExpression) &&
+                objectCreation.Parent.Parent.IsKind(SyntaxKind.CollectionInitializerExpression) &&
+                objectCreation.Parent.Parent.Parent is ObjectCreationExpressionSyntax complexCollectionObjectCreation)
+            {
+                var complexInitializerExpression = (InitializerExpressionSyntax)objectCreation.Parent;
+                var expressions = complexInitializerExpression.Expressions;
+                var argumentTypeSymbols = expressions
+                    .Select(e => semanticModel.GetTypeInfo(e, cancellationToken).Type!)
+                    .ToImmutableList()!;
+
+                var targetIndex = expressions.IndexOf(objectCreation);
+
+                var collectionTypeSymbol = semanticModel.GetTypeInfo(complexCollectionObjectCreation, cancellationToken).Type!;
+
+                typeNodeSymbol = CSharpUseImplicitTypeHelper.GetTypeSymbolThatSatisfiesCollectionInitializer(
+                    context,
+                    collectionTypeSymbol,
+                    argumentTypeSymbols,
+                    targetIndex);
             }
             else
             {
@@ -109,12 +142,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
                 return;
             }
 
-            if (typeNode == null)
+            if (typeNode != null)
+            {
+                typeNodeSymbol = semanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
+            }
+
+            if (typeNodeSymbol == null)
                 return;
 
             // Only offer if the type being constructed is the exact same as the type being assigned into.  We don't
             // want to change semantics by trying to instantiate something else.
-            var leftType = semanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
+            var leftType = typeNodeSymbol;
             var rightType = semanticModel.GetTypeInfo(objectCreation, cancellationToken).Type;
 
             if (leftType is null || rightType is null)

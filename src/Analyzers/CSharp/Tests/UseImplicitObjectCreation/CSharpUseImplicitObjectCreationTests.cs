@@ -680,7 +680,6 @@ class C
         var a = new C[]
         {
             new [|C|](),
-            new [|C|](),
         };
     }
 }",
@@ -691,7 +690,6 @@ class C
     {
         var a = new C[]
         {
-            new(),
             new(),
         };
     }
@@ -713,7 +711,6 @@ class C
         var a = new System.Collections.Generic.List<C>
         {
             new [|C|](),
-            new [|C|](),
         };
     }
 }",
@@ -725,7 +722,37 @@ class C
         var a = new System.Collections.Generic.List<C>
         {
             new(),
-            new(),
+        };
+    }
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestWithComplexCollectionInitializerExpression()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    void bar()
+    {
+        var a = new System.Collections.Generic.Dictionary<int, C>
+        {
+            { 1, new [|C|]() },
+        };
+    }
+}",
+                FixedCode = @"
+class C
+{
+    void bar()
+    {
+        var a = new System.Collections.Generic.Dictionary<int, C>
+        {
+            { 1, new() },
         };
     }
 }",
