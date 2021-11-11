@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private readonly IAdornmentLayer _adornmentLayer;
 
-        private static readonly ConditionalWeakTable<InlineRenameSession, InlineRenameAdornmentViewModel> s_createdViewModels =
-            new ConditionalWeakTable<InlineRenameSession, InlineRenameAdornmentViewModel>();
+        private static readonly ConditionalWeakTable<InlineRenameSession, object> s_createdViewModels =
+            new ConditionalWeakTable<InlineRenameSession, object>();
 
         public InlineRenameAdornmentManager(
             InlineRenameService renameService,
@@ -68,26 +68,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _dashboardColorUpdater?.UpdateColors();
 
                 // TODO: Determine if we want a flag to change which UI is shown
-#if false
-                var newAdornment = new Dashboard(
-                    s_createdViewModels.GetValue(_renameService.ActiveSession, session => new DashboardViewModel(session)),
-                    _editorFormatMapService,
-                    _textView);
+                // for now leave the new one disabled until tests are updated.
+#pragma warning disable CS0162 // Unreachable code detected
+                if (true)
+                {
+                    var newAdornment = new Dashboard(
+                        (DashboardViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new DashboardViewModel(session)),
+                        _editorFormatMapService,
+                        _textView);
 
-                _adornmentLayer.AddAdornment(AdornmentPositioningBehavior.ViewportRelative, null, null, newAdornment,
-                    (tag, adornment) => ((Dashboard)adornment).Dispose());
-#else
-                var adornment = new InlineRenameAdornment(
-                    s_createdViewModels.GetValue(_renameService.ActiveSession, session => new InlineRenameAdornmentViewModel(session)),
-                    _textView);
+                    _adornmentLayer.AddAdornment(AdornmentPositioningBehavior.ViewportRelative, null, null, newAdornment,
+                        (tag, adornment) => ((Dashboard)adornment).Dispose());
+                }
+                else
+                {
+                    var adornment = new InlineRenameAdornment(
+                        (InlineRenameAdornmentViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new InlineRenameAdornmentViewModel(session)),
+                        _textView);
 
-                _adornmentLayer.AddAdornment(
-                    AdornmentPositioningBehavior.ViewportRelative,
-                    null, // Set no visual span because we don't want the editor to automatically remove the adornment if the overlapping span changes
-                    tag: null,
-                    adornment,
-                    (tag, adornment) => ((InlineRenameAdornment)adornment).Dispose());
-#endif
+                    _adornmentLayer.AddAdornment(
+                        AdornmentPositioningBehavior.ViewportRelative,
+                        null, // Set no visual span because we don't want the editor to automatically remove the adornment if the overlapping span changes
+                        tag: null,
+                        adornment,
+                        (tag, adornment) => ((InlineRenameAdornment)adornment).Dispose());
+                }
+#pragma warning restore CS0162 // Unreachable code detected
             }
         }
 
