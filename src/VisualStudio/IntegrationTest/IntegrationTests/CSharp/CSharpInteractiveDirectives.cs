@@ -255,7 +255,7 @@ public static void Main(string[] args)
             // VerifyErrorCount(0);
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/57701")]
         public void WorkspaceClearedAfterReset()
         {
             VisualStudio.InteractiveWindow.SubmitText("double M() { return 13.1; }");
