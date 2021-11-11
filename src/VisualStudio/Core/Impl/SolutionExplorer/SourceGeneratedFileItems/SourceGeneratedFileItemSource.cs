@@ -32,11 +32,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private readonly BulkObservableCollectionWithInit<BaseItem> _items = new();
 
         /// <summary>
-        /// Gate to guard mutation of <see cref="_cancellationTokenSource"/> and <see cref="_resettableDelay"/>.
+        /// Gate to guard mutation of <see cref="_resettableDelay"/>.
         /// </summary>
         private readonly object _gate = new object();
 
-        private CancellationTokenSource? _cancellationTokenSource;
+        private readonly CancellationSeries _cancellationSeries = new();
         private ResettableDelay? _resettableDelay;
 
         public SourceGeneratedFileItemSource(SourceGeneratorItem parentGeneratorItem, Workspace workspace, IAsynchronousOperationListener asyncListener, IThreadingContext threadingContext)
@@ -154,11 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             lock (_gate)
             {
-                // We should not have an existing computation active
-                Contract.ThrowIfTrue(_cancellationTokenSource is not null);
-
-                _cancellationTokenSource = new CancellationTokenSource();
-                var cancellationToken = _cancellationTokenSource.Token;
+                var cancellationToken = _cancellationSeries.CreateNext();
                 var asyncToken = _asyncListener.BeginAsyncOperation(nameof(SourceGeneratedFileItemSource) + "." + nameof(BeforeExpand));
 
                 Task.Run(
@@ -201,8 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             lock (_gate)
             {
-                _cancellationTokenSource?.Cancel();
-                _cancellationTokenSource = null;
+                _cancellationSeries.CreateNext();
                 _workspace.WorkspaceChanged -= OnWorkpaceChanged;
                 _resettableDelay = null;
             }
@@ -226,17 +221,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 else
                 {
                     // Time to start the work all over again. We'll ensure any previous work is cancelled
-                    Contract.ThrowIfNull(_cancellationTokenSource, "We created a token when we expanded, how do we not have one when processing an update?");
-
-                    _cancellationTokenSource.Cancel();
-                    _cancellationTokenSource = new CancellationTokenSource();
-
-                    var cancellationToken = _cancellationTokenSource.Token;
+                    var cancellationToken = _cancellationSeries.CreateNext();
                     var asyncToken = _asyncListener.BeginAsyncOperation(nameof(SourceGeneratedFileItemSource) + "." + nameof(OnWorkpaceChanged));
 
                     // We're going to go with a really long delay: once the user expands this we will keep it updated, but it's fairly
                     // unlikely to change in a lot of cases if a generator only produces a stable set of names.
-                    _resettableDelay = new ResettableDelay(delayInMilliseconds: 5000, _asyncListener, _cancellationTokenSource.Token);
+                    _resettableDelay = new ResettableDelay(delayInMilliseconds: 5000, _asyncListener, cancellationToken);
                     _resettableDelay.Task.ContinueWith(_ =>
                     {
                         lock (_gate)
