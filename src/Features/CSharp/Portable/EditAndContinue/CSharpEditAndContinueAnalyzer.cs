@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return variableDeclarator.Initializer?.Value;
             }
 
-            if (node is CompilationUnitSyntax unit && unit.ContainsTopLevelStatements())
+            if (IsCompilationUnitWithGlobalStatements(node))
             {
                 // For top level statements, where there is no syntax node to represent the entire body of the synthesized
                 // main method we just use the compilation unit itself
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model, SyntaxNode memberBody)
         {
-            if (memberBody is CompilationUnitSyntax unit && unit.ContainsTopLevelStatements())
+            if (memberBody is CompilationUnitSyntax unit && unit.ContainsGlobalStatements())
             {
                 return model.AnalyzeDataFlow(((GlobalStatementSyntax)unit.Members[0]).Statement, unit.Members.OfType<GlobalStatementSyntax>().Last().Statement)!.Captured;
             }
@@ -225,6 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// If <paramref name="node"/> is a variable declarator of a field with an initializer,
         /// subset of the tokens of the field declaration depending on which variable declarator it is.
         /// 
+        /// If <paramref name="node"/> is a <see cref="CompilationUnitSyntax"/> the tokens of all its global statements.
         /// Null reference otherwise.
         /// </returns>
         internal override IEnumerable<SyntaxToken>? TryGetActiveTokens(SyntaxNode node)
@@ -268,6 +269,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             if (node is IndexerDeclarationSyntax { ExpressionBody: var indexerExpressionBody and not null })
             {
                 return indexerExpressionBody.Expression.DescendantTokens();
+            }
+
+            if (node is CompilationUnitSyntax unit && unit.ContainsGlobalStatements())
+            {
+                return unit.Members.OfType<GlobalStatementSyntax>().SelectMany(globalStatement => globalStatement.DescendantTokens());
             }
 
             var bodyTokens = SyntaxUtilities.TryGetMethodDeclarationBody(node)?.DescendantTokens();
@@ -783,6 +789,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         #endregion
 
         #region Syntax and Semantic Utils
+
+        protected override bool IsCompilationUnitWithGlobalStatements(SyntaxNode node)
+            => node is CompilationUnitSyntax unit && unit.ContainsGlobalStatements();
+
+        protected override bool IsGlobalStatement(SyntaxNode node)
+            => node.IsKind(SyntaxKind.GlobalStatement);
 
         protected override TextSpan GetGlobalStatementDiagnosticSpan(SyntaxNode node)
         {

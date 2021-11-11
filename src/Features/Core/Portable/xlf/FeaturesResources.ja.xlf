@@ -565,6 +565,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">明示的に実装されたレコードのメソッドには、コンパイラ生成と同等の '{0}' と一致するパラメーター名が必要です</target>
         <note />
       </trans-unit>
+      <trans-unit id="Explicitly_inherit_documentation">
+        <source>Explicitly inherit documentation</source>
+        <target state="new">Explicitly inherit documentation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
         <target state="translated">基底クラスの抽出...</target>

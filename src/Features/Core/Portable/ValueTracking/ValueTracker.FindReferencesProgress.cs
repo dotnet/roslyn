@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
             public ValueTask AddItemsAsync(int count, CancellationToken _) => new();
 
-            public ValueTask ItemCompletedAsync(CancellationToken _) => new();
+            public ValueTask ItemsCompletedAsync(int count, CancellationToken _) => new();
 
             public ValueTask OnCompletedAsync(CancellationToken _) => new();
 

@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -38,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Host
         public abstract SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string filePath, ParseOptions options, ValueSource<TextAndVersion> text, Encoding encoding, SyntaxNode root);
         public abstract SyntaxNode DeserializeNodeFrom(Stream stream, CancellationToken cancellationToken);
         public abstract ParseOptions GetDefaultParseOptionsWithLatestLanguageVersion();
+        public abstract ParseOptions TryParsePdbParseOptions(IReadOnlyDictionary<string, string> metadata);
 
         public virtual bool CanCreateRecoverableTree(SyntaxNode root)
             => _canCreateRecoverableTrees && root.FullSpan.Length >= this.MinimumLengthForRecoverableTree;

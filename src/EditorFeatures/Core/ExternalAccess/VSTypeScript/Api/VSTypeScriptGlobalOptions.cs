@@ -27,5 +27,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             get => _globalOptions.GetOption(CompletionViewOptions.BlockForCompletionItems, InternalLanguageNames.TypeScript);
             set => _globalOptions.SetGlobalOption(new OptionKey(CompletionViewOptions.BlockForCompletionItems, InternalLanguageNames.TypeScript), value);
         }
+
+        internal IGlobalOptionService Service => _globalOptions;
     }
 }

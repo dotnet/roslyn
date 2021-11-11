@@ -43,10 +43,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
 
                 Dim provider = New SemanticClassificationViewTaggerProvider(
-                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
+                    workspace.GetService(Of IThreadingContext),
                     workspace.GetService(Of ClassificationTypeMap),
-                    listenerProvider,
-                    workspace.ExportProvider.GetExportedValue(Of IGlobalOptionService))
+                    workspace.GetService(Of IGlobalOptionService),
+                    listenerProvider)
 
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
                 Dim tagger = provider.CreateTagger(Of IClassificationTag)(

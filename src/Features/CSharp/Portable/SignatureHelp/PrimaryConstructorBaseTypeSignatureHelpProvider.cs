@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         private bool IsTriggerToken(SyntaxToken token)
             => SignatureHelpUtilities.IsTriggerParenOrComma<PrimaryConstructorBaseTypeSyntax>(token, IsTriggerCharacter);
 
-        protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var accessibleConstructors = baseType.InstanceConstructors
                 .WhereAsArray(c => c.IsAccessibleWithin(within))
-                .WhereAsArray(c => c.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
+                .WhereAsArray(c => c.IsEditorBrowsable(options.HideAdvancedMembers, semanticModel.Compilation))
                 .Sort(semanticModel, baseTypeSyntax.SpanStart);
 
             if (!accessibleConstructors.Any())

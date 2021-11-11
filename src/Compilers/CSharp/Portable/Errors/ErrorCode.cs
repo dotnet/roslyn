@@ -2000,6 +2000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_CompileTimeCheckedOverflow = 8973,
         WRN_MethGrpToNonDel = 8974,
         ERR_LambdaExplicitReturnTypeVar = 8975,
+        ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers = 8976,
 
         // PROTOTYPE(list-patterns)
         ERR_UnsupportedTypeForListPattern = 9200,
@@ -2007,6 +2008,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MisplacedSlicePattern,
 
         #endregion
+
+        ERR_CannotBeMadeNullable = 8977,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

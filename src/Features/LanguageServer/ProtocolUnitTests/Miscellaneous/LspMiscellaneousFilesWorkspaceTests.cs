@@ -163,6 +163,8 @@ public class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtoco
                 loader: new TestTextLoader(source),
                 filePath: looseFileUri.AbsolutePath);
         testLspServer.TestWorkspace.OnDocumentAdded(documentInfo);
+        await WaitForWorkspaceOperationsAsync(testLspServer.TestWorkspace);
+
         Assert.Contains(looseFileUri.AbsolutePath, testLspServer.GetCurrentSolution().Projects.Single().Documents.Select(d => d.FilePath));
 
         // Make a change and verify that the file is no longer present in the misc workspace.
