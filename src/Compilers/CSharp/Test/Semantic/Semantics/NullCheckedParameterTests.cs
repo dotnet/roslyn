@@ -261,6 +261,26 @@ class C
         }
 
         [Fact]
+        public void NullCheckedPointer()
+        {
+            var source = @"
+class C
+{
+    unsafe void M1(void* ptr!!) { }
+    unsafe void M2(int* ptr!!) { }
+}";
+            // PROTOTYPE(param-nullchecking): is this the behavior we want for pointers?
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (4,26): error CS8992: Parameter 'void*' is a non-nullable value type and cannot be null-checked.
+                //     unsafe void M1(void* ptr!!) { }
+                Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "ptr").WithArguments("void*").WithLocation(4, 26),
+                // (5,25): error CS8992: Parameter 'int*' is a non-nullable value type and cannot be null-checked.
+                //     unsafe void M2(int* ptr!!) { }
+                Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "ptr").WithArguments("int*").WithLocation(5, 25));
+        }
+
+        [Fact]
         public void FailingNullCheckedArgList()
         {
             var source = @"
