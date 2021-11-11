@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
+using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionUtilities;
@@ -679,6 +680,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(generatorRan);
 
             Assert.Equal("// Something else", (await document.GetRequiredSyntaxRootAsync(CancellationToken.None)).ToFullString());
+        }
+
+        [Fact]
+        public async Task ChangesToAdditionalFilesCorrectlyAppliedEvenIfCompilationFallsAway()
+        {
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
+            var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
+            var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
+                .AddAnalyzerReference(analyzerReference)
+                .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
+
+            var compilationReference = ObjectReference.CreateFromFactory(() => project.GetRequiredCompilationAsync(CancellationToken.None).Result);
+            compilationReference.AssertReleased();
+
+            var projectWithoutAdditionalFiles = project.RemoveAdditionalDocument(project.AdditionalDocumentIds.Single());
+            Assert.Empty((await projectWithoutAdditionalFiles.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
         }
     }
 }
