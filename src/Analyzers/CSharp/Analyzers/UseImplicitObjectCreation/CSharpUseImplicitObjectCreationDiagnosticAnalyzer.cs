@@ -62,12 +62,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
             //    the type.  However, the type is always in a very easy to ascertain location in C#, so it is treated as
             //    apparent.
             // 3. Array initializer.  i.e. `new Foo[] { new ... }`
-            // 4. Object creation with collection initializer.  i.e `new List<Foo> { new ... }`
-            // 5. Complex element initializer with collection initializer.  i.e `new Dictionary<X, Y> { { new ..., new ... } }`
+            // 4. Simple collection initializer.  i.e `new List<Foo> { new ... }`
+            // 5. Complex collection initializer.  i.e `new Dictionary<X, Y> { { new ..., new ... } }`
 
             var objectCreation = (ObjectCreationExpressionSyntax)context.Node;
 
-            ITypeSymbol? typeNodeSymbol = null;
+            ITypeSymbol? typeSymbol = null;
             TypeSyntax? typeNode = null;
 
             if (objectCreation.Parent.IsKind(SyntaxKind.EqualsValueClause) &&
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
                 var targetTypeSymbol = semanticModel.GetTypeInfo(objectCreation, cancellationToken).ConvertedType!;
                 var argumentTypeSymbols = new[] { targetTypeSymbol }.ToImmutableList();
 
-                typeNodeSymbol = CSharpUseImplicitTypeHelper.GetTypeSymbolThatSatisfiesCollectionInitializer(
+                typeSymbol = CSharpUseImplicitTypeHelper.GetTypeSymbolThatSatisfiesCollectionInitializer(
                     context,
                     collectionTypeSymbol,
                     argumentTypeSymbols,
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
 
                 var collectionTypeSymbol = semanticModel.GetTypeInfo(complexCollectionObjectCreation, cancellationToken).Type!;
 
-                typeNodeSymbol = CSharpUseImplicitTypeHelper.GetTypeSymbolThatSatisfiesCollectionInitializer(
+                typeSymbol = CSharpUseImplicitTypeHelper.GetTypeSymbolThatSatisfiesCollectionInitializer(
                     context,
                     collectionTypeSymbol,
                     argumentTypeSymbols,
@@ -144,15 +144,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
 
             if (typeNode != null)
             {
-                typeNodeSymbol = semanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
+                typeSymbol = semanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
             }
 
-            if (typeNodeSymbol == null)
+            if (typeSymbol == null)
                 return;
 
             // Only offer if the type being constructed is the exact same as the type being assigned into.  We don't
             // want to change semantics by trying to instantiate something else.
-            var leftType = typeNodeSymbol;
+            var leftType = typeSymbol;
             var rightType = semanticModel.GetTypeInfo(objectCreation, cancellationToken).Type;
 
             if (leftType is null || rightType is null)
