@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         {
             // Set both handlers to non-fatal Watson. Never fail-fast the ServiceHub process.
             // Any exception that is not recovered from shall be propagated and communicated to the client.
-            var nonFatalHandler = new FatalError.NonFatalHandlerDelegate(ReportNonFatal);
+            var nonFatalHandler = WatsonReporter.ReportNonFatal;
             var fatalHandler = new Action<Exception>(static (exception) => ReportNonFatal(exception, forceDump: false));
 
             FatalError.Handler = fatalHandler;
