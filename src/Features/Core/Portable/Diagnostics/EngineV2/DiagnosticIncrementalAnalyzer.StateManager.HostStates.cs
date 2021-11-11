@@ -15,7 +15,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private partial class StateManager
         {
             public IEnumerable<StateSet> GetAllHostStateSets()
-                => _hostAnalyzerStateMap.Values.SelectMany(v => v.OrderedStateSets);
+            {
+                var analyzerReferencesMap = _workspace.CurrentSolution.State.Analyzers.GetHostAnalyzerReferencesMap();
+                foreach (var key in _hostAnalyzerStateMap.Keys)
+                {
+                    if (key.AnalyzerReferences == analyzerReferencesMap)
+                    {
+                        foreach (var stateSet in _hostAnalyzerStateMap[key].OrderedStateSets)
+                        {
+                            yield return stateSet;
+                        }
+                    }
+                }
+            }
 
             private HostAnalyzerStateSets GetOrCreateHostStateSets(Project project, ProjectAnalyzerStateSets projectStateSets)
             {
