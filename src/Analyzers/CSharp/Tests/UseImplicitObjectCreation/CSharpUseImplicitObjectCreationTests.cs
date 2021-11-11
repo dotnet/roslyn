@@ -759,5 +759,82 @@ class C
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestWithCustomComplexCollectionInitializerExpression()
+        {
+            var customCollectionClassCode = @"
+using System.Collections;
+using System.Collections.Generic;
+
+class Point
+{
+    public readonly double X;
+    public readonly double Y;
+
+    public Point(double x, double y)
+    {
+        X = x;
+        Y = y;
+    }
+}
+
+class Points : IEnumerable<Point>
+{
+    private readonly List<Point> _points;
+
+    public Points()
+    {
+        _points = new List<Point>();
+    }
+
+    //public void Add(double x, double y)
+    //{
+    //	_points.Add(new Point(x, y));
+    //}
+
+    public void Add(double x, C c)
+    {
+        _points.Add(new Point(x, 0));
+    }
+
+    public IEnumerator<Point> GetEnumerator()
+    {
+        return _points.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = customCollectionClassCode + @"
+class C
+{
+    void bar()
+    {
+        var a = new Points
+        {
+            { 1, new [|C|]() },
+        };
+    }
+}",
+                FixedCode = customCollectionClassCode + @"
+class C
+{
+    void bar()
+    {
+        var a = new Points
+        {
+            { 1, new() },
+        };
+    }
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
     }
 }
