@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -24,7 +23,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
 
         public sealed override (GlobalFlowStateAnalysisData output, bool isFeasibleBranch) FlowBranch(BasicBlock fromBlock, BranchWithInfo branch, GlobalFlowStateAnalysisData input)
         {
-            EnsureInitialized(input);
             var result = base.FlowBranch(fromBlock, branch, input);
 
             if (HasPredicatedGlobalState &&
@@ -61,10 +59,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         protected sealed override void SetAbstractValue(AnalysisEntity analysisEntity, GlobalFlowStateAnalysisValueSet value)
         {
             Debug.Assert(HasPredicatedGlobalState || value.Parents.IsEmpty);
-            SetAbstractValue(CurrentAnalysisData, analysisEntity, value);
+            base.SetAbstractValue(analysisEntity, value);
         }
 
-        private static void SetAbstractValue(GlobalFlowStateAnalysisData analysisData, AnalysisEntity analysisEntity, GlobalFlowStateAnalysisValueSet value)
+        protected override void SetAbstractValue(GlobalFlowStateAnalysisData analysisData, AnalysisEntity analysisEntity, GlobalFlowStateAnalysisValueSet value)
         {
             // PERF: Avoid creating an entry if the value is the default unknown value.
             if (value.Kind != GlobalFlowStateAnalysisValueSetKind.Known &&
@@ -84,20 +82,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             GlobalFlowStateAnalysisDomainInstance.Intersect(value1, value2, GlobalFlowStateAnalysisValueSetDomain.Intersect) :
             GlobalFlowStateAnalysisDomainInstance.Merge(value1, value2);
 
-        protected sealed override GlobalFlowStateAnalysisData GetClonedAnalysisData(GlobalFlowStateAnalysisData analysisData)
-            => new(analysisData);
-
-        public override GlobalFlowStateAnalysisData GetEmptyAnalysisData()
-            => new();
-
         protected sealed override GlobalFlowStateAnalysisData GetExitBlockOutputData(GlobalFlowStateAnalysisResult analysisResult)
             => new(analysisResult.ExitBlockOutput.Data);
 
         protected sealed override bool Equals(GlobalFlowStateAnalysisData value1, GlobalFlowStateAnalysisData value2)
             => GlobalFlowStateAnalysisDomainInstance.Equals(value1, value2);
-
-        protected sealed override GlobalFlowStateAnalysisData GetTrimmedCurrentAnalysisData(IEnumerable<AnalysisEntity> withEntities)
-            => GetTrimmedCurrentAnalysisDataHelper(withEntities, CurrentAnalysisData, SetAbstractValue);
 
         #region Visitor methods
 

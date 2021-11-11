@@ -35,6 +35,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             _globalValuesMapBuilder = ImmutableDictionary.CreateBuilder<IOperation, TAbstractAnalysisValue>();
         }
 
+        protected abstract void SetAbstractValue(
+            DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> analysisData, AnalysisEntity analysisEntity, TAbstractAnalysisValue value);
+
         internal ImmutableDictionary<IOperation, TAbstractAnalysisValue> GetGlobalValuesMap()
             => _globalValuesMapBuilder.ToImmutable();
 
@@ -60,7 +63,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                 parent: null);
         }
 
-        protected void EnsureInitialized(DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> input)
+        public sealed override DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> Flow(
+            IOperation statement, BasicBlock block, DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> input)
+        {
+            EnsureInitialized(input);
+            return base.Flow(statement, block, input);
+        }
+
+        private void EnsureInitialized(DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> input)
         {
             if (input.Count == 0)
             {
@@ -78,6 +88,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             set => SetAbstractValue(GlobalEntity, value);
         }
 
+        public override (DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> output, bool isFeasibleBranch) FlowBranch(
+            BasicBlock fromBlock, BranchWithInfo branch, DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> input)
+        {
+            EnsureInitialized(input);
+            return base.FlowBranch(fromBlock, branch, input);
+        }
+
+        public override DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> GetEmptyAnalysisData()
+            => new();
+
+        protected sealed override DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> GetClonedAnalysisData(DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> analysisData)
+            => new(analysisData);
+
         protected sealed override void AddTrackedEntities(DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> analysisData, HashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
             => builder.UnionWith(analysisData.Keys);
 
@@ -87,11 +110,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         protected sealed override TAbstractAnalysisValue GetAbstractValue(AnalysisEntity analysisEntity)
             => CurrentAnalysisData.TryGetValue(analysisEntity, out var value) ? value : ValueDomain.UnknownOrMayBeValue;
 
+        protected override void SetAbstractValue(AnalysisEntity analysisEntity, TAbstractAnalysisValue value)
+            => SetAbstractValue(CurrentAnalysisData, analysisEntity, value);
+
         protected sealed override bool HasAbstractValue(AnalysisEntity analysisEntity)
             => CurrentAnalysisData.ContainsKey(analysisEntity);
 
         protected sealed override bool HasAnyAbstractValue(DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> data)
             => data.Count > 0;
+
+        protected sealed override DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> GetTrimmedCurrentAnalysisData(IEnumerable<AnalysisEntity> withEntities)
+            => GetTrimmedCurrentAnalysisDataHelper(withEntities, CurrentAnalysisData, SetAbstractValue);
 
         protected sealed override void ResetAbstractValue(AnalysisEntity analysisEntity)
             => SetAbstractValue(analysisEntity, ValueDomain.UnknownOrMayBeValue);
