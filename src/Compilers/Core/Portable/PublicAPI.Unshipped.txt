@@ -101,8 +101,8 @@ Microsoft.CodeAnalysis.Operations.InterpolatedStringArgumentPlaceholderKind
 Microsoft.CodeAnalysis.Operations.InterpolatedStringArgumentPlaceholderKind.CallsiteArgument = 0 -> Microsoft.CodeAnalysis.Operations.InterpolatedStringArgumentPlaceholderKind
 Microsoft.CodeAnalysis.Operations.InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver = 1 -> Microsoft.CodeAnalysis.Operations.InterpolatedStringArgumentPlaceholderKind
 Microsoft.CodeAnalysis.Operations.InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument = 2 -> Microsoft.CodeAnalysis.Operations.InterpolatedStringArgumentPlaceholderKind
-Microsoft.CodeAnalysis.OperationKind.ListPattern = 114 -> Microsoft.CodeAnalysis.OperationKind
-Microsoft.CodeAnalysis.OperationKind.SlicePattern = 115 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.ListPattern = 121 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.SlicePattern = 122 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.Operations.IListPatternOperation
 Microsoft.CodeAnalysis.Operations.IListPatternOperation.DeclaredSymbol.get -> Microsoft.CodeAnalysis.ISymbol?
 Microsoft.CodeAnalysis.Operations.IListPatternOperation.IndexerSymbol.get -> Microsoft.CodeAnalysis.ISymbol?
