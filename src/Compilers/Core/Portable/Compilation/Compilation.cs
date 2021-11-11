@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract void SerializePdbEmbeddedCompilationOptions(BlobBuilder builder);
 
-        internal abstract DeterministicKeyBuilder CreateDetermisiticKeyBuilder();
+        internal abstract DeterministicKeyBuilder CreateDeterministicKeyBuilder();
 
         public string GetDeterministicKey(
             ImmutableArray<AdditionalText> additionalTexts = default,
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis
             EmitOptions? emitOptions = null,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default)
         {
-            var keyBuilder = CreateDetermisiticKeyBuilder();
+            var keyBuilder = CreateDeterministicKeyBuilder();
             return keyBuilder.GetKey(
                 this,
                 additionalTexts.NullToEmpty(),

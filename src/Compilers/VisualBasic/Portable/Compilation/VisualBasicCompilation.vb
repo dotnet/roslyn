@@ -747,7 +747,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 eventQueue:=eventQueue)
         End Function
 
-        Friend Overrides Function CreateDetermisiticKeyBuilder() As DeterministicKeyBuilder
+        Friend Overrides Function CreateDeterministicKeyBuilder() As DeterministicKeyBuilder
             Return New VisualBasicDeterministicKeyBuilder()
         End Function
 
