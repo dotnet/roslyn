@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
         End Function
 
         Protected Overrides Function HintText(parameterName As String) As String
-            Return parameterName & ":="
+            Return parameterName & ":= "
         End Function
     End Class
 End Namespace

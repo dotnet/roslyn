@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
 
         protected override string HintText(string parameterName)
         {
-            return parameterName + ":";
+            return parameterName + ": ";
         }
     }
 }
