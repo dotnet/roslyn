@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Xml;
 using System.Xml.Linq;
@@ -38,6 +39,9 @@ namespace Microsoft.CodeAnalysis
         /// <returns>An <see cref="XmlDocumentationProvider"/>.</returns>
         public static XmlDocumentationProvider CreateFromBytes(byte[] xmlDocCommentBytes)
             => new ContentBasedXmlDocumentationProvider(xmlDocCommentBytes);
+
+        internal static XmlDocumentationProvider CreateFromStream(Stream stream)
+            => new StreamBasedXmlDocumentationProvider(stream);
 
         private static XmlDocumentationProvider DefaultXmlDocumentationProvider { get; } = new NullXmlDocumentationProvider();
 
@@ -148,6 +152,23 @@ namespace Microsoft.CodeAnalysis
 
             public override int GetHashCode()
                 => Hash.CombineValues(_xmlDocCommentBytes);
+        }
+
+        private sealed class StreamBasedXmlDocumentationProvider : XmlDocumentationProvider
+        {
+            private readonly Stream _stream;
+
+            public StreamBasedXmlDocumentationProvider(Stream stream)
+                => _stream = stream;
+
+            protected override Stream GetSourceStream(CancellationToken cancellationToken)
+                => _stream;
+
+            public override bool Equals(object obj)
+                => obj == this;
+
+            public override int GetHashCode()
+                => RuntimeHelpers.GetHashCode(this);
         }
 
         private sealed class FileBasedXmlDocumentationProvider : XmlDocumentationProvider

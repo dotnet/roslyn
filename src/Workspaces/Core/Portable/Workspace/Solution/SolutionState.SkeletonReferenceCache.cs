@@ -2,12 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Emit;
@@ -45,6 +40,12 @@ internal partial class SolutionState
     /// </summary>
     private partial class SkeletonReferenceCache
     {
+        /// <summary>
+        /// Version number we mix into the checksums we create to ensure that if our serialization format changes we
+        /// automatically will fail 
+        /// </summary>
+        private static readonly Checksum s_persistenceVersion = Checksum.Create("1");
+
         private static readonly EmitOptions s_metadataOnlyEmitOptions = new(metadataOnly: true);
 
         /// <summary>
@@ -169,221 +170,103 @@ internal partial class SolutionState
             ICompilationTracker compilationTracker, SolutionState solution, CancellationToken cancellationToken)
         {
             var workspace = solution.Workspace;
-            var projectId = compilationTracker.ProjectState.Id;
+            var project = compilationTracker.ProjectState;
 
             // First, try to read in from the persistence layer if a previous sessions stored a value there.
-            var checksum = await compilationTracker.GetDependentChecksumAsync(solution, cancellationToken).ConfigureAwait(false);
-            var referenceSet = await TryReadFromPersistentStorageAsync(workspace, projectId, checksum, cancellationToken).ConfigureAwait(false);
+            // Mix in our persistence version with project checksum so that we get a different checksum
+            // if our format changes and we won't collide with prior written date with a different format.
+            var checksum = Checksum.Create(
+                s_persistenceVersion,
+                await compilationTracker.GetDependentChecksumAsync(solution, cancellationToken).ConfigureAwait(false));
+
+            var referenceSet = await SkeletonReferenceSet.TryReadFromPersistentStorageAsync(
+                solution, project, checksum, cancellationToken).ConfigureAwait(false);
             if (referenceSet != null)
                 return referenceSet;
 
             // If not, actually go and build the entire compilation and return a wrapper around that.
             var compilation = await compilationTracker.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
 
-            using var peStream = SerializableBytes.CreateWritableStream();
-            using var xmlDocumentationStream = SerializableBytes.CreateWritableStream();
+            var temporaryStorageService = workspace.Services.GetRequiredService<ITemporaryStorageService>();
+            var peStreamStorage = temporaryStorageService.CreateTemporaryStreamStorage(cancellationToken);
+            var xmlDocumentationStreamStorage = temporaryStorageService.CreateTemporaryStreamStorage(cancellationToken);
 
-            var assemblyName = compilation.AssemblyName;
-
-            var success = TryEmitMetadata(workspace, compilation, peStream, xmlDocumentationStream, cancellationToken);
+            var success = await TryEmitMetadataAsync(
+                workspace, compilation, peStreamStorage, xmlDocumentationStreamStorage, cancellationToken).ConfigureAwait(false);
 
             // If we successfully emitted the skeleton, then create the new set that points to it.
             // if we didn't, that's ok too we just reuse what we have.  We'll also write this out
             // against this current checksum so that future host sessions will still be able to use this.
             referenceSet = success
-                ? new SkeletonReferenceSet(storage, assemblyName, new DeferredDocumentationProvider(compilation))
+                ? new SkeletonReferenceSet(peStreamStorage, xmlDocumentationStreamStorage, compilation.AssemblyName)
                 : _skeletonReferenceSet;
 
-            // Finally, write this out to disk so that 
-            await WriteToPersistentStorageAsync(
-                workspace,
-                projectId,
-                checksum,
-                referenceSet,
-                cancellationToken).ConfigureAwait(false);
+            if (referenceSet != null)
+            {
+                await referenceSet.WriteToPersistentStorageAsync(
+                    solution, project, checksum, cancellationToken).ConfigureAwait(false);
+            }
+
+            return referenceSet;
         }
 
-        private static ITemporaryStreamStorage? TryCreateMetadataStorage(
+        /// <summary>
+        /// Returns <see langword="true"/> on success.
+        /// </summary>
+        private static async Task<bool> TryEmitMetadataAsync(
             Workspace workspace,
             Compilation compilation,
-            Stream peStream,
-            Stream xmlDocumentationStream,
+            ITemporaryStreamStorage peStreamStorage,
+            ITemporaryStreamStorage xmlDocumentationStreamStorage,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            try
+            workspace.LogTestMessage($"Beginning to create a skeleton assembly for {compilation.AssemblyName}...");
+
+            using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_EmitMetadataOnlyImage, cancellationToken))
             {
-                workspace.LogTestMessage($"Beginning to create a skeleton assembly for {compilation.AssemblyName}...");
+                using var peStream = SerializableBytes.CreateWritableStream();
+                using var xmlDocumentationStream = SerializableBytes.CreateWritableStream();
 
-                using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_EmitMetadataOnlyImage, cancellationToken))
+                // note: cloning compilation so we don't retain all the generated symbols after its emitted.
+                // * REVIEW * is cloning clone p2p reference compilation as well?
+                var emitResult = compilation.Clone().Emit(
+                    peStream: peStream,
+                    xmlDocumentationStream: xmlDocumentationStream,
+                    options: s_metadataOnlyEmitOptions,
+                    cancellationToken: cancellationToken);
+
+                if (emitResult.Success)
                 {
-                    // note: cloning compilation so we don't retain all the generated symbols after its emitted.
-                    // * REVIEW * is cloning clone p2p reference compilation as well?
-                    var emitResult = compilation.Clone().Emit(
-                        peStream: peStream,
-                        xmlDocumentationStream: xmlDocumentationStream,
-                        options: s_metadataOnlyEmitOptions,
-                        cancellationToken: cancellationToken);
+                    workspace.LogTestMessage($"Successfully emitted a skeleton assembly for {compilation.AssemblyName}");
 
-                    if (emitResult.Success)
-                    {
-                        workspace.LogTestMessage($"Successfully emitted a skeleton assembly for {compilation.AssemblyName}");
+                    peStream.Position = 0;
+                    await peStreamStorage.WriteStreamAsync(peStream, cancellationToken).ConfigureAwait(false);
 
-                        var temporaryStorageService = workspace.Services.GetRequiredService<ITemporaryStorageService>();
-                        var storage = temporaryStorageService.CreateTemporaryStreamStorage(cancellationToken);
-
-                        peStream.Position = 0;
-                        storage.WriteStream(peStream, cancellationToken);
-
-                        return storage;
-                    }
-                    else
-                    {
-                        workspace.LogTestMessage($"Failed to create a skeleton assembly for {compilation.AssemblyName}:");
-
-                        foreach (var diagnostic in emitResult.Diagnostics)
-                        {
-                            workspace.LogTestMessage("  " + diagnostic.GetMessage());
-                        }
-
-                        // log emit failures so that we can improve most common cases
-                        Logger.Log(FunctionId.MetadataOnlyImage_EmitFailure, KeyValueLogMessage.Create(m =>
-                        {
-                            // log errors in the format of
-                            // CS0001:1;CS002:10;...
-                            var groups = emitResult.Diagnostics.GroupBy(d => d.Id).Select(g => $"{g.Key}:{g.Count()}");
-                            m["Errors"] = string.Join(";", groups);
-                        }));
-
-                        return null;
-                    }
-                }
-            }
-            finally
-            {
-                workspace.LogTestMessage($"Done trying to create a skeleton assembly for {compilation.AssemblyName}");
-            }
-        }
-
-        private sealed class SkeletonReferenceSet
-        {
-            /// <summary>
-            /// A map to ensure that the streams from the temporary storage service that back the metadata we create stay alive as long
-            /// as the metadata is alive.
-            /// </summary>
-            private static readonly ConditionalWeakTable<AssemblyMetadata, ISupportDirectMemoryAccess> s_lifetime = new();
-
-            private readonly ITemporaryStreamStorage? _storage;
-            private readonly string? _assemblyName;
-
-            /// <summary>
-            /// The documentation provider used to lookup xml docs for any metadata reference we pass out.  See
-            /// docs on <see cref="DeferredDocumentationProvider"/> for why this is safe to hold onto despite it
-            /// rooting a compilation internally.
-            /// </summary>
-            private readonly DeferredDocumentationProvider _documentationProvider;
-
-            /// <summary>
-            /// Use WeakReference so we don't keep MetadataReference's alive if they are not being consumed. 
-            /// Note: if the weak-reference is actually <see langword="null"/> (not that it points to null),
-            /// that means we know we were unable to generate a reference for those properties, and future
-            /// calls can early exit.
-            /// </summary>
-            /// <remarks>
-            /// This instance should be locked when being read/written.
-            /// </remarks>
-            private readonly Dictionary<MetadataReferenceProperties, WeakReference<MetadataReference>?> _metadataReferences = new();
-
-            public SkeletonReferenceSet(
-                ITemporaryStreamStorage? storage,
-                string? assemblyName,
-                DeferredDocumentationProvider documentationProvider)
-            {
-                _storage = storage;
-                _assemblyName = assemblyName;
-                _documentationProvider = documentationProvider;
-            }
-
-            public MetadataReference? GetMetadataReference(MetadataReferenceProperties properties)
-            {
-                // lookup first and eagerly return cached value if we have it.
-                lock (_metadataReferences)
-                {
-                    if (TryGetExisting_NoLock(properties, out var metadataReference))
-                        return metadataReference;
-                }
-
-                // otherwise, create the metadata outside of the lock, and then try to assign it if no one else beat us
-                {
-                    var metadataReference = CreateReference(properties.Aliases, properties.EmbedInteropTypes, _documentationProvider);
-                    var weakMetadata = metadataReference == null ? null : new WeakReference<MetadataReference>(metadataReference);
-
-                    lock (_metadataReferences)
-                    {
-                        // see if someone beat us to writing this.
-                        if (TryGetExisting_NoLock(properties, out var existingMetadataReference))
-                            return existingMetadataReference;
-
-                        _metadataReferences[properties] = weakMetadata;
-                    }
-
-                    return metadataReference;
-                }
-
-                bool TryGetExisting_NoLock(MetadataReferenceProperties properties, out MetadataReference? metadataReference)
-                {
-                    metadataReference = null;
-                    if (!_metadataReferences.TryGetValue(properties, out var weakMetadata))
-                        return false;
-
-                    // If we are pointing at a null-weak reference (not a weak reference that points to null), then we 
-                    // know we failed to create the metadata the last time around, and we can shortcircuit immediately,
-                    // returning null *with* success to bubble that up.
-                    if (weakMetadata == null)
-                        return true;
-
-                    return weakMetadata.TryGetTarget(out metadataReference);
-                }
-            }
-
-            private MetadataReference? CreateReference(ImmutableArray<string> aliases, bool embedInteropTypes, DocumentationProvider documentationProvider)
-            {
-                if (_storage == null)
-                    return null;
-
-                // first see whether we can use native memory directly.
-                var stream = _storage.ReadStream();
-                AssemblyMetadata metadata;
-
-                if (stream is ISupportDirectMemoryAccess supportNativeMemory)
-                {
-                    // this is unfortunate that if we give stream, compiler will just re-copy whole content to 
-                    // native memory again. this is a way to get around the issue by we getting native memory ourselves and then
-                    // give them pointer to the native memory. also we need to handle lifetime ourselves.
-                    metadata = AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(supportNativeMemory.GetPointer(), (int)stream.Length));
-
-                    // Tie lifetime of stream to metadata we created. It is important to tie this to the Metadata and not the
-                    // metadata reference, as PE symbols hold onto just the Metadata. We can use Add here since we created
-                    // a brand new object in AssemblyMetadata.Create above.
-                    s_lifetime.Add(metadata, supportNativeMemory);
+                    xmlDocumentationStream.Position = 0;
+                    await xmlDocumentationStreamStorage.WriteStreamAsync(xmlDocumentationStream, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
-                    // Otherwise, we just let it use stream. Unfortunately, if we give stream, compiler will
-                    // internally copy it to native memory again. since compiler owns lifetime of stream,
-                    // it would be great if compiler can be little bit smarter on how it deals with stream.
+                    workspace.LogTestMessage($"Failed to create a skeleton assembly for {compilation.AssemblyName}:");
 
-                    // We don't deterministically release the resulting metadata since we don't know 
-                    // when we should. So we leave it up to the GC to collect it and release all the associated resources.
-                    metadata = AssemblyMetadata.CreateFromStream(stream);
+                    foreach (var diagnostic in emitResult.Diagnostics)
+                    {
+                        workspace.LogTestMessage("  " + diagnostic.GetMessage());
+                    }
+
+                    // log emit failures so that we can improve most common cases
+                    Logger.Log(FunctionId.MetadataOnlyImage_EmitFailure, KeyValueLogMessage.Create(m =>
+                    {
+                        // log errors in the format of
+                        // CS0001:1;CS002:10;...
+                        var groups = emitResult.Diagnostics.GroupBy(d => d.Id).Select(g => $"{g.Key}:{g.Count()}");
+                        m["Errors"] = string.Join(";", groups);
+                    }));
                 }
 
-                return metadata.GetReference(
-                    documentation: documentationProvider,
-                    aliases: aliases,
-                    embedInteropTypes: embedInteropTypes,
-                    display: _assemblyName);
+                return emitResult.Success;
             }
         }
     }
