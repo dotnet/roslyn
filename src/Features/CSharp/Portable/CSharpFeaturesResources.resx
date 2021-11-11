@@ -575,6 +575,9 @@
   <data name="Warning_Inlining_temporary_variable_may_change_code_meaning" xml:space="preserve">
     <value>Warning: Inlining temporary variable may change code meaning.</value>
   </data>
+  <data name="Warning_Expression_may_change_code_meaning" xml:space="preserve">
+    <value>Warning: Expression may have side effects. Code meaning may change.</value>
+  </data>
   <data name="local_variable_declaration" xml:space="preserve">
     <value>local variable declaration</value>
   </data>

@@ -202,6 +202,11 @@
         <target state="translated">使用递归模式</target>
         <note />
       </trans-unit>
+      <trans-unit id="Warning_Expression_may_change_code_meaning">
+        <source>Warning: Expression may have side effects. Code meaning may change.</source>
+        <target state="new">Warning: Expression may have side effects. Code meaning may change.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
         <source>Warning: Inlining temporary into conditional method call.</source>
         <target state="translated">警告: 即将在条件方法调用中内联临时内容。</target>

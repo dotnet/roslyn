@@ -207,17 +207,50 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var F = _factory;
 
+            var locals = ArrayBuilder<LocalSymbol>.GetInstance(2);
+            var sideeffects = ArrayBuilder<BoundExpression>.GetInstance(2);
+
             Debug.Assert(receiver.Type is { });
             var receiverLocal = F.StoreToTemp(
                 VisitExpression(receiver),
                 out var receiverStore,
                 // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
                 receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
-            var indexAccess = MakePatternIndexOffsetExpression(argument, F.Property(receiverLocal, lengthOrCountProperty), out _);
+            locals.Add(receiverLocal.LocalSymbol);
+            sideeffects.Add(receiverStore);
+
+            BoundExpression makeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(argument, out PatternIndexOffsetLoweringStrategy strategy);
+            BoundExpression indexAccess;
+
+            switch (strategy)
+            {
+                case PatternIndexOffsetLoweringStrategy.SubtractFromLength:
+                    // ensure we evaluate the input before accessing length
+                    if (makeOffsetInput.ConstantValue is null)
+                    {
+                        makeOffsetInput = F.StoreToTemp(makeOffsetInput, out BoundAssignmentOperator inputStore);
+                        locals.Add(((BoundLocal)makeOffsetInput).LocalSymbol);
+                        sideeffects.Add(inputStore);
+                    }
+
+                    indexAccess = MakePatternIndexOffsetExpression(makeOffsetInput, F.Property(receiverLocal, lengthOrCountProperty), strategy);
+                    break;
+
+                case PatternIndexOffsetLoweringStrategy.UseAsIs:
+                    indexAccess = MakePatternIndexOffsetExpression(makeOffsetInput, lengthAccess: null, strategy);
+                    break;
+
+                case PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI:
+                    indexAccess = MakePatternIndexOffsetExpression(makeOffsetInput, F.Property(receiverLocal, lengthOrCountProperty), strategy);
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(strategy);
+            }
 
             return (BoundSequence)F.Sequence(
-                ImmutableArray.Create<LocalSymbol>(receiverLocal.LocalSymbol),
-                ImmutableArray.Create<BoundExpression>(receiverStore),
+                locals.ToImmutableAndFree(),
+                sideeffects.ToImmutableAndFree(),
                 MakeIndexerAccess(
                     syntax,
                     receiverLocal,
@@ -234,55 +267,108 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Used to construct a pattern index offset expression, of the form
-        ///     `unloweredExpr.GetOffset(lengthAccess)`
-        /// where unloweredExpr is an expression of type System.Index and the
-        /// lengthAccess retrieves the length of the indexing target.
+        /// Used to produce an expression translating <paramref name="loweredExpr"/> to an integer offset
+        /// according to the <paramref name="strategy"/>.
+        /// The implementation should be in sync with <see cref="DetermineMakePatternIndexOffsetExpressionStrategy"/>.
         /// </summary>
-        /// <param name="unloweredExpr">The unlowered argument to the indexing expression</param>
+        /// <param name="loweredExpr">The lowered input for the translation</param>
         /// <param name="lengthAccess">
         /// An expression accessing the length of the indexing target. This should
         /// be a non-side-effecting operation.
         /// </param>
-        /// <param name="usedLength">
-        /// True if we were able to optimize the <paramref name="unloweredExpr"/>
-        /// to use the <paramref name="lengthAccess"/> operation directly on the receiver, instead of
-        /// using System.Index helpers.
-        /// </param>
+        /// <param name="strategy">The translation strategy</param>
         private BoundExpression MakePatternIndexOffsetExpression(
+            BoundExpression? loweredExpr,
+            BoundExpression? lengthAccess,
+            PatternIndexOffsetLoweringStrategy strategy)
+        {
+            switch (strategy)
+            {
+                case PatternIndexOffsetLoweringStrategy.Zero:
+                    return _factory.Literal(0);
+
+                case PatternIndexOffsetLoweringStrategy.Length:
+                    Debug.Assert(lengthAccess is not null);
+                    return lengthAccess;
+
+                case PatternIndexOffsetLoweringStrategy.SubtractFromLength:
+                    Debug.Assert(loweredExpr is not null);
+                    Debug.Assert(lengthAccess is not null);
+                    Debug.Assert(loweredExpr.Type!.SpecialType == SpecialType.System_Int32);
+
+                    if (loweredExpr.ConstantValue?.Int32Value == 0)
+                    {
+                        return lengthAccess;
+                    }
+
+                    return _factory.IntSubtract(lengthAccess, loweredExpr);
+
+                case PatternIndexOffsetLoweringStrategy.UseAsIs:
+                    Debug.Assert(loweredExpr is not null);
+                    Debug.Assert(loweredExpr.Type!.SpecialType == SpecialType.System_Int32);
+                    return loweredExpr;
+
+                case PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI:
+                    Debug.Assert(loweredExpr is not null);
+                    Debug.Assert(lengthAccess is not null);
+                    Debug.Assert(TypeSymbol.Equals(
+                        loweredExpr.Type,
+                        _compilation.GetWellKnownType(WellKnownType.System_Index),
+                        TypeCompareKind.ConsiderEverything));
+
+                    return _factory.Call(
+                        loweredExpr,
+                        WellKnownMember.System_Index__GetOffset,
+                        lengthAccess);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(strategy);
+            }
+        }
+
+        private enum PatternIndexOffsetLoweringStrategy
+        {
+            Zero,
+            Length,
+            SubtractFromLength,
+            UseAsIs,
+            UseGetOffsetAPI
+        }
+
+        /// <summary>
+        /// Determine the lowering strategy for translating a System.Index value to an integer offset value
+        /// and prepare the lowered input for the translation process handled by <see cref="MakePatternIndexOffsetExpression"/>.
+        /// The implementation should be in sync with <see cref="MakePatternIndexOffsetExpression"/>.
+        /// </summary>
+        private BoundExpression DetermineMakePatternIndexOffsetExpressionStrategy(
             BoundExpression unloweredExpr,
-            BoundExpression lengthAccess,
-            out bool usedLength)
+            out PatternIndexOffsetLoweringStrategy strategy)
         {
             Debug.Assert(TypeSymbol.Equals(
                 unloweredExpr.Type,
                 _compilation.GetWellKnownType(WellKnownType.System_Index),
                 TypeCompareKind.ConsiderEverything));
 
-            var F = _factory;
-
             if (unloweredExpr is BoundFromEndIndexExpression hatExpression)
             {
                 // If the System.Index argument is `^index`, we can replace the
                 // `argument.GetOffset(length)` call with `length - index`
                 Debug.Assert(hatExpression.Operand is { Type: { SpecialType: SpecialType.System_Int32 } });
-                usedLength = true;
-                return F.IntSubtract(lengthAccess, VisitExpression(hatExpression.Operand));
+                strategy = PatternIndexOffsetLoweringStrategy.SubtractFromLength;
+                return VisitExpression(hatExpression.Operand);
             }
             else if (unloweredExpr is BoundConversion { Operand: { Type: { SpecialType: SpecialType.System_Int32 } } operand })
             {
                 // If the System.Index argument is a conversion from int to Index we
                 // can return the int directly
-                usedLength = false;
+                strategy = PatternIndexOffsetLoweringStrategy.UseAsIs;
                 return VisitExpression(operand);
             }
             else
             {
-                usedLength = true;
-                return F.Call(
-                    VisitExpression(unloweredExpr),
-                    WellKnownMember.System_Index__GetOffset,
-                    lengthAccess);
+                // `argument.GetOffset(length)`
+                strategy = PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI;
+                return VisitExpression(unloweredExpr);
             }
         }
 
@@ -299,8 +385,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Lowered code without optimizations:
             // var receiver = receiverExpr;
-            // int length = receiver.length;
             // Range range = argumentExpr;
+            // int length = receiver.length;
             // int start = range.Start.GetOffset(length)
             // int rangeSize = range.End.GetOffset(length) - start
             // receiver.Slice(start, rangeSize)
@@ -311,7 +397,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sideEffectsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
 
             var receiverLocal = F.StoreToTemp(VisitExpression(receiver), out var receiverStore);
-            var lengthLocal = F.StoreToTemp(F.Property(receiverLocal, lengthOrCountProperty), out var lengthStore);
 
             localsBuilder.Add(receiverLocal.LocalSymbol);
             sideEffectsBuilder.Add(receiverStore);
@@ -332,63 +417,159 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // int start = start.GetOffset(length)
                 // int rangeSize = end.GetOffset(length) - start
 
-                bool usedLength = false;
+                BoundExpression? startMakeOffsetInput;
+                PatternIndexOffsetLoweringStrategy startStrategy;
 
                 if (rangeExpr.LeftOperandOpt is BoundExpression left)
                 {
-                    var startLocal = F.StoreToTemp(
-                        MakePatternIndexOffsetExpression(rangeExpr.LeftOperandOpt, lengthLocal, out usedLength),
-                        out var startStore);
+                    startMakeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(left, out startStrategy);
+                }
+                else
+                {
+                    startStrategy = PatternIndexOffsetLoweringStrategy.Zero;
+                    startMakeOffsetInput = null;
+                }
 
+                BoundExpression? endMakeOffsetInput;
+                PatternIndexOffsetLoweringStrategy endStrategy;
+
+                if (rangeExpr.RightOperandOpt is BoundExpression right)
+                {
+                    endMakeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(right, out endStrategy);
+                }
+                else
+                {
+                    endStrategy = PatternIndexOffsetLoweringStrategy.Length;
+                    endMakeOffsetInput = null;
+                }
+
+                const int captureStartOffset = 1 << 0;
+                const int captureEndOffset = 1 << 1;
+                const int useLength = 1 << 2;
+                const int captureLength = 1 << 3;
+                const int captureStartValue = 1 << 4;
+
+                int rewriteFlags;
+
+                switch ((startStrategy, endStrategy))
+                {
+                    case (PatternIndexOffsetLoweringStrategy.Zero, PatternIndexOffsetLoweringStrategy.Length):
+                    case (PatternIndexOffsetLoweringStrategy.Zero, PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI):
+                        rewriteFlags = useLength;
+                        break;
+                    case (PatternIndexOffsetLoweringStrategy.Zero, PatternIndexOffsetLoweringStrategy.SubtractFromLength):
+                        rewriteFlags = captureEndOffset | useLength;
+                        break;
+                    case (PatternIndexOffsetLoweringStrategy.Zero, PatternIndexOffsetLoweringStrategy.UseAsIs):
+                        rewriteFlags = 0;
+                        break;
+                    case (PatternIndexOffsetLoweringStrategy.UseAsIs, PatternIndexOffsetLoweringStrategy.Length):
+                    case (PatternIndexOffsetLoweringStrategy.UseAsIs, PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI):
+                        rewriteFlags = useLength | captureStartValue;
+                        break;
+                    case (PatternIndexOffsetLoweringStrategy.UseAsIs, PatternIndexOffsetLoweringStrategy.SubtractFromLength):
+                        rewriteFlags = captureStartOffset | captureEndOffset | useLength;
+                        break;
+                    case (PatternIndexOffsetLoweringStrategy.UseAsIs, PatternIndexOffsetLoweringStrategy.UseAsIs):
+                        rewriteFlags = captureStartValue;
+                        break;
+                    case (PatternIndexOffsetLoweringStrategy.SubtractFromLength, PatternIndexOffsetLoweringStrategy.Length):
+                    case (PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI, PatternIndexOffsetLoweringStrategy.Length):
+                        rewriteFlags = captureStartOffset | useLength | captureLength | captureStartValue;
+                        break;
+                    case (PatternIndexOffsetLoweringStrategy.SubtractFromLength, PatternIndexOffsetLoweringStrategy.SubtractFromLength):
+                    case (PatternIndexOffsetLoweringStrategy.SubtractFromLength, PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI):
+                    case (PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI, PatternIndexOffsetLoweringStrategy.SubtractFromLength):
+                    case (PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI, PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI):
+                        rewriteFlags = captureStartOffset | captureEndOffset | useLength | captureLength | captureStartValue;
+                        break;
+                    case (PatternIndexOffsetLoweringStrategy.SubtractFromLength, PatternIndexOffsetLoweringStrategy.UseAsIs):
+                    case (PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI, PatternIndexOffsetLoweringStrategy.UseAsIs):
+                        rewriteFlags = captureStartOffset | captureEndOffset | useLength | captureStartValue;
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(startStrategy);
+                }
+
+                Debug.Assert(startStrategy != PatternIndexOffsetLoweringStrategy.Zero || (rewriteFlags & captureStartOffset) == 0);
+                Debug.Assert(startStrategy != PatternIndexOffsetLoweringStrategy.Zero || (rewriteFlags & captureStartValue) == 0);
+                Debug.Assert((rewriteFlags & captureEndOffset) == 0 || (rewriteFlags & captureStartOffset) != 0 || startStrategy == PatternIndexOffsetLoweringStrategy.Zero);
+                Debug.Assert((rewriteFlags & captureStartOffset) == 0 || (rewriteFlags & captureEndOffset) != 0 || endStrategy == PatternIndexOffsetLoweringStrategy.Length);
+                Debug.Assert(endStrategy != PatternIndexOffsetLoweringStrategy.Length || (rewriteFlags & captureEndOffset) == 0);
+                Debug.Assert((rewriteFlags & captureLength) == 0 || (rewriteFlags & useLength) != 0);
+
+                if ((rewriteFlags & captureStartOffset) != 0)
+                {
+                    Debug.Assert(startMakeOffsetInput is not null);
+                    if (startMakeOffsetInput.ConstantValue is null)
+                    {
+                        startMakeOffsetInput = F.StoreToTemp(startMakeOffsetInput, out BoundAssignmentOperator inputStore);
+                        localsBuilder.Add(((BoundLocal)startMakeOffsetInput).LocalSymbol);
+                        sideEffectsBuilder.Add(inputStore);
+                    }
+                }
+
+                if ((rewriteFlags & captureEndOffset) != 0)
+                {
+                    Debug.Assert(endMakeOffsetInput is not null);
+                    if (endMakeOffsetInput.ConstantValue is null)
+                    {
+                        endMakeOffsetInput = F.StoreToTemp(endMakeOffsetInput, out BoundAssignmentOperator inputStore);
+                        localsBuilder.Add(((BoundLocal)endMakeOffsetInput).LocalSymbol);
+                        sideEffectsBuilder.Add(inputStore);
+                    }
+                }
+
+                BoundExpression? lengthAccess = null;
+
+                if ((rewriteFlags & useLength) != 0)
+                {
+                    lengthAccess = F.Property(receiverLocal, lengthOrCountProperty);
+
+                    if ((rewriteFlags & captureLength) != 0)
+                    {
+                        var lengthLocal = F.StoreToTemp(lengthAccess, out var lengthStore);
+                        localsBuilder.Add(lengthLocal.LocalSymbol);
+                        sideEffectsBuilder.Add(lengthStore);
+                        lengthAccess = lengthLocal;
+                    }
+                }
+
+                startExpr = MakePatternIndexOffsetExpression(startMakeOffsetInput, lengthAccess, startStrategy);
+
+                if ((rewriteFlags & captureStartValue) != 0 && startExpr.ConstantValue is null)
+                {
+                    var startLocal = F.StoreToTemp(startExpr, out var startStore);
                     localsBuilder.Add(startLocal.LocalSymbol);
                     sideEffectsBuilder.Add(startStore);
                     startExpr = startLocal;
                 }
-                else
-                {
-                    startExpr = F.Literal(0);
-                }
 
-                BoundExpression endExpr;
-                if (rangeExpr.RightOperandOpt is BoundExpression right)
+                BoundExpression endExpr = MakePatternIndexOffsetExpression(endMakeOffsetInput, lengthAccess, endStrategy);
+
+                if (startExpr.ConstantValue?.Int32Value == 0)
                 {
-                    endExpr = MakePatternIndexOffsetExpression(
-                        right,
-                        lengthLocal,
-                        out bool usedLengthTemp);
-                    usedLength |= usedLengthTemp;
+                    rangeSizeExpr = endExpr;
+                }
+                else if (startExpr.ConstantValue is { Int32Value: var startConst } && endExpr.ConstantValue is { Int32Value: var endConst })
+                {
+                    rangeSizeExpr = F.Literal(unchecked(endConst - startConst));
                 }
                 else
                 {
-                    usedLength = true;
-                    endExpr = lengthLocal;
+                    rangeSizeExpr = F.IntSubtract(endExpr, startExpr);
                 }
-
-                if (usedLength)
-                {
-                    // If we used the length, it needs to be calculated after the receiver (the
-                    // first bound node in the builder) and before the first use, which could be the
-                    // second or third node in the builder
-                    localsBuilder.Insert(1, lengthLocal.LocalSymbol);
-                    sideEffectsBuilder.Insert(1, lengthStore);
-                }
-
-                var rangeSizeLocal = F.StoreToTemp(
-                    F.IntSubtract(endExpr, startExpr),
-                    out var rangeStore);
-
-                localsBuilder.Add(rangeSizeLocal.LocalSymbol);
-                sideEffectsBuilder.Add(rangeStore);
-                rangeSizeExpr = rangeSizeLocal;
             }
             else
             {
                 var rangeLocal = F.StoreToTemp(VisitExpression(rangeArg), out var rangeStore);
-
-                localsBuilder.Add(lengthLocal.LocalSymbol);
-                sideEffectsBuilder.Add(lengthStore);
                 localsBuilder.Add(rangeLocal.LocalSymbol);
                 sideEffectsBuilder.Add(rangeStore);
+
+                var lengthLocal = F.StoreToTemp(F.Property(receiverLocal, lengthOrCountProperty), out var lengthStore);
+                localsBuilder.Add(lengthLocal.LocalSymbol);
+                sideEffectsBuilder.Add(lengthStore);
 
                 var startLocal = F.StoreToTemp(
                     F.Call(

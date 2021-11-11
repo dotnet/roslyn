@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -465,7 +466,7 @@ link text";
             internal override CompletionRules GetRules(CodeAnalysis.Completion.CompletionOptions options)
                 => CompletionRules.Default;
 
-            internal override Task<CompletionDescription> GetDescriptionAsync(Document document, CodeAnalysis.Completion.CompletionItem item, CodeAnalysis.Completion.CompletionOptions options, CancellationToken cancellationToken = default)
+            internal override Task<CompletionDescription> GetDescriptionAsync(Document document, CodeAnalysis.Completion.CompletionItem item, CodeAnalysis.Completion.CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken = default)
                 => Task.FromResult(CompletionDescription.Empty);
         }
     }

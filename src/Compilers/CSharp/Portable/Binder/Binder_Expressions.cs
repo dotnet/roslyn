@@ -4800,6 +4800,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                         defaultArguments = indexer.DefaultArguments;
                         expanded = indexer.Expanded;
 
+                        // If any of the arguments is an interpolated string handler that takes the receiver as an argument for creation,
+                        // we disallow this. During lowering, indexer arguments are evaluated before the receiver for this scenario, and
+                        // we therefore can't get the receiver at the point it will be needed for the constructor. We could technically
+                        // support it for top-level member indexer initializers (ie, initializers directly on the `new Type` instance),
+                        // but for user and language simplicity we blanket forbid this.
+                        foreach (var argument in arguments)
+                        {
+                            if (argument is BoundConversion { Conversion.IsInterpolatedStringHandler: true, Operand: var operand })
+                            {
+                                var handlerPlaceholders = operand switch
+                                {
+                                    BoundBinaryOperator { InterpolatedStringHandlerData: { } data } => data.ArgumentPlaceholders,
+                                    BoundInterpolatedString { InterpolationData: { } data } => data.ArgumentPlaceholders,
+                                    _ => throw ExceptionUtilities.UnexpectedValue(operand.Kind)
+                                };
+
+                                if (handlerPlaceholders.Any(placeholder => placeholder.ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.InstanceParameter))
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers, argument.Syntax.Location);
+                                    hasErrors = true;
+                                }
+                            }
+                        }
+
                         break;
                     }
 
@@ -8833,11 +8857,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundConditionalAccess GenerateBadConditionalAccessNodeError(ConditionalAccessExpressionSyntax node, BoundExpression receiver, BoundExpression access, BindingDiagnosticBag diagnostics)
         {
-            var operatorToken = node.OperatorToken;
-            // TODO: need a special ERR for this.
-            //       conditional access is not really a binary operator.
-            DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), access.Display);
-            diagnostics.Add(new CSDiagnostic(diagnosticInfo, operatorToken.GetLocation()));
+            DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_CannotBeMadeNullable, access.Display);
+            diagnostics.Add(new CSDiagnostic(diagnosticInfo, access.Syntax.Location));
             receiver = BadExpression(receiver.Syntax, receiver);
 
             return new BoundConditionalAccess(node, receiver, access, CreateErrorType(), hasErrors: true);

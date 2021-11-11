@@ -41,11 +41,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         public InlineDiagnosticsTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
             IEditorFormatMapService editorFormatMapService,
             IClassificationFormatMapService classificationFormatMapService,
             IClassificationTypeRegistryService classificationTypeRegistryService)
-            : base(threadingContext, diagnosticService, listenerProvider)
+            : base(threadingContext, diagnosticService, globalOptions, listenerProvider)
         {
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
             _classificationFormatMapService = classificationFormatMapService;
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 return null;
             }
 
-            var locationOption = workspace.Options.GetOption(InlineDiagnosticsOptions.Location, document.Project.Language);
+            var locationOption = GlobalOptions.GetOption(InlineDiagnosticsOptions.Location, document.Project.Language);
             var navigateService = workspace.Services.GetRequiredService<INavigateToLinkService>();
             return new InlineDiagnosticsTag(errorType, diagnostic, _editorFormatMap, _classificationFormatMapService,
                 _classificationTypeRegistryService, locationOption, navigateService);

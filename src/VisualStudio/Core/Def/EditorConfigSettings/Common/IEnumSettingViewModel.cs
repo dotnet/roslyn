@@ -4,11 +4,12 @@
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
 {
-
     internal interface IEnumSettingViewModel
     {
-        string[] GetValueDescriptions();
-        int GetValueIndex();
+        string[] EnumValues { get; }
+        string SelectedEnumValue { get; set; }
+        string ToolTip { get; }
+        string AutomationName { get; }
         void ChangeProperty(string v);
     }
 }
