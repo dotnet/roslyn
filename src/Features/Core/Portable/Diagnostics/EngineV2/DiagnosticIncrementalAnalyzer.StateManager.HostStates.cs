@@ -19,14 +19,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private HostAnalyzerStateSets GetOrCreateHostStateSets(Project project, ProjectAnalyzerStateSets projectStateSets)
             {
-                var key = new HostAnalyzerStateSetKey(project.Language, project.Solution.State.Analyzers);
-                var hostStateSets = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, key, CreateLanguageSpecificAnalyzerMap);
+                var key = new HostAnalyzerStateSetKey(project.Language, project.Solution.State.Analyzers.GetHostAnalyzerReferencesMap());
+                var hostStateSets = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, key, CreateLanguageSpecificAnalyzerMap, project.Solution.State.Analyzers);
                 return hostStateSets.WithExcludedAnalyzers(projectStateSets.SkippedAnalyzersInfo.SkippedAnalyzers);
 
-                static HostAnalyzerStateSets CreateLanguageSpecificAnalyzerMap(HostAnalyzerStateSetKey arg)
+                static HostAnalyzerStateSets CreateLanguageSpecificAnalyzerMap(HostAnalyzerStateSetKey arg, HostDiagnosticAnalyzers hostAnalyzers)
                 {
                     var language = arg.Language;
-                    var hostAnalyzers = arg.Analyzers;
                     var analyzersPerReference = hostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(language);
 
                     var analyzerMap = CreateStateSetMap(language, analyzersPerReference.Values, includeFileContentLoadAnalyzer: true);

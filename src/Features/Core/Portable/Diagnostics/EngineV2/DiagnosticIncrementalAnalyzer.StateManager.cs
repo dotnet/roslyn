@@ -312,23 +312,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private readonly struct HostAnalyzerStateSetKey : IEquatable<HostAnalyzerStateSetKey>
             {
-                public HostAnalyzerStateSetKey(string language, HostDiagnosticAnalyzers analyzers)
+                public HostAnalyzerStateSetKey(string language, ImmutableDictionary<object, AnalyzerReference> analyzerReferences)
                 {
                     Language = language;
-                    Analyzers = analyzers;
+                    AnalyzerReferences = analyzerReferences;
                 }
 
                 public string Language { get; }
-                public HostDiagnosticAnalyzers Analyzers { get; }
+                public ImmutableDictionary<object, AnalyzerReference> AnalyzerReferences { get; }
 
                 public bool Equals(HostAnalyzerStateSetKey other)
-                    => Language == other.Language && Analyzers == other.Analyzers;
+                    => Language == other.Language && AnalyzerReferences == other.AnalyzerReferences;
 
                 public override bool Equals(object? obj)
                     => obj is HostAnalyzerStateSetKey key && Equals(key);
 
                 public override int GetHashCode()
-                    => Hash.Combine(Language.GetHashCode(), Analyzers.GetHashCode());
+                    => Hash.Combine(Language.GetHashCode(), AnalyzerReferences.GetHashCode());
             }
         }
     }
