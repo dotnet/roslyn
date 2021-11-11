@@ -1078,17 +1078,24 @@ public class C
         var dd = d1 ?? d2;  //-typeExpression: dynamic
                             //-fieldAccess: dynamic
                             //-fieldAccess: dynamic
+                            //-valuePlaceholder: dynamic
+                            //-valuePlaceholder: dynamic
+                            //-conversion: object
                             //-nullCoalescingOperator: dynamic
 
         var sd = s1 ?? d2;  //-typeExpression: dynamic
                             //-fieldAccess: object
                             //-fieldAccess: dynamic
+                            //-valuePlaceholder: object
+                            //-valuePlaceholder: object
                             //-nullCoalescingOperator: dynamic
 
         var ds = d1 ?? s2;  //-typeExpression: dynamic
                             //-fieldAccess: dynamic
                             //-fieldAccess: object
                             //-conversion: dynamic
+                            //-valuePlaceholder: dynamic
+                            //-valuePlaceholder: dynamic
                             //-nullCoalescingOperator: dynamic
     }
 }
@@ -2181,9 +2188,9 @@ public unsafe class C
             c.ei += d1;  //-isAddition: True isDynamic: True
 
             d1 += d2;    //-@operator: DynamicAddition leftConversion: NoConversion finalConversion: Identity
-            d1 += a;     //-@operator: DynamicAddition leftConversion: NoConversion finalConversion: ImplicitReference
-            d1.x += a;   //-@operator: DynamicAddition leftConversion: NoConversion finalConversion: ImplicitReference
-            d1[i] += a;  //-@operator: DynamicAddition leftConversion: NoConversion finalConversion: ImplicitReference
+            d1 += a;     //-@operator: DynamicAddition leftConversion: NoConversion finalConversion: Identity
+            d1.x += a;   //-@operator: DynamicAddition leftConversion: NoConversion finalConversion: Identity
+            d1[i] += a;  //-@operator: DynamicAddition leftConversion: NoConversion finalConversion: Identity
         }}
         checked
         {{
@@ -2193,9 +2200,9 @@ public unsafe class C
             c.ei += d1;  //-isAddition: True isDynamic: True
 
             d1 += d2;    //-@operator: DynamicAddition, Checked leftConversion: NoConversion finalConversion: Identity
-            d1 += a;     //-@operator: DynamicAddition, Checked leftConversion: NoConversion finalConversion: ImplicitReference
-            d1.x += a;   //-@operator: DynamicAddition, Checked leftConversion: NoConversion finalConversion: ImplicitReference
-            d1[i] += a;  //-@operator: DynamicAddition, Checked leftConversion: NoConversion finalConversion: ImplicitReference
+            d1 += a;     //-@operator: DynamicAddition, Checked leftConversion: NoConversion finalConversion: Identity
+            d1.x += a;   //-@operator: DynamicAddition, Checked leftConversion: NoConversion finalConversion: Identity
+            d1[i] += a;  //-@operator: DynamicAddition, Checked leftConversion: NoConversion finalConversion: Identity
         }}
     }
 } 
@@ -2242,9 +2249,9 @@ public unsafe class C
             c.ei -= d1;  //-isAddition: False isDynamic: True
                         
             d1 -= d2;    //-@operator: DynamicSubtraction leftConversion: NoConversion finalConversion: Identity
-            d1 -= a;     //-@operator: DynamicSubtraction leftConversion: NoConversion finalConversion: ImplicitReference
-            d1.x -= a;   //-@operator: DynamicSubtraction leftConversion: NoConversion finalConversion: ImplicitReference
-            d1[i] -= a;  //-@operator: DynamicSubtraction leftConversion: NoConversion finalConversion: ImplicitReference
+            d1 -= a;     //-@operator: DynamicSubtraction leftConversion: NoConversion finalConversion: Identity
+            d1.x -= a;   //-@operator: DynamicSubtraction leftConversion: NoConversion finalConversion: Identity
+            d1[i] -= a;  //-@operator: DynamicSubtraction leftConversion: NoConversion finalConversion: Identity
         }}
         checked
         {{
@@ -2254,9 +2261,9 @@ public unsafe class C
             c.ei -= d1;  //-isAddition: False isDynamic: True
                         
             d1 -= d2;    //-@operator: DynamicSubtraction, Checked leftConversion: NoConversion finalConversion: Identity
-            d1 -= a;     //-@operator: DynamicSubtraction, Checked leftConversion: NoConversion finalConversion: ImplicitReference
-            d1.x -= a;   //-@operator: DynamicSubtraction, Checked leftConversion: NoConversion finalConversion: ImplicitReference
-            d1[i] -= a;  //-@operator: DynamicSubtraction, Checked leftConversion: NoConversion finalConversion: ImplicitReference
+            d1 -= a;     //-@operator: DynamicSubtraction, Checked leftConversion: NoConversion finalConversion: Identity
+            d1.x -= a;   //-@operator: DynamicSubtraction, Checked leftConversion: NoConversion finalConversion: Identity
+            d1[i] -= a;  //-@operator: DynamicSubtraction, Checked leftConversion: NoConversion finalConversion: Identity
         }}
     }
 } 
@@ -2305,9 +2312,9 @@ public unsafe class C
             c.ei {0}= d1;  //-@operator: {1} leftConversion: NoConversion finalConversion: ImplicitDynamic
                          
             d1 {0}= d2;    //-@operator: {1} leftConversion: NoConversion finalConversion: Identity
-            d1 {0}= a;     //-@operator: {1} leftConversion: NoConversion finalConversion: ImplicitReference
-            d1.x {0}= a;   //-@operator: {1} leftConversion: NoConversion finalConversion: ImplicitReference
-            d1[i] {0}= a;  //-@operator: {1} leftConversion: NoConversion finalConversion: ImplicitReference
+            d1 {0}= a;     //-@operator: {1} leftConversion: NoConversion finalConversion: Identity
+            d1.x {0}= a;   //-@operator: {1} leftConversion: NoConversion finalConversion: Identity
+            d1[i] {0}= a;  //-@operator: {1} leftConversion: NoConversion finalConversion: Identity
         }}
 
         checked
@@ -2318,9 +2325,9 @@ public unsafe class C
             c.ei {0}= d1;  //-@operator: {1}, Checked leftConversion: NoConversion finalConversion: ImplicitDynamic
                                             
             d1 {0}= d2;    //-@operator: {1}, Checked leftConversion: NoConversion finalConversion: Identity
-            d1 {0}= a;     //-@operator: {1}, Checked leftConversion: NoConversion finalConversion: ImplicitReference
-            d1.x {0}= a;   //-@operator: {1}, Checked leftConversion: NoConversion finalConversion: ImplicitReference
-            d1[i] {0}= a;  //-@operator: {1}, Checked leftConversion: NoConversion finalConversion: ImplicitReference
+            d1 {0}= a;     //-@operator: {1}, Checked leftConversion: NoConversion finalConversion: Identity
+            d1.x {0}= a;   //-@operator: {1}, Checked leftConversion: NoConversion finalConversion: Identity
+            d1[i] {0}= a;  //-@operator: {1}, Checked leftConversion: NoConversion finalConversion: Identity
         }}
     }}
 }}
@@ -2400,60 +2407,90 @@ class C
                   //-fieldAccess: bool
                   //-thisReference: C
                   //-fieldAccess: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-conversion: bool
                   //-compoundAssignmentOperator: bool
 
         a |= d;   //-thisReference: C
                   //-fieldAccess: bool
                   //-thisReference: C
                   //-fieldAccess: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-conversion: bool
                   //-compoundAssignmentOperator: bool
        
         a ^= d;   //-thisReference: C
                   //-fieldAccess: bool
                   //-thisReference: C
                   //-fieldAccess: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-conversion: bool
                   //-compoundAssignmentOperator: bool
         
         i += d;   //-thisReference: C
                   //-fieldAccess: int
                   //-thisReference: C
                   //-fieldAccess: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-conversion: int
                   //-compoundAssignmentOperator: int
 
         i -= d;   //-thisReference: C
                   //-fieldAccess: int
                   //-thisReference: C
                   //-fieldAccess: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-conversion: int
                   //-compoundAssignmentOperator: int
 
         i *= d;   //-thisReference: C
                   //-fieldAccess: int
                   //-thisReference: C
                   //-fieldAccess: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-conversion: int
                   //-compoundAssignmentOperator: int
 
         i /= d;   //-thisReference: C
                   //-fieldAccess: int
                   //-thisReference: C
                   //-fieldAccess: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-conversion: int
                   //-compoundAssignmentOperator: int
 
         i %= d;   //-thisReference: C
                   //-fieldAccess: int
                   //-thisReference: C
                   //-fieldAccess: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-conversion: int
                   //-compoundAssignmentOperator: int
 
         i <<= d;  //-thisReference: C
                   //-fieldAccess: int
                   //-thisReference: C
                   //-fieldAccess: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-conversion: int
                   //-compoundAssignmentOperator: int
 
         i >>= d;  //-thisReference: C
                   //-fieldAccess: int
                   //-thisReference: C
                   //-fieldAccess: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-conversion: int
                   //-compoundAssignmentOperator: int
     }
 }
@@ -4228,6 +4265,56 @@ class C
                 // (8,39): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
                 //         System.Console.WriteLine(d[in x]);
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "x").WithLocation(8, 39)
+                );
+        }
+
+        [Fact]
+        public void UserDefinedConversion_01()
+        {
+            var source = @"
+dynamic x = true;
+
+if (new C() && x)
+{
+    System.Console.WriteLine(""1"");
+}
+
+System.Console.WriteLine(""2"");
+
+class C
+{
+    [System.Obsolete()]
+    public static implicit operator bool(C c)
+    {
+        System.Console.WriteLine(""op_Implicit"");
+        return false;
+    }
+
+    public static bool operator true(C c)
+    {
+        System.Console.WriteLine(""op_True"");
+        return false;
+    }
+
+    public static bool operator false(C c)
+    {
+        System.Console.WriteLine(""op_False"");
+        return false;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45AndCSharp(source);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"op_Implicit
+op_Implicit
+2
+"
+).VerifyDiagnostics(
+                // (4,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // if (new C() && x)
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.implicit operator bool(C)").WithLocation(4, 5)
                 );
         }
     }

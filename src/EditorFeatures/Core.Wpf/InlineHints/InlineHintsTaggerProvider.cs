@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         public readonly IToolTipService ToolTipService;
         public readonly ClassificationTypeMap TypeMap;
         public readonly Lazy<IStreamingFindUsagesPresenter> StreamingFindUsagesPresenter;
+        public readonly IGlobalOptionService GlobalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -49,18 +51,20 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             IAsynchronousOperationListenerProvider listenerProvider,
             IToolTipService toolTipService,
             ClassificationTypeMap typeMap,
-            Lazy<IStreamingFindUsagesPresenter> streamingFindUsagesPresenter)
+            Lazy<IStreamingFindUsagesPresenter> streamingFindUsagesPresenter,
+            IGlobalOptionService globalOptions)
         {
             _viewTagAggregatorFactoryService = viewTagAggregatorFactoryService;
-            this.ClassificationFormatMapService = classificationFormatMapService;
-            this.ClassificationTypeRegistryService = classificationTypeRegistryService;
-            this.ThreadingContext = threadingContext;
-            this.OperationExecutor = operationExecutor;
-            this.ToolTipService = toolTipService;
-            this.StreamingFindUsagesPresenter = streamingFindUsagesPresenter;
-            this.TypeMap = typeMap;
+            ClassificationFormatMapService = classificationFormatMapService;
+            ClassificationTypeRegistryService = classificationTypeRegistryService;
+            ThreadingContext = threadingContext;
+            OperationExecutor = operationExecutor;
+            ToolTipService = toolTipService;
+            StreamingFindUsagesPresenter = streamingFindUsagesPresenter;
+            TypeMap = typeMap;
+            GlobalOptions = globalOptions;
 
-            this.AsynchronousOperationListener = listenerProvider.GetListener(FeatureAttribute.InlineHints);
+            AsynchronousOperationListener = listenerProvider.GetListener(FeatureAttribute.InlineHints);
         }
 
         public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag

@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -18,26 +19,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             {
                 // First, inline all the delegate anonymous types.  This is how VB prefers to display
                 // things.
-                InlineAllDelegateAnonymousTypes();
+                InlineAllDelegateAnonymousTypes(_semanticModel, _position, _structuralTypeDisplayService, _groupMap);
 
                 // Now, replace all normal anonymous types and tuples with 'a, 'b, etc. and create a
                 // Structural Types: section to display their info.
                 FixStructuralTypes(firstSymbol);
             }
 
-            private void InlineAllDelegateAnonymousTypes()
-            {
-restart:
-                foreach (var (group, parts) in _groupMap)
-                {
-                    var updatedParts = _structuralTypeDisplayService.InlineDelegateAnonymousTypes(parts, _semanticModel, _position);
-                    if (parts != updatedParts)
-                    {
-                        _groupMap[group] = updatedParts;
-                        goto restart;
-                    }
-                }
-            }
+            protected abstract void InlineAllDelegateAnonymousTypes(SemanticModel semanticModel, int position, IStructuralTypeDisplayService structuralTypeDisplayService, Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> groupMap);
 
             private void FixStructuralTypes(ISymbol firstSymbol)
             {

@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Always">
         <source>Always</source>
-        <target state="new">Always</target>
+        <target state="translated">始终</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_for_clarity">
@@ -134,7 +134,7 @@
       </trans-unit>
       <trans-unit id="Beginning_of_line">
         <source>Beginning of line</source>
-        <target state="new">Beginning of line</target>
+        <target state="translated">行首</target>
         <note />
       </trans-unit>
       <trans-unit id="Bitness32">
@@ -195,6 +195,16 @@
       <trans-unit id="Choose_which_action_you_would_like_to_perform_on_the_unused_references">
         <source>Choose which action you would like to perform on the unused references.</source>
         <target state="translated">选择要对未使用的引用执行的操作。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Clear">
+        <source>Clear</source>
+        <target state="new">Clear</target>
+        <note>Clear content action</note>
+      </trans-unit>
+      <trans-unit id="Close_tab">
+        <source>Close Tab</source>
+        <target state="new">Close Tab</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_Style">
@@ -359,7 +369,7 @@
       </trans-unit>
       <trans-unit id="End_of_line">
         <source>End of line</source>
-        <target state="new">End of line</target>
+        <target state="translated">行尾</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
@@ -404,7 +414,7 @@
       </trans-unit>
       <trans-unit id="For_non_interface_members">
         <source>For non interface members</source>
-        <target state="new">For non interface members</target>
+        <target state="translated">对于非接口成员</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document">
@@ -789,7 +799,7 @@
       </trans-unit>
       <trans-unit id="Never">
         <source>Never</source>
-        <target state="new">Never</target>
+        <target state="translated">从不</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -834,7 +844,7 @@
       </trans-unit>
       <trans-unit id="Omit_if_default">
         <source>Omit if default</source>
-        <target state="new">Omit if default</target>
+        <target state="translated">默认情况下省略</target>
         <note />
       </trans-unit>
       <trans-unit id="Omit_only_for_optional_parameters">
@@ -849,7 +859,7 @@
       </trans-unit>
       <trans-unit id="Operator_placement_when_wrapping">
         <source>Operator placement when wrapping</source>
-        <target state="new">Operator placement when wrapping</target>
+        <target state="translated">换行时运算符的位置</target>
         <note />
       </trans-unit>
       <trans-unit id="Optional_parameters_must_provide_a_default_value">
@@ -932,6 +942,16 @@
         <target state="translated">括号首选项:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Paste">
+        <source>Paste</source>
+        <target state="new">Paste</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_valid_stack_trace">
+        <source>Paste a valid stack trace to view and navigate it's values</source>
+        <target state="new">Paste a valid stack trace to view and navigate it's values</target>
+        <note>"Stack Trace" is a language term and should be kept the same. </note>
+      </trans-unit>
       <trans-unit id="Paused_0_tasks_in_queue">
         <source>Paused ({0} tasks in queue)</source>
         <target state="translated">已暂停(队列中有 {0} 个任务)</target>
@@ -959,7 +979,7 @@
       </trans-unit>
       <trans-unit id="Prefer_namespace_and_folder_match_structure">
         <source>Prefer namespace and folder match structure</source>
-        <target state="new">Prefer namespace and folder match structure</target>
+        <target state="translated">首选命名空间和文件夹匹配结构</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_range_operator">
@@ -984,7 +1004,7 @@
       </trans-unit>
       <trans-unit id="Prefer_simplified_interpolation">
         <source>Prefer simplified interpolation</source>
-        <target state="new">Prefer simplified interpolation</target>
+        <target state="translated">首选简化内插</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
@@ -1049,7 +1069,7 @@
       </trans-unit>
       <trans-unit id="Require_accessibility_modifiers">
         <source>Require accessibility modifiers</source>
-        <target state="new">Require accessibility modifiers</target>
+        <target state="translated">需要可访问性修饰符</target>
         <note />
       </trans-unit>
       <trans-unit id="Require_colon">
@@ -1206,6 +1226,16 @@
         <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
         <target state="translated">在“环境”&gt;“字体和颜色”选项页中所做的更改将替代某些配色方案颜色。在“字体和颜色”页中选择“使用默认值”，还原所有自定义项。</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Stack_Trace_Explorer">
+        <source>Stack Trace Explorer</source>
+        <target state="new">Stack Trace Explorer</target>
+        <note>"Stack Trace" is a language term and should be kept the same. This is for viewing/exploring stack traces</note>
+      </trans-unit>
+      <trans-unit id="Stack_trace_0">
+        <source>Stack Trace {0}</source>
+        <target state="new">Stack Trace {0}</target>
+        <note>Header for numbered stack trace view tabs</note>
       </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>

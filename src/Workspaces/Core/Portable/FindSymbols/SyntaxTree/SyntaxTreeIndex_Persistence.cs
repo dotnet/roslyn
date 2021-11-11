@@ -24,17 +24,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var solution = document.Project.Solution;
             var database = solution.Options.GetPersistentStorageDatabase();
-            return LoadAsync(solution.Workspace.Services, DocumentKey.ToDocumentKey(document), checksum, database, GetStringTable(document.Project), cancellationToken);
+
+            var storageService = solution.Workspace.Services.GetPersistentStorageService(database);
+            return LoadAsync(storageService, DocumentKey.ToDocumentKey(document), checksum, GetStringTable(document.Project), cancellationToken);
         }
 
         public static async Task<SyntaxTreeIndex?> LoadAsync(
-            HostWorkspaceServices services, DocumentKey documentKey, Checksum? checksum, StorageDatabase database, StringTable stringTable, CancellationToken cancellationToken)
+            IChecksummedPersistentStorageService storageService, DocumentKey documentKey, Checksum? checksum, StringTable stringTable, CancellationToken cancellationToken)
         {
             try
             {
-                var persistentStorageService = services.GetPersistentStorageService(database);
-
-                var storage = await persistentStorageService.GetStorageAsync(documentKey.Project.Solution, checkBranchId: false, cancellationToken).ConfigureAwait(false);
+                var storage = await storageService.GetStorageAsync(documentKey.Project.Solution, cancellationToken).ConfigureAwait(false);
                 await using var _ = storage.ConfigureAwait(false);
 
                 // attempt to load from persisted state
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             try
             {
-                var storage = await persistentStorageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), checkBranchId: false, cancellationToken).ConfigureAwait(false);
+                var storage = await persistentStorageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
                 await using var _ = storage.ConfigureAwait(false);
                 using var stream = SerializableBytes.CreateWritableStream();
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // check whether we already have info for this document
             try
             {
-                var storage = await persistentStorageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), checkBranchId: false, cancellationToken).ConfigureAwait(false);
+                var storage = await persistentStorageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
                 await using var _ = storage.ConfigureAwait(false);
                 // Check if we've already stored a checksum and it matches the checksum we 
                 // expect.  If so, we're already precalculated and don't have to recompute

@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -76,14 +76,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         internal readonly CommittedSolution LastCommittedSolution;
 
-        internal readonly IManagedEditAndContinueDebuggerService DebuggerService;
+        internal readonly IManagedHotReloadService DebuggerService;
 
         /// <summary>
         /// True if the diagnostics produced by the session should be reported to the diagnotic analyzer.
         /// </summary>
         internal readonly bool ReportDiagnostics;
 
-        private readonly DebuggingSessionTelemetry _telemetry = new();
+        private readonly DebuggingSessionTelemetry _telemetry;
         private readonly EditSessionTelemetry _editSessionTelemetry = new();
 
         private PendingSolutionUpdate? _pendingUpdate;
@@ -98,13 +98,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal DebuggingSession(
             DebuggingSessionId id,
             Solution solution,
-            IManagedEditAndContinueDebuggerService debuggerService,
+            IManagedHotReloadService debuggerService,
             Func<Project, CompilationOutputs> compilationOutputsProvider,
             IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates,
             bool reportDiagnostics)
         {
             _compilationOutputsProvider = compilationOutputsProvider;
             _reportTelemetry = ReportTelemetry;
+            _telemetry = new DebuggingSessionTelemetry(solution.State.SolutionAttributes.TelemetryId);
 
             Id = id;
             DebuggerService = debuggerService;
@@ -581,6 +582,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             LastCommittedSolution.CommitSolution(pendingUpdate.Solution);
+
+            _editSessionTelemetry.LogCommitted();
 
             // Restart edit session with no active statements (switching to run mode).
             RestartEditSession(newNonRemappableRegions, inBreakState: false, out documentsToReanalyze);

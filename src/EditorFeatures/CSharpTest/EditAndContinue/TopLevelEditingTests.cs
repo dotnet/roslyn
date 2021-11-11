@@ -12601,7 +12601,9 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyEdits("Update [int P => 1;]@10 -> [int P => 2;]@10");
+            edits.VerifyEdits(
+                "Update [int P => 1;]@10 -> [int P => 2;]@10",
+                "Update [=> 1]@16 -> [=> 2]@16");
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
             {
@@ -12633,7 +12635,8 @@ class C
             edits.VerifyEdits(
                 "Update [int P => 1;]@10 -> [int P { get { return 2; } }]@10",
                 "Insert [{ get { return 2; } }]@16",
-                "Insert [get { return 2; }]@18");
+                "Insert [get { return 2; }]@18",
+                "Delete [=> 1]@16");
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
             {
@@ -12653,7 +12656,8 @@ class C
                 "Update [int P => 1;]@10 -> [int P { get { return 2; } set { } }]@10",
                 "Insert [{ get { return 2; } set { } }]@16",
                 "Insert [get { return 2; }]@18",
-                "Insert [set { }]@36");
+                "Insert [set { }]@36",
+                "Delete [=> 1]@16");
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
             {
@@ -12672,6 +12676,7 @@ class C
 
             edits.VerifyEdits(
                 "Update [int P { get { return 2; } }]@10 -> [int P => 1;]@10",
+                "Insert [=> 1]@16",
                 "Delete [{ get { return 2; } }]@16",
                 "Delete [get { return 2; }]@18");
 
@@ -12691,6 +12696,7 @@ class C
 
             edits.VerifyEdits(
                 "Update [int P { get { return 2; } set { } }]@10 -> [int P => 1;]@10",
+                "Insert [=> 1]@16",
                 "Delete [{ get { return 2; } set { } }]@16",
                 "Delete [get { return 2; }]@18",
                 "Delete [set { }]@36");
@@ -12709,7 +12715,8 @@ class C
             edits.VerifyEdits(
                 "Update [int P => 1;]@10 -> [int P { get => 2; }]@10",
                 "Insert [{ get => 2; }]@16",
-                "Insert [get => 2;]@18");
+                "Insert [get => 2;]@18",
+                "Delete [=> 1]@16");
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
             {
@@ -12726,6 +12733,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyEdits(
                 "Update [int P { get => 2; }]@10 -> [int P => 1;]@10",
+                "Insert [=> 1]@16",
                 "Delete [{ get => 2; }]@16",
                 "Delete [get => 2;]@18");
 
@@ -13697,7 +13705,8 @@ readonly struct S
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [int this[int a] => 1;]@10 -> [int this[int a] => 2;]@10");
+                "Update [int this[int a] => 1;]@10 -> [int this[int a] => 2;]@10",
+                "Update [=> 1]@26 -> [=> 2]@26");
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
             {
@@ -13727,7 +13736,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [int this[int a] => new Func<int>(() => a + 1)() + 10;]@35 -> [int this[int a] => new Func<int>(() => 2)() + 11;]@35");
+                "Update [int this[int a] => new Func<int>(() => a + 1)() + 10;]@35 -> [int this[int a] => new Func<int>(() => 2)() + 11;]@35",
+                "Update [=> new Func<int>(() => a + 1)() + 10]@51 -> [=> new Func<int>(() => 2)() + 11]@51");
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));
@@ -13755,7 +13765,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [int this[int a] => new Func<int>(() => a + 1)();]@35 -> [int this[int a] => new Func<int>(() => 2)();]@35");
+                "Update [int this[int a] => new Func<int>(() => a + 1)();]@35 -> [int this[int a] => new Func<int>(() => 2)();]@35",
+                "Update [=> new Func<int>(() => a + 1)()]@51 -> [=> new Func<int>(() => 2)()]@51");
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));
@@ -13783,7 +13794,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [int this[int a] => new Func<int>(() => { return a + 1; })();]@35 -> [int this[int a] => new Func<int>(() => { return 2; })();]@35");
+                "Update [int this[int a] => new Func<int>(() => { return a + 1; })();]@35 -> [int this[int a] => new Func<int>(() => { return 2; })();]@35",
+                "Update [=> new Func<int>(() => { return a + 1; })()]@51 -> [=> new Func<int>(() => { return 2; })()]@51");
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));
@@ -13811,7 +13823,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [int this[int a] => new Func<int>(delegate { return a + 1; })();]@35 -> [int this[int a] => new Func<int>(delegate { return 2; })();]@35");
+                "Update [int this[int a] => new Func<int>(delegate { return a + 1; })();]@35 -> [int this[int a] => new Func<int>(delegate { return 2; })();]@35",
+                "Update [=> new Func<int>(delegate { return a + 1; })()]@51 -> [=> new Func<int>(delegate { return 2; })()]@51");
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));
@@ -13828,7 +13841,8 @@ class C
             edits.VerifyEdits(
                 "Update [int this[int a] => 1;]@10 -> [int this[int a] { get { return 1; } }]@10",
                 "Insert [{ get { return 1; } }]@26",
-                "Insert [get { return 1; }]@28");
+                "Insert [get { return 1; }]@28",
+                "Delete [=> 1]@26");
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
             {
@@ -13846,6 +13860,7 @@ class C
 
             edits.VerifyEdits(
                 "Update [int this[int a] { get { return 1; } }]@10 -> [int this[int a] => 1;]@10",
+                "Insert [=> 1]@26",
                 "Delete [{ get { return 1; } }]@26",
                 "Delete [get { return 1; }]@28");
 
@@ -13892,6 +13907,7 @@ class C
 
             edits.VerifyEdits(
                 "Update [int this[int a] { get => 1; }]@10 -> [int this[int a] => 1;]@10",
+                "Insert [=> 1]@26",
                 "Delete [{ get => 1; }]@26",
                 "Delete [get => 1;]@28");
 
@@ -13911,7 +13927,8 @@ class C
             edits.VerifyEdits(
                 "Update [int this[int a] => 1;]@10 -> [int this[int a] { get => 1; }]@10",
                 "Insert [{ get => 1; }]@26",
-                "Insert [get => 1;]@28");
+                "Insert [get => 1;]@28",
+                "Delete [=> 1]@26");
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
             {
@@ -13995,6 +14012,7 @@ class C
 
             edits.VerifyEdits(
                 "Update [int this[int a] { get { return 1; } set { Console.WriteLine(0); } }]@10 -> [int this[int a] => 1;]@10",
+                "Insert [=> 1]@26",
                 "Delete [{ get { return 1; } set { Console.WriteLine(0); } }]@26",
                 "Delete [get { return 1; }]@28",
                 "Delete [set { Console.WriteLine(0); }]@46");
@@ -14015,7 +14033,8 @@ class C
                 "Update [int this[int a] => 1;]@10 -> [int this[int a] { get { return 1; } set { Console.WriteLine(0); } }]@10",
                 "Insert [{ get { return 1; } set { Console.WriteLine(0); } }]@26",
                 "Insert [get { return 1; }]@28",
-                "Insert [set { Console.WriteLine(0); }]@46");
+                "Insert [set { Console.WriteLine(0); }]@46",
+                "Delete [=> 1]@26");
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
             {
@@ -14297,6 +14316,7 @@ class C
             edits.VerifyEdits(
                 "Insert [int this[in int i] => throw null;]@13",
                 "Insert [[in int i]]@21",
+                "Insert [=> throw null]@32",
                 "Insert [in int i]@22");
 
             edits.VerifyRudeDiagnostics();
@@ -14328,6 +14348,7 @@ class C
             edits.VerifyEdits(
                 "Insert [ref readonly int this[int i] => throw null;]@13",
                 "Insert [[int i]]@34",
+                "Insert [=> throw null]@42",
                 "Insert [int i]@35");
 
             edits.VerifyRudeDiagnostics();

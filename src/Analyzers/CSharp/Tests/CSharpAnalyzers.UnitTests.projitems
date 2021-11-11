@@ -14,6 +14,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConstructorInitializerPlacement\ConstructorInitializerPlacementTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\MultipleBlankLines\MultipleBlankLinesTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MatchFolderAndNamespace\CSharpMatchFolderAndNamespaceTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryDiscardDesignation\RemoveUnnecessaryDiscardDesignationTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AddAccessibilityModifiersTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\AddBracesFixAllTests.cs" />
@@ -69,8 +71,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\PopulateSwitchStatementTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\QualifyMemberAccessTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\RemoveUnnecessaryExpressionParenthesesTests.cs" />

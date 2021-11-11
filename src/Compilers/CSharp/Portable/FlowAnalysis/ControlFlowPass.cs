@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldPending2 = SavePending(); // track only the branches out of the finally block
             base.VisitFinallyBlock(finallyBlock, ref endState);
             RestorePending(oldPending2); // resolve branches that remain within the finally block
-            foreach (var branch in PendingBranches)
+            foreach (var branch in PendingBranches.AsEnumerable())
             {
                 if (branch.Branch == null) continue; // a tracked exception
                 var location = new SourceLocation(branch.Branch.Syntax.GetFirstToken());

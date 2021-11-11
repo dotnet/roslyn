@@ -1308,7 +1308,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DictionaryInitializerInExpressionTree = 8074,
         ERR_ExtensionCollectionElementInitializerInExpressionTree = 8075,
         ERR_UnclosedExpressionHole = 8076,
-        ERR_SingleLineCommentInExpressionHole = 8077,
+        // This is now handled by the single ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString error.
+        // ERR_SingleLineCommentInExpressionHole = 8077,
         ERR_InsufficientStack = 8078,
         ERR_UseDefViolationProperty = 8079,
         ERR_AutoPropertyMustOverrideSet = 8080,
@@ -1999,8 +2000,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_CompileTimeCheckedOverflow = 8973,
         WRN_MethGrpToNonDel = 8974,
+        ERR_LambdaExplicitReturnTypeVar = 8975,
+        ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers = 8976,
 
         #endregion
+
+        ERR_CannotBeMadeNullable = 8977,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

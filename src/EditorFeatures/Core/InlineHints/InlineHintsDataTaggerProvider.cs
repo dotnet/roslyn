@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -49,8 +51,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         [ImportingConstructor]
         public InlineHintsDataTaggerProvider(
             IThreadingContext threadingContext,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.InlineHints))
+            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.InlineHints))
         {
             _listener = listenerProvider.GetListener(FeatureAttribute.InlineHints);
         }
@@ -62,19 +65,19 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textViewOpt),
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, _listener),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.DisplayAllOverride),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.EnabledForParameters),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForLiteralParameters),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForIndexerParameters),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForObjectCreationParameters),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForOtherParameters),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.SuppressForParametersThatMatchMethodIntent),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.SuppressForParametersThatMatchArgumentName),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.EnabledForTypes),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForImplicitVariableTypes),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForLambdaParameterTypes),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForImplicitObjectCreation));
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsGlobalStateOption.DisplayAllOverride),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.EnabledForParameters),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.ForLiteralParameters),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.ForIndexerParameters),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.ForObjectCreationParameters),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.ForOtherParameters),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.SuppressForParametersThatMatchMethodIntent),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.SuppressForParametersThatDifferOnlyBySuffix),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineParameterHintsOptions.Metadata.SuppressForParametersThatMatchArgumentName),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineTypeHintsOptions.Metadata.EnabledForTypes),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineTypeHintsOptions.Metadata.ForImplicitVariableTypes),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineTypeHintsOptions.Metadata.ForLambdaParameterTypes),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineTypeHintsOptions.Metadata.ForImplicitObjectCreation));
         }
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
@@ -93,9 +96,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             return SpecializedCollections.SingletonEnumerable(visibleSpanOpt.Value);
         }
 
-        protected override async Task ProduceTagsAsync(TaggerContext<InlineHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+        protected override async Task ProduceTagsAsync(
+            TaggerContext<InlineHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, CancellationToken cancellationToken)
         {
-            var cancellationToken = context.CancellationToken;
             var document = documentSnapshotSpan.Document;
             if (document == null)
                 return;

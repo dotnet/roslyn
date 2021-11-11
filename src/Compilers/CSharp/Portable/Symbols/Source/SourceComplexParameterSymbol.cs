@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (parameterType.Type.IsNullableType())
                 {
                     convertedExpression = binder.GenerateConversionForAssignment(parameterType.Type.GetNullableUnderlyingType(),
-                        valueBeforeConversion, diagnostics, isDefaultParameter: true);
+                        valueBeforeConversion, diagnostics, Binder.ConversionForAssignmentFlags.DefaultParameter);
                 }
             }
 
@@ -1271,10 +1271,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (parameter.Ordinal > Ordinal)
                 {
-                    // Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions.
+                    // Parameter '{0}' occurs after '{1}' in the parameter list, but is used as an argument for interpolated string handler conversions.
                     // This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated
                     // string handler parameter after all arguments involved.
-                    diagnostics.Add(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, errorLocation, parameter.Name, this);
+                    diagnostics.Add(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, errorLocation, parameter.Name, this.Name);
                 }
 
                 return (parameter.Ordinal, parameter);

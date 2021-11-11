@@ -97,7 +97,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             // Type
             LogString(", ");
-            LogType(operation.Type);
+            if (operation.Language == LanguageNames.CSharp && operation is NoneOperation)
+            {
+                //TODO: this should be removed!
+                //We need to update the tests to allow Types on NoneOperations
+                //(see: https://github.com/dotnet/roslyn/issues/57531)
+                LogType(null);
+            }
+            else
+            {
+                LogType(operation.Type);
+            }
 
             // ConstantValue
             if (operation.ConstantValue.HasValue)
@@ -824,6 +834,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArguments(operation.Arguments);
         }
 
+        public override void VisitFunctionPointerInvocation(IFunctionPointerInvocationOperation operation)
+        {
+            LogString(nameof(IFunctionPointerInvocationOperation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Target, "Target");
+            VisitArguments(operation.Arguments);
+        }
+
         private void VisitArguments(ImmutableArray<IArgumentOperation> arguments)
         {
             VisitArray(arguments, "Arguments", logElementCount: true);
@@ -953,6 +972,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IFlowCaptureReferenceOperation));
             LogString($": {operation.Id.Value}");
+            if (operation.IsInitialization)
+            {
+                LogString(" (IsInitialization)");
+            }
             LogCommonPropertiesAndNewLine(operation);
         }
 
@@ -1765,6 +1788,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.Parts, "Parts", logElementCount: true);
         }
 
+        public override void VisitInterpolatedStringHandlerCreation(IInterpolatedStringHandlerCreationOperation operation)
+        {
+            LogString(nameof(IInterpolatedStringHandlerCreationOperation));
+            LogString($" (HandlerAppendCallsReturnBool: {operation.HandlerAppendCallsReturnBool}, HandlerCreationHasSuccessParameter: {operation.HandlerCreationHasSuccessParameter})");
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.HandlerCreation, "Creation");
+            Visit(operation.Content, "Content");
+        }
+
+        public override void VisitInterpolatedStringAddition(IInterpolatedStringAdditionOperation operation)
+        {
+            LogString(nameof(IInterpolatedStringAdditionOperation));
+            LogCommonPropertiesAndNewLine(operation);
+            Visit(operation.Left, "Left");
+            Visit(operation.Right, "Right");
+        }
+
         public override void VisitInterpolatedStringText(IInterpolatedStringTextOperation operation)
         {
             LogString(nameof(IInterpolatedStringTextOperation));
@@ -1790,6 +1831,28 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 Assert.Equal(OperationKind.Literal, ((IConversionOperation)operation.FormatString).Operand.Kind);
             }
+        }
+
+        public override void VisitInterpolatedStringAppend(IInterpolatedStringAppendOperation operation)
+        {
+            LogString(nameof(IInterpolatedStringAppendOperation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.AppendCall, "AppendCall");
+        }
+
+        public override void VisitInterpolatedStringHandlerArgumentPlaceholder(IInterpolatedStringHandlerArgumentPlaceholderOperation operation)
+        {
+            LogString(nameof(IInterpolatedStringHandlerArgumentPlaceholderOperation));
+            if (operation.PlaceholderKind is InterpolatedStringArgumentPlaceholderKind.CallsiteArgument)
+            {
+                LogString($" (ArgumentIndex: {operation.ArgumentIndex})");
+            }
+            else
+            {
+                LogString($" ({operation.PlaceholderKind})");
+            }
+            LogCommonPropertiesAndNewLine(operation);
         }
 
         public override void VisitConstantPattern(IConstantPatternOperation operation)
