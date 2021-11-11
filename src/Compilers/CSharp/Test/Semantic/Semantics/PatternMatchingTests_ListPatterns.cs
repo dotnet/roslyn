@@ -71,20 +71,17 @@ public class X
 111
 000";
         var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
-        // PROTOTYPE the call to StoreToTemp in LocalRewriter.VisitIndexImplicitIndexerAccess causes more temps to be used
         AssertEx.Multiple(
             () => verifier.VerifyIL("X.Test(System.Span<char>)", @"
 {
-  // Code size       83 (0x53)
-  .maxstack  3
+  // Code size       74 (0x4a)
+  .maxstack  4
   .locals init (char V_0, //first
                 System.Span<char> V_1, //others
                 char V_2, //last
                 System.Span<char> V_3,
                 int V_4,
-                System.Span<char> V_5,
-                int V_6,
-                int V_7)
+                System.Span<char> V_5)
   IL_0000:  ldarg.0
   IL_0001:  stloc.3
   IL_0002:  ldloca.s   V_3
@@ -92,7 +89,7 @@ public class X
   IL_0009:  stloc.s    V_4
   IL_000b:  ldloc.s    V_4
   IL_000d:  ldc.i4.1
-  IL_000e:  ble.un.s   IL_0044
+  IL_000e:  ble.un.s   IL_003b
   IL_0010:  ldloca.s   V_3
   IL_0012:  ldc.i4.0
   IL_0013:  call       ""ref char System.Span<char>.this[int].get""
@@ -100,37 +97,33 @@ public class X
   IL_0019:  stloc.0
   IL_001a:  ldloc.3
   IL_001b:  stloc.s    V_5
-  IL_001d:  ldc.i4.1
-  IL_001e:  stloc.s    V_6
+  IL_001d:  ldloca.s   V_5
+  IL_001f:  ldc.i4.1
   IL_0020:  ldloc.s    V_4
   IL_0022:  ldc.i4.1
   IL_0023:  sub
-  IL_0024:  ldloc.s    V_6
-  IL_0026:  sub
-  IL_0027:  stloc.s    V_7
-  IL_0029:  ldloca.s   V_5
-  IL_002b:  ldloc.s    V_6
-  IL_002d:  ldloc.s    V_7
-  IL_002f:  call       ""System.Span<char> System.Span<char>.Slice(int, int)""
-  IL_0034:  stloc.1
-  IL_0035:  ldloca.s   V_3
-  IL_0037:  ldloc.s    V_4
-  IL_0039:  ldc.i4.1
-  IL_003a:  sub
-  IL_003b:  call       ""ref char System.Span<char>.this[int].get""
-  IL_0040:  ldind.u2
-  IL_0041:  stloc.2
-  IL_0042:  br.s       IL_0046
-  IL_0044:  ldc.i4.1
-  IL_0045:  ret
-  IL_0046:  ldloc.0
-  IL_0047:  ldloc.2
-  IL_0048:  bne.un.s   IL_0051
-  IL_004a:  ldloc.1
-  IL_004b:  call       ""bool X.Test(System.Span<char>)""
-  IL_0050:  ret
-  IL_0051:  ldc.i4.0
-  IL_0052:  ret
+  IL_0024:  ldc.i4.1
+  IL_0025:  sub
+  IL_0026:  call       ""System.Span<char> System.Span<char>.Slice(int, int)""
+  IL_002b:  stloc.1
+  IL_002c:  ldloca.s   V_3
+  IL_002e:  ldloc.s    V_4
+  IL_0030:  ldc.i4.1
+  IL_0031:  sub
+  IL_0032:  call       ""ref char System.Span<char>.this[int].get""
+  IL_0037:  ldind.u2
+  IL_0038:  stloc.2
+  IL_0039:  br.s       IL_003d
+  IL_003b:  ldc.i4.1
+  IL_003c:  ret
+  IL_003d:  ldloc.0
+  IL_003e:  ldloc.2
+  IL_003f:  bne.un.s   IL_0048
+  IL_0041:  ldloc.1
+  IL_0042:  call       ""bool X.Test(System.Span<char>)""
+  IL_0047:  ret
+  IL_0048:  ldc.i4.0
+  IL_0049:  ret
 }
 "),
             () => verifier.VerifyIL("X.Test(char[])", @"
@@ -188,59 +181,53 @@ public class X
 "),
             () => verifier.VerifyIL("X.Test(string)", @"
 {
-  // Code size       77 (0x4d)
-  .maxstack  3
+  // Code size       68 (0x44)
+  .maxstack  4
   .locals init (char V_0, //first
                 string V_1, //others
                 char V_2, //last
                 string V_3,
-                int V_4,
-                int V_5,
-                int V_6)
+                int V_4)
   IL_0000:  ldarg.0
   IL_0001:  stloc.3
   IL_0002:  ldloc.3
-  IL_0003:  brfalse.s  IL_004b
+  IL_0003:  brfalse.s  IL_0042
   IL_0005:  ldloc.3
   IL_0006:  callvirt   ""int string.Length.get""
   IL_000b:  stloc.s    V_4
   IL_000d:  ldloc.s    V_4
   IL_000f:  ldc.i4.1
-  IL_0010:  ble.un.s   IL_003e
+  IL_0010:  ble.un.s   IL_0035
   IL_0012:  ldloc.3
   IL_0013:  ldc.i4.0
   IL_0014:  callvirt   ""char string.this[int].get""
   IL_0019:  stloc.0
   IL_001a:  ldloc.3
   IL_001b:  ldc.i4.1
-  IL_001c:  stloc.s    V_5
-  IL_001e:  ldloc.s    V_4
+  IL_001c:  ldloc.s    V_4
+  IL_001e:  ldc.i4.1
+  IL_001f:  sub
   IL_0020:  ldc.i4.1
   IL_0021:  sub
-  IL_0022:  ldloc.s    V_5
-  IL_0024:  sub
-  IL_0025:  stloc.s    V_6
-  IL_0027:  ldloc.s    V_5
-  IL_0029:  ldloc.s    V_6
-  IL_002b:  callvirt   ""string string.Substring(int, int)""
-  IL_0030:  stloc.1
-  IL_0031:  ldloc.3
-  IL_0032:  ldloc.s    V_4
-  IL_0034:  ldc.i4.1
-  IL_0035:  sub
-  IL_0036:  callvirt   ""char string.this[int].get""
-  IL_003b:  stloc.2
-  IL_003c:  br.s       IL_0040
-  IL_003e:  ldc.i4.1
-  IL_003f:  ret
-  IL_0040:  ldloc.0
-  IL_0041:  ldloc.2
-  IL_0042:  bne.un.s   IL_004b
-  IL_0044:  ldloc.1
-  IL_0045:  call       ""bool X.Test(string)""
-  IL_004a:  ret
-  IL_004b:  ldc.i4.0
-  IL_004c:  ret
+  IL_0022:  callvirt   ""string string.Substring(int, int)""
+  IL_0027:  stloc.1
+  IL_0028:  ldloc.3
+  IL_0029:  ldloc.s    V_4
+  IL_002b:  ldc.i4.1
+  IL_002c:  sub
+  IL_002d:  callvirt   ""char string.this[int].get""
+  IL_0032:  stloc.2
+  IL_0033:  br.s       IL_0037
+  IL_0035:  ldc.i4.1
+  IL_0036:  ret
+  IL_0037:  ldloc.0
+  IL_0038:  ldloc.2
+  IL_0039:  bne.un.s   IL_0042
+  IL_003b:  ldloc.1
+  IL_003c:  call       ""bool X.Test(string)""
+  IL_0041:  ret
+  IL_0042:  ldc.i4.0
+  IL_0043:  ret
 }
 ")
             );
@@ -638,32 +625,25 @@ True
 }"),
             () => verifier.VerifyIL("X.Test5", @"
 {
-  // Code size       30 (0x1e)
+  // Code size       24 (0x18)
   .maxstack  3
-  .locals init (Test5 V_0,
-                int V_1,
-                int V_2)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_001c
+  IL_0001:  brfalse.s  IL_0016
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""int Test5.Count.get""
-  IL_0009:  ldarg.0
-  IL_000a:  stloc.0
+  IL_0009:  stloc.0
+  IL_000a:  ldarg.0
   IL_000b:  ldc.i4.0
-  IL_000c:  stloc.1
-  IL_000d:  ldloc.1
-  IL_000e:  sub
-  IL_000f:  stloc.2
-  IL_0010:  ldloc.0
-  IL_0011:  ldloc.1
-  IL_0012:  ldloc.2
-  IL_0013:  callvirt   ""int Test5.Slice(int, int)""
-  IL_0018:  ldc.i4.1
-  IL_0019:  ceq
-  IL_001b:  ret
-  IL_001c:  ldc.i4.0
-  IL_001d:  ret
-}")
+  IL_000c:  ldloc.0
+  IL_000d:  callvirt   ""int Test5.Slice(int, int)""
+  IL_0012:  ldc.i4.1
+  IL_0013:  ceq
+  IL_0015:  ret
+  IL_0016:  ldc.i4.0
+  IL_0017:  ret
+}
+")
         );
     }
 
@@ -3009,27 +2989,23 @@ struct S
 
     readonly void M(Index i, Range r)
     {
-        _ = this[i]; // 1, 2
-        _ = this[r]; // 3, 4
+        _ = this[i]; // 1
+        _ = this[r]; // 2 
 
         _ = this is [1];
         _ = this is [2, ..var rest];
     }
 }";
+        // Note: we're unable to report this warning on binding Length properties (as part of implicit indexers)
+        // because of our use of placeholders.
         var comp = CreateCompilationWithIndexAndRange(src);
         comp.VerifyDiagnostics(
-            // (11,13): warning CS8656: Call to non-readonly member 'S.Length.get' from a 'readonly' member results in an implicit copy of 'this'.
-            //         _ = this[i]; // 1, 2
-            Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Length.get", "this").WithLocation(11, 13),
             // (11,13): warning CS8656: Call to non-readonly member 'S.this[int].get' from a 'readonly' member results in an implicit copy of 'this'.
-            //         _ = this[i]; // 1, 2
+            //         _ = this[i]; // 1
             Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.this[int].get", "this").WithLocation(11, 13),
             // (12,13): warning CS8656: Call to non-readonly member 'S.Slice(int, int)' from a 'readonly' member results in an implicit copy of 'this'.
-            //         _ = this[r]; // 3, 4
-            Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Slice(int, int)", "this").WithLocation(12, 13),
-            // (12,13): warning CS8656: Call to non-readonly member 'S.Length.get' from a 'readonly' member results in an implicit copy of 'this'.
-            //         _ = this[r]; // 3, 4
-            Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Length.get", "this").WithLocation(12, 13)
+            //         _ = this[r]; // 2 
+            Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Slice(int, int)", "this").WithLocation(12, 13)
             );
     }
 
@@ -6914,22 +6890,20 @@ public class C
         // Note: no Index or Range involved
         verifier.VerifyIL("C.M", @"
 {
-  // Code size       72 (0x48)
+  // Code size       61 (0x3d)
   .maxstack  3
   .locals init (int V_0, //x
                 int V_1, //y
                 C V_2,
-                C V_3,
-                int V_4,
-                int V_5)
+                int V_3)
   IL_0000:  ldarg.0
   IL_0001:  stloc.2
   IL_0002:  ldloc.2
-  IL_0003:  brfalse.s  IL_0047
+  IL_0003:  brfalse.s  IL_003c
   IL_0005:  ldloc.2
   IL_0006:  callvirt   ""int C.Length.get""
   IL_000b:  ldc.i4.1
-  IL_000c:  bne.un.s   IL_0047
+  IL_000c:  bne.un.s   IL_003c
   IL_000e:  ldloc.2
   IL_000f:  ldc.i4.0
   IL_0010:  callvirt   ""int C.this[int].get""
@@ -6937,27 +6911,21 @@ public class C
   IL_0016:  ldarg.0
   IL_0017:  stloc.2
   IL_0018:  ldloc.2
-  IL_0019:  brfalse.s  IL_0047
+  IL_0019:  brfalse.s  IL_003c
   IL_001b:  ldloc.2
   IL_001c:  callvirt   ""int C.Length.get""
-  IL_0021:  ldloc.2
-  IL_0022:  stloc.3
+  IL_0021:  stloc.3
+  IL_0022:  ldloc.2
   IL_0023:  ldc.i4.0
-  IL_0024:  stloc.s    V_4
-  IL_0026:  ldloc.s    V_4
-  IL_0028:  sub
-  IL_0029:  stloc.s    V_5
-  IL_002b:  ldloc.3
-  IL_002c:  ldloc.s    V_4
-  IL_002e:  ldloc.s    V_5
-  IL_0030:  callvirt   ""int C.Slice(int, int)""
-  IL_0035:  stloc.1
-  IL_0036:  ldloc.0
-  IL_0037:  ldloc.1
-  IL_0038:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_003d:  box        ""System.ValueTuple<int, int>""
-  IL_0042:  call       ""void System.Console.Write(object)""
-  IL_0047:  ret
+  IL_0024:  ldloc.3
+  IL_0025:  callvirt   ""int C.Slice(int, int)""
+  IL_002a:  stloc.1
+  IL_002b:  ldloc.0
+  IL_002c:  ldloc.1
+  IL_002d:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0032:  box        ""System.ValueTuple<int, int>""
+  IL_0037:  call       ""void System.Console.Write(object)""
+  IL_003c:  ret
 }
 ");
     }
@@ -7319,19 +7287,96 @@ if (""0420"" is [_, .. var x, _])
         CompileAndVerify(comp, expectedOutput: "42");
     }
 
-    [Fact]
+    [Fact, WorkItem(57728, "https://github.com/dotnet/roslyn/issues/57728")]
     public void Simple_Array_Slice()
     {
         var source = @"
-if (new[] { 0, 4, 2, 0 } is [_, .. var x, _])
+class C
 {
-    var y = new[] { 0, 4, 2, 0 }[1..^1];
-    System.Console.Write((x[0], x[1], y[0], y[1]));
+    public static void Main()
+    {
+        if (new[] { 0, 4, 2, 0 } is [_, .. var x, _])
+        {
+            var y = new[] { 0, 4, 2, 0 }[1..^1];
+            System.Console.Write((x[0], x[1], y[0], y[1]));
+        }
+    }
 }
 ";
-        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray }, options: TestOptions.ReleaseExe);
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "(4, 2, 4, 2)");
+        var verifier = CompileAndVerify(comp, expectedOutput: "(4, 2, 4, 2)");
+        // we use Array.Length to get the length, but should be using ldlen
+        // Tracked by https://github.com/dotnet/roslyn/issues/57728
+        verifier.VerifyIL("C.Main", @"
+{
+  // Code size      118 (0x76)
+  .maxstack  5
+  .locals init (int[] V_0, //x
+                int[] V_1,
+                int[] V_2) //y
+  IL_0000:  ldc.i4.4
+  IL_0001:  newarr     ""int""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.1
+  IL_0008:  ldc.i4.4
+  IL_0009:  stelem.i4
+  IL_000a:  dup
+  IL_000b:  ldc.i4.2
+  IL_000c:  ldc.i4.2
+  IL_000d:  stelem.i4
+  IL_000e:  stloc.1
+  IL_000f:  ldloc.1
+  IL_0010:  brfalse.s  IL_0075
+  IL_0012:  ldloc.1
+  IL_0013:  callvirt   ""int System.Array.Length.get""
+  IL_0018:  ldc.i4.2
+  IL_0019:  blt.s      IL_0075
+  IL_001b:  ldloc.1
+  IL_001c:  ldc.i4.1
+  IL_001d:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_0022:  ldc.i4.1
+  IL_0023:  ldc.i4.1
+  IL_0024:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0029:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_002e:  call       ""int[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<int>(int[], System.Range)""
+  IL_0033:  stloc.0
+  IL_0034:  ldc.i4.4
+  IL_0035:  newarr     ""int""
+  IL_003a:  dup
+  IL_003b:  ldc.i4.1
+  IL_003c:  ldc.i4.4
+  IL_003d:  stelem.i4
+  IL_003e:  dup
+  IL_003f:  ldc.i4.2
+  IL_0040:  ldc.i4.2
+  IL_0041:  stelem.i4
+  IL_0042:  ldc.i4.1
+  IL_0043:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_0048:  ldc.i4.1
+  IL_0049:  ldc.i4.1
+  IL_004a:  newobj     ""System.Index..ctor(int, bool)""
+  IL_004f:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_0054:  call       ""int[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<int>(int[], System.Range)""
+  IL_0059:  stloc.2
+  IL_005a:  ldloc.0
+  IL_005b:  ldc.i4.0
+  IL_005c:  ldelem.i4
+  IL_005d:  ldloc.0
+  IL_005e:  ldc.i4.1
+  IL_005f:  ldelem.i4
+  IL_0060:  ldloc.2
+  IL_0061:  ldc.i4.0
+  IL_0062:  ldelem.i4
+  IL_0063:  ldloc.2
+  IL_0064:  ldc.i4.1
+  IL_0065:  ldelem.i4
+  IL_0066:  newobj     ""System.ValueTuple<int, int, int, int>..ctor(int, int, int, int)""
+  IL_006b:  box        ""System.ValueTuple<int, int, int, int>""
+  IL_0070:  call       ""void System.Console.Write(object)""
+  IL_0075:  ret
+}
+");
     }
 
     [Theory]

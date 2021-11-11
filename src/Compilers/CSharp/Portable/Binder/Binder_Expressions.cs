@@ -8074,14 +8074,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool argIsIndex = argIsIndexNotRange.Value();
             var receiverValEscape = receiverOpt switch
             {
-                BoundIndexOrRangeIndexerPatternReceiverPlaceholder { ValEscape: var valEscape } => valEscape,
                 BoundListPatternReceiverPlaceholder { ValEscape: var valEscape } => valEscape,
                 BoundSlicePatternReceiverPlaceholder { ValEscape: var valEscape } => valEscape,
                 _ => GetValEscape(receiverOpt, LocalScopeDepth)
             };
 
-            var receiverPlaceholder = new BoundIndexOrRangeIndexerPatternReceiverPlaceholder(receiverOpt.Syntax, receiverValEscape, receiverOpt, receiverOpt.Type) { WasCompilerGenerated = true };
-            if (!TryBindIndexOrRangeImplicitIndexer(syntax, receiverPlaceholder, receiverType, argIsIndex: argIsIndex,
+            var receiverPlaceholder = new BoundIndexOrRangeIndexerPatternReceiverPlaceholder(receiverOpt.Syntax, receiverValEscape, receiverOpt.Type) { WasCompilerGenerated = true };
+            if (!TryBindIndexOrRangeImplicitIndexerParts(syntax, receiverPlaceholder, receiverOpt, argIsIndex: argIsIndex,
                 out var lengthOrCountAccess, out var indexerOrSliceAccess, out var argumentPlaceholders, diagnostics))
             {
                 return false;
@@ -8093,11 +8092,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             implicitIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
                 syntax,
-                receiverOpt,
                 argument: BindToNaturalType(argument, diagnostics),
                 lengthOrCountAccess: lengthOrCountAccess,
-                indexerAccess: indexerOrSliceAccess,
                 receiverPlaceholder,
+                indexerAccess: indexerOrSliceAccess,
                 argumentPlaceholders,
                 indexerOrSliceAccess.Type);
 
@@ -8131,11 +8129,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Finds pattern-based implicit indexer and Length/Count property.
+        /// We'll use the receiver placeholder to bind the length access, but the real
+        /// receiver to bind the indexer access.
         /// </summary>
-        private bool TryBindIndexOrRangeImplicitIndexer(
+        private bool TryBindIndexOrRangeImplicitIndexerParts(
             SyntaxNode syntax,
-            BoundExpression? receiverOpt,
-            TypeSymbol receiverType,
+            BoundExpression receiverPlaceholder,
+            BoundExpression receiver,
             bool argIsIndex,
             [NotNullWhen(true)] out BoundExpression? lengthOrCountAccess,
             [NotNullWhen(true)] out BoundExpression? implicitIndexerAccess,
@@ -8154,8 +8154,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var lookupResult = LookupResult.GetInstance();
 
-            if (TryBindLengthOrCount(syntax, receiverOpt, receiverType, out lengthOrCountAccess, diagnostics) &&
-                TryFindIndexOrRangeImplicitIndexer(syntax, lookupResult, receiverOpt, receiverType, argIsIndex, out implicitIndexerAccess, out argumentPlaceholders, diagnostics))
+            if (TryBindLengthOrCount(syntax, receiverPlaceholder, out lengthOrCountAccess, diagnostics) &&
+                TryFindIndexOrRangeImplicitIndexer(syntax, lookupResult, receiver, argIsIndex, out implicitIndexerAccess, out argumentPlaceholders, diagnostics))
             {
                 CheckValue(lengthOrCountAccess, BindValueKind.RValue, diagnostics);
 
@@ -8172,16 +8172,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool TryBindLengthOrCount(
             SyntaxNode syntax,
-            BoundExpression? receiverOpt,
-            TypeSymbol receiverType,
+            BoundExpression receiver,
             [NotNullWhen(true)] out BoundExpression? lengthOrCountAccess,
             BindingDiagnosticBag diagnostics)
         {
             var lookupResult = LookupResult.GetInstance();
 
-            if (TryLookupLengthOrCount(syntax, receiverType, lookupResult, out var lengthOrCountProperty, diagnostics))
+            Debug.Assert(receiver.Type is not null);
+            if (TryLookupLengthOrCount(syntax, receiver.Type, lookupResult, out var lengthOrCountProperty, diagnostics))
             {
-                lengthOrCountAccess = BindPropertyAccess(syntax, receiverOpt, lengthOrCountProperty, diagnostics, lookupResult.Kind, hasErrors: false);
+                lengthOrCountAccess = BindPropertyAccess(syntax, receiver, lengthOrCountProperty, diagnostics, lookupResult.Kind, hasErrors: false);
                 ReportDiagnosticsIfObsolete(diagnostics, lengthOrCountProperty, syntax, hasBaseReceiver: false);
 
                 lookupResult.Free();
@@ -8202,13 +8202,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool TryFindIndexOrRangeImplicitIndexer(
             SyntaxNode syntax,
             LookupResult lookupResult,
-            BoundExpression? receiverOpt,
-            TypeSymbol receiverType,
+            BoundExpression receiver,
             bool argIsIndex,
             [NotNullWhen(true)] out BoundExpression? indexerOrSliceAccess,
             out ImmutableArray<BoundIndexOrRangeIndexerPatternValuePlaceholder> argumentPlaceholders,
             BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(receiver.Type is not null);
             var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
             Debug.Assert(lookupResult.IsClear);
@@ -8218,7 +8218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 LookupMembersInType(
                     lookupResult,
-                    receiverType,
+                    receiver.Type,
                     WellKnownMemberNames.Indexer,
                     arity: 0,
                     basesBeingResolved: null,
@@ -8242,21 +8242,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             var analyzedArguments = AnalyzedArguments.GetInstance();
                             analyzedArguments.Arguments.Add(intPlaceholder);
-                            indexerOrSliceAccess = BindIndexedPropertyAccess(syntax, receiverOpt, ImmutableArray.Create(property), analyzedArguments, diagnostics);
+                            indexerOrSliceAccess = BindIndexedPropertyAccess(syntax, receiver, ImmutableArray.Create(property), analyzedArguments, diagnostics);
                             analyzedArguments.Free();
                             return true;
                         }
                     }
                 }
             }
-            else if (receiverType.SpecialType == SpecialType.System_String)
+            else if (receiver.Type.SpecialType == SpecialType.System_String)
             {
                 Debug.Assert(!argIsIndex);
                 // Look for Substring
                 var substring = (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_String__Substring);
                 if (substring is object)
                 {
-                    makeCall(syntax, receiverOpt, substring, out indexerOrSliceAccess, out argumentPlaceholders);
+                    makeCall(syntax, receiver, substring, out indexerOrSliceAccess, out argumentPlaceholders);
                     return true;
                 }
             }
@@ -8267,7 +8267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 LookupMembersInType(
                     lookupResult,
-                    receiverType,
+                    receiver.Type,
                     WellKnownMemberNames.SliceMethodName,
                     arity: 0,
                     basesBeingResolved: null,
@@ -8292,8 +8292,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             method.AddUseSiteInfo(ref useSiteInfo);
                             diagnostics.ReportUseSite(method, syntax);
                             ReportDiagnosticsIfObsolete(diagnostics, method, syntax, hasBaseReceiver: false);
-                            CheckImplicitThisCopyInReadOnlyMember(receiverOpt, method, diagnostics);
-                            makeCall(syntax, receiverOpt, method, out indexerOrSliceAccess, out argumentPlaceholders);
+                            CheckImplicitThisCopyInReadOnlyMember(receiver, method, diagnostics);
+                            makeCall(syntax, receiver, method, out indexerOrSliceAccess, out argumentPlaceholders);
                             return true;
                         }
                     }

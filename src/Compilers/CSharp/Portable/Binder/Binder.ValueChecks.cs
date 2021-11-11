@@ -597,8 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CheckValueKind(node, implicitIndexerAccess.IndexerAccess, valueKind, checkingReceiver, diagnostics);
 
                 case BoundKind.IndexOrRangeIndexerPatternReceiverPlaceholder:
-                    var receiverPlaceholder = (BoundIndexOrRangeIndexerPatternReceiverPlaceholder)expr;
-                    return CheckValueKind(node, receiverPlaceholder.Expression, valueKind, checkingReceiver, diagnostics);
+                    break;
 
                 case BoundKind.DeconstructValuePlaceholder:
                     break;
@@ -635,35 +634,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
             Error(diagnostics, GetStandardLvalueError(valueKind), node);
             return false;
-        }
-
-        private static BoundExpression UnwrapPlaceholdersIfNeeded(BoundExpression? e)
-        {
-            switch (e)
-            {
-                case null:
-                    return null;
-
-                case BoundIndexOrRangeIndexerPatternReceiverPlaceholder placeholder:
-                    return placeholder.Expression;
-
-                case BoundSlicePatternReceiverPlaceholder:
-                case BoundListPatternReceiverPlaceholder:
-                case BoundObjectOrCollectionValuePlaceholder:
-                case BoundAwaitableValuePlaceholder:
-                case BoundInterpolatedStringHandlerPlaceholder:
-                case BoundDisposableValuePlaceholder:
-                    // TODO2
-                    return e;
-
-                case BoundDeconstructValuePlaceholder:
-                    // PROTOTYPE file issue
-                    return e;
-
-                default:
-                    Debug.Assert(e is not BoundValuePlaceholderBase, $"Placeholder kind {e.Kind} should be explicitly handled");
-                    return e;
-            }
         }
 
         private static bool CheckNotNamespaceOrType(BoundExpression expr, BindingDiagnosticBag diagnostics)

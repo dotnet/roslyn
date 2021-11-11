@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                hasErrors |= !TryBindLengthOrCount(node, receiverPlaceholder, receiverPlaceholder.Type, out lengthAccess, bindingDiagnostics);
+                hasErrors |= !TryBindLengthOrCount(node, receiverPlaceholder, out lengthAccess, bindingDiagnostics);
             }
 
             if (lengthAccess is null)

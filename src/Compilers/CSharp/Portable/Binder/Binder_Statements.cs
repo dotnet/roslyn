@@ -1539,6 +1539,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static PropertySymbol GetPropertySymbol(BoundExpression expr, out BoundExpression receiver, out SyntaxNode propertySyntax)
         {
+            if (expr is null)
+            {
+                receiver = null;
+                propertySyntax = null;
+                return null;
+            }
+
             PropertySymbol propertySymbol;
             switch (expr.Kind)
             {
@@ -1559,8 +1566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.IndexOrRangePatternIndexerAccess:
                     {
                         var implicitIndexerAccess = (BoundIndexOrRangePatternIndexerAccess)expr;
-                        receiver = implicitIndexerAccess.Receiver;
-                        propertySymbol = GetPropertySymbol(implicitIndexerAccess.IndexerAccess, out _, out propertySyntax);
+                        propertySymbol = GetPropertySymbol(implicitIndexerAccess.IndexerAccess, out receiver, out propertySyntax);
                     }
                     break;
                 default:
@@ -1602,7 +1608,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundIndexerAccess indexerAccess => indexerAccess.Indexer,
                 BoundCall call => call.Method,
                 BoundArrayAccess arrayAccess => arrayAccess.ExpressionSymbol,
-                _ => throw ExceptionUtilities.Unreachable
+                BoundBadExpression => null,
+                _ => throw ExceptionUtilities.UnexpectedValue(e.Kind)
             };
         }
 #nullable disable

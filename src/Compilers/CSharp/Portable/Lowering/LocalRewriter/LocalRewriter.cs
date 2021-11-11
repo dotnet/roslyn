@@ -414,15 +414,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return value;
         }
 
-        private BoundExpression UnwrapPlaceholderIfNeeded(BoundExpression expr)
-        {
-            if (expr is BoundValuePlaceholderBase placeholder)
-            {
-                expr = PlaceholderReplacement(placeholder);
-            }
-            return expr;
-        }
-
         [Conditional("DEBUG")]
         private static void AssertPlaceholderReplacement(BoundValuePlaceholderBase placeholder, BoundExpression value)
         {

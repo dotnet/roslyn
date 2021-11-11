@@ -1390,21 +1390,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Index or Range implicit indexers evaluate the following in order:
             // 1. The receiver
-            // 2. The Count or Length method off the receiver
-            // 3. The argument to the access
-            // 4. The pattern method
-            VisitRvalue(node.Receiver);
-            // TODO2
-            //var method = GetReadMethod(node.LengthOrCountProperty);
-            //VisitReceiverAfterCall(node.Receiver, method);
-            //VisitRvalue(node.Argument);
-            //method = node.PatternSymbol switch
-            //{
-            //    PropertySymbol p => GetReadMethod(p),
-            //    MethodSymbol m => m,
-            //    _ => throw ExceptionUtilities.UnexpectedValue(node.PatternSymbol)
-            //};
-            //VisitReceiverAfterCall(node.Receiver, method);
+            // 2. The argument to the access
+            // 3. The Count or Length method off the receiver
+            // 4. The underlying indexer access or method call
+            VisitRvalue(node.GetReceiver());
+            VisitRvalue(node.Argument);
 
             return null;
         }
