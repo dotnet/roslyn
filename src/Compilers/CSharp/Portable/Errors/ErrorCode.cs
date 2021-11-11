@@ -2001,6 +2001,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_CompileTimeCheckedOverflow = 8973,
         WRN_MethGrpToNonDel = 8974,
         ERR_LambdaExplicitReturnTypeVar = 8975,
+        ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers = 8976,
 
         #endregion
 
@@ -2011,6 +2012,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MisplacedSlicePattern = 9002,
 
         #endregion
+
+        ERR_CannotBeMadeNullable = 8977,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

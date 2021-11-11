@@ -1383,7 +1383,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     {
                         _project._workspace.ApplyChangeToWorkspace(w =>
                         {
-                            _project._workspace.AddDocumentToDocumentsNotFromFiles(documentInfo.Id);
+                            _project._workspace.AddDocumentToDocumentsNotFromFiles_NoLock(documentInfo.Id);
                             _documentAddAction(w, documentInfo);
                             w.OnDocumentOpened(documentInfo.Id, textContainer);
                         });
@@ -1554,7 +1554,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                 // TODO: Can't we just remove the document without closing it?
                                 w.OnDocumentClosed(documentId, new SourceTextLoader(textContainer, filePath: null));
                                 _documentRemoveAction(w, documentId);
-                                _project._workspace.RemoveDocumentToDocumentsNotFromFiles(documentId);
+                                _project._workspace.RemoveDocumentToDocumentsNotFromFiles_NoLock(documentId);
                             });
                         }
                     }

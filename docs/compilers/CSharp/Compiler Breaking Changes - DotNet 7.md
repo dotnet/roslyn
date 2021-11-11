@@ -13,7 +13,30 @@
     class var { }
     ```
 
-1. Beginning with C# 11.0, `Length` and `Count` properties on countable and indexable types
+2. In Visual Studio 17.1, indexers that take an interpolated string handler and require the receiver as an input for the constructor cannot be used in an object initializer.
+
+    ```cs
+    using System.Runtime.CompilerServices;
+    _ = new C { [$""] = 1 }; // error: Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.
+
+    class C
+    {
+        public int this[[InterpolatedStringHandlerArgument("")] CustomHandler c]
+        {
+            get => throw null;
+            set => throw null;
+        }
+    }
+
+    [InterpolatedStringHandler]
+    class CustomHandler
+    {
+        public CustomHandler(int literalLength, int formattedCount, C c) {}
+    }
+    ```
+    ```
+
+3. Beginning with C# 11.0, `Length` and `Count` properties on countable and indexable types
 are assumed to be non-negative for purpose of subsumption and exhaustiveness analysis of patterns and switches.
 Those types can be used with implicit Index indexer and list patterns.
 

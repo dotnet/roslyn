@@ -4,13 +4,16 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -38,10 +41,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             public SymbolDescriptionBuilder(
                 SemanticModel semanticModel,
                 int position,
-                Workspace workspace,
+                HostWorkspaceServices workspaceServices,
                 IStructuralTypeDisplayService structuralTypeDisplayService,
+                SymbolDescriptionOptions options,
                 CancellationToken cancellationToken)
-                : base(semanticModel, position, workspace, structuralTypeDisplayService, cancellationToken)
+                : base(semanticModel, position, workspaceServices, structuralTypeDisplayService, options, cancellationToken)
             {
             }
 
@@ -190,8 +194,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                     if (semanticModel != null)
                     {
                         return await Classifier.GetClassifiedSymbolDisplayPartsAsync(
-                            semanticModel, equalsValue.Value.Span,
-                            Workspace, cancellationToken: CancellationToken).ConfigureAwait(false);
+                            Services, semanticModel, equalsValue.Value.Span,
+                            Options.ClassificationOptions, cancellationToken: CancellationToken).ConfigureAwait(false);
                     }
                 }
 
@@ -210,8 +214,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 }
             }
 
-            protected override void InlineAllDelegateAnonymousTypes()
+            protected override void InlineAllDelegateAnonymousTypes(SemanticModel semanticModel, int position, IStructuralTypeDisplayService structuralTypeDisplayService, Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> groupMap)
             {
+                // In C#, anonymous delegates are typically represented with System.Action<> or System.Func<>,
+                // and we prefer to display those types rather than a structural delegate type.
             }
 
             protected override SymbolDisplayFormat MinimallyQualifiedFormat => s_minimallyQualifiedFormat;

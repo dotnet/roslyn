@@ -2,10 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Storage.CloudCache;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.RpcContracts.Caching;
 using Microsoft.VisualStudio.Shell;
@@ -16,6 +20,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
 {
     internal class VisualStudioCloudCacheStorageService : AbstractCloudCachePersistentStorageService
     {
+        [ExportWorkspaceServiceFactory(typeof(ICloudCacheStorageService), ServiceLayer.Host), Shared]
+        internal class ServiceFactory : IWorkspaceServiceFactory
+        {
+            private readonly IAsyncServiceProvider _serviceProvider;
+
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public ServiceFactory(SVsServiceProvider serviceProvider)
+                => _serviceProvider = (IAsyncServiceProvider)serviceProvider;
+
+            public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+                => new VisualStudioCloudCacheStorageService(_serviceProvider, workspaceServices.GetRequiredService<IPersistentStorageConfiguration>());
+        }
+
         private readonly IAsyncServiceProvider _serviceProvider;
 
         public VisualStudioCloudCacheStorageService(IAsyncServiceProvider serviceProvider, IPersistentStorageConfiguration configuration)

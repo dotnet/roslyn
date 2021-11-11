@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return null;
                 }
 
-                if (document.Project.Solution.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
+                if (GlobalOptions.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
                     state.Target.Owner._codeRefactoringService != null &&
                     state.Target.SubjectBuffer.SupportsRefactorings())
                 {

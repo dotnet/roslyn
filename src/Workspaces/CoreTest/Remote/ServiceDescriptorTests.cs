@@ -173,6 +173,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             ServiceDescriptor descriptorCoreClr64ServerGC)
         {
             Assert.NotNull(serviceInterface);
+
             var expectedName = descriptor64.GetFeatureDisplayName();
 
             // The service name couldn't be found. It may need to be added to RemoteWorkspacesResources.resx as FeatureName_{name}

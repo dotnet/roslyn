@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyPropertyPattern
@@ -696,6 +697,52 @@ class C
                 LanguageVersion = LanguageVersion.CSharp10,
                 CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipFixAllCheck,
                 DiagnosticSelector = ds => ds[1],
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
+        [WorkItem(57674, "https://github.com/dotnet/roslyn/issues/57674")]
+        public async Task TestTuplePattern()
+        {
+            var testCode = @"
+record R(int Prop);
+
+class C
+{
+    void S(R r)
+    {
+        _ = (A: r, r) is (A: { Prop: { } }, _);
+    }
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+                LanguageVersion = LanguageVersion.CSharp10,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
+        [WorkItem(57674, "https://github.com/dotnet/roslyn/issues/57674")]
+        public async Task TestPositionalPattern()
+        {
+            var testCode = @"
+record R(R Child, int Value);
+
+class C
+{
+    void S(R r)
+    {
+        _ = r is R(Child: { Child: { } }, _);
+    }
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+                LanguageVersion = LanguageVersion.CSharp10,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
         }
     }
