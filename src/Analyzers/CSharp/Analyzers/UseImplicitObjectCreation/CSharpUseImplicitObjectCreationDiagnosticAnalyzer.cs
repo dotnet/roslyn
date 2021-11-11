@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
                 objectCreation.Parent.Parent is ObjectCreationExpressionSyntax collectionObjectCreation)
             {
                 var collectionTypeSymbol = semanticModel.GetTypeInfo(collectionObjectCreation, cancellationToken).Type!;
-                var targetTypeSymbol = semanticModel.GetTypeInfo(objectCreation, cancellationToken).Type!;
+                var targetTypeSymbol = semanticModel.GetTypeInfo(objectCreation, cancellationToken).ConvertedType!;
                 var argumentTypeSymbols = new[] { targetTypeSymbol }.ToImmutableList();
 
                 typeNodeSymbol = CSharpUseImplicitTypeHelper.GetTypeSymbolThatSatisfiesCollectionInitializer(
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
                 var complexInitializerExpression = (InitializerExpressionSyntax)objectCreation.Parent;
                 var expressions = complexInitializerExpression.Expressions;
                 var argumentTypeSymbols = expressions
-                    .Select(e => semanticModel.GetTypeInfo(e, cancellationToken).Type!)
+                    .Select(e => semanticModel.GetTypeInfo(e, cancellationToken).ConvertedType!)
                     .ToImmutableList()!;
 
                 var targetIndex = expressions.IndexOf(objectCreation);

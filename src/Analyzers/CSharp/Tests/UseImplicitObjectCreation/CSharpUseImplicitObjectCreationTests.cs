@@ -761,6 +761,37 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestWithComplexCollectionInitializerExpressionConvertedType()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    void bar()
+    {
+        var a = new System.Collections.Generic.Dictionary<double, C>
+        {
+            { 1, new [|C|]() },
+        };
+    }
+}",
+                FixedCode = @"
+class C
+{
+    void bar()
+    {
+        var a = new System.Collections.Generic.Dictionary<double, C>
+        {
+            { 1, new() },
+        };
+    }
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
         public async Task TestWithCustomComplexCollectionInitializerExpression()
         {
             var customCollectionClassCode = @"
