@@ -9,12 +9,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Storage;
+using Microsoft.CodeAnalysis.Storage.CloudCache;
 using Microsoft.VisualStudio.RpcContracts.Caching;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Storage
 {
-    internal abstract class AbstractCloudCachePersistentStorageService : AbstractPersistentStorageService
+    internal abstract class AbstractCloudCachePersistentStorageService : AbstractPersistentStorageService, ICloudCacheStorageService
     {
         private const string StorageExtension = "CloudCache";
 

@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -39,8 +40,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InheritanceMarginTaggerProvider(
             IThreadingContext threadingContext,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider) : base(
                 threadingContext,
+                globalOptions,
                 listenerProvider.GetListener(FeatureAttribute.InheritanceMargin))
         {
         }
@@ -87,11 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 return;
             }
 
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var optionValue = optionSet.GetOption(FeatureOnOffOptions.ShowInheritanceMargin);
-
-            var shouldDisableFeature = optionValue == false;
-            if (shouldDisableFeature)
+            if (GlobalOptions.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, document.Project.Language) == false)
             {
                 return;
             }
