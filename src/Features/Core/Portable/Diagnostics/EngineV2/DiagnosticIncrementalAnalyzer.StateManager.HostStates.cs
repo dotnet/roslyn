@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public IEnumerable<StateSet> GetAllHostStateSets()
             {
                 var analyzerReferencesMap = _workspace.CurrentSolution.State.Analyzers.GetHostAnalyzerReferencesMap();
-                foreach (var key in _hostAnalyzerStateMap.Keys)
+                foreach (var (key, value) in _hostAnalyzerStateMap)
                 {
                     if (key.AnalyzerReferences == analyzerReferencesMap)
                     {
-                        foreach (var stateSet in _hostAnalyzerStateMap[key].OrderedStateSets)
+                        foreach (var stateSet in value.OrderedStateSets)
                         {
                             yield return stateSet;
                         }
