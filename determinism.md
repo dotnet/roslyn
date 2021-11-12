@@ -32,7 +32,10 @@ namespace Microsoft.CodeAnalysis
 {
     public class Compilation
     {
-+       public string GetDeterministicKey(
++       public static string GetDeterministicKey(
++           CompilationOptions compilationOptions,
++           ImmutableArray<SyntaxTree> syntaxTrees,
++           ImmutableArray<MetadataReference> references,
 +           ImmutableArray<AdditionalText> additionalTexts = default,
 +           ImmutableArray<DiagnosticAnalyzer> analyzers = default,
 +           ImmutableArray<ISourceGenerator> generators = default,

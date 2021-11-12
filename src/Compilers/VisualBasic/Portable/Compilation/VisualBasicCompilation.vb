@@ -747,10 +747,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 eventQueue:=eventQueue)
         End Function
 
-        Friend Overrides Function CreateDeterministicKeyBuilder() As DeterministicKeyBuilder
-            Return New VisualBasicDeterministicKeyBuilder()
-        End Function
-
         Friend Overrides Sub SerializePdbEmbeddedCompilationOptions(builder As BlobBuilder)
             ' LanguageVersion should already be mapped to an effective version at this point
             Debug.Assert(LanguageVersion.MapSpecifiedToEffectiveVersion() = LanguageVersion)

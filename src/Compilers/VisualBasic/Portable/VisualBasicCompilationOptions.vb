@@ -351,6 +351,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return importNames.ToImmutableAndFree()
         End Function
 
+        Friend Overrides Function CreateDeterministicKeyBuilder() As DeterministicKeyBuilder
+            Return New VisualBasicDeterministicKeyBuilder()
+        End Function
+
         ''' <summary>
         ''' Gets the global imports collection.
         ''' </summary>

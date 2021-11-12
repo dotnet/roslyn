@@ -107,7 +107,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal string GetKey(
-            Compilation compilation,
+            CompilationOptions compilationOptions,
+            ImmutableArray<SyntaxTree> syntaxTrees,
+            ImmutableArray<MetadataReference> references,
             ImmutableArray<AdditionalText> additionalTexts = default,
             ImmutableArray<DiagnosticAnalyzer> analyzers = default,
             ImmutableArray<ISourceGenerator> generators = default,
@@ -123,7 +125,7 @@ namespace Microsoft.CodeAnalysis
             writer.WriteObjectStart();
 
             writer.WriteKey("compilation");
-            WriteCompilation(writer, compilation, options);
+            WriteCompilation(writer, compilationOptions, syntaxTrees, references, options);
             writer.WriteKey("additionalTexts");
             writeAdditionalTexts();
             writer.WriteKey("analyzers");
@@ -179,17 +181,22 @@ namespace Microsoft.CodeAnalysis
             return builder.ToStringAndFree();
         }
 
-        private void WriteCompilation(JsonWriter writer, Compilation compilation, DeterministicKeyOptions options)
+        private void WriteCompilation(
+            JsonWriter writer,
+            CompilationOptions compilationOptions,
+            ImmutableArray<SyntaxTree> syntaxTrees,
+            ImmutableArray<MetadataReference> references,
+            DeterministicKeyOptions options)
         {
             writer.WriteObjectStart();
             writeToolsVersions();
 
             writer.WriteKey("options");
-            WriteCompilationOptions(writer, compilation.Options);
+            WriteCompilationOptions(writer, compilationOptions);
 
             writer.WriteKey("syntaxTrees");
             writer.WriteArrayStart();
-            foreach (var syntaxTree in compilation.SyntaxTrees)
+            foreach (var syntaxTree in syntaxTrees)
             {
                 WriteSyntaxTree(writer, syntaxTree, options);
             }
@@ -197,7 +204,7 @@ namespace Microsoft.CodeAnalysis
 
             writer.WriteKey("references");
             writer.WriteArrayStart();
-            foreach (var reference in compilation.References)
+            foreach (var reference in references)
             {
                 WriteMetadataReference(writer, reference);
             }
