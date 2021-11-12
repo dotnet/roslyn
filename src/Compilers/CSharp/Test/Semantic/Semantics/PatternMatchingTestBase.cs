@@ -441,7 +441,6 @@ namespace System.Runtime.CompilerServices
             Assert.Equal(CandidateReason.None, info.CandidateReason);
         }
 
-        [Conditional("DEBUG")]
         protected static void VerifyDecisionDagDump<T>(Compilation comp, string expectedDecisionDag, int index = 0)
             where T : CSharpSyntaxNode
         {
