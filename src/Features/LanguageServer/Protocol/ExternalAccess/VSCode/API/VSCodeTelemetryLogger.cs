@@ -40,13 +40,13 @@ internal abstract class VSCodeTelemetryLogger : ILogger
 
     public abstract bool IsEnabled(string functionId);
 
-    public abstract void Log(string functionId, IEnumerable<KeyValuePair<string, object>>? properties, CancellationToken cancellationToken);
+    public abstract void Log(string functionId, IEnumerable<KeyValuePair<string, object?>>? properties, CancellationToken cancellationToken);
 
-    public abstract void LogBlockStart(string functionId, IEnumerable<KeyValuePair<string, object>>? properties, CancellationToken cancellationToken);
+    public abstract void LogBlockStart(string functionId, IEnumerable<KeyValuePair<string, object?>>? properties, CancellationToken cancellationToken);
 
-    public abstract void LogBlockEnd(string functionId, IEnumerable<KeyValuePair<string, object>>? properties, CancellationToken cancellationToken);
+    public abstract void LogBlockEnd(string functionId, IEnumerable<KeyValuePair<string, object?>>? properties, CancellationToken cancellationToken);
 
-    private static IEnumerable<KeyValuePair<string, object>>? GetProperties(LogMessage logMessage)
+    private static IEnumerable<KeyValuePair<string, object?>>? GetProperties(LogMessage logMessage)
     {
         return logMessage is KeyValueLogMessage kvMessage ? kvMessage.Properties : null;
     }
