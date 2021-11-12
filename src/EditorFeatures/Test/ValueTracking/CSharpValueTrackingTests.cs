@@ -1009,5 +1009,50 @@ class Test
             await ValidateChildrenEmptyAsync(workspace, items[2]);
             await ValidateChildrenEmptyAsync(workspace, items[3]);
         }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestPropertyValue(TestHost testHost)
+        {
+            var code =
+@"
+class Test
+{
+    private int _i;
+    public int I 
+    {
+        get => _i;
+        set 
+        {
+            _i = $$value;
+        }
+    }
+
+    public int M(Test localTest)
+    {
+        localTest.I = 5;
+    }
+}";
+            //  _i = [|value|]; [Code.cs:9]
+            //    |> localTest.I = [|5|]; [Code.cs:15]
+            using var workspace = CreateWorkspace(code, testHost);
+
+            var items = await ValidateItemsAsync(
+                workspace,
+                itemInfo: new[]
+                {
+                    (9, "value") // _i = [|value|]; [Code.cs:9]
+                });
+
+            items = await ValidateChildrenAsync(
+                workspace,
+                items.Single(),
+                childInfo: new[]
+                {
+                    (15, "5") // localTest.I = [|5|]; [Code.cs:15]
+                });
+
+            await ValidateChildrenEmptyAsync(workspace, items.Single());
+        }
     }
 }
