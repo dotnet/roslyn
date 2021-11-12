@@ -89,9 +89,9 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 else if (symbol is IPropertySymbol { IsIndexer: true } propertySymbol)
                 {
                     // If the location isn't written to but it's an index accessor we still want to follow
-                    // it as a source to be tracked for the property itself. This can come in a lot of forms so get 
-                    // the parent operation of the element access expression and let the operation collector take care 
-                    // of it from there
+                    // it as a source to be tracked for the property itself. Specifically, we want to check
+                    // invocation sites and track the arguments being used in the invocation and potentially
+                    // the expression being indexed to, if it is relavent (as determined by the OperationCollector).
                     var node = location.Location.FindNode(cancellationToken);
                     var syntaxFacts = location.Document.GetRequiredLanguageService<ISyntaxFactsService>();
 
