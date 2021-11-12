@@ -123,6 +123,44 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract void SerializePdbEmbeddedCompilationOptions(BlobBuilder builder);
 
+        public static string GetDeterministicKey(
+            CompilationOptions compilationOptions,
+            ImmutableArray<SyntaxTree> syntaxTrees,
+            ImmutableArray<MetadataReference> references,
+            ImmutableArray<AdditionalText> additionalTexts = default,
+            ImmutableArray<DiagnosticAnalyzer> analyzers = default,
+            ImmutableArray<ISourceGenerator> generators = default,
+            EmitOptions? emitOptions = null,
+            DeterministicKeyOptions options = DeterministicKeyOptions.Default)
+        {
+            var keyBuilder = compilationOptions.CreateDeterministicKeyBuilder();
+            return keyBuilder.GetKey(
+                compilationOptions,
+                syntaxTrees,
+                references,
+                additionalTexts.NullToEmpty(),
+                analyzers.NullToEmpty(),
+                generators.NullToEmpty(),
+                emitOptions,
+                options);
+        }
+
+        internal string GetDeterministicKey(
+            ImmutableArray<AdditionalText> additionalTexts = default,
+            ImmutableArray<DiagnosticAnalyzer> analyzers = default,
+            ImmutableArray<ISourceGenerator> generators = default,
+            EmitOptions? emitOptions = null,
+            DeterministicKeyOptions options = DeterministicKeyOptions.Default)
+            => GetDeterministicKey(
+                Options,
+                CommonSyntaxTrees,
+                ExternalReferences.Concat(DirectiveReferences),
+                additionalTexts,
+                analyzers,
+                generators,
+                emitOptions,
+                options);
+
         internal static void ValidateScriptCompilationParameters(Compilation? previousScriptCompilation, Type? returnType, ref Type? globalsType)
         {
             if (globalsType != null && !IsValidHostObjectType(globalsType))
