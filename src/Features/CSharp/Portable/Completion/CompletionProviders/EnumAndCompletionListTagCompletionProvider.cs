@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static INamedTypeSymbol? TryGetTypeWithStaticMembers(ITypeSymbol type)
         {
             if (type.TypeKind is TypeKind.Struct or TypeKind.Class)
-                return type as INamedTypeSymbol;
+                return type.WithNullableAnnotation(NullableAnnotation.NotAnnotated) as INamedTypeSymbol;
 
             return null;
         }
