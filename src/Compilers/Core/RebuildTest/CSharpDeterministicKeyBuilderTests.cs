@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 checksumAlgorithm: SourceHashAlgorithm.Sha1);
             var compilation = CSharpTestBase.CreateCompilation(source);
             var key = compilation.GetDeterministicKey(options: options);
-            var expected = @$"{{
+            var expected = @$"
 ""syntaxTrees"": [
   {{
     ""fileName"": ""{Roslyn.Utilities.JsonWriter.EscapeString(expectedPath)}"",
@@ -165,9 +165,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""specifiedLanguageVersion"": ""Preview""
     }}
   }}
-]
-}}";
-            AssertJsonSection(expected, key, "syntaxTrees");
+]";
+            AssertJsonSection(expected, key, "compilation.syntaxTrees");
         }
 
         [Theory]
@@ -183,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var contentChecksum = GetChecksum(syntaxTree.GetText());
             var compilation = CSharpTestBase.CreateCompilation(syntaxTree);
             var key = compilation.GetDeterministicKey();
-            var expected = @$"{{
+            var expected = @$"
 ""syntaxTrees"": [
   {{
     ""fileName"": ""file.cs"",
@@ -197,9 +196,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""specifiedLanguageVersion"": ""Preview""
     }}
   }}
-]
-}}";
-            AssertJsonSection(expected, key, "syntaxTrees");
+]";
+            AssertJsonSection(expected, key, "compilation.syntaxTrees");
         }
 
         [Theory]
@@ -217,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
             var compilation = CSharpTestBase.CreateCompilation(syntaxTree);
             var key = compilation.GetDeterministicKey(additionalTexts: ImmutableArray.Create<AdditionalText>(additionalText));
-            var expected = @$"{{
+            var expected = @$"
 ""additionalTexts"": [
   {{
     ""fileName"": ""file.txt"",
@@ -225,10 +223,9 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""checksum"": ""{contentChecksum}"",
       ""checksumAlgorithm"": ""Sha256"",
       ""encoding"": ""Unicode (UTF-8)""
-    }},
+    }}
   }}
-]
-}}";
+]";
             AssertJsonSection(expected, key, "additionalTexts");
         }
 

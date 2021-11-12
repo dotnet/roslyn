@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 NetCoreApp.References,
                 options: BasicOptions);
             var key = compilation.GetDeterministicKey(additionalTexts: ImmutableArray.Create<AdditionalText>(additionalText));
-            var expected = @$"{{
+            var expected = @$"
 ""additionalTexts"": [
   {{
     ""fileName"": ""file.txt"",
@@ -75,11 +75,44 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""checksum"": ""{contentChecksum}"",
       ""checksumAlgorithm"": ""Sha256"",
       ""encoding"": ""Unicode (UTF-8)""
-    }},
+    }}
   }}
-]
-}}";
+]";
             AssertJsonSection(expected, key, "additionalTexts");
+        }
+
+        [Fact]
+        public void GlobalImports()
+        {
+            var syntaxTree = VisualBasicSyntaxTree.ParseText(
+                "",
+                path: "file.vb");
+
+            var options = BasicOptions
+                .WithGlobalImports(new[]
+                {
+                    GlobalImport.Parse(@"<xmlns:xmlNamespacePrefix = ""xmlNamespaceName"">"),
+                    GlobalImport.Parse("System.Xml")
+                });
+            var compilation = VisualBasicCompilation.Create(
+                "test",
+                new[] { syntaxTree },
+                NetCoreApp.References,
+                options: options);
+            var key = compilation.GetDeterministicKey();
+            var expected = @"
+""globalImports"": [
+  {
+    ""name"": ""<xmlns:xmlNamespacePrefix = \""xmlNamespaceName\"">"",
+    ""isXml"": true
+  },
+  {
+    ""name"": ""System.Xml"",
+    ""isXml"": false
+  }
+]";
+
+            AssertJsonSection(expected, key, "compilation.options.globalImports");
         }
     }
 }

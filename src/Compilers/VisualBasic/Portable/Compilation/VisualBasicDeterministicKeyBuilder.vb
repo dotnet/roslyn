@@ -63,6 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     writer.Write("isXml", import.IsXmlClause)
                     writer.WriteObjectEnd()
                 Next
+                writer.WriteArrayEnd()
             End If
 
             writer.WriteKey("parseOptions")
