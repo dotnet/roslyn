@@ -53,7 +53,7 @@ internal partial class SolutionState
         /// where N threads come in and try to get the skeleton for a particular project.  This way they will instead
         /// yield if something else is computing and will then use the single instance computed once one thread succeeds.
         /// </summary>
-        private readonly SemaphoreSlim _emitGate = new(initialCount: 1);
+        private static readonly SemaphoreSlim _emitGate = new(initialCount: 1);
 
         /// <summary>
         /// Lock around <see cref="_version"/> and <see cref="_skeletonReferenceSet"/> to ensure they are updated/read 

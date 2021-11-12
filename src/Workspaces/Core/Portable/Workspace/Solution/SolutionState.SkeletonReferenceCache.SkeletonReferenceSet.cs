@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -23,6 +24,12 @@ internal partial class SolutionState
             private const string s_peStreamKey = "PeStream";
             private const string s_xmlDocumentationStreamKey = "XmlDocumentationStream";
             private const string s_assemblyNameKey = "AssemblyName";
+
+            /// <summary>
+            /// A map to ensure that the streams from the temporary storage service that back the metadata we create stay alive as long
+            /// as the metadata is alive.
+            /// </summary>
+            private static readonly ConditionalWeakTable<AssemblyMetadata, ISupportDirectMemoryAccess> s_metadataToBackingMemoryMap = new();
 
             private readonly ITemporaryStreamStorage _peStreamStorage;
             private readonly ITemporaryStreamStorage _xmlDocumentationStreamStorage;
@@ -49,9 +56,15 @@ internal partial class SolutionState
                 _assemblyName = assemblyName;
 
                 var peStream = _peStreamStorage.ReadStream();
-                _assemblyMetadata = peStream is ISupportDirectMemoryAccess supportNativeMemory
-                    ? AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(supportNativeMemory.GetPointer(), (int)peStream.Length))
-                    : AssemblyMetadata.CreateFromStream(peStream);
+                if (peStream is ISupportDirectMemoryAccess supportDirectMemory)
+                {
+                    _assemblyMetadata = AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(supportDirectMemory.GetPointer(), (int)peStream.Length));
+                    s_metadataToBackingMemoryMap.Add(_assemblyMetadata, supportDirectMemory);
+                }
+                else
+                {
+                    _assemblyMetadata = AssemblyMetadata.CreateFromStream(peStream);
+                }
 
                 _xmlDocumentationProvider = XmlDocumentationProvider.CreateFromStream(_xmlDocumentationStreamStorage.ReadStream());
             }
