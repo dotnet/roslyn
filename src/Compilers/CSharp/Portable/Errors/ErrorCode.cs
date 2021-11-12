@@ -2009,7 +2009,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        ERR_CannotBeMadeNullable = 8977,
+        ERR_CannotBeMadeNullable = 8978,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
