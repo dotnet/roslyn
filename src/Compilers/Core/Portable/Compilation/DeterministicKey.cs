@@ -10,9 +10,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal abstract class SyntaxTreeKey
+    public abstract class SyntaxTreeKey
     {
-        public abstract string FilePath { get; }
+        public abstract string? FilePath { get; }
         public abstract ParseOptions Options { get; }
 
         protected SyntaxTreeKey()
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
                 _tree = tree;
             }
 
-            public override string FilePath
+            public override string? FilePath
                 => _tree.FilePath;
 
             public override ParseOptions Options
@@ -44,9 +44,11 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
-    internal static class DeterministicKey
+    public static class DeterministicKey
     {
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static string GetDeterministicKey(
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
             CompilationOptions compilationOptions,
             ImmutableArray<SyntaxTree> syntaxTrees,
             ImmutableArray<MetadataReference> references,
@@ -69,9 +71,11 @@ namespace Microsoft.CodeAnalysis
                 cancellationToken);
         }
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static string GetDeterministicKey(
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
             CompilationOptions compilationOptions,
-            ImmutableArray<SyntaxTreeKey> syntaxTrees,
+            ImmutableArray<SyntaxTreeKey> syntaxTreeKeys,
             ImmutableArray<MetadataReference> references,
             ImmutableArray<AdditionalText> additionalTexts = default,
             ImmutableArray<DiagnosticAnalyzer> analyzers = default,
@@ -83,7 +87,7 @@ namespace Microsoft.CodeAnalysis
             var keyBuilder = compilationOptions.CreateDeterministicKeyBuilder();
             return keyBuilder.GetKey(
                 compilationOptions,
-                syntaxTrees,
+                syntaxTreeKeys,
                 references,
                 additionalTexts.NullToEmpty(),
                 analyzers.NullToEmpty(),

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +18,9 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -1097,7 +1100,7 @@ namespace Microsoft.CodeAnalysis
                 using var tempChecksumArray = TemporaryArray<Checksum>.Empty;
 
                 // Get the checksum for the project itself.
-                var projectChecksum = await this.ProjectState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+                var projectChecksum = await GetChecksumAsync(ProjectState, cancellationToken).ConfigureAwait(false);
                 tempChecksumArray.Add(projectChecksum);
 
                 // Calculate a checksum this project and for each dependent project that could affect semantics for
@@ -1118,14 +1121,107 @@ namespace Microsoft.CodeAnalysis
 
                     // Note that these checksums should only actually be calculated once, if the project is unchanged
                     // the same checksum will be returned.
-                    var referencedProjectChecksum = await referencedProject.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+                    var referencedProjectChecksum = await GetChecksumAsync(referencedProject, cancellationToken).ConfigureAwait(false);
                     tempChecksumArray.Add(referencedProjectChecksum);
                 }
 
                 return Checksum.Create(tempChecksumArray.ToImmutableAndClear());
+
+                async Task<Checksum> GetChecksumAsync(ProjectState projectState, CancellationToken cancellationToken)
+                {
+                    if (!projectState.SupportsCompilation)
+                        return await projectState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+
+                    var compilerKey = DeterministicKey.GetDeterministicKey(
+                        projectState.CompilationOptions!,
+                        projectState.DocumentStates.States.Values.OrderBy(s => (s.FilePath, s.Name)).SelectAsArray(s => DocumentStateSyntaxTreeKey.Create(s)),
+                        projectState.MetadataReferences.OrderBy(r => r.Display).ToImmutableArray(),
+                        projectState.AdditionalDocumentStates.States.Values.OrderBy(s => (s.FilePath, s.Name)).SelectAsArray(s => s.AdditionalText),
+                        cancellationToken: cancellationToken);
+
+                    using var _1 = PooledStringBuilder.GetInstance(out var projectKeyBuilder);
+                    {
+                        using var _2 = new StringWriter(projectKeyBuilder);
+                        using var writer = new JsonWriter(_2);
+
+                        writer.WriteObjectStart();
+
+                        writer.WriteKey("analyzerConfigDocumentStates");
+
+                        foreach (var state in projectState.AnalyzerConfigDocumentStates.States.Values.OrderBy(s => (s.FilePath, s.Name)))
+                        {
+                            writer.WriteObjectStart();
+
+                            writer.WriteKey("filePath");
+                            Write(state.FilePath);
+                            writer.WriteKey("name");
+                            Write(state.Name);
+
+                            writer.Write("checksum");
+                            var checksum = await state.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+                            Write(checksum.ToString());
+
+                            writer.WriteObjectEnd();
+                        }
+
+                        writer.WriteKey("analyzerReferences");
+
+                        var serializer = solution.Workspace.Services.GetRequiredService<ISerializerService>();
+                        foreach (var reference in projectState.AnalyzerReferences.OrderBy(r => (r.FullPath, r.Display)))
+                        {
+                            writer.WriteObjectStart();
+
+                            writer.WriteKey("fullPath");
+                            Write(reference.FullPath);
+                            writer.WriteKey("display");
+                            Write(reference.Display);
+
+                            writer.Write("checksum");
+                            var checksum = serializer.CreateChecksum(reference, cancellationToken);
+                            Write(checksum.ToString());
+
+                            writer.WriteObjectEnd();
+                        }
+
+                        writer.WriteObjectEnd();
+
+                        void Write(string? value)
+                        {
+                            if (value == null)
+                                writer.WriteNull();
+                            else
+                                writer.Write(value);
+                        }
+                    }
+
+                    projectKeyBuilder.AppendLine();
+                    projectKeyBuilder.Append(compilerKey);
+                    var fullKey = projectKeyBuilder.ToString();
+                    return Checksum.Create(fullKey);
+                }
             }
 
             #endregion
+
+            private sealed class DocumentStateSyntaxTreeKey : SyntaxTreeKey
+            {
+                private readonly DocumentState _state;
+
+                private DocumentStateSyntaxTreeKey(DocumentState state)
+                {
+                    _state = state;
+                }
+
+                public static SyntaxTreeKey Create(DocumentState state)
+                    => new DocumentStateSyntaxTreeKey(state);
+
+                public override string? FilePath => _state.FilePath;
+
+                public override ParseOptions Options => _state.ParseOptions!;
+
+                public override SourceText GetText(CancellationToken cancellationToken = default)
+                    => _state.GetTextSynchronously(cancellationToken);
+            }
         }
     }
 }
