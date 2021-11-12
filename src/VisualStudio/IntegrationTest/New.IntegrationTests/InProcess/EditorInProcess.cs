@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -29,8 +30,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
     internal class EditorInProcess : InProcComponent
     {
-        internal static readonly Guid IWpfTextViewId = new("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
-
         public EditorInProcess(TestServices testServices)
             : base(testServices)
         {
@@ -166,11 +165,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             var cmdID = VSConstants.VSStd14CmdID.ShowQuickFixes;
             object? obj = null;
             shell.PostExecCommand(cmdGroup, (uint)cmdID, (uint)cmdExecOpt, ref obj);
-        }
-
-        public async Task WaitForLightBulbSessionAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var view = await GetActiveTextViewAsync(cancellationToken);
             var broker = await GetComponentModelServiceAsync<ILightBulbBroker>(cancellationToken);
@@ -183,7 +177,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.DiagnosticService, cancellationToken);
 
             await ShowLightBulbAsync(cancellationToken);
-            await WaitForLightBulbSessionAsync(cancellationToken);
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb, cancellationToken);
         }
 
@@ -266,7 +259,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
                     var bufferType = view.TextBuffer.ContentType.DisplayName;
                     throw new InvalidOperationException(
-                        string.Format("ISuggestedAction {0} not found.  Buffer content type={1}\r\nActions: {2}", actionName, bufferType, sb.ToString()));
+                        $"ISuggestedAction {actionName} not found.  Buffer content type={bufferType}\r\nActions: {sb}");
                 }
 
                 if (fixAllScope != null)
@@ -280,7 +273,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                     var fixAllAction = await GetFixAllSuggestedActionAsync(actionSetsForAction, fixAllScope.Value, cancellationToken);
                     if (fixAllAction == null)
                     {
-                        throw new InvalidOperationException($"Unable to find FixAll in {fixAllScope.ToString()} code fix for suggested action '{action.DisplayText}'.");
+                        throw new InvalidOperationException($"Unable to find FixAll in {fixAllScope} code fix for suggested action '{action.DisplayText}'.");
                     }
 
                     action = fixAllAction;
@@ -334,14 +327,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             if (!broker.IsLightBulbSessionActive(view))
             {
                 var bufferType = view.TextBuffer.ContentType.DisplayName;
-                throw new Exception(string.Format("No light bulb session in View!  Buffer content type={0}", bufferType));
+                throw new Exception($"No light bulb session in View!  Buffer content type={bufferType}");
             }
 
             var activeSession = broker.GetSession(view);
             if (activeSession == null)
             {
                 var bufferType = view.TextBuffer.ContentType.DisplayName;
-                throw new InvalidOperationException(string.Format("No expanded light bulb session found after View.ShowSmartTag.  Buffer content type={0}", bufferType));
+                throw new InvalidOperationException($"No expanded light bulb session found after View.ShowSmartTag.  Buffer content type={bufferType}");
             }
 
             var actionSets = await LightBulbHelper.WaitForItemsAsync(broker, view, cancellationToken);
@@ -513,7 +506,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
             var activeVsTextView = (IVsUserData)await GetActiveVsTextViewAsync(cancellationToken);
 
-            ErrorHandler.ThrowOnFailure(activeVsTextView.GetData(IWpfTextViewId, out var wpfTextViewHost));
+            ErrorHandler.ThrowOnFailure(activeVsTextView.GetData(DefGuidList.guidIWpfTextViewHost, out var wpfTextViewHost));
 
             return (IWpfTextViewHost)wpfTextViewHost;
         }

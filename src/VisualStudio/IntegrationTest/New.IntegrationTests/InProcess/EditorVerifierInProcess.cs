@@ -60,7 +60,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             CancellationToken cancellationToken = default)
         {
             await TestServices.Editor.ShowLightBulbAsync(cancellationToken);
-            await TestServices.Editor.WaitForLightBulbSessionAsync(cancellationToken);
 
             if (verifyNotShowing)
             {

@@ -60,7 +60,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             await featureWaiter.ExpeditedWaitAsync().WithCancellation(cancellationToken);
         }
 
-        private async Task WaitForProjectSystemAsync(CancellationToken cancellationToken)
+        public async Task WaitForProjectSystemAsync(CancellationToken cancellationToken)
         {
             var operationProgressStatus = await GetRequiredGlobalServiceAsync<SVsOperationProgress, IVsOperationProgressStatusService>(cancellationToken);
             var stageStatus = operationProgressStatus.GetStageStatus(CommonOperationProgressStageIds.Intellisense);

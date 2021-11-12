@@ -13,8 +13,8 @@ using System.Xml.Linq;
 using Microsoft;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -168,9 +168,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var operationProgressStatus = await GetRequiredGlobalServiceAsync<SVsOperationProgress, IVsOperationProgressStatusService>(cancellationToken);
-            var stageStatus = operationProgressStatus.GetStageStatus(CommonOperationProgressStageIds.Intellisense);
-            await stageStatus.WaitForCompletionAsync().WithCancellation(cancellationToken);
+            await TestServices.Workspace.WaitForProjectSystemAsync(cancellationToken);
 
             var solutionRestoreService = await GetComponentModelServiceAsync<IVsSolutionRestoreService>(cancellationToken);
             await solutionRestoreService.CurrentRestoreOperation;
@@ -185,15 +183,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             var solutionRestoreService2 = (IVsSolutionRestoreService2)solutionRestoreService;
             await solutionRestoreService2.NominateProjectAsync(projectFullPath, cancellationToken);
 
-            while (true)
-            {
-                if (await solutionRestoreStatusProvider.IsRestoreCompleteAsync(cancellationToken))
-                {
-                    return;
-                }
-
-                await Task.Delay(TimeSpan.FromMilliseconds(50), cancellationToken);
-            }
+            // Check IsRestoreCompleteAsync until it returns true (this stops the retry because true != default(bool))
+            await Helper.RetryAsync(
+                cancellationToken => solutionRestoreStatusProvider.IsRestoreCompleteAsync(cancellationToken),
+                TimeSpan.FromMilliseconds(50),
+                cancellationToken);
         }
 
         public async Task OpenFileAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
@@ -273,7 +267,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                 Marshal.ThrowExceptionForHR(hresult);
                 var activeVsTextView = (IVsUserData)vsTextView;
 
-                hresult = activeVsTextView.GetData(EditorInProcess.IWpfTextViewId, out var wpfTextViewHost);
+                hresult = activeVsTextView.GetData(DefGuidList.guidIWpfTextViewHost, out var wpfTextViewHost);
                 Marshal.ThrowExceptionForHR(hresult);
 
                 var view = ((IWpfTextViewHost)wpfTextViewHost).TextView;
@@ -413,53 +407,46 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
             var solution = (EnvDTE80.Solution2)dte.Solution;
 
+            var hostLocale = await GetRequiredGlobalServiceAsync<SUIHostLocale, IUIHostLocale>(cancellationToken);
+            ErrorHandler.ThrowOnFailure(hostLocale.GetUILocale(out var localeID));
+
             if (string.Equals(languageName, "csharp", StringComparison.OrdinalIgnoreCase)
-                && (await GetCSharpProjectTemplatesAsync(cancellationToken)).TryGetValue(projectTemplate, out var csharpProjectTemplate))
+                && GetCSharpProjectTemplates(localeID).TryGetValue(projectTemplate, out var csharpProjectTemplate))
             {
                 return solution.GetProjectTemplate(csharpProjectTemplate, languageName);
             }
 
             if (string.Equals(languageName, "visualbasic", StringComparison.OrdinalIgnoreCase)
-                && (await GetVisualBasicProjectTemplatesAsync(cancellationToken)).TryGetValue(projectTemplate, out var visualBasicProjectTemplate))
+                && GetVisualBasicProjectTemplates(localeID).TryGetValue(projectTemplate, out var visualBasicProjectTemplate))
             {
                 return solution.GetProjectTemplate(visualBasicProjectTemplate, languageName);
             }
 
             return solution.GetProjectTemplate(projectTemplate, languageName);
-        }
 
-        private async Task<ImmutableDictionary<string, string>> GetCSharpProjectTemplatesAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            static ImmutableDictionary<string, string> GetCSharpProjectTemplates(uint localeID)
+            {
+                var builder = ImmutableDictionary.CreateBuilder<string, string>();
+                builder[WellKnownProjectTemplates.ClassLibrary] = $@"Windows\{localeID}\ClassLibrary.zip";
+                builder[WellKnownProjectTemplates.ConsoleApplication] = "Microsoft.CSharp.ConsoleApplication";
+                builder[WellKnownProjectTemplates.Website] = "EmptyWeb.zip";
+                builder[WellKnownProjectTemplates.WinFormsApplication] = "WindowsApplication.zip";
+                builder[WellKnownProjectTemplates.WpfApplication] = "WpfApplication.zip";
+                builder[WellKnownProjectTemplates.WebApplication] = "WebApplicationProject40";
+                return builder.ToImmutable();
+            }
 
-            var hostLocale = await GetRequiredGlobalServiceAsync<SUIHostLocale, IUIHostLocale>(cancellationToken);
-            ErrorHandler.ThrowOnFailure(hostLocale.GetUILocale(out var localeID));
-
-            var builder = ImmutableDictionary.CreateBuilder<string, string>();
-            builder[WellKnownProjectTemplates.ClassLibrary] = $@"Windows\{localeID}\ClassLibrary.zip";
-            builder[WellKnownProjectTemplates.ConsoleApplication] = "Microsoft.CSharp.ConsoleApplication";
-            builder[WellKnownProjectTemplates.Website] = "EmptyWeb.zip";
-            builder[WellKnownProjectTemplates.WinFormsApplication] = "WindowsApplication.zip";
-            builder[WellKnownProjectTemplates.WpfApplication] = "WpfApplication.zip";
-            builder[WellKnownProjectTemplates.WebApplication] = "WebApplicationProject40";
-            return builder.ToImmutable();
-        }
-
-        private async Task<ImmutableDictionary<string, string>> GetVisualBasicProjectTemplatesAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var hostLocale = await GetRequiredGlobalServiceAsync<SUIHostLocale, IUIHostLocale>(cancellationToken);
-            ErrorHandler.ThrowOnFailure(hostLocale.GetUILocale(out var localeID));
-
-            var builder = ImmutableDictionary.CreateBuilder<string, string>();
-            builder[WellKnownProjectTemplates.ClassLibrary] = $@"Windows\{localeID}\ClassLibrary.zip";
-            builder[WellKnownProjectTemplates.ConsoleApplication] = "Microsoft.VisualBasic.Windows.ConsoleApplication";
-            builder[WellKnownProjectTemplates.Website] = "EmptyWeb.zip";
-            builder[WellKnownProjectTemplates.WinFormsApplication] = "WindowsApplication.zip";
-            builder[WellKnownProjectTemplates.WpfApplication] = "WpfApplication.zip";
-            builder[WellKnownProjectTemplates.WebApplication] = "WebApplicationProject40";
-            return builder.ToImmutable();
+            static ImmutableDictionary<string, string> GetVisualBasicProjectTemplates(uint localeID)
+            {
+                var builder = ImmutableDictionary.CreateBuilder<string, string>();
+                builder[WellKnownProjectTemplates.ClassLibrary] = $@"Windows\{localeID}\ClassLibrary.zip";
+                builder[WellKnownProjectTemplates.ConsoleApplication] = "Microsoft.VisualBasic.Windows.ConsoleApplication";
+                builder[WellKnownProjectTemplates.Website] = "EmptyWeb.zip";
+                builder[WellKnownProjectTemplates.WinFormsApplication] = "WindowsApplication.zip";
+                builder[WellKnownProjectTemplates.WpfApplication] = "WpfApplication.zip";
+                builder[WellKnownProjectTemplates.WebApplication] = "WebApplicationProject40";
+                return builder.ToImmutable();
+            }
         }
 
         private static string CreateTemporaryPath()
