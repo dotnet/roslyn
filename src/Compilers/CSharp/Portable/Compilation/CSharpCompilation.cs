@@ -4091,8 +4091,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override DeterministicKeyBuilder CreateDeterministicKeyBuilder() => new CSharpDeterministicKeyBuilder();
-
         private ImmutableArray<string> GetPreprocessorSymbols()
         {
             CSharpSyntaxTree? firstTree = (CSharpSyntaxTree?)SyntaxTrees.FirstOrDefault();
