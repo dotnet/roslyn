@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal BoundIndexOrRangePatternIndexerAccess WithLengthOrCountAccess(BoundExpression lengthOrCountAccess)
         {
-            return new BoundIndexOrRangePatternIndexerAccess(this.Syntax, this.Argument, lengthOrCountAccess, this.ReceiverPlaceholder,
-                this.IndexerAccess, this.ArgumentPlaceholders, this.Type, this.HasErrors);
+            return this.Update(this.Argument, lengthOrCountAccess, this.ReceiverPlaceholder,
+                this.IndexerAccess, this.ArgumentPlaceholders, this.Type);
         }
 
         // The receiver expression is the receiver of IndexerAccess.

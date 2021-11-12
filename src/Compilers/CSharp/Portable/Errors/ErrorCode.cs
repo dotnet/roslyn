@@ -2007,13 +2007,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region diagnostics introduced for C# 11.0
 
-        ERR_UnsupportedTypeForListPattern = 9000,
-        ERR_UnsupportedTypeForSlicePattern = 9001,
-        ERR_MisplacedSlicePattern = 9002,
+        ERR_CannotBeMadeNullable = 8977,
+        ERR_UnsupportedTypeForListPattern = 8978,
+        ERR_MisplacedSlicePattern = 8979,
 
         #endregion
 
-        ERR_CannotBeMadeNullable = 8977,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

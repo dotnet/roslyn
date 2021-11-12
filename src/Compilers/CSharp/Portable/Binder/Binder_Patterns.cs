@@ -201,14 +201,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? indexerAccess = null;
             BoundPattern? pattern = null;
             BoundSlicePatternReceiverPlaceholder? receiverPlaceholder = null;
-            BoundSlicePatternUnloweredRangePlaceholder? argumentPlaceholder = null;
+            BoundSlicePatternRangePlaceholder? argumentPlaceholder = null;
 
             // We don't require the type to be sliceable if there's no subpattern.
             if (node.Pattern is not null)
             {
                 receiverPlaceholder = new BoundSlicePatternReceiverPlaceholder(node, GetValEscape(inputType, inputValEscape), inputType) { WasCompilerGenerated = true };
                 var systemRangeType = GetWellKnownType(WellKnownType.System_Range, diagnostics, node);
-                argumentPlaceholder = new BoundSlicePatternUnloweredRangePlaceholder(node, systemRangeType) { WasCompilerGenerated = true };
+                argumentPlaceholder = new BoundSlicePatternRangePlaceholder(node, systemRangeType) { WasCompilerGenerated = true };
 
                 TypeSymbol sliceType;
                 if (inputType.IsErrorType())
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var analyzedArguments = AnalyzedArguments.GetInstance();
                     analyzedArguments.Arguments.Add(argumentPlaceholder);
 
-                    indexerAccess = BindElementAccessCore(node, receiverPlaceholder, analyzedArguments, diagnostics);
+                    indexerAccess = BindElementAccessCore(node, receiverPlaceholder, analyzedArguments, diagnostics).MakeCompilerGenerated();
                     indexerAccess = CheckValue(indexerAccess, BindValueKind.RValue, diagnostics);
                     Debug.Assert(indexerAccess is BoundIndexerAccess or BoundIndexOrRangePatternIndexerAccess or BoundArrayAccess or BoundBadExpression);
                     analyzedArguments.Free();
@@ -278,16 +278,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckFeatureAvailability(node, MessageID.IDS_FeatureListPattern, diagnostics);
 
             TypeSymbol elementType;
-            BoundExpression? indexerAccess = null;
-            BoundExpression? lengthAccess = null;
+            BoundExpression? indexerAccess;
+            BoundExpression? lengthAccess;
             TypeSymbol narrowedType = inputType.StrippedType();
             BoundListPatternReceiverPlaceholder? receiverPlaceholder;
-            BoundListPatternUnloweredIndexPlaceholder? argumentPlaceholder;
+            BoundListPatternIndexPlaceholder? argumentPlaceholder;
 
             if (inputType.IsErrorType())
             {
                 hasErrors = true;
                 elementType = inputType;
+                indexerAccess = null;
+                lengthAccess = null;
                 receiverPlaceholder = null;
                 argumentPlaceholder = null;
             }
@@ -321,17 +323,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool IsCountableAndIndexable(SyntaxNode node, TypeSymbol inputType, out PropertySymbol? lengthProperty)
         {
-            var diagnostics = BindingDiagnosticBag.GetInstance();
-            var success = BindLengthAndIndexerForListPattern(node, inputType, inputValEscape: ExternalScope, diagnostics, indexerAccess: out _, out var lengthAccess, receiverPlaceholder: out _, argumentPlaceholder: out _);
+            var success = BindLengthAndIndexerForListPattern(node, inputType, inputValEscape: ExternalScope, BindingDiagnosticBag.Discarded,
+                indexerAccess: out _, out var lengthAccess, receiverPlaceholder: out _, argumentPlaceholder: out _);
             lengthProperty = success ? GetPropertySymbol(lengthAccess, out _, out _) : null;
-            diagnostics.Free();
             return success;
         }
 
         private bool BindLengthAndIndexerForListPattern(SyntaxNode node, TypeSymbol inputType, uint inputValEscape, BindingDiagnosticBag diagnostics,
-            out BoundExpression? indexerAccess, out BoundExpression? lengthAccess, out BoundListPatternReceiverPlaceholder? receiverPlaceholder, out BoundListPatternUnloweredIndexPlaceholder? argumentPlaceholder)
+            out BoundExpression indexerAccess, out BoundExpression lengthAccess, out BoundListPatternReceiverPlaceholder? receiverPlaceholder, out BoundListPatternIndexPlaceholder argumentPlaceholder)
         {
             var bindingDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
+
+            if (inputType.IsDynamic())
+            {
+                Error(bindingDiagnostics, ErrorCode.ERR_UnsupportedTypeForListPattern, node, inputType);
+            }
 
             receiverPlaceholder = new BoundListPatternReceiverPlaceholder(node, GetValEscape(inputType, inputValEscape), inputType) { WasCompilerGenerated = true };
             bool hasErrors = false;
@@ -340,11 +346,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors |= !TryGetSpecialTypeMember(Compilation, SpecialMember.System_Array__Length, node, bindingDiagnostics, out PropertySymbol lengthProperty);
                 if (lengthProperty is not null)
                 {
-                    lengthAccess = new BoundPropertyAccess(node, receiverPlaceholder, lengthProperty, LookupResultKind.Viable, lengthProperty.Type);
+                    lengthAccess = new BoundPropertyAccess(node, receiverPlaceholder, lengthProperty, LookupResultKind.Viable, lengthProperty.Type) { WasCompilerGenerated = true };
                 }
                 else
                 {
-                    lengthAccess = new BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, CreateErrorType(), hasErrors: true);
+                    lengthAccess = new BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, CreateErrorType(), hasErrors: true) { WasCompilerGenerated = true };
                 }
             }
             else
@@ -352,32 +358,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors |= !TryBindLengthOrCount(node, receiverPlaceholder, out lengthAccess, bindingDiagnostics);
             }
 
-            if (lengthAccess is null)
-            {
-                Error(bindingDiagnostics, ErrorCode.ERR_UnsupportedTypeForListPattern, node, inputType);
-            }
-            else
-            {
-                CheckValue(lengthAccess, BindValueKind.RValue, diagnostics);
-            }
+            lengthAccess = CheckValue(lengthAccess, BindValueKind.RValue, diagnostics);
 
             var analyzedArguments = AnalyzedArguments.GetInstance();
             var systemIndexType = GetWellKnownType(WellKnownType.System_Index, bindingDiagnostics, node);
-            argumentPlaceholder = new BoundListPatternUnloweredIndexPlaceholder(node, systemIndexType) { WasCompilerGenerated = true };
+            argumentPlaceholder = new BoundListPatternIndexPlaceholder(node, systemIndexType) { WasCompilerGenerated = true };
             analyzedArguments.Arguments.Add(argumentPlaceholder);
 
-            indexerAccess = BindElementAccessCore(node, receiverPlaceholder, analyzedArguments, bindingDiagnostics);
+            indexerAccess = BindElementAccessCore(node, receiverPlaceholder, analyzedArguments, bindingDiagnostics).MakeCompilerGenerated();
             indexerAccess = CheckValue(indexerAccess, BindValueKind.RValue, bindingDiagnostics);
             Debug.Assert(indexerAccess is BoundIndexerAccess or BoundIndexOrRangePatternIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess);
             analyzedArguments.Free();
 
-            if (bindingDiagnostics.AccumulatesDiagnostics && bindingDiagnostics.HasAnyErrors())
-            {
-                hasErrors = true;
-            }
-
             diagnostics.AddRangeAndFree(bindingDiagnostics);
-            return !hasErrors;
+            return !hasErrors && lengthAccess?.HasErrors == false && !indexerAccess.HasErrors;
         }
 
         private static BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol inputType)

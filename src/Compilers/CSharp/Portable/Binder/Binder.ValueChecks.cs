@@ -400,15 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IndexOrRangePatternIndexerAccess:
                     var implicitIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
-                    if (implicitIndexer.IndexerAccess is BoundIndexerAccess implicitIndexerAccess)
-                    {
-                        // If this is an Index indexer, PatternSymbol should be a property, pointing to the
-                        // implicit indexer. If it's a Range access, it will be a method, pointing to a Slice method
-                        // and it's handled below as part of invocations.
-                        return CheckValueKind(node, implicitIndexerAccess, valueKind, checkingReceiver, diagnostics);
-                    }
-                    Debug.Assert(implicitIndexer.IndexerAccess is BoundCall);
-                    break;
+                    return CheckValueKind(node, implicitIndexer.IndexerAccess, valueKind, checkingReceiver, diagnostics);
 
                 case BoundKind.EventAccess:
                     return CheckEventValueKind((BoundEventAccess)expr, valueKind, diagnostics);

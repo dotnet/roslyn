@@ -56,6 +56,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Debug.Assert(slice.IndexerAccess is not null);
                             Debug.Assert(index <= 0);
+                            Debug.Assert(slice.ReceiverPlaceholder is not null);
+                            Debug.Assert(slice.ArgumentPlaceholder is not null);
+
                             var sliceEvaluation = new BoundDagSliceEvaluation(slicePattern.Syntax, slicePattern.InputType, lengthTemp, startIndex: startIndex, endIndex: index,
                                 slice.IndexerAccess, slice.ReceiverPlaceholder, slice.ArgumentPlaceholder, input);
 
@@ -68,6 +71,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     Debug.Assert(list.IndexerAccess is not null);
+                    Debug.Assert(list.ReceiverPlaceholder is not null);
+                    Debug.Assert(list.ArgumentPlaceholder is not null);
+
                     var indexEvaluation = new BoundDagIndexerEvaluation(subpattern.Syntax, subpattern.InputType, lengthTemp, index++,
                         list.IndexerAccess, list.ReceiverPlaceholder, list.ArgumentPlaceholder, input);
 

@@ -250,8 +250,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // this[Index]
                             // this[int]
                             // array[Index]
-                            _localRewriter.AddPlaceholderReplacement(e.ReceiverPlaceholder, input);
-                            _localRewriter.AddPlaceholderReplacement<BoundListPatternUnloweredIndexPlaceholder>(e.ArgumentPlaceholder, makeUnloweredIndexArgument(e.Index));
 
                             var indexerAccess = e.IndexerAccess;
                             if (indexerAccess is BoundIndexOrRangePatternIndexerAccess implicitAccess)
@@ -259,9 +257,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 indexerAccess = implicitAccess.WithLengthOrCountAccess(_tempAllocator.GetTemp(e.LengthTemp));
                             }
 
+                            var placeholderValues = PooledDictionary<BoundValuePlaceholderBase, BoundExpression>.GetInstance();
+                            placeholderValues.Add(e.ReceiverPlaceholder, input);
+                            placeholderValues.Add(e.ArgumentPlaceholder, makeUnloweredIndexArgument(e.Index));
+                            indexerAccess = PlaceholderReplacer.Replace(placeholderValues, indexerAccess);
+                            placeholderValues.Free();
+
                             var access = (BoundExpression)_localRewriter.Visit(indexerAccess);
-                            _localRewriter.RemovePlaceholderReplacement(e.ReceiverPlaceholder);
-                            _localRewriter.RemovePlaceholderReplacement(e.ArgumentPlaceholder);
 
                             var outputTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
@@ -274,8 +276,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Slice(int, int)
                             // string.Substring(int, int)
                             // array[Range]
-                            _localRewriter.AddPlaceholderReplacement(e.ReceiverPlaceholder, input);
-                            _localRewriter.AddPlaceholderReplacement<BoundSlicePatternUnloweredRangePlaceholder>(e.ArgumentPlaceholder, makeUnloweredRangeArgument(e));
 
                             var indexerAccess = e.IndexerAccess;
                             if (indexerAccess is BoundIndexOrRangePatternIndexerAccess implicitAccess)
@@ -283,9 +283,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 indexerAccess = implicitAccess.WithLengthOrCountAccess(_tempAllocator.GetTemp(e.LengthTemp));
                             }
 
+                            var placeholderValues = PooledDictionary<BoundValuePlaceholderBase, BoundExpression>.GetInstance();
+                            placeholderValues.Add(e.ReceiverPlaceholder, input);
+                            placeholderValues.Add(e.ArgumentPlaceholder, makeUnloweredRangeArgument(e));
+                            indexerAccess = PlaceholderReplacer.Replace(placeholderValues, indexerAccess);
+                            placeholderValues.Free();
+
                             var access = (BoundExpression)_localRewriter.Visit(indexerAccess);
-                            _localRewriter.RemovePlaceholderReplacement(e.ReceiverPlaceholder);
-                            _localRewriter.RemovePlaceholderReplacement(e.ArgumentPlaceholder);
 
                             var outputTemp = new BoundDagTemp(e.Syntax, e.SliceType, e);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);

@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Each occurrence of the placeholder node is replaced with the node returned.
         /// Throws if there is already a substitution.
         /// </summary>
-        private void AddPlaceholderReplacement<T>(T placeholder, BoundExpression value) where T : BoundValuePlaceholderBase
+        private void AddPlaceholderReplacement(BoundValuePlaceholderBase placeholder, BoundExpression value)
         {
             AssertPlaceholderReplacement(placeholder, value);
 
@@ -971,10 +971,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.IndexOrRangeIndexerPatternReceiverPlaceholder:
                 case BoundKind.IndexOrRangeIndexerPatternValuePlaceholder:
                 case BoundKind.ListPatternReceiverPlaceholder:
-                case BoundKind.ListPatternUnloweredIndexPlaceholder:
                 case BoundKind.SlicePatternReceiverPlaceholder:
-                case BoundKind.SlicePatternUnloweredRangePlaceholder:
                     return true;
+
+                case BoundKind.SlicePatternRangePlaceholder:
+                case BoundKind.ListPatternIndexPlaceholder:
+                    throw ExceptionUtilities.UnexpectedValue(expr.Kind);
 
                 case BoundKind.Conversion:
                     return expr is BoundConversion { Conversion: { IsInterpolatedStringHandler: true }, Type: { IsValueType: true } };
@@ -1075,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode? VisitListPatternUnloweredIndexPlaceholder(BoundListPatternUnloweredIndexPlaceholder node)
+            public override BoundNode? VisitListPatternIndexPlaceholder(BoundListPatternIndexPlaceholder node)
             {
                 Fail(node);
                 return null;
@@ -1087,7 +1089,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode? VisitSlicePatternUnloweredRangePlaceholder(BoundSlicePatternUnloweredRangePlaceholder node)
+            public override BoundNode? VisitSlicePatternRangePlaceholder(BoundSlicePatternRangePlaceholder node)
             {
                 Fail(node);
                 return null;

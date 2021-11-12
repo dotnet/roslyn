@@ -2241,9 +2241,6 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
 ";
             var expectedDiagnostics = new[]
             {
-                // (8,31): error CS8977: List patterns may not be used for a value of type 'X'.
-                //         _ = /*<bind>*/this is []/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[]").WithArguments("X").WithLocation(8, 31),
                 // (8,31): error CS0518: Predefined type 'System.Index' is not defined or imported
                 //         _ = /*<bind>*/this is []/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[]").WithArguments("System.Index").WithLocation(8, 31)

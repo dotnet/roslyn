@@ -152,7 +152,7 @@
   </Node>
 
   <!-- This node represents the Index value of accessing an element in a list pattern. It does not survive lowering -->
-  <Node Name="BoundListPatternUnloweredIndexPlaceholder" Base="BoundValuePlaceholderBase">
+  <Node Name="BoundListPatternIndexPlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
@@ -163,7 +163,7 @@
   </Node>
 
   <!-- This node represents the Range value of accessing a range in a slice pattern. It does not survive lowering -->
-  <Node Name="BoundSlicePatternUnloweredRangePlaceholder" Base="BoundValuePlaceholderBase">
+  <Node Name="BoundSlicePatternRangePlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
@@ -1522,14 +1522,17 @@
     <!-- Negative Index values indicate positions after a slice pattern -->
     <Field Name="Index" Type="int"/>
 
-    <!-- May be a plain indexer access or an access to an Index indexer (which may be an implicit indexer) -->
+    <!--
+    May be BoundIndexerAccess or BoundIndexOrRangePatternIndexerAccess,
+    which are built using placeholders for receiver and argument.
+    -->
     <Field Name="IndexerAccess" Type="BoundExpression"/>
 
-    <!-- The receiver placeholder for length and indexer access -->
-    <Field Name="ReceiverPlaceholder" Type="BoundListPatternReceiverPlaceholder?"/>
+    <!-- The receiver placeholder for indexer access -->
+    <Field Name="ReceiverPlaceholder" Type="BoundListPatternReceiverPlaceholder"/>
 
-    <!-- The argument placeholder of type Index for indexer or implicit indexer access -->
-    <Field Name="ArgumentPlaceholder" Type="BoundListPatternUnloweredIndexPlaceholder?"/>
+    <!-- The argument placeholder of type Index for indexer access -->
+    <Field Name="ArgumentPlaceholder" Type="BoundListPatternIndexPlaceholder"/>
    </Node>
 
   <Node Name="BoundDagSliceEvaluation" Base="BoundDagEvaluation">
@@ -1538,14 +1541,17 @@
     <Field Name="StartIndex" Type="int"/>
     <Field Name="EndIndex" Type="int"/>
 
-    <!-- May be a plain indexer access or an access to an Range indexer (which may be an implicit indexer) -->
+    <!--
+    May be BoundIndexerAccess or BoundIndexOrRangePatternIndexerAccess,
+    which are built using placeholders for receiver and argument.
+    -->
     <Field Name="IndexerAccess" Type="BoundExpression"/>
 
     <!-- The receiver placeholder for indexer access -->
-    <Field Name="ReceiverPlaceholder" Type="BoundSlicePatternReceiverPlaceholder?"/>
+    <Field Name="ReceiverPlaceholder" Type="BoundSlicePatternReceiverPlaceholder"/>
 
     <!-- The argument placeholder of type Range for indexer access -->
-    <Field Name="ArgumentPlaceholder" Type="BoundSlicePatternUnloweredRangePlaceholder?"/>
+    <Field Name="ArgumentPlaceholder" Type="BoundSlicePatternRangePlaceholder"/>
   </Node>
 
   <Node Name="BoundDagAssignmentEvaluation" Base="BoundDagEvaluation">
@@ -2062,13 +2068,16 @@
     <!-- An expression with type Index or Range -->
     <Field Name="Argument" Type="BoundExpression" Null="disallow" />
 
-    <Field Name="LengthOrCountAccess" Type="BoundExpression?"/>
+    <Field Name="LengthOrCountAccess" Type="BoundExpression" SkipInVisitor="true" />
 
     <!-- The receiver placeholder for length access -->
-    <Field Name="ReceiverPlaceholder" Type="BoundIndexOrRangeIndexerPatternReceiverPlaceholder"/>
+    <Field Name="ReceiverPlaceholder" Type="BoundIndexOrRangeIndexerPatternReceiverPlaceholder" />
 
-    <!-- The indexer access uses the real receiver (not a placeholder) -->
-    <Field Name="IndexerAccess" Type="BoundExpression" Null="disallow" />
+    <!--
+    May be BoundIndexerAccess or BoundIndexOrRangePatternIndexerAccess,
+    which are built using the real receiver (not a placeholder) and placeholder(s) for argument(s).
+    -->
+    <Field Name="IndexerAccess" Type="BoundExpression" Null="disallow" SkipInVisitor="true" />
 
     <!-- The receiver placeholder(s) of type Int32 for indexer access (one if implicit Index indexer, two if implicit Range indexer) -->
     <Field Name="ArgumentPlaceholders" Type="ImmutableArray&lt;BoundIndexOrRangeIndexerPatternValuePlaceholder&gt;" Null="disallow" />
@@ -2230,29 +2239,35 @@
   <Node Name="BoundListPattern" Base="BoundObjectPattern">
     <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
     <Field Name="HasSlice" Type="bool"/>
-    <Field Name="LengthAccess" Type="BoundExpression?"/>
+    <Field Name="LengthAccess" Type="BoundExpression?" SkipInVisitor="true"/>
 
-    <!-- May be a plain indexer access or an access to an implicit Index indexer -->
-    <Field Name="IndexerAccess" Type="BoundExpression?"/>
+    <!--
+    May be BoundIndexerAccess or BoundIndexOrRangePatternIndexerAccess,
+    which are built using placeholders for receiver and argument.
+    -->
+    <Field Name="IndexerAccess" Type="BoundExpression?" SkipInVisitor="true"/>
 
     <!-- The receiver placeholder for length and indexer access -->
     <Field Name="ReceiverPlaceholder" Type="BoundListPatternReceiverPlaceholder?"/>
 
     <!-- The argument placeholder of type Index for indexer indexer access -->
-    <Field Name="ArgumentPlaceholder" Type="BoundListPatternUnloweredIndexPlaceholder?"/>
+    <Field Name="ArgumentPlaceholder" Type="BoundListPatternIndexPlaceholder?"/>
   </Node>
 
   <Node Name="BoundSlicePattern" Base="BoundPattern">
     <Field Name="Pattern" Type="BoundPattern?"/>
 
-    <!-- May be a plain indexer access or an access to an implicit Range indexer -->
-    <Field Name="IndexerAccess" Type="BoundExpression?"/>
+    <!--
+    May be BoundIndexerAccess or BoundIndexOrRangePatternIndexerAccess,
+    which are built using placeholders for receiver and argument.
+    -->
+    <Field Name="IndexerAccess" Type="BoundExpression?" SkipInVisitor="true"/>
 
     <!-- The receiver placeholder for indexer access -->
     <Field Name="ReceiverPlaceholder" Type="BoundSlicePatternReceiverPlaceholder?"/>
 
     <!-- The argument placeholder of type Range for indexer access -->
-    <Field Name="ArgumentPlaceholder" Type="BoundSlicePatternUnloweredRangePlaceholder?"/>
+    <Field Name="ArgumentPlaceholder" Type="BoundSlicePatternRangePlaceholder?"/>
   </Node>
 
   <Node Name="BoundITuplePattern" Base="BoundPattern">

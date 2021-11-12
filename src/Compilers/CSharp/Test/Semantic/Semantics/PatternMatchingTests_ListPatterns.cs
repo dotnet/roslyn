@@ -720,8 +720,6 @@ class X
 ";
         var expectedDiagnostics = new[]
         {
-            // (6,18): error CS9000: List patterns may not be used for a value of type 'object'.
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, listPattern).WithArguments("object"),
             // error CS0021: Cannot apply indexing with [] to an expression of type 'object'
             Diagnostic(ErrorCode.ERR_BadIndexLHS, listPattern).WithArguments("object"),
 
@@ -3053,9 +3051,6 @@ class C
             // (4,17): error CS0547: 'C.Length': property or indexer cannot have void type
             //     public void Length => throw null;
             Diagnostic(ErrorCode.ERR_PropertyCantHaveVoidType, "Length").WithArguments("C.Length").WithLocation(4, 17),
-            // (8,21): error CS9000: List patterns may not be used for a value of type 'C'.
-            //         _ = this is [1];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[1]").WithArguments("C").WithLocation(8, 21),
             // (8,21): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
             //         _ = this is [1];
             Diagnostic(ErrorCode.ERR_BadArgType, "[1]").WithArguments("1", "System.Index", "int").WithLocation(8, 21),
@@ -3083,9 +3078,6 @@ class C
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index });
         compilation.VerifyEmitDiagnostics(
-            // (9,21): error CS9000: List patterns may not be used for a value of type 'C'.
-            //         _ = this is [1];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[1]").WithArguments("C").WithLocation(9, 21),
             // (9,21): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
             //         _ = this is [1];
             Diagnostic(ErrorCode.ERR_BadArgType, "[1]").WithArguments("1", "System.Index", "int").WithLocation(9, 21),
@@ -3855,9 +3847,6 @@ class D
 ";
         var compilation = CreateCompilationWithIL(new[] { source, TestSources.Index, TestSources.Range }, il);
         compilation.VerifyEmitDiagnostics(
-            // (6,24): error CS9000: List patterns may not be used for a value of type 'C'.
-            //         _ = new C() is [var item, ..var rest];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[var item, ..var rest]").WithArguments("C").WithLocation(6, 24),
             // (6,24): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             //         _ = new C() is [var item, ..var rest];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "[var item, ..var rest]").WithArguments("C").WithLocation(6, 24),
@@ -4082,9 +4071,6 @@ class D
 ";
         var compilation = CreateCompilationWithIL(source, il);
         compilation.VerifyEmitDiagnostics(
-            // (6,24): error CS9000: List patterns may not be used for a value of type 'C'.
-            //         _ = new C() is [var item, ..var rest];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[var item, ..var rest]").WithArguments("C").WithLocation(6, 24),
             // (6,24): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             //         _ = new C() is [var item, ..var rest];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "[var item, ..var rest]").WithArguments("C").WithLocation(6, 24),
@@ -4938,7 +4924,7 @@ _ = new C() switch // 2
 {
     { Count: 0 } => 0,
     // missing
-    { _, _, .. } => 2,
+    [ _, _, .. ] => 2,
 };
 
 _ = new C() switch // 3
@@ -4967,9 +4953,9 @@ class C
             // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 2 }' is not covered.
             // _ = new C() switch // 1
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 2 }").WithLocation(2, 13),
-            // (13,7): error CS8503: A property subpattern requires a reference to the property or field to be matched, e.g. '{ Name: _ }'
-            //     { _, _, .. } => 2,
-            Diagnostic(ErrorCode.ERR_PropertyPatternNameMissing, "_").WithArguments("_").WithLocation(13, 7),
+            // (9,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            // _ = new C() switch // 2
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(9, 13),
             // (16,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
             // _ = new C() switch // 3
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(16, 13)
@@ -4977,15 +4963,27 @@ class C
 
         comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
+            // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 2 }' is not covered.
+            // _ = new C() switch // 1
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 2 }").WithLocation(2, 13),
             // (5,5): error CS0518: Predefined type 'System.Index' is not defined or imported
             //     [_] => 1,
             Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[_]").WithArguments("System.Index").WithLocation(5, 5),
             // (5,5): error CS0656: Missing compiler required member 'System.Index.GetOffset'
             //     [_] => 1,
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[_]").WithArguments("System.Index", "GetOffset").WithLocation(5, 5),
-            // (13,7): error CS8503: A property subpattern requires a reference to the property or field to be matched, e.g. '{ Name: _ }'
-            //     { _, _, .. } => 2,
-            Diagnostic(ErrorCode.ERR_PropertyPatternNameMissing, "_").WithArguments("_").WithLocation(13, 7),
+            // (9,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            // _ = new C() switch // 2
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(9, 13),
+            // (13,5): error CS0518: Predefined type 'System.Index' is not defined or imported
+            //     [ _, _, .. ] => 2,
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[ _, _, .. ]").WithArguments("System.Index").WithLocation(13, 5),
+            // (13,5): error CS0656: Missing compiler required member 'System.Index.GetOffset'
+            //     [ _, _, .. ] => 2,
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[ _, _, .. ]").WithArguments("System.Index", "GetOffset").WithLocation(13, 5),
+            // (16,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            // _ = new C() switch // 3
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(16, 13),
             // (20,5): error CS0518: Predefined type 'System.Index' is not defined or imported
             //     [_, _] => 2,
             Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[_, _]").WithArguments("System.Index").WithLocation(20, 5),
@@ -5300,9 +5298,6 @@ class C
 }";
         var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyEmitDiagnostics(
-            // (4,5): error CS9000: List patterns may not be used for a value of type 'C'.
-            //     [..] => 1,
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[..]").WithArguments("C").WithLocation(4, 5),
             // (4,5): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
             //     [..] => 1,
             Diagnostic(ErrorCode.ERR_BadArgType, "[..]").WithArguments("1", "System.Index", "int").WithLocation(4, 5),
@@ -5330,9 +5325,6 @@ class C
 }";
         var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyEmitDiagnostics(
-            // (4,5): error CS9000: List patterns may not be used for a value of type 'C'.
-            //     [..] => 1,
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[..]").WithArguments("C").WithLocation(4, 5),
             // (4,5): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
             //     [..] => 1,
             Diagnostic(ErrorCode.ERR_BadArgType, "[..]").WithArguments("1", "System.Index", "int").WithLocation(4, 5),
@@ -6822,9 +6814,6 @@ class C
 ";
         var compilation = CreateCompilationWithIndex(source);
         compilation.VerifyEmitDiagnostics(
-            // (2,16): error CS9000: List patterns may not be used for a value of type 'C'.
-            // _ = new C() is [];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[]").WithArguments("C").WithLocation(2, 16),
             // (2,16): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
             // _ = new C() is [];
             Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "System.Index", "int").WithLocation(2, 16),
@@ -6971,9 +6960,6 @@ class C
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics(
-            // (2,16): error CS9000: List patterns may not be used for a value of type 'C'.
-            // _ = new C() is [var x, .. var y]; // 1, 2, 3
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[var x, .. var y]").WithArguments("C").WithLocation(2, 16),
             // (2,16): error CS0154: The property or indexer 'C.this[Index]' cannot be used in this context because it lacks the get accessor
             // _ = new C() is [var x, .. var y]; // 1, 2, 3
             Diagnostic(ErrorCode.ERR_PropertyLacksGet, "[var x, .. var y]").WithArguments("C.this[System.Index]").WithLocation(2, 16),

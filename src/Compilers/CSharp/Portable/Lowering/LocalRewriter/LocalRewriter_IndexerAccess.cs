@@ -185,24 +185,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode? VisitListPatternUnloweredIndexPlaceholder(BoundListPatternUnloweredIndexPlaceholder node)
+        public override BoundNode? VisitListPatternIndexPlaceholder(BoundListPatternIndexPlaceholder node)
         {
-            return Visit(PlaceholderReplacement(node));
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override BoundNode? VisitListPatternReceiverPlaceholder(BoundListPatternReceiverPlaceholder node)
         {
-            return PlaceholderReplacement(node);
+            throw ExceptionUtilities.Unreachable;
         }
 
-        public override BoundNode? VisitSlicePatternUnloweredRangePlaceholder(BoundSlicePatternUnloweredRangePlaceholder node)
+        public override BoundNode? VisitSlicePatternRangePlaceholder(BoundSlicePatternRangePlaceholder node)
         {
-            return Visit(PlaceholderReplacement(node));
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override BoundNode? VisitSlicePatternReceiverPlaceholder(BoundSlicePatternReceiverPlaceholder node)
         {
-            return PlaceholderReplacement(node);
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override BoundNode? VisitIndexOrRangeIndexerPatternReceiverPlaceholder(BoundIndexOrRangeIndexerPatternReceiverPlaceholder node)
@@ -394,11 +394,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _compilation.GetWellKnownType(WellKnownType.System_Index),
                 TypeCompareKind.ConsiderEverything));
 
-            if (unloweredExpr is BoundListPatternUnloweredIndexPlaceholder placeholder)
-            {
-                unloweredExpr = PlaceholderReplacement(placeholder);
-            }
-
             if (unloweredExpr is BoundFromEndIndexExpression hatExpression)
             {
                 // If the System.Index argument is `^index`, we can replace the
@@ -452,11 +447,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             localsBuilder.Add(receiverLocal.LocalSymbol);
             sideEffectsBuilder.Add(receiverStore);
-
-            if (rangeArg is BoundSlicePatternUnloweredRangePlaceholder placeholder)
-            {
-                rangeArg = PlaceholderReplacement(placeholder);
-            }
 
             BoundExpression startExpr;
             BoundExpression rangeSizeExpr;

@@ -8155,7 +8155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lookupResult = LookupResult.GetInstance();
 
             if (TryBindLengthOrCount(syntax, receiverPlaceholder, out lengthOrCountAccess, diagnostics) &&
-                TryFindIndexOrRangeImplicitIndexer(syntax, lookupResult, receiver, argIsIndex, out implicitIndexerAccess, out argumentPlaceholders, diagnostics))
+                TryBindIndexOrRangeImplicitIndexer(syntax, lookupResult, receiver, argIsIndex, out implicitIndexerAccess, out argumentPlaceholders, diagnostics))
             {
                 CheckValue(lengthOrCountAccess, BindValueKind.RValue, diagnostics);
 
@@ -8173,7 +8173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool TryBindLengthOrCount(
             SyntaxNode syntax,
             BoundExpression receiver,
-            [NotNullWhen(true)] out BoundExpression? lengthOrCountAccess,
+            out BoundExpression lengthOrCountAccess,
             BindingDiagnosticBag diagnostics)
         {
             var lookupResult = LookupResult.GetInstance();
@@ -8181,25 +8181,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(receiver.Type is not null);
             if (TryLookupLengthOrCount(syntax, receiver.Type, lookupResult, out var lengthOrCountProperty, diagnostics))
             {
-                lengthOrCountAccess = BindPropertyAccess(syntax, receiver, lengthOrCountProperty, diagnostics, lookupResult.Kind, hasErrors: false);
+                lengthOrCountAccess = BindPropertyAccess(syntax, receiver, lengthOrCountProperty, diagnostics, lookupResult.Kind, hasErrors: false).MakeCompilerGenerated();
                 ReportDiagnosticsIfObsolete(diagnostics, lengthOrCountProperty, syntax, hasBaseReceiver: false);
 
                 lookupResult.Free();
                 return true;
             }
 
-            lengthOrCountAccess = null;
+            lengthOrCountAccess = BadExpression(syntax);
             lookupResult.Free();
 
             return false;
         }
 
         /// <summary>
-        /// Finds pattern-based implicit indexer:
+        /// Binds pattern-based implicit indexer:
         /// - for Index indexer, this will find `this[int]`.
         /// - for Range indexer, this will find `Slice(int, int)` or `string.Substring(int, int)`.
         /// </summary>
-        private bool TryFindIndexOrRangeImplicitIndexer(
+        private bool TryBindIndexOrRangeImplicitIndexer(
             SyntaxNode syntax,
             LookupResult lookupResult,
             BoundExpression receiver,
@@ -8242,7 +8242,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             var analyzedArguments = AnalyzedArguments.GetInstance();
                             analyzedArguments.Arguments.Add(intPlaceholder);
-                            indexerOrSliceAccess = BindIndexedPropertyAccess(syntax, receiver, ImmutableArray.Create(property), analyzedArguments, diagnostics);
+                            var properties = ArrayBuilder<PropertySymbol>.GetInstance();
+                            properties.AddRange(property);
+                            indexerOrSliceAccess = BindIndexerOrIndexedPropertyAccess(syntax, receiver, properties, analyzedArguments, diagnostics).MakeCompilerGenerated();
+                            properties.Free();
                             analyzedArguments.Free();
                             return true;
                         }
@@ -8304,7 +8307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             argumentPlaceholders = default;
             return false;
 
-            void makeCall(SyntaxNode syntax, BoundExpression? receiverOpt, MethodSymbol method,
+            void makeCall(SyntaxNode syntax, BoundExpression receiver, MethodSymbol method,
                 out BoundExpression indexerOrSliceAccess, out ImmutableArray<BoundIndexOrRangeIndexerPatternValuePlaceholder> argumentPlaceholders)
             {
                 // TODO2 make a property group and reuse an existing binding method?
@@ -8314,7 +8317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 indexerOrSliceAccess = new BoundCall(
                     syntax,
-                    receiverOpt,
+                    receiver,
                     method,
                     ImmutableArray.Create<BoundExpression>(startArgumentPlaceholder, endArgumentPlaceholder),
                     argumentNamesOpt: default,

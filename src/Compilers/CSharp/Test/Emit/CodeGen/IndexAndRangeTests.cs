@@ -3286,7 +3286,7 @@ Get GetIdx3 GetIdx2 Length Slice 1, 2
 ");
         }
 
-        [Fact]
+        [Fact, WorkItem(57745, "https://github.com/dotnet/roslyn/issues/57745")]
         public void ObsoleteRangeType()
         {
             var source = @"
@@ -3319,6 +3319,7 @@ namespace System
 }
 ";
             // Note: we currently don't report Obsolete diagnostic on either Index or Range
+            // Tracked by https://github.com/dotnet/roslyn/issues/57745
             var comp = CreateCompilation(new[] { source, TestSources.Index });
             comp.VerifyDiagnostics();
         }
