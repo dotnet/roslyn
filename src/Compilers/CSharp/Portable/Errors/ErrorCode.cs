@@ -2003,6 +2003,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_LambdaExplicitReturnTypeVar = 8975,
         ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers = 8976,
 
+        // Added in VS 17.1. Technically a breaking change, but the code it breaks was already guaranteed to throw
+        // at runtime.
+        ERR_CannotUseRefInUnmanagedCallersOnly = 8977,
+
         #endregion
 
         ERR_CannotBeMadeNullable = 8977,

@@ -8111,6 +8111,49 @@ class C
             );
         }
 
+        [Fact, WorkItem(57025, "https://github.com/dotnet/roslyn/issues/57025")]
+        public void UnmanagedCallersOnlyRequiresNonRef_Errors()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly]
+    static ref int M1() => throw null;
+
+    [UnmanagedCallersOnly]
+    static ref readonly int M2() => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M3(ref int o) => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M4(in int o) => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M5(out int o) => throw null;
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (6,12): error CS8977: Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.
+                //     static ref int M1() => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, "ref int").WithLocation(6, 12),
+                // (9,12): error CS8977: Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.
+                //     static ref readonly int M2() => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, "ref readonly int").WithLocation(9, 12),
+                // (12,20): error CS8977: Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.
+                //     static void M3(ref int o) => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, "ref int o").WithLocation(12, 20),
+                // (15,20): error CS8977: Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.
+                //     static void M4(in int o) => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, "in int o").WithLocation(15, 20),
+                // (18,20): error CS8977: Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.
+                //     static void M5(out int o) => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, "out int o").WithLocation(18, 20)
+            );
+        }
+
         [Fact]
         public void UnmanagedCallersOnlyRequiresUnmanagedTypes_Valid()
         {
@@ -9471,7 +9514,13 @@ static class CExt
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "ls").WithArguments("CExt.Deconstruct(S, out int, out int)").WithLocation(11, 32),
                 // (12,18): error CS8901: 'CExt.Deconstruct(S, out int, out int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         _ = s is (int _, int _);
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "(int _, int _)").WithArguments("CExt.Deconstruct(S, out int, out int)").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "(int _, int _)").WithArguments("CExt.Deconstruct(S, out int, out int)").WithLocation(12, 18),
+                // (18,46): error CS8977: Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.
+                //     public static void Deconstruct(this S s, out int i1, out int i2) => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, "out int i1").WithLocation(18, 46),
+                // (18,58): error CS8977: Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.
+                //     public static void Deconstruct(this S s, out int i1, out int i2) => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, "out int i2").WithLocation(18, 58)
             );
         }
 
@@ -9574,7 +9623,10 @@ static class CExt
             comp.VerifyDiagnostics(
                 // (10,29): error CS8901: 'CExt.GetPinnableReference(S)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //             fixed (int* i = s)
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "s").WithArguments("CExt.GetPinnableReference(S)").WithLocation(10, 29)
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "s").WithArguments("CExt.GetPinnableReference(S)").WithLocation(10, 29),
+                // (20,19): error CS8977: Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.
+                //     public static ref int GetPinnableReference(this S s) => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, "ref int").WithLocation(20, 19)
             );
         }
 
