@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Utilities;
+using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
@@ -20,6 +21,124 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         public EditorVerifierInProcess(TestServices testServices)
             : base(testServices)
         {
+        }
+
+        public async Task CurrentLineTextAsync(
+            string expectedText,
+            bool assertCaretPosition = false,
+            bool trimWhitespace = true,
+            CancellationToken cancellationToken = default)
+        {
+            if (assertCaretPosition)
+            {
+                await CurrentLineTextAndAssertCaretPositionAsync(expectedText, trimWhitespace, cancellationToken);
+            }
+            else
+            {
+                var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
+                var lineText = view.Caret.Position.BufferPosition.GetContainingLine().GetText();
+
+                if (trimWhitespace)
+                {
+                    lineText = lineText.Trim();
+                }
+
+                Assert.Equal(expectedText, lineText);
+            }
+        }
+
+        private async Task CurrentLineTextAndAssertCaretPositionAsync(
+            string expectedText,
+            bool trimWhitespace,
+            CancellationToken cancellationToken)
+        {
+            var expectedCaretIndex = expectedText.IndexOf("$$");
+            if (expectedCaretIndex < 0)
+            {
+                throw new ArgumentException("Expected caret position to be specified with $$", nameof(expectedText));
+            }
+
+            var expectedCaretMarkupEndIndex = expectedCaretIndex + "$$".Length;
+
+            var expectedTextBeforeCaret = expectedText.Substring(0, expectedCaretIndex);
+            var expectedTextAfterCaret = expectedText.Substring(expectedCaretMarkupEndIndex);
+
+            var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
+            var bufferPosition = view.Caret.Position.BufferPosition;
+            var line = bufferPosition.GetContainingLine();
+            var lineText = line.GetText();
+            var lineTextBeforeCaret = lineText[..(bufferPosition.Position - line.Start)];
+            var lineTextAfterCaret = lineText[(bufferPosition.Position - line.Start)..];
+
+            // Asserts below perform separate verifications of text before and after the caret.
+            // Depending on the position of the caret, if trimWhitespace, we trim beginning, end or both sides.
+            if (trimWhitespace)
+            {
+                if (expectedCaretIndex == 0)
+                {
+                    lineText = lineText.TrimEnd();
+                    lineTextAfterCaret = lineTextAfterCaret.TrimEnd();
+                }
+                else if (expectedCaretMarkupEndIndex == expectedText.Length)
+                {
+                    lineText = lineText.TrimStart();
+                    lineTextBeforeCaret = lineTextBeforeCaret.TrimStart();
+                }
+                else
+                {
+                    lineText = lineText.Trim();
+                    lineTextBeforeCaret = lineTextBeforeCaret.TrimStart();
+                    lineTextAfterCaret = lineTextAfterCaret.TrimEnd();
+                }
+            }
+
+            Assert.Equal(expectedTextBeforeCaret, lineTextBeforeCaret);
+            Assert.Equal(expectedTextAfterCaret, lineTextAfterCaret);
+            Assert.Equal(expectedTextBeforeCaret.Length + expectedTextAfterCaret.Length, lineText.Length);
+        }
+
+        public async Task TextContainsAsync(
+            string expectedText,
+            bool assertCaretPosition = false,
+            CancellationToken cancellationToken = default)
+        {
+            if (assertCaretPosition)
+            {
+                await TextContainsAndAssertCaretPositionAsync(expectedText, cancellationToken);
+            }
+            else
+            {
+                var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
+                var editorText = view.TextSnapshot.GetText();
+                Assert.Contains(expectedText, editorText);
+            }
+        }
+
+        private async Task TextContainsAndAssertCaretPositionAsync(
+            string expectedText,
+            CancellationToken cancellationToken)
+        {
+            var caretStartIndex = expectedText.IndexOf("$$");
+            if (caretStartIndex < 0)
+            {
+                throw new ArgumentException("Expected caret position to be specified with $$", nameof(expectedText));
+            }
+
+            var caretEndIndex = caretStartIndex + "$$".Length;
+
+            var expectedTextBeforeCaret = expectedText[..caretStartIndex];
+            var expectedTextAfterCaret = expectedText[caretEndIndex..];
+
+            var expectedTextWithoutCaret = expectedTextBeforeCaret + expectedTextAfterCaret;
+
+            var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
+            var editorText = view.TextSnapshot.GetText();
+            Assert.Contains(expectedTextWithoutCaret, editorText);
+
+            var index = editorText.IndexOf(expectedTextWithoutCaret);
+
+            var caretPosition = await TestServices.Editor.GetCaretPositionAsync(cancellationToken);
+            Assert.Equal(caretStartIndex + index, caretPosition);
         }
 
         public async Task CodeActionAsync(
@@ -112,6 +231,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             {
                 throw new InvalidOperationException("Expected no light bulb session, but one was found.");
             }
+        }
+
+        public async Task CaretPositionAsync(int expectedCaretPosition, CancellationToken cancellationToken)
+        {
+            Assert.Equal(expectedCaretPosition, await TestServices.Editor.GetCaretPositionAsync(cancellationToken));
         }
     }
 }
