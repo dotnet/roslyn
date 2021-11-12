@@ -133,16 +133,8 @@ namespace Microsoft.CodeAnalysis
             EmitOptions? emitOptions = null,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default)
         {
-            var keyBuilder = compilationOptions.CreateDeterministicKeyBuilder();
-            return keyBuilder.GetKey(
-                compilationOptions,
-                syntaxTrees,
-                references,
-                additionalTexts.NullToEmpty(),
-                analyzers.NullToEmpty(),
-                generators.NullToEmpty(),
-                emitOptions,
-                options);
+            return DeterministicKey.GetDeterministicKey(
+                compilationOptions, syntaxTrees, references, additionalTexts, analyzers, generators, emitOptions, options);
         }
 
         internal string GetDeterministicKey(
