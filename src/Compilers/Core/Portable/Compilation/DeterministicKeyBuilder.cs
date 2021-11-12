@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
 
         protected void WriteFileName(JsonWriter writer, string name, string? filePath, DeterministicKeyOptions options)
         {
-            if (0 != (options & DeterministicKeyOptions.IgnorePaths))
+            if ((options & DeterministicKeyOptions.IgnorePaths) != 0)
             {
                 filePath = Path.GetFileName(filePath);
             }
@@ -95,6 +95,7 @@ namespace Microsoft.CodeAnalysis
             // Note that the file path to the assembly is deliberately not included here. The file path
             // of the assembly does not contribute to the output of the program.
             writer.Write("assemblyName", type.Assembly.FullName);
+            writer.Write("mvid", type.Assembly.ManifestModule.ModuleVersionId.ToString());
             writer.WriteObjectEnd();
         }
 
@@ -113,9 +114,9 @@ namespace Microsoft.CodeAnalysis
             EmitOptions? emitOptions = null,
             DeterministicKeyOptions options = default)
         {
-            ensureNotDefault(ref additionalTexts);
-            ensureNotDefault(ref analyzers);
-            ensureNotDefault(ref generators);
+            additionalTexts = additionalTexts.NullToEmpty();
+            analyzers = analyzers.NullToEmpty();
+            generators = generators.NullToEmpty();
 
             var (writer, builder) = CreateWriter();
 
@@ -169,14 +170,6 @@ namespace Microsoft.CodeAnalysis
                 }
                 writer.WriteArrayEnd();
             }
-
-            void ensureNotDefault<T>(ref ImmutableArray<T> array)
-            {
-                if (array.IsDefault)
-                {
-                    array = ImmutableArray<T>.Empty;
-                }
-            }
         }
 
         internal string GetKey(EmitOptions? emitOptions)
@@ -215,7 +208,7 @@ namespace Microsoft.CodeAnalysis
             {
                 writer.WriteKey("toolsVersions");
                 writer.WriteObjectStart();
-                if (0 != (options & DeterministicKeyOptions.IgnoreToolVersions))
+                if ((options & DeterministicKeyOptions.IgnoreToolVersions) != 0)
                 {
                     writer.WriteObjectEnd();
                     return;
@@ -275,6 +268,7 @@ namespace Microsoft.CodeAnalysis
                             }
                             else
                             {
+                                // TODO: need to add multi-module support
                                 throw new InvalidOperationException();
                             }
                         }
@@ -303,6 +297,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
+                // TODO: handle the other reference kinds
                 throw new InvalidOperationException();
             }
             writer.WriteObjectEnd();

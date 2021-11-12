@@ -60,15 +60,30 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             string actual,
             string sectionName)
         {
-            AssertJsonCore(getSection(expected), getSection(actual));
+            var lastName = sectionName.Split('.').Last();
+            AssertJsonCore(expected, getSection(actual));
 
             string getSection(string json) =>
                 JObject.Parse(json)
                     .Descendants()
                     .OfType<JProperty>()
-                    .Where(x => x.Name == sectionName)
+                    .Where(x => x.Name == lastName && getFullName(x) == sectionName)
                     .Single()
                     .ToString(Formatting.Indented);
+
+            static string getFullName(JProperty property)
+            {
+                string name = property.Name;
+                while (
+                    property.Parent is JObject obj &&
+                    obj.Parent is JProperty parent)
+                {
+                    name = $"{parent.Name}.{name}";
+                    property = parent;
+                }
+
+                return name;
+            }
         }
 
         protected static void AssertJsonCore(string expected, string actual)
