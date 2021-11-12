@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                         // We do not want to track "this" as part of an index operation, but we do 
                         // want to track other variables that are accessed. Arguably they "contribute" even if
                         // not specifically to the argument of the element access.
-                        if (syntaxFacts.IsThisExpression((expression)))
+                        if (syntaxFacts.IsThisExpression(expression))
                         {
                             return;
                         }
