@@ -444,6 +444,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             private void ScanFormatSpecifier()
             {
+                /*
+                ## Grammar from spec:
+                
+                interpolation_format
+                    : ':' interpolation_format_character+
+                ; 
+                interpolation_format_character
+                    : '<Any character except \" (U+0022), : (U+003A), { (U+007B) and } (U+007D)>'
+                ;
+
+                ------------------
+                Even though the spec says that ", :, { and } are prohibited in the format specifier
+                we allowed them as long as they were escaped. This caused the that the format specifier
+                in `$"{{{12:X}}}"` was parsed in a way that it had the value "X}" which
+                is not spec conformant nor what users expect.
+                 */
+
                 Debug.Assert(_lexer.TextWindow.PeekChar() == ':');
                 _lexer.TextWindow.AdvanceChar();
                 while (true)
@@ -487,15 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                     else if (ch == '}')
                     {
-                        if (_lexer.TextWindow.PeekChar(1) == '}')
-                        {
-                            _lexer.TextWindow.AdvanceChar();
-                            _lexer.TextWindow.AdvanceChar();
-                        }
-                        else
-                        {
-                            return; // end of interpolation
-                        }
+                        return; // end of interpolation
                     }
                     else if (IsAtEnd())
                     {

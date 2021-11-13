@@ -3922,14 +3922,24 @@ select t";
             N(SyntaxKind.InterpolatedStringExpression);
             {
                 N(SyntaxKind.InterpolatedStringStartToken);
-                N(SyntaxKind.InterpolatedStringText, "{");
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
                 N(SyntaxKind.Interpolation);
                 {
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.NumericLiteralExpression, "12");
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "12");
+                    }
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.InterpolatedStringText, "}");
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
             }
         }
 
@@ -3940,11 +3950,17 @@ select t";
             N(SyntaxKind.InterpolatedStringExpression);
             {
                 N(SyntaxKind.InterpolatedStringStartToken);
-                N(SyntaxKind.InterpolatedStringText, "{");
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
                 N(SyntaxKind.Interpolation);
                 {
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.NumericLiteralExpression, "12");
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "12");
+                    }
                     N(SyntaxKind.InterpolationFormatClause);
                     {
                         N(SyntaxKind.ColonToken);
@@ -3952,7 +3968,11 @@ select t";
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.InterpolatedStringText, "}");
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
             }
         }
 
