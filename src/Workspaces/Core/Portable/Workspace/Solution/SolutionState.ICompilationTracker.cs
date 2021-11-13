@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
         {
             ProjectState ProjectState { get; }
 
-            CachedSkeletonReferences CachedSkeletonReferences { get; }
+            SkeletonReferenceCache SkeletonReferenceCache { get; }
 
             /// <summary>
             /// Returns <see langword="true"/> if this <see cref="Project"/>/<see cref="Compilation"/> could produce the
@@ -39,13 +39,6 @@ namespace Microsoft.CodeAnalysis
             Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken);
             Task<Checksum> GetDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken);
 
-            /// <summary>
-            /// Get a metadata reference to this compilation info's compilation with respect to
-            /// another project. For cross language references produce a skeletal assembly. If the
-            /// compilation is not available, it is built. If a skeletal assembly reference is
-            /// needed and does not exist, it is also built.
-            /// </summary>
-            Task<MetadataReference> GetMetadataReferenceAsync(SolutionState solution, ProjectState fromProject, ProjectReference projectReference, CancellationToken cancellationToken);
             CompilationReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference);
             ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(SolutionState solution, CancellationToken cancellationToken);
             Task<bool> HasSuccessfullyLoadedAsync(SolutionState solution, CancellationToken cancellationToken);
