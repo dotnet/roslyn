@@ -1172,9 +1172,12 @@ class Program
     } 
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,18): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
+                // (6,39): error CS8089: Empty format specifier.
                 //         var x = $"{ Math.Abs(value: 1):}}";
-                Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, @"""{").WithLocation(6, 18)
+                Diagnostic(ErrorCode.ERR_EmptyFormatSpecifier, ":").WithLocation(6, 39),
+                // (6,41): error CS8086: A '}' character must be escaped (by doubling) in an interpolated string.
+                //         var x = $"{ Math.Abs(value: 1):}}";
+                Diagnostic(ErrorCode.ERR_UnescapedCurly, "}").WithArguments("}").WithLocation(6, 41)
                 );
         }
 
