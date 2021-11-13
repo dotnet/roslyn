@@ -8105,7 +8105,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 checkWellKnown(WellKnownMember.System_Range__get_End);
             }
             checkWellKnown(WellKnownMember.System_Index__GetOffset);
-            // TODO2 check for conversion operator from int?
 
             _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax);
             if (arguments.Names.Count > 0)
@@ -8152,21 +8151,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 2. For Index: Has an accessible indexer with a single int parameter
             //    For Range: Has an accessible Slice method that takes two int parameters
 
-            var lookupResult = LookupResult.GetInstance();
-
             if (TryBindLengthOrCount(syntax, receiverPlaceholder, out lengthOrCountAccess, diagnostics) &&
-                TryBindIndexOrRangeImplicitIndexer(syntax, lookupResult, receiver, argIsIndex, out implicitIndexerAccess, out argumentPlaceholders, diagnostics))
+                TryBindIndexOrRangeImplicitIndexer(syntax, receiver, argIsIndex, out implicitIndexerAccess, out argumentPlaceholders, diagnostics))
             {
-                CheckValue(lengthOrCountAccess, BindValueKind.RValue, diagnostics);
-
-                lookupResult.Free();
                 return true;
             }
 
             lengthOrCountAccess = null;
             implicitIndexerAccess = null;
             argumentPlaceholders = default;
-            lookupResult.Free();
             return false;
         }
 
@@ -8181,8 +8174,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(receiver.Type is not null);
             if (TryLookupLengthOrCount(syntax, receiver.Type, lookupResult, out var lengthOrCountProperty, diagnostics))
             {
-                lengthOrCountAccess = BindPropertyAccess(syntax, receiver, lengthOrCountProperty, diagnostics, lookupResult.Kind, hasErrors: false).MakeCompilerGenerated();
+                diagnostics.ReportUseSite(lengthOrCountProperty, syntax);
                 ReportDiagnosticsIfObsolete(diagnostics, lengthOrCountProperty, syntax, hasBaseReceiver: false);
+                lengthOrCountAccess = BindPropertyAccess(syntax, receiver, lengthOrCountProperty, diagnostics, lookupResult.Kind, hasErrors: false).MakeCompilerGenerated();
+                lengthOrCountAccess = CheckValue(lengthOrCountAccess, BindValueKind.RValue, diagnostics);
 
                 lookupResult.Free();
                 return true;
@@ -8201,7 +8196,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool TryBindIndexOrRangeImplicitIndexer(
             SyntaxNode syntax,
-            LookupResult lookupResult,
             BoundExpression receiver,
             bool argIsIndex,
             [NotNullWhen(true)] out BoundExpression? indexerOrSliceAccess,
@@ -8210,8 +8204,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(receiver.Type is not null);
             var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            var lookupResult = LookupResult.GetInstance();
 
-            Debug.Assert(lookupResult.IsClear);
             if (argIsIndex)
             {
                 // Look for `T this[int i]` indexer
@@ -8247,6 +8241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             indexerOrSliceAccess = BindIndexerOrIndexedPropertyAccess(syntax, receiver, properties, analyzedArguments, diagnostics).MakeCompilerGenerated();
                             properties.Free();
                             analyzedArguments.Free();
+                            lookupResult.Free();
                             return true;
                         }
                     }
@@ -8260,6 +8255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (substring is object)
                 {
                     makeCall(syntax, receiver, substring, out indexerOrSliceAccess, out argumentPlaceholders);
+                    lookupResult.Free();
                     return true;
                 }
             }
@@ -8292,11 +8288,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             original.Parameters[0] is { Type: { SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.None } &&
                             original.Parameters[1] is { Type: { SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.None })
                         {
-                            method.AddUseSiteInfo(ref useSiteInfo);
-                            diagnostics.ReportUseSite(method, syntax);
-                            ReportDiagnosticsIfObsolete(diagnostics, method, syntax, hasBaseReceiver: false);
-                            CheckImplicitThisCopyInReadOnlyMember(receiver, method, diagnostics);
                             makeCall(syntax, receiver, method, out indexerOrSliceAccess, out argumentPlaceholders);
+                            lookupResult.Free();
                             return true;
                         }
                     }
@@ -8305,30 +8298,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             indexerOrSliceAccess = null;
             argumentPlaceholders = default;
+            lookupResult.Free();
             return false;
 
             void makeCall(SyntaxNode syntax, BoundExpression receiver, MethodSymbol method,
                 out BoundExpression indexerOrSliceAccess, out ImmutableArray<BoundIndexOrRangeIndexerPatternValuePlaceholder> argumentPlaceholders)
             {
-                // TODO2 make a property group and reuse an existing binding method?
                 var startArgumentPlaceholder = new BoundIndexOrRangeIndexerPatternValuePlaceholder(syntax, Compilation.GetSpecialType(SpecialType.System_Int32)) { WasCompilerGenerated = true };
-                var endArgumentPlaceholder = new BoundIndexOrRangeIndexerPatternValuePlaceholder(syntax, Compilation.GetSpecialType(SpecialType.System_Int32)) { WasCompilerGenerated = true };
-                argumentPlaceholders = ImmutableArray.Create(startArgumentPlaceholder, endArgumentPlaceholder);
+                var lengthArgumentPlaceholder = new BoundIndexOrRangeIndexerPatternValuePlaceholder(syntax, Compilation.GetSpecialType(SpecialType.System_Int32)) { WasCompilerGenerated = true };
+                argumentPlaceholders = ImmutableArray.Create(startArgumentPlaceholder, lengthArgumentPlaceholder);
 
-                indexerOrSliceAccess = new BoundCall(
-                    syntax,
-                    receiver,
-                    method,
-                    ImmutableArray.Create<BoundExpression>(startArgumentPlaceholder, endArgumentPlaceholder),
-                    argumentNamesOpt: default,
-                    argumentRefKindsOpt: default,
-                    isDelegateCall: false,
-                    expanded: false,
-                    invokedAsExtensionMethod: false,
-                    argsToParamsOpt: default,
-                    defaultArguments: default,
-                    resultKind: LookupResultKind.Viable,
-                    type: method.ReturnType);
+                var analyzedArguments = AnalyzedArguments.GetInstance();
+                analyzedArguments.Arguments.Add(startArgumentPlaceholder);
+                analyzedArguments.Arguments.Add(lengthArgumentPlaceholder);
+
+                var boundMethodGroup = new BoundMethodGroup(
+                    syntax, typeArgumentsOpt: default, method.Name, ImmutableArray.Create(method),
+                    method, lookupError: null, BoundMethodGroupFlags.None, functionType: null, receiver, LookupResultKind.Viable);
+
+                indexerOrSliceAccess = BindMethodGroupInvocation(syntax, syntax, method.Name, boundMethodGroup, analyzedArguments,
+                    diagnostics, queryClause: null, allowUnexpandedForm: false, anyApplicableCandidates: out bool _);
+
+                analyzedArguments.Free();
             }
         }
 

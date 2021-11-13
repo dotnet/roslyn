@@ -269,8 +269,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression makeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(node.Argument, out PatternIndexOffsetLoweringStrategy strategy);
             BoundExpression integerArgument;
 
-            var receiverPlaceholder = node.ReceiverPlaceholder;
-            AddPlaceholderReplacement(receiverPlaceholder, receiverLocal);
             switch (strategy)
             {
                 case PatternIndexOffsetLoweringStrategy.SubtractFromLength:
@@ -282,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         sideeffects.Add(inputStore);
                     }
 
-                    integerArgument = MakePatternIndexOffsetExpression(makeOffsetInput, VisitExpression(node.LengthOrCountAccess), strategy);
+                    integerArgument = MakePatternIndexOffsetExpression(makeOffsetInput, RewriteLengthAccess(node, receiverLocal), strategy);
                     break;
 
                 case PatternIndexOffsetLoweringStrategy.UseAsIs:
@@ -290,13 +288,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI:
-                    integerArgument = MakePatternIndexOffsetExpression(makeOffsetInput, VisitExpression(node.LengthOrCountAccess), strategy);
+                    integerArgument = MakePatternIndexOffsetExpression(makeOffsetInput, RewriteLengthAccess(node, receiverLocal), strategy);
                     break;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(strategy);
             }
-            RemovePlaceholderReplacement(receiverPlaceholder);
 
             var indexerAccess = (BoundIndexerAccess)node.IndexerAccess;
             Debug.Assert(node.ArgumentPlaceholders.Length == 1);
@@ -572,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((rewriteFlags & useLength) != 0)
                 {
-                    lengthAccess = rewriteLengthAccess(node, receiverLocal);
+                    lengthAccess = RewriteLengthAccess(node, receiverLocal);
 
                     if ((rewriteFlags & captureLength) != 0)
                     {
@@ -614,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 localsBuilder.Add(rangeLocal.LocalSymbol);
                 sideEffectsBuilder.Add(rangeStore);
 
-                var lengthAccess = rewriteLengthAccess(node, receiverLocal);
+                var lengthAccess = RewriteLengthAccess(node, receiverLocal);
 
                 var lengthLocal = F.StoreToTemp(lengthAccess, out var lengthStore);
                 localsBuilder.Add(lengthLocal.LocalSymbol);
@@ -659,19 +656,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 localsBuilder.ToImmutableAndFree(),
                 sideEffectsBuilder.ToImmutableAndFree(),
                 rewrittenIndexerAccess);
+        }
 
-            BoundExpression rewriteLengthAccess(BoundIndexOrRangePatternIndexerAccess node, BoundLocal receiverLocal)
-            {
-                var receiverPlaceholder = node.ReceiverPlaceholder;
-                AddPlaceholderReplacement(receiverPlaceholder, receiverLocal);
+        BoundExpression RewriteLengthAccess(BoundIndexOrRangePatternIndexerAccess node, BoundLocal receiverLocal)
+        {
+            var receiverPlaceholder = node.ReceiverPlaceholder;
+            AddPlaceholderReplacement(receiverPlaceholder, receiverLocal);
 
-                Debug.Assert(node.LengthOrCountAccess is not null);
-                var lengthAccess = VisitExpression(node.LengthOrCountAccess);
+            Debug.Assert(node.LengthOrCountAccess is not null);
+            var lengthAccess = VisitExpression(node.LengthOrCountAccess);
 
-                RemovePlaceholderReplacement(receiverPlaceholder);
+            RemovePlaceholderReplacement(receiverPlaceholder);
 
-                return lengthAccess;
-            }
+            return lengthAccess;
         }
     }
 }

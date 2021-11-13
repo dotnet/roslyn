@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(list.LengthAccess is not null);
                 var lengthProperty = Binder.GetPropertySymbol(list.LengthAccess, out _, out _);
+                Debug.Assert(lengthProperty is not null);
                 var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, lengthProperty, isLengthOrCount: true, input);
                 tests.Add(new Tests.One(lengthEvaluation));
                 var lengthTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation);

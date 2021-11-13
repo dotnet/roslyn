@@ -2381,9 +2381,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return new SlicePatternOperation(
                 sliceSymbol: boundNode.Pattern is null ? null :
-                    (boundNode.InputType.IsSZArray()
-                        ? (Symbol?)_semanticModel.Compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T)
-                        : Binder.GetIndexerSymbol(boundNode.IndexerAccess)).GetPublicSymbol(),
+                    Binder.GetIndexerOrImplicitIndexerSymbol(boundNode.IndexerAccess).GetPublicSymbol(),
                 pattern: (IPatternOperation?)Create(boundNode.Pattern),
                 inputType: boundNode.InputType.GetPublicSymbol(),
                 narrowedType: boundNode.NarrowedType.GetPublicSymbol(),
@@ -2396,7 +2394,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return new ListPatternOperation(
                 lengthSymbol: Binder.GetPropertySymbol(boundNode.LengthAccess, out _, out _).GetPublicSymbol(),
-                indexerSymbol: Binder.GetIndexerSymbol(boundNode.IndexerAccess).GetPublicSymbol(),
+                indexerSymbol: Binder.GetIndexerOrImplicitIndexerSymbol(boundNode.IndexerAccess).GetPublicSymbol(),
                 patterns: boundNode.Subpatterns.SelectAsArray((p, fac) => (IPatternOperation)fac.Create(p), this),
                 declaredSymbol: boundNode.Variable.GetPublicSymbol(),
                 inputType: boundNode.InputType.GetPublicSymbol(),

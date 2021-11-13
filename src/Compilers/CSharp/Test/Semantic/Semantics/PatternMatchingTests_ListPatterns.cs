@@ -754,20 +754,21 @@ class X
     {
         _ = new X() is [1];
         _ = new X() is [.. 1];
+        _ = new X()[^1];
     } 
 }
 ";
         var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
         compilation.VerifyEmitDiagnostics(
-            // (20,24): error CS0656: Missing compiler required member 'System.Index..ctor'
+            // (20,24): error CS0656: Missing compiler required member 'System.Index.op_Implicit'
             //         _ = new X() is [1];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[1]").WithArguments("System.Index", ".ctor").WithLocation(20, 24),
-            // (21,24): error CS0656: Missing compiler required member 'System.Index..ctor'
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[1]").WithArguments("System.Index", "op_Implicit").WithLocation(20, 24),
+            // (21,24): error CS0656: Missing compiler required member 'System.Index.op_Implicit'
             //         _ = new X() is [.. 1];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[.. 1]").WithArguments("System.Index", ".ctor").WithLocation(21, 24),
-            // (21,25): error CS0656: Missing compiler required member 'System.Range..ctor'
-            //         _ = new X() is [.. 1];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".. 1").WithArguments("System.Range", ".ctor").WithLocation(21, 25)
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[.. 1]").WithArguments("System.Index", "op_Implicit").WithLocation(21, 24),
+            // (22,21): error CS0656: Missing compiler required member 'System.Index..ctor'
+            //         _ = new X()[^1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "^1").WithArguments("System.Index", ".ctor").WithLocation(22, 21)
             );
     }
 
@@ -1304,6 +1305,9 @@ class X
             // (6,28): error CS0021: Cannot apply indexing with [] to an expression of type 'Test1'
             //         _ = new Test1() is [0];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "[0]").WithArguments("Test1").WithLocation(6, 28),
+            // (6,28): error CS0656: Missing compiler required member 'System.Index.op_Implicit'
+            //         _ = new Test1() is [0];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Index", "op_Implicit").WithLocation(6, 28),
             // (7,13): error CS0021: Cannot apply indexing with [] to an expression of type 'Test1'
             //         _ = new Test1()[0];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "new Test1()[0]").WithArguments("Test1").WithLocation(7, 13));
@@ -4839,10 +4843,7 @@ class C
         compilation.VerifyEmitDiagnostics(
             // (9,44): error CS8122: An expression tree may not contain an 'is' pattern-matching operator.
             //         Expression<Func<bool>> ok1 = () => array is [_, ..];
-            Diagnostic(ErrorCode.ERR_ExpressionTreeContainsIsMatch, "array is [_, ..]").WithLocation(9, 44),
-            // (9,53): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
-            //         Expression<Func<bool>> ok1 = () => array is [_, ..];
-            Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, "[_, ..]").WithLocation(9, 53)
+            Diagnostic(ErrorCode.ERR_ExpressionTreeContainsIsMatch, "array is [_, ..]").WithLocation(9, 44)
             );
     }
 
@@ -6301,7 +6302,6 @@ class C
 ");
     }
 
-    // PROTOTYPE this test takes 7 seconds to run...
     [Theory]
     [CombinatorialData]
     public void Subsumption_Slice_00(

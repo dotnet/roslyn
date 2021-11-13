@@ -305,9 +305,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // LocalRewriter.MakePatternIndexOffsetExpression understands this format
                     if (index < 0)
                     {
-                        MethodSymbol symbolOpt = _factory.WellKnownMember(WellKnownMember.System_Index__ctor) as MethodSymbol;
+                        var ctor = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Index__ctor);
                         return new BoundFromEndIndexExpression(_factory.Syntax, _factory.Literal(-index),
-                            methodOpt: symbolOpt, _factory.WellKnownType(WellKnownType.System_Index));
+                            methodOpt: ctor, _factory.WellKnownType(WellKnownType.System_Index));
                     }
 
                     return _factory.Convert(_factory.WellKnownType(WellKnownType.System_Index), _factory.Literal(index));
@@ -316,13 +316,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression makeUnloweredRangeArgument(BoundDagSliceEvaluation e)
                 {
                     // LocalRewriter.VisitRangeImplicitIndexerAccess understands this format
-                    MethodSymbol symbolOpt1 = _factory.WellKnownMember(WellKnownMember.System_Index__ctor) as MethodSymbol;
+                    var indexCtor = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Index__ctor);
                     var end = new BoundFromEndIndexExpression(_factory.Syntax, _factory.Literal(-e.EndIndex),
-                        methodOpt: symbolOpt1, _factory.WellKnownType(WellKnownType.System_Index));
+                        methodOpt: indexCtor, _factory.WellKnownType(WellKnownType.System_Index));
 
-                    MethodSymbol symbolOpt = _factory.WellKnownMember(WellKnownMember.System_Range__ctor) as MethodSymbol;
+                    var rangeCtor = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Range__ctor);
                     return new BoundRangeExpression(e.Syntax, makeUnloweredIndexArgument(e.StartIndex), end,
-                        methodOpt: symbolOpt, _factory.WellKnownType(WellKnownType.System_Range));
+                        methodOpt: rangeCtor, _factory.WellKnownType(WellKnownType.System_Range));
                 }
             }
 

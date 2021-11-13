@@ -30,6 +30,5 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(receiver is not null);
             return receiver;
         }
-
     }
 }

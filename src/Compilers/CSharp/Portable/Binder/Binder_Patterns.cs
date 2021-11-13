@@ -358,8 +358,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors |= !TryBindLengthOrCount(node, receiverPlaceholder, out lengthAccess, bindingDiagnostics);
             }
 
-            lengthAccess = CheckValue(lengthAccess, BindValueKind.RValue, diagnostics);
-
             var analyzedArguments = AnalyzedArguments.GetInstance();
             var systemIndexType = GetWellKnownType(WellKnownType.System_Index, bindingDiagnostics, node);
             argumentPlaceholder = new BoundListPatternIndexPlaceholder(node, systemIndexType) { WasCompilerGenerated = true };
@@ -371,6 +369,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             analyzedArguments.Free();
 
             diagnostics.AddRangeAndFree(bindingDiagnostics);
+
+            if (!systemIndexType.HasUseSiteError)
+            {
+                // Check required well-known member. They may not be needed
+                // during lowering, but it's simpler to always require them to prevent
+                // the user from getting surprising errors when optimizations fail
+                _ = GetWellKnownTypeMember(WellKnownMember.System_Index__op_Implicit_FromInt32, diagnostics, syntax: node);
+            }
+
             return !hasErrors && lengthAccess?.HasErrors == false && !indexerAccess.HasErrors;
         }
 

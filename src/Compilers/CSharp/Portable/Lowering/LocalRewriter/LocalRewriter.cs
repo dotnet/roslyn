@@ -969,11 +969,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CanBePassedByReference(((BoundIndexOrRangePatternIndexerAccess)expr).IndexerAccess);
 
                 case BoundKind.IndexOrRangeIndexerPatternReceiverPlaceholder:
-                case BoundKind.IndexOrRangeIndexerPatternValuePlaceholder:
-                case BoundKind.ListPatternReceiverPlaceholder:
-                case BoundKind.SlicePatternReceiverPlaceholder:
+                    // That placeholder is always replaced with a temp local
                     return true;
 
+                case BoundKind.IndexOrRangeIndexerPatternValuePlaceholder:
+                    // Implicit Index or Range indexers only have by-value parameters:
+                    // this[int], Slice(int, int), Substring(int, int)
+                    return false;
+
+                case BoundKind.ListPatternReceiverPlaceholder:
+                case BoundKind.SlicePatternReceiverPlaceholder:
                 case BoundKind.SlicePatternRangePlaceholder:
                 case BoundKind.ListPatternIndexPlaceholder:
                     throw ExceptionUtilities.UnexpectedValue(expr.Kind);

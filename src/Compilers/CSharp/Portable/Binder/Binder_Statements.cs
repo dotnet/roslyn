@@ -1599,15 +1599,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        internal static Symbol? GetIndexerSymbol(BoundExpression? e)
+        internal static Symbol? GetIndexerOrImplicitIndexerSymbol(BoundExpression? e)
         {
             return e switch
             {
                 null => null,
-                BoundIndexOrRangePatternIndexerAccess implicitIndexerAccess => GetIndexerSymbol(implicitIndexerAccess.IndexerAccess),
+                // this[Index], this[Range]
                 BoundIndexerAccess indexerAccess => indexerAccess.Indexer,
-                BoundCall call => call.Method,
-                BoundArrayAccess arrayAccess => arrayAccess.ExpressionSymbol,
+                // Slice(int, int), Substring(int, int)
+                BoundIndexOrRangePatternIndexerAccess { IndexerAccess: BoundCall call } => call.Method,
+                // this[int]
+                BoundIndexOrRangePatternIndexerAccess { IndexerAccess: BoundIndexerAccess indexerAccess } => indexerAccess.Indexer,
+                // array[int]
+                BoundArrayAccess => null,
                 BoundBadExpression => null,
                 _ => throw ExceptionUtilities.UnexpectedValue(e.Kind)
             };

@@ -2141,7 +2141,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o 
           IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '42') (InputType: System.Int32, NarrowedType: System.Int32)
             Value:
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
-          ISlicePatternOperation (OperationKind.SlicePattern, Type: null) (Syntax: '.. var slice') (InputType: System.Int32[], NarrowedType: System.Int32[], SliceSymbol: T[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<T>(T[] array, System.Range range)
+          ISlicePatternOperation (OperationKind.SlicePattern, Type: null) (Syntax: '.. var slice') (InputType: System.Int32[], NarrowedType: System.Int32[], SliceSymbol: null
             Pattern:
               IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var slice') (InputType: System.Int32[], NarrowedType: System.Int32[], DeclaredSymbol: System.Int32[]? slice, MatchesNull: True)
 ";
@@ -2375,7 +2375,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
   Value:
     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
   Pattern:
-    ISlicePatternOperation (OperationKind.SlicePattern, Type: null, IsInvalid) (Syntax: '.. 42') (InputType: System.Int32[], NarrowedType: System.Int32[], SliceSymbol: T[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<T>(T[] array, System.Range range)
+    ISlicePatternOperation (OperationKind.SlicePattern, Type: null, IsInvalid) (Syntax: '.. 42') (InputType: System.Int32[], NarrowedType: System.Int32[], SliceSymbol: null
       Pattern:
         IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '42') (InputType: System.Int32[], NarrowedType: System.Int32[])
           Value:
@@ -2433,7 +2433,7 @@ Block[B0] - Entry
                       IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32, NarrowedType: System.Int32)
                         Value:
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                      ISlicePatternOperation (OperationKind.SlicePattern, Type: null) (Syntax: '.. var slice') (InputType: System.Int32[], NarrowedType: System.Int32[], SliceSymbol: T[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<T>(T[] array, System.Range range)
+                      ISlicePatternOperation (OperationKind.SlicePattern, Type: null) (Syntax: '.. var slice') (InputType: System.Int32[], NarrowedType: System.Int32[], SliceSymbol: null
                         Pattern:
                           IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var slice') (InputType: System.Int32[], NarrowedType: System.Int32[], DeclaredSymbol: System.Int32[]? slice, MatchesNull: True)
                       IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '2') (InputType: System.Int32, NarrowedType: System.Int32)
