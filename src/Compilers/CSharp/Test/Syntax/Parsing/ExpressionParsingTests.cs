@@ -210,28 +210,73 @@ class C
         [Fact]
         public void TestInterpolatedStringWithNewLinesInExpression()
         {
-            var text = @"$""Text with {\nnew[] {\n 1, 2, 3 \n}[2]\n}parts and new line expressions!""";
-            text = text.Replace(@"\n", System.Environment.NewLine);
+            var text = @"$""Text with {\nnew[] {\n 1, 2, 3 \n}[2]\n}parts and new line expressions!"""
+                .Replace("\\n", System.Environment.NewLine);
 
-            var expr = this.ParseExpression(text);
+            UsingExpression(text, TestOptions.RegularPreview);
 
-            if (expr is InterpolatedStringExpressionSyntax intStr)
+            var expr = (InterpolatedStringExpressionSyntax)N(SyntaxKind.InterpolatedStringExpression);
             {
-                Assert.Equal(3, intStr.Contents.Count);
-
-                Assert.IsType<InterpolatedStringTextSyntax>(intStr.Contents[0]);
-                Assert.IsType<InterpolationSyntax>(intStr.Contents[1]);
-                Assert.IsType<InterpolatedStringTextSyntax>(intStr.Contents[0]);
-
-                Assert.Equal("Text with ", intStr.Contents[0].ToString());
-                Assert.Equal("parts and new line expressions!", intStr.Contents[2].ToString());
-
-                Assert.IsType<ElementAccessExpressionSyntax>(((InterpolationSyntax)intStr.Contents[1]).Expression);
+                N(SyntaxKind.InterpolatedStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ElementAccessExpression);
+                    {
+                        N(SyntaxKind.ImplicitArrayCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.CloseBracketToken);
+                            N(SyntaxKind.ArrayInitializerExpression);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.BracketedArgumentList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
             }
-            else
-            {
-                Assert.True(false, "Invalid expression type returned");
-            }
+            EOF();
+
+            Assert.Equal("Text with ", expr.Contents[0].ToString());
+            Assert.Equal("parts and new line expressions!", expr.Contents[2].ToString());
         }
 
         [Fact]
