@@ -3457,7 +3457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!node.HasErrors)
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, ref discardedUseSiteInfo, unwrapFunctionType: true);
+                    bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, ref discardedUseSiteInfo, out _);
                 }
 
                 TypeWithAnnotations inferredType = (bestType is null)
@@ -3517,7 +3517,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<(BoundExpression, TypeWithAnnotations)> returns,
             Binder binder,
             BoundNode node,
-            Conversions conversions)
+            Conversions conversions,
+            out bool inferredFromFunctionType)
         {
             var walker = new NullableWalker(binder.Compilation,
                                             symbol: null,
@@ -3545,21 +3546,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             var placeholders = placeholdersBuilder.ToImmutableAndFree();
-            TypeSymbol? bestType = BestTypeInferrer.InferBestType(placeholders, walker._conversions, ref discardedUseSiteInfo, unwrapFunctionType: false);
+            TypeSymbol? bestType = BestTypeInferrer.InferBestType(placeholders, walker._conversions, ref discardedUseSiteInfo, out inferredFromFunctionType);
 
             TypeWithAnnotations inferredType;
             if (bestType is { })
             {
                 // Note: so long as we have a best type, we can proceed.
-                var unwrappedType = bestType is FunctionTypeSymbol functionType ?
-                    functionType.GetInternalDelegateType() :
-                    bestType;
-                var bestTypeWithObliviousAnnotation = TypeWithAnnotations.Create(unwrappedType);
+                var bestTypeWithObliviousAnnotation = TypeWithAnnotations.Create(bestType);
                 ConversionsBase conversionsWithoutNullability = walker._conversions.WithNullability(false);
                 for (int i = 0; i < n; i++)
                 {
                     BoundExpression placeholder = placeholders[i];
-                    Conversion conversion = conversionsWithoutNullability.ClassifyConversionFromExpression(placeholder, unwrappedType, ref discardedUseSiteInfo);
+                    Conversion conversion = conversionsWithoutNullability.ClassifyConversionFromExpression(placeholder, bestType, ref discardedUseSiteInfo);
                     resultTypes[i] = walker.VisitConversion(conversionOpt: null, placeholder, conversion, bestTypeWithObliviousAnnotation, resultTypes[i].ToTypeWithState(),
                         checkConversion: false, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Return,
                         reportRemainingWarnings: false, reportTopLevelWarnings: false).ToTypeWithAnnotations(binder.Compilation);

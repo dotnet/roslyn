@@ -88,10 +88,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             );
         }
 
-        public TypeWithAnnotations GetInferredReturnType(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool allowInferenceFromFunctionType)
+        public TypeWithAnnotations GetInferredReturnType(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool inferredFromFunctionType)
         {
             // Nullability (and conversions) are ignored.
-            return GetInferredReturnType(conversions: null, nullableState: null, ref useSiteInfo, allowInferenceFromFunctionType);
+            return GetInferredReturnType(conversions: null, nullableState: null, ref useSiteInfo, out inferredFromFunctionType);
         }
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// uses that state to set the inferred nullability of variables in the enclosing scope. `conversions` is
         /// only needed when nullability is inferred.
         /// </summary>
-        public TypeWithAnnotations GetInferredReturnType(ConversionsBase? conversions, NullableWalker.VariableState? nullableState, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool allowInferenceFromFunctionType)
+        public TypeWithAnnotations GetInferredReturnType(ConversionsBase? conversions, NullableWalker.VariableState? nullableState, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool inferredFromFunctionType)
         {
             if (!InferredReturnType.UseSiteDiagnostics.IsEmpty)
             {
@@ -142,10 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnTypes.Free();
             }
 
-            if (!allowInferenceFromFunctionType && inferredReturnType.InferredFromFunctionType)
-            {
-                return default;
-            }
+            inferredFromFunctionType = inferredReturnType.InferredFromFunctionType;
             return inferredReturnType.TypeWithAnnotations;
         }
 
@@ -212,14 +209,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var useSiteInfo = withDependencies ? new CompoundUseSiteInfo<AssemblySymbol>(binder.Compilation.Assembly) : CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependencies;
-            var bestType = CalculateReturnType(binder, conversions, delegateType, types, isAsync, node, ref useSiteInfo);
+            var bestType = CalculateReturnType(binder, conversions, delegateType, types, isAsync, node, ref useSiteInfo, out bool inferredFromFunctionType);
+            Debug.Assert(bestType.Type is not FunctionTypeSymbol);
             int numExpressions = types.Count;
-            bool inferredFromFunctionType = false;
-            if (bestType.Type is FunctionTypeSymbol functionType)
-            {
-                inferredFromFunctionType = true;
-                bestType = TypeWithAnnotations.Create(functionType.GetInternalDelegateType());
-            }
             types.Free();
             return new InferredLambdaReturnType(
                 numExpressions,
@@ -239,23 +231,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<(BoundExpression expr, TypeWithAnnotations resultType)> returns,
             bool isAsync,
             BoundNode node,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+            out bool inferredFromFunctionType)
         {
             TypeWithAnnotations bestResultType;
             int n = returns.Count;
             switch (n)
             {
                 case 0:
+                    inferredFromFunctionType = false;
                     bestResultType = default;
                     break;
                 case 1:
                     if (conversions.IncludeNullability)
                     {
+                        inferredFromFunctionType = false;
                         bestResultType = returns[0].resultType;
                     }
                     else
                     {
                         var bestType = returns[0].expr.GetTypeOrFunctionType();
+                        if (bestType is FunctionTypeSymbol functionType)
+                        {
+                            inferredFromFunctionType = true;
+                            bestType = functionType.GetInternalDelegateType();
+                        }
+                        else
+                        {
+                            inferredFromFunctionType = false;
+                        }
                         bestResultType = TypeWithAnnotations.Create(bestType);
                     }
                     break;
@@ -263,11 +267,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Need to handle ref returns. See https://github.com/dotnet/roslyn/issues/30432
                     if (conversions.IncludeNullability)
                     {
-                        bestResultType = NullableWalker.BestTypeForLambdaReturns(returns, binder, node, (Conversions)conversions);
+                        bestResultType = NullableWalker.BestTypeForLambdaReturns(returns, binder, node, (Conversions)conversions, out inferredFromFunctionType);
                     }
                     else
                     {
-                        var bestType = BestTypeInferrer.InferBestType(returns.SelectAsArray(pair => pair.expr), conversions, ref useSiteInfo, unwrapFunctionType: false);
+                        var bestType = BestTypeInferrer.InferBestType(returns.SelectAsArray(pair => pair.expr), conversions, ref useSiteInfo, out inferredFromFunctionType);
                         bestResultType = TypeWithAnnotations.Create(bestType);
                     }
                     break;
@@ -440,8 +444,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             => Data.HasExplicitReturnType(out refKind, out returnType);
         public bool HasExplicitlyTypedParameterList { get { return Data.HasExplicitlyTypedParameterList; } }
         public int ParameterCount { get { return Data.ParameterCount; } }
-        public TypeWithAnnotations InferReturnType(ConversionsBase conversions, NamedTypeSymbol delegateType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool allowInferenceFromFunctionType)
-            => BindForReturnTypeInference(delegateType).GetInferredReturnType(conversions, _nullableState, ref useSiteInfo, allowInferenceFromFunctionType);
+        public TypeWithAnnotations InferReturnType(ConversionsBase conversions, NamedTypeSymbol delegateType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool inferredFromFunctionType)
+            => BindForReturnTypeInference(delegateType).GetInferredReturnType(conversions, _nullableState, ref useSiteInfo, out inferredFromFunctionType);
 
         public RefKind RefKind(int index) { return Data.RefKind(index); }
         public void GenerateAnonymousFunctionConversionError(BindingDiagnosticBag diagnostics, TypeSymbol targetType) { Data.GenerateAnonymousFunctionConversionError(diagnostics, targetType); }

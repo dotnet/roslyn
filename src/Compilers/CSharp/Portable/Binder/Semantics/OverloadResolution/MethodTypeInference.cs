@@ -2926,7 +2926,12 @@ OuterBreak:
             // the anonymous function is explicitly typed.  Make an inference from the
             // delegate parameters to the return type.
 
-            return anonymousFunction.InferReturnType(_conversions, fixedDelegate, ref useSiteInfo, allowInferenceFromFunctionType: false);
+            var returnType = anonymousFunction.InferReturnType(_conversions, fixedDelegate, ref useSiteInfo, out bool inferredFromFunctionType);
+            if (inferredFromFunctionType)
+            {
+                return default;
+            }
+            return returnType;
         }
 
         /// <summary>
