@@ -24,6 +24,19 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     {
         public static VisualBasicCompilationOptions BasicOptions { get; } = new VisualBasicCompilationOptions(OutputKind.ConsoleApplication, deterministic: true);
 
+        protected override SyntaxTree ParseSyntaxTree(string content, string fileName, SourceHashAlgorithm hashAlgorithm) =>
+            VisualBasicSyntaxTree.ParseText(
+                SourceText.From(content, checksumAlgorithm: hashAlgorithm, encoding: Encoding.UTF8),
+                path: fileName);
+
+        protected override Compilation CreateCompilation(SyntaxTree[] syntaxTrees, MetadataReference[]? references = null) =>
+            VisualBasicCompilation.Create(
+                "test",
+                syntaxTrees,
+                references ?? NetCoreApp.References.ToArray(),
+                options: BasicOptions);
+
+
         /// <summary>
         /// This check monitors the set of properties and fields on the various option types
         /// that contribute to the deterministic checksum of a <see cref="Compilation"/>. When
@@ -48,6 +61,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 Assert.Equal(expected, count);
             }
         }
+
 
         [Theory]
         [InlineData(@"hello world")]

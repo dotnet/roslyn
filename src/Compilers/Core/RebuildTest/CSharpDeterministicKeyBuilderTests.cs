@@ -24,6 +24,19 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     public sealed class CSharpDeterministicKeyBuilderTests : DeterministicKeyBuilderTests
     {
         public static CSharpCompilationOptions Options { get; } = new CSharpCompilationOptions(OutputKind.ConsoleApplication, deterministic: true);
+        protected override SyntaxTree ParseSyntaxTree(string content, string fileName, SourceHashAlgorithm hashAlgorithm) =>
+            CSharpTestBase.Parse(
+                content,
+                filename: fileName,
+                checksumAlgorithm: hashAlgorithm,
+                encoding: Encoding.UTF8);
+
+        protected override Compilation CreateCompilation(SyntaxTree[] syntaxTrees, MetadataReference[]? references = null) =>
+            CSharpCompilation.Create(
+                "test",
+                syntaxTrees,
+                references ?? NetCoreApp.References.ToArray(),
+                Options);
 
         /// <summary>
         /// This check monitors the set of properties and fields on the various option types
@@ -143,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [InlineData(@"c:\code\file.cs", @"c:\code\file.cs", DeterministicKeyOptions.Default)]
         [InlineData(@"/code/file.cs", @"file.cs", DeterministicKeyOptions.IgnorePaths)]
         [InlineData(@"/code/file.cs", @"/code/file.cs", DeterministicKeyOptions.Default)]
-        public void FilePathInSyntaxTree(string path, string expectedPath, DeterministicKeyOptions options)
+        public void SyntaxTreeFilePath(string path, string expectedPath, DeterministicKeyOptions options)
         {
             var source = CSharpTestBase.Parse(
                 @"System.Console.WriteLine(""Hello World"");",
@@ -173,22 +186,24 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [InlineData(@"hello world")]
         [InlineData(@"just need some text here")]
         [InlineData(@"yet another case")]
-        public void ContentInSyntaxTree(string content)
+        public void SyntaxTreeContent(string content)
         {
-            var syntaxTree = CSharpTestBase.Parse(
-                content,
-                filename: "file.cs",
-                checksumAlgorithm: HashAlgorithm);
-            var contentChecksum = GetChecksum(syntaxTree.GetText());
-            var compilation = CSharpTestBase.CreateCompilation(syntaxTree);
-            var key = compilation.GetDeterministicKey();
-            var expected = @$"
+            foreach (var hashAlgorithm in HashAlgorithms)
+            {
+                var syntaxTree = CSharpTestBase.Parse(
+                    content,
+                    filename: "file.cs",
+                    checksumAlgorithm: hashAlgorithm);
+                var contentChecksum = GetChecksum(syntaxTree.GetText());
+                var compilation = CSharpTestBase.CreateCompilation(syntaxTree);
+                var key = compilation.GetDeterministicKey();
+                var expected = @$"
 ""syntaxTrees"": [
   {{
     ""fileName"": ""file.cs"",
     ""text"": {{
       ""checksum"": ""{contentChecksum}"",
-      ""checksumAlgorithm"": ""Sha256"",
+      ""checksumAlgorithm"": ""{hashAlgorithm}"",
       ""encoding"": ""Unicode (UTF-8)""
     }},
     ""parseOptions"": {{
@@ -197,7 +212,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     }}
   }}
 ]";
-            AssertJsonSection(expected, key, "compilation.syntaxTrees");
+                AssertJsonSection(expected, key, "compilation.syntaxTrees");
+            }
         }
 
         [Theory]

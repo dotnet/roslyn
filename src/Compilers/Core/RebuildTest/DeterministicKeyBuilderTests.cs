@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.VisualBasic.UnitTests;
+using System;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
@@ -27,6 +28,12 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         private static readonly char[] s_trimChars = { ' ', '\n', '\r' };
 
         public static SourceHashAlgorithm HashAlgorithm { get; } = SourceHashAlgorithm.Sha256;
+        public static SourceHashAlgorithm[] HashAlgorithms { get; } = new[]
+        {
+            SourceHashAlgorithm.Sha1,
+            SourceHashAlgorithm.Sha256
+        };
+
         public static CSharpCompilationOptions CSharpOptions { get; } = new CSharpCompilationOptions(OutputKind.ConsoleApplication, deterministic: true);
 
         protected static void AssertJson(
@@ -58,18 +65,49 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         protected static void AssertJsonSection(
             string expected,
             string actual,
-            string sectionName)
+            string sectionName,
+            params string[] ignoreProperties)
         {
             var lastName = sectionName.Split('.').Last();
             AssertJsonCore(expected, getSection(actual));
 
-            string getSection(string json) =>
-                JObject.Parse(json)
+            string getSection(string json)
+            {
+                var property = JObject.Parse(json)
                     .Descendants()
                     .OfType<JProperty>()
                     .Where(x => x.Name == lastName && getFullName(x) == sectionName)
-                    .Single()
-                    .ToString(Formatting.Indented);
+                    .Single();
+
+                if (ignoreProperties.Length > 0)
+                {
+                    if (property.Value is JObject value)
+                    {
+                        removeProperties(value);
+                    }
+                    else if (property.Value is JArray array)
+                    {
+                        foreach (var element in array.Values<JObject>())
+                        {
+                            removeProperties(element!);
+                        }
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+
+                    void removeProperties(JObject value)
+                    {
+                        foreach (var ignoreProperty in ignoreProperties)
+                        {
+                            value.Properties().Where(x => x.Name == ignoreProperty).Single().Remove();
+                        }
+                    }
+                }
+
+                return property.ToString(Formatting.Indented);
+            }
 
             static string getFullName(JProperty property)
             {
@@ -99,6 +137,38 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var builder = PooledStringBuilder.GetInstance();
             DeterministicKeyBuilder.EncodeByteArrayValue(checksum.AsSpan(), builder);
             return builder.ToStringAndFree();
+        }
+
+        protected abstract SyntaxTree ParseSyntaxTree(string content, string fileName, SourceHashAlgorithm hashAlgorithm);
+        protected abstract Compilation CreateCompilation(
+            SyntaxTree[] syntaxTrees,
+            MetadataReference[]? references = null);
+
+        [Theory]
+        [InlineData(@"hello world")]
+        [InlineData(@"just need some text here")]
+        [InlineData(@"yet another case")]
+        public void SyntaxTreeContent(string content)
+        {
+            foreach (var hashAlgorithm in HashAlgorithms)
+            {
+                var syntaxTree = ParseSyntaxTree(content, fileName: "file.cs", hashAlgorithm);
+                var contentChecksum = GetChecksum(syntaxTree.GetText());
+                var compilation = CreateCompilation(new[] { syntaxTree });
+                var key = compilation.GetDeterministicKey();
+                var expected = @$"
+""syntaxTrees"": [
+  {{
+    ""fileName"": ""file.cs"",
+    ""text"": {{
+      ""checksum"": ""{contentChecksum}"",
+      ""checksumAlgorithm"": ""{hashAlgorithm}"",
+      ""encoding"": ""Unicode (UTF-8)""
+    }}
+  }}
+]";
+                AssertJsonSection(expected, key, "compilation.syntaxTrees", "parseOptions");
+            }
         }
     }
 }
