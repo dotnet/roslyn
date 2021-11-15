@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.VisualStudio.Shell
@@ -14,8 +15,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         Implements IVsAsyncFileChangeEx
 
         Private ReadOnly _lock As New Object
-        Private ReadOnly _watchedFiles As New List(Of WatchedEntity)
-        Private ReadOnly _watchedDirectories As New List(Of WatchedEntity)
+        Private _watchedFiles As ImmutableList(Of WatchedEntity) = ImmutableList(Of WatchedEntity).Empty
+        Private _watchedDirectories As ImmutableList(Of WatchedEntity) = ImmutableList(Of WatchedEntity).Empty
         Private _nextCookie As UInteger
 
         Public Function AdviseDirChange(pszDir As String, fWatchSubDir As Integer, pFCE As IVsFileChangeEvents, ByRef pvsCookie As UInteger) As Integer Implements IVsFileChangeEx.AdviseDirChange
@@ -36,13 +37,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Return VSConstants.S_OK
         End Function
 
-        Private Function AdviseDirectoryOrFileChange(watchedList As List(Of WatchedEntity),
+        Private Function AdviseDirectoryOrFileChange(ByRef watchedList As ImmutableList(Of WatchedEntity),
                                                      pszMkDocument As String,
                                                      pFCE As IVsFileChangeEvents) As UInteger
 
             SyncLock _lock
                 Dim cookie = _nextCookie
-                watchedList.Add(New WatchedEntity(cookie, pszMkDocument, DirectCast(pFCE, IVsFreeThreadedFileChangeEvents2)))
+                watchedList = watchedList.Add(New WatchedEntity(cookie, pszMkDocument, DirectCast(pFCE, IVsFreeThreadedFileChangeEvents2)))
                 _nextCookie += 1UI
 
                 Return cookie
@@ -59,7 +60,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
         Public Function UnadviseDirChange(VSCOOKIE As UInteger) As Integer Implements IVsFileChangeEx.UnadviseDirChange
             SyncLock _lock
-                _watchedDirectories.RemoveAll(Function(t) t.Cookie = VSCOOKIE)
+                _watchedDirectories = _watchedDirectories.RemoveAll(Function(t) t.Cookie = VSCOOKIE)
 
                 Return VSConstants.S_OK
             End SyncLock
@@ -67,32 +68,52 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
         Public Function UnadviseFileChange(VSCOOKIE As UInteger) As Integer Implements IVsFileChangeEx.UnadviseFileChange
             SyncLock _lock
-                _watchedFiles.RemoveAll(Function(t) t.Cookie = VSCOOKIE)
+                _watchedFiles = _watchedFiles.RemoveAll(Function(t) t.Cookie = VSCOOKIE)
 
                 Return VSConstants.S_OK
             End SyncLock
         End Function
 
         Public Sub FireUpdate(filename As String)
+            FireUpdate(filename, _watchedFiles, _watchedDirectories)
+        End Sub
+
+        ''' <summary>
+        ''' Raises a file change that raised after <paramref name="unsubscribingAction"/> is ran.
+        ''' </summary>
+        ''' <remarks>
+        ''' File change notifications are inherently asynchronous -- it's always possible that a file change
+        ''' notification may have been started for something we unsubscribe a moment later -- there's always a window of time
+        ''' between the final check and the entry into Roslyn code which is unavoidable as long as notifications aren't called
+        ''' by the shell under a lock, which they aren't for deadlock reasons.
+        ''' </remarks>
+        Public Sub FireStaleUpdate(filename As String, unsubscribingAction As Action)
+            Dim watchedFiles = _watchedFiles
+            Dim watchedDirectories = _watchedDirectories
+
+            unsubscribingAction()
+
+            FireUpdate(filename, watchedFiles, watchedDirectories)
+        End Sub
+
+        Private Shared Sub FireUpdate(filename As String, watchedFiles As ImmutableList(Of WatchedEntity), watchedDirectories As ImmutableList(Of WatchedEntity))
             Dim actionsToFire As List(Of Action) = New List(Of Action)()
 
-            SyncLock _lock
-                For Each watchedFile In _watchedFiles
-                    If String.Equals(watchedFile.Path, filename, StringComparison.OrdinalIgnoreCase) Then
-                        actionsToFire.Add(Sub()
-                                              watchedFile.Sink.FilesChanged(1, {watchedFile.Path}, {CType(_VSFILECHANGEFLAGS.VSFILECHG_Time, UInteger)})
-                                          End Sub)
-                    End If
-                Next
+            For Each watchedFile In watchedFiles
+                If String.Equals(watchedFile.Path, filename, StringComparison.OrdinalIgnoreCase) Then
+                    actionsToFire.Add(Sub()
+                                          watchedFile.Sink.FilesChanged(1, {watchedFile.Path}, {CType(_VSFILECHANGEFLAGS.VSFILECHG_Time, UInteger)})
+                                      End Sub)
+                End If
+            Next
 
-                For Each watchedDirectory In _watchedDirectories
-                    If FileNameMatchesFilter(filename, watchedDirectory) Then
-                        actionsToFire.Add(Sub()
-                                              watchedDirectory.Sink.DirectoryChangedEx2(watchedDirectory.Path, 1, {filename}, {CType(_VSFILECHANGEFLAGS.VSFILECHG_Time, UInteger)})
-                                          End Sub)
-                    End If
-                Next
-            End SyncLock
+            For Each watchedDirectory In watchedDirectories
+                If FileNameMatchesFilter(filename, watchedDirectory) Then
+                    actionsToFire.Add(Sub()
+                                          watchedDirectory.Sink.DirectoryChangedEx2(watchedDirectory.Path, 1, {filename}, {CType(_VSFILECHANGEFLAGS.VSFILECHG_Time, UInteger)})
+                                      End Sub)
+                End If
+            Next
 
             If actionsToFire.Count > 0 Then
                 For Each actionToFire In actionsToFire
@@ -103,7 +124,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             End If
         End Sub
 
-        Private Function FileNameMatchesFilter(filename As String, watchedDirectory As WatchedEntity) As Boolean
+        Private Shared Function FileNameMatchesFilter(filename As String, watchedDirectory As WatchedEntity) As Boolean
             If Not filename.StartsWith(watchedDirectory.Path, StringComparison.OrdinalIgnoreCase) Then
                 Return False
             End If

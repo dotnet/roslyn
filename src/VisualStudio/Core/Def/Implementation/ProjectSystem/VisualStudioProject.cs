@@ -1165,6 +1165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             _documentFileChangeContext.Dispose();
+
             IReadOnlyList<MetadataReference>? remainingMetadataReferences = null;
 
             _workspace.ApplyChangeToWorkspace(w =>
@@ -1601,13 +1602,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 using (_project._gate.DisposableWait())
                 {
+                    // If our project has already been removed, this is a stale notification, and we can disregard.
+                    if (!_project._workspace.CurrentSolution.ContainsProject(_project.Id))
+                    {
+                        return;
+                    }
+
                     if (_documentPathsToDocumentIds.TryGetValue(workspaceFilePath, out var documentId))
                     {
                         // We create file watching prior to pushing the file to the workspace in batching, so it's
                         // possible we might see a file change notification early. In this case, toss it out. Since
                         // all adds/removals of documents for this project happen under our lock, it's safe to do this
-                        // check without taking the main workspace lock
-
+                        // check without taking the main workspace lock. We don't have to check for documents removed in
+                        // the batch, since those have already been removed out of _documentPathsToDocumentIds.
                         if (_documentsAddedInBatch.Any(d => d.Id == documentId))
                         {
                             return;
