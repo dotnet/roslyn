@@ -142,7 +142,7 @@ namespace IdeCoreBenchmarks
                         results.Add(r);
 
                     return Task.CompletedTask;
-                }, isFullyLoaded: true, CancellationToken.None);
+                }, CancellationToken.None);
 
             return results.Count;
         }

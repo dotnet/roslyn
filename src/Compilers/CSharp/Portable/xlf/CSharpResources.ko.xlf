@@ -222,6 +222,11 @@
         <target state="translated">AsyncMethodBuilder 특성은 명시적 반환 형식이 없는 익명 메서드에서 허용되지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotBeMadeNullable">
+        <source>'{0}' cannot be made nullable.</source>
+        <target state="new">'{0}' cannot be made nullable.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotClone">
         <source>The receiver type '{0}' is not a valid record type and is not a struct type.</source>
         <target state="translated">수신기 형식 '{0}'은(는) 올바른 레코드 형식이 아니며 구조체 형식이 아닙니다.</target>
@@ -255,6 +260,11 @@
       <trans-unit id="ERR_CannotUseReducedExtensionMethodInAddressOf">
         <source>Cannot use an extension method with a receiver as the target of a '&amp;' operator.</source>
         <target state="translated">'&amp;' 연산자의 대상으로 수신기가 있는 확장 메서드는 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotUseRefInUnmanagedCallersOnly">
+        <source>Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="new">Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotUseSelfAsInterpolatedStringHandlerArgument">

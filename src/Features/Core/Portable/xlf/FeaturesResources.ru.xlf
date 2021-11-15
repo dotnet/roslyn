@@ -565,6 +565,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Явно реализованные методы записей должны иметь имена параметров, соответствующие компилятору, созданному эквивалентом '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Explicitly_inherit_documentation">
+        <source>Explicitly inherit documentation</source>
+        <target state="new">Explicitly inherit documentation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
         <target state="translated">Извлечь базовый класс...</target>
