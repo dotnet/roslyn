@@ -88,10 +88,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             );
         }
 
-        public TypeWithAnnotations GetInferredReturnType(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool allowInferredFromFunctionType)
+        public TypeWithAnnotations GetInferredReturnType(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool allowInferenceFromFunctionType)
         {
             // Nullability (and conversions) are ignored.
-            return GetInferredReturnType(conversions: null, nullableState: null, ref useSiteInfo, allowInferredFromFunctionType);
+            return GetInferredReturnType(conversions: null, nullableState: null, ref useSiteInfo, allowInferenceFromFunctionType);
         }
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// uses that state to set the inferred nullability of variables in the enclosing scope. `conversions` is
         /// only needed when nullability is inferred.
         /// </summary>
-        public TypeWithAnnotations GetInferredReturnType(ConversionsBase? conversions, NullableWalker.VariableState? nullableState, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool allowInferredFromFunctionType)
+        public TypeWithAnnotations GetInferredReturnType(ConversionsBase? conversions, NullableWalker.VariableState? nullableState, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool allowInferenceFromFunctionType)
         {
             if (!InferredReturnType.UseSiteDiagnostics.IsEmpty)
             {
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnTypes.Free();
             }
 
-            if (!allowInferredFromFunctionType && inferredReturnType.InferredFromFunctionType)
+            if (!allowInferenceFromFunctionType && inferredReturnType.InferredFromFunctionType)
             {
                 return default;
             }
@@ -440,8 +440,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             => Data.HasExplicitReturnType(out refKind, out returnType);
         public bool HasExplicitlyTypedParameterList { get { return Data.HasExplicitlyTypedParameterList; } }
         public int ParameterCount { get { return Data.ParameterCount; } }
-        public TypeWithAnnotations InferReturnType(ConversionsBase conversions, NamedTypeSymbol delegateType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool allowInferredFromFunctionType)
-            => BindForReturnTypeInference(delegateType).GetInferredReturnType(conversions, _nullableState, ref useSiteInfo, allowInferredFromFunctionType);
+        public TypeWithAnnotations InferReturnType(ConversionsBase conversions, NamedTypeSymbol delegateType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool allowInferenceFromFunctionType)
+            => BindForReturnTypeInference(delegateType).GetInferredReturnType(conversions, _nullableState, ref useSiteInfo, allowInferenceFromFunctionType);
 
         public RefKind RefKind(int index) { return Data.RefKind(index); }
         public void GenerateAnonymousFunctionConversionError(BindingDiagnosticBag diagnostics, TypeSymbol targetType) { Data.GenerateAnonymousFunctionConversionError(diagnostics, targetType); }
