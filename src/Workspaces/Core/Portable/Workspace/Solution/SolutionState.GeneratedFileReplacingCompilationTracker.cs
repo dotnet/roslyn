@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -33,14 +32,14 @@ namespace Microsoft.CodeAnalysis
             [DisallowNull]
             private Compilation? _compilationWithReplacement;
 
-            public CachedSkeletonReferences CachedSkeletonReferences { get; }
+            public SkeletonReferenceCache SkeletonReferenceCache { get; }
             public ProjectState ProjectState => _underlyingTracker.ProjectState;
 
             public GeneratedFileReplacingCompilationTracker(ICompilationTracker underlyingTracker, SourceGeneratedDocumentState replacementDocumentState)
             {
                 _underlyingTracker = underlyingTracker;
                 _replacedGeneratedDocumentState = replacementDocumentState;
-                CachedSkeletonReferences = underlyingTracker.CachedSkeletonReferences.Clone();
+                SkeletonReferenceCache = underlyingTracker.SkeletonReferenceCache.Clone();
             }
 
             public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary)
@@ -130,21 +129,6 @@ namespace Microsoft.CodeAnalysis
                 => Checksum.Create(
                     await _underlyingTracker.GetDependentChecksumAsync(solution, cancellationToken).ConfigureAwait(false),
                     await _replacedGeneratedDocumentState.GetChecksumAsync(cancellationToken).ConfigureAwait(false));
-
-            public async Task<MetadataReference> GetMetadataReferenceAsync(SolutionState solution, ProjectState fromProject, ProjectReference projectReference, CancellationToken cancellationToken)
-            {
-                var compilation = await GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
-
-                // If it's the same language we can just make a CompilationReference
-                if (this.ProjectState.LanguageServices == fromProject.LanguageServices)
-                    return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
-
-                // Otherwise we need to create a skeleton for this project.  See if we can reuse an existing
-                // one, or create a new one when we can't.
-                var version = await GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
-                var properties = new MetadataReferenceProperties(MetadataImageKind.Assembly, projectReference.Aliases, projectReference.EmbedInteropTypes);
-                return this.CachedSkeletonReferences.GetOrBuildReference(solution.Workspace, properties, compilation, version, cancellationToken);
-            }
 
             public CompilationReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
             {
