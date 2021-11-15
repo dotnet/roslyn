@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -108,13 +109,14 @@ namespace Microsoft.CodeAnalysis
 
         internal string GetKey(
             CompilationOptions compilationOptions,
-            ImmutableArray<SyntaxTree> syntaxTrees,
+            ImmutableArray<SyntaxTreeKey> syntaxTrees,
             ImmutableArray<MetadataReference> references,
-            ImmutableArray<AdditionalText> additionalTexts = default,
-            ImmutableArray<DiagnosticAnalyzer> analyzers = default,
-            ImmutableArray<ISourceGenerator> generators = default,
-            EmitOptions? emitOptions = null,
-            DeterministicKeyOptions options = default)
+            ImmutableArray<AdditionalText> additionalTexts,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            ImmutableArray<ISourceGenerator> generators,
+            EmitOptions? emitOptions,
+            DeterministicKeyOptions options,
+            CancellationToken cancellationToken)
         {
             additionalTexts = additionalTexts.NullToEmpty();
             analyzers = analyzers.NullToEmpty();
@@ -125,7 +127,7 @@ namespace Microsoft.CodeAnalysis
             writer.WriteObjectStart();
 
             writer.WriteKey("compilation");
-            WriteCompilation(writer, compilationOptions, syntaxTrees, references, options);
+            WriteCompilation(writer, compilationOptions, syntaxTrees, references, options, cancellationToken);
             writer.WriteKey("additionalTexts");
             writeAdditionalTexts();
             writer.WriteKey("analyzers");
@@ -144,10 +146,12 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteArrayStart();
                 foreach (var additionalText in additionalTexts)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     writer.WriteObjectStart();
                     WriteFileName(writer, "fileName", additionalText.Path, options);
                     writer.WriteKey("text");
-                    WriteSourceText(writer, additionalText.GetText());
+                    WriteSourceText(writer, additionalText.GetText(cancellationToken));
                     writer.WriteObjectEnd();
                 }
                 writer.WriteArrayEnd();
@@ -158,6 +162,7 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteArrayStart();
                 foreach (var analyzer in analyzers)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     WriteType(writer, analyzer.GetType());
                 }
                 writer.WriteArrayEnd();
@@ -168,6 +173,7 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteArrayStart();
                 foreach (var generator in generators)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     WriteType(writer, generator.GetType());
                 }
                 writer.WriteArrayEnd();
@@ -184,9 +190,10 @@ namespace Microsoft.CodeAnalysis
         private void WriteCompilation(
             JsonWriter writer,
             CompilationOptions compilationOptions,
-            ImmutableArray<SyntaxTree> syntaxTrees,
+            ImmutableArray<SyntaxTreeKey> syntaxTrees,
             ImmutableArray<MetadataReference> references,
-            DeterministicKeyOptions options)
+            DeterministicKeyOptions options,
+            CancellationToken cancellationToken)
         {
             writer.WriteObjectStart();
             writeToolsVersions();
@@ -198,7 +205,8 @@ namespace Microsoft.CodeAnalysis
             writer.WriteArrayStart();
             foreach (var syntaxTree in syntaxTrees)
             {
-                WriteSyntaxTree(writer, syntaxTree, options);
+                cancellationToken.ThrowIfCancellationRequested();
+                WriteSyntaxTree(writer, syntaxTree, options, cancellationToken);
             }
             writer.WriteArrayEnd();
 
@@ -206,6 +214,7 @@ namespace Microsoft.CodeAnalysis
             writer.WriteArrayStart();
             foreach (var reference in references)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 WriteMetadataReference(writer, reference);
             }
             writer.WriteArrayEnd();
@@ -234,12 +243,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void WriteSyntaxTree(JsonWriter writer, SyntaxTree syntaxTree, DeterministicKeyOptions options)
+        private void WriteSyntaxTree(JsonWriter writer, SyntaxTreeKey syntaxTree, DeterministicKeyOptions options, CancellationToken cancellationToken)
         {
             writer.WriteObjectStart();
             WriteFileName(writer, "fileName", syntaxTree.FilePath, options);
             writer.WriteKey("text");
-            WriteSourceText(writer, syntaxTree.GetText());
+            WriteSourceText(writer, syntaxTree.GetText(cancellationToken));
             writer.WriteKey("parseOptions");
             WriteParseOptions(writer, syntaxTree.Options);
             writer.WriteObjectEnd();
@@ -288,7 +297,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // The path of a reference, unlike the path of a file, does not contribute to the output
-                // of the copmilation. Only the MVID, name and version contribute here hence the file path
+                // of the compilation. Only the MVID, name and version contribute here hence the file path
                 // is deliberately omitted here.
                 if (moduleMetadata.GetMetadataReader() is { IsAssembly: true } peReader)
                 {
