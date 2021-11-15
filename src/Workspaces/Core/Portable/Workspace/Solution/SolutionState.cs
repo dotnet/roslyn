@@ -206,7 +206,6 @@ namespace Microsoft.CodeAnalysis
 
         private SolutionState Branch(
             SolutionInfo.SolutionAttributes? solutionAttributes = null,
-            IReadOnlyList<ProjectId>? projectIds = null,
             SerializableOptionSet? options = null,
             IReadOnlyList<AnalyzerReference>? analyzerReferences = null,
             ImmutableDictionary<ProjectId, ProjectState>? idToProjectStateMap = null,
@@ -221,8 +220,11 @@ namespace Microsoft.CodeAnalysis
                 Contract.ThrowIfNull(remoteSupportedProjectLanguages);
             }
 
+            // If we were given a new state map, then our IDs must correspond to it.  Otherwise, we just
+            // pass our existing ids along as nothing changed with them.
+            var projectIds = idToProjectStateMap?.Keys.ToImmutableArray() ?? this.ProjectIds;
+
             solutionAttributes ??= _solutionAttributes;
-            projectIds ??= ProjectIds;
             idToProjectStateMap ??= _projectIdToProjectStateMap;
             remoteSupportedProjectLanguages ??= _remoteSupportedLanguages;
             Debug.Assert(remoteSupportedProjectLanguages.SetEquals(GetRemoteSupportedProjectLanguages(idToProjectStateMap)));
@@ -236,7 +238,6 @@ namespace Microsoft.CodeAnalysis
             var analyzerReferencesEqual = AnalyzerReferences.SequenceEqual(analyzerReferences);
 
             if (solutionAttributes == _solutionAttributes &&
-                projectIds == ProjectIds &&
                 options == Options &&
                 analyzerReferencesEqual &&
                 idToProjectStateMap == _projectIdToProjectStateMap &&
@@ -278,7 +279,7 @@ namespace Microsoft.CodeAnalysis
                 workspaceVersion,
                 services,
                 _solutionAttributes,
-                ProjectIds,
+                _projectIdToProjectStateMap.Keys.ToImmutableArray(),
                 Options,
                 AnalyzerReferences,
                 _projectIdToProjectStateMap,
@@ -455,7 +456,6 @@ namespace Microsoft.CodeAnalysis
             // changed project list so, increment version.
             var newSolutionAttributes = _solutionAttributes.With(version: Version.GetNewerVersion());
 
-            var newProjectIds = ProjectIds.ToImmutableArray().Add(projectId);
             var newStateMap = _projectIdToProjectStateMap.Add(projectId, projectState);
             var newLanguages = RemoteSupportedLanguages.IsSupported(projectState.Language)
                 ? _remoteSupportedLanguages.Add(projectState.Language)
@@ -487,7 +487,6 @@ namespace Microsoft.CodeAnalysis
 
             return Branch(
                 solutionAttributes: newSolutionAttributes,
-                projectIds: newProjectIds,
                 idToProjectStateMap: newStateMap,
                 remoteSupportedProjectLanguages: newLanguages,
                 projectIdToTrackerMap: newTrackerMap,
@@ -571,7 +570,6 @@ namespace Microsoft.CodeAnalysis
             // changed project list so, increment version.
             var newSolutionAttributes = _solutionAttributes.With(version: this.Version.GetNewerVersion());
 
-            var newProjectIds = ProjectIds.ToImmutableArray().Remove(projectId);
             var newStateMap = _projectIdToProjectStateMap.Remove(projectId);
 
             // Remote supported languages only changes if the removed project is the last project of a supported language.
@@ -604,7 +602,6 @@ namespace Microsoft.CodeAnalysis
 
             return this.Branch(
                 solutionAttributes: newSolutionAttributes,
-                projectIds: newProjectIds,
                 idToProjectStateMap: newStateMap,
                 remoteSupportedProjectLanguages: newLanguages,
                 projectIdToTrackerMap: newTrackerMap.Remove(projectId),
@@ -1541,7 +1538,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static ProjectDependencyGraph CreateDependencyGraph(
-            IReadOnlyList<ProjectId> projectIds,
             ImmutableDictionary<ProjectId, ProjectState> projectStates)
         {
             var map = projectStates.Values.Select(state => new KeyValuePair<ProjectId, ImmutableHashSet<ProjectId>>(
@@ -1549,7 +1545,7 @@ namespace Microsoft.CodeAnalysis
                     state.ProjectReferences.Where(pr => projectStates.ContainsKey(pr.ProjectId)).Select(pr => pr.ProjectId).ToImmutableHashSet()))
                     .ToImmutableDictionary();
 
-            return new ProjectDependencyGraph(projectIds.ToImmutableHashSet(), map);
+            return new ProjectDependencyGraph(projectStates.Keys.ToImmutableHashSet(), map);
         }
 
         private ImmutableDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap(ProjectId changedProjectId, ProjectDependencyGraph dependencyGraph)
@@ -1691,7 +1687,7 @@ namespace Microsoft.CodeAnalysis
                         idToProjectStateMap: newIdToProjectStateMap,
                         remoteSupportedProjectLanguages: newLanguages,
                         projectIdToTrackerMap: newIdToTrackerMap,
-                        dependencyGraph: CreateDependencyGraph(ProjectIds, newIdToProjectStateMap));
+                        dependencyGraph: CreateDependencyGraph(newIdToProjectStateMap));
 
                     _latestSolutionWithPartialCompilation = new WeakReference<SolutionState>(currentPartialSolution);
                     _timeOfLatestSolutionWithPartialCompilation = DateTime.UtcNow;
