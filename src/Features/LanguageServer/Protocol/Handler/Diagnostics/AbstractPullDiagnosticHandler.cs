@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 context.TraceInformation($"Got {diagnostics.Length} diagnostics");
 
                 foreach (var diagnostic in diagnostics)
-                    result.Add(ConvertDiagnostic(document, text, diagnostic, clientCapabilities));
+                    result.AddIfNotNull(ConvertDiagnostic(document, text, diagnostic, clientCapabilities));
             }
 
             return CreateReport(ProtocolConversions.DocumentToTextDocumentIdentifier(document), result.ToArray(), resultId);
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
         }
 
-        private LSP.Diagnostic ConvertDiagnostic(Document document, SourceText text, DiagnosticData diagnosticData, ClientCapabilities capabilities)
+        private LSP.Diagnostic? ConvertDiagnostic(Document document, SourceText text, DiagnosticData diagnosticData, ClientCapabilities capabilities)
         {
             Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
             Contract.ThrowIfNull(diagnosticData.DataLocation, $"Got a document diagnostic that did not have a {nameof(diagnosticData.DataLocation)}");
@@ -334,6 +334,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var useMappedSpan = false;
             if (!capabilities.HasVisualStudioLspCapability())
             {
+                if (string.IsNullOrEmpty(diagnosticData.Message))
+                {
+                    // VSCode does not support hidden diagnostics with no message.
+                    return null;
+                }
+
                 var diagnostic = CreateBaseLspDiagnostic();
                 return diagnostic;
             }
