@@ -1312,8 +1312,8 @@ Additional information: {1}</value>
   <data name="Code_analysis_terminated_before_completion_for_Solution" xml:space="preserve">
     <value>Code analysis terminated before completion for Solution.</value>
   </data>
-  <data name="Background_analysis_scope_colon" xml:space="preserve">
-    <value>Background analysis scope:</value>
+  <data name="Run_background_code_analysis_for_colon" xml:space="preserve">
+    <value>Run background code analysis for:</value>
   </data>
   <data name="Current_document" xml:space="preserve">
     <value>Current document</value>

@@ -15,7 +15,7 @@
             <GroupBox x:Uid="AnalysisGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Analysis}">
                 <StackPanel>
-                    <Label Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_analysis_scope}"/>
+                    <Label Content="{x:Static local:AdvancedOptionPageStrings.Option_Run_background_code_analysis_for}"/>
                     <StackPanel Margin="15, 0, 0, 0">
                         <RadioButton  GroupName="Background_analysis_scope"
                                               x:Name="Background_analysis_scope_none"

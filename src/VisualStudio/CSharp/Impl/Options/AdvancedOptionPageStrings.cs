@@ -13,8 +13,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Analysis
             => ServicesVSResources.Analysis;
 
-        public static string Option_Background_analysis_scope
-            => ServicesVSResources.Background_analysis_scope_colon;
+        public static string Option_Run_background_code_analysis_for
+            => ServicesVSResources.Run_background_code_analysis_for_colon;
 
         public static string Option_Background_Analysis_Scope_None
             => ServicesVSResources.None;
