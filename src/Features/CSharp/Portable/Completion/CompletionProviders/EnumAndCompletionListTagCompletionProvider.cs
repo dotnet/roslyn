@@ -317,6 +317,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static INamedTypeSymbol? TryGetTypeWithStaticMembers(ITypeSymbol type)
         {
+            // The reference type might be nullable, so we need to remove the annotation.
+            // Otherwise, we will end up with items like "string?.Empty".
             if (type.TypeKind is TypeKind.Struct or TypeKind.Class)
                 return type.WithNullableAnnotation(NullableAnnotation.NotAnnotated) as INamedTypeSymbol;
 
