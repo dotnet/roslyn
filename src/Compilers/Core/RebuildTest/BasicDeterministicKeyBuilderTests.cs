@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 options: BasicOptions);
 
 
+        private protected override DeterministicKeyBuilder GetDeterministicKeyBuilder() => new VisualBasicDeterministicKeyBuilder();
+
         /// <summary>
         /// This check monitors the set of properties and fields on the various option types
         /// that contribute to the deterministic checksum of a <see cref="Compilation"/>. When

@@ -2,24 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.VisualBasic;
-using Roslyn.Test.Utilities;
-using Xunit;
-using Newtonsoft;
-using Newtonsoft.Json.Linq;
-using System.Linq;
-using Newtonsoft.Json;
-using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.PooledObjects;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.VisualBasic.UnitTests;
 using System;
+using System.Collections.Immutable;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.VisualBasic;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
@@ -33,8 +26,6 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             SourceHashAlgorithm.Sha1,
             SourceHashAlgorithm.Sha256
         };
-
-        public static CSharpCompilationOptions CSharpOptions { get; } = new CSharpCompilationOptions(OutputKind.ConsoleApplication, deterministic: true);
 
         protected static void AssertJson(
             string expected,
@@ -140,9 +131,12 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         }
 
         protected abstract SyntaxTree ParseSyntaxTree(string content, string fileName, SourceHashAlgorithm hashAlgorithm);
+
         protected abstract Compilation CreateCompilation(
             SyntaxTree[] syntaxTrees,
             MetadataReference[]? references = null);
+
+        private protected abstract DeterministicKeyBuilder GetDeterministicKeyBuilder();
 
         [Theory]
         [InlineData(@"hello world")]
@@ -170,5 +164,76 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 AssertJsonSection(expected, key, "compilation.syntaxTrees", "parseOptions");
             }
         }
+
+        [Fact]
+        public void EmitOptionsDefault()
+        {
+            var builder = GetDeterministicKeyBuilder();
+            var key = builder.GetKey(EmitOptions.Default);
+            AssertJson(@"
+{
+  ""emitMetadataOnly"": false,
+  ""tolerateErrors"": false,
+  ""includePrivateMembers"": true,
+  ""instrumentationKinds"": [
+  ],
+  ""subsystemVersion"": {
+    ""major"": 0,
+    ""minor"": 0
+  },
+  ""fileAlignment"": 0,
+  ""highEntropyVirtualAddressSpace"": false,
+  ""baseAddress"": ""0"",
+  ""debugInformationFormat"": ""Pdb"",
+  ""outputNameOverride"": null,
+  ""pdbFilePath"": null,
+  ""pdbChecksumAlgorithm"": ""SHA256"",
+  ""runtimeMetadataVersion"": null,
+  ""defaultSourceFileEncoding"": null,
+  ""fallbackSourceFileEncoding"": null
+}
+", key);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void EmitOptionsCombo(
+            DebugInformationFormat debugInformationFormat,
+            InstrumentationKind kind)
+        {
+            var emitOptions = EmitOptions
+                .Default
+                .WithDebugInformationFormat(debugInformationFormat)
+                .WithInstrumentationKinds(ImmutableArray.Create(kind));
+
+
+            var builder = GetDeterministicKeyBuilder();
+            var key = builder.GetKey(emitOptions);
+            AssertJson(@$"
+{{
+  ""emitMetadataOnly"": false,
+  ""tolerateErrors"": false,
+  ""includePrivateMembers"": true,
+  ""instrumentationKinds"": [
+    ""{kind}"",
+  ],
+  ""subsystemVersion"": {{
+    ""major"": 0,
+    ""minor"": 0
+  }},
+  ""fileAlignment"": 0,
+  ""highEntropyVirtualAddressSpace"": false,
+  ""baseAddress"": ""0"",
+  ""debugInformationFormat"": ""{debugInformationFormat}"",
+  ""outputNameOverride"": null,
+  ""pdbFilePath"": null,
+  ""pdbChecksumAlgorithm"": ""SHA256"",
+  ""runtimeMetadataVersion"": null,
+  ""defaultSourceFileEncoding"": null,
+  ""fallbackSourceFileEncoding"": null
+}}
+", key);
+        }
+
     }
 }

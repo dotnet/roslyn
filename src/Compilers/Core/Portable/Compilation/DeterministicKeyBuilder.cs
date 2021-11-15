@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis
                     WriteByteArrayValue(writer, "publicKey", peReader.GetBlobBytes(assemblyDef.PublicKey).AsSpan());
                 }
 
-                writer.Write("mvid", moduleMetadata.GetModuleVersionId().ToString());
+                writer.Write("mvid", moduleMetadata.GetModuleVersionId().ToString("D"));
                 writer.WriteKey("properties");
                 writeMetadataReferenceProperties(writer, reference.Properties);
             }
@@ -349,15 +349,13 @@ namespace Microsoft.CodeAnalysis
             writer.Write("emitMetadataOnly", options.EmitMetadataOnly);
             writer.Write("tolerateErrors", options.TolerateErrors);
             writer.Write("includePrivateMembers", options.IncludePrivateMembers);
-            if (options.InstrumentationKinds.Length > 0)
+            writer.WriteKey("instrumentationKinds");
+            writer.WriteArrayStart();
+            foreach (var kind in options.InstrumentationKinds)
             {
-                writer.WriteArrayStart();
-                foreach (var kind in options.InstrumentationKinds)
-                {
-                    writer.Write(kind);
-                }
-                writer.WriteArrayEnd();
+                writer.Write(kind);
             }
+            writer.WriteArrayEnd();
 
             writeSubsystemVersion(writer, options.SubsystemVersion);
             writer.Write("fileAlignment", options.FileAlignment);
