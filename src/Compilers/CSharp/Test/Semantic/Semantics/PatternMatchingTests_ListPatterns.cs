@@ -4480,6 +4480,7 @@ class C
     public void ListPattern_Dynamic()
     {
         var source = @"
+#nullable enable
 class C
 {
     void M(dynamic d)
@@ -4490,9 +4491,9 @@ class C
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index });
         compilation.VerifyEmitDiagnostics(
-            // (6,18): error CS9000: List patterns may not be used for a value of type 'dynamic'.
+            // (7,18): error CS8978: List patterns may not be used for a value of type 'dynamic'.
             //         _ = d is [_];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[_]").WithArguments("dynamic").WithLocation(6, 18)
+            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[_]").WithArguments("dynamic").WithLocation(7, 18)
             );
     }
 
@@ -6770,6 +6771,85 @@ class C : Base
   IL_0064:  br.s       IL_0066
   IL_0066:  ldloc.s    V_7
   IL_0068:  ret
+}");
+    }
+
+    [Fact, WorkItem(51801, "https://github.com/dotnet/roslyn/issues/51801")]
+    public void LengthOverrideLacksAccessor()
+    {
+        var source = @"
+#nullable enable
+using System.Runtime.CompilerServices;
+
+class Base
+{
+    public virtual int Length { get { return 2; } set { } }
+}
+
+class C : Base
+{
+    public override int Length { set { } }
+    public object this[int i] { get { return 1; } set { } }
+
+    public string? Value { get; }
+
+    public string M()
+    {
+        switch (this)
+        {
+            case [1, 1]:
+                return Value;
+            default:
+                return Value;
+        }
+    }
+}
+";
+        var verifier = CompileAndVerify(new[] { source, TestSources.Index });
+        verifier.VerifyIL("C.M", @"
+{
+  // Code size       78 (0x4e)
+  .maxstack  2
+  .locals init (C V_0,
+                object V_1,
+                object V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brfalse.s  IL_0047
+  IL_0005:  ldloc.0
+  IL_0006:  callvirt   ""int Base.Length.get""
+  IL_000b:  ldc.i4.2
+  IL_000c:  bne.un.s   IL_0047
+  IL_000e:  ldloc.0
+  IL_000f:  ldc.i4.0
+  IL_0010:  callvirt   ""object C.this[int].get""
+  IL_0015:  stloc.1
+  IL_0016:  ldloc.1
+  IL_0017:  isinst     ""int""
+  IL_001c:  brfalse.s  IL_0047
+  IL_001e:  ldloc.1
+  IL_001f:  unbox.any  ""int""
+  IL_0024:  ldc.i4.1
+  IL_0025:  bne.un.s   IL_0047
+  IL_0027:  ldloc.0
+  IL_0028:  ldc.i4.1
+  IL_0029:  callvirt   ""object C.this[int].get""
+  IL_002e:  stloc.2
+  IL_002f:  ldloc.2
+  IL_0030:  isinst     ""int""
+  IL_0035:  brfalse.s  IL_0047
+  IL_0037:  ldloc.2
+  IL_0038:  unbox.any  ""int""
+  IL_003d:  ldc.i4.1
+  IL_003e:  pop
+  IL_003f:  pop
+  IL_0040:  ldarg.0
+  IL_0041:  call       ""string C.Value.get""
+  IL_0046:  ret
+  IL_0047:  ldarg.0
+  IL_0048:  call       ""string C.Value.get""
+  IL_004d:  ret
 }");
     }
 

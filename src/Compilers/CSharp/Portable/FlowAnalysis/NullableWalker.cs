@@ -8698,6 +8698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
         {
             VisitRvalue(node.IndexerAccess);
+            SetResult(node, ResultType, LvalueResultType);
             return null;
         }
 

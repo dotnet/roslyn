@@ -3323,5 +3323,54 @@ namespace System
             var comp = CreateCompilation(new[] { source, TestSources.Index });
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void ImplicitIndexerAccessAsLValue()
+        {
+            var source = @"
+#nullable enable
+
+object? o1 = new object();
+M(o1)[^1] = null; // 1
+M(o1)[..] = null; // 2
+
+_ = M(o1)[^1].ToString();
+_ = M(o1)[..].ToString();
+
+object o2 = null; // 3
+M(o2)[^1] = null;
+M(o2)[..] = null;
+
+_ = M(o2)[^1].ToString(); // 4
+_ = M(o2)[..].ToString(); // 5
+
+static C<T> M<T>(T t) => throw null!;
+
+class C<T>
+{
+    public int Length => 0;
+    public ref T this[int i] => throw null!;
+    public ref T Slice(int i, int j) => throw null!;
+}
+";
+            var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+            comp.VerifyDiagnostics(
+                // (5,13): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // M(o1)[^1] = null; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 13),
+                // (6,13): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // M(o1)[..] = null; // 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 13),
+                // (11,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // object o2 = null; // 3
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(11, 13),
+                // (15,5): warning CS8602: Dereference of a possibly null reference.
+                // _ = M(o2)[^1].ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M(o2)[^1]").WithLocation(15, 5),
+                // (16,5): warning CS8602: Dereference of a possibly null reference.
+                // _ = M(o2)[..].ToString(); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M(o2)[..]").WithLocation(16, 5)
+                );
+        }
     }
 }

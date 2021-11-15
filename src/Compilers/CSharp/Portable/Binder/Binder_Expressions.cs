@@ -6763,7 +6763,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 left = ReplaceTypeOrValueReceiver(left, symbol.IsStatic || symbol.Kind == SymbolKind.NamedType, diagnostics);
 
                 // Events are handled later as we don't know yet if we are binding to the event or it's backing field.
-                if (symbol.Kind != SymbolKind.Event)
+                // Properties are handled in BindPropertyAccess
+                if (symbol.Kind is not SymbolKind.Event or SymbolKind.Property)
                 {
                     ReportDiagnosticsIfObsolete(diagnostics, symbol, node, hasBaseReceiver: left.Kind == BoundKind.BaseReference);
                 }
@@ -7126,6 +7127,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind lookupResult,
             bool hasErrors)
         {
+            ReportDiagnosticsIfObsolete(diagnostics, propertySymbol, node, hasBaseReceiver: receiver.Kind == BoundKind.BaseReference);
+
             bool hasError = this.CheckInstanceOrStatic(node, receiver, propertySymbol, ref lookupResult, diagnostics);
 
             if (!propertySymbol.IsStatic)
@@ -8152,7 +8155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //    For Range: Has an accessible Slice method that takes two int parameters
 
             if (TryBindLengthOrCount(syntax, receiverPlaceholder, out lengthOrCountAccess, diagnostics) &&
-                TryBindIndexOrRangeImplicitIndexer(syntax, receiver, argIsIndex, out implicitIndexerAccess, out argumentPlaceholders, diagnostics))
+                tryBindIndexOrRangeImplicitIndexer(syntax, receiver, argIsIndex, out implicitIndexerAccess, out argumentPlaceholders, diagnostics))
             {
                 return true;
             }
@@ -8161,145 +8164,121 @@ namespace Microsoft.CodeAnalysis.CSharp
             implicitIndexerAccess = null;
             argumentPlaceholders = default;
             return false;
-        }
 
-        private bool TryBindLengthOrCount(
-            SyntaxNode syntax,
-            BoundExpression receiver,
-            out BoundExpression lengthOrCountAccess,
-            BindingDiagnosticBag diagnostics)
-        {
-            var lookupResult = LookupResult.GetInstance();
-
-            Debug.Assert(receiver.Type is not null);
-            if (TryLookupLengthOrCount(syntax, receiver.Type, lookupResult, out var lengthOrCountProperty, diagnostics))
+            // Binds pattern-based implicit indexer:
+            // - for Index indexer, this will find `this[int]`.
+            // - for Range indexer, this will find `Slice(int, int)` or `string.Substring(int, int)`.
+            bool tryBindIndexOrRangeImplicitIndexer(
+                SyntaxNode syntax,
+                BoundExpression receiver,
+                bool argIsIndex,
+                [NotNullWhen(true)] out BoundExpression? indexerOrSliceAccess,
+                out ImmutableArray<BoundIndexOrRangeIndexerPatternValuePlaceholder> argumentPlaceholders,
+                BindingDiagnosticBag diagnostics)
             {
-                diagnostics.ReportUseSite(lengthOrCountProperty, syntax);
-                ReportDiagnosticsIfObsolete(diagnostics, lengthOrCountProperty, syntax, hasBaseReceiver: false);
-                lengthOrCountAccess = BindPropertyAccess(syntax, receiver, lengthOrCountProperty, diagnostics, lookupResult.Kind, hasErrors: false).MakeCompilerGenerated();
-                lengthOrCountAccess = CheckValue(lengthOrCountAccess, BindValueKind.RValue, diagnostics);
+                Debug.Assert(receiver.Type is not null);
+                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics); // TODO2 need to report
+                var lookupResult = LookupResult.GetInstance();
 
+                if (argIsIndex)
+                {
+                    // Look for `T this[int i]` indexer
+
+                    LookupMembersInType(
+                        lookupResult,
+                        receiver.Type,
+                        WellKnownMemberNames.Indexer,
+                        arity: 0,
+                        basesBeingResolved: null,
+                        LookupOptions.Default,
+                        originalBinder: this,
+                        diagnose: false,
+                        ref useSiteInfo);
+
+                    if (lookupResult.IsMultiViable)
+                    {
+                        foreach (var candidate in lookupResult.Symbols)
+                        {
+                            if (!candidate.IsStatic &&
+                                candidate is PropertySymbol property &&
+                                IsAccessible(property, ref useSiteInfo) &&
+                                property.OriginalDefinition is { ParameterCount: 1 } original &&
+                                original.Parameters[0] is { Type: { SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.None })
+                            {
+                                diagnostics.Add(syntax, useSiteInfo);
+
+                                var intPlaceholder = new BoundIndexOrRangeIndexerPatternValuePlaceholder(syntax, Compilation.GetSpecialType(SpecialType.System_Int32)) { WasCompilerGenerated = true };
+                                argumentPlaceholders = ImmutableArray.Create(intPlaceholder);
+
+                                var analyzedArguments = AnalyzedArguments.GetInstance();
+                                analyzedArguments.Arguments.Add(intPlaceholder);
+                                var properties = ArrayBuilder<PropertySymbol>.GetInstance();
+                                properties.AddRange(property);
+                                indexerOrSliceAccess = BindIndexerOrIndexedPropertyAccess(syntax, receiver, properties, analyzedArguments, diagnostics).MakeCompilerGenerated();
+                                properties.Free();
+                                analyzedArguments.Free();
+                                lookupResult.Free();
+                                return true;
+                            }
+                        }
+                    }
+                }
+                else if (receiver.Type.SpecialType == SpecialType.System_String)
+                {
+                    Debug.Assert(!argIsIndex);
+                    // Look for Substring
+                    var substring = (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_String__Substring);
+                    if (substring is object)
+                    {
+                        diagnostics.Add(syntax, useSiteInfo);
+                        makeCall(syntax, receiver, substring, out indexerOrSliceAccess, out argumentPlaceholders);
+                        lookupResult.Free();
+                        return true;
+                    }
+                }
+                else
+                {
+                    Debug.Assert(!argIsIndex);
+                    // Look for `T Slice(int, int)` indexer
+
+                    LookupMembersInType(
+                        lookupResult,
+                        receiver.Type,
+                        WellKnownMemberNames.SliceMethodName,
+                        arity: 0,
+                        basesBeingResolved: null,
+                        LookupOptions.Default,
+                        originalBinder: this,
+                        diagnose: false,
+                        ref useSiteInfo);
+
+                    if (lookupResult.IsMultiViable)
+                    {
+                        foreach (var candidate in lookupResult.Symbols)
+                        {
+                            if (!candidate.IsStatic &&
+                                IsAccessible(candidate, ref useSiteInfo) &&
+                                candidate is MethodSymbol method &&
+                                method.OriginalDefinition is var original &&
+                                !original.ReturnsVoid &&
+                                original.ParameterCount == 2 &&
+                                original.Parameters[0] is { Type: { SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.None } &&
+                                original.Parameters[1] is { Type: { SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.None })
+                            {
+                                diagnostics.Add(syntax, useSiteInfo);
+                                makeCall(syntax, receiver, method, out indexerOrSliceAccess, out argumentPlaceholders);
+                                lookupResult.Free();
+                                return true;
+                            }
+                        }
+                    }
+                }
+
+                indexerOrSliceAccess = null;
+                argumentPlaceholders = default;
                 lookupResult.Free();
-                return true;
+                return false;
             }
-
-            lengthOrCountAccess = BadExpression(syntax);
-            lookupResult.Free();
-
-            return false;
-        }
-
-        /// <summary>
-        /// Binds pattern-based implicit indexer:
-        /// - for Index indexer, this will find `this[int]`.
-        /// - for Range indexer, this will find `Slice(int, int)` or `string.Substring(int, int)`.
-        /// </summary>
-        private bool TryBindIndexOrRangeImplicitIndexer(
-            SyntaxNode syntax,
-            BoundExpression receiver,
-            bool argIsIndex,
-            [NotNullWhen(true)] out BoundExpression? indexerOrSliceAccess,
-            out ImmutableArray<BoundIndexOrRangeIndexerPatternValuePlaceholder> argumentPlaceholders,
-            BindingDiagnosticBag diagnostics)
-        {
-            Debug.Assert(receiver.Type is not null);
-            var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            var lookupResult = LookupResult.GetInstance();
-
-            if (argIsIndex)
-            {
-                // Look for `T this[int i]` indexer
-
-                LookupMembersInType(
-                    lookupResult,
-                    receiver.Type,
-                    WellKnownMemberNames.Indexer,
-                    arity: 0,
-                    basesBeingResolved: null,
-                    LookupOptions.Default,
-                    originalBinder: this,
-                    diagnose: false,
-                    ref useSiteInfo);
-
-                if (lookupResult.IsMultiViable)
-                {
-                    foreach (var candidate in lookupResult.Symbols)
-                    {
-                        if (!candidate.IsStatic &&
-                            candidate is PropertySymbol property &&
-                            IsAccessible(property, ref useSiteInfo) &&
-                            property.OriginalDefinition is { ParameterCount: 1 } original &&
-                            original.Parameters[0] is { Type: { SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.None })
-                        {
-                            var intPlaceholder = new BoundIndexOrRangeIndexerPatternValuePlaceholder(syntax, Compilation.GetSpecialType(SpecialType.System_Int32)) { WasCompilerGenerated = true };
-                            argumentPlaceholders = ImmutableArray.Create(intPlaceholder);
-
-                            var analyzedArguments = AnalyzedArguments.GetInstance();
-                            analyzedArguments.Arguments.Add(intPlaceholder);
-                            var properties = ArrayBuilder<PropertySymbol>.GetInstance();
-                            properties.AddRange(property);
-                            indexerOrSliceAccess = BindIndexerOrIndexedPropertyAccess(syntax, receiver, properties, analyzedArguments, diagnostics).MakeCompilerGenerated();
-                            properties.Free();
-                            analyzedArguments.Free();
-                            lookupResult.Free();
-                            return true;
-                        }
-                    }
-                }
-            }
-            else if (receiver.Type.SpecialType == SpecialType.System_String)
-            {
-                Debug.Assert(!argIsIndex);
-                // Look for Substring
-                var substring = (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_String__Substring);
-                if (substring is object)
-                {
-                    makeCall(syntax, receiver, substring, out indexerOrSliceAccess, out argumentPlaceholders);
-                    lookupResult.Free();
-                    return true;
-                }
-            }
-            else
-            {
-                Debug.Assert(!argIsIndex);
-                // Look for `T Slice(int, int)` indexer
-
-                LookupMembersInType(
-                    lookupResult,
-                    receiver.Type,
-                    WellKnownMemberNames.SliceMethodName,
-                    arity: 0,
-                    basesBeingResolved: null,
-                    LookupOptions.Default,
-                    originalBinder: this,
-                    diagnose: false,
-                    ref useSiteInfo);
-
-                if (lookupResult.IsMultiViable)
-                {
-                    foreach (var candidate in lookupResult.Symbols)
-                    {
-                        if (!candidate.IsStatic &&
-                            IsAccessible(candidate, ref useSiteInfo) &&
-                            candidate is MethodSymbol method &&
-                            method.OriginalDefinition is var original &&
-                            !original.ReturnsVoid &&
-                            original.ParameterCount == 2 &&
-                            original.Parameters[0] is { Type: { SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.None } &&
-                            original.Parameters[1] is { Type: { SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.None })
-                        {
-                            makeCall(syntax, receiver, method, out indexerOrSliceAccess, out argumentPlaceholders);
-                            lookupResult.Free();
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            indexerOrSliceAccess = null;
-            argumentPlaceholders = default;
-            lookupResult.Free();
-            return false;
 
             void makeCall(SyntaxNode syntax, BoundExpression receiver, MethodSymbol method,
                 out BoundExpression indexerOrSliceAccess, out ImmutableArray<BoundIndexOrRangeIndexerPatternValuePlaceholder> argumentPlaceholders)
@@ -8321,6 +8300,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 analyzedArguments.Free();
             }
+        }
+
+        private bool TryBindLengthOrCount(
+            SyntaxNode syntax,
+            BoundExpression receiver,
+            out BoundExpression lengthOrCountAccess,
+            BindingDiagnosticBag diagnostics)
+        {
+            var lookupResult = LookupResult.GetInstance();
+
+            Debug.Assert(receiver.Type is not null);
+            if (TryLookupLengthOrCount(syntax, receiver.Type, lookupResult, out var lengthOrCountProperty, diagnostics))
+            {
+                diagnostics.ReportUseSite(lengthOrCountProperty, syntax);
+                lengthOrCountAccess = BindPropertyAccess(syntax, receiver, lengthOrCountProperty, diagnostics, lookupResult.Kind, hasErrors: false).MakeCompilerGenerated();
+                lengthOrCountAccess = CheckValue(lengthOrCountAccess, BindValueKind.RValue, diagnostics);
+
+                lookupResult.Free();
+                return true;
+            }
+
+            lengthOrCountAccess = BadExpression(syntax);
+            lookupResult.Free();
+
+            return false;
         }
 
         private bool TryLookupLengthOrCount(
