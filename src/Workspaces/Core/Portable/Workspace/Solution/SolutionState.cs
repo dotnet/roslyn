@@ -220,10 +220,6 @@ namespace Microsoft.CodeAnalysis
                 Contract.ThrowIfNull(remoteSupportedProjectLanguages);
             }
 
-            // If we were given a new state map, then our IDs must correspond to it.  Otherwise, we just
-            // pass our existing ids along as nothing changed with them.
-            var projectIds = idToProjectStateMap?.Keys.ToImmutableArray() ?? this.ProjectIds;
-
             solutionAttributes ??= _solutionAttributes;
             idToProjectStateMap ??= _projectIdToProjectStateMap;
             remoteSupportedProjectLanguages ??= _remoteSupportedLanguages;
@@ -248,6 +244,10 @@ namespace Microsoft.CodeAnalysis
             {
                 return this;
             }
+
+            // If we were given a new state map, then our IDs must correspond to it.  Otherwise, we just
+            // pass our existing ids along as nothing changed with them.
+            var projectIds = idToProjectStateMap == _projectIdToProjectStateMap ? this.ProjectIds : idToProjectStateMap.Keys.ToImmutableArray();
 
             return new SolutionState(
                 _workspaceVersion,
