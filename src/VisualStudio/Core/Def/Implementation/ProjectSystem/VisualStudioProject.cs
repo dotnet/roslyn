@@ -1148,10 +1148,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void RemoveFromWorkspace()
         {
-            _documentFileChangeContext.Dispose();
-
             using (_gate.DisposableWait())
             {
+                if (!_workspace.CurrentSolution.ContainsProject(Id))
+                {
+                    throw new InvalidOperationException("The project has already been removed.");
+                }
+
                 // clear tracking to external components
                 foreach (var provider in _eventSubscriptionTracker)
                 {
@@ -1161,6 +1164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _eventSubscriptionTracker.Clear();
             }
 
+            _documentFileChangeContext.Dispose();
             IReadOnlyList<MetadataReference>? remainingMetadataReferences = null;
 
             _workspace.ApplyChangeToWorkspace(w =>
