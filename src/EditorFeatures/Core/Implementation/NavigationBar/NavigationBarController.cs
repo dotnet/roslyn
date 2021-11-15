@@ -115,6 +115,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             StartModelUpdateAndSelectedItemUpdateTasks();
         }
 
+        public TestAccessor GetTestAccessor() => new TestAccessor(this);
+
         private void OnEventSourceChanged(object? sender, TaggerEventArgs e)
         {
             StartModelUpdateAndSelectedItemUpdateTasks();
@@ -250,6 +252,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             // Now that the edit has been done, refresh to make sure everything is up-to-date.
             StartModelUpdateAndSelectedItemUpdateTasks();
+        }
+
+        public struct TestAccessor
+        {
+            private readonly NavigationBarController _navigationBarController;
+
+            public TestAccessor(NavigationBarController navigationBarController)
+            {
+                _navigationBarController = navigationBarController;
+            }
+
+            public Task<NavigationBarModel?> GetModelAsync()
+                => _navigationBarController._computeModelQueue.WaitUntilCurrentBatchCompletesAsync();
         }
     }
 }
