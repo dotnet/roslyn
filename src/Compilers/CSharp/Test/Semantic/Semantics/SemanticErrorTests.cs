@@ -23761,9 +23761,9 @@ class Program
                 // (14,18): error CS8026: Feature 'null propagation operator' is not available in C# 5. Please use language version 6 or greater.
                 //         var x1 = p.P1 ?.ToString;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "p.P1 ?.ToString").WithArguments("null propagating operator", "6").WithLocation(14, 18),
-                // (14,23): error CS0023: Operator '?' cannot be applied to operand of type 'method group'
+                // (14,24): error CS8977: 'method group' cannot be made nullable.
                 //         var x1 = p.P1 ?.ToString;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "method group").WithLocation(14, 23)
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToString").WithArguments("method group").WithLocation(14, 24)
                 );
         }
 
@@ -23788,10 +23788,10 @@ class Program
 }
 ";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-    // (14,23): error CS0023: Operator '?' cannot be applied to operand of type 'method group'
-    //         var x1 = p.P1 ?.ToString;
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "method group").WithLocation(14, 23)
-               );
+                // (14,24): error CS8977: 'method group' cannot be made nullable.
+                //         var x1 = p.P1 ?.ToString;
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToString").WithArguments("method group").WithLocation(14, 24)
+                );
         }
 
 
@@ -23886,10 +23886,10 @@ class Program
 
 ";
             CreateCompilationWithMscorlib45(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-    // (9,23): error CS0023: Operator '?' cannot be applied to operand of type 'void*'
-    //         var p = intPtr?.ToPointer();
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "void*").WithLocation(9, 23)
-               );
+                // (9,24): error CS8977: 'void*' cannot be made nullable.
+                //         var p = intPtr?.ToPointer();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToPointer()").WithArguments("void*").WithLocation(9, 24)
+                );
         }
 
         [Fact]
@@ -24287,15 +24287,15 @@ public ref struct S2
 }
 ";
             CreateCompilationWithMscorlib45(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (10,18): error CS0023: Operator '?' cannot be applied to operand of type 'S2'
+                // (10,19): error CS8977: 'S2' cannot be made nullable.
                 //         var x = o?.F();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S2").WithLocation(10, 18),
-                // (12,18): error CS0023: Operator '?' cannot be applied to operand of type 'S2'
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".F()").WithArguments("S2").WithLocation(10, 19),
+                // (12,19): error CS8977: 'S2' cannot be made nullable.
                 //         var y = o?.F() ?? default;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S2").WithLocation(12, 18),
-                // (14,18): error CS0023: Operator '?' cannot be applied to operand of type 'S1'
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".F()").WithArguments("S2").WithLocation(12, 19),
+                // (14,19): error CS8977: 'S1' cannot be made nullable.
                 //         var z = o?.F().field ?? default;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S1").WithLocation(14, 18)
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".F().field").WithArguments("S1").WithLocation(14, 19)
                );
         }
 
