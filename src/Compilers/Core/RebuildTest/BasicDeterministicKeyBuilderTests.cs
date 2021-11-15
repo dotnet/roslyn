@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis.VisualBasic.UnitTests;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
-    public sealed class BasicDeterministicKeyBuilderTests : DeterministicKeyBuilderTests
+    public sealed class BasicDeterministicKeyBuilderTests : DeterministicKeyBuilderTests<VisualBasicCompilation, VisualBasicCompilationOptions>
     {
         public static VisualBasicCompilationOptions BasicOptions { get; } = new VisualBasicCompilationOptions(OutputKind.ConsoleApplication, deterministic: true);
 
@@ -29,13 +29,14 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 SourceText.From(content, checksumAlgorithm: hashAlgorithm, encoding: Encoding.UTF8),
                 path: fileName);
 
-        protected override Compilation CreateCompilation(SyntaxTree[] syntaxTrees, MetadataReference[]? references = null) =>
+        protected override VisualBasicCompilation CreateCompilation(SyntaxTree[] syntaxTrees, MetadataReference[]? references = null, VisualBasicCompilationOptions? options = null) =>
             VisualBasicCompilation.Create(
                 "test",
                 syntaxTrees,
                 references ?? NetCoreApp.References.ToArray(),
-                options: BasicOptions);
+                options: options ?? BasicOptions);
 
+        protected override VisualBasicCompilationOptions GetCompilationOptions() => BasicOptions;
 
         private protected override DeterministicKeyBuilder GetDeterministicKeyBuilder() => new VisualBasicDeterministicKeyBuilder();
 

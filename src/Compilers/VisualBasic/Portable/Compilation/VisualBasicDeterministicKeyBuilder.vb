@@ -47,6 +47,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New InvalidOperationException()
             End If
 
+            MyBase.WriteCompilationOptionsCore(writer, options)
+
             writer.Write("rootNamespace", basicOptions.RootNamespace)
             writer.Write("optionStrict", basicOptions.OptionStrict)
             writer.Write("optionInfer", basicOptions.OptionInfer)

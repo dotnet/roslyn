@@ -412,10 +412,10 @@ namespace Microsoft.CodeAnalysis
 
             writer.WriteKey("specificDiagnosticOptions");
             writer.WriteArrayStart();
-            foreach (var kvp in options.SpecificDiagnosticOptions)
+            foreach (var key in options.SpecificDiagnosticOptions.Keys.OrderBy(StringComparer.Ordinal))
             {
                 writer.WriteObjectStart();
-                writer.Write(kvp.Key, kvp.Value);
+                writer.Write(key, options.SpecificDiagnosticOptions[key]);
                 writer.WriteObjectEnd();
             }
             writer.WriteArrayEnd();

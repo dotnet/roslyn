@@ -27,17 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             writer.Write("unsafe", csharpOptions.AllowUnsafe);
             writer.Write("topLevelBinderFlags", csharpOptions.TopLevelBinderFlags);
-
-            if (csharpOptions.Usings.Length > 0)
+            writer.WriteKey("globalUsings");
+            writer.WriteArrayStart();
+            foreach (var name in csharpOptions.Usings)
             {
-                writer.WriteKey("globalUsings");
-                writer.WriteArrayStart();
-                foreach (var name in csharpOptions.Usings)
-                {
-                    writer.Write(name);
-                }
-                writer.WriteArrayEnd();
+                writer.Write(name);
             }
+            writer.WriteArrayEnd();
         }
 
         protected override void WriteParseOptionsCore(JsonWriter writer, ParseOptions parseOptions)
@@ -46,6 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 throw new InvalidOperationException();
             }
+
+            base.WriteParseOptionsCore(writer, parseOptions);
 
             writer.Write("languageVersion", csharpOptions.LanguageVersion);
             writer.Write("specifiedLanguageVersion", csharpOptions.SpecifiedLanguageVersion);

@@ -16,7 +16,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
-    public abstract class DeterministicKeyBuilderTests
+    public abstract class DeterministicKeyBuilderTests<TCompilation, TCompilationOptions>
+        where TCompilation : Compilation
+        where TCompilationOptions : CompilationOptions
     {
         private static readonly char[] s_trimChars = { ' ', '\n', '\r' };
 
@@ -59,46 +61,57 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             string sectionName,
             params string[] ignoreProperties)
         {
+            var property = GetJsonProperty(actual, sectionName, ignoreProperties);
+            AssertJsonCore(expected, property.ToString(Formatting.Indented));
+        }
+
+        protected static void AssertJsonCore(string expected, string? actual)
+        {
+            expected = expected.Trim(s_trimChars);
+            actual = actual?.Trim(s_trimChars);
+            Assert.Equal(expected, actual);
+        }
+
+        protected static JProperty GetJsonProperty(
+            string json,
+            string sectionName,
+            params string[] ignoreProperties)
+        {
             var lastName = sectionName.Split('.').Last();
-            AssertJsonCore(expected, getSection(actual));
+            var property = JObject.Parse(json)
+                .Descendants()
+                .OfType<JProperty>()
+                .Where(x => x.Name == lastName && getFullName(x) == sectionName)
+                .Single();
 
-            string getSection(string json)
+            if (ignoreProperties.Length > 0)
             {
-                var property = JObject.Parse(json)
-                    .Descendants()
-                    .OfType<JProperty>()
-                    .Where(x => x.Name == lastName && getFullName(x) == sectionName)
-                    .Single();
-
-                if (ignoreProperties.Length > 0)
+                if (property.Value is JObject value)
                 {
-                    if (property.Value is JObject value)
+                    removeProperties(value);
+                }
+                else if (property.Value is JArray array)
+                {
+                    foreach (var element in array.Values<JObject>())
                     {
-                        removeProperties(value);
-                    }
-                    else if (property.Value is JArray array)
-                    {
-                        foreach (var element in array.Values<JObject>())
-                        {
-                            removeProperties(element!);
-                        }
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException();
-                    }
-
-                    void removeProperties(JObject value)
-                    {
-                        foreach (var ignoreProperty in ignoreProperties)
-                        {
-                            value.Properties().Where(x => x.Name == ignoreProperty).Single().Remove();
-                        }
+                        removeProperties(element!);
                     }
                 }
+                else
+                {
+                    throw new InvalidOperationException();
+                }
 
-                return property.ToString(Formatting.Indented);
+                void removeProperties(JObject value)
+                {
+                    foreach (var ignoreProperty in ignoreProperties)
+                    {
+                        value.Properties().Where(x => x.Name == ignoreProperty).Single().Remove();
+                    }
+                }
             }
+
+            return property;
 
             static string getFullName(JProperty property)
             {
@@ -115,11 +128,11 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             }
         }
 
-        protected static void AssertJsonCore(string expected, string actual)
+        protected JObject GetCompilationOptionsValue(CompilationOptions options)
         {
-            expected = expected.Trim(s_trimChars);
-            actual = actual.Trim(s_trimChars);
-            Assert.Equal(expected, actual);
+            var compilation = CreateCompilation(syntaxTrees: new SyntaxTree[] { }, options: (TCompilationOptions)options);
+            var property = GetJsonProperty(compilation.GetDeterministicKey(), "compilation.options");
+            return (JObject)property.Value;
         }
 
         protected static string GetChecksum(SourceText text)
@@ -132,9 +145,12 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
         protected abstract SyntaxTree ParseSyntaxTree(string content, string fileName, SourceHashAlgorithm hashAlgorithm);
 
-        protected abstract Compilation CreateCompilation(
+        protected abstract TCompilation CreateCompilation(
             SyntaxTree[] syntaxTrees,
-            MetadataReference[]? references = null);
+            MetadataReference[]? references = null,
+            TCompilationOptions? options = null);
+
+        protected abstract TCompilationOptions GetCompilationOptions();
 
         private protected abstract DeterministicKeyBuilder GetDeterministicKeyBuilder();
 
@@ -162,6 +178,84 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   }}
 ]";
                 AssertJsonSection(expected, key, "compilation.syntaxTrees", "parseOptions");
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompilationOptionsCombination(
+            OutputKind outputKind,
+            bool delaySign,
+            bool publicSign,
+            bool deterministic)
+        {
+            var options = GetCompilationOptions()
+                .WithOutputKind(outputKind)
+                .WithDelaySign(delaySign)
+                .WithPublicSign(publicSign)
+                .WithDeterministic(deterministic);
+
+            var obj = GetCompilationOptionsValue(options);
+            Assert.Equal(outputKind.ToString(), obj.Value<string>("outputKind"));
+            Assert.Equal(publicSign, obj.Value<bool>("publicSign"));
+            Assert.Equal(delaySign, obj.Value<bool>("delaySign"));
+            Assert.Equal(deterministic, obj.Value<bool>("deterministic"));
+        }
+
+        /// <summary>
+        /// Makes sure that local time is not encoded for deterministic builds. Otherwise deterministic
+        /// builds would not have deterministic keys
+        /// </summary>
+        [Fact]
+        public void CompilationOptionsDeterministic()
+        {
+            var obj = getValue(deterministic: true);
+            Assert.Null(obj.Value<string>("localtime"));
+
+            obj = getValue(deterministic: false);
+            Assert.NotNull(obj.Value<string>("localtime"));
+
+            JObject getValue(bool deterministic)
+            {
+                var options = GetCompilationOptions()
+                    .WithDeterministic(deterministic);
+
+                return GetCompilationOptionsValue(options);
+            }
+        }
+
+        [Fact]
+        public void CompilationOptionsSpecificDiagnosticOptions()
+        {
+            assert(@"[]");
+            assert(@"
+[
+  {
+    ""CA109"": ""Error""
+  }
+]", ("CA109", ReportDiagnostic.Error));
+
+            assert(@"
+[
+  {
+    ""CA109"": ""Error""
+  },
+  {
+    ""CA200"": ""Warn""
+  }
+]", ("CA109", ReportDiagnostic.Error), ("CA200", ReportDiagnostic.Warn));
+
+            void assert(string expected, params (string Diagnostic, ReportDiagnostic ReportDiagnostic)[] values)
+            {
+                var map = values.ToImmutableDictionary(
+                    x => x.Diagnostic,
+                    x => x.ReportDiagnostic);
+
+                var options = GetCompilationOptions()
+                    .WithSpecificDiagnosticOptions(map);
+                var value = GetCompilationOptionsValue(options);
+                var actual = value["specificDiagnosticOptions"]?.ToString(Formatting.Indented);
+                AssertJsonCore(expected, actual);
             }
         }
 
@@ -233,6 +327,22 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""fallbackSourceFileEncoding"": null
 }}
 ", key);
+        }
+
+        [Theory]
+        [InlineData(1, 2)]
+        [InlineData(3, 4)]
+        public void EmitOptionsSubsystemVersion(int major, int minor)
+        {
+            var emitOptions = EmitOptions.Default.WithSubsystemVersion(SubsystemVersion.Create(major, minor));
+            var builder = GetDeterministicKeyBuilder();
+            var key = builder.GetKey(emitOptions);
+            var expected = @$"
+""subsystemVersion"": {{
+  ""major"": {major},
+  ""minor"": {minor}
+}}";
+            AssertJsonSection(expected, key, "subsystemVersion");
         }
 
     }

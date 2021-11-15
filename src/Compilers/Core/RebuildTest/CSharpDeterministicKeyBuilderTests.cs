@@ -18,12 +18,14 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.VisualBasic.UnitTests;
+using System;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
-    public sealed class CSharpDeterministicKeyBuilderTests : DeterministicKeyBuilderTests
+    public sealed class CSharpDeterministicKeyBuilderTests : DeterministicKeyBuilderTests<CSharpCompilation, CSharpCompilationOptions>
     {
         public static CSharpCompilationOptions Options { get; } = new CSharpCompilationOptions(OutputKind.ConsoleApplication, deterministic: true);
+
         protected override SyntaxTree ParseSyntaxTree(string content, string fileName, SourceHashAlgorithm hashAlgorithm) =>
             CSharpTestBase.Parse(
                 content,
@@ -31,14 +33,16 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 checksumAlgorithm: hashAlgorithm,
                 encoding: Encoding.UTF8);
 
-        protected override Compilation CreateCompilation(SyntaxTree[] syntaxTrees, MetadataReference[]? references = null) =>
+        protected override CSharpCompilation CreateCompilation(SyntaxTree[] syntaxTrees, MetadataReference[]? references = null, CSharpCompilationOptions? options = null) =>
             CSharpCompilation.Create(
                 "test",
                 syntaxTrees,
                 references ?? NetCoreApp.References.ToArray(),
-                Options);
+                options ?? Options);
 
         private protected override DeterministicKeyBuilder GetDeterministicKeyBuilder() => new CSharpDeterministicKeyBuilder();
+
+        protected override CSharpCompilationOptions GetCompilationOptions() => Options;
 
         /// <summary>
         /// This check monitors the set of properties and fields on the various option types
@@ -100,7 +104,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""specificDiagnosticOptions"": [],
       ""localtime"": null,
       ""unsafe"": false,
-      ""topLevelBinderFlags"": ""None""
+      ""topLevelBinderFlags"": ""None"",
+      ""globalUsings"": []
     },
     ""syntaxTrees"": [
       {
@@ -111,6 +116,11 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           ""encoding"": ""Unicode (UTF-8)""
         },
         ""parseOptions"": {
+          ""kind"": ""Regular"",
+          ""specifiedKind"": ""Regular"",
+          ""documentationMode"": ""Parse"",
+          ""language"": ""C#"",
+          ""features"": [],
           ""languageVersion"": ""Preview"",
           ""specifiedLanguageVersion"": ""Preview""
         }
@@ -148,6 +158,11 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""encoding"": ""Unicode (UTF-8)""
     }},
     ""parseOptions"": {{
+      ""kind"": ""Regular"",
+      ""specifiedKind"": ""Regular"",
+      ""documentationMode"": ""Parse"",
+      ""language"": ""C#"",
+      ""features"": [],
       ""languageVersion"": ""Preview"",
       ""specifiedLanguageVersion"": ""Preview""
     }}
@@ -233,7 +248,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""specificDiagnosticOptions"": [],
       ""localtime"": null,
       ""unsafe"": false,
-      ""topLevelBinderFlags"": ""None""
+      ""topLevelBinderFlags"": ""None"",
+      ""globalUsings"": []
     }}
   }},
   ""additionalTexts"": [],
@@ -242,6 +258,56 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""emitOptions"": {{}}
 }}
 ", key, "references", "syntaxTrees", "extensions");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CSharpCompilationOptionsCombination(bool @unsafe, NullableContextOptions nullableContextOptions)
+        {
+            foreach (BinderFlags binderFlags in Enum.GetValues(typeof(BinderFlags)))
+            {
+                var options = Options
+                    .WithAllowUnsafe(@unsafe)
+                    .WithTopLevelBinderFlags(binderFlags)
+                    .WithNullableContextOptions(nullableContextOptions);
+
+                var value = GetCompilationOptionsValue(options);
+                Assert.Equal(@unsafe, value.Value<bool>("unsafe"));
+                Assert.Equal(binderFlags.ToString(), value.Value<string>("topLevelBinderFlags"));
+                Assert.Equal(nullableContextOptions.ToString(), value.Value<string>("nullableContextOptions"));
+            }
+        }
+
+        [Fact]
+        public void CSharpCompilationOptionsGlobalUsings()
+        {
+            assert(@"
+[
+  ""System"",
+  ""System.Xml""
+]
+", "System", "System.Xml");
+
+            assert(@"
+[
+  ""System.Xml"",
+  ""System""
+]
+", "System.Xml", "System");
+
+            assert(@"
+[
+  ""System.Xml""
+]
+", "System.Xml");
+
+            void assert(string expected, params string[] usings)
+            {
+                var options = Options.WithUsings(usings);
+                var value = GetCompilationOptionsValue(options);
+                var actual = value["globalUsings"]?.ToString(Formatting.Indented);
+                AssertJsonCore(expected, actual);
+            }
         }
     }
 }
