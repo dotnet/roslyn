@@ -210,8 +210,11 @@ class C
         [Fact]
         public void TestInterpolatedStringWithNewLinesInExpression()
         {
-            var text = @"$""Text with {\nnew[] {\n 1, 2, 3 \n}[2]\n}parts and new line expressions!"""
-                .Replace("\\n", System.Environment.NewLine);
+            var text = @"$""Text with {
+    new[] {
+        1, 2, 3
+    }[2]
+} parts and new line expressions!""";
 
             UsingExpression(text, TestOptions.RegularPreview);
 
