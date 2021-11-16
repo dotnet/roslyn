@@ -53,7 +53,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         /// </summary>
         /// <param name="cancellationToken">The cancellation token that the operation will observe.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        protected static async Task WaitForApplicationIdleAsync(CancellationToken cancellationToken)
+        internal static async Task WaitForApplicationIdleAsync(CancellationToken cancellationToken)
         {
             var synchronizationContext = new DispatcherSynchronizationContext(Application.Current.Dispatcher, DispatcherPriority.ApplicationIdle);
             var taskScheduler = new SynchronizationContextTaskScheduler(synchronizationContext);

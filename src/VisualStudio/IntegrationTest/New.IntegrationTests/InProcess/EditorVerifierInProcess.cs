@@ -34,8 +34,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             }
             else
             {
-                var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
-                var lineText = view.Caret.Position.BufferPosition.GetContainingLine().GetText();
+                var lineText = await TestServices.Editor.GetCurrentLineTextAsync(cancellationToken);
                 Assert.Equal(expectedText, lineText);
             }
         }
@@ -55,12 +54,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             var expectedTextBeforeCaret = expectedText.Substring(0, expectedCaretIndex);
             var expectedTextAfterCaret = expectedText.Substring(expectedCaretMarkupEndIndex);
 
-            var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
-            var bufferPosition = view.Caret.Position.BufferPosition;
-            var line = bufferPosition.GetContainingLine();
-            var lineText = line.GetText();
-            var lineTextBeforeCaret = lineText[..(bufferPosition.Position - line.Start)];
-            var lineTextAfterCaret = lineText[(bufferPosition.Position - line.Start)..];
+            var lineText = await TestServices.Editor.GetCurrentLineTextAsync(cancellationToken);
+            var lineTextBeforeCaret = await TestServices.Editor.GetLineTextBeforeCaretAsync(cancellationToken);
+            var lineTextAfterCaret = await TestServices.Editor.GetLineTextAfterCaretAsync(cancellationToken);
 
             Assert.Equal(expectedTextBeforeCaret, lineTextBeforeCaret);
             Assert.Equal(expectedTextAfterCaret, lineTextAfterCaret);

@@ -5,6 +5,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
@@ -14,6 +15,18 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         public ShellInProcess(TestServices testServices)
             : base(testServices)
         {
+        }
+
+        public async Task<string> GetActiveWindowCaptionAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var monitorSelection = await GetRequiredGlobalServiceAsync<SVsShellMonitorSelection, IVsMonitorSelection>(cancellationToken);
+            ErrorHandler.ThrowOnFailure(monitorSelection.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, out var windowFrameObj));
+            var windowFrame = (IVsWindowFrame)windowFrameObj;
+
+            ErrorHandler.ThrowOnFailure(windowFrame.GetProperty((int)__VSFPROPID.VSFPROPID_Caption, out var captionObj));
+            return $"{captionObj}";
         }
 
         public async Task<Version> GetVersionAsync(CancellationToken cancellationToken)

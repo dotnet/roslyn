@@ -26,10 +26,12 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -47,6 +49,19 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         {
         }
 
+        public async Task WaitForEditorOperationsAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var shell = await GetRequiredGlobalServiceAsync<SVsShell, IVsShell>(cancellationToken);
+            if (shell.IsPackageLoaded(DefGuidList.guidEditorPkg, out var editorPackage) == VSConstants.S_OK)
+            {
+                var asyncPackage = (AsyncPackage)editorPackage;
+                var collection = asyncPackage.GetPropertyValue<JoinableTaskCollection>("JoinableTaskCollection");
+                await collection.JoinTillEmptyAsync(cancellationToken);
+            }
+        }
+
         public async Task<IWpfTextView> GetActiveTextViewAsync(CancellationToken cancellationToken)
             => (await GetActiveTextViewHostAsync(cancellationToken)).TextView;
 
@@ -58,6 +73,40 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             var textSnapshot = view.TextSnapshot;
             var replacementSpan = new SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
             view.TextBuffer.Replace(replacementSpan, text);
+        }
+
+        public async Task<string> GetCurrentLineTextAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
+            var bufferPosition = view.Caret.Position.BufferPosition;
+            var line = bufferPosition.GetContainingLine();
+            return line.GetText();
+        }
+
+        public async Task<string> GetLineTextBeforeCaretAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
+            var bufferPosition = view.Caret.Position.BufferPosition;
+            var line = bufferPosition.GetContainingLine();
+            var lineText = line.GetText();
+            var lineTextBeforeCaret = lineText[..(bufferPosition.Position - line.Start)];
+            return lineTextBeforeCaret;
+        }
+
+        public async Task<string> GetLineTextAfterCaretAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
+            var bufferPosition = view.Caret.Position.BufferPosition;
+            var line = bufferPosition.GetContainingLine();
+            var lineText = line.GetText();
+            var lineTextAfterCaret = lineText[(bufferPosition.Position - line.Start)..];
+            return lineTextAfterCaret;
         }
 
         public async Task MoveCaretAsync(int position, CancellationToken cancellationToken)
