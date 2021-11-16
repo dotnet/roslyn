@@ -6452,7 +6452,8 @@ Test4(() => () => 4);
         public void TypeInference_04()
         {
             var source =
-@"using System;
+@"#nullable enable
+using System;
 using System.Linq.Expressions;
 delegate int D();
 class Program
@@ -6480,7 +6481,8 @@ class Program
         public void TypeInference_05()
         {
             var source =
-@"using System;
+@"#nullable enable
+using System;
 using System.Linq.Expressions;
 delegate int D();
 class Program
@@ -6508,7 +6510,8 @@ class Program
         public void TypeInference_06()
         {
             var source =
-@"using System;
+@"#nullable enable
+using System;
 using System.Linq.Expressions;
 class Program
 {
@@ -6526,18 +6529,18 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (10,9): error CS0411: The type arguments for method 'Program.M1<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // (11,9): error CS0411: The type arguments for method 'Program.M1<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M1(() => F);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(System.Func<T>)").WithLocation(10, 9),
-                // (11,9): error CS0411: The type arguments for method 'Program.M2<T>(Expression<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(System.Func<T>)").WithLocation(11, 9),
+                // (12,9): error CS0411: The type arguments for method 'Program.M2<T>(Expression<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M2(() => F);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("Program.M2<T>(System.Linq.Expressions.Expression<System.Func<T>>)").WithLocation(11, 9),
-                // (12,9): error CS0411: The type arguments for method 'Program.M1<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("Program.M2<T>(System.Linq.Expressions.Expression<System.Func<T>>)").WithLocation(12, 9),
+                // (13,9): error CS0411: The type arguments for method 'Program.M1<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M1(() => () => 1);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(System.Func<T>)").WithLocation(12, 9),
-                // (13,9): error CS0411: The type arguments for method 'Program.M2<T>(Expression<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(System.Func<T>)").WithLocation(13, 9),
+                // (14,9): error CS0411: The type arguments for method 'Program.M2<T>(Expression<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M2(() => () => 2);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("Program.M2<T>(System.Linq.Expressions.Expression<System.Func<T>>)").WithLocation(13, 9)
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("Program.M2<T>(System.Linq.Expressions.Expression<System.Func<T>>)").WithLocation(14, 9)
             };
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(expectedDiagnostics);
@@ -6552,7 +6555,8 @@ class Program
         public void TypeInference_07()
         {
             var source =
-@"using System;
+@"#nullable enable
+using System;
 using System.Linq.Expressions;
 class Program
 {
@@ -6573,24 +6577,24 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (11,9): error CS0411: The type arguments for method 'Program.M1<T>(Func<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // (12,9): error CS0411: The type arguments for method 'Program.M1<T>(Func<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M1(() => () => F);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(System.Func<System.Func<T>>)").WithLocation(11, 9),
-                // (12,9): error CS0411: The type arguments for method 'Program.M2<T>(Func<Expression<Func<T>>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(System.Func<System.Func<T>>)").WithLocation(12, 9),
+                // (13,9): error CS0411: The type arguments for method 'Program.M2<T>(Func<Expression<Func<T>>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M2(() => () => F);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("Program.M2<T>(System.Func<System.Linq.Expressions.Expression<System.Func<T>>>)").WithLocation(12, 9),
-                // (13,9): error CS0411: The type arguments for method 'Program.M3<T>(Expression<Func<Func<T>>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("Program.M2<T>(System.Func<System.Linq.Expressions.Expression<System.Func<T>>>)").WithLocation(13, 9),
+                // (14,9): error CS0411: The type arguments for method 'Program.M3<T>(Expression<Func<Func<T>>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M3(() => () => F);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M3").WithArguments("Program.M3<T>(System.Linq.Expressions.Expression<System.Func<System.Func<T>>>)").WithLocation(13, 9),
-                // (14,9): error CS0411: The type arguments for method 'Program.M1<T>(Func<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M3").WithArguments("Program.M3<T>(System.Linq.Expressions.Expression<System.Func<System.Func<T>>>)").WithLocation(14, 9),
+                // (15,9): error CS0411: The type arguments for method 'Program.M1<T>(Func<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M1(() => () => () => 1);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(System.Func<System.Func<T>>)").WithLocation(14, 9),
-                // (15,9): error CS0411: The type arguments for method 'Program.M2<T>(Func<Expression<Func<T>>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(System.Func<System.Func<T>>)").WithLocation(15, 9),
+                // (16,9): error CS0411: The type arguments for method 'Program.M2<T>(Func<Expression<Func<T>>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M2(() => () => () => 2);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("Program.M2<T>(System.Func<System.Linq.Expressions.Expression<System.Func<T>>>)").WithLocation(15, 9),
-                // (16,9): error CS0411: The type arguments for method 'Program.M3<T>(Expression<Func<Func<T>>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("Program.M2<T>(System.Func<System.Linq.Expressions.Expression<System.Func<T>>>)").WithLocation(16, 9),
+                // (17,9): error CS0411: The type arguments for method 'Program.M3<T>(Expression<Func<Func<T>>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M3(() => () => () => 3);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M3").WithArguments("Program.M3<T>(System.Linq.Expressions.Expression<System.Func<System.Func<T>>>)").WithLocation(16, 9)
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M3").WithArguments("Program.M3<T>(System.Linq.Expressions.Expression<System.Func<System.Func<T>>>)").WithLocation(17, 9)
             };
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(expectedDiagnostics);
@@ -6605,7 +6609,8 @@ class Program
         public void TypeInference_08()
         {
             var source =
-@"using System;
+@"#nullable enable
+using System;
 using System.Linq.Expressions;
 delegate int D();
 class Program
@@ -6636,7 +6641,8 @@ class Program
         public void TypeInference_09()
         {
             var source =
-@"using System;
+@"#nullable enable
+using System;
 delegate void D<T>(object x, T y);
 class Program
 {
@@ -6660,7 +6666,8 @@ class Program
         public void TypeInference_10()
         {
             var source =
-@"using System;
+@"#nullable enable
+using System;
 delegate void D1<T>(object x, T y);
 delegate T D2<T>();
 class Program
@@ -6685,7 +6692,8 @@ class Program
         public void TypeInference_11()
         {
             var source =
-@"using System;
+@"#nullable enable
+using System;
 delegate T D1<T>();
 delegate T D2<T>(ref object o);
 class Program
@@ -6710,7 +6718,8 @@ class Program
         public void TypeInference_12()
         {
             var source =
-@"using System;
+@"#nullable enable
+using System;
 delegate int D();
 class Program
 {
@@ -6732,7 +6741,8 @@ class Program
         public void TypeInference_13()
         {
             var source =
-@"using System;
+@"#nullable enable
+using System;
 delegate void D();
 class C<T> { }
 static class E
